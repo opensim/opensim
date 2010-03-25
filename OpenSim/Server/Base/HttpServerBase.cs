@@ -71,6 +71,8 @@ namespace OpenSim.Server.Base
                 return m_Servers[port];
 
             m_Servers[port] = new BaseHttpServer(port);
+            
+            m_Log.InfoFormat("[SERVER]: Starting new HTTP server on port {0}", port);
             m_Servers[port].Start();
 
             return m_Servers[port];
@@ -109,6 +111,7 @@ namespace OpenSim.Server.Base
 
         protected override void Initialise()
         {
+            m_Log.InfoFormat("[SERVER]: Starting HTTP server on port {0}", m_HttpServer.Port);
             m_HttpServer.Start();
 
             if (MainConsole.Instance is RemoteConsole)

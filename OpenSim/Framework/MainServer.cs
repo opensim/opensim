@@ -25,13 +25,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Framework.Servers.HttpServer;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
+using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Framework
 {
     public class MainServer
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private static BaseHttpServer instance = null;
         private static Dictionary<uint, BaseHttpServer> m_Servers =
                 new Dictionary<uint, BaseHttpServer>();
@@ -53,6 +57,8 @@ namespace OpenSim.Framework
                 return m_Servers[port];
 
             m_Servers[port] = new BaseHttpServer(port);
+
+            m_log.InfoFormat("[MAIN HTTP SERVER]: Starting main http server on port {0}", port);
             m_Servers[port].Start();
 
             return m_Servers[port];
