@@ -1580,7 +1580,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void Start()
         {
-            m_log.Info("[BASE HTTP SERVER]: Starting up HTTP Server");
             StartHTTP();
         }
 
@@ -1588,7 +1587,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             try
             {
-                m_log.Debug("[BASE HTTP SERVER]: Spawned main thread OK");
                 //m_httpListener = new HttpListener();
                 NotSocketErrors = 0;
                 if (!m_ssl)
