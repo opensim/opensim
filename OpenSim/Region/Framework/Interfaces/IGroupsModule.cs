@@ -37,6 +37,30 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         event NewGroupNotice OnNewGroupNotice;
 
+        /// <summary>
+        /// Create a group
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="name"></param>
+        /// <param name="charter"></param>
+        /// <param name="showInList"></param>
+        /// <param name="insigniaID"></param>
+        /// <param name="membershipFee"></param>
+        /// <param name="openEnrollment"></param>
+        /// <param name="allowPublish"></param>
+        /// <param name="maturePublish"></param>
+        /// <returns>The UUID of the created group</returns>
+        UUID CreateGroup(
+            IClientAPI remoteClient, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, 
+            bool openEnrollment, bool allowPublish, bool maturePublish);
+
+        /// <summary>
+        /// Get a group given its name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>The group's data.  Null if there is no such group.</returns>
+        DirGroupsReplyData? GetGroup(string name);
+        
         void ActivateGroup(IClientAPI remoteClient, UUID groupID);
         List<GroupTitlesData> GroupTitlesRequest(IClientAPI remoteClient, UUID groupID);
         List<GroupMembersData> GroupMembersRequest(IClientAPI remoteClient, UUID groupID);
@@ -50,8 +74,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
         void SetGroupAcceptNotices(IClientAPI remoteClient, UUID groupID, bool acceptNotices, bool listInProfile);
 
-        void GroupTitleUpdate(IClientAPI remoteClient, UUID GroupID, UUID TitleRoleID);
-        UUID CreateGroup(IClientAPI remoteClient, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish);
+        void GroupTitleUpdate(IClientAPI remoteClient, UUID GroupID, UUID TitleRoleID);        
         
         GroupNoticeData[] GroupNoticesListRequest(IClientAPI remoteClient, UUID GroupID);
         string GetGroupTitle(UUID avatarID);

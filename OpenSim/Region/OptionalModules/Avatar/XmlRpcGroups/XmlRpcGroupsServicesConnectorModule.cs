@@ -470,7 +470,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             XmlRpcCall(requestID, "groups.removeAgentFromGroupRole", param);
         }
 
-
         public List<DirGroupsReplyData> FindGroups(GroupRequestID requestID, string search)
         {
             Hashtable param = new Hashtable();

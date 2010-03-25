@@ -328,17 +328,19 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         }
         */
 
-
         void OnDirFindQuery(IClientAPI remoteClient, UUID queryID, string queryText, uint queryFlags, int queryStart)
         {
             if (((DirFindFlags)queryFlags & DirFindFlags.Groups) == DirFindFlags.Groups)
             {
-                if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called with queryText({1}) queryFlags({2}) queryStart({3})", System.Reflection.MethodBase.GetCurrentMethod().Name, queryText, (DirFindFlags)queryFlags, queryStart);
+                if (m_debugEnabled) 
+                    m_log.DebugFormat(
+                        "[GROUPS]: {0} called with queryText({1}) queryFlags({2}) queryStart({3})", 
+                        System.Reflection.MethodBase.GetCurrentMethod().Name, queryText, (DirFindFlags)queryFlags, queryStart);
 
                 // TODO: This currently ignores pretty much all the query flags including Mature and sort order
-                remoteClient.SendDirGroupsReply(queryID, m_groupData.FindGroups(GetClientGroupRequestID(remoteClient), queryText).ToArray());
-            }
-            
+                remoteClient.SendDirGroupsReply(
+                    queryID, m_groupData.FindGroups(GetClientGroupRequestID(remoteClient), queryText).ToArray());
+            }            
         }
 
         private void OnAgentDataUpdateRequest(IClientAPI remoteClient, UUID dataForAgentID, UUID sessionID)
@@ -652,7 +654,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             List<GroupRolesData> data = m_groupData.GetGroupRoles(GetClientGroupRequestID(remoteClient), groupID);
 
             return data;
-
         }
 
         public List<GroupRoleMembersData> GroupRoleMembersRequest(IClientAPI remoteClient, UUID groupID)
@@ -662,8 +663,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             List<GroupRoleMembersData> data = m_groupData.GetGroupRoleMembers(GetClientGroupRequestID(remoteClient), groupID);
 
             return data;
-
-
         }
 
         public GroupProfileData GroupProfileRequest(IClientAPI remoteClient, UUID groupID)
@@ -746,7 +745,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 return UUID.Zero;
             }
             // is there is a money module present ?
-            IMoneyModule money=remoteClient.Scene.RequestModuleInterface<IMoneyModule>();
+            IMoneyModule money = remoteClient.Scene.RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
                 // do the transaction, that is if the agent has got sufficient funds
@@ -764,6 +763,25 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             SendAgentGroupDataUpdate(remoteClient, remoteClient.AgentId);
 
             return groupID;
+        }
+
+        public DirGroupsReplyData? GetGroup(string name)
+        {
+            if (m_debugEnabled) 
+                m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+
+            List<DirGroupsReplyData> groups = m_groupData.FindGroups(null, name);
+
+            DirGroupsReplyData? foundGroup = null;
+            
+            foreach (DirGroupsReplyData group in groups)
+            {
+                // We must have an exact match - I believe FindGroups will return partial matches
+                if (group.groupName == name)
+                    foundGroup = group;
+            }            
+
+            return foundGroup;
         }
 
         public GroupNoticeData[] GroupNoticesListRequest(IClientAPI remoteClient, UUID groupID)
