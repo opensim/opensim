@@ -1193,8 +1193,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     else
                     {
                         string domain = string.Empty; //m_sceneList[0].CommsManager.NetworkServersInfo.UserURL;
-                        if (account.ServiceURLs["HomeURI"] != null)
-                            domain = account.ServiceURLs["HomeURI"].ToString();
+                        object homeUriObj;
+                        if (account.ServiceURLs.TryGetValue("HomeURI", out homeUriObj) && homeUriObj != null)
+                            domain = homeUriObj.ToString();
                         // They're a local user, use this:
                         info.RequestID.UserServiceURL = domain;
                     }
