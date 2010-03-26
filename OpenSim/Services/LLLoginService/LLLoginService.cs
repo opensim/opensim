@@ -339,9 +339,17 @@ namespace OpenSim.Services.LLLoginService
                         where = "safe";
                     }
                     else
-                        m_log.WarnFormat(
-                            "[LLOGIN SERVICE]: User {0} {1} does not have a valid home and this grid does not have default locations.",
+                    {
+                        m_log.WarnFormat("[LLOGIN SERVICE]: User {0} {1} does not have a valid home and this grid does not have default locations.",
                             account.FirstName, account.LastName);
+                        m_log.Info("[LLOGIN SERVICE]: Home Region Not Found Attempting to find random region");
+                        defaults = m_GridService.GetRegionsByName(account.ScopeID, "", 1);
+                        if (defaults != null && defaults.Count > 0)
+                        {
+                            region = defaults[0];
+                            where = "safe";
+                        }
+                    }
                 }
 
                 return region;
@@ -364,6 +372,17 @@ namespace OpenSim.Services.LLLoginService
                         region = defaults[0];
                         where = "safe";
                     }
+                    else
+                    {
+                        m_log.Info("[LLOGIN SERVICE]: Last Region Not Found Attempting to find random region");
+                        defaults = m_GridService.GetRegionsByName(account.ScopeID, "", 1);
+                        if (defaults != null && defaults.Count > 0)
+                        {
+                            region = defaults[0];
+                            where = "safe";
+                        }
+                    }
+
                 }
                 else
                 {
@@ -396,7 +415,6 @@ namespace OpenSim.Services.LLLoginService
                     {
                         if (!regionName.Contains("@"))
                         {
-
                             List<GridRegion> regions = m_GridService.GetRegionsByName(account.ScopeID, regionName, 1);
                             if ((regions == null) || (regions != null && regions.Count == 0))
                             {
@@ -429,6 +447,7 @@ namespace OpenSim.Services.LLLoginService
                                 return null;
                             }
                             // Valid specification of a remote grid
+                            
                             regionName = parts[0];
                             string domainLocator = parts[1];
                             parts = domainLocator.Split(new char[] {':'});
@@ -436,6 +455,7 @@ namespace OpenSim.Services.LLLoginService
                             uint port = 0;
                             if (parts.Length > 1)
                                 UInt32.TryParse(parts[1], out port);
+
                             GridRegion region = FindForeignRegion(domainName, port, regionName, out gatekeeper);
                             return region;
                         }
