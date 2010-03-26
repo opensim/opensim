@@ -2,6 +2,42 @@
 <!-- please leave the top comment for us emacs folks -->
 <property name="nunitcmd" value="nunit-console" />
 
+<!-- For safety/laziness sake, we're going to take the approach of deleting known extraneous files here rather than
+     trying to copy across only the essential ones -->
+<property name="distbindir" value="distbin" />
+<target name="distbin">
+  <copy file="bin/OpenSim.ini.example" tofile="bin/OpenSim.ini"/>
+  <delete dir="${distbindir}"/>
+  <!-- <copy file="*" todir="${distbindir}"/> -->
+  <copy todir="${distbindir}">
+    <fileset>
+      <include name="**"/>
+    </fileset>
+  </copy>
+  <delete dir="${distbindir}/OpenSim"/>
+  <delete dir="${distbindir}/Prebuild"/>
+  <delete dir="${distbindir}/%temp%"/>
+  <delete dir="${distbindir}/.nant"/>
+  <delete>
+    <fileset basedir="${distbindir}">
+      <include name="Makefile"/>
+      <include name="nant-color"/>
+      <include name="OpenSim.*"/>
+      <include name="prebuild.xml"/>
+      <include name="runprebuild*"/>
+      <include name="TESTING.txt"/>
+      <include name="TestResult.xml"/>
+      <include name="bin/OpenSim.Server.ini"/>
+      <include name="bin/Regions/*"/>
+      <include name="bin/*.db"/>
+      <include name="**/.git/**"/>
+      <include name=".gitignore"/>
+      <include name=".hgignore"/>
+    </fileset>
+  </delete>
+  
+</target>
+
 <!-- I don't think these targets are being actively used.  But just in case, we'll just comment them out for now - justincc -->
 <!--
 <property name="projectdir" value="opensim-0.6.9" />
