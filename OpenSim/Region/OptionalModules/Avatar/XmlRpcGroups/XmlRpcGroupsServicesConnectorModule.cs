@@ -352,10 +352,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             MemberGroupProfile.PowersMask = MemberInfo.GroupPowers;
 
             return MemberGroupProfile;
-
         }
-
-
 
         public void SetAgentActiveGroup(GroupRequestID requestID, UUID AgentID, UUID GroupID)
         {

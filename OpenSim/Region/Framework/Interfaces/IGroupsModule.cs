@@ -55,11 +55,18 @@ namespace OpenSim.Region.Framework.Interfaces
             bool openEnrollment, bool allowPublish, bool maturePublish);
 
         /// <summary>
-        /// Get a group given its name
+        /// Get a group
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">Name of the group</param>
         /// <returns>The group's data.  Null if there is no such group.</returns>
-        DirGroupsReplyData? GetGroup(string name);
+        GroupRecord GetGroupRecord(string name);
+
+        /// <summary>
+        /// Get a group
+        /// </summary>
+        /// <param name="GroupID">ID of the group</param>
+        /// <returns>The group's data.  Null if there is no such group.</returns>        
+        GroupRecord GetGroupRecord(UUID GroupID);
         
         void ActivateGroup(IClientAPI remoteClient, UUID groupID);
         List<GroupTitlesData> GroupTitlesRequest(IClientAPI remoteClient, UUID groupID);
@@ -87,7 +94,6 @@ namespace OpenSim.Region.Framework.Interfaces
         void LeaveGroupRequest(IClientAPI remoteClient, UUID GroupID);
         void EjectGroupMemberRequest(IClientAPI remoteClient, UUID GroupID, UUID EjecteeID);
         void InviteGroupRequest(IClientAPI remoteClient, UUID GroupID, UUID InviteeID, UUID RoleID);
-        GroupRecord GetGroupRecord(UUID GroupID);
         void NotifyChange(UUID GroupID);
     }
 }

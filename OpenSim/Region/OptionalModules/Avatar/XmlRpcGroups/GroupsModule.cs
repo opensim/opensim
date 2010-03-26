@@ -365,7 +365,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             SendScenePresenceUpdate(dataForAgentID, activeGroupTitle);
         }
 
-        private void HandleUUIDGroupNameRequest(UUID GroupID,IClientAPI remoteClient)
+        private void HandleUUIDGroupNameRequest(UUID GroupID, IClientAPI remoteClient)
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
@@ -595,6 +595,31 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return m_groupData.GetGroupRecord(null, GroupID, null);
         }
 
+        public GroupRecord GetGroupRecord(string name)
+        {
+            if (m_debugEnabled) 
+                m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+
+            // XXX: Two call implementation.  This could be done in a single call if the server itself were to
+            // implement the code below.
+
+            List<DirGroupsReplyData> groups = m_groupData.FindGroups(null, name);
+
+            DirGroupsReplyData? foundGroup = null;
+            
+            foreach (DirGroupsReplyData group in groups)
+            {
+                // We must have an exact match - I believe FindGroups will return partial matches
+                if (group.groupName == name)
+                    foundGroup = group;
+            }            
+
+            if (null == foundGroup)
+                return null;
+
+            return GetGroupRecord(((DirGroupsReplyData)foundGroup).groupID);
+        }
+        
         public void ActivateGroup(IClientAPI remoteClient, UUID groupID)
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
@@ -766,25 +791,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             SendAgentGroupDataUpdate(remoteClient, remoteClient.AgentId);
 
             return groupID;
-        }
-
-        public DirGroupsReplyData? GetGroup(string name)
-        {
-            if (m_debugEnabled) 
-                m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
-
-            List<DirGroupsReplyData> groups = m_groupData.FindGroups(null, name);
-
-            DirGroupsReplyData? foundGroup = null;
-            
-            foreach (DirGroupsReplyData group in groups)
-            {
-                // We must have an exact match - I believe FindGroups will return partial matches
-                if (group.groupName == name)
-                    foundGroup = group;
-            }            
-
-            return foundGroup;
         }
 
         public GroupNoticeData[] GroupNoticesListRequest(IClientAPI remoteClient, UUID groupID)
