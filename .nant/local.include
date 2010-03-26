@@ -36,10 +36,9 @@
           <include name="bin/assets/**" />
           <include name="bin/data/**" />
           <include name="bin/OpenSim*xml" />
-          <!-- the next is to exclude built libs -->
-          <exclude name="bin/OpenSim.*dll" />
           <include name="bin/OpenSim.ini" />
           <include name="bin/defaultstripe.png" />
+          <exclude name="bin/OpenSim.*dll" />
        </fileset>
    </copy>
    <touch file="${projectdir}/bin/startup_commands.txt" />
