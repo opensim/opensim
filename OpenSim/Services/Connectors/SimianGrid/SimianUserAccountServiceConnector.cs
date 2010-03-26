@@ -82,14 +82,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 IConfig assetConfig = source.Configs["UserAccountService"];
                 if (assetConfig == null)
                 {
-                    m_log.Error("[ACCOUNT CONNECTOR]: UserAccountService missing from OpenSim.ini");
+                    m_log.Error("[SIMIAN ACCOUNT CONNECTOR]: UserAccountService missing from OpenSim.ini");
                     throw new Exception("User account connector init error");
                 }
 
                 string serviceURI = assetConfig.GetString("UserAccountServerURI");
                 if (String.IsNullOrEmpty(serviceURI))
                 {
-                    m_log.Error("[ACCOUNT CONNECTOR]: No UserAccountServerURI in section UserAccountService, skipping SimianUserAccountServiceConnector");
+                    m_log.Error("[SIMIAN ACCOUNT CONNECTOR]: No UserAccountServerURI in section UserAccountService, skipping SimianUserAccountServiceConnector");
                     throw new Exception("User account connector init error");
                 }
 
@@ -140,7 +140,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         {
             List<UserAccount> accounts = new List<UserAccount>();
 
-            m_log.DebugFormat("[ACCOUNT CONNECTOR]: Searching for user accounts with name query " + query);
+            m_log.DebugFormat("[SIMIAN ACCOUNT CONNECTOR]: Searching for user accounts with name query " + query);
 
             NameValueCollection requestArgs = new NameValueCollection
             {
@@ -163,12 +163,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 }
                 else
                 {
-                    m_log.Warn("[ACCOUNT CONNECTOR]: Account search failed, response data was in an invalid format");
+                    m_log.Warn("[SIMIAN ACCOUNT CONNECTOR]: Account search failed, response data was in an invalid format");
                 }
             }
             else
             {
-                m_log.Warn("[ACCOUNT CONNECTOR]: Failed to search for account data by name " + query);
+                m_log.Warn("[SIMIAN ACCOUNT CONNECTOR]: Failed to search for account data by name " + query);
             }
 
             return accounts;
@@ -176,7 +176,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public bool StoreUserAccount(UserAccount data)
         {
-            m_log.InfoFormat("[ACCOUNT CONNECTOR]: Storing user account for " + data.Name);
+            m_log.InfoFormat("[SIMIAN ACCOUNT CONNECTOR]: Storing user account for " + data.Name);
 
             NameValueCollection requestArgs = new NameValueCollection
             {
@@ -191,7 +191,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             
             if (response["Success"].AsBoolean())
             {
-                m_log.InfoFormat("[ACCOUNT CONNECTOR]: Storing user account data for " + data.Name);
+                m_log.InfoFormat("[SIMIAN ACCOUNT CONNECTOR]: Storing user account data for " + data.Name);
 
                 requestArgs = new NameValueCollection
                 {
@@ -212,14 +212,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 }
                 else
                 {
-                    m_log.Warn("[ACCOUNT CONNECTOR]: Failed to store user account data for " + data.Name + ": " + response["Message"].AsString());
+                    m_log.Warn("[SIMIAN ACCOUNT CONNECTOR]: Failed to store user account data for " + data.Name + ": " + response["Message"].AsString());
                 }
 
                 return success;
             }
             else
             {
-                m_log.Warn("[ACCOUNT CONNECTOR]: Failed to store user account for " + data.Name + ": " + response["Message"].AsString());
+                m_log.Warn("[SIMIAN ACCOUNT CONNECTOR]: Failed to store user account for " + data.Name + ": " + response["Message"].AsString());
             }
 
             return false;
@@ -233,7 +233,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         private UserAccount GetUser(NameValueCollection requestArgs)
         {
             string lookupValue = (requestArgs.Count > 1) ? requestArgs[1] : "(Unknown)";
-            m_log.DebugFormat("[ACCOUNT CONNECTOR]: Looking up user account with query: " + lookupValue);
+            m_log.DebugFormat("[SIMIAN ACCOUNT CONNECTOR]: Looking up user account with query: " + lookupValue);
 
             OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean())
@@ -242,11 +242,11 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 if (user != null)
                     return ResponseToUserAccount(user);
                 else
-                    m_log.Warn("[ACCOUNT CONNECTOR]: Account search failed, response data was in an invalid format");
+                    m_log.Warn("[SIMIAN ACCOUNT CONNECTOR]: Account search failed, response data was in an invalid format");
             }
             else
             {
-                m_log.Warn("[ACCOUNT CONNECTOR]: Failed to lookup user account with query: " + lookupValue);
+                m_log.Warn("[SIMIAN ACCOUNT CONNECTOR]: Failed to lookup user account with query: " + lookupValue);
             }
 
             return null;

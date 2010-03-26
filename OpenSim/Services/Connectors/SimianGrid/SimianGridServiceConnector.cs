@@ -85,14 +85,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 IConfig gridConfig = source.Configs["GridService"];
                 if (gridConfig == null)
                 {
-                    m_log.Error("[GRID CONNECTOR]: GridService missing from OpenSim.ini");
+                    m_log.Error("[SIMIAN GRID CONNECTOR]: GridService missing from OpenSim.ini");
                     throw new Exception("Grid connector init error");
                 }
 
                 string serviceUrl = gridConfig.GetString("GridServerURI");
                 if (String.IsNullOrEmpty(serviceUrl))
                 {
-                    m_log.Error("[GRID CONNECTOR]: No Server URI named in section GridService");
+                    m_log.Error("[SIMIAN GRID CONNECTOR]: No Server URI named in section GridService");
                     throw new Exception("Grid connector init error");
                 }
 
@@ -155,7 +155,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             bool success = response["Success"].AsBoolean();
 
             if (!success)
-                m_log.Warn("[GRID CONNECTOR]: Region deregistration for " + regionID + " failed: " + response["Message"].AsString());
+                m_log.Warn("[SIMIAN GRID CONNECTOR]: Region deregistration for " + regionID + " failed: " + response["Message"].AsString());
 
             return success;
         }
@@ -181,7 +181,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     }
                 }
 
-                m_log.Debug("[GRID CONNECTOR]: Found " + regions.Count + " neighbors for region " + regionID);
+                m_log.Debug("[SIMIAN GRID CONNECTOR]: Found " + regions.Count + " neighbors for region " + regionID);
                 return regions;
             }
 
@@ -203,7 +203,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             else
             {
-                m_log.Warn("[GRID CONNECTOR]: Grid service did not find a match for region " + regionID);
+                m_log.Warn("[SIMIAN GRID CONNECTOR]: Grid service did not find a match for region " + regionID);
                 return null;
             }
         }
@@ -228,7 +228,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             else
             {
-                //m_log.InfoFormat("[GRID CONNECTOR]: Grid service did not find a match for region at {0},{1}",
+                //m_log.InfoFormat("[SIMIAN GRID CONNECTOR]: Grid service did not find a match for region at {0},{1}",
                 //    x / Constants.RegionSize, y / Constants.RegionSize);
                 return null;
             }
@@ -238,7 +238,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         {
             List<GridRegion> regions = GetRegionsByName(scopeID, regionName, 1);
 
-            m_log.Debug("[GRID CONNECTOR]: Got " + regions.Count + " matches for region name " + regionName);
+            m_log.Debug("[SIMIAN GRID CONNECTOR]: Got " + regions.Count + " matches for region name " + regionName);
 
             if (regions.Count > 0)
                 return regions[0];
@@ -349,7 +349,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             else
             {
-                m_log.Warn("[GRID CONNECTOR]: Grid service did not find a match for region " + regionID + " during region flags check");
+                m_log.Warn("[SIMIAN GRID CONNECTOR]: Grid service did not find a match for region " + regionID + " during region flags check");
                 return -1;
             }
         }
@@ -374,7 +374,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             else
             {
-                m_log.Warn("[GRID CONNECTOR]: Grid service did not find a match for region at " + position);
+                m_log.Warn("[SIMIAN GRID CONNECTOR]: Grid service did not find a match for region at " + position);
                 return null;
             }
         }

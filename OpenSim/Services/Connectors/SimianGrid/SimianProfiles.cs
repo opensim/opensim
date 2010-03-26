@@ -93,14 +93,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 IConfig gridConfig = source.Configs["UserAccountService"];
                 if (gridConfig == null)
                 {
-                    m_log.Error("[PROFILES]: UserAccountService missing from OpenSim.ini");
+                    m_log.Error("[SIMIAN PROFILES]: UserAccountService missing from OpenSim.ini");
                     throw new Exception("Profiles init error");
                 }
 
                 string serviceUrl = gridConfig.GetString("UserAccountServerURI");
                 if (String.IsNullOrEmpty(serviceUrl))
                 {
-                    m_log.Error("[PROFILES]: No UserAccountServerURI in section UserAccountService");
+                    m_log.Error("[SIMIAN PROFILES]: No UserAccountServerURI in section UserAccountService");
                     throw new Exception("Profiles init error");
                 }
 
@@ -153,7 +153,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             UUID targetAvatarID;
             if (args.Count < 1 || !UUID.TryParse(args[0], out targetAvatarID))
             {
-                m_log.Error("[PROFILES]: Unrecognized arguments for " + method);
+                m_log.Error("[SIMIAN PROFILES]: Unrecognized arguments for " + method);
                 return;
             }
 
@@ -193,7 +193,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             UUID targetAvatarID;
             if (args.Count < 1 || !UUID.TryParse(args[0], out targetAvatarID))
             {
-                m_log.Error("[PROFILES]: Unrecognized arguments for " + method);
+                m_log.Error("[SIMIAN PROFILES]: Unrecognized arguments for " + method);
                 return;
             }
 
@@ -211,7 +211,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             UUID pickID;
             if (args.Count < 2 || !UUID.TryParse(args[0], out avatarID) || !UUID.TryParse(args[1], out pickID))
             {
-                m_log.Error("[PROFILES]: Unrecognized arguments for " + method);
+                m_log.Error("[SIMIAN PROFILES]: Unrecognized arguments for " + method);
                 return;
             }
 
@@ -244,7 +244,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             UUID targetAvatarID;
             if (args.Count < 1 || !UUID.TryParse(args[0], out targetAvatarID))
             {
-                m_log.Error("[PROFILES]: Unrecognized arguments for " + method);
+                m_log.Error("[SIMIAN PROFILES]: Unrecognized arguments for " + method);
                 return;
             }
 
@@ -305,7 +305,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             else
             {
-                m_log.Warn("[PROFILES]: Failed to fetch profile information for " + client.Name + ", returning default values");
+                m_log.Warn("[SIMIAN PROFILES]: Failed to fetch profile information for " + client.Name + ", returning default values");
                 client.SendAvatarProperties(avatarID, String.Empty, "1/1/1970", Utils.EmptyBytes,
                     String.Empty, (uint)flags, UUID.Zero, UUID.Zero, String.Empty, UUID.Zero);
             }
@@ -342,7 +342,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         private void UserInfoRequestHandler(IClientAPI client)
         {
-            m_log.Error("[PROFILES]: UserInfoRequestHandler");
+            m_log.Error("[SIMIAN PROFILES]: UserInfoRequestHandler");
 
             // Fetch this user's e-mail address
             NameValueCollection requestArgs = new NameValueCollection
@@ -355,14 +355,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
             string email = response["Email"].AsString();
 
             if (!response["Success"].AsBoolean())
-                m_log.Warn("[PROFILES]: GetUser failed during a user info request for " + client.Name);
+                m_log.Warn("[SIMIAN PROFILES]: GetUser failed during a user info request for " + client.Name);
 
             client.SendUserInfoReply(false, true, email);
         }
 
         private void UpdateUserInfoHandler(bool imViaEmail, bool visible, IClientAPI client)
         {
-            m_log.Info("[PROFILES]: Ignoring user info update from " + client.Name);
+            m_log.Info("[SIMIAN PROFILES]: Ignoring user info update from " + client.Name);
         }
 
         #endregion Profiles
@@ -380,7 +380,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 UserAccount admin = scene.UserAccountService.GetUserAccount(scene.RegionInfo.ScopeID, UUID.Zero);
                 if (admin != null)
                 {
-                    m_log.InfoFormat("[PROFILES]: Setting estate {0} (ID: {1}) owner to {2}", estate.EstateName,
+                    m_log.InfoFormat("[SIMIAN PROFILES]: Setting estate {0} (ID: {1}) owner to {2}", estate.EstateName,
                         estate.EstateID, admin.Name);
 
                     estate.EstateOwner = admin.PrincipalID;
@@ -388,7 +388,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 }
                 else
                 {
-                    m_log.WarnFormat("[PROFILES]: Estate {0} (ID: {1}) does not have an owner", estate.EstateName, estate.EstateID);
+                    m_log.WarnFormat("[SIMIAN PROFILES]: Estate {0} (ID: {1}) does not have an owner", estate.EstateName, estate.EstateID);
                 }
             }
         }
@@ -406,7 +406,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             bool success = response["Success"].AsBoolean();
 
             if (!success)
-                m_log.WarnFormat("[PROFILES]: Failed to add user data with key {0} for {1}: {2}", key, userID, response["Message"].AsString());
+                m_log.WarnFormat("[SIMIAN PROFILES]: Failed to add user data with key {0} for {1}: {2}", key, userID, response["Message"].AsString());
 
             return success;
         }
@@ -426,7 +426,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             else
             {
-                m_log.Error("[PROFILES]: Failed to fetch user data for " + userID + ": " + response["Message"].AsString());
+                m_log.Error("[SIMIAN PROFILES]: Failed to fetch user data for " + userID + ": " + response["Message"].AsString());
             }
 
             return null;

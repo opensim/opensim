@@ -83,14 +83,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 IConfig gridConfig = source.Configs["AvatarService"];
                 if (gridConfig == null)
                 {
-                    m_log.Error("[AVATAR CONNECTOR]: AvatarService missing from OpenSim.ini");
+                    m_log.Error("[SIMIAN AVATAR CONNECTOR]: AvatarService missing from OpenSim.ini");
                     throw new Exception("Avatar connector init error");
                 }
 
                 string serviceUrl = gridConfig.GetString("AvatarServerURI");
                 if (String.IsNullOrEmpty(serviceUrl))
                 {
-                    m_log.Error("[AVATAR CONNECTOR]: No AvatarServerURI in section AvatarService");
+                    m_log.Error("[SIMIAN AVATAR CONNECTOR]: No AvatarServerURI in section AvatarService");
                     throw new Exception("Avatar connector init error");
                 }
 
@@ -156,14 +156,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 }
                 else
                 {
-                    m_log.Warn("[AVATAR CONNECTOR]: Failed to get user appearance for " + userID +
+                    m_log.Warn("[SIMIAN AVATAR CONNECTOR]: Failed to get user appearance for " + userID +
                         ", LLAppearance is missing or invalid");
                     return null;
                 }
             }
             else
             {
-                m_log.Warn("[AVATAR CONNECTOR]: Failed to get user appearance for " + userID + ": " +
+                m_log.Warn("[SIMIAN AVATAR CONNECTOR]: Failed to get user appearance for " + userID + ": " +
                     response["Message"].AsString());
             }
 
@@ -172,7 +172,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public bool SetAvatar(UUID userID, AvatarData avatar)
         {
-            m_log.Debug("[AVATAR CONNECTOR]: SetAvatar called for " + userID);
+            m_log.Debug("[SIMIAN AVATAR CONNECTOR]: SetAvatar called for " + userID);
 
             if (avatar.AvatarType == 1) // LLAvatar
             {
@@ -228,32 +228,32 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 bool success = response["Success"].AsBoolean();
 
                 if (!success)
-                    m_log.Warn("[AVATAR CONNECTOR]: Failed saving appearance for " + userID + ": " + response["Message"].AsString());
+                    m_log.Warn("[SIMIAN AVATAR CONNECTOR]: Failed saving appearance for " + userID + ": " + response["Message"].AsString());
 
                 return success;
             }
             else
             {
-                m_log.Error("[AVATAR CONNECTOR]: Can't save appearance for " + userID + ". Unhandled avatar type " + avatar.AvatarType);
+                m_log.Error("[SIMIAN AVATAR CONNECTOR]: Can't save appearance for " + userID + ". Unhandled avatar type " + avatar.AvatarType);
                 return false;
             }
         }
 
         public bool ResetAvatar(UUID userID)
         {
-            m_log.Error("[AVATAR CONNECTOR]: ResetAvatar called for " + userID + ", implement this");
+            m_log.Error("[SIMIAN AVATAR CONNECTOR]: ResetAvatar called for " + userID + ", implement this");
             return false;
         }
 
         public bool SetItems(UUID userID, string[] names, string[] values)
         {
-            m_log.Error("[AVATAR CONNECTOR]: SetItems called for " + userID + " with " + names.Length + " names and " + values.Length + " values, implement this");
+            m_log.Error("[SIMIAN AVATAR CONNECTOR]: SetItems called for " + userID + " with " + names.Length + " names and " + values.Length + " values, implement this");
             return false;
         }
 
         public bool RemoveItems(UUID userID, string[] names)
         {
-            m_log.Error("[AVATAR CONNECTOR]: RemoveItems called for " + userID + " with " + names.Length + " names, implement this");
+            m_log.Error("[SIMIAN AVATAR CONNECTOR]: RemoveItems called for " + userID + " with " + names.Length + " names, implement this");
             return false;
         }
 

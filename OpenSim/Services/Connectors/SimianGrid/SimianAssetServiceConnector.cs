@@ -90,14 +90,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 IConfig gridConfig = source.Configs["AssetService"];
                 if (gridConfig == null)
                 {
-                    m_log.Error("[ASSET CONNECTOR]: AssetService missing from OpenSim.ini");
+                    m_log.Error("[SIMIAN ASSET CONNECTOR]: AssetService missing from OpenSim.ini");
                     throw new Exception("Asset connector init error");
                 }
 
                 string serviceUrl = gridConfig.GetString("AssetServerURI");
                 if (String.IsNullOrEmpty(serviceUrl))
                 {
-                    m_log.Error("[ASSET CONNECTOR]: No AssetServerURI in section AssetService");
+                    m_log.Error("[SIMIAN ASSET CONNECTOR]: No AssetServerURI in section AssetService");
                     throw new Exception("Asset connector init error");
                 }
 
@@ -162,7 +162,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             catch (Exception ex)
             {
-                m_log.Warn("[ASSET CONNECTOR]: Asset GET from " + url + " failed: " + ex.Message);
+                m_log.Warn("[SIMIAN ASSET CONNECTOR]: Asset GET from " + url + " failed: " + ex.Message);
                 return null;
             }
         }
@@ -220,7 +220,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             catch (Exception ex)
             {
-                m_log.Warn("[ASSET CONNECTOR]: Asset GET from " + url + " failed: " + ex.Message);
+                m_log.Warn("[SIMIAN ASSET CONNECTOR]: Asset GET from " + url + " failed: " + ex.Message);
             }
 
             return metadata;
@@ -356,7 +356,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 errorMessage = ex.Message;
             }
 
-            m_log.WarnFormat("[ASSET CONNECTOR]: Failed to store asset \"{0}\" ({1}, {2}): {3}",
+            m_log.WarnFormat("[SIMIAN ASSET CONNECTOR]: Failed to store asset \"{0}\" ({1}, {2}): {3}",
                 asset.Name, asset.ID, asset.Metadata.ContentType, errorMessage);
             return null;
         }
@@ -374,7 +374,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             if (asset == null)
             {
-                m_log.Warn("[ASSET CONNECTOR]: Failed to fetch asset " + id + " for updating");
+                m_log.Warn("[SIMIAN ASSET CONNECTOR]: Failed to fetch asset " + id + " for updating");
                 return false;
             }
 
@@ -400,7 +400,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             if (response["Success"].AsBoolean())
                 return true;
             else
-                m_log.Warn("[ASSET CONNECTOR]: Failed to delete asset " + id + " from the asset service");
+                m_log.Warn("[SIMIAN ASSET CONNECTOR]: Failed to delete asset " + id + " from the asset service");
 
             return false;
         }
