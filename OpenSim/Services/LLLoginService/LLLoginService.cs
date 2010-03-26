@@ -340,9 +340,8 @@ namespace OpenSim.Services.LLLoginService
                     }
                     else
                     {
-                        m_log.WarnFormat("[LLOGIN SERVICE]: User {0} {1} does not have a valid home and this grid does not have default locations.",
+                        m_log.WarnFormat("[LLOGIN SERVICE]: User {0} {1} does not have a valid home and this grid does not have default locations. Attempting to find random region",
                             account.FirstName, account.LastName);
-                        m_log.Info("[LLOGIN SERVICE]: Home Region Not Found Attempting to find random region");
                         defaults = m_GridService.GetRegionsByName(account.ScopeID, "", 1);
                         if (defaults != null && defaults.Count > 0)
                         {
