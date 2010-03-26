@@ -263,8 +263,12 @@ namespace OpenSim.Framework
 
             foreach (string key in parameters.Keys)
             {
-                foreach (string value in parameters.GetValues(key))
-                    items.Add(String.Concat(key, "=", HttpUtility.UrlEncode(value ?? String.Empty)));
+                string[] values = parameters.GetValues(key);
+                if (values != null)
+                {
+                    foreach (string value in values)
+                        items.Add(String.Concat(key, "=", HttpUtility.UrlEncode(value ?? String.Empty)));
+                }
             }
 
             return String.Join("&", items.ToArray());
