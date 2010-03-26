@@ -1,7 +1,22 @@
 <!-- -*- xml -*- -->
 <!-- please leave the top comment for us emacs folks -->
-<property name="projectdir" value="opensim-0.5.5" />
 <property name="nunitcmd" value="nunit-console" />
+
+<!-- I don't think these targets are being actively used.  But just in case, we'll just comment them out for now - justincc -->
+<!--
+<property name="projectdir" value="opensim-0.6.9" />
+<target name="dist" depends="distdir">
+    <zip zipfile="${projectdir}.zip">
+    <fileset basedir=".">
+        <include name="${projectdir}/**" />
+    </fileset>
+    </zip>
+    <tar destfile="${projectdir}.tar.gz" compression="GZip">
+    <fileset basedir=".">
+        <include name="${projectdir}/**" />
+    </fileset>
+    </tar>
+</target>
 
 <target name="distdir">
    <delete dir="${projectdir}" />
@@ -21,14 +36,14 @@
           <include name="bin/assets/**" />
           <include name="bin/data/**" />
           <include name="bin/OpenSim*xml" />
-          <!-- the next is to exclude built libs -->
-          <exclude name="bin/OpenSim.*dll" />
           <include name="bin/OpenSim.ini" />
           <include name="bin/defaultstripe.png" />
+          <exclude name="bin/OpenSim.*dll" />
        </fileset>
    </copy>
    <touch file="${projectdir}/bin/startup_commands.txt" />
 </target>
+-->
 
 <target name="test" depends="build, find-nunit">
   <setenv name="MONO_THREADS_PER_CPU" value="100" />
@@ -295,18 +310,4 @@
 
 <target name="doxygen">
   <exec program="doxygen" workingdir="doc" commandline="doxygen.conf" />
-</target>
-
-
-<target name="dist" depends="distdir">
-    <zip zipfile="${projectdir}.zip">
-    <fileset basedir=".">
-        <include name="${projectdir}/**" />
-    </fileset>
-    </zip>
-    <tar destfile="${projectdir}.tar.gz" compression="GZip">
-    <fileset basedir=".">
-        <include name="${projectdir}/**" />
-    </fileset>
-    </tar>
 </target>

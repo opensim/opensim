@@ -1266,8 +1266,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 UserAccount account = UserAccountService.GetUserAccount(m_regInfo.ScopeID, first, last);
 
-                if (account != null)
+                if (account == null)
                 {
+                    // Create a new account
                     account = new UserAccount(m_regInfo.ScopeID, first, last, String.Empty);
                     if (account.ServiceURLs == null || (account.ServiceURLs != null && account.ServiceURLs.Count == 0))
                     {
@@ -1325,7 +1326,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    MainConsole.Instance.Output("User account not found. Please enter the name of an existing user");
+                    m_regInfo.EstateSettings.EstateOwner = account.PrincipalID;
+                    m_regInfo.EstateSettings.Save();
                 }
             }
         }
