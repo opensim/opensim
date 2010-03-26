@@ -447,23 +447,29 @@ namespace OpenSim.Data.MySQL
             {
                 dbcon.Open();
 
-                using (MySqlCommand cmd = dbcon.CreateCommand())
+                try
                 {
-                    cmd.CommandText = "insert into estate_map values (?RegionID, ?EstateID)";
-                    cmd.Parameters.AddWithValue("?RegionID", regionID);
-                    cmd.Parameters.AddWithValue("?EstateID", estateID);
-
-                    if (cmd.ExecuteNonQuery() == 0)
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
+                        cmd.CommandText = "insert into estate_map values (?RegionID, ?EstateID)";
+                        cmd.Parameters.AddWithValue("?RegionID", regionID);
+                        cmd.Parameters.AddWithValue("?EstateID", estateID);
+
+                        int ret = cmd.ExecuteNonQuery();
                         dbcon.Close();
-                        return false;
+
+                        return (ret != 0);
                     }
+                }
+                catch (MySqlException ex)
+                {
+                    m_log.Error("[REGION DB]: LinkRegion failed: " + ex.Message);
                 }
 
                 dbcon.Close();
             }
 
-            return true;
+            return false;
         }
 
         public List<UUID> GetRegions(int estateID)
