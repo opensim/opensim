@@ -1266,7 +1266,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 UserAccount account = UserAccountService.GetUserAccount(m_regInfo.ScopeID, first, last);
 
-                if (account == null)
+                if (account != null)
                 {
                     account = new UserAccount(m_regInfo.ScopeID, first, last, String.Empty);
                     if (account.ServiceURLs == null || (account.ServiceURLs != null && account.ServiceURLs.Count == 0))
@@ -1325,7 +1325,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    MainConsole.Instance.Output("You appear to be connected to a grid and can't create users from here. Please enter the name of an existing user");
+                    MainConsole.Instance.Output("User account not found. Please enter the name of an existing user");
                 }
             }
         }
