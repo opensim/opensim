@@ -635,6 +635,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                             int estateID = estateIDs[0];
 
+                            m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(estateID);
+
                             if (m_storageManager.EstateDataStore.LinkRegion(m_regInfo.RegionID, estateID))
                                 break;
 
