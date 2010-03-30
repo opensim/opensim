@@ -40,10 +40,7 @@ using OpenMetaverse.Packets;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
-<<<<<<< HEAD:OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs
 using OpenSim.Framework.Communications.Cache;
-=======
->>>>>>> 696d711... Completely prevent full update packets being sent after kill object packets:OpenSim/Region/ClientStack/LindenUDP/LLClientView.cs
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
