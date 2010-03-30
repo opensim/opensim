@@ -358,7 +358,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 {
                     ScenePresence presence;
 
-                    if (s.TryGetAvatar(agentID, out presence))
+                    if (s.TryGetScenePresence(agentID, out presence))
                     {
                         // If the agent is in this scene, then we
                         // are being called twice in a single

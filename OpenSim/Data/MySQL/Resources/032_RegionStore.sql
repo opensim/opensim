@@ -67,4 +67,5 @@ CREATE TABLE `regionwindlight` (
   PRIMARY KEY (`region_id`)
 );
 
+ALTER TABLE estate_settings AUTO_INCREMENT = 100;
 COMMIT;

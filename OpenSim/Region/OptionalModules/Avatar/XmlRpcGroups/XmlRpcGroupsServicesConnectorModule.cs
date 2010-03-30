@@ -47,9 +47,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class XmlRpcGroupsServicesConnectorModule : ISharedRegionModule, IGroupsServicesConnector
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public const GroupPowers m_DefaultEveryonePowers = GroupPowers.AllowSetHome | 
             GroupPowers.Accountable | 
@@ -354,10 +352,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             MemberGroupProfile.PowersMask = MemberInfo.GroupPowers;
 
             return MemberGroupProfile;
-
         }
-
-
 
         public void SetAgentActiveGroup(GroupRequestID requestID, UUID AgentID, UUID GroupID)
         {
@@ -470,7 +465,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             XmlRpcCall(requestID, "groups.removeAgentFromGroupRole", param);
         }
 
-
         public List<DirGroupsReplyData> FindGroups(GroupRequestID requestID, string search)
         {
             Hashtable param = new Hashtable();
@@ -530,7 +524,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             return HashTableToGroupMembershipData(respData);
         }
-
 
         public List<GroupMembershipData> GetAgentGroupMemberships(GroupRequestID requestID, UUID AgentID)
         {
@@ -778,7 +771,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private GroupRecord GroupProfileHashtableToGroupRecord(Hashtable groupProfile)
         {
-
             GroupRecord group = new GroupRecord();
             group.GroupID = UUID.Parse((string)groupProfile["GroupID"]);
             group.GroupName = groupProfile["Name"].ToString();
@@ -797,6 +789,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             return group;
         }
+        
         private static GroupMembershipData HashTableToGroupMembershipData(Hashtable respData)
         {
             GroupMembershipData data = new GroupMembershipData();
@@ -829,6 +822,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             data.MembershipFee = int.Parse((string)respData["MembershipFee"]);
             data.OpenEnrollment = ((string)respData["OpenEnrollment"] == "1");
             data.ShowInList = ((string)respData["ShowInList"] == "1");
+            
             return data;
         }
 

@@ -97,14 +97,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 IConfig gridConfig = source.Configs["InventoryService"];
                 if (gridConfig == null)
                 {
-                    m_log.Error("[INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini");
+                    m_log.Error("[SIMIAN INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini");
                     throw new Exception("Inventory connector init error");
                 }
 
                 string serviceUrl = gridConfig.GetString("InventoryServerURI");
                 if (String.IsNullOrEmpty(serviceUrl))
                 {
-                    m_log.Error("[INVENTORY CONNECTOR]: No Server URI named in section InventoryService");
+                    m_log.Error("[SIMIAN INVENTORY CONNECTOR]: No Server URI named in section InventoryService");
                     throw new Exception("Inventory connector init error");
                 }
 
@@ -117,11 +117,11 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     if (!String.IsNullOrEmpty(serviceUrl))
                         m_userServerUrl = serviceUrl;
                     else
-                        m_log.Info("[INVENTORY CONNECTOR]: No Server URI named in section UserAccountService");
+                        m_log.Info("[SIMIAN INVENTORY CONNECTOR]: No Server URI named in section UserAccountService");
                 }
                 else
                 {
-                    m_log.Warn("[INVENTORY CONNECTOR]: UserAccountService missing from OpenSim.ini");
+                    m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: UserAccountService missing from OpenSim.ini");
                 }
             }
         }
@@ -143,7 +143,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             bool success = response["Success"].AsBoolean();
 
             if (!success)
-                m_log.Warn("[INVENTORY CONNECTOR]: Inventory creation for " + userID + " failed: " + response["Message"].AsString());
+                m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Inventory creation for " + userID + " failed: " + response["Message"].AsString());
 
             return success;
         }
@@ -173,7 +173,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             else
             {
-                m_log.Warn("[INVENTORY CONNECTOR]: Failed to retrieve inventory skeleton for " + userID + ": " +
+                m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Failed to retrieve inventory skeleton for " + userID + ": " +
                     response["Message"].AsString());
                 return new List<InventoryFolderBase>(0);
             }
@@ -187,7 +187,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         [Obsolete]
         public InventoryCollection GetUserInventory(UUID userID)
         {
-            m_log.Error("[INVENTORY CONNECTOR]: Obsolete GetUserInventory called for " + userID);
+            m_log.Error("[SIMIAN INVENTORY CONNECTOR]: Obsolete GetUserInventory called for " + userID);
 
             InventoryCollection inventory = new InventoryCollection();
             inventory.UserID = userID;
@@ -206,7 +206,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         [Obsolete]
         public void GetUserInventory(UUID userID, InventoryReceiptCallback callback)
         {
-            m_log.Error("[INVENTORY CONNECTOR]: Obsolete GetUserInventory called for " + userID);
+            m_log.Error("[SIMIAN INVENTORY CONNECTOR]: Obsolete GetUserInventory called for " + userID);
             callback(new List<InventoryFolderImpl>(0), new List<InventoryItemBase>(0));
         }
 
@@ -273,7 +273,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             else
             {
-                m_log.Warn("[INVENTORY CONNECTOR]: Default folder not found for content type " + contentType);
+                m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Default folder not found for content type " + contentType + ": " + response["Message"].AsString());
                 return GetRootFolder(userID);
             }
         }
@@ -311,7 +311,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 }
             }
 
-            m_log.Warn("[INVENTORY CONNECTOR]: Item " + item.ID + " owned by " + item.Owner + " not found");
+            m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Item " + item.ID + " owned by " + item.Owner + " not found");
             return null;
         }
 
@@ -376,7 +376,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             else
             {
-                m_log.Warn("[INVENTORY CONNECTOR]: Error fetching folder " + folderID + " content for " + userID + ": " +
+                m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Error fetching folder " + folderID + " content for " + userID + ": " +
                     response["Message"].AsString());
                 inventory.Folders = new List<InventoryFolderBase>(0);
                 inventory.Items = new List<InventoryItemBase>(0);
@@ -414,7 +414,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             else
             {
-                m_log.Warn("[INVENTORY CONNECTOR]: Error fetching folder " + folderID + " for " + userID + ": " +
+                m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Error fetching folder " + folderID + " for " + userID + ": " +
                     response["Message"].AsString());
                 return new List<InventoryItemBase>(0);
             }
@@ -442,7 +442,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             if (!success)
             {
-                m_log.Warn("[INVENTORY CONNECTOR]: Error creating folder " + folder.Name + " for " + folder.Owner + ": " +
+                m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Error creating folder " + folder.Name + " for " + folder.Owner + ": " +
                     response["Message"].AsString());
             }
 
@@ -506,7 +506,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
                 if (!success)
                 {
-                    m_log.Warn("[INVENTORY CONNECTOR]: Error removing item " + itemID + " for " + userID + ": " +
+                    m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Error removing item " + itemID + " for " + userID + ": " +
                         response["Message"].AsString());
                     allSuccess = false;
                 }
@@ -534,7 +534,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             if (!success)
             {
-                m_log.Warn("[INVENTORY CONNECTOR]: Error purging folder " + folder.ID + " for " + folder.Owner + ": " +
+                m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Error purging folder " + folder.ID + " for " + folder.Owner + ": " +
                     response["Message"].AsString());
             }
 
@@ -562,7 +562,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 UpdateGesture(item.Owner, item.ID, item.Flags == 1);
 
             if (item.BasePermissions == 0)
-                m_log.WarnFormat("[INVENTORY CONNECTOR]: Adding inventory item {0} ({1}) with no base permissions", item.Name, item.ID);
+                m_log.WarnFormat("[SIMIAN INVENTORY CONNECTOR]: Adding inventory item {0} ({1}) with no base permissions", item.Name, item.ID);
 
             OSDMap permissions = new OSDMap
             {
@@ -601,7 +601,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             if (!success)
             {
-                m_log.Warn("[INVENTORY CONNECTOR]: Error creating item " + item.Name + " for " + item.Owner + ": " +
+                m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Error creating item " + item.Name + " for " + item.Owner + ": " +
                     response["Message"].AsString());
             }
 
@@ -785,7 +785,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
                     if (invItem.BasePermissions == 0)
                     {
-                        m_log.InfoFormat("[INVENTORY CONNECTOR]: Forcing item permissions to full for item {0} ({1})",
+                        m_log.InfoFormat("[SIMIAN INVENTORY CONNECTOR]: Forcing item permissions to full for item {0} ({1})",
                             invItem.Name, invItem.ID);
                         invItem.BasePermissions = (uint)PermissionMask.All;
                         invItem.CurrentPermissions = (uint)PermissionMask.All;
@@ -820,7 +820,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             if (!success)
             {
-                m_log.Warn("[INVENTORY CONNECTOR]: Failed to move " + items.Count + " items to " +
+                m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Failed to move " + items.Count + " items to " +
                     destFolderID + ": " + response["Message"].AsString());
             }
 
@@ -863,12 +863,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     if (gestures != null && gestures is OSDArray)
                         return (OSDArray)gestures;
                     else
-                        m_log.Error("[INVENTORY CONNECTOR]: Unrecognized active gestures data for " + userID);
+                        m_log.Error("[SIMIAN INVENTORY CONNECTOR]: Unrecognized active gestures data for " + userID);
                 }
             }
             else
             {
-                m_log.Warn("[INVENTORY CONNECTOR]: Failed to fetch active gestures for " + userID + ": " +
+                m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Failed to fetch active gestures for " + userID + ": " +
                     response["Message"].AsString());
             }
 
@@ -887,7 +887,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             OSDMap response = WebUtil.PostToService(m_userServerUrl, requestArgs);
             if (!response["Success"].AsBoolean())
             {
-                m_log.Warn("[INVENTORY CONNECTOR]: Failed to save active gestures for " + userID + ": " +
+                m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Failed to save active gestures for " + userID + ": " +
                     response["Message"].AsString());
             }
         }

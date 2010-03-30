@@ -89,14 +89,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 IConfig assetConfig = source.Configs["FriendsService"];
                 if (assetConfig == null)
                 {
-                    m_log.Error("[FRIENDS CONNECTOR]: FriendsService missing from OpenSim.ini");
+                    m_log.Error("[SIMIAN FRIENDS CONNECTOR]: FriendsService missing from OpenSim.ini");
                     throw new Exception("Friends connector init error");
                 }
 
                 string serviceURI = assetConfig.GetString("FriendsServerURI");
                 if (String.IsNullOrEmpty(serviceURI))
                 {
-                    m_log.Error("[FRIENDS CONNECTOR]: No Server URI named in section FriendsService");
+                    m_log.Error("[SIMIAN FRIENDS CONNECTOR]: No Server URI named in section FriendsService");
                     throw new Exception("Friends connector init error");
                 }
 
@@ -169,7 +169,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             bool success = response["Success"].AsBoolean();
 
             if (!success)
-                m_log.Error("[FRIENDS CONNECTOR]: Failed to store friend " + friend + " for user " + principalID + ": " + response["Message"].AsString());
+                m_log.Error("[SIMIAN FRIENDS CONNECTOR]: Failed to store friend " + friend + " for user " + principalID + ": " + response["Message"].AsString());
 
             return success;
         }
@@ -188,7 +188,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             bool success = response["Success"].AsBoolean();
 
             if (!success)
-                m_log.Error("[FRIENDS CONNECTOR]: Failed to remove friend " + friend + " for user " + principalID + ": " + response["Message"].AsString());
+                m_log.Error("[SIMIAN FRIENDS CONNECTOR]: Failed to remove friend " + friend + " for user " + principalID + ": " + response["Message"].AsString());
 
             return success;
         }
@@ -211,7 +211,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             else
             {
-                m_log.Warn("[FRIENDS CONNECTOR]: Failed to retrieve friends for user " + ownerID + ": " + response["Message"].AsString());
+                m_log.Warn("[SIMIAN FRIENDS CONNECTOR]: Failed to retrieve friends for user " + ownerID + ": " + response["Message"].AsString());
                 return new OSDArray(0);
             }
         }
@@ -232,7 +232,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             else
             {
-                m_log.Warn("[FRIENDS CONNECTOR]: Failed to retrieve reverse friends for user " + ownerID + ": " + response["Message"].AsString());
+                m_log.Warn("[SIMIAN FRIENDS CONNECTOR]: Failed to retrieve reverse friends for user " + ownerID + ": " + response["Message"].AsString());
                 return new OSDArray(0);
             }
         }

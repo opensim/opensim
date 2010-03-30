@@ -328,17 +328,19 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         }
         */
 
-
         void OnDirFindQuery(IClientAPI remoteClient, UUID queryID, string queryText, uint queryFlags, int queryStart)
         {
             if (((DirFindFlags)queryFlags & DirFindFlags.Groups) == DirFindFlags.Groups)
             {
-                if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called with queryText({1}) queryFlags({2}) queryStart({3})", System.Reflection.MethodBase.GetCurrentMethod().Name, queryText, (DirFindFlags)queryFlags, queryStart);
+                if (m_debugEnabled) 
+                    m_log.DebugFormat(
+                        "[GROUPS]: {0} called with queryText({1}) queryFlags({2}) queryStart({3})", 
+                        System.Reflection.MethodBase.GetCurrentMethod().Name, queryText, (DirFindFlags)queryFlags, queryStart);
 
                 // TODO: This currently ignores pretty much all the query flags including Mature and sort order
-                remoteClient.SendDirGroupsReply(queryID, m_groupData.FindGroups(GetClientGroupRequestID(remoteClient), queryText).ToArray());
-            }
-            
+                remoteClient.SendDirGroupsReply(
+                    queryID, m_groupData.FindGroups(GetClientGroupRequestID(remoteClient), queryText).ToArray());
+            }            
         }
 
         private void OnAgentDataUpdateRequest(IClientAPI remoteClient, UUID dataForAgentID, UUID sessionID)
@@ -363,7 +365,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             SendScenePresenceUpdate(dataForAgentID, activeGroupTitle);
         }
 
-        private void HandleUUIDGroupNameRequest(UUID GroupID,IClientAPI remoteClient)
+        private void HandleUUIDGroupNameRequest(UUID GroupID, IClientAPI remoteClient)
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
@@ -593,6 +595,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return m_groupData.GetGroupRecord(null, GroupID, null);
         }
 
+        public GroupRecord GetGroupRecord(string name)
+        {
+            return m_groupData.GetGroupRecord(null, UUID.Zero, name);
+        }
+        
         public void ActivateGroup(IClientAPI remoteClient, UUID groupID)
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
@@ -652,7 +659,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             List<GroupRolesData> data = m_groupData.GetGroupRoles(GetClientGroupRequestID(remoteClient), groupID);
 
             return data;
-
         }
 
         public List<GroupRoleMembersData> GroupRoleMembersRequest(IClientAPI remoteClient, UUID groupID)
@@ -662,8 +668,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             List<GroupRoleMembersData> data = m_groupData.GetGroupRoleMembers(GetClientGroupRequestID(remoteClient), groupID);
 
             return data;
-
-
         }
 
         public GroupProfileData GroupProfileRequest(IClientAPI remoteClient, UUID groupID)
@@ -712,7 +716,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public GroupMembershipData GetMembershipData(UUID groupID, UUID agentID)
         {
-            if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+            if (m_debugEnabled) 
+                m_log.DebugFormat(
+                    "[GROUPS]: {0} called with groupID={1}, agentID={2}",
+                    System.Reflection.MethodBase.GetCurrentMethod().Name, groupID, agentID);
 
             return m_groupData.GetAgentGroupMembership(null, agentID, groupID);
         }
@@ -746,7 +753,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 return UUID.Zero;
             }
             // is there is a money module present ?
-            IMoneyModule money=remoteClient.Scene.RequestModuleInterface<IMoneyModule>();
+            IMoneyModule money = remoteClient.Scene.RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
                 // do the transaction, that is if the agent has got sufficient funds
@@ -1166,8 +1173,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     else
                     {
                         string domain = string.Empty; //m_sceneList[0].CommsManager.NetworkServersInfo.UserURL;
-                        if (account.ServiceURLs["HomeURI"] != null)
-                            domain = account.ServiceURLs["HomeURI"].ToString();
+                        object homeUriObj;
+                        if (account.ServiceURLs.TryGetValue("HomeURI", out homeUriObj) && homeUriObj != null)
+                            domain = homeUriObj.ToString();
                         // They're a local user, use this:
                         info.RequestID.UserServiceURL = domain;
                     }

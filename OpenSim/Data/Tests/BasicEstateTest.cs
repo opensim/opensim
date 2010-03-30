@@ -158,7 +158,7 @@ namespace OpenSim.Data.Tests
         public void T012_EstateSettingsRandomStorage()
         {
             // Letting estate store generate rows to database for us
-            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID);
+            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID, true);
             new PropertyScrambler<EstateSettings>()
                 .DontScramble(x=>x.EstateID)
                 .Scramble(originalSettings);
@@ -167,7 +167,7 @@ namespace OpenSim.Data.Tests
             db.StoreEstateSettings(originalSettings);
 
             // Loading settings to another instance variable.
-            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID);
+            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID, true);
 
             // Checking that loaded values are correct.
             Assert.That(loadedSettings, Constraints.PropertyCompareConstraint(originalSettings));
@@ -177,7 +177,7 @@ namespace OpenSim.Data.Tests
         public void T020_EstateSettingsManagerList()
         {
             // Letting estate store generate rows to database for us
-            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID);
+            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID, true);
 
             originalSettings.EstateManagers = new UUID[] { MANAGER_ID_1, MANAGER_ID_2 };
 
@@ -185,7 +185,7 @@ namespace OpenSim.Data.Tests
             db.StoreEstateSettings(originalSettings);
 
             // Loading settings to another instance variable.
-            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID);
+            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID, true);
 
             Assert.AreEqual(2, loadedSettings.EstateManagers.Length);
             Assert.AreEqual(MANAGER_ID_1, loadedSettings.EstateManagers[0]);
@@ -196,7 +196,7 @@ namespace OpenSim.Data.Tests
         public void T021_EstateSettingsUserList()
         {
             // Letting estate store generate rows to database for us
-            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID);
+            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID, true);
 
             originalSettings.EstateAccess = new UUID[] { USER_ID_1, USER_ID_2 };
 
@@ -204,7 +204,7 @@ namespace OpenSim.Data.Tests
             db.StoreEstateSettings(originalSettings);
 
             // Loading settings to another instance variable.
-            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID);
+            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID, true);
 
             Assert.AreEqual(2, loadedSettings.EstateAccess.Length);
             Assert.AreEqual(USER_ID_1, loadedSettings.EstateAccess[0]);
@@ -215,7 +215,7 @@ namespace OpenSim.Data.Tests
         public void T022_EstateSettingsGroupList()
         {
             // Letting estate store generate rows to database for us
-            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID);
+            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID, true);
 
             originalSettings.EstateGroups = new UUID[] { GROUP_ID_1, GROUP_ID_2 };
 
@@ -223,7 +223,7 @@ namespace OpenSim.Data.Tests
             db.StoreEstateSettings(originalSettings);
 
             // Loading settings to another instance variable.
-            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID);
+            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID, true);
 
             Assert.AreEqual(2, loadedSettings.EstateAccess.Length);
             Assert.AreEqual(GROUP_ID_1, loadedSettings.EstateGroups[0]);
@@ -234,7 +234,7 @@ namespace OpenSim.Data.Tests
         public void T022_EstateSettingsBanList()
         {
             // Letting estate store generate rows to database for us
-            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID);
+            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID, true);
 
             EstateBan estateBan1 = new EstateBan();
             estateBan1.BannedUserID = DataTestUtil.UUID_MIN;
@@ -248,7 +248,7 @@ namespace OpenSim.Data.Tests
             db.StoreEstateSettings(originalSettings);
 
             // Loading settings to another instance variable.
-            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID);
+            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID, true);
 
             Assert.AreEqual(2, loadedSettings.EstateBans.Length);
             Assert.AreEqual(DataTestUtil.UUID_MIN, loadedSettings.EstateBans[0].BannedUserID);
@@ -290,7 +290,7 @@ namespace OpenSim.Data.Tests
         {
 
             // Letting estate store generate rows to database for us
-            EstateSettings originalSettings = db.LoadEstateSettings(regionId);
+            EstateSettings originalSettings = db.LoadEstateSettings(regionId, true);
 
             SetEstateSettings(
                 originalSettings,
@@ -347,7 +347,7 @@ namespace OpenSim.Data.Tests
             db.StoreEstateSettings(originalSettings);
 
             // Loading settings to another instance variable.
-            EstateSettings loadedSettings = db.LoadEstateSettings(regionId);
+            EstateSettings loadedSettings = db.LoadEstateSettings(regionId, true);
 
             // Checking that loaded values are correct.
             ValidateEstateSettings(

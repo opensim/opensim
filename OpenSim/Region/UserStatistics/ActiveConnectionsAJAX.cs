@@ -68,17 +68,15 @@ namespace OpenSim.Region.UserStatistics
             HTMLUtil.OL_O(ref output, "");
             foreach (Scene scene in all_scenes)
             {
-                List<ScenePresence> avatarInScene = scene.GetScenePresences();
-
                 HTMLUtil.LI_O(ref output, String.Empty);
                 output.Append(scene.RegionInfo.RegionName);
                 HTMLUtil.OL_O(ref output, String.Empty);
-                foreach (ScenePresence av in avatarInScene)
+                scene.ForEachScenePresence(delegate(ScenePresence av)
                 {
-                    Dictionary<string,string> queues = new Dictionary<string, string>();
+                    Dictionary<string, string> queues = new Dictionary<string, string>();
                     if (av.ControllingClient is IStatsCollector)
                     {
-                        IStatsCollector isClient = (IStatsCollector) av.ControllingClient;
+                        IStatsCollector isClient = (IStatsCollector)av.ControllingClient;
                         queues = decodeQueueReport(isClient.Report());
                     }
                     HTMLUtil.LI_O(ref output, String.Empty);
@@ -92,8 +90,8 @@ namespace OpenSim.Region.UserStatistics
                     else
                     {
                         output.Append(string.Format("<br /><NOBR>Position: <{0},{1},{2}></NOBR>", (int)av.AbsolutePosition.X,
-                                                    (int) av.AbsolutePosition.Y,
-                                                    (int) av.AbsolutePosition.Z));
+                                                    (int)av.AbsolutePosition.Y,
+                                                    (int)av.AbsolutePosition.Z));
                     }
                     Dictionary<string, int> throttles = DecodeClientThrottles(av.ControllingClient.GetThrottlesPacked(1));
 
@@ -124,7 +122,7 @@ namespace OpenSim.Region.UserStatistics
 
                     HTMLUtil.UL_C(ref output);
                     HTMLUtil.LI_C(ref output);
-                }
+                });
                 HTMLUtil.OL_C(ref output);
             }
             HTMLUtil.OL_C(ref output);

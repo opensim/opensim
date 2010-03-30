@@ -318,9 +318,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             {
                 Scene scene = client.Scene as Scene;
                 m_log.DebugFormat("[Concierge]: {0} logs off from {1}", client.Name, scene.RegionInfo.RegionName);
-                List<ScenePresence> avs = scene.GetAvatars();
-                AnnounceToAgentsRegion(scene, String.Format(m_announceLeaving, client.Name, scene.RegionInfo.RegionName, avs.Count));
-                UpdateBroker(scene, avs);
+                AnnounceToAgentsRegion(scene, String.Format(m_announceLeaving, client.Name, scene.RegionInfo.RegionName, scene.GetRootAgentCount()));
+                UpdateBroker(scene);
             }
         }
 
@@ -331,11 +330,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             {
                 Scene scene = agent.Scene;
                 m_log.DebugFormat("[Concierge]: {0} enters {1}", agent.Name, scene.RegionInfo.RegionName);
-                List<ScenePresence> avs = scene.GetAvatars();
                 WelcomeAvatar(agent, scene);
                 AnnounceToAgentsRegion(scene, String.Format(m_announceEntering, agent.Name, 
-                                                            scene.RegionInfo.RegionName, avs.Count));
-                UpdateBroker(scene, avs);
+                                                            scene.RegionInfo.RegionName, scene.GetRootAgentCount()));
+                UpdateBroker(scene);
             }
         }
 
@@ -346,10 +344,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             {
                 Scene scene = agent.Scene;
                 m_log.DebugFormat("[Concierge]: {0} leaves {1}", agent.Name, scene.RegionInfo.RegionName);
-                List<ScenePresence> avs = scene.GetAvatars();
                 AnnounceToAgentsRegion(scene, String.Format(m_announceLeaving, agent.Name, 
-                                                            scene.RegionInfo.RegionName, avs.Count));
-                UpdateBroker(scene, avs);
+                                                            scene.RegionInfo.RegionName, scene.GetRootAgentCount()));
+                UpdateBroker(scene);
             }
         }
 
@@ -368,7 +365,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             }
         }
 
-        protected void UpdateBroker(IScene scene, List<ScenePresence> avatars)
+        protected void UpdateBroker(Scene scene)
         {
             if (String.IsNullOrEmpty(m_brokerURI))
                 return;
@@ -377,24 +374,18 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
 
             // create XML sniplet
             StringBuilder list = new StringBuilder();
-            if (0 == avatars.Count)
-            {
-                list.Append(String.Format("<avatars count=\"0\" region_name=\"{0}\" region_uuid=\"{1}\" timestamp=\"{2}\" />",
-                                          scene.RegionInfo.RegionName, scene.RegionInfo.RegionID, 
+            list.Append(String.Format("<avatars count=\"{0}\" region_name=\"{1}\" region_uuid=\"{2}\" timestamp=\"{3}\">\n",
+                                          scene.GetRootAgentCount(), scene.RegionInfo.RegionName,
+                                          scene.RegionInfo.RegionID,
                                           DateTime.UtcNow.ToString("s")));
-            } 
-            else
+            scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                list.Append(String.Format("<avatars count=\"{0}\" region_name=\"{1}\" region_uuid=\"{2}\" timestamp=\"{3}\">\n",
-                                          avatars.Count, scene.RegionInfo.RegionName, 
-                                          scene.RegionInfo.RegionID, 
-                                          DateTime.UtcNow.ToString("s")));
-                foreach (ScenePresence av in avatars)
+                if (!sp.IsChildAgent)
                 {
-                    list.Append(String.Format("    <avatar name=\"{0}\" uuid=\"{1}\" />\n", av.Name, av.UUID));
+                    list.Append(String.Format("    <avatar name=\"{0}\" uuid=\"{1}\" />\n", sp.Name, sp.UUID));
+                    list.Append("</avatars>");
                 }
-                list.Append("</avatars>");
-            }
+            });
             string payload = list.ToString();
 
             // post via REST to broker
@@ -529,7 +520,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         // protected void AnnounceToAgentsRegion(Scene scene, string msg)
         // {
         //     ScenePresence agent = null;
-        //     if ((client.Scene is Scene) && (client.Scene as Scene).TryGetAvatar(client.AgentId, out agent)) 
+        //     if ((client.Scene is Scene) && (client.Scene as Scene).TryGetScenePresence(client.AgentId, out agent)) 
         //         AnnounceToAgentsRegion(agent, msg);
         //     else
         //         m_log.DebugFormat("[Concierge]: could not find an agent for client {0}", client.Name);

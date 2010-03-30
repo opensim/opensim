@@ -210,7 +210,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // this is here because CAPS map requests work even beyond the 10,000 limit.
             ScenePresence avatarPresence = null;
 
-            m_scene.TryGetAvatar(agentID, out avatarPresence);
+            m_scene.TryGetScenePresence(agentID, out avatarPresence);
 
             if (avatarPresence != null)
             {
@@ -304,25 +304,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <param name="AgentId">AgentID that logged out</param>
         private void ClientLoggedOut(UUID AgentId, Scene scene)
         {
-            List<ScenePresence> presences = m_scene.GetAvatars();
-            int rootcount = 0;
-            for (int i=0;i<presences.Count;i++)
-            {
-                if (presences[i] != null)
-                {
-                    if (!presences[i].IsChildAgent)
-                        rootcount++;
-                }
-            }
-            if (rootcount <= 1)
-                StopThread();
-
             lock (m_rootAgents)
             {
-                if (m_rootAgents.Contains(AgentId))
-                {
-                    m_rootAgents.Remove(AgentId);
-                }
+                m_rootAgents.Remove(AgentId);
+                if(m_rootAgents.Count == 0)
+                    StopThread();
             }
         }
         #endregion
@@ -375,11 +361,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 if (regionhandle == 0 || regionhandle == m_scene.RegionInfo.RegionHandle)
                 {
                     // Local Map Item Request
-                    List<ScenePresence> avatars = m_scene.GetAvatars();
                     int tc = Environment.TickCount;
                     List<mapItemReply> mapitems = new List<mapItemReply>();
                     mapItemReply mapitem = new mapItemReply();
-                    if (avatars.Count == 0 || avatars.Count == 1)
+                    if (m_scene.GetRootAgentCount() <= 1)
                     {
                         mapitem = new mapItemReply();
                         mapitem.x = (uint)(xstart + 1);
@@ -392,21 +377,21 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     }
                     else
                     {
-                        foreach (ScenePresence av in avatars)
+                        m_scene.ForEachScenePresence(delegate(ScenePresence sp)
                         {
                             // Don't send a green dot for yourself
-                            if (av.UUID != remoteClient.AgentId)
+                            if (!sp.IsChildAgent && sp.UUID != remoteClient.AgentId)
                             {
                                 mapitem = new mapItemReply();
-                                mapitem.x = (uint)(xstart + av.AbsolutePosition.X);
-                                mapitem.y = (uint)(ystart + av.AbsolutePosition.Y);
+                                mapitem.x = (uint)(xstart + sp.AbsolutePosition.X);
+                                mapitem.y = (uint)(ystart + sp.AbsolutePosition.Y);
                                 mapitem.id = UUID.Zero;
                                 mapitem.name = Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString());
                                 mapitem.Extra = 1;
                                 mapitem.Extra2 = 0;
                                 mapitems.Add(mapitem);
                             }
-                        }
+                        });
                     }
                     remoteClient.SendMapItemReply(mapitems.ToArray(), itemtype, flags);
                 }
@@ -504,7 +489,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 if (mrs.agentID != UUID.Zero)
                 {
                     ScenePresence av = null;
-                    m_scene.TryGetAvatar(mrs.agentID, out av);
+                    m_scene.TryGetScenePresence(mrs.agentID, out av);
                     if (av != null)
                     {
                         if (response.ContainsKey(mrs.itemtype.ToString()))
@@ -981,51 +966,35 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             Utils.LongToUInts(m_scene.RegionInfo.RegionHandle,out xstart,out ystart);
 
             OSDMap responsemap = new OSDMap();
-            List<ScenePresence> avatars = m_scene.GetAvatars();
-            OSDArray responsearr = new OSDArray(avatars.Count);
-            OSDMap responsemapdata = new OSDMap();
             int tc = Environment.TickCount;
-            /*
-            foreach (ScenePresence av in avatars)
+            if (m_scene.GetRootAgentCount() == 0)
             {
-                responsemapdata = new OSDMap();
-                responsemapdata["X"] = OSD.FromInteger((int)(xstart + av.AbsolutePosition.X));
-                responsemapdata["Y"] = OSD.FromInteger((int)(ystart + av.AbsolutePosition.Y));
-                responsemapdata["ID"] = OSD.FromUUID(UUID.Zero);
-                responsemapdata["Name"] = OSD.FromString("TH");
-                responsemapdata["Extra"] = OSD.FromInteger(0);
-                responsemapdata["Extra2"] = OSD.FromInteger(0);
-                responsearr.Add(responsemapdata);
-            }
-            responsemap["1"] = responsearr;
-            */
-            if (avatars.Count == 0)
-            {
-                responsemapdata = new OSDMap();
+                OSDMap responsemapdata = new OSDMap();
                 responsemapdata["X"] = OSD.FromInteger((int)(xstart + 1));
                 responsemapdata["Y"] = OSD.FromInteger((int)(ystart + 1));
                 responsemapdata["ID"] = OSD.FromUUID(UUID.Zero);
                 responsemapdata["Name"] = OSD.FromString(Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()));
                 responsemapdata["Extra"] = OSD.FromInteger(0);
                 responsemapdata["Extra2"] = OSD.FromInteger(0);
+                OSDArray responsearr = new OSDArray();
                 responsearr.Add(responsemapdata);
 
                 responsemap["6"] = responsearr;
             }
             else
             {
-                responsearr = new OSDArray(avatars.Count);
-                foreach (ScenePresence av in avatars)
+                OSDArray responsearr = new OSDArray(m_scene.GetRootAgentCount());
+                m_scene.ForEachScenePresence(delegate(ScenePresence sp)
                 {
-                    responsemapdata = new OSDMap();
-                    responsemapdata["X"] = OSD.FromInteger((int)(xstart + av.AbsolutePosition.X));
-                    responsemapdata["Y"] = OSD.FromInteger((int)(ystart + av.AbsolutePosition.Y));
+                    OSDMap responsemapdata = new OSDMap();
+                    responsemapdata["X"] = OSD.FromInteger((int)(xstart + sp.AbsolutePosition.X));
+                    responsemapdata["Y"] = OSD.FromInteger((int)(ystart + sp.AbsolutePosition.Y));
                     responsemapdata["ID"] = OSD.FromUUID(UUID.Zero);
                     responsemapdata["Name"] = OSD.FromString(Util.Md5Hash(m_scene.RegionInfo.RegionName + tc.ToString()));
                     responsemapdata["Extra"] = OSD.FromInteger(1);
                     responsemapdata["Extra2"] = OSD.FromInteger(0);
                     responsearr.Add(responsemapdata);
-                }
+                });
                 responsemap["6"] = responsearr;
             }
             return responsemap;
@@ -1107,25 +1076,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         private void MakeChildAgent(ScenePresence avatar)
         {
-            List<ScenePresence> presences = m_scene.GetAvatars();
-            int rootcount = 0;
-            for (int i = 0; i < presences.Count; i++)
-            {
-                if (presences[i] != null)
-                {
-                    if (!presences[i].IsChildAgent)
-                        rootcount++;
-                }
-            }
-            if (rootcount <= 1)
-                StopThread();
-
             lock (m_rootAgents)
             {
-                if (m_rootAgents.Contains(avatar.UUID))
-                {
-                    m_rootAgents.Remove(avatar.UUID);
-                }
+                m_rootAgents.Remove(avatar.UUID);
+                if (m_rootAgents.Count == 0)
+                    StopThread();
             }
         }
 

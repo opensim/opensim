@@ -91,7 +91,7 @@ namespace OpenSim.Framework
         /// </exception>
         bool PresenceChildStatus(UUID agentId);
 
-        bool TryGetAvatar(UUID agentID, out object scenePresence);
+        bool TryGetScenePresence(UUID agentID, out object scenePresence);
 
         T RequestModuleInterface<T>();
         T[] RequestModuleInterfaces<T>();

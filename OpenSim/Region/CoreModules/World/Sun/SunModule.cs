@@ -509,14 +509,13 @@ namespace OpenSim.Region.CoreModules
 
         private void SunUpdateToAllClients()
         {
-            List<ScenePresence> avatars = m_scene.GetAvatars();
-            foreach (ScenePresence avatar in avatars)
+            m_scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                if (!avatar.IsChildAgent)
+                if (!sp.IsChildAgent)
                 {
-                    SunToClient(avatar.ControllingClient);
+                    SunToClient(sp.ControllingClient);
                 }
-            }
+            });
         }
 
         #region ISunModule Members

@@ -86,7 +86,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
     
                 // Save avatar attachment information
                 ScenePresence presence;
-                if (m_scene.AvatarFactory != null && m_scene.TryGetAvatar(remoteClient.AgentId, out presence))
+                if (m_scene.AvatarFactory != null && m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
                 {
                     m_log.Info(
                         "[ATTACHMENTS MODULE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId 
@@ -255,7 +255,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 AttachmentPt = att.RootPart.AttachmentPoint;
 
             ScenePresence presence;
-            if (m_scene.TryGetAvatar(remoteClient.AgentId, out presence))
+            if (m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
             {
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
                 item = m_scene.InventoryService.GetItem(item);
@@ -299,7 +299,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
 
             ScenePresence presence;
-            if (m_scene.TryGetAvatar(remoteClient.AgentId, out presence))
+            if (m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
             {
                 // XXYY!!
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
@@ -314,7 +314,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         public void ShowDetachInUserInventory(UUID itemID, IClientAPI remoteClient)
         {
             ScenePresence presence;
-            if (m_scene.TryGetAvatar(remoteClient.AgentId, out presence))
+            if (m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
             {
                 presence.Appearance.DetachAttachment(itemID);
 

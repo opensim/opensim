@@ -48,7 +48,6 @@ namespace OpenSim.Framework
     public class GroupMembershipData
     {
         // Group base data
-        //
         public UUID GroupID;
         public string GroupName;
         public bool AllowPublish = true;
@@ -61,7 +60,6 @@ namespace OpenSim.Framework
         public bool ShowInList = true;
 
         // Per user data
-        //
         public bool AcceptNotices = true;
         public int Contribution = 0;
         public ulong GroupPowers = 0;

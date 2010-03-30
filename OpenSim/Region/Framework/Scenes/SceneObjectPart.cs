@@ -682,7 +682,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_parentGroup != null) // TODO can there be a SOP without a SOG?
                     {
                         ScenePresence avatar;
-                        if (m_parentGroup.Scene.TryGetAvatar(m_sitTargetAvatar, out avatar))
+                        if (m_parentGroup.Scene.TryGetScenePresence(m_sitTargetAvatar, out avatar))
                         {
                             avatar.ParentPosition = GetWorldPosition();
                         }
@@ -1332,11 +1332,11 @@ namespace OpenSim.Region.Framework.Scenes
             if (volume < 0)
                 volume = 0;
 
-            List<ScenePresence> avatarts = m_parentGroup.Scene.GetAvatars();
-            foreach (ScenePresence p in avatarts)
+            m_parentGroup.Scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                p.ControllingClient.SendAttachedSoundGainChange(UUID, (float)volume);
-            }
+                if(!sp.IsChildAgent)
+                    sp.ControllingClient.SendAttachedSoundGainChange(UUID, (float)volume);
+            });
         }
 
         /// <summary>
@@ -2626,12 +2626,13 @@ namespace OpenSim.Region.Framework.Scenes
                 TaskInventory.LockItemsForRead(false);
             }
 
-            List<ScenePresence> avatarts = m_parentGroup.Scene.GetAvatars();
-            foreach (ScenePresence p in avatarts)
+            m_parentGroup.Scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                if (!(Util.GetDistanceTo(p.AbsolutePosition, AbsolutePosition) >= 100))
-                    p.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
-            }
+                if (sp.IsChildAgent)
+                    return;
+                if (!(Util.GetDistanceTo(sp.AbsolutePosition, AbsolutePosition) >= 100))
+                    sp.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
+            });
         }
 
         public void RemFlag(PrimFlags flag)

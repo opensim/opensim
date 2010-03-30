@@ -425,9 +425,7 @@ namespace OpenSim.Region.CoreModules
         {
             if (m_ready)
             {
-                List<ScenePresence> avatars = m_scene.GetAvatars();
-
-                if (avatars.Count > 0)
+                if(m_scene.GetRootAgentCount() > 0)
                 {
                     // Ask wind plugin to generate a LL wind array to be cached locally
                     // Try not to update this too often, as it may involve array copies
@@ -437,11 +435,11 @@ namespace OpenSim.Region.CoreModules
                         m_frameLastUpdateClientArray = m_frame;
                     }
 
-                    foreach (ScenePresence avatar in avatars)
+                    m_scene.ForEachScenePresence(delegate(ScenePresence sp)
                     {
-                        if (!avatar.IsChildAgent)
-                            avatar.ControllingClient.SendWindData(windSpeeds);
-                    }
+                        if (!sp.IsChildAgent)
+                            sp.ControllingClient.SendWindData(windSpeeds);
+                    });
                 }
             }
         }

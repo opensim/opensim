@@ -82,7 +82,7 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
             responsedata["str_response_string"] = "Request wasn't what was expected";
             ScenePresence avatar;
             
-            if (!m_scene.TryGetAvatar(AgentId, out avatar))
+            if (!m_scene.TryGetScenePresence(AgentId, out avatar))
                 return responsedata;
 
 

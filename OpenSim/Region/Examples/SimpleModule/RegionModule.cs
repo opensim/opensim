@@ -88,12 +88,12 @@ namespace OpenSim.Region.Examples.SimpleModule
                 m_scene.AgentCrossing(m_character.AgentId, Vector3.Zero, false);
             }
 
-            List<ScenePresence> avatars = m_scene.GetAvatars();
-            foreach (ScenePresence avatar in avatars)
+            m_scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                avatar.AbsolutePosition =
-                    new Vector3((float)Util.RandomClass.Next(100, 200), (float)Util.RandomClass.Next(30, 200), 2);
-            }
+                if (!sp.IsChildAgent)
+                    sp.AbsolutePosition =
+                        new Vector3((float)Util.RandomClass.Next(100, 200), (float)Util.RandomClass.Next(30, 200), 2);
+            });
         }
 
         // private void AddComplexObjects(RegionInfo regionInfo, Vector3 pos)

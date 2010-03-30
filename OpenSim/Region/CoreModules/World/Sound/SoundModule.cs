@@ -62,40 +62,46 @@ namespace OpenSim.Region.CoreModules.World.Sound
         public virtual void PlayAttachedSound(
             UUID soundID, UUID ownerID, UUID objectID, double gain, Vector3 position, byte flags, float radius)
         {
-            foreach (ScenePresence p in m_scene.GetAvatars())
+            m_scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                double dis = Util.GetDistanceTo(p.AbsolutePosition, position);
+                if (sp.IsChildAgent)
+                    return;
+
+                double dis = Util.GetDistanceTo(sp.AbsolutePosition, position);
                 if (dis > 100.0) // Max audio distance
-                    continue;
-                
+                    return;
+
                 // Scale by distance
                 if (radius == 0)
                     gain = (float)((double)gain * ((100.0 - dis) / 100.0));
                 else
                     gain = (float)((double)gain * ((radius - dis) / radius));
-                
-                p.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, (float)gain, flags);
-            }
+
+                sp.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, (float)gain, flags);
+            });
         }
         
         public virtual void TriggerSound(
             UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, UInt64 handle, float radius)
         {
-            foreach (ScenePresence p in m_scene.GetAvatars())
+            m_scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                double dis = Util.GetDistanceTo(p.AbsolutePosition, position);
+                if (sp.IsChildAgent)
+                    return;
+
+                double dis = Util.GetDistanceTo(sp.AbsolutePosition, position);
                 if (dis > 100.0) // Max audio distance
-                    continue;
-                
+                    return;
+
                 // Scale by distance
                 if (radius == 0)
                     gain = (float)((double)gain * ((100.0 - dis) / 100.0));
                 else
                     gain = (float)((double)gain * ((radius - dis) / radius));
-                
-                p.ControllingClient.SendTriggeredSound(
+
+                sp.ControllingClient.SendTriggeredSound(
                     soundId, ownerID, objectID, parentID, handle, position, (float)gain);
-            }
+            });
         }
     }
 }

@@ -1206,7 +1206,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
         {
             Scene homeScene = GetRootScene();
             ScenePresence avatar = null;
-            if (homeScene.TryGetAvatar(avatarId,out avatar))
+            if (homeScene.TryGetScenePresence(avatarId,out avatar))
             {
                 KillAUser ku = new KillAUser(avatar,mod);
                 Watchdog.StartThread(ku.ShutdownNoLogout, "OGPShutdown", ThreadPriority.Normal, true);

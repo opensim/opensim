@@ -80,17 +80,22 @@ namespace OpenSim.Data.SQLite
             get { return new List<string>(m_FieldMap.Keys).ToArray(); }
         }
 
-        public EstateSettings LoadEstateSettings(UUID regionID)
+        public EstateSettings LoadEstateSettings(UUID regionID, bool create)
         {
-            EstateSettings es = new EstateSettings();
-            es.OnSave += StoreEstateSettings;
-
             string sql = "select estate_settings."+String.Join(",estate_settings.", FieldList)+" from estate_map left join estate_settings on estate_map.EstateID = estate_settings.EstateID where estate_settings.EstateID is not null and RegionID = :RegionID";
 
             SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
 
             cmd.CommandText = sql;
             cmd.Parameters.Add(":RegionID", regionID.ToString());
+
+            return DoLoad(cmd, regionID, create);
+        }
+
+        private EstateSettings DoLoad(SqliteCommand cmd, UUID regionID, bool create)
+        {
+            EstateSettings es = new EstateSettings();
+            es.OnSave += StoreEstateSettings;
 
             IDataReader r = cmd.ExecuteReader();
 
@@ -120,17 +125,15 @@ namespace OpenSim.Data.SQLite
                 }
                 r.Close();
             }
-            else
+            else if (create)
             {
-                // Migration case
-                //
                 r.Close();
 
                 List<string> names = new List<string>(FieldList);
 
                 names.Remove("EstateID");
 
-                sql = "insert into estate_settings ("+String.Join(",", names.ToArray())+") values ( :"+String.Join(", :", names.ToArray())+")";
+                string sql = "insert into estate_settings ("+String.Join(",", names.ToArray())+") values ( :"+String.Join(", :", names.ToArray())+")";
 
                 cmd.CommandText = sql;
                 cmd.Parameters.Clear();
@@ -168,20 +171,6 @@ namespace OpenSim.Data.SQLite
                 cmd.Parameters.Add(":EstateID", es.EstateID.ToString());
 
                 // This will throw on dupe key
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                }
-
-                // Munge and transfer the ban list
-                //
-                cmd.Parameters.Clear();
-                cmd.CommandText = "insert into estateban select "+es.EstateID.ToString()+", bannedUUID, bannedIp, bannedIpHostMask, '' from regionban where regionban.regionUUID = :UUID";
-                cmd.Parameters.Add(":UUID", regionID.ToString());
-
                 try
                 {
                     cmd.ExecuteNonQuery();
@@ -335,6 +324,64 @@ namespace OpenSim.Data.SQLite
             r.Close();
 
             return uuids.ToArray();
+        }
+
+        public EstateSettings LoadEstateSettings(int estateID)
+        {
+            string sql = "select estate_settings."+String.Join(",estate_settings.", FieldList)+" from estate_settings where estate_settings.EstateID :EstateID";
+
+            SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
+
+            cmd.CommandText = sql;
+            cmd.Parameters.Add(":EstateID", estateID.ToString());
+
+            return DoLoad(cmd, UUID.Zero, false);
+        }
+
+        public List<int> GetEstates(string search)
+        {
+            List<int> result = new List<int>();
+
+            string sql = "select EstateID from estate_settings where estate_settings.EstateName :EstateName";
+
+            SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
+
+            cmd.CommandText = sql;
+            cmd.Parameters.Add(":EstateName", search);
+
+            IDataReader r = cmd.ExecuteReader();
+
+            while (r.Read())
+            {
+                result.Add(Convert.ToInt32(r["EstateID"]));
+            }
+            r.Close();
+
+            return result;
+        }
+
+        public bool LinkRegion(UUID regionID, int estateID)
+        {
+            SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
+
+            cmd.CommandText = "insert into estate_map values (:RegionID, :EstateID)";
+            cmd.Parameters.Add(":RegionID", regionID.ToString());
+            cmd.Parameters.Add(":EstateID", estateID.ToString());
+
+            if (cmd.ExecuteNonQuery() == 0)
+                return false;
+
+            return true;
+        }
+
+        public List<UUID> GetRegions(int estateID)
+        {
+            return new List<UUID>();
+        }
+
+        public bool DeleteEstate(int estateID)
+        {
+            return false;
         }
     }
 }

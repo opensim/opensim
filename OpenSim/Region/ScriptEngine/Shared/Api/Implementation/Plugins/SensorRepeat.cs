@@ -404,70 +404,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         private List<SensedEntity> doAgentSensor(SenseRepeatClass ts)
         {
-            List<ScenePresence> presences;
             List<SensedEntity> sensedEntities = new List<SensedEntity>();
 
-            // If this is an avatar sense by key try to get them directly
-            // rather than getting a list to scan through
-            if (ts.keyID != UUID.Zero)
-            {
-                ScenePresence p = m_CmdManager.m_ScriptEngine.World.GetScenePresence(ts.keyID);
-                if (p == null)
-                    return sensedEntities;
-                presences = new List<ScenePresence>();
-                presences.Add(p);
-            }
-            else
-            {
-                presences = new List<ScenePresence>(m_CmdManager.m_ScriptEngine.World.GetScenePresences());
-            }
-
             // If nobody about quit fast
-            if (presences.Count == 0)
+            if(m_CmdManager.m_ScriptEngine.World.GetRootAgentCount() == 0)
                 return sensedEntities;
 
             SceneObjectPart SensePoint = ts.host;
-
             Vector3 fromRegionPos = SensePoint.AbsolutePosition;
-
             Quaternion q = SensePoint.RotationOffset;
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
             LSL_Types.Vector3 forward_dir = (new LSL_Types.Vector3(1, 0, 0) * r);
             double mag_fwd = LSL_Types.Vector3.Mag(forward_dir);
-
             bool attached = (SensePoint.AttachmentPoint != 0);
-            bool nameSearch = (ts.name != null && ts.name != "");
             Vector3 toRegionPos;
             double dis;
 
-            for (int i = 0; i < presences.Count; i++)
+            Action<ScenePresence> senseEntity = new Action<ScenePresence>(delegate(ScenePresence presence)
             {
-                ScenePresence presence = presences[i];
-                bool keep = true;
+                if (presence.IsDeleted || presence.IsChildAgent || presence.GodLevel > 0.0)
+                    return;
+                
+                // if the object the script is in is attached and the avatar is the owner
+                // then this one is not wanted
+                if (attached && presence.UUID == SensePoint.OwnerID)
+                    return;
 
-                if (presence.IsDeleted)
-                    continue;
-
-                if (presence.IsChildAgent)
-                    keep = false;
                 toRegionPos = presence.AbsolutePosition;
-
                 dis = Math.Abs(Util.GetDistanceTo(toRegionPos, fromRegionPos));
 
                 // are they in range
-                if (keep && dis <= ts.range)
+                if (dis <= ts.range)
                 {
-                    // if the object the script is in is attached and the avatar is the owner
-                    // then this one is not wanted
-                    if (attached && presence.UUID == SensePoint.OwnerID)
-                        keep = false;
-
-                    // check the name if needed
-                    if (keep && nameSearch && ts.name != presence.Name)
-                        keep = false;
-
                     // Are they in the required angle of view
-                    if (keep && ts.arc < Math.PI)
+                    if (ts.arc < Math.PI)
                     {
                         // not omni-directional. Can you see it ?
                         // vec forward_dir = llRot2Fwd(llGetRot())
@@ -488,26 +458,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                         catch
                         {
                         }
-                        if (ang_obj > ts.arc) keep = false;
+                        if (ang_obj <= ts.arc)
+                        {
+                            sensedEntities.Add(new SensedEntity(dis, presence.UUID));
+                        }
                     }
                 }
-                else
-                {
-                    keep = false;
-                }
+            });
 
-                // Do not report gods, not even minor ones
-                if (keep && presence.GodLevel > 0.0)
-                    keep = false;
-
-                if (keep) // add to list with distance
-                {
-                    sensedEntities.Add(new SensedEntity(dis, presence.UUID));
-                }
-
-                // If this is a search by name and we have just found it then no more to do 
-                if (nameSearch && ts.name == presence.Name)
+            // If this is an avatar sense by key try to get them directly
+            // rather than getting a list to scan through
+            if (ts.keyID != UUID.Zero)
+            {
+                ScenePresence sp;
+                // Try direct lookup by UUID
+                if(!m_CmdManager.m_ScriptEngine.World.TryGetScenePresence(ts.keyID, out sp))
                     return sensedEntities;
+                senseEntity(sp);
+            }
+            else if (ts.name != null && ts.name != "")
+            {
+                ScenePresence sp;
+                // Try lookup by name will return if/when found
+                if (!m_CmdManager.m_ScriptEngine.World.TryGetAvatarByName(ts.name, out sp))
+                    return sensedEntities;
+                senseEntity(sp);
+            }
+            else
+            {
+                m_CmdManager.m_ScriptEngine.World.ForEachScenePresence(senseEntity);
             }
             return sensedEntities;
         }

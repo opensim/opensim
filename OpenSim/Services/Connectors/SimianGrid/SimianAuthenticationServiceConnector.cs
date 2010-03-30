@@ -78,14 +78,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 IConfig assetConfig = source.Configs["AuthenticationService"];
                 if (assetConfig == null)
                 {
-                    m_log.Error("[AUTH CONNECTOR]: AuthenticationService missing from OpenSim.ini");
+                    m_log.Error("[SIMIAN AUTH CONNECTOR]: AuthenticationService missing from OpenSim.ini");
                     throw new Exception("Authentication connector init error");
                 }
 
                 string serviceURI = assetConfig.GetString("AuthenticationServerURI");
                 if (String.IsNullOrEmpty(serviceURI))
                 {
-                    m_log.Error("[AUTH CONNECTOR]: No Server URI named in section AuthenticationService");
+                    m_log.Error("[SIMIAN AUTH CONNECTOR]: No Server URI named in section AuthenticationService");
                     throw new Exception("Authentication connector init error");
                 }
 
@@ -114,17 +114,17 @@ namespace OpenSim.Services.Connectors.SimianGrid
                         {
                             string credential = identity["Credential"].AsString();
 
-                            if (password == credential || Utils.MD5String(password) == credential)
+                            if (password == credential || "$1$" + Utils.MD5String(password) == credential)
                                 return Authorize(principalID);
                         }
                     }
                 }
 
-                m_log.Warn("[AUTH CONNECTOR]: Authentication failed for " + principalID);
+                m_log.Warn("[SIMIAN AUTH CONNECTOR]: Authentication failed for " + principalID);
             }
             else
             {
-                m_log.Warn("[AUTH CONNECTOR]: Failed to retrieve identities for " + principalID + ": "  +
+                m_log.Warn("[SIMIAN AUTH CONNECTOR]: Failed to retrieve identities for " + principalID + ": "  +
                     response["Message"].AsString());
             }
 
@@ -146,7 +146,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             else
             {
-                m_log.Warn("[AUTH CONNECTOR]: Could not verify session for " + principalID + ": " +
+                m_log.Warn("[SIMIAN AUTH CONNECTOR]: Could not verify session for " + principalID + ": " +
                     response["Message"].AsString());
             }
 
@@ -168,7 +168,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             else
             {
-                m_log.Warn("[AUTH CONNECTOR]: Failed to remove session for " + principalID + ": " +
+                m_log.Warn("[SIMIAN AUTH CONNECTOR]: Failed to remove session for " + principalID + ": " +
                     response["Message"].AsString());
             }
 
@@ -177,9 +177,46 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public bool SetPassword(UUID principalID, string passwd)
         {
-            // TODO: Use GetIdentities to find the md5hash identity for principalID
-            // and then update it with AddIdentity
-            m_log.Error("[AUTH CONNECTOR]: Changing passwords is not implemented yet");
+            // Fetch the user name first
+            NameValueCollection requestArgs = new NameValueCollection
+            {
+                { "RequestMethod", "GetUser" },
+                { "UserID", principalID.ToString() }
+            };
+
+            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            if (response["Success"].AsBoolean() && response["User"] is OSDMap)
+            {
+                OSDMap userMap = (OSDMap)response["User"];
+                string identifier = userMap["Name"].AsString();
+
+                if (!String.IsNullOrEmpty(identifier))
+                {
+                    // Add/update the md5hash identity
+                    requestArgs = new NameValueCollection
+                    {
+                        { "RequestMethod", "AddIdentity" },
+                        { "Identifier", identifier },
+                        { "Credential", "$1$" + Utils.MD5String(passwd) },
+                        { "Type", "md5hash" },
+                        { "UserID", principalID.ToString() }
+                    };
+
+                    response = WebUtil.PostToService(m_serverUrl, requestArgs);
+                    bool success = response["Success"].AsBoolean();
+
+                    if (!success)
+                        m_log.WarnFormat("[SIMIAN AUTH CONNECTOR]: Failed to set password for {0} ({1})", identifier, principalID);
+
+                    return success;
+                }
+            }
+            else
+            {
+                m_log.Warn("[SIMIAN AUTH CONNECTOR]: Failed to retrieve identities for " + principalID + ": " +
+                    response["Message"].AsString());
+            }
+
             return false;
         }
 

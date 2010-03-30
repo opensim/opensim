@@ -606,7 +606,46 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_storageManager.EstateDataStore != null)
             {
-                m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID);
+                m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID, false);
+                if (m_regInfo.EstateSettings.EstateID == 0) // No record at all
+                {
+                    MainConsole.Instance.Output("Your region is not part of an estate.");
+                    while (true)
+                    {
+                        string response = MainConsole.Instance.CmdPrompt("Do you wish to join an existing estate?", "no", new List<string>() {"yes", "no"});
+                        if (response == "no")
+                        {
+                            // Create a new estate
+                            m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID, true);
+
+                            m_regInfo.EstateSettings.EstateName = MainConsole.Instance.CmdPrompt("New estate name", m_regInfo.EstateSettings.EstateName);
+                            m_regInfo.EstateSettings.Save();
+                            break;
+                        }
+                        else
+                        {
+                            response = MainConsole.Instance.CmdPrompt("Estate name to join", "None");
+                            if (response == "None")
+                                continue;
+
+                            List<int> estateIDs = m_storageManager.EstateDataStore.GetEstates(response);
+                            if (estateIDs.Count < 1)
+                            {
+                                MainConsole.Instance.Output("The name you have entered matches no known estate. Please try again");
+                                continue;
+                            }
+
+                            int estateID = estateIDs[0];
+
+                            m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(estateID);
+
+                            if (m_storageManager.EstateDataStore.LinkRegion(m_regInfo.RegionID, estateID))
+                                break;
+
+                            MainConsole.Instance.Output("Joining the estate failed. Please try again.");
+                        }
+                    }
+                }
             }
 
             //Bind Storage Manager functions to some land manager functions for this scene
@@ -1229,6 +1268,84 @@ namespace OpenSim.Region.Framework.Scenes
             m_dialogModule = RequestModuleInterface<IDialogModule>();
             m_capsModule = RequestModuleInterface<ICapabilitiesModule>();
             m_teleportModule = RequestModuleInterface<IEntityTransferModule>();
+
+            // Shoving this in here for now, because we have the needed
+            // interfaces at this point
+            //
+            // TODO: Find a better place for this
+            //
+            while (m_regInfo.EstateSettings.EstateOwner == UUID.Zero && MainConsole.Instance != null)
+            {
+                MainConsole.Instance.Output("The current estate has no owner set.");
+                string first = MainConsole.Instance.CmdPrompt("Estate owner first name", "Test");
+                string last = MainConsole.Instance.CmdPrompt("Estate owner last name", "User");
+
+                UserAccount account = UserAccountService.GetUserAccount(m_regInfo.ScopeID, first, last);
+
+                if (account == null)
+                {
+                    // Create a new account
+                    account = new UserAccount(m_regInfo.ScopeID, first, last, String.Empty);
+                    if (account.ServiceURLs == null || (account.ServiceURLs != null && account.ServiceURLs.Count == 0))
+                    {
+                        account.ServiceURLs = new Dictionary<string, object>();
+                        account.ServiceURLs["HomeURI"] = string.Empty;
+                        account.ServiceURLs["GatekeeperURI"] = string.Empty;
+                        account.ServiceURLs["InventoryServerURI"] = string.Empty;
+                        account.ServiceURLs["AssetServerURI"] = string.Empty;
+                    }
+
+                    if (UserAccountService.StoreUserAccount(account))
+                    {
+                        string password = MainConsole.Instance.PasswdPrompt("Password");
+                        string email = MainConsole.Instance.CmdPrompt("Email", "");
+
+                        account.Email = email;
+                        UserAccountService.StoreUserAccount(account);
+
+                        bool success = false;
+                        success = AuthenticationService.SetPassword(account.PrincipalID, password);
+                        if (!success)
+                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set password for account {0} {1}.",
+                               first, last);
+
+                        GridRegion home = null;
+                        if (GridService != null)
+                        {
+                            List<GridRegion> defaultRegions = GridService.GetDefaultRegions(UUID.Zero);
+                            if (defaultRegions != null && defaultRegions.Count >= 1)
+                                home = defaultRegions[0];
+
+                            if (PresenceService != null && home != null)
+                                PresenceService.SetHomeLocation(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
+                            else
+                                m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set home for account {0} {1}.",
+                                   first, last);
+
+                        }
+                        else
+                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to retrieve home region for account {0} {1}.",
+                               first, last);
+
+                        if (InventoryService != null)
+                            success = InventoryService.CreateUserInventory(account.PrincipalID);
+                        if (!success)
+                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to create inventory for account {0} {1}.",
+                               first, last);
+
+
+                        m_log.InfoFormat("[USER ACCOUNT SERVICE]: Account {0} {1} created successfully", first, last);
+
+                        m_regInfo.EstateSettings.EstateOwner = account.PrincipalID;
+                        m_regInfo.EstateSettings.Save();
+                    }
+                }
+                else
+                {
+                    m_regInfo.EstateSettings.EstateOwner = account.PrincipalID;
+                    m_regInfo.EstateSettings.Save();
+                }
+            }
         }
 
         #endregion
@@ -3296,7 +3413,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            ScenePresence sp = m_sceneGraph.GetScenePresence(agent.AgentID);
+            ScenePresence sp = GetScenePresence(agent.AgentID);
             if (sp != null)
             {
                 m_log.DebugFormat(
@@ -3594,8 +3711,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="message">message to display to the user.  Reason for being logged off</param>
         public void HandleLogOffUserFromGrid(UUID AvatarID, UUID RegionSecret, string message)
         {
-            ScenePresence loggingOffUser = null;
-            loggingOffUser = GetScenePresence(AvatarID);
+            ScenePresence loggingOffUser = GetScenePresence(AvatarID);
             if (loggingOffUser != null)
             {
                 UUID localRegionSecret = UUID.Zero;
@@ -3631,8 +3747,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="isFlying"></param>
         public virtual void AgentCrossing(UUID agentID, Vector3 position, bool isFlying)
         {
-            ScenePresence presence;
-            if(m_sceneGraph.TryGetAvatar(agentID, out presence))
+            ScenePresence presence = GetScenePresence(agentID);
+            if(presence != null)
             {
                 try
                 {
@@ -3806,8 +3922,8 @@ namespace OpenSim.Region.Framework.Scenes
         public void RequestTeleportLocation(IClientAPI remoteClient, ulong regionHandle, Vector3 position,
                                             Vector3 lookAt, uint teleportFlags)
         {
-            ScenePresence sp;
-            if(m_sceneGraph.TryGetAvatar(remoteClient.AgentId, out sp))
+            ScenePresence sp = GetScenePresence(remoteClient.AgentId);
+            if (sp != null)
             {
                 uint regionX = m_regInfo.RegionLocX;
                 uint regionY = m_regInfo.RegionLocY;
@@ -3985,17 +4101,17 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.ErrorFormat("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname",
                                       "Agent ID", "Session ID", "Circuit", "IP", "World");
 
-                    foreach (ScenePresence scenePresence in GetAvatars())
+                    ForEachScenePresence(delegate(ScenePresence sp)
                     {
                         m_log.ErrorFormat("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
-                                          scenePresence.Firstname,
-                                          scenePresence.Lastname,
-                                          scenePresence.UUID,
-                                          scenePresence.ControllingClient.AgentId,
+                                          sp.Firstname,
+                                          sp.Lastname,
+                                          sp.UUID,
+                                          sp.ControllingClient.AgentId,
                                           "Unknown",
                                           "Unknown",
                                           RegionInfo.RegionName);
-                    }
+                    });
 
                     break;
             }
@@ -4161,72 +4277,42 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneGraph.RemovePhysicalPrim(num);
         }
 
-        //The idea is to have a group of method that return a list of avatars meeting some requirement
-        // ie it could be all m_scenePresences within a certain range of the calling prim/avatar.
-        // 
-        // GetAvatars returns a new list of all root agent presences in the scene
-        // GetScenePresences returns a new list of all presences in the scene or a filter may be passed.
-        // GetScenePresence returns the presence with matching UUID or first/last name.
-        // ForEachScenePresence requests the Scene to run a delegate function against all presences.
-
-        /// <summary>
-        /// Return a list of all avatars in this region.
-        /// This list is a new object, so it can be iterated over without locking.
-        /// </summary>
-        /// <returns></returns>
-        public List<ScenePresence> GetAvatars()
+        public int GetRootAgentCount()
         {
-            return m_sceneGraph.GetAvatars();
+            return m_sceneGraph.GetRootAgentCount();
+        }
+
+        public int GetChildAgentCount()
+        {
+            return m_sceneGraph.GetChildAgentCount();
         }
 
         /// <summary>
-        /// Return a list of all ScenePresences in this region.  This returns child agents as well as root agents.
-        /// This list is a new object, so it can be iterated over without locking.
+        /// Request a scene presence by UUID. Fast, indexed lookup.
         /// </summary>
-        /// <returns></returns>
-        public List<ScenePresence> GetScenePresences()
+        /// <param name="agentID"></param>
+        /// <returns>null if the presence was not found</returns>
+        public ScenePresence GetScenePresence(UUID agentID)
         {
-            return m_sceneGraph.GetScenePresences();
+            return m_sceneGraph.GetScenePresence(agentID);
         }
 
         /// <summary>
-        /// Request a filtered list of ScenePresences in this region.
-        /// This list is a new object, so it can be iterated over without locking.
-        /// </summary>
-        /// <param name="filter"></param>
-        /// <returns></returns>
-        public List<ScenePresence> GetScenePresences(FilterAvatarList filter)
-        {
-            return m_sceneGraph.GetScenePresences(filter);
-        }
-
-        /// <summary>
-        /// Request a scene presence by UUID
-        /// </summary>
-        /// <param name="avatarID"></param>
-        /// <returns></returns>
-        public ScenePresence GetScenePresence(UUID avatarID)
-        {
-            return m_sceneGraph.GetScenePresence(avatarID);
-        }
-
-        /// <summary>
-        /// Request the ScenePresence in this region by first/last name.
-        /// Should normally only be a single match, but first is always returned
+        /// Request the scene presence by name.
         /// </summary>
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
-        /// <returns></returns>
+        /// <returns>null if the presence was not found</returns>
         public ScenePresence GetScenePresence(string firstName, string lastName)
         {
             return m_sceneGraph.GetScenePresence(firstName, lastName);
         }
 
         /// <summary>
-        /// Request the ScenePresence in this region by localID.
+        /// Request the scene presence by localID.
         /// </summary>
         /// <param name="localID"></param>
-        /// <returns></returns>
+        /// <returns>null if the presence was not found</returns>
         public ScenePresence GetScenePresence(uint localID)
         {
             return m_sceneGraph.GetScenePresence(localID);
@@ -4318,9 +4404,9 @@ namespace OpenSim.Region.Framework.Scenes
             return m_sceneGraph.GetGroupByPrim(localID);
         }
 
-        public override bool TryGetAvatar(UUID avatarId, out ScenePresence avatar)
+        public override bool TryGetScenePresence(UUID avatarId, out ScenePresence avatar)
         {
-            return m_sceneGraph.TryGetAvatar(avatarId, out avatar);
+            return m_sceneGraph.TryGetScenePresence(avatarId, out avatar);
         }
 
         public bool TryGetAvatarByName(string avatarName, out ScenePresence avatar)

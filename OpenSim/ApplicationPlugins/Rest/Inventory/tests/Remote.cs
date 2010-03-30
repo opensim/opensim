@@ -123,10 +123,15 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
 
         private void DoMove(RequestData rdata)
         {
-            if (rdata.Parameters.Length >= 6)
+            if (rdata.Parameters.Length < 6)
+            {
+                Rest.Log.WarnFormat("{0} Move: No movement information provided", MsgId);
+                rdata.Fail(Rest.HttpStatusCodeBadRequest, "no movement information provided");
+            }
+            else
             {
                 string[] names = rdata.Parameters[PARM_MOVE_AVATAR].Split(Rest.CA_SPACE);
-                ScenePresence avatar = null;
+                ScenePresence presence = null;
                 Scene scene = null;
 
                 if (names.Length != 2)
@@ -141,21 +146,19 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
                 // The first parameter should be an avatar name, look for the
                 // avatar in the known regions first.
 
-                foreach (Scene cs in Rest.main.SceneManager.Scenes)
+                Rest.main.SceneManager.ForEachScene(delegate(Scene s)
                 {
-                     foreach (ScenePresence presence in cs.GetAvatars())
+                    s.ForEachScenePresence(delegate(ScenePresence sp)
                     {
-                        if (presence.Firstname == names[0] &&
-                           presence.Lastname  == names[1])
+                        if (sp.Firstname == names[0] && sp.Lastname == names[1])
                         {
-                           scene = cs;
-                           avatar = presence;
-                           break;
+                            scene = s;
+                            presence = sp;
                         }
-                    }
-                }
+                    });
+                });
 
-                if (avatar != null)
+                if (presence != null)
                 {
                     Rest.Log.DebugFormat("{0} Move : Avatar {1} located in region {2}",
                                 MsgId, rdata.Parameters[PARM_MOVE_AVATAR], scene.RegionInfo.RegionName);
@@ -166,14 +169,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
                         float y = Convert.ToSingle(rdata.Parameters[PARM_MOVE_Y]);
                         float z = Convert.ToSingle(rdata.Parameters[PARM_MOVE_Z]);
                         Vector3 vector = new Vector3(x,y,z);
-                        avatar.DoAutoPilot(0,vector,avatar.ControllingClient);
+                        presence.DoAutoPilot(0,vector,presence.ControllingClient);
                     }
                     catch (Exception e)
                     {
                         rdata.Fail(Rest.HttpStatusCodeBadRequest,
                                    String.Format("invalid parameters: {0}", e.Message));
                     }
-
                 }
                 else
                 {
@@ -183,12 +185,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
 
                 rdata.Complete();
                 rdata.Respond("OK");
-
-            }
-            else
-            {
-                Rest.Log.WarnFormat("{0} Move: No movement information provided", MsgId);
-                rdata.Fail(Rest.HttpStatusCodeBadRequest, "no movement information provided");
             }
         }
 
