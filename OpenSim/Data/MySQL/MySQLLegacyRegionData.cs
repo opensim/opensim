@@ -711,9 +711,9 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public RegionMeta7WindlightData LoadRegionWindlightSettings(UUID regionUUID)
+        public RegionLightShareData LoadRegionWindlightSettings(UUID regionUUID)
         {
-            RegionMeta7WindlightData nWP = new RegionMeta7WindlightData();
+            RegionLightShareData nWP = new RegionLightShareData();
             nWP.OnSave += StoreRegionWindlightSettings;
 
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
@@ -845,7 +845,7 @@ namespace OpenSim.Data.MySQL
             return rs;
         }
 
-        public void StoreRegionWindlightSettings(RegionMeta7WindlightData wl)
+        public void StoreRegionWindlightSettings(RegionLightShareData wl)
         {
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {

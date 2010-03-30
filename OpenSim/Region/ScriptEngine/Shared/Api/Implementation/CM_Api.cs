@@ -7,7 +7,7 @@ using OpenMetaverse;
 using Nini.Config;
 using OpenSim;
 using OpenSim.Framework;
-using OpenSim.Region.CoreModules.World.Meta7Windlight;
+using OpenSim.Region.CoreModules.World.LightShare;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
@@ -97,7 +97,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return new LSL_List();
             }
             m_host.AddScriptLPS(1);
-            RegionMeta7WindlightData wl = m_host.ParentGroup.Scene.RegionInfo.WindlightSettings;
+            RegionLightShareData wl = m_host.ParentGroup.Scene.RegionInfo.WindlightSettings;
 
             LSL_List values = new LSL_List();
             int idx = 0;
@@ -231,9 +231,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         }
 
-        private RegionMeta7WindlightData getWindlightProfileFromRules(LSL_List rules)
+        private RegionLightShareData getWindlightProfileFromRules(LSL_List rules)
         {
-            RegionMeta7WindlightData wl = (RegionMeta7WindlightData)m_host.ParentGroup.Scene.RegionInfo.WindlightSettings.Clone();
+            RegionLightShareData wl = (RegionLightShareData)m_host.ParentGroup.Scene.RegionInfo.WindlightSettings.Clone();
 
             LSL_List values = new LSL_List();
             int idx = 0;
@@ -427,9 +427,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             int success = 0;
             m_host.AddScriptLPS(1);
-            if (Meta7WindlightModule.EnableWindlight)
+            if (LightShareModule.EnableWindlight)
             {
-                RegionMeta7WindlightData wl = getWindlightProfileFromRules(rules);
+                RegionLightShareData wl = getWindlightProfileFromRules(rules);
                 m_host.ParentGroup.Scene.StoreWindlightProfile(wl);
                 success = 1;
             }
@@ -459,9 +459,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             int success = 0;
             m_host.AddScriptLPS(1);
-            if (Meta7WindlightModule.EnableWindlight)
+            if (LightShareModule.EnableWindlight)
             { 
-                RegionMeta7WindlightData wl = getWindlightProfileFromRules(rules);
+                RegionLightShareData wl = getWindlightProfileFromRules(rules);
                 World.EventManager.TriggerOnSendNewWindlightProfileTargeted(wl, new UUID(target.m_string));
                 success = 1;
             }

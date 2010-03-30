@@ -1729,7 +1729,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_storageManager.DataStore.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
         }
 
-        public void StoreWindlightProfile(RegionMeta7WindlightData wl)
+        public void StoreWindlightProfile(RegionLightShareData wl)
         {
             m_regInfo.WindlightSettings = wl;
             m_storageManager.DataStore.StoreRegionWindlightSettings(wl);

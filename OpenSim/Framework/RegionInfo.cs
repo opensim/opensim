@@ -39,7 +39,7 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework
 {
-    public class RegionMeta7WindlightData : ICloneable
+    public class RegionLightShareData : ICloneable
     {
         public UUID regionID = UUID.Zero;
         public Vector3 waterColor = new Vector3(4.0f,38.0f,64.0f);
@@ -80,7 +80,7 @@ namespace OpenSim.Framework
         public bool cloudScrollYLock = false;
         public bool drawClassicClouds = true;
 
-        public delegate void SaveDelegate(RegionMeta7WindlightData wl);
+        public delegate void SaveDelegate(RegionLightShareData wl);
         public event SaveDelegate OnSave;
         public void Save()
         {
@@ -356,7 +356,7 @@ namespace OpenSim.Framework
         private bool m_clampPrimSize = false;
         private int m_objectCapacity = 0;
         private string m_regionType = String.Empty;
-        private RegionMeta7WindlightData m_windlight = new RegionMeta7WindlightData();
+        private RegionLightShareData m_windlight = new RegionLightShareData();
         protected uint m_httpPort;
         protected string m_serverURI;
         protected string m_regionName = String.Empty;
@@ -495,13 +495,13 @@ namespace OpenSim.Framework
             set { m_regionSettings = value; }
         }
 
-        public RegionMeta7WindlightData WindlightSettings
+        public RegionLightShareData WindlightSettings
         {
             get
             {
                 if (m_windlight == null)
                 {
-                    m_windlight = new RegionMeta7WindlightData();
+                    m_windlight = new RegionLightShareData();
                 }
 
                 return m_windlight;

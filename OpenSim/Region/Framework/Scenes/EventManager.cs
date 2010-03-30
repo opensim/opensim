@@ -207,7 +207,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void OnMakeRootAgentDelegate(ScenePresence presence);
         public delegate void OnSaveNewWindlightProfileDelegate();
-        public delegate void OnSendNewWindlightProfileTargetedDelegate(RegionMeta7WindlightData wl, UUID user);
+        public delegate void OnSendNewWindlightProfileTargetedDelegate(RegionLightShareData wl, UUID user);
         public event OnMakeRootAgentDelegate OnMakeRootAgent;
         public event OnSendNewWindlightProfileTargetedDelegate OnSendNewWindlightProfileTargeted;
         public event OnSaveNewWindlightProfileDelegate OnSaveNewWindlightProfile;
@@ -1220,7 +1220,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerOnSendNewWindlightProfileTargeted(RegionMeta7WindlightData wl, UUID user)
+        public void TriggerOnSendNewWindlightProfileTargeted(RegionLightShareData wl, UUID user)
         {
             OnSendNewWindlightProfileTargetedDelegate handlerSendNewWindlightProfileTargeted = OnSendNewWindlightProfileTargeted;
             if (handlerSendNewWindlightProfileTargeted != null)

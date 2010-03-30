@@ -771,7 +771,7 @@
     ; default is 1000
     cloud_update_rate = 1000
 
-[Meta7Windlight]
+[LightShare]
 
     ; This enables the transmission of Windlight scenes to supporting clients, such as the Meta7 viewer.
     ; It has no ill effect on viewers which do not support server-side windlight settings.

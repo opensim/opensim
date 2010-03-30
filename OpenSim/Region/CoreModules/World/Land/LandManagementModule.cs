@@ -1532,7 +1532,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         private void ClientOnSimWideDeletes(IClientAPI client, UUID agentID, int flags, UUID targetID)
         {
             ScenePresence SP;
-            ((Scene)client.Scene).TryGetAvatar(client.AgentId, out SP);
+            ((Scene)client.Scene).TryGetScenePresence(client.AgentId, out SP);
             List<SceneObjectGroup> returns = new List<SceneObjectGroup>();
             if (SP.GodLevel != 0)
             {
@@ -1597,9 +1597,9 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void ClientOnParcelFreezeUser(IClientAPI client, UUID parcelowner, uint flags, UUID target)
         {
             ScenePresence targetAvatar = null;
-            ((Scene)client.Scene).TryGetAvatar(target, out targetAvatar);
+            ((Scene)client.Scene).TryGetScenePresence(target, out targetAvatar);
             ScenePresence parcelManager = null;
-            ((Scene)client.Scene).TryGetAvatar(client.AgentId, out parcelManager);
+            ((Scene)client.Scene).TryGetScenePresence(client.AgentId, out parcelManager);
             System.Threading.Timer Timer;
 
             if (targetAvatar.GodLevel == 0)
@@ -1641,9 +1641,9 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void ClientOnParcelEjectUser(IClientAPI client, UUID parcelowner, uint flags, UUID target)
         {
             ScenePresence targetAvatar = null;
-            ((Scene)client.Scene).TryGetAvatar(target, out targetAvatar);
+            ((Scene)client.Scene).TryGetScenePresence(target, out targetAvatar);
             ScenePresence parcelManager = null;
-            ((Scene)client.Scene).TryGetAvatar(client.AgentId, out parcelManager);
+            ((Scene)client.Scene).TryGetScenePresence(client.AgentId, out parcelManager);
             //Just eject
             if (flags == 0)
             {
