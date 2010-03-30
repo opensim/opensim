@@ -3566,7 +3566,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < count; i++)
                 {
                     ObjectUpdatePacket.ObjectDataBlock block = m_primFullUpdates.Dequeue();
-                    //outPacket.ObjectData[i] = m_primFullUpdates.Dequeue();
 
                     if (!m_killRecord.Contains(block.ID))
                     {
