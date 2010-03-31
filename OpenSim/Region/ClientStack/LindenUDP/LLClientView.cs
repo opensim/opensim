@@ -856,6 +856,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 gmp.ParamList[i] = new GenericMessagePacket.ParamListBlock();
                 gmp.ParamList[i++].Parameter = val;
             }
+
             OutPacket(gmp, ThrottleOutPacketType.Task);
         }
 
