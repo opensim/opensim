@@ -845,17 +845,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public void SendGenericMessage(string method, List<string> message)
+        public void SendGenericMessage(string method, List<byte[]> message)
         {
             GenericMessagePacket gmp = new GenericMessagePacket();
             gmp.MethodData.Method = Util.StringToBytes256(method);
             gmp.ParamList = new GenericMessagePacket.ParamListBlock[message.Count];
             int i = 0;
-            foreach (string val in message)
+            foreach (byte[] val in message)
             {
                 gmp.ParamList[i] = new GenericMessagePacket.ParamListBlock();
-                gmp.ParamList[i++].Parameter = Util.StringToBytes256(val);
+                gmp.ParamList[i++].Parameter = val;
             }
+
             OutPacket(gmp, ThrottleOutPacketType.Task);
         }
 
