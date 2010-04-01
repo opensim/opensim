@@ -203,16 +203,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             GroupRecord groupInfo = m_groupsModule.GetGroupRecord(groupID);
 
             if (groupInfo != null)
-                return StartGroupChatSession(agentID.Guid, groupInfo);
+            {
+                AddAgentToGroupSession(agentID.Guid, groupID.Guid);
+                return true;
+            }
             else
+            {
                 return false;
-        }
-            
-        protected bool StartGroupChatSession(Guid agentID, GroupRecord groupInfo)
-        {
-            AddAgentToGroupSession(agentID, groupInfo.GroupID.Guid);
-
-            return true;
+            }
         }
         
         public void SendMessageToGroup(GridInstantMessage im, UUID groupID)
@@ -455,7 +453,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
     
                 if (groupInfo != null)
                 {                
-                    StartGroupChatSession(im.fromAgentID, groupInfo);
+                    AddAgentToGroupSession(im.fromAgentID, groupInfo.GroupID.Guid);
 
                     ChatterBoxSessionStartReplyViaCaps(remoteClient, groupInfo.GroupName, groupID);
 
