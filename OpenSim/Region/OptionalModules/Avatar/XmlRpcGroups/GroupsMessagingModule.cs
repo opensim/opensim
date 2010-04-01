@@ -28,29 +28,23 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-
-
 using log4net;
 using Mono.Addins;
 using Nini.Config;
-
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
-
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Framework.EventQueue;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-
 
 using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class GroupsMessagingModule : ISharedRegionModule
+    public class GroupsMessagingModule : ISharedRegionModule, IGroupsMessagingModule
     {
-
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private List<Scene> m_sceneList = new List<Scene>();
@@ -108,8 +102,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public void AddRegion(Scene scene)
         {
-            // NoOp
+            if (!m_groupMessagingEnabled)
+                return;
+            
+            scene.RegisterModuleInterface<IGroupsMessagingModule>(this);
         }
+        
         public void RegionLoaded(Scene scene)
         {
             if (!m_groupMessagingEnabled)
@@ -197,6 +195,75 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         #endregion
 
+        public bool StartGroupChatSession(UUID agentID, UUID groupID)
+        {
+            if (m_debugEnabled)
+                m_log.DebugFormat("[GROUPS-MESSAGING]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+                
+            GroupRecord groupInfo = m_groupsModule.GetGroupRecord(groupID);
+
+            if (groupInfo != null)
+                return StartGroupChatSession(agentID.Guid, groupInfo);
+            else
+                return false;
+        }
+            
+        protected bool StartGroupChatSession(Guid agentID, GroupRecord groupInfo)
+        {
+            AddAgentToGroupSession(agentID, groupInfo.GroupID.Guid);
+
+            return true;
+        }
+        
+        public void SendMessageToGroup(GridInstantMessage im, UUID groupID)
+        {
+            if (m_debugEnabled) 
+                m_log.DebugFormat("[GROUPS-MESSAGING]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+
+            foreach (GroupMembersData member in m_groupsModule.GroupMembersRequest(null, groupID))
+            {
+                if (!m_agentsDroppedSession.ContainsKey(im.imSessionID) || m_agentsDroppedSession[im.imSessionID].Contains(member.AgentID.Guid))
+                {
+                    // Don't deliver messages to people who have dropped this session
+                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: {0} has dropped session, not delivering to them", member.AgentID);
+                    continue;
+                }
+
+                // Copy Message
+                GridInstantMessage msg = new GridInstantMessage();
+                msg.imSessionID = im.imSessionID;
+                msg.fromAgentName = im.fromAgentName;
+                msg.message = im.message;
+                msg.dialog = im.dialog;
+                msg.offline = im.offline;
+                msg.ParentEstateID = im.ParentEstateID;
+                msg.Position = im.Position;
+                msg.RegionID = im.RegionID;
+                msg.binaryBucket = im.binaryBucket;
+                msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
+
+                // Updat Pertinate fields to make it a "group message"
+                msg.fromAgentID = groupID.Guid;
+                msg.fromGroup = true;
+
+                msg.toAgentID = member.AgentID.Guid;
+
+                IClientAPI client = GetActiveClient(member.AgentID);
+                if (client == null)
+                {
+                    // If they're not local, forward across the grid
+                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Delivering to {0} via Grid", member.AgentID);
+                    m_msgTransferModule.SendInstantMessage(msg, delegate(bool success) { });
+                }
+                else
+                {
+                    // Deliver locally, directly
+                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Passing to ProcessMessageFromGroupSession to deliver to {0} locally", client.Name);
+                    ProcessMessageFromGroupSession(msg);
+                }
+            }
+        }
+        
         #region SimGridEventHandlers
 
         private void OnNewClient(IClientAPI client)
@@ -370,7 +437,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 m_agentsDroppedSession.Add(sessionID, new List<Guid>());
             }
         }
-
+        
         private void OnInstantMessage(IClientAPI remoteClient, GridInstantMessage im)
         {
             if (m_debugEnabled)
@@ -384,13 +451,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if ((im.dialog == (byte)InstantMessageDialog.SessionGroupStart))
             {
                 UUID groupID = new UUID(im.toAgentID);
-
                 GroupRecord groupInfo = m_groupsModule.GetGroupRecord(groupID);
+    
                 if (groupInfo != null)
-                {
-                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Start Group Session for {0}", groupInfo.GroupName);
-
-                    AddAgentToGroupSession(im.fromAgentID, im.imSessionID);
+                {                
+                    StartGroupChatSession(im.fromAgentID, groupInfo);
 
                     ChatterBoxSessionStartReplyViaCaps(remoteClient, groupInfo.GroupName, groupID);
 
@@ -411,61 +476,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             {
                 UUID groupID = new UUID(im.toAgentID);
 
-                if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Send message to session for group {0} with session ID {1}", groupID, im.imSessionID.ToString());
+                if (m_debugEnabled) 
+                    m_log.DebugFormat("[GROUPS-MESSAGING]: Send message to session for group {0} with session ID {1}", groupID, im.imSessionID.ToString());
 
                 SendMessageToGroup(im, groupID);
             }
         }
 
         #endregion
-
-        private void SendMessageToGroup(GridInstantMessage im, UUID groupID)
-        {
-            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
-
-            foreach (GroupMembersData member in m_groupsModule.GroupMembersRequest(null, groupID))
-            {
-                if (!m_agentsDroppedSession.ContainsKey(im.imSessionID) || m_agentsDroppedSession[im.imSessionID].Contains(member.AgentID.Guid))
-                {
-                    // Don't deliver messages to people who have dropped this session
-                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: {0} has dropped session, not delivering to them", member.AgentID);
-                    continue;
-                }
-
-                // Copy Message
-                GridInstantMessage msg = new GridInstantMessage();
-                msg.imSessionID = im.imSessionID;
-                msg.fromAgentName = im.fromAgentName;
-                msg.message = im.message;
-                msg.dialog = im.dialog;
-                msg.offline = im.offline;
-                msg.ParentEstateID = im.ParentEstateID;
-                msg.Position = im.Position;
-                msg.RegionID = im.RegionID;
-                msg.binaryBucket = im.binaryBucket;
-                msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
-
-                // Updat Pertinate fields to make it a "group message"
-                msg.fromAgentID = groupID.Guid;
-                msg.fromGroup = true;
-
-                msg.toAgentID = member.AgentID.Guid;
-
-                IClientAPI client = GetActiveClient(member.AgentID);
-                if (client == null)
-                {
-                    // If they're not local, forward across the grid
-                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Delivering to {0} via Grid", member.AgentID);
-                    m_msgTransferModule.SendInstantMessage(msg, delegate(bool success) { });
-                }
-                else
-                {
-                    // Deliver locally, directly
-                    if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: Passing to ProcessMessageFromGroupSession to deliver to {0} locally", client.Name);
-                    ProcessMessageFromGroupSession(msg);
-                }
-            }
-        }
 
         void ChatterBoxSessionStartReplyViaCaps(IClientAPI remoteClient, string groupName, UUID groupID)
         {
