@@ -272,7 +272,16 @@ namespace OpenSim.Data.SQLite
                 Commit();
             }
         }
-
+        public RegionLightShareData LoadRegionWindlightSettings(UUID regionUUID)
+        {
+            //This connector doesn't support the windlight module yet
+            //Return default LL windlight settings
+            return new RegionLightShareData();
+        }
+        public void StoreRegionWindlightSettings(RegionLightShareData wl)
+        {
+            //This connector doesn't support the windlight module yet
+        }
         public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
             lock (ds)
@@ -320,7 +329,7 @@ namespace OpenSim.Data.SQLite
             {
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
-                    m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
+//                    m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
                     addPrim(prim, obj.UUID, regionUUID);
                 }
             }
