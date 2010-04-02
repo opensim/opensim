@@ -40,7 +40,6 @@ using OpenMetaverse.Packets;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
-
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -353,6 +352,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_avatarTerseUpdates;
         private PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_primTerseUpdates;
         private PriorityQueue<double, ObjectUpdatePacket.ObjectDataBlock> m_primFullUpdates;
+
+        /// <value>
+        /// List used in construction of data blocks for an object update packet.  This is to stop us having to
+        /// continually recreate it.
+        /// </value>
+        protected List<ObjectUpdatePacket.ObjectDataBlock> m_fullUpdateDataBlocksBuilder;
+
+        /// <value>
+        /// Maintain a record of all the objects killed.  This allows us to stop an update being sent from the
+        /// thread servicing the m_primFullUpdates queue after a kill.  If this happens the object persists as an
+        /// ownerless phantom.
+        ///
+        /// All manipulation of this set has to occur under a m_primFullUpdate.SyncRoot lock
+        ///       
+        /// </value>
+        protected HashSet<uint> m_killRecord;
+        
         private int m_moneyBalance;
         private int m_animationSequenceNumber = 1;
         private bool m_SendLogoutPacketWhenClosing = true;
@@ -449,6 +465,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_avatarTerseUpdates = new PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
             m_primTerseUpdates = new PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
             m_primFullUpdates = new PriorityQueue<double, ObjectUpdatePacket.ObjectDataBlock>(m_scene.Entities.Count);
+            m_fullUpdateDataBlocksBuilder = new List<ObjectUpdatePacket.ObjectDataBlock>();
+            m_killRecord = new HashSet<uint>();
 
             m_assetService = m_scene.RequestModuleInterface<IAssetService>();
             m_hyperAssets = m_scene.RequestModuleInterface<IHyperAssetService>();
@@ -827,17 +845,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public void SendGenericMessage(string method, List<string> message)
+        public void SendGenericMessage(string method, List<byte[]> message)
         {
             GenericMessagePacket gmp = new GenericMessagePacket();
             gmp.MethodData.Method = Util.StringToBytes256(method);
             gmp.ParamList = new GenericMessagePacket.ParamListBlock[message.Count];
             int i = 0;
-            foreach (string val in message)
+            foreach (byte[] val in message)
             {
                 gmp.ParamList[i] = new GenericMessagePacket.ParamListBlock();
-                gmp.ParamList[i++].Parameter = Util.StringToBytes256(val);
+                gmp.ParamList[i++].Parameter = val;
             }
+
             OutPacket(gmp, ThrottleOutPacketType.Task);
         }
 
@@ -1489,7 +1508,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             kill.ObjectData[0].ID = localID;
             kill.Header.Reliable = true;
             kill.Header.Zerocoded = true;
-            OutPacket(kill, ThrottleOutPacketType.State);
+
+            lock (m_primFullUpdates.SyncRoot)
+            {
+                m_killRecord.Add(localID);
+                OutPacket(kill, ThrottleOutPacketType.State);
+            }
         }
 
         /// <summary>
@@ -3538,21 +3562,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (count == 0)
                     return;
 
-                outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[count];
+                m_fullUpdateDataBlocksBuilder.Clear();
+                                
                 for (int i = 0; i < count; i++)
                 {
-                    outPacket.ObjectData[i] = m_primFullUpdates.Dequeue();
+                    ObjectUpdatePacket.ObjectDataBlock block = m_primFullUpdates.Dequeue();
 
+                    if (!m_killRecord.Contains(block.ID))
+                    {
+                        m_fullUpdateDataBlocksBuilder.Add(block);
+                        
 //                    string text = Util.FieldToString(outPacket.ObjectData[i].Text);
 //                    if (text.IndexOf("\n") >= 0)
 //                        text = text.Remove(text.IndexOf("\n"));
 //                    m_log.DebugFormat(
 //                        "[CLIENT]: Sending full info about prim {0} text {1} to client {2}", 
 //                        outPacket.ObjectData[i].ID, text, Name);
+                    }
+//                    else
+//                    {
+//                        m_log.WarnFormat(
+//                            "[CLIENT]: Preventing full update for {0} after kill to {1}", block.ID, Name);                        
+//                    }
                 }
-            }
 
-            OutPacket(outPacket, ThrottleOutPacketType.State);
+                outPacket.ObjectData = m_fullUpdateDataBlocksBuilder.ToArray();
+                
+                OutPacket(outPacket, ThrottleOutPacketType.State);
+            }            
         }
 
         public void SendPrimTerseUpdate(SendPrimitiveTerseData data)

@@ -208,7 +208,9 @@ namespace OpenSim.Framework.Serialization
                 m_bw.Write(header);
     
                 // Write out data
-                m_bw.Write(data);
+                // An IOException occurs if we try to write out an empty array in Mono 2.6
+                if (data.Length > 0)
+                    m_bw.Write(data);
     
                 if (data.Length % 512 != 0)
                 {

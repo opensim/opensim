@@ -139,6 +139,9 @@ namespace OpenSim.Framework.Communications.Osp
         /// </returns>
         protected static UUID ResolveOspaName(string name, IUserAccountService userService)
         {
+            if (userService == null)
+                return UUID.Zero;
+
             int nameSeparatorIndex = name.IndexOf(OSPA_NAME_VALUE_SEPARATOR);
             
             if (nameSeparatorIndex < 0)
@@ -149,7 +152,7 @@ namespace OpenSim.Framework.Communications.Osp
             
             string firstName = name.Remove(nameSeparatorIndex).TrimEnd();
             string lastName = name.Substring(nameSeparatorIndex + 1).TrimStart();
-            
+
             UserAccount account = userService.GetUserAccount(UUID.Zero, firstName, lastName);
             if (account != null)
                 return account.PrincipalID;

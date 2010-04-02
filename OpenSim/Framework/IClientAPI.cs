@@ -1150,7 +1150,7 @@ namespace OpenSim.Framework
 
         void SendInstantMessage(GridInstantMessage im);
 
-        void SendGenericMessage(string method, List<string> message);
+        void SendGenericMessage(string method, List<byte[]> message);
 
         void SendLayerData(float[] map);
         void SendLayerData(int px, int py, float[] map);

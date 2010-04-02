@@ -635,6 +635,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                             int estateID = estateIDs[0];
 
+                            m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(estateID);
+
                             if (m_storageManager.EstateDataStore.LinkRegion(m_regInfo.RegionID, estateID))
                                 break;
 
@@ -1711,6 +1713,19 @@ namespace OpenSim.Region.Framework.Scenes
         public void SaveTerrain()
         {
             m_storageManager.DataStore.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
+        }
+
+        public void StoreWindlightProfile(RegionLightShareData wl)
+        {
+            m_regInfo.WindlightSettings = wl;
+            m_storageManager.DataStore.StoreRegionWindlightSettings(wl);
+            m_eventManager.TriggerOnSaveNewWindlightProfile();
+        }
+
+        public void LoadWindlightProfile()
+        {
+            m_regInfo.WindlightSettings = m_storageManager.DataStore.LoadRegionWindlightSettings(RegionInfo.RegionID);
+            m_eventManager.TriggerOnSaveNewWindlightProfile();
         }
 
         /// <summary>
