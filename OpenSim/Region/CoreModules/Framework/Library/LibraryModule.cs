@@ -173,11 +173,11 @@ namespace OpenSim.Region.CoreModules.Framework.Library
                 m_log.InfoFormat("[LIBRARY MODULE]: Loading library archive {0} ({1})...", iarFileName, simpleName);
                 simpleName = GetInventoryPathFromName(simpleName);
 
+                InventoryArchiveReadRequest archread = new InventoryArchiveReadRequest(m_MockScene, uinfo, simpleName, iarFileName);
                 try
                 {
-                    InventoryArchiveReadRequest archread = new InventoryArchiveReadRequest(m_MockScene, uinfo, simpleName, iarFileName);
                     List<InventoryNodeBase> nodes = archread.Execute();
-                    if (nodes.Count == 0)
+                    if (nodes != null && nodes.Count == 0)
                     {
                         // didn't find the subfolder with the given name; place it on the top
                         m_log.InfoFormat("[LIBRARY MODULE]: Didn't find {0} in library. Placing archive on the top level", simpleName);
@@ -185,14 +185,31 @@ namespace OpenSim.Region.CoreModules.Framework.Library
                         archread = new InventoryArchiveReadRequest(m_MockScene, uinfo, "/", iarFileName);
                         archread.Execute();
                     }
-                    archread.Close();
+                    foreach (InventoryNodeBase node in nodes)
+                        FixPerms(node);
                 }
                 catch (Exception e)
                 {
-                    m_log.DebugFormat("[LIBRARY MODULE]: Exception when processing archive {0}: {1}", iarFileName, e.Message);
+                    m_log.DebugFormat("[LIBRARY MODULE]: Exception when processing archive {0}: {1}", iarFileName, e.StackTrace);
+                }
+                finally
+                {
+                    archread.Close();
                 }
             }
 
+        }
+
+        private void FixPerms(InventoryNodeBase node)
+        {
+            if (node is InventoryItemBase)
+            {
+                InventoryItemBase item = (InventoryItemBase)node;
+                item.BasePermissions = 0x7FFFFFFF;
+                item.EveryOnePermissions = 0x7FFFFFFF;
+                item.CurrentPermissions = 0x7FFFFFFF;
+                item.NextPermissions = 0x7FFFFFFF;
+            }
         }
 
         private void DumpLibrary()
