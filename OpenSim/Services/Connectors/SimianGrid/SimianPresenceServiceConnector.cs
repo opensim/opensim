@@ -395,7 +395,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 }
                 else
                 {
-                    m_log.Warn("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve sessions for " + userID + ": " + response["Message"].AsString());
+                    m_log.Debug("[SIMIAN PRESENCE CONNECTOR]: No session returned for " + userID + ": " + response["Message"].AsString());
                 }
             }
 

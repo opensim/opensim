@@ -104,6 +104,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
             OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean() && response["Identities"] is OSDArray)
             {
+                bool md5hashFound = false;
+
                 OSDArray identities = (OSDArray)response["Identities"];
                 for (int i = 0; i < identities.Count; i++)
                 {
@@ -114,13 +116,19 @@ namespace OpenSim.Services.Connectors.SimianGrid
                         {
                             string credential = identity["Credential"].AsString();
 
-                            if (password == credential || "$1$" + Utils.MD5String(password) == credential)
+                            if (password == credential || "$1$" + Utils.MD5String(password) == credential || Utils.MD5String(password) == credential)
                                 return Authorize(principalID);
+
+                            md5hashFound = true;
+                            break;
                         }
                     }
                 }
 
-                m_log.Warn("[SIMIAN AUTH CONNECTOR]: Authentication failed for " + principalID);
+                if (md5hashFound)
+                    m_log.Warn("[SIMIAN AUTH CONNECTOR]: Authentication failed for " + principalID + " using md5hash $1$" + Utils.MD5String(password));
+                else
+                    m_log.Warn("[SIMIAN AUTH CONNECTOR]: Authentication failed for " + principalID + ", no md5hash identity found");
             }
             else
             {
