@@ -144,6 +144,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             return account;
         }
 
+        public bool StoreUserAccount(UserAccount data)
+        {
+            // This remote connector refuses to serve this method
+            return false;
+        }
+
         #endregion
     }
 }
