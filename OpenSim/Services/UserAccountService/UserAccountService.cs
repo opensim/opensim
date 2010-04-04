@@ -224,7 +224,8 @@ namespace OpenSim.Services.UserAccountService
             d.Data["Created"] = data.Created.ToString();
             d.Data["UserLevel"] = data.UserLevel.ToString();
             d.Data["UserFlags"] = data.UserFlags.ToString();
-            d.Data["UserTitle"] = data.UserTitle.ToString();
+            if (data.UserTitle != null)
+                d.Data["UserTitle"] = data.UserTitle.ToString();
 
             List<string> parts = new List<string>();
 
