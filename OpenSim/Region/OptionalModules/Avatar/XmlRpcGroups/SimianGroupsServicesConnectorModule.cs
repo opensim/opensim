@@ -55,6 +55,9 @@ using OpenSim.Services.Interfaces;
  * UserID -> Group -> ActiveGroup
  * + GroupID
  * 
+ * UserID -> GroupSessionDropped -> GroupID
+ * UserID -> GroupSessionInvited -> GroupID
+ * 
  * UserID -> GroupMember -> GroupID
  * + SelectedRoleID [UUID]
  * + AcceptNotices  [bool]
@@ -62,6 +65,7 @@ using OpenSim.Services.Interfaces;
  * + Contribution   [int]
  *
  * UserID -> GroupRole[GroupID] -> RoleID
+ * 
  * 
  * GroupID -> Group -> GroupName 
  * + Charter
@@ -159,7 +163,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private bool m_connectorEnabled = false;
 
-        private string m_serviceURL = string.Empty;
+        private string m_groupsServerURI = string.Empty;
 
         private bool m_debugEnabled = false;
 
@@ -201,11 +205,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 m_log.InfoFormat("[GROUPS-CONNECTOR]: Initializing {0}", this.Name);
 
-                m_serviceURL = groupsConfig.GetString("XmlRpcServiceURL", string.Empty);
-                if ((m_serviceURL == null) ||
-                    (m_serviceURL == string.Empty))
+                m_groupsServerURI = groupsConfig.GetString("GroupsServerURI", string.Empty);
+                if ((m_groupsServerURI == null) ||
+                    (m_groupsServerURI == string.Empty))
                 {
-                    m_log.ErrorFormat("Please specify a valid Simian Server URL for XmlRpcServiceURL in OpenSim.ini, [Groups]");
+                    m_log.ErrorFormat("Please specify a valid Simian Server for GroupsServerURI in OpenSim.ini, [Groups]");
                     m_connectorEnabled = false;
                     return;
                 }
@@ -653,7 +657,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             };
 
 
-            OSDMap response = WebUtil.PostToService(m_serviceURL, requestArgs);
+            OSDMap response = WebUtil.PostToService(m_groupsServerURI, requestArgs);
             if (response["Success"].AsBoolean() && response["Entries"] is OSDArray)
             {
                 OSDArray entryArray = (OSDArray)response["Entries"];
@@ -998,6 +1002,52 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         }
         #endregion
 
+        #region GroupSessionTracking
+
+        public void ResetAgentGroupChatSessions(UUID agentID)
+        {
+            Dictionary<string, OSDMap> agentSessions;
+
+            if (SimianGetGenericEntries(agentID, "GroupSessionDropped", out agentSessions))
+            {
+                foreach (string GroupID in agentSessions.Keys)
+                {
+                    SimianRemoveGenericEntry(agentID, "GroupSessionDropped", GroupID);
+                }
+            }
+
+            if (SimianGetGenericEntries(agentID, "GroupSessionInvited", out agentSessions))
+            {
+                foreach (string GroupID in agentSessions.Keys)
+                {
+                    SimianRemoveGenericEntry(agentID, "GroupSessionInvited", GroupID);
+                }
+            }
+        }
+
+        public bool hasAgentDroppedGroupChatSession(UUID agentID, UUID groupID)
+        {
+            OSDMap session;
+            return SimianGetGenericEntry(agentID, "GroupSessionDropped", groupID.ToString(), out session);
+        }
+
+        public void AgentDroppedFromGroupChatSession(UUID agentID, UUID groupID)
+        {
+            SimianAddGeneric(agentID, "GroupSessionDropped", groupID.ToString(), new OSDMap());
+        }
+
+        public void AgentInvitedToGroupChatSession(UUID agentID, UUID groupID)
+        {
+            SimianAddGeneric(agentID, "GroupSessionInvited", groupID.ToString(), new OSDMap());
+        }
+
+        public bool hasAgentBeenInvitedToGroupChatSession(UUID agentID, UUID groupID)
+        {
+            OSDMap session;
+            return SimianGetGenericEntry(agentID, "GroupSessionDropped", groupID.ToString(), out session);
+        }
+
+        #endregion
 
         private void EnsureRoleNotSelectedByMember(UUID groupID, UUID roleID, UUID userID)
         {
@@ -1036,7 +1086,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             };
 
 
-            OSDMap Response = WebUtil.PostToService(m_serviceURL, RequestArgs);
+            OSDMap Response = WebUtil.PostToService(m_groupsServerURI, RequestArgs);
             if (Response["Success"].AsBoolean())
             {
                 return true;
@@ -1063,7 +1113,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             };
 
 
-            OSDMap Response = WebUtil.PostToService(m_serviceURL, RequestArgs);
+            OSDMap Response = WebUtil.PostToService(m_groupsServerURI, RequestArgs);
             if (Response["Success"].AsBoolean() && Response["Entries"] is OSDArray)
             {
                 OSDArray entryArray = (OSDArray)Response["Entries"];
@@ -1103,7 +1153,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             };
 
 
-            OSDMap Response = WebUtil.PostToService(m_serviceURL, RequestArgs);
+            OSDMap Response = WebUtil.PostToService(m_groupsServerURI, RequestArgs);
             if (Response["Success"].AsBoolean() && Response["Entries"] is OSDArray)
             {
                 OSDArray entryArray = (OSDArray)Response["Entries"];
@@ -1144,7 +1194,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             };
 
 
-            OSDMap Response = WebUtil.PostToService(m_serviceURL, RequestArgs);
+            OSDMap Response = WebUtil.PostToService(m_groupsServerURI, RequestArgs);
             if (Response["Success"].AsBoolean() && Response["Entries"] is OSDArray)
             {
                 OSDArray entryArray = (OSDArray)Response["Entries"];
@@ -1184,7 +1234,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             
 
 
-            OSDMap response = WebUtil.PostToService(m_serviceURL, requestArgs);
+            OSDMap response = WebUtil.PostToService(m_groupsServerURI, requestArgs);
             if (response["Success"].AsBoolean() && response["Entries"] is OSDArray)
             {
                 maps = new Dictionary<string, OSDMap>();
@@ -1222,7 +1272,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
 
 
-            OSDMap response = WebUtil.PostToService(m_serviceURL, requestArgs);
+            OSDMap response = WebUtil.PostToService(m_groupsServerURI, requestArgs);
             if (response["Success"].AsBoolean() && response["Entries"] is OSDArray)
             {
                 maps = new Dictionary<UUID, OSDMap>();
@@ -1260,7 +1310,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             };
 
 
-            OSDMap response = WebUtil.PostToService(m_serviceURL, requestArgs);
+            OSDMap response = WebUtil.PostToService(m_groupsServerURI, requestArgs);
             if (response["Success"].AsBoolean())
             {
                 return true;
@@ -1272,6 +1322,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
         }
         #endregion
+
     }
 
 }
