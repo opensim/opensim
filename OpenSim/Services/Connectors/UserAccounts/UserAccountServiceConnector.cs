@@ -187,7 +187,7 @@ namespace OpenSim.Services.Connectors
             return accounts;
         }
 
-        public bool StoreUserAccount(UserAccount data)
+        public virtual bool StoreUserAccount(UserAccount data)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["SCOPEID"] = scopeID.ToString();
