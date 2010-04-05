@@ -4339,6 +4339,14 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Cheaply return the number of avatars in a region (without fetching a list object)
+        /// </summary>
+        public int GetRootAgentCount()
+        {
+            return m_sceneGraph.GetRootAgentCount();
+        }
+
+        /// <summary>
         /// Return a list of all ScenePresences in this region.  This returns child agents as well as root agents.
         /// This list is a new object, so it can be iterated over without locking.
         /// </summary>

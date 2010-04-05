@@ -192,7 +192,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
 
         protected string RegionStats(OSHttpResponse httpResponse, Scene scene)
         {
-            int users = scene.GetAvatars().Count;
+            int users = scene.GetRootAgentCount();
             int objects = scene.Entities.Count - users;
 
             RestXmlWriter rxw = new RestXmlWriter(new StringWriter());
