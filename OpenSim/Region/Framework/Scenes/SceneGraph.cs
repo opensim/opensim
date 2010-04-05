@@ -252,7 +252,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sceneObject.HasGroupChanged = true;
             }
 
-            return AddSceneObject(sceneObject, attachToBackup);
+            return AddSceneObject(sceneObject, attachToBackup, true);
         }
 
         /// <summary>
@@ -267,12 +267,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>
         /// true if the object was added, false if an object with the same uuid was already in the scene
         /// </returns>
-        protected internal bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
+        protected internal bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
             // Ensure that we persist this new scene object
             sceneObject.HasGroupChanged = true;
 
-            return AddSceneObject(sceneObject, attachToBackup);
+            return AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
         }
 
         /// <summary>
@@ -284,12 +284,19 @@ namespace OpenSim.Region.Framework.Scenes
         /// If true, the object is made persistent into the scene.
         /// If false, the object will not persist over server restarts
         /// </param>
-        /// <returns>true if the object was added, false if an object with the same uuid was already in the scene
+        /// <param name="sendClientUpdates">
+        /// If true, updates for the new scene object are sent to all viewers in range.
+        /// If false, it is left to the caller to schedule the update
+        /// </param>
+        /// <returns>
+        /// true if the object was added, false if an object with the same uuid was already in the scene
         /// </returns>
-        protected bool AddSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
+        protected bool AddSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
             if (sceneObject == null || sceneObject.RootPart == null || sceneObject.RootPart.UUID == UUID.Zero)
                 return false;
+
+            bool alreadyExisted = false;
             
             if (m_parentScene.m_clampPrimSize)
             {
@@ -309,6 +316,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             sceneObject.AttachToScene(m_parentScene);
+
+            if (sendClientUpdates)
+                sceneObject.ScheduleGroupForFullUpdate();
 
             lock (sceneObject)
             {
@@ -333,12 +343,14 @@ namespace OpenSim.Region.Framework.Scenes
                             SceneObjectGroupsByLocalID[part.LocalId] = sceneObject;
                         }
                     }
-
-                    return true;
+                }
+                else
+                {
+                    alreadyExisted = true;
                 }
             }
 
-            return false;
+            return alreadyExisted;
         }
 
         /// <summary>
@@ -545,26 +557,34 @@ namespace OpenSim.Region.Framework.Scenes
                 itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
                 false, false, remoteClient.AgentId, true);
 
+//                m_log.DebugFormat(
+//                    "[SCENE GRAPH]: Retrieved single object {0} for attachment to {1} on point {2}", 
+//                    objatt.Name, remoteClient.Name, AttachmentPt);
+            
             if (objatt != null)
             {
                 bool tainted = false;
                 if (AttachmentPt != 0 && AttachmentPt != objatt.GetAttachmentPoint())
                     tainted = true;
 
-                if (AttachObject(
-                    remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition, false))
-                {
-                    objatt.ScheduleGroupForFullUpdate();
-                    if (tainted)
-                        objatt.HasGroupChanged = true;
-    
-                    // Fire after attach, so we don't get messy perms dialogs
-                    // 3 == AttachedRez
-                    objatt.CreateScriptInstances(0, true, m_parentScene.DefaultScriptEngine, 3);
+                AttachObject(remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition, false);
+                //objatt.ScheduleGroupForFullUpdate();
 
-                    // Do this last so that event listeners have access to all the effects of the attachment
-                    m_parentScene.EventManager.TriggerOnAttach(objatt.LocalId, itemID, remoteClient.AgentId);
-                }
+                if (tainted)
+                    objatt.HasGroupChanged = true;
+
+                // Fire after attach, so we don't get messy perms dialogs
+                // 3 == AttachedRez
+                objatt.CreateScriptInstances(0, true, m_parentScene.DefaultScriptEngine, 3);
+
+                // Do this last so that event listeners have access to all the effects of the attachment
+                m_parentScene.EventManager.TriggerOnAttach(objatt.LocalId, itemID, remoteClient.AgentId);
+            }
+            else
+            {
+                m_log.WarnFormat(
+                    "[SCENE GRAPH]: Could not retrieve item {0} for attaching to avatar {1} at point {2}", 
+                    itemID, remoteClient.Name, AttachmentPt);
             }
             
             return objatt;
