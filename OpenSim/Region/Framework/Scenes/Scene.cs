@@ -1840,14 +1840,22 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat(
             //    "[SCENE]: Scene.AddNewPrim() pcode {0} called for {1} in {2}", shape.PCode, ownerID, RegionInfo.RegionName);
 
+            SceneObjectGroup sceneObject = null;
+            
             // If an entity creator has been registered for this prim type then use that
             if (m_entityCreators.ContainsKey((PCode)shape.PCode))
-                return m_entityCreators[(PCode)shape.PCode].CreateEntity(ownerID, groupID, pos, rot, shape);
+            {
+                sceneObject = m_entityCreators[(PCode)shape.PCode].CreateEntity(ownerID, groupID, pos, rot, shape);
+            }
+            else
+            {
+                // Otherwise, use this default creation code;
+                sceneObject = new SceneObjectGroup(ownerID, pos, rot, shape);
+                AddNewSceneObject(sceneObject, true);
+                sceneObject.SetGroup(groupID, null);
+            }
 
-            // Otherwise, use this default creation code;
-            SceneObjectGroup sceneObject = new SceneObjectGroup(ownerID, pos, rot, shape);
-            AddNewSceneObject(sceneObject, true);
-            sceneObject.SetGroup(groupID, null);
+            sceneObject.ScheduleGroupForFullUpdate();
 
             return sceneObject;
         }
@@ -1875,7 +1883,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Add a newly created object to the scene
+        /// Add a newly created object to the scene.  Updates are also sent to viewers.
         /// </summary>
         /// <param name="sceneObject"></param>
         /// <param name="attachToBackup">
@@ -1884,8 +1892,25 @@ namespace OpenSim.Region.Framework.Scenes
         /// </param>
         public bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
         {
-            return m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup);
+            return AddNewSceneObject(sceneObject, attachToBackup, true);
         }
+        
+        /// <summary>
+        /// Add a newly created object to the scene
+        /// </summary>
+        /// <param name="sceneObject"></param>
+        /// <param name="attachToBackup">
+        /// If true, the object is made persistent into the scene.
+        /// If false, the object will not persist over server restarts
+        /// </param>
+        /// <param name="sendClientUpdates">
+        /// If true, updates for the new scene object are sent to all viewers in range.
+        /// If false, it is left to the caller to schedule the update
+        /// </param>
+        public bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
+        {
+            return m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, sendClientUpdates);
+        }        
 
         /// <summary>
         /// Delete every object from the scene
@@ -3349,7 +3374,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
                 m_log.Debug("[SCENE]: Unable to register with InterregionCommsIn");
-
         }
 
         /// <summary>

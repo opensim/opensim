@@ -2349,9 +2349,18 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.TriggerOnAttach(localID, itemID, avatarID);
         }
 
-        public UUID RezSingleAttachment(IClientAPI remoteClient, UUID itemID,
-                uint AttachmentPt)
+        /// <summary>
+        /// Called when the client receives a request to rez a single attachment on to the avatar from inventory
+        /// (RezSingleAttachmentFromInv packet).
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="AttachmentPt"></param>
+        /// <returns></returns>
+        public UUID RezSingleAttachment(IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
+            m_log.DebugFormat("[USER INVENTORY]: Rezzing single attachment from item {0} for {1}", itemID, remoteClient.Name);
+            
             SceneObjectGroup att = m_sceneGraph.RezSingleAttachment(remoteClient, itemID, AttachmentPt);
 
             if (att == null)
@@ -2363,9 +2372,20 @@ namespace OpenSim.Region.Framework.Scenes
             return RezSingleAttachment(att, remoteClient, itemID, AttachmentPt);
         }
 
-        public UUID RezSingleAttachment(SceneObjectGroup att,
-                IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
+        /// <summary>
+        /// Update the user inventory to reflect an attachment
+        /// </summary>
+        /// <param name="att"></param>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="AttachmentPt"></param>
+        /// <returns></returns>
+        public UUID RezSingleAttachment(SceneObjectGroup att, IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
+            m_log.DebugFormat(
+                "[USER INVENTORY]: Updating inventory of {0} to show attachment of {1} (item ID {2})", 
+                remoteClient.Name, att.Name, itemID);
+            
             if (!att.IsDeleted)
                 AttachmentPt = att.RootPart.AttachmentPoint;
 
@@ -2404,8 +2424,19 @@ namespace OpenSim.Region.Framework.Scenes
             return m_sceneGraph.AttachObject(controllingClient, localID, attachPoint, rot, pos, silent);
         }
 
+        /// <summary>
+        /// This registers the item as attached in a user's inventory
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="AttachmentPt"></param>
+        /// <param name="itemID"></param>
+        /// <param name="att"></param>
         public void AttachObject(IClientAPI remoteClient, uint AttachmentPt, UUID itemID, SceneObjectGroup att)
         {
+//            m_log.DebugFormat(
+//                "[USER INVENTORY]: Updating attachment {0} for {1} at {2} using item ID {3}", 
+//                att.Name, remoteClient.Name, AttachmentPt, itemID);
+            
             if (UUID.Zero == itemID)
             {
                 m_log.Error("[SCENE INVENTORY]: Unable to save attachment. Error inventory item ID.");
@@ -2433,10 +2464,7 @@ namespace OpenSim.Region.Framework.Scenes
                 presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
 
                 if (m_AvatarFactory != null)
-                {
                     m_AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
-                }
-
             }
         }
 
@@ -2519,6 +2547,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     sog.SetOwnerId(ownerID);
                     sog.SetGroup(groupID, remoteClient);
+                    sog.ScheduleGroupForFullUpdate();
 
                     foreach (SceneObjectPart child in sog.Children.Values)
                         child.Inventory.ChangeInventoryOwner(ownerID);
@@ -2540,6 +2569,7 @@ namespace OpenSim.Region.Framework.Scenes
                     sog.SetOwnerId(groupID);
                     sog.ApplyNextOwnerPermissions();
                 }
+                
             }
 
             foreach (uint localID in localIDs)
