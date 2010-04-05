@@ -1160,6 +1160,7 @@ namespace OpenSim.Region.Framework.Scenes
                             item = LibraryService.LibraryRootFolder.FindItem(itemID);
                         }
 
+                        // If we've found the item in the user's inventory or in the library
                         if (item != null)
                         {
                             part.ParentGroup.AddInventoryItem(remoteClient, primLocalID, item, copyID);
