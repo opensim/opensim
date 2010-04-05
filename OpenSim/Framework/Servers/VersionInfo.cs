@@ -33,7 +33,7 @@ namespace OpenSim
         private const Flavour VERSION_FLAVOUR = Flavour.Dev;
 
         public enum Flavour
-        {
+        { 
             Unknown,
             Dev,
             RC1,
