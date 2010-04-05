@@ -180,6 +180,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         internal int m_material = (int)Material.Wood;
         
         private int frcount = 0;										// Used to limit dynamics debug output to 
+        private int revcount = 0;										// Reverse motion while > 0
 
         private IntPtr m_body = IntPtr.Zero;
         
@@ -1888,22 +1889,19 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void changemove(float timestep)
         {
-//Console.WriteLine("changemove for {0}", m_primName );
-        
+//Console.WriteLine("changemove sing/root {0} to {1}", m_primName, _position );
             if (m_isphysical)
             {
 //Console.WriteLine("phys  {0}   {1}   {2}", m_disabled, m_taintremove, childPrim);                
 //                if (!m_disabled && !m_taintremove && !childPrim)  After one edit m_disabled is sometimes set, disabling further edits!
                 if (!m_taintremove && !childPrim)
                 {
-//Console.WriteLine("physOK");                
                     if (Body == IntPtr.Zero)
                         enableBody();
                     //Prim auto disable after 20 frames,
                     //if you move it, re-enable the prim manually.
                     if (_parent != null)
                     {
-//Console.WriteLine("physChild");                
                         if (m_linkJoint != IntPtr.Zero)
                         {
                             d.JointDestroy(m_linkJoint);
@@ -1912,7 +1910,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     if (Body != IntPtr.Zero)
                     {
-//Console.WriteLine("physNotIPZ");                
                         d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
 
                         if (_parent != null)
@@ -1945,7 +1942,6 @@ Console.WriteLine(" JointCreateFixed");
             }
             else
             {
-//Console.WriteLine("NONphys");                
                 // string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
                 // int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
                 _parent_scene.waitForSpaceUnlock(m_targetSpace);
@@ -2382,9 +2378,7 @@ Console.WriteLine(" JointCreateFixed");
                 if (IsPhysical)
                 {
                     if (Body != IntPtr.Zero)
-                    {
                         d.BodySetLinearVel(Body, m_taintVelocity.X, m_taintVelocity.Y, m_taintVelocity.Z);
-                    }
                 }
                 
                 //resetCollisionAccounting();
@@ -2394,31 +2388,9 @@ Console.WriteLine(" JointCreateFixed");
 
         public void UpdatePositionAndVelocity()
         {
-        	return;   // moved to the Move() method
+        	return;   // moved to the Move () method
         }
-/* No one uses this?        
-        public Matrix4 FromDMass(d.Mass pMass)
-        {
-            Matrix4 obj;
-            obj.M11 = pMass.I.M00;
-            obj.M12 = pMass.I.M01;
-            obj.M13 = pMass.I.M02;
-            obj.M14 = 0;
-            obj.M21 = pMass.I.M10;
-            obj.M22 = pMass.I.M11;
-            obj.M23 = pMass.I.M12;
-            obj.M24 = 0;
-            obj.M31 = pMass.I.M20;
-            obj.M32 = pMass.I.M21;
-            obj.M33 = pMass.I.M22;
-            obj.M34 = 0;
-            obj.M41 = 0;
-            obj.M42 = 0;
-            obj.M43 = 0;
-            obj.M44 = 1;
-            return obj;
-        }
-*/
+        
         public d.Mass FromMatrix4(Matrix4 pMat, ref d.Mass obj)
         {
             obj.I.M00 = pMat[0, 0];
@@ -2996,44 +2968,114 @@ Console.WriteLine(" JointCreateFixed");
             float fx = 0;
             float fy = 0;
             float fz = 0;
+            Vector3 linvel;				// velocity applied, including any reversal
+            int outside = 0;
+            
+            // If geomCrossingFailuresBeforeOutofbounds is set to 0 in OpenSim.ini then phys objects bounce off region borders.
+            // This is a temp patch until proper region crossing is developed. 
+            
+            int failureLimit = _parent_scene.geomCrossingFailuresBeforeOutofbounds;
+            int fence = _parent_scene.geomRegionFence;
+            
+			float border_limit = 0.05f;	// original limit
+			if (fence == 1) border_limit = 0.5f;		// bounce point
 
             frcount++;					// used to limit debug comment output
             if (frcount > 100)
                 frcount = 0;
                 
-            if (IsPhysical && (Body != IntPtr.Zero) && !m_isSelected && !childPrim)		// KF: Only move root prims.
+            if(revcount > 0) revcount--;
+                     
+            if (IsPhysical && (Body != IntPtr.Zero) && !m_isSelected && !childPrim)		// Only move root prims.
             {
-            	
-//  Old public void UpdatePositionAndVelocity(), more accuratley calculated here
+				//  Old public void UpdatePositionAndVelocity(), more accuratley calculated here
             	bool lastZeroFlag = _zeroFlag;  // was it stopped
+            	
                 d.Vector3 vec = d.BodyGetPosition(Body);
-                d.Quaternion ori = d.BodyGetQuaternion(Body);
-                d.Vector3 vel = d.BodyGetLinearVel(Body);
-      //              d.Vector3 rotvel = d.BodyGetAngularVel(Body);
-                d.Vector3 torque = d.BodyGetTorque(Body);
-                _torque = new Vector3(torque.X, torque.Y, torque.Z);
                 Vector3 l_position = Vector3.Zero;
-                Quaternion l_orientation = Quaternion.Identity;
-
-                m_lastposition = _position;
-                m_lastorientation = _orientation;
-                    
                 l_position.X = vec.X;
                 l_position.Y = vec.Y;
                 l_position.Z = vec.Z;
-                l_orientation.X = ori.X;
-                l_orientation.Y = ori.Y;
-                l_orientation.Z = ori.Z;
-                l_orientation.W = ori.W;
+                m_lastposition = _position;
+                _position = l_position;
+                
+                d.Quaternion ori = d.BodyGetQuaternion(Body);
+         //       Quaternion l_orientation = Quaternion.Identity;
+                _orientation.X = ori.X;
+                _orientation.Y = ori.Y;
+                _orientation.Z = ori.Z;
+                _orientation.W = ori.W;
+                m_lastorientation = _orientation;
+                
+                d.Vector3 vel = d.BodyGetLinearVel(Body);
+                m_lastVelocity = _velocity;
+                _velocity.X = vel.X;
+                _velocity.Y = vel.Y;
+                _velocity.Z = vel.Z;
+                _acceleration = ((_velocity - m_lastVelocity) / timestep);
+                
+                d.Vector3 torque = d.BodyGetTorque(Body);
+                _torque = new Vector3(torque.X, torque.Y, torque.Z);
+                
+                base.RequestPhysicsterseUpdate();
+                
 //Console.WriteLine("Move {0}  at  {1}", m_primName, l_position);        
                     
-				// Check if outside region horizontally
-                if (l_position.X > ((int)_parent_scene.WorldExtents.X - 0.05f) || 
-                   	l_position.X < 0f || 
-                   	l_position.Y > ((int)_parent_scene.WorldExtents.Y - 0.05f) || 
-                   	l_position.Y < 0f)
+				// Check if outside region
+				// In Scene.cs/CrossPrimGroupIntoNewRegion the object is checked for 0.1M from border!
+                if (l_position.X > ((float)_parent_scene.WorldExtents.X - border_limit))
                 {
-                    if (m_crossingfailures < _parent_scene.geomCrossingFailuresBeforeOutofbounds)
+                    l_position.X = ((float)_parent_scene.WorldExtents.X - border_limit);
+                 	outside = 1;
+                }
+                
+                if (l_position.X < border_limit)
+                {
+					l_position.X = border_limit;
+					outside = 2;
+				}
+				if (l_position.Y > ((float)_parent_scene.WorldExtents.Y - border_limit))
+				{
+                    l_position.Y = ((float)_parent_scene.WorldExtents.Y - border_limit);
+                 	outside = 3;
+                }
+				
+                if (l_position.Y < border_limit)
+                {
+					l_position.Y = border_limit;
+					outside = 4;
+				}
+                
+                if (outside > 0)
+                {
+//Console.WriteLine("   fence = {0}",fence);     
+        
+//Console.WriteLine("Border {0}",  l_position);               
+                    if (fence == 1)		// bounce object off boundary 
+                    {
+                    	if (revcount == 0)
+	                    {
+	                    	if (outside < 3)
+	                   		{
+	                   			_velocity.X = -_velocity.X;
+	                   		}
+	                   		else
+	                   		{
+	                   			_velocity.Y = -_velocity.Y;
+	                   		}
+	                   		if (m_type != Vehicle.TYPE_NONE) Halt();
+	                   		_position = l_position;
+         		            m_taintposition = _position;
+					        m_lastVelocity = _velocity;     
+							_acceleration = Vector3.Zero;	
+    	                    d.BodySetPosition(Body, _position.X, _position.Y, _position.Z);
+					        d.BodySetLinearVel(Body, _velocity.X, _velocity.Y, _velocity.Z);
+       	                    base.RequestPhysicsterseUpdate();
+
+		    		    	revcount = 25;		// wait for object to move away from border
+		    		    }
+                    } // else old crossing mode
+                    else if (m_crossingfailures < failureLimit)
                     {	// keep trying to cross?
                         _position = l_position;
                         //_parent_scene.remActivePrim(this);
@@ -3043,9 +3085,12 @@ Console.WriteLine(" JointCreateFixed");
                     else
                     {	// Too many tries
                         if (_parent == null) base.RaiseOutOfBounds(l_position);
+//Console.WriteLine("ROOB 2");            
+                        
                         return;		// Dont process any other motion?
-                    }
+                    }  // end various methods
                 }    // end outside region horizontally
+                
 
                 if (l_position.Z < 0)
                 {
@@ -3057,6 +3102,8 @@ Console.WriteLine(" JointCreateFixed");
 
                     //IsPhysical = false;
                     if (_parent == null) base.RaiseOutOfBounds(_position);
+//Console.WriteLine("ROOB 3");            
+                    
                     
                     _acceleration.X = 0;			// This stuff may stop client display but it has no
                     _acceleration.Y = 0;			// effect on the object in phys engine!
@@ -3081,10 +3128,9 @@ Console.WriteLine(" JointCreateFixed");
                 if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02)
                     && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02)
                     && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02)
-                    && (1.0 - Math.Abs(Quaternion.Dot(m_lastorientation, l_orientation)) < 0.0001))  // KF 0.01 is far to large
+                    && (1.0 - Math.Abs(Quaternion.Dot(m_lastorientation, _orientation)) < 0.0001))  // KF 0.01 is far to large
                 {
                     _zeroFlag = true;
-//Console.WriteLine("ZFT 2");                        
                     m_throttleUpdates = false;
                 }
                 else
@@ -3104,10 +3150,7 @@ Console.WriteLine(" JointCreateFixed");
                     _acceleration.X = 0;
                     _acceleration.Y = 0;
                     _acceleration.Z = 0;
-                    //_orientation.w = 0f;
-                    //_orientation.X = 0f;
-                    //_orientation.Y = 0f;
-                    //_orientation.Z = 0f;
+                    
                     m_rotationalVelocity.X = 0;
                     m_rotationalVelocity.Y = 0;
                     m_rotationalVelocity.Z = 0;
@@ -3132,26 +3175,6 @@ Console.WriteLine(" JointCreateFixed");
                             base.RequestPhysicsterseUpdate();
                         }
                     }
-
-                    m_lastVelocity = _velocity;
-
-                    _position = l_position;
-
-                    _velocity.X = vel.X;
-                    _velocity.Y = vel.Y;
-                    _velocity.Z = vel.Z;
-// Why 2 calcs???
-//                  _acceleration = ((_velocity - m_lastVelocity) / 0.1f);
-//                  _acceleration = new Vector3(_velocity.X - m_lastVelocity.X / 0.1f, 
-//                       							_velocity.Y - m_lastVelocity.Y / 0.1f, 
-//                        							_velocity.Z - m_lastVelocity.Z / 0.1f);
-                        							
-                    _acceleration = ((_velocity - m_lastVelocity) / timestep);
-                                                							
-                    _orientation.X = ori.X;
-                    _orientation.Y = ori.Y;
-                    _orientation.Z = ori.Z;
-                    _orientation.W = ori.W;
                     m_lastUpdateSent = false;
                     if (!m_throttleUpdates || throttleCounter > _parent_scene.geomUpdatesPerThrottledUpdate)
                     {
@@ -3167,11 +3190,8 @@ Console.WriteLine(" JointCreateFixed");
                 }
                 m_lastposition = l_position;
              
-				/// End of old   UpdatePositionAndVelocity insert         
+				/// End UpdatePositionAndVelocity insert         
             
-//if (!Acceleration.ApproxEquals(Vector3.Zero, 0.01f)) Console.WriteLine("Move " +  m_primName + "  Accel=" + Acceleration);            
-// if(frcount == 0) Console.WriteLine("Move " +  m_primName + "  VTyp " + m_type +
-//						"    usePID=" + m_usePID  + "    seHover=" + m_useHoverPID  + "  useAPID=" + m_useAPID);           	
             	if (m_type != Vehicle.TYPE_NONE)
             	{
             		// get body attitude
@@ -3299,11 +3319,12 @@ Console.WriteLine(" JointCreateFixed");
 					{	// not hovering, Gravity rules
 						m_wLinObjectVel.Z = vel_now.Z;
 	    		    }	
-	    		    
-	    		    
+	    		    linvel = m_wLinObjectVel;
+
 	    		    // Vehicle Linear  Motion done =======================================
 			        // Apply velocity
-			        d.BodySetLinearVel(Body, m_wLinObjectVel.X, m_wLinObjectVel.Y, m_wLinObjectVel.Z);        
+//if(frcount == 0) Console.WriteLine("LV {0}", linvel);			        
+			        d.BodySetLinearVel(Body, linvel.X, linvel.Y, linvel.Z);        
 		            // apply gravity force
 					d.BodyAddForce(Body, grav.X, grav.Y, grav.Z);		
 //if(frcount == 0) Console.WriteLine("Grav {0}", grav);
@@ -3626,9 +3647,10 @@ Console.WriteLine(" JointCreateFixed");
     	                    // react to the physics scene by moving it's position.
     	                    // Avatar to Avatar collisions
     	                    // Prim to avatar collisions
+			    		    d.Vector3 dlinvel = vel;
 
     	                    d.BodySetPosition(Body, pos.X, pos.Y, m_targetHoverHeight);
-    	                    d.BodySetLinearVel(Body, vel.X, vel.Y, 0);
+					        d.BodySetLinearVel(Body, dlinvel.X, dlinvel.Y, dlinvel.Z);       
     	                    d.BodyAddForce(Body, 0, 0, fz);
     	            //KF this prevents furthur motions        return;
     	                }

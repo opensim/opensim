@@ -224,6 +224,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public float bodyPIDG = 25;
 
         public int geomCrossingFailuresBeforeOutofbounds = 5;
+        public int geomRegionFence = 0;
 
         public float bodyMotorJointMaxforceTensor = 2;
 
@@ -447,6 +448,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     geomContactPointsStartthrottle = physicsconfig.GetInt("geom_contactpoints_start_throttling", 3);
                     geomUpdatesPerThrottledUpdate = physicsconfig.GetInt("geom_updates_before_throttled_update", 15);
                     geomCrossingFailuresBeforeOutofbounds = physicsconfig.GetInt("geom_crossing_failures_before_outofbounds", 5);
+                    geomRegionFence = physicsconfig.GetInt("region_border_fence", 0);
 
                     geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", 10.000006836f);
                     bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", 20);
@@ -3419,76 +3421,56 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void SetTerrain(float[] heightMap, Vector3 pOffset)
         {
-            // this._heightmap[i] = (double)heightMap[i];
-            // dbm (danx0r) -- creating a buffer zone of one extra sample all around
-            //_origheightmap = heightMap;
            
+            uint regionsize = (uint) Constants.RegionSize;		// visible region size eg. 256(M)
+            
+            uint heightmapWidth = regionsize + 1;				// ODE map size 257 x 257 (Meters) (1 extra 
+            uint heightmapHeight = regionsize + 1;
+            
+            uint heightmapWidthSamples = (uint)regionsize + 2;		// Sample file size, 258 x 258 samples
+            uint heightmapHeightSamples = (uint)regionsize + 2;
+            
+            // Array of height samples for ODE 
             float[] _heightmap;
+            _heightmap = new float[(heightmapWidthSamples * heightmapHeightSamples)];	// loaded samples 258 x 258
 
-            // zero out a heightmap array float array (single dimension [flattened]))
-            //if ((int)Constants.RegionSize == 256)
-            //    _heightmap = new float[514 * 514];
-            //else
-
-            _heightmap = new float[(((int)Constants.RegionSize + 2) * ((int)Constants.RegionSize + 2))];
-
-            uint heightmapWidth = Constants.RegionSize + 1;
-            uint heightmapHeight = Constants.RegionSize + 1;
-
-            uint heightmapWidthSamples;
-
-            uint heightmapHeightSamples;
-
-            //if (((int)Constants.RegionSize) == 256)
-            //{
-            //    heightmapWidthSamples = 2 * (uint)Constants.RegionSize + 2;
-            //    heightmapHeightSamples = 2 * (uint)Constants.RegionSize + 2;
-            //    heightmapWidth++;
-            //    heightmapHeight++;
-            //}
-            //else
-            //{
-
-                heightmapWidthSamples = (uint)Constants.RegionSize + 1;
-                heightmapHeightSamples = (uint)Constants.RegionSize + 1;
-            //}
-
+			// Other ODE parameters
             const float scale = 1.0f;
             const float offset = 0.0f;
-            const float thickness = 0.2f;
+            const float thickness = 2.0f; // Was 0.2f, Larger appears to prevent Av fall-through
             const int wrap = 0;
 
-            int regionsize = (int) Constants.RegionSize + 2;
-            //Double resolution
-            //if (((int)Constants.RegionSize) == 256)
-            //    heightMap = ResizeTerrain512Interpolation(heightMap);
-
-
-           // if (((int)Constants.RegionSize) == 256 && (int)Constants.RegionSize == 256)
-           //     regionsize = 512;
-
-            float hfmin = 2000;
-            float hfmax = -2000;
+            float hfmin = 2000f;
+            float hfmax = -2000f;
+            float minele = 0.0f; 	// Dont allow -ve heights
             
-                for (int x = 0; x < heightmapWidthSamples; x++)
+            uint x = 0;
+            uint y = 0;
+            uint xx = 0;
+            uint yy = 0;
+            
+            // load the height samples array from the heightMap    
+            for ( x = 0; x < heightmapWidthSamples; x++)				// 0 to 257
+            {
+                for ( y = 0; y < heightmapHeightSamples; y++)			// 0 to 257
                 {
-                    for (int y = 0; y < heightmapHeightSamples; y++)
-                    {
-                        int xx = Util.Clip(x - 1, 0, regionsize - 1);
-                        int yy = Util.Clip(y - 1, 0, regionsize - 1);
-                        
-                        
-                        float val= heightMap[yy * (int)Constants.RegionSize + xx];
-                         _heightmap[x * ((int)Constants.RegionSize + 2) + y] = val;
-                        
-                        hfmin = (val < hfmin) ? val : hfmin;
-                        hfmax = (val > hfmax) ? val : hfmax;
-                    }
+                 	xx = x - 1;
+                   	if (xx < 0) xx = 0;							
+                   	if (xx > (regionsize - 1)) xx = regionsize - 1; 				 
+                    
+                   	yy = y - 1;
+                   	if (yy < 0) yy = 0;							
+                   	if (yy > (regionsize - 1)) yy = regionsize - 1;
+			 		// Input xx = 0  0  1  2  ..... 254  255  255      256 total in
+        			// Output x = 0  1  2  3  ..... 255  256  257      258 total out
+                    float val= heightMap[(yy * regionsize) + xx];  // input from heightMap,  <0-255 * 256> <0-255>
+                    if (val < minele) val = minele;
+                    _heightmap[x * (regionsize + 2) + y] = val; // samples output to _heightmap,  <0-257 * 258> <0-257>
+                    hfmin = (val < hfmin) ? val : hfmin;
+                    hfmax = (val > hfmax) ? val : hfmax;
                 }
+            }
                 
-            
-            
-
             lock (OdeLock)
             {
                 IntPtr GroundGeom = IntPtr.Zero;
@@ -3504,19 +3486,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.SpaceRemove(space, GroundGeom);
                         d.GeomDestroy(GroundGeom);
                     }
-
                 }
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
-                d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0, heightmapWidth + 1, heightmapHeight + 1,
-                                                 (int)heightmapWidthSamples + 1, (int)heightmapHeightSamples + 1, scale,
-                                                 offset, thickness, wrap);
+                d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0, 
+                	heightmapWidth, heightmapHeight, (int)heightmapWidthSamples, 
+                    (int)heightmapHeightSamples, scale, offset, thickness, wrap);
                 d.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
                 GroundGeom = d.CreateHeightfield(space, HeightmapData, 1);
                 if (GroundGeom != IntPtr.Zero)
                 {
                     d.GeomSetCategoryBits(GroundGeom, (int)(CollisionCategories.Land));
                     d.GeomSetCollideBits(GroundGeom, (int)(CollisionCategories.Space));
-
                 }
                 geom_name_map[GroundGeom] = "Terrain";
 
@@ -3534,7 +3514,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                 d.GeomSetRotation(GroundGeom, ref R);
-                d.GeomSetPosition(GroundGeom, (pOffset.X + ((int)Constants.RegionSize * 0.5f)) - 1, (pOffset.Y + ((int)Constants.RegionSize * 0.5f)) - 1, 0);
+                d.GeomSetPosition(GroundGeom, (pOffset.X + (regionsize * 0.5f)) - 0.5f, (pOffset.Y + (regionsize * 0.5f)) - 0.5f, 0);
                 IntPtr testGround = IntPtr.Zero;
                 if (RegionTerrain.TryGetValue(pOffset, out testGround))
                 {
@@ -3542,7 +3522,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 RegionTerrain.Add(pOffset, GroundGeom, GroundGeom);
                 TerrainHeightFieldHeights.Add(GroundGeom,_heightmap);
-                
             }
         }
 
