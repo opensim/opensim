@@ -125,7 +125,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
                     rxw.WriteString(s.RegionInfo.InternalEndPoint.ToString());
                     rxw.WriteEndAttribute();
                     
-                    int users = s.GetAvatars().Count;
+                    int users = s.GetRootAgentCount();
                     rxw.WriteStartAttribute(String.Empty, "avatars", String.Empty);
                     rxw.WriteValue(users);
                     rxw.WriteEndAttribute();
