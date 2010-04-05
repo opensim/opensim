@@ -2116,7 +2116,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
             return m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, sendClientUpdates);
-        }
+        }        
 
         /// <summary>
         /// Delete every object from the scene
