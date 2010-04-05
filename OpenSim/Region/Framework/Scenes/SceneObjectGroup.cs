@@ -2203,13 +2203,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ScheduleGroupForTerseUpdate()
         {
-<<<<<<< HEAD:OpenSim/Region/Framework/Scenes/SceneObjectGroup.cs
             lockPartsForRead(true);
-=======
-//            m_log.DebugFormat("[SOG]: Scheduling terse update for {0} {1}", Name, UUID);
-            
-            lock (m_parts)
->>>>>>> 0.6.9-post-fixes:OpenSim/Region/Framework/Scenes/SceneObjectGroup.cs
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
@@ -3765,15 +3759,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 HasGroupChanged = true;
             }
-<<<<<<< HEAD:OpenSim/Region/Framework/Scenes/SceneObjectGroup.cs
             lockPartsForRead(false);
-            ScheduleGroupForFullUpdate();
-=======
 
             // Don't trigger the update here - otherwise some client issues occur when multiple updates are scheduled
             // for the same object with very different properties.  The caller must schedule the update.
             //ScheduleGroupForFullUpdate();
->>>>>>> 0.6.9-post-fixes:OpenSim/Region/Framework/Scenes/SceneObjectGroup.cs
         }
 
         public void TriggerScriptChangedEvent(Changed val)
