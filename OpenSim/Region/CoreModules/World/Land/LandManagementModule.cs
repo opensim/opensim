@@ -1014,6 +1014,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                             //Owner Flag
                             tempByte = Convert.ToByte(tempByte | LandChannel.LAND_TYPE_OWNED_BY_REQUESTER);
                         }
+                        else if (currentParcelBlock.LandData.IsGroupOwned && remote_client.IsGroupMember(currentParcelBlock.LandData.GroupID))
+                        {
+                            tempByte = Convert.ToByte(tempByte | LandChannel.LAND_TYPE_OWNED_BY_GROUP);
+                        }
                         else if (currentParcelBlock.LandData.SalePrice > 0 &&
                                  (currentParcelBlock.LandData.AuthBuyerID == UUID.Zero ||
                                   currentParcelBlock.LandData.AuthBuyerID == remote_client.AgentId))
