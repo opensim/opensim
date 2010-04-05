@@ -145,7 +145,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         private Dictionary<string, bool> GrantVB = new Dictionary<string, bool>();
         private Dictionary<string, bool> GrantJS = new Dictionary<string, bool>();
         private Dictionary<string, bool> GrantYP = new Dictionary<string, bool>();
-        private IFriendsModule m_friendsModule = null;
+        private IFriendsModule m_friendsModule;
+        private IGroupsModule m_groupsModule;
 
         #endregion
 
@@ -370,9 +371,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
 
             if (m_friendsModule == null)
-                m_log.Error("[PERMISSIONS]: Friends module not found, friend permissions will not work");
-            else
-                m_log.Info("[PERMISSIONS]: Friends module found, friend permissions enabled");
+                m_log.Warn("[PERMISSIONS]: Friends module not found, friend permissions will not work");
+
+            m_groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
+
+            if (m_groupsModule == null)
+                m_log.Warn("[PERMISSIONS]: Groups module not found, group permissions will not work");        
         }
 
         public void Close()
@@ -407,14 +411,17 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         // with the powers requested (powers = 0 for no powers check)
         protected bool IsGroupMember(UUID groupID, UUID userID, ulong powers)
         {
-            ScenePresence sp = m_scene.GetScenePresence(userID);
-            if (sp != null)
-            {
-                IClientAPI client = sp.ControllingClient;
+            if (null == m_groupsModule)
+                return false;
 
-                return ((groupID == client.ActiveGroupId) && (client.ActiveGroupPowers != 0) &&
-                    ((powers == 0) || ((client.ActiveGroupPowers & powers) == powers)));
+            GroupMembershipData gmd = m_groupsModule.GetMembershipData(groupID, userID);
+
+            if (gmd != null)
+            {
+                if (((gmd.GroupPowers != 0) && powers == 0) || (gmd.GroupPowers & powers) == powers)
+                    return true;
             }
+
             return false;
         }
             
@@ -705,8 +712,17 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 permission = false;
             }
 
+//            m_log.DebugFormat(
+//                "[PERMISSIONS]: group.GroupID = {0}, part.GroupMask = {1}, isGroupMember = {2} for {3}", 
+//                group.GroupID,
+//                m_scene.GetSceneObjectPart(objId).GroupMask, 
+//                IsGroupMember(group.GroupID, currentUser, 0), 
+//                currentUser);
+            
             // Group members should be able to edit group objects
-            if ((group.GroupID != UUID.Zero) && ((m_scene.GetSceneObjectPart(objId).GroupMask & (uint)PermissionMask.Modify) != 0) && IsGroupMember(group.GroupID, currentUser, 0))
+            if ((group.GroupID != UUID.Zero) 
+                && ((m_scene.GetSceneObjectPart(objId).GroupMask & (uint)PermissionMask.Modify) != 0) 
+                && IsGroupMember(group.GroupID, currentUser, 0))
             {
                 // Return immediately, so that the administrator can shares group objects
                 return true;
@@ -940,7 +956,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
-
 
             return GenericObjectPermission(editorID, objectID, false);
         }
