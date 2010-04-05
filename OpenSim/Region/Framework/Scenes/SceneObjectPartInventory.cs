@@ -528,6 +528,7 @@ namespace OpenSim.Region.Framework.Scenes
             item.ParentID = m_part.UUID;
             item.ParentPartID = m_part.UUID;
             item.Name = name;
+            item.GroupID = m_part.GroupID;
 
             lock (m_items)
             {
@@ -620,6 +621,12 @@ namespace OpenSim.Region.Framework.Scenes
                     item.ParentID = m_part.UUID;
                     item.ParentPartID = m_part.UUID;
                     item.Flags = m_items[item.ItemID].Flags;
+
+                    // If group permissions have been set on, check that the groupID is up to date in case it has
+                    // changed since permissions were last set.
+                    if (item.GroupPermissions != (uint)PermissionMask.None)
+                        item.GroupID = m_part.GroupID;
+                    
                     if (item.AssetID == UUID.Zero)
                     {
                         item.AssetID = m_items[item.ItemID].AssetID;
@@ -771,6 +778,7 @@ namespace OpenSim.Region.Framework.Scenes
                     uint everyoneMask = 0;
                     uint baseMask = item.BasePermissions;
                     uint ownerMask = item.CurrentPermissions;
+                    uint groupMask = item.GroupPermissions;
 
                     invString.AddItemStart();
                     invString.AddNameValueLine("item_id", item.ItemID.ToString());
@@ -780,7 +788,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     invString.AddNameValueLine("base_mask", Utils.UIntToHexString(baseMask));
                     invString.AddNameValueLine("owner_mask", Utils.UIntToHexString(ownerMask));
-                    invString.AddNameValueLine("group_mask", Utils.UIntToHexString(0));
+                    invString.AddNameValueLine("group_mask", Utils.UIntToHexString(groupMask));
                     invString.AddNameValueLine("everyone_mask", Utils.UIntToHexString(everyoneMask));
                     invString.AddNameValueLine("next_owner_mask", Utils.UIntToHexString(item.NextPermissions));
 
