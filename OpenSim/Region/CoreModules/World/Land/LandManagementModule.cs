@@ -390,7 +390,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     if (avatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT)
                     {
-                        if (parcelAvatarIsEntering.IsBannedFromLand(avatar.UUID))
+                        if (parcelAvatarIsEntering.IsEitherBannedOrRestricted(avatar.UUID))
                         {
                             MoveUserOutOfParcel(avatar);
                         }
