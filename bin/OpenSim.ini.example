@@ -1182,10 +1182,18 @@
     ;MessagingModule = GroupsMessagingModule
     ;MessagingEnabled = true
 
-    ; Service connector to Groups Service [Select One]
-    ; XmlRpc Service Connector to the Flotsam XmlRpc Groups Service Implementation
+    ; Service connector to Groups Service [Select One] ServicesConnectorModule
+
+	
+    ; Simian Grid Service for Groups
+    ;ServicesConnectorModule = SimianGroupsServicesConnector
+    ;GroupsServerURI = http://mygridserver.com:82/Grid/
+
+    ; XmlRpc Service Connector to the Flotsam XmlRpc Groups Service settings
     ;ServicesConnectorModule = XmlRpcGroupsServicesConnector
-    ;XmlRpcServiceURL        = http://yourxmlrpcserver.com/xmlrpc.php
+    ;GroupsServerURI        = http://yourxmlrpcserver.com/xmlrpc.php
+
+    ; XmlRpc Service Settings
     ;XmlRpcServiceReadKey    = 1234
     ;XmlRpcServiceWriteKey   = 1234
 

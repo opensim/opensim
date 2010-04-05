@@ -134,6 +134,10 @@ namespace OpenSim.Services.UserAccountService
                 u.UserTitle = d.Data["UserTitle"].ToString();
             else
                 u.UserTitle = string.Empty;
+            if (d.Data.ContainsKey("UserLevel") && d.Data["UserLevel"] != null)
+                Int32.TryParse(d.Data["UserLevel"], out u.UserLevel);
+            if (d.Data.ContainsKey("UserFlags") && d.Data["UserFlags"] != null)
+                Int32.TryParse(d.Data["UserFlags"], out u.UserFlags);
 
             if (d.Data.ContainsKey("ServiceURLs") && d.Data["ServiceURLs"] != null)
             {
@@ -218,6 +222,10 @@ namespace OpenSim.Services.UserAccountService
             d.Data = new Dictionary<string, string>();
             d.Data["Email"] = data.Email;
             d.Data["Created"] = data.Created.ToString();
+            d.Data["UserLevel"] = data.UserLevel.ToString();
+            d.Data["UserFlags"] = data.UserFlags.ToString();
+            if (data.UserTitle != null)
+                d.Data["UserTitle"] = data.UserTitle.ToString();
 
             List<string> parts = new List<string>();
 

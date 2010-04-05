@@ -513,6 +513,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             byte flags = buffer.Data[0];
             bool isResend = (flags & Helpers.MSG_RESENT) != 0;
             bool isReliable = (flags & Helpers.MSG_RELIABLE) != 0;
+            bool isZerocoded = (flags & Helpers.MSG_ZEROCODED) != 0;
             LLUDPClient udpClient = outgoingPacket.Client;
 
             if (!udpClient.IsConnected)
@@ -522,23 +523,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             int dataLength = buffer.DataLength;
 
-            // Keep appending ACKs until there is no room left in the buffer or there are
-            // no more ACKs to append
-            uint ackCount = 0;
-            uint ack;
-            while (dataLength + 5 < buffer.Data.Length && udpClient.PendingAcks.Dequeue(out ack))
+            // NOTE: I'm seeing problems with some viewers when ACKs are appended to zerocoded packets so I've disabled that here
+            if (!isZerocoded)
             {
-                Utils.UIntToBytesBig(ack, buffer.Data, dataLength);
-                dataLength += 4;
-                ++ackCount;
-            }
+                // Keep appending ACKs until there is no room left in the buffer or there are
+                // no more ACKs to append
+                uint ackCount = 0;
+                uint ack;
+                while (dataLength + 5 < buffer.Data.Length && udpClient.PendingAcks.Dequeue(out ack))
+                {
+                    Utils.UIntToBytesBig(ack, buffer.Data, dataLength);
+                    dataLength += 4;
+                    ++ackCount;
+                }
 
-            if (ackCount > 0)
-            {
-                // Set the last byte of the packet equal to the number of appended ACKs
-                buffer.Data[dataLength++] = (byte)ackCount;
-                // Set the appended ACKs flag on this packet
-                buffer.Data[0] = (byte)(buffer.Data[0] | Helpers.MSG_APPENDED_ACKS);
+                if (ackCount > 0)
+                {
+                    // Set the last byte of the packet equal to the number of appended ACKs
+                    buffer.Data[dataLength++] = (byte)ackCount;
+                    // Set the appended ACKs flag on this packet
+                    buffer.Data[0] = (byte)(buffer.Data[0] | Helpers.MSG_APPENDED_ACKS);
+                }
             }
 
             buffer.DataLength = dataLength;
