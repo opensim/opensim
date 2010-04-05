@@ -112,59 +112,15 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public AssetBase Get(string id)
         {
-            AssetBase asset = null;
-
             // Cache fetch
             if (m_cache != null)
             {
-                asset = m_cache.Get(id);
+                AssetBase asset = m_cache.Get(id);
                 if (asset != null)
                     return asset;
             }
 
-            Uri url;
-
-            // Determine if id is an absolute URL or a grid-relative UUID
-            if (!Uri.TryCreate(id, UriKind.Absolute, out url))
-                url = new Uri(m_serverUrl + id);
-
-            try
-            {
-                HttpWebRequest request = UntrustedHttpWebRequest.Create(url);
-
-                using (WebResponse response = request.GetResponse())
-                {
-                    using (Stream responseStream = response.GetResponseStream())
-                    {
-                        string creatorID = response.Headers.GetOne("X-Asset-Creator-Id") ?? String.Empty;
-
-                        // Create the asset object
-                        asset = new AssetBase(id, String.Empty, SLUtil.ContentTypeToSLAssetType(response.ContentType), creatorID);
-
-                        UUID assetID;
-                        if (UUID.TryParse(id, out assetID))
-                            asset.FullID = assetID;
-                        
-                        // Grab the asset data from the response stream
-                        using (MemoryStream stream = new MemoryStream())
-                        {
-                            responseStream.CopyTo(stream, Int32.MaxValue);
-                            asset.Data = stream.ToArray();
-                        }
-                    }
-                }
-
-                // Cache store
-                if (m_cache != null && asset != null)
-                    m_cache.Cache(asset);
-
-                return asset;
-            }
-            catch (Exception ex)
-            {
-                m_log.Warn("[SIMIAN ASSET CONNECTOR]: Asset GET from " + url + " failed: " + ex.Message);
-                return null;
-            }
+            return GetRemote(id);
         }
 
         /// <summary>
@@ -245,10 +201,21 @@ namespace OpenSim.Services.Connectors.SimianGrid
         /// <returns>True if the id was parseable, false otherwise</returns>
         public bool Get(string id, Object sender, AssetRetrieved handler)
         {
+            // Cache fetch
+            if (m_cache != null)
+            {
+                AssetBase asset = m_cache.Get(id);
+                if (asset != null)
+                {
+                    Util.FireAndForget(delegate(object o) { handler(id, sender, asset); });
+                    return true;
+                }
+            }
+
             Util.FireAndForget(
                 delegate(object o)
                 {
-                    AssetBase asset = Get(id);
+                    AssetBase asset = GetRemote(id);
                     handler(id, sender, asset);
                 }
             );
@@ -406,5 +373,53 @@ namespace OpenSim.Services.Connectors.SimianGrid
         }
 
         #endregion IAssetService
+
+        private AssetBase GetRemote(string id)
+        {
+            AssetBase asset = null;
+            Uri url;
+
+            // Determine if id is an absolute URL or a grid-relative UUID
+            if (!Uri.TryCreate(id, UriKind.Absolute, out url))
+                url = new Uri(m_serverUrl + id);
+
+            try
+            {
+                HttpWebRequest request = UntrustedHttpWebRequest.Create(url);
+
+                using (WebResponse response = request.GetResponse())
+                {
+                    using (Stream responseStream = response.GetResponseStream())
+                    {
+                        string creatorID = response.Headers.GetOne("X-Asset-Creator-Id") ?? String.Empty;
+
+                        // Create the asset object
+                        asset = new AssetBase(id, String.Empty, SLUtil.ContentTypeToSLAssetType(response.ContentType), creatorID);
+
+                        UUID assetID;
+                        if (UUID.TryParse(id, out assetID))
+                            asset.FullID = assetID;
+
+                        // Grab the asset data from the response stream
+                        using (MemoryStream stream = new MemoryStream())
+                        {
+                            responseStream.CopyTo(stream, Int32.MaxValue);
+                            asset.Data = stream.ToArray();
+                        }
+                    }
+                }
+
+                // Cache store
+                if (m_cache != null && asset != null)
+                    m_cache.Cache(asset);
+
+                return asset;
+            }
+            catch (Exception ex)
+            {
+                m_log.Warn("[SIMIAN ASSET CONNECTOR]: Asset GET from " + url + " failed: " + ex.Message);
+                return null;
+            }
+        }
     }
 }
