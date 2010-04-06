@@ -1012,13 +1012,15 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         throw new Exception(String.Format("Account {0} {1} already exists", firstname, lastname));
 
                     account = new UserAccount(scopeID, firstname, lastname, email);
-                    // REFACTORING PROBLEM: no method to set the password!
 
                     bool success = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.StoreUserAccount(account);
 
                     if (!success)
                         throw new Exception(String.Format("failed to create new user {0} {1}",
                                                           firstname, lastname));
+
+                    // Store the password
+                    m_app.SceneManager.CurrentOrFirstScene.AuthenticationService.SetPassword(account.PrincipalID, passwd);
 
                     GridRegion home = m_app.SceneManager.CurrentOrFirstScene.GridService.GetRegionByPosition(scopeID, 
                         (int)(regX * Constants.RegionSize), (int)(regY * Constants.RegionSize));
