@@ -207,7 +207,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 AssetBase asset = m_cache.Get(id);
                 if (asset != null)
                 {
-                    Util.FireAndForget(delegate(object o) { handler(id, sender, asset); });
+                    handler(id, sender, asset);
                     return true;
                 }
             }

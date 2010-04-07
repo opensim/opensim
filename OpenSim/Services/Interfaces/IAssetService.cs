@@ -51,7 +51,8 @@ namespace OpenSim.Services.Interfaces
         byte[] GetData(string id);
 
         /// <summary>
-        /// Get an asset asynchronously
+        /// Get an asset synchronously or asynchronously (depending on whether 
+        /// it is locally cached) and fire a callback with the fetched asset
         /// </summary>
         /// <param name="id">The asset id</param>
         /// <param name="sender">Represents the requester.  Passed back via the handler</param>
