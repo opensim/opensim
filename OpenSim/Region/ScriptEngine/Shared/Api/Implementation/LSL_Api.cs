@@ -6195,6 +6195,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.OuterAngle = (float)tempf;
                             break;
+
+                        case (int)ScriptBaseClass.PSYS_SRC_INNERANGLE:
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            prules.InnerAngle = (float)tempf;
+                            break;
+
+                        case (int)ScriptBaseClass.PSYS_SRC_OUTERANGLE:
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            prules.OuterAngle = (float)tempf;
+                            break;
                     }
 
                 }
