@@ -5200,7 +5200,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 args.Channel = ch;
                 args.From = String.Empty;
                 args.Message = Utils.BytesToString(msg);
-                args.Type = ChatTypeEnum.Shout;
+                args.Type = ChatTypeEnum.Region; //Behaviour in SL is that the response can be heard from any distance
                 args.Position = new Vector3();
                 args.Scene = Scene;
                 args.Sender = this;
