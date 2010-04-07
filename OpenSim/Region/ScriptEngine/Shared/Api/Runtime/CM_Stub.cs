@@ -72,5 +72,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_CM_Functions.cmSetWindlightSceneTargeted(rules, target);
         }
+        public LSL_List cmGetAvatarList()
+        {
+            return m_CM_Functions.cmGetAvatarList();
+        }
     }
 }
