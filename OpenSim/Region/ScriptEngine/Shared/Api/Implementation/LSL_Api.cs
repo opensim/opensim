@@ -2881,6 +2881,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llLookAt(LSL_Vector target, double strength, double damping)
         {
+            /*
             m_host.AddScriptLPS(1);
             // Determine where we are looking from
             LSL_Vector from = llGetPos();
@@ -2900,12 +2901,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // the angles of rotation in radians into rotation value
 
             LSL_Types.Quaternion rot = llEuler2Rot(angle);
-            /*
-            Quaternion rotation = new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
-            m_host.startLookAt(rotation, (float)damping, (float)strength);
-                This would only work if your physics system contains an APID controller */
+
+            // This would only work if your physics system contains an APID controller:
+            // Quaternion rotation = new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
+            // m_host.startLookAt(rotation, (float)damping, (float)strength);
+            
             // Orient the object to the angle calculated
             llSetRot(rot);
+            */
+
+            //The above code, while nice, doesn't replicate the behaviour of SL and tends to "roll" the object.
+            //There's probably a smarter way of doing this, my rotation math-fu is weak.
+            // http://bugs.meta7.com/view.php?id=28
+            //                                       - Tom
+
+            LSL_Rotation newrot = llGetRot() * llRotBetween(new LSL_Vector(1.0d, 0.0d, 0.0d) * llGetRot(), new LSL_Vector(0.0d, 0.0d, -1.0d));
+            llSetRot(newrot * llRotBetween(new LSL_Vector(0.0d,0.0d,1.0d) * newrot, target - llGetPos()));
+
         }
         
         public void llRotLookAt(LSL_Rotation target, double strength, double damping)
