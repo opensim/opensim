@@ -1032,7 +1032,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool WaitForCallback(UUID id)
         {
-            int count = 200;
+            int count = 400;
             while (m_agentsInTransit.Contains(id) && count-- > 0)
             {
                 //m_log.Debug("  >>> Waiting... " + count);
