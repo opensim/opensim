@@ -123,6 +123,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return GetRemote(id);
         }
 
+        public AssetBase GetCached(string id)
+        {
+            if (m_cache != null)
+                return m_cache.Get(id);
+
+            return null;
+        }
+
         /// <summary>
         /// Get an asset's metadata
         /// </summary>

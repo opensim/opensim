@@ -65,6 +65,11 @@ namespace OpenSim.Tests.Common.Mock
             return asset;
         }
 
+        public AssetBase GetCached(string id)
+        {
+            return Get(id);
+        }
+
         public AssetMetadata GetMetadata(string id)
         {
             throw new System.NotImplementedException();
