@@ -47,9 +47,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class XmlRpcGroupsServicesConnectorModule : ISharedRegionModule, IGroupsServicesConnector
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public const GroupPowers m_DefaultEveryonePowers = GroupPowers.AllowSetHome | 
             GroupPowers.Accountable | 
@@ -61,12 +59,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private bool m_connectorEnabled = false;
 
-        private string m_serviceURL = string.Empty;
+        private string m_groupsServerURI = string.Empty;
 
         private bool m_disableKeepAlive = false;
 
         private string m_groupReadKey  = string.Empty;
         private string m_groupWriteKey = string.Empty;
+
+
+        // Used to track which agents are have dropped from a group chat session
+        // Should be reset per agent, on logon
+        // TODO: move this to Flotsam XmlRpc Service
+        // SessionID, List<AgentID>
+        private Dictionary<UUID, List<UUID>> m_groupsAgentsDroppedFromChatSession = new Dictionary<UUID, List<UUID>>();
+        private Dictionary<UUID, List<UUID>> m_groupsAgentsInvitedToChatSession = new Dictionary<UUID, List<UUID>>();
 
 
         #region IRegionModuleBase Members
@@ -104,11 +110,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 m_log.InfoFormat("[GROUPS-CONNECTOR]: Initializing {0}", this.Name);
 
-                m_serviceURL = groupsConfig.GetString("XmlRpcServiceURL", string.Empty);
-                if ((m_serviceURL == null) ||
-                    (m_serviceURL == string.Empty))
+                m_groupsServerURI = groupsConfig.GetString("GroupsServerURI", string.Empty);
+                if ((m_groupsServerURI == null) ||
+                    (m_groupsServerURI == string.Empty))
                 {
-                    m_log.ErrorFormat("Please specify a valid URL for XmlRpcServiceURL in OpenSim.ini, [Groups]");
+                    m_log.ErrorFormat("Please specify a valid URL for GroupsServerURI in OpenSim.ini, [Groups]");
                     m_connectorEnabled = false;
                     return;
                 }
@@ -117,6 +123,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 m_groupReadKey = groupsConfig.GetString("XmlRpcServiceReadKey", string.Empty);
                 m_groupWriteKey = groupsConfig.GetString("XmlRpcServiceWriteKey", string.Empty);
+
+                
+
 
                 // If we got all the config options we need, lets start'er'up
                 m_connectorEnabled = true;
@@ -131,13 +140,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         public void AddRegion(OpenSim.Region.Framework.Scenes.Scene scene)
         {
             if (m_connectorEnabled)
+            {
                 scene.RegisterModuleInterface<IGroupsServicesConnector>(this);
+            }
         }
 
         public void RemoveRegion(OpenSim.Region.Framework.Scenes.Scene scene)
         {
             if (scene.RequestModuleInterface<IGroupsServicesConnector>() == this)
+            {
                 scene.UnregisterModuleInterface<IGroupsServicesConnector>(this);
+            }
         }
 
         public void RegionLoaded(OpenSim.Region.Framework.Scenes.Scene scene)
@@ -157,14 +170,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         #endregion
 
-
-
         #region IGroupsServicesConnector Members
 
         /// <summary>
         /// Create a Group, including Everyone and Owners Role, place FounderID in both groups, select Owner as selected role, and newly created group as agent's active role.
         /// </summary>
-        public UUID CreateGroup(GroupRequestID requestID, string name, string charter, bool showInList, UUID insigniaID, 
+        public UUID CreateGroup(UUID requestingAgentID, string name, string charter, bool showInList, UUID insigniaID, 
                                 int membershipFee, bool openEnrollment, bool allowPublish, 
                                 bool maturePublish, UUID founderID)
         {
@@ -236,7 +247,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
 
 
-            Hashtable respData = XmlRpcCall(requestID, "groups.createGroup", param);
+            Hashtable respData = XmlRpcCall(requestingAgentID, "groups.createGroup", param);
 
             if (respData.Contains("error"))
             {
@@ -248,7 +259,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return UUID.Parse((string)respData["GroupID"]);
         }
 
-        public void UpdateGroup(GroupRequestID requestID, UUID groupID, string charter, bool showInList, 
+        public void UpdateGroup(UUID requestingAgentID, UUID groupID, string charter, bool showInList, 
                                 UUID insigniaID, int membershipFee, bool openEnrollment, 
                                 bool allowPublish, bool maturePublish)
         {
@@ -262,10 +273,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             param["AllowPublish"] = allowPublish == true ? 1 : 0;
             param["MaturePublish"] = maturePublish == true ? 1 : 0;
 
-            XmlRpcCall(requestID, "groups.updateGroup", param);
+            XmlRpcCall(requestingAgentID, "groups.updateGroup", param);
         }
 
-        public void AddGroupRole(GroupRequestID requestID, UUID groupID, UUID roleID, string name, string description, 
+        public void AddGroupRole(UUID requestingAgentID, UUID groupID, UUID roleID, string name, string description, 
                                  string title, ulong powers)
         {
             Hashtable param = new Hashtable();
@@ -276,19 +287,19 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             param["Title"] = title;
             param["Powers"] = powers.ToString();
 
-            XmlRpcCall(requestID, "groups.addRoleToGroup", param);
+            XmlRpcCall(requestingAgentID, "groups.addRoleToGroup", param);
         }
 
-        public void RemoveGroupRole(GroupRequestID requestID, UUID groupID, UUID roleID)
+        public void RemoveGroupRole(UUID requestingAgentID, UUID groupID, UUID roleID)
         {
             Hashtable param = new Hashtable();
             param["GroupID"] = groupID.ToString();
             param["RoleID"] = roleID.ToString();
 
-            XmlRpcCall(requestID, "groups.removeRoleFromGroup", param);
+            XmlRpcCall(requestingAgentID, "groups.removeRoleFromGroup", param);
         }
 
-        public void UpdateGroupRole(GroupRequestID requestID, UUID groupID, UUID roleID, string name, string description, 
+        public void UpdateGroupRole(UUID requestingAgentID, UUID groupID, UUID roleID, string name, string description, 
                                     string title, ulong powers)
         {
             Hashtable param = new Hashtable();
@@ -308,10 +319,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
             param["Powers"] = powers.ToString();
 
-            XmlRpcCall(requestID, "groups.updateGroupRole", param);
+            XmlRpcCall(requestingAgentID, "groups.updateGroupRole", param);
         }
 
-        public GroupRecord GetGroupRecord(GroupRequestID requestID, UUID GroupID, string GroupName)
+        public GroupRecord GetGroupRecord(UUID requestingAgentID, UUID GroupID, string GroupName)
         {
             Hashtable param = new Hashtable();
             if (GroupID != UUID.Zero)
@@ -323,7 +334,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 param["Name"] = GroupName.ToString();
             }
 
-            Hashtable respData = XmlRpcCall(requestID, "groups.getGroup", param);
+            Hashtable respData = XmlRpcCall(requestingAgentID, "groups.getGroup", param);
 
             if (respData.Contains("error"))
             {
@@ -334,12 +345,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         }
 
-        public GroupProfileData GetMemberGroupProfile(GroupRequestID requestID, UUID GroupID, UUID AgentID)
+        public GroupProfileData GetMemberGroupProfile(UUID requestingAgentID, UUID GroupID, UUID AgentID)
         {
             Hashtable param = new Hashtable();
             param["GroupID"] = GroupID.ToString();
 
-            Hashtable respData = XmlRpcCall(requestID, "groups.getGroup", param);
+            Hashtable respData = XmlRpcCall(requestingAgentID, "groups.getGroup", param);
 
             if (respData.Contains("error"))
             {
@@ -347,38 +358,35 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 return new GroupProfileData();
             }
 
-            GroupMembershipData MemberInfo = GetAgentGroupMembership(requestID, AgentID, GroupID);
+            GroupMembershipData MemberInfo = GetAgentGroupMembership(requestingAgentID, AgentID, GroupID);
             GroupProfileData MemberGroupProfile = GroupProfileHashtableToGroupProfileData(respData);
 
             MemberGroupProfile.MemberTitle = MemberInfo.GroupTitle;
             MemberGroupProfile.PowersMask = MemberInfo.GroupPowers;
 
             return MemberGroupProfile;
-
         }
 
-
-
-        public void SetAgentActiveGroup(GroupRequestID requestID, UUID AgentID, UUID GroupID)
+        public void SetAgentActiveGroup(UUID requestingAgentID, UUID AgentID, UUID GroupID)
         {
             Hashtable param = new Hashtable();
             param["AgentID"] = AgentID.ToString();
             param["GroupID"] = GroupID.ToString();
 
-            XmlRpcCall(requestID, "groups.setAgentActiveGroup", param);
+            XmlRpcCall(requestingAgentID, "groups.setAgentActiveGroup", param);
         }
 
-        public void SetAgentActiveGroupRole(GroupRequestID requestID, UUID AgentID, UUID GroupID, UUID RoleID)
+        public void SetAgentActiveGroupRole(UUID requestingAgentID, UUID AgentID, UUID GroupID, UUID RoleID)
         {
             Hashtable param = new Hashtable();
             param["AgentID"] = AgentID.ToString();
             param["GroupID"] = GroupID.ToString();
             param["SelectedRoleID"] = RoleID.ToString();
 
-            XmlRpcCall(requestID, "groups.setAgentGroupInfo", param);
+            XmlRpcCall(requestingAgentID, "groups.setAgentGroupInfo", param);
         }
 
-        public void SetAgentGroupInfo(GroupRequestID requestID, UUID AgentID, UUID GroupID, bool AcceptNotices, bool ListInProfile)
+        public void SetAgentGroupInfo(UUID requestingAgentID, UUID AgentID, UUID GroupID, bool AcceptNotices, bool ListInProfile)
         {
             Hashtable param = new Hashtable();
             param["AgentID"] = AgentID.ToString();
@@ -386,11 +394,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             param["AcceptNotices"] = AcceptNotices ? "1" : "0";
             param["ListInProfile"] = ListInProfile ? "1" : "0";
 
-            XmlRpcCall(requestID, "groups.setAgentGroupInfo", param);
+            XmlRpcCall(requestingAgentID, "groups.setAgentGroupInfo", param);
 
         }
 
-        public void AddAgentToGroupInvite(GroupRequestID requestID, UUID inviteID, UUID groupID, UUID roleID, UUID agentID)
+        public void AddAgentToGroupInvite(UUID requestingAgentID, UUID inviteID, UUID groupID, UUID roleID, UUID agentID)
         {
             Hashtable param = new Hashtable();
             param["InviteID"] = inviteID.ToString();
@@ -398,16 +406,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             param["RoleID"] = roleID.ToString();
             param["GroupID"] = groupID.ToString();
 
-            XmlRpcCall(requestID, "groups.addAgentToGroupInvite", param);
+            XmlRpcCall(requestingAgentID, "groups.addAgentToGroupInvite", param);
 
         }
 
-        public GroupInviteInfo GetAgentToGroupInvite(GroupRequestID requestID, UUID inviteID)
+        public GroupInviteInfo GetAgentToGroupInvite(UUID requestingAgentID, UUID inviteID)
         {
             Hashtable param = new Hashtable();
             param["InviteID"] = inviteID.ToString();
 
-            Hashtable respData = XmlRpcCall(requestID, "groups.getAgentToGroupInvite", param);
+            Hashtable respData = XmlRpcCall(requestingAgentID, "groups.getAgentToGroupInvite", param);
 
             if (respData.Contains("error"))
             {
@@ -423,60 +431,59 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return inviteInfo;
         }
 
-        public void RemoveAgentToGroupInvite(GroupRequestID requestID, UUID inviteID)
+        public void RemoveAgentToGroupInvite(UUID requestingAgentID, UUID inviteID)
         {
             Hashtable param = new Hashtable();
             param["InviteID"] = inviteID.ToString();
 
-            XmlRpcCall(requestID, "groups.removeAgentToGroupInvite", param);
+            XmlRpcCall(requestingAgentID, "groups.removeAgentToGroupInvite", param);
         }
 
-        public void AddAgentToGroup(GroupRequestID requestID, UUID AgentID, UUID GroupID, UUID RoleID)
+        public void AddAgentToGroup(UUID requestingAgentID, UUID AgentID, UUID GroupID, UUID RoleID)
         {
             Hashtable param = new Hashtable();
             param["AgentID"] = AgentID.ToString();
             param["GroupID"] = GroupID.ToString();
             param["RoleID"] = RoleID.ToString();
 
-            XmlRpcCall(requestID, "groups.addAgentToGroup", param);
+            XmlRpcCall(requestingAgentID, "groups.addAgentToGroup", param);
         }
 
-        public void RemoveAgentFromGroup(GroupRequestID requestID, UUID AgentID, UUID GroupID)
+        public void RemoveAgentFromGroup(UUID requestingAgentID, UUID AgentID, UUID GroupID)
         {
             Hashtable param = new Hashtable();
             param["AgentID"] = AgentID.ToString();
             param["GroupID"] = GroupID.ToString();
 
-            XmlRpcCall(requestID, "groups.removeAgentFromGroup", param);
+            XmlRpcCall(requestingAgentID, "groups.removeAgentFromGroup", param);
         }
 
-        public void AddAgentToGroupRole(GroupRequestID requestID, UUID AgentID, UUID GroupID, UUID RoleID)
-        {
-            Hashtable param = new Hashtable();
-            param["AgentID"] = AgentID.ToString();
-            param["GroupID"] = GroupID.ToString();
-            param["RoleID"] = RoleID.ToString();
-
-            XmlRpcCall(requestID, "groups.addAgentToGroupRole", param);
-        }
-
-        public void RemoveAgentFromGroupRole(GroupRequestID requestID, UUID AgentID, UUID GroupID, UUID RoleID)
+        public void AddAgentToGroupRole(UUID requestingAgentID, UUID AgentID, UUID GroupID, UUID RoleID)
         {
             Hashtable param = new Hashtable();
             param["AgentID"] = AgentID.ToString();
             param["GroupID"] = GroupID.ToString();
             param["RoleID"] = RoleID.ToString();
 
-            XmlRpcCall(requestID, "groups.removeAgentFromGroupRole", param);
+            XmlRpcCall(requestingAgentID, "groups.addAgentToGroupRole", param);
         }
 
+        public void RemoveAgentFromGroupRole(UUID requestingAgentID, UUID AgentID, UUID GroupID, UUID RoleID)
+        {
+            Hashtable param = new Hashtable();
+            param["AgentID"] = AgentID.ToString();
+            param["GroupID"] = GroupID.ToString();
+            param["RoleID"] = RoleID.ToString();
 
-        public List<DirGroupsReplyData> FindGroups(GroupRequestID requestID, string search)
+            XmlRpcCall(requestingAgentID, "groups.removeAgentFromGroupRole", param);
+        }
+
+        public List<DirGroupsReplyData> FindGroups(UUID requestingAgentID, string search)
         {
             Hashtable param = new Hashtable();
             param["Search"] = search;
 
-            Hashtable respData = XmlRpcCall(requestID, "groups.findGroups", param);
+            Hashtable respData = XmlRpcCall(requestingAgentID, "groups.findGroups", param);
 
             List<DirGroupsReplyData> findings = new List<DirGroupsReplyData>();
 
@@ -498,13 +505,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return findings;
         }
 
-        public GroupMembershipData GetAgentGroupMembership(GroupRequestID requestID, UUID AgentID, UUID GroupID)
+        public GroupMembershipData GetAgentGroupMembership(UUID requestingAgentID, UUID AgentID, UUID GroupID)
         {
             Hashtable param = new Hashtable();
             param["AgentID"] = AgentID.ToString();
             param["GroupID"] = GroupID.ToString();
 
-            Hashtable respData = XmlRpcCall(requestID, "groups.getAgentGroupMembership", param);
+            Hashtable respData = XmlRpcCall(requestingAgentID, "groups.getAgentGroupMembership", param);
 
             if (respData.Contains("error"))
             {
@@ -516,12 +523,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return data;
         }
 
-        public GroupMembershipData GetAgentActiveMembership(GroupRequestID requestID, UUID AgentID)
+        public GroupMembershipData GetAgentActiveMembership(UUID requestingAgentID, UUID AgentID)
         {
             Hashtable param = new Hashtable();
             param["AgentID"] = AgentID.ToString();
 
-            Hashtable respData = XmlRpcCall(requestID, "groups.getAgentActiveMembership", param);
+            Hashtable respData = XmlRpcCall(requestingAgentID, "groups.getAgentActiveMembership", param);
 
             if (respData.Contains("error"))
             {
@@ -531,13 +538,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return HashTableToGroupMembershipData(respData);
         }
 
-
-        public List<GroupMembershipData> GetAgentGroupMemberships(GroupRequestID requestID, UUID AgentID)
+        public List<GroupMembershipData> GetAgentGroupMemberships(UUID requestingAgentID, UUID AgentID)
         {
             Hashtable param = new Hashtable();
             param["AgentID"] = AgentID.ToString();
 
-            Hashtable respData = XmlRpcCall(requestID, "groups.getAgentGroupMemberships", param);
+            Hashtable respData = XmlRpcCall(requestingAgentID, "groups.getAgentGroupMemberships", param);
 
             List<GroupMembershipData> memberships = new List<GroupMembershipData>();
 
@@ -552,13 +558,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return memberships;
         }
 
-        public List<GroupRolesData> GetAgentGroupRoles(GroupRequestID requestID, UUID AgentID, UUID GroupID)
+        public List<GroupRolesData> GetAgentGroupRoles(UUID requestingAgentID, UUID AgentID, UUID GroupID)
         {
             Hashtable param = new Hashtable();
             param["AgentID"] = AgentID.ToString();
             param["GroupID"] = GroupID.ToString();
 
-            Hashtable respData = XmlRpcCall(requestID, "groups.getAgentRoles", param);
+            Hashtable respData = XmlRpcCall(requestingAgentID, "groups.getAgentRoles", param);
 
             List<GroupRolesData> Roles = new List<GroupRolesData>();
 
@@ -584,12 +590,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         }
 
-        public List<GroupRolesData> GetGroupRoles(GroupRequestID requestID, UUID GroupID)
+        public List<GroupRolesData> GetGroupRoles(UUID requestingAgentID, UUID GroupID)
         {
             Hashtable param = new Hashtable();
             param["GroupID"] = GroupID.ToString();
 
-            Hashtable respData = XmlRpcCall(requestID, "groups.getGroupRoles", param);
+            Hashtable respData = XmlRpcCall(requestingAgentID, "groups.getGroupRoles", param);
 
             List<GroupRolesData> Roles = new List<GroupRolesData>();
 
@@ -617,12 +623,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
 
 
-        public List<GroupMembersData> GetGroupMembers(GroupRequestID requestID, UUID GroupID)
+        public List<GroupMembersData> GetGroupMembers(UUID requestingAgentID, UUID GroupID)
         {
             Hashtable param = new Hashtable();
             param["GroupID"] = GroupID.ToString();
 
-            Hashtable respData = XmlRpcCall(requestID, "groups.getGroupMembers", param);
+            Hashtable respData = XmlRpcCall(requestingAgentID, "groups.getGroupMembers", param);
 
             List<GroupMembersData> members = new List<GroupMembersData>();
 
@@ -650,12 +656,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         }
 
-        public List<GroupRoleMembersData> GetGroupRoleMembers(GroupRequestID requestID, UUID GroupID)
+        public List<GroupRoleMembersData> GetGroupRoleMembers(UUID requestingAgentID, UUID GroupID)
         {
             Hashtable param = new Hashtable();
             param["GroupID"] = GroupID.ToString();
 
-            Hashtable respData = XmlRpcCall(requestID, "groups.getGroupRoleMembers", param);
+            Hashtable respData = XmlRpcCall(requestingAgentID, "groups.getGroupRoleMembers", param);
 
             List<GroupRoleMembersData> members = new List<GroupRoleMembersData>();
 
@@ -674,12 +680,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return members;
         }
 
-        public List<GroupNoticeData> GetGroupNotices(GroupRequestID requestID, UUID GroupID)
+        public List<GroupNoticeData> GetGroupNotices(UUID requestingAgentID, UUID GroupID)
         {
             Hashtable param = new Hashtable();
             param["GroupID"] = GroupID.ToString();
 
-            Hashtable respData = XmlRpcCall(requestID, "groups.getGroupNotices", param);
+            Hashtable respData = XmlRpcCall(requestingAgentID, "groups.getGroupNotices", param);
 
             List<GroupNoticeData> values = new List<GroupNoticeData>();
 
@@ -701,12 +707,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return values;
 
         }
-        public GroupNoticeInfo GetGroupNotice(GroupRequestID requestID, UUID noticeID)
+        public GroupNoticeInfo GetGroupNotice(UUID requestingAgentID, UUID noticeID)
         {
             Hashtable param = new Hashtable();
             param["NoticeID"] = noticeID.ToString();
 
-            Hashtable respData = XmlRpcCall(requestID, "groups.getGroupNotice", param);
+            Hashtable respData = XmlRpcCall(requestingAgentID, "groups.getGroupNotice", param);
 
 
             if (respData.Contains("error"))
@@ -732,7 +738,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             return data;
         }
-        public void AddGroupNotice(GroupRequestID requestID, UUID groupID, UUID noticeID, string fromName, string subject, string message, byte[] binaryBucket)
+        public void AddGroupNotice(UUID requestingAgentID, UUID groupID, UUID noticeID, string fromName, string subject, string message, byte[] binaryBucket)
         {
             string binBucket = OpenMetaverse.Utils.BytesToHexString(binaryBucket, "");
 
@@ -745,7 +751,70 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             param["BinaryBucket"] = binBucket;
             param["TimeStamp"] = ((uint)Util.UnixTimeSinceEpoch()).ToString();
 
-            XmlRpcCall(requestID, "groups.addGroupNotice", param);
+            XmlRpcCall(requestingAgentID, "groups.addGroupNotice", param);
+        }
+
+
+
+        #endregion
+
+        #region GroupSessionTracking
+
+        public void ResetAgentGroupChatSessions(UUID agentID)
+        {
+            foreach (List<UUID> agentList in m_groupsAgentsDroppedFromChatSession.Values)
+            {
+                agentList.Remove(agentID);
+            }
+        }
+
+        public bool hasAgentBeenInvitedToGroupChatSession(UUID agentID, UUID groupID)
+        {
+            // If we're  tracking this group, and we can find them in the tracking, then they've been invited
+            return m_groupsAgentsInvitedToChatSession.ContainsKey(groupID)
+                && m_groupsAgentsInvitedToChatSession[groupID].Contains(agentID);
+        }
+
+        public bool hasAgentDroppedGroupChatSession(UUID agentID, UUID groupID)
+        {
+            // If we're tracking drops for this group, 
+            // and we find them, well... then they've dropped
+            return m_groupsAgentsDroppedFromChatSession.ContainsKey(groupID) 
+                && m_groupsAgentsDroppedFromChatSession[groupID].Contains(agentID);
+        }
+
+        public void AgentDroppedFromGroupChatSession(UUID agentID, UUID groupID)
+        {
+            if (m_groupsAgentsDroppedFromChatSession.ContainsKey(groupID))
+            {
+                // If not in dropped list, add
+                if (!m_groupsAgentsDroppedFromChatSession[groupID].Contains(agentID))
+                {
+                    m_groupsAgentsDroppedFromChatSession[groupID].Add(agentID);
+                }
+            }
+        }
+
+        public void AgentInvitedToGroupChatSession(UUID agentID, UUID groupID)
+        {
+            // Add Session Status if it doesn't exist for this session
+            CreateGroupChatSessionTracking(groupID);
+
+            // If nessesary, remove from dropped list
+            if (m_groupsAgentsDroppedFromChatSession[groupID].Contains(agentID))
+            {
+                m_groupsAgentsDroppedFromChatSession[groupID].Remove(agentID);
+            }
+        }
+
+        private void CreateGroupChatSessionTracking(UUID groupID)
+        {
+            if (!m_groupsAgentsDroppedFromChatSession.ContainsKey(groupID))
+            {
+                m_groupsAgentsDroppedFromChatSession.Add(groupID, new List<UUID>());
+                m_groupsAgentsInvitedToChatSession.Add(groupID, new List<UUID>());
+            }
+
         }
         #endregion
 
@@ -778,7 +847,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private GroupRecord GroupProfileHashtableToGroupRecord(Hashtable groupProfile)
         {
-
             GroupRecord group = new GroupRecord();
             group.GroupID = UUID.Parse((string)groupProfile["GroupID"]);
             group.GroupName = groupProfile["Name"].ToString();
@@ -797,6 +865,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             return group;
         }
+        
         private static GroupMembershipData HashTableToGroupMembershipData(Hashtable respData)
         {
             GroupMembershipData data = new GroupMembershipData();
@@ -829,6 +898,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             data.MembershipFee = int.Parse((string)respData["MembershipFee"]);
             data.OpenEnrollment = ((string)respData["OpenEnrollment"] == "1");
             data.ShowInList = ((string)respData["ShowInList"] == "1");
+            
             return data;
         }
 
@@ -837,15 +907,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         /// <summary>
         /// Encapsulate the XmlRpc call to standardize security and error handling.
         /// </summary>
-        private Hashtable XmlRpcCall(GroupRequestID requestID, string function, Hashtable param)
+        private Hashtable XmlRpcCall(UUID requestingAgentID, string function, Hashtable param)
         {
-            if (requestID == null)
-            {
-                requestID = new GroupRequestID();
-            }
-            param.Add("RequestingAgentID", requestID.AgentID.ToString());
-            param.Add("RequestingAgentUserService", requestID.UserServiceURL);
-            param.Add("RequestingSessionID", requestID.SessionID.ToString());
+            string UserService;
+            UUID SessionID;
+            GetClientGroupRequestID(requestingAgentID, out UserService, out SessionID);
+            param.Add("requestingAgentID", requestingAgentID.ToString());
+            param.Add("RequestingAgentUserService", UserService);
+            param.Add("RequestingSessionID", SessionID.ToString());
             
 
             param.Add("ReadKey", m_groupReadKey);
@@ -862,7 +931,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             try
             {
-                resp = req.Send(m_serviceURL, 10000);
+                resp = req.Send(m_groupsServerURI, 10000);
             }
             catch (Exception e)
             {
@@ -936,15 +1005,49 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
         }
 
+        
+        /// <summary>
+        /// Group Request Tokens are an attempt to allow the groups service to authenticate 
+        /// requests.  
+        /// TODO: This broke after the big grid refactor, either find a better way, or discard this
+        /// </summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        private void GetClientGroupRequestID(UUID AgentID, out string UserServiceURL, out UUID SessionID)
+        {
+            UserServiceURL = "";
+            SessionID = UUID.Zero;
 
-    }
 
-    public class GroupNoticeInfo
-    {
-        public GroupNoticeData noticeData = new GroupNoticeData();
-        public UUID GroupID = UUID.Zero;
-        public string Message = string.Empty;
-        public byte[] BinaryBucket = new byte[0];
+            // Need to rework this based on changes to User Services
+            /*
+            UserAccount userAccount = m_accountService.GetUserAccount(UUID.Zero,AgentID);
+            if (userAccount == null)
+            {
+                // This should be impossible.  If I've been passed a reference to a client
+                // that client should be registered with the UserService.  So something
+                // is horribly wrong somewhere.
+
+                m_log.WarnFormat("[GROUPS]: Could not find a UserServiceURL for {0}", AgentID);
+
+            }
+            else if (userProfile is ForeignUserProfileData)
+            {
+                // They aren't from around here
+                ForeignUserProfileData fupd = (ForeignUserProfileData)userProfile;
+                UserServiceURL = fupd.UserServerURI;
+                SessionID = fupd.CurrentAgent.SessionID;
+
+            }
+            else
+            {
+                // They're a local user, use this:
+                UserServiceURL = m_commManager.NetworkServersInfo.UserURL;
+                SessionID = userProfile.CurrentAgent.SessionID;
+            }
+            */
+        }
+        
     }
 }
 
