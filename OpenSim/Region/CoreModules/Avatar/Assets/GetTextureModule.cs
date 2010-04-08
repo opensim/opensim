@@ -109,7 +109,7 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
 
             // Try to parse the texture ID from the request URL
             NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
-            string textureStr = query.GetOne("texture_id");
+            string textureStr = GetOne(query, "texture_id");
 
             if (m_assetService == null)
             {
@@ -166,7 +166,7 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
 
         private void SendTexture(OSHttpRequest request, OSHttpResponse response, AssetBase texture)
         {
-            string range = request.Headers.GetOne("Range");
+            string range = GetOne(request.Headers, "Range");
             if (!String.IsNullOrEmpty(range))
             {
                 // Range request
@@ -215,6 +215,15 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
 
             start = end = 0;
             return false;
+        }
+
+        private static string GetOne(NameValueCollection collection, string key)
+        {
+            string[] values = collection.GetValues(key);
+            if (values != null && values.Length > 0)
+                return values[0];
+
+            return null;
         }
     }
 }
