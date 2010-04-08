@@ -11228,9 +11228,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 m_groupPowers.Clear();
 
-                for (int i = 0; i < GroupMembership.Length; i++)
+                if (GroupMembership != null)
                 {
-                    m_groupPowers[GroupMembership[i].GroupID] = GroupMembership[i].GroupPowers;
+                    for (int i = 0; i < GroupMembership.Length; i++)
+                    {
+                        m_groupPowers[GroupMembership[i].GroupID] = GroupMembership[i].GroupPowers;
+                    }
                 }
             }
         }
