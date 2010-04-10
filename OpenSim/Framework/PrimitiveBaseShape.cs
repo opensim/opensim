@@ -188,6 +188,10 @@ namespace OpenSim.Framework
             m_textureEntry = DEFAULT_TEXTURE;
         }
 
+        /// <summary>
+        /// Construct a PrimitiveBaseShape object from a OpenMetaverse.Primitive object
+        /// </summary>
+        /// <param name="prim"></param>
         public PrimitiveBaseShape(Primitive prim)
         {
             PCode = (byte)prim.PrimData.PCode;
