@@ -158,6 +158,20 @@ namespace OpenSim.Region.Framework.Scenes
 
         public IXfer XferManager;
 
+        protected ISnmpModule m_snmpService = null;
+        public ISnmpModule SnmpService
+        {
+            get
+            {
+                if (m_snmpService == null)
+                {
+                    m_snmpService = RequestModuleInterface<ISnmpModule>();
+                }
+
+                return m_snmpService;
+            }
+        }
+
         protected IAssetService m_AssetService;
         protected IAuthorizationService m_AuthorizationService;
 
