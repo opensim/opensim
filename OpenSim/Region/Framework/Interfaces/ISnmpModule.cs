@@ -8,4 +8,5 @@ public interface ISnmpModule
 {
     void Alert(string message);
     void  Trap(int code,string simname,string Message);
+    void ColdStart(int step , string simname);
 }
