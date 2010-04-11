@@ -2626,15 +2626,15 @@ Console.WriteLine(" JointCreateFixed");
                     // m_angularDeflectionEfficiency = pValue;
                     break;
                 case Vehicle.ANGULAR_DEFLECTION_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
+                    if (pValue < 0.1f) pValue = 0.1f;
                     // m_angularDeflectionTimescale = pValue;
                     break;
                 case Vehicle.ANGULAR_MOTOR_DECAY_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
+                    if (pValue < 0.3f) pValue = 0.3f;
                     m_angularMotorDecayTimescale = pValue;
                     break;
                 case Vehicle.ANGULAR_MOTOR_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
+                    if (pValue < 0.3f) pValue = 0.3f;
                     m_angularMotorTimescale = pValue;
                     break;
                 case Vehicle.BANKING_EFFICIENCY:
@@ -2663,7 +2663,7 @@ Console.WriteLine(" JointCreateFixed");
                     m_VhoverHeight = pValue;
                     break;
                 case Vehicle.HOVER_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
+                    if (pValue < 0.1f) pValue = 0.1f;
                     m_VhoverTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_DEFLECTION_EFFICIENCY:
@@ -2675,11 +2675,11 @@ Console.WriteLine(" JointCreateFixed");
                     // m_linearDeflectionTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_MOTOR_DECAY_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
+                    if (pValue < 0.3f) pValue = 0.3f;
                     m_linearMotorDecayTimescale = pValue;
                     break;
                 case Vehicle.LINEAR_MOTOR_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
+                    if (pValue < 0.1f) pValue = 0.1f;
                     m_linearMotorTimescale = pValue;
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_EFFICIENCY:
@@ -2688,7 +2688,7 @@ Console.WriteLine(" JointCreateFixed");
                     m_verticalAttractionEfficiency = pValue;
                     break;
                 case Vehicle.VERTICAL_ATTRACTION_TIMESCALE:
-                    if (pValue < 0.01f) pValue = 0.01f;
+                    if (pValue < 0.1f) pValue = 0.1f;
                     m_verticalAttractionTimescale = pValue;
                     break;
                     
@@ -2704,6 +2704,7 @@ Console.WriteLine(" JointCreateFixed");
                     UpdateAngDecay();
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
+                	if (pValue < 0.1f) pValue = 0.1f;
                     m_linearFrictionTimescale = new Vector3(pValue, pValue, pValue);
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
@@ -2743,6 +2744,9 @@ Console.WriteLine(" JointCreateFixed");
                     UpdateAngDecay();
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
+                	if (pValue.X < 0.1f) pValue.X = 0.1f;
+                	if (pValue.Y < 0.1f) pValue.Y = 0.1f;
+                	if (pValue.Z < 0.1f) pValue.Z = 0.1f;
                     m_linearFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
@@ -2939,7 +2943,7 @@ Console.WriteLine(" JointCreateFixed");
 
 		internal void Halt()
 		{	// Kill all motions, when non-physical
-			m_linearMotorDirection = Vector3.Zero;
+		//	m_linearMotorDirection = Vector3.Zero;
 			m_lLinMotorDVel = Vector3.Zero;
 			m_lLinObjectVel = Vector3.Zero;						
 			m_wLinObjectVel = Vector3.Zero;
@@ -2951,16 +2955,22 @@ Console.WriteLine(" JointCreateFixed");
 		
 		private void UpdateLinDecay()
 		{
-			if (Math.Abs(m_linearMotorDirection.X) > Math.Abs(m_lLinMotorDVel.X)) m_lLinMotorDVel.X = m_linearMotorDirection.X;
-			if (Math.Abs(m_linearMotorDirection.Y) > Math.Abs(m_lLinMotorDVel.Y)) m_lLinMotorDVel.Y = m_linearMotorDirection.Y;
-			if (Math.Abs(m_linearMotorDirection.Z) > Math.Abs(m_lLinMotorDVel.Z)) m_lLinMotorDVel.Z = m_linearMotorDirection.Z;
+//			if (Math.Abs(m_linearMotorDirection.X) > Math.Abs(m_lLinMotorDVel.X)) m_lLinMotorDVel.X = m_linearMotorDirection.X;
+//			if (Math.Abs(m_linearMotorDirection.Y) > Math.Abs(m_lLinMotorDVel.Y)) m_lLinMotorDVel.Y = m_linearMotorDirection.Y;
+//			if (Math.Abs(m_linearMotorDirection.Z) > Math.Abs(m_lLinMotorDVel.Z)) m_lLinMotorDVel.Z = m_linearMotorDirection.Z;
+			m_lLinMotorDVel.X = m_linearMotorDirection.X;
+			m_lLinMotorDVel.Y = m_linearMotorDirection.Y;
+			m_lLinMotorDVel.Z = m_linearMotorDirection.Z;
 		} // else let the motor decay on its own
 
 		private void UpdateAngDecay()
 		{
-			if (Math.Abs(m_angularMotorDirection.X) > Math.Abs(m_angularMotorDVel.X)) m_angularMotorDVel.X = m_angularMotorDirection.X;
-			if (Math.Abs(m_angularMotorDirection.Y) > Math.Abs(m_angularMotorDVel.Y)) m_angularMotorDVel.Y = m_angularMotorDirection.Y;
-			if (Math.Abs(m_angularMotorDirection.Z) > Math.Abs(m_angularMotorDVel.Z)) m_angularMotorDVel.Z = m_angularMotorDirection.Z;
+//			if (Math.Abs(m_angularMotorDirection.X) > Math.Abs(m_angularMotorDVel.X)) m_angularMotorDVel.X = m_angularMotorDirection.X;
+//			if (Math.Abs(m_angularMotorDirection.Y) > Math.Abs(m_angularMotorDVel.Y)) m_angularMotorDVel.Y = m_angularMotorDirection.Y;
+//			if (Math.Abs(m_angularMotorDirection.Z) > Math.Abs(m_angularMotorDVel.Z)) m_angularMotorDVel.Z = m_angularMotorDirection.Z;
+			m_angularMotorDVel.X = m_angularMotorDirection.X;
+			m_angularMotorDVel.Y = m_angularMotorDirection.Y;
+			m_angularMotorDVel.Z = m_angularMotorDirection.Z;
 		} // else let the motor decay on its own
         
         public void Move(float timestep)
@@ -2981,7 +2991,7 @@ Console.WriteLine(" JointCreateFixed");
 			if (fence == 1) border_limit = 0.5f;		// bounce point
 
             frcount++;					// used to limit debug comment output
-            if (frcount > 100)
+            if (frcount > 10)
                 frcount = 0;
                 
             if(revcount > 0) revcount--;
@@ -3222,12 +3232,13 @@ Console.WriteLine(" JointCreateFixed");
 						{
 							m_lLinMotorDVel = Vector3.Zero;
 						}
-						else
+						
+					/*	else
 		            	{
 					        if (Math.Abs(m_lLinMotorDVel.X) <  Math.Abs(m_lLinObjectVel.X)) m_lLinObjectVel.X = m_lLinMotorDVel.X;
 			    		    if (Math.Abs(m_lLinMotorDVel.Y) <  Math.Abs(m_lLinObjectVel.Y)) m_lLinObjectVel.Y = m_lLinMotorDVel.Y;
-					        if (Math.Abs(m_lLinMotorDVel.Z) <  Math.Abs(m_lLinObjectVel.Z)) m_lLinObjectVel.Z = m_lLinMotorDVel.Z;
-					    }
+					        if (Math.Abs(m_lLinMotorDVel.Z) <  Math.Abs(m_lLinObjectVel.Z)) m_lLinObjectVel.Z = m_lLinMotorDVel.Z;	
+					    } */
 					}  // end linear motor decay
 	
 		            if ( (! m_lLinMotorDVel.ApproxEquals(Vector3.Zero, 0.01f)) || (! m_lLinObjectVel.ApproxEquals(Vector3.Zero, 0.01f)) )
@@ -3255,7 +3266,6 @@ Console.WriteLine(" JointCreateFixed");
 				        if (m_linearFrictionTimescale.Z < 300.0f)
 				        {
 					        float fricfactor = m_linearFrictionTimescale.Z / timestep;
-//if(frcount == 0) Console.WriteLine("Zfric={0}", fricfactor);
 					        float fricZ = m_lLinObjectVel.Z / fricfactor;
 					        m_lLinObjectVel.Z -= fricZ;
 					    }
@@ -3316,15 +3326,17 @@ Console.WriteLine(" JointCreateFixed");
 						}
 					}
 					else
-					{	// not hovering, Gravity rules
-						m_wLinObjectVel.Z = vel_now.Z;
+					{	// not hovering
+						if (m_wLinObjectVel.Z == 0f)
+						{		// Gravity rules
+							m_wLinObjectVel.Z = vel_now.Z;
+						}  // else the motor has it
 	    		    }	
 	    		    linvel = m_wLinObjectVel;
 
 	    		    // Vehicle Linear  Motion done =======================================
 			        // Apply velocity
-//if(frcount == 0) Console.WriteLine("LV {0}", linvel);			        
-			        d.BodySetLinearVel(Body, linvel.X, linvel.Y, linvel.Z);        
+					d.BodySetLinearVel(Body, linvel.X, linvel.Y, linvel.Z);        
 		            // apply gravity force
 					d.BodyAddForce(Body, grav.X, grav.Y, grav.Z);		
 //if(frcount == 0) Console.WriteLine("Grav {0}", grav);
