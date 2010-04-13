@@ -406,6 +406,11 @@ namespace Flotsam.RegionModules.AssetCache
             return asset;
         }
 
+        public AssetBase GetCached(string id)
+        {
+            return Get(id);
+        }
+
         public void Expire(string id)
         {
             if (m_LogLevel >= 2)

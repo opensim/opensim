@@ -45,6 +45,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private string m_inventoryFileName = String.Empty;
         private int m_inventoryFileNameSerial = 0;
+
+        private Dictionary<UUID, ArrayList> m_scriptErrors = new Dictionary<UUID, ArrayList>();
         
         /// <value>
         /// The part to which the inventory belongs.
@@ -210,7 +212,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public ArrayList GetScriptErrors(UUID itemID)
+        private ArrayList GetScriptErrors(UUID itemID)
         {
             ArrayList ret = new ArrayList();
 
@@ -269,7 +271,10 @@ namespace OpenSim.Region.Framework.Scenes
             //     item.Name, item.ItemID, Name, UUID);
 
             if (!m_part.ParentGroup.Scene.Permissions.CanRunScript(item.ItemID, m_part.UUID, item.OwnerID))
+            {
+                StoreScriptError(item.ItemID, "no permission");
                 return;
+            }
 
             m_part.AddFlag(PrimFlags.Scripted);
 
@@ -284,6 +289,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_items.LockItemsForWrite(false);
                     m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
                         m_part.LocalId, item.ItemID, String.Empty, startParam, postOnRez, engine, stateSource);
+                    StoreScriptErrors(item.ItemID, GetScriptErrors(item.ItemID));
                     m_part.ParentGroup.AddActiveScriptCount(1);
                     m_part.ScheduleFullUpdate();
                     return;
@@ -293,11 +299,13 @@ namespace OpenSim.Region.Framework.Scenes
                                {
                                    if (null == asset)
                                    {
+                                       string msg = String.Format("asset ID {0} could not be found", item.AssetID);
+                                       StoreScriptError(item.ItemID, msg);
                                        m_log.ErrorFormat(
                                            "[PRIM INVENTORY]: " +
-                                           "Couldn't start script {0}, {1} at {2} in {3} since asset ID {4} could not be found",
+                                           "Couldn't start script {0}, {1} at {2} in {3} since {4}",
                                            item.Name, item.ItemID, m_part.AbsolutePosition, 
-                                           m_part.ParentGroup.Scene.RegionInfo.RegionName, item.AssetID);
+                                           m_part.ParentGroup.Scene.RegionInfo.RegionName, msg);
                                    }
                                    else
                                    {
@@ -310,10 +318,15 @@ namespace OpenSim.Region.Framework.Scenes
                                        string script = Utils.BytesToString(asset.Data);
                                        m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
                                             m_part.LocalId, item.ItemID, script, startParam, postOnRez, engine, stateSource);
+                                       StoreScriptErrors(item.ItemID, GetScriptErrors(item.ItemID));
                                        m_part.ParentGroup.AddActiveScriptCount(1);
                                        m_part.ScheduleFullUpdate();
                                    }
                                });
+            }
+            else
+            {
+                StoreScriptError(item.ItemID, "scripts disabled");
             }
         }
 
@@ -391,22 +404,69 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     m_items.LockItemsForRead(false);
+                    string msg = String.Format("couldn't be found for prim {0}, {1} at {2} in {3}", m_part.Name, m_part.UUID,
+                        m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
+                    StoreScriptError(itemId, msg);
                     m_log.ErrorFormat(
                         "[PRIM INVENTORY]: " +
-                        "Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2} at {3} in {4}",
-                        itemId, m_part.Name, m_part.UUID, 
-                        m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
+                        "Couldn't start script with ID {0} since it {1}", itemId, msg);
                 }
             }
             else
             {
                 m_items.LockItemsForRead(false);
+                string msg = String.Format("couldn't be found for prim {0}, {1}", m_part.Name, m_part.UUID);
+                StoreScriptError(itemId, msg);
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: " +
-                    "Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2}",
-                    itemId, m_part.Name, m_part.UUID);
+                    "Couldn't start script with ID {0} since it {1}", itemId, msg);
             }
             
+        }
+
+        public ArrayList CreateScriptInstanceEr(UUID itemId, int startParam, bool postOnRez, string engine, int stateSource)
+        {
+            ArrayList errors;
+
+            lock (m_scriptErrors)
+            {
+                m_scriptErrors.Remove(itemId);
+            }
+            CreateScriptInstance(itemId, startParam, postOnRez, engine, stateSource);
+            lock (m_scriptErrors)
+            {
+                while (!m_scriptErrors.TryGetValue(itemId, out errors))
+                {
+                    if (!System.Threading.Monitor.Wait(m_scriptErrors, 15000))
+                    {
+                        m_log.ErrorFormat(
+                            "[PRIM INVENTORY]: " +
+                            "timedout waiting for script {0} errors", itemId);
+                        if (!m_scriptErrors.TryGetValue(itemId, out errors))
+                        {
+                            errors = new ArrayList(1);
+                            errors.Add("timedout waiting for errors");
+                        }
+                        break;
+                    }
+                }
+                m_scriptErrors.Remove(itemId);
+            }
+            return errors;
+        }
+        private void StoreScriptErrors(UUID itemId, ArrayList errors)
+        {
+            lock (m_scriptErrors)
+            {
+                m_scriptErrors[itemId] = errors;
+                System.Threading.Monitor.PulseAll(m_scriptErrors);
+            }
+        }
+        private void StoreScriptError(UUID itemId, string message)
+        {
+            ArrayList errors = new ArrayList(1);
+            errors.Add(message);
+            StoreScriptErrors(itemId, errors);
         }
 
         /// <summary>

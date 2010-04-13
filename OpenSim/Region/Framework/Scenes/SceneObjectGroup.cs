@@ -104,8 +104,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// since the group's last persistent backup
         /// </summary>
         private bool m_hasGroupChanged = false;
-        private long timeFirstChanged;
-        private long timeLastChanged;
+        private long timeFirstChanged = 0;
+        private long timeLastChanged = 0;
+        private long m_maxPersistTime = 0;
+        private long m_minPersistTime = 0;
+        private Random m_rand;
+
         private System.Threading.ReaderWriterLockSlim m_partsLock = new System.Threading.ReaderWriterLockSlim();
 
         public void lockPartsForRead(bool locked)
@@ -182,6 +186,32 @@ namespace OpenSim.Region.Framework.Scenes
                     timeLastChanged = DateTime.Now.Ticks;
                     if (!m_hasGroupChanged)
                         timeFirstChanged = DateTime.Now.Ticks;
+                    if (m_rootPart != null && m_rootPart.UUID != null && m_scene != null)
+                    {
+                        if (m_rand == null)
+                        {
+                            byte[] val = new byte[16];
+                            m_rootPart.UUID.ToBytes(val, 0);
+                            m_rand = new Random(BitConverter.ToInt32(val, 0));
+                        }
+                       
+                        if (m_scene.GetRootAgentCount() == 0)
+                        {
+                            //If the region is empty, this change has been made by an automated process
+                            //and thus we delay the persist time by a random amount between 1.5 and 2.5.
+
+                            float factor = 1.5f + (float)(m_rand.NextDouble());
+                            m_maxPersistTime = (long)((float)m_scene.m_persistAfter * factor);
+                            m_minPersistTime = (long)((float)m_scene.m_dontPersistBefore * factor);
+                        }
+                        else
+                        {
+                            //If the region is not empty, we want to obey the minimum and maximum persist times
+                            //but add a random factor so we stagger the object persistance a little
+                            m_maxPersistTime = (long)((float)m_scene.m_persistAfter * (1.0d - (m_rand.NextDouble() / 5.0d))); //Multiply by 1.0-1.5
+                            m_minPersistTime = (long)((float)m_scene.m_dontPersistBefore * (1.0d + (m_rand.NextDouble() / 2.0d))); //Multiply by 0.8-1.0
+                        }
+                    }
                 }
                 m_hasGroupChanged = value;
             }
@@ -197,8 +227,19 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             if (m_scene.ShuttingDown)
                 return true;
+
+            if (m_minPersistTime == 0 || m_maxPersistTime == 0)
+            {
+                m_maxPersistTime = m_scene.m_persistAfter;
+                m_minPersistTime = m_scene.m_dontPersistBefore;
+            }
+                
             long currentTime = DateTime.Now.Ticks;
-            if (currentTime - timeLastChanged > m_scene.m_dontPersistBefore || currentTime - timeFirstChanged > m_scene.m_persistAfter)
+
+            if (timeLastChanged == 0) timeLastChanged = currentTime;
+            if (timeFirstChanged == 0) timeFirstChanged = currentTime;
+
+            if (currentTime - timeLastChanged > m_minPersistTime || currentTime - timeFirstChanged > m_maxPersistTime)
                 return true;
             return false;
         }
@@ -530,6 +571,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public SceneObjectGroup()
         {
+            
         }
 
         /// <summary>
@@ -546,7 +588,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Constructor.  This object is added to the scene later via AttachToScene()
         /// </summary>
         public SceneObjectGroup(UUID ownerID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
-        { 
+        {
             SetRootPart(new SceneObjectPart(ownerID, shape, pos, rot, Vector3.Zero));
         }
 

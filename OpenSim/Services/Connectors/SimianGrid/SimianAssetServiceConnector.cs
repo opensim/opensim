@@ -406,5 +406,13 @@ namespace OpenSim.Services.Connectors.SimianGrid
         }
 
         #endregion IAssetService
+
+        public AssetBase GetCached(string id)
+        {
+            if (m_cache != null)
+                return m_cache.Get(id);
+
+            return null;
+        }
     }
 }

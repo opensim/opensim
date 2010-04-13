@@ -5255,7 +5255,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 args.Channel = ch;
                 args.From = String.Empty;
                 args.Message = Utils.BytesToString(msg);
-                args.Type = ChatTypeEnum.Shout;
+                args.Type = ChatTypeEnum.Region; //Behaviour in SL is that the response can be heard from any distance
                 args.Position = new Vector3();
                 args.Scene = Scene;
                 args.Sender = this;
@@ -11277,9 +11277,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 m_groupPowers.Clear();
 
-                for (int i = 0; i < GroupMembership.Length; i++)
+                if (GroupMembership != null)
                 {
-                    m_groupPowers[GroupMembership[i].GroupID] = GroupMembership[i].GroupPowers;
+                    for (int i = 0; i < GroupMembership.Length; i++)
+                    {
+                        m_groupPowers[GroupMembership[i].GroupID] = GroupMembership[i].GroupPowers;
+                    }
                 }
             }
         }
