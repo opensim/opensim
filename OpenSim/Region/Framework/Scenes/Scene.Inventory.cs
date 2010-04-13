@@ -722,6 +722,37 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        private void HandleLinkInventoryItem(IClientAPI remoteClient, UUID transActionID, UUID folderID,
+                                             uint callbackID, string description, string name,
+                                             sbyte invType, sbyte type, UUID olditemID)
+        {
+            m_log.DebugFormat("[AGENT INVENTORY]: Received request to create inventory item link {0} in folder {1} pointing to {2}", name, folderID, olditemID);
+
+            if (!Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
+                return;
+
+            ScenePresence presence;
+            if (TryGetScenePresence(remoteClient.AgentId, out presence))
+            {
+                byte[] data = null;
+
+                AssetBase asset = new AssetBase();
+                asset.FullID = olditemID;
+                asset.Type = type;
+                asset.Name = name;
+                asset.Description = description;
+                
+                CreateNewInventoryItem(remoteClient, remoteClient.AgentId.ToString(), folderID, name, 0, callbackID, asset, invType, (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All, Util.UnixTimeSinceEpoch());
+
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "ScenePresence for agent uuid {0} unexpectedly not found in HandleLinkInventoryItem",
+                    remoteClient.AgentId);
+            }
+        }
+
         /// <summary>
         /// Remove an inventory item for the client's inventory
         /// </summary>

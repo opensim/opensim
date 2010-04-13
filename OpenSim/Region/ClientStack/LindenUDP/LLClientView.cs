@@ -182,6 +182,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event TeleportLocationRequest OnSetStartLocationRequest;
         public event UpdateAvatarProperties OnUpdateAvatarProperties;
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
+        public event LinkInventoryItem OnLinkInventoryItem;
         public event CreateInventoryFolder OnCreateNewInventoryFolder;
         public event UpdateInventoryFolder OnUpdateInventoryFolder;
         public event MoveInventoryFolder OnMoveInventoryFolder;
@@ -4749,6 +4750,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.UpdateInventoryFolder, HandleUpdateInventoryFolder);
             AddLocalPacketHandler(PacketType.MoveInventoryFolder, HandleMoveInventoryFolder);
             AddLocalPacketHandler(PacketType.CreateInventoryItem, HandleCreateInventoryItem);
+            AddLocalPacketHandler(PacketType.LinkInventoryItem, HandleLinkInventoryItem);
             AddLocalPacketHandler(PacketType.FetchInventory, HandleFetchInventory);
             AddLocalPacketHandler(PacketType.FetchInventoryDescendents, HandleFetchInventoryDescendents);
             AddLocalPacketHandler(PacketType.PurgeInventoryDescendents, HandlePurgeInventoryDescendents);
@@ -7345,6 +7347,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                               createItem.InventoryBlock.NextOwnerMask,
                                               Util.UnixTimeSinceEpoch());
             }
+            return true;
+        }
+
+        private bool HandleLinkInventoryItem(IClientAPI sender, Packet Pack)
+        {
+            LinkInventoryItemPacket createLink = (LinkInventoryItemPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (createLink.AgentData.SessionID != SessionId ||
+                    createLink.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            LinkInventoryItem linkInventoryItem = OnLinkInventoryItem;
+
+            if (linkInventoryItem != null)
+            {
+                linkInventoryItem(
+                    this,
+                    createLink.InventoryBlock.TransactionID,
+                    createLink.InventoryBlock.FolderID,
+                    createLink.InventoryBlock.CallbackID,
+                    Util.FieldToString(createLink.InventoryBlock.Description),
+                    Util.FieldToString(createLink.InventoryBlock.Name),
+                    createLink.InventoryBlock.InvType,
+                    createLink.InventoryBlock.Type,
+                    createLink.InventoryBlock.OldItemID);
+            }
+
             return true;
         }
 
