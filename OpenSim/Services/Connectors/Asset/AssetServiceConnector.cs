@@ -111,6 +111,14 @@ namespace OpenSim.Services.Connectors
             return asset;
         }
 
+        public AssetBase GetCached(string id)
+        {
+            if (m_Cache != null)
+                return m_Cache.Get(id);
+
+            return null;
+        }
+
         public AssetMetadata GetMetadata(string id)
         {
             if (m_Cache != null)

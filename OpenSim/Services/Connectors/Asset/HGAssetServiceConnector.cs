@@ -116,6 +116,20 @@ namespace OpenSim.Services.Connectors
             return null;
         }
 
+        public AssetBase GetCached(string id)
+        {
+            string url = string.Empty;
+            string assetID = string.Empty;
+
+            if (StringToUrlAndAssetID(id, out url, out assetID))
+            {
+                IAssetService connector = GetConnector(url);
+                return connector.GetCached(assetID);
+            }
+
+            return null;
+        }
+
         public AssetMetadata GetMetadata(string id)
         {
             string url = string.Empty;

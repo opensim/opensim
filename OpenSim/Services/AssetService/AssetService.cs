@@ -93,6 +93,11 @@ namespace OpenSim.Services.AssetService
             return m_Database.GetAsset(assetID);
         }
 
+        public AssetBase GetCached(string id)
+        {
+            return Get(id);
+        }
+
         public AssetMetadata GetMetadata(string id)
         {
             UUID assetID;
