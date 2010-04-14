@@ -583,6 +583,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "Permissions", permissions }
             };
 
+            // Add different asset type only if it differs from inventory type
+            // (needed for links)
+            string invContentType = SLUtil.SLInvTypeToContentType(item.InvType);
+            string assetContentType = SLUtil.SLAssetTypeToContentType(item.AssetType);
+
+            if (invContentType != assetContentType)
+                extraData["LinkedItemType"] = OSD.FromString(assetContentType);
+
             NameValueCollection requestArgs = new NameValueCollection
             {
                 { "RequestMethod", "AddInventoryItem" },
@@ -593,6 +601,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "Name", item.Name },
                 { "Description", item.Description },
                 { "CreatorID", item.CreatorId },
+                { "ContentType", invContentType },
                 { "ExtraData", OSDParser.SerializeJsonString(extraData) }
             };
 
@@ -781,6 +790,9 @@ namespace OpenSim.Services.Connectors.SimianGrid
                             invItem.GroupPermissions = perms["GroupMask"].AsUInteger();
                             invItem.NextPermissions = perms["NextOwnerMask"].AsUInteger();
                         }
+
+                        if (extraData.ContainsKey("LinkedItemType"))
+                            invItem.AssetType = extraData["LinkedItemType"].AsInteger();
                     }
 
                     if (invItem.BasePermissions == 0)
