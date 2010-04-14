@@ -7069,6 +7069,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
+        /// <summary>
+        /// This is the entry point for the UDP route by which the client can retrieve asset data.  If the request
+        /// is successful then a TransferInfo packet will be sent back, followed by one or more TransferPackets
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="Pack"></param>
+        /// <returns>This parameter may be ignored since we appear to return true whatever happens</returns>
         private bool HandleTransferRequest(IClientAPI sender, Packet Pack)
         {
             //m_log.Debug("ClientView.ProcessPackets.cs:ProcessInPacket() - Got transfer request");
@@ -7079,7 +7086,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Has to be done here, because AssetCache can't do it
             //
             UUID taskID = UUID.Zero;
-            if (transfer.TransferInfo.SourceType == 3)
+            if (transfer.TransferInfo.SourceType == (int)SourceType.SimInventoryItem)
             {
                 taskID = new UUID(transfer.TransferInfo.Params, 48);
                 UUID itemID = new UUID(transfer.TransferInfo.Params, 64);
@@ -11356,17 +11363,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return String.Empty;
         }
 
-        public void MakeAssetRequest(TransferRequestPacket transferRequest, UUID taskID)
+        /// <summary>
+        /// Make an asset request to the asset service in response to a client request.
+        /// </summary>
+        /// <param name="transferRequest"></param>
+        /// <param name="taskID"></param>
+        protected void MakeAssetRequest(TransferRequestPacket transferRequest, UUID taskID)
         {
             UUID requestID = UUID.Zero;
-            if (transferRequest.TransferInfo.SourceType == 2)
+            if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset)
             {
-                //direct asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 0);
             }
-            else if (transferRequest.TransferInfo.SourceType == 3)
+            else if (transferRequest.TransferInfo.SourceType == (int)SourceType.SimInventoryItem)
             {
-                //inventory asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
                 //m_log.Debug("[XXX] inventory asset request " + requestID);
                 //if (taskID == UUID.Zero) // Agent
@@ -11379,29 +11389,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //    }
             }
 
-            //check to see if asset is in local cache, if not we need to request it from asset server.
-            //m_log.Debug("asset request " + requestID);
+            //m_log.DebugFormat("[LLCLIENTVIEW]: {0} requesting asset {1}", Name, requestID);
 
             m_assetService.Get(requestID.ToString(), transferRequest, AssetReceived);
-
         }
 
+        /// <summary>
+        /// When we get a reply back from the asset service in response to a client request, send back the data.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="sender"></param>
+        /// <param name="asset"></param>
         protected void AssetReceived(string id, Object sender, AssetBase asset)
         {
             TransferRequestPacket transferRequest = (TransferRequestPacket)sender;
 
             UUID requestID = UUID.Zero;
-            byte source = 2;
-            if ((transferRequest.TransferInfo.SourceType == 2) || (transferRequest.TransferInfo.SourceType == 2222))
+            byte source = (byte)SourceType.Asset;
+            
+            if ((transferRequest.TransferInfo.SourceType == (int)SourceType.Asset) 
+                || (transferRequest.TransferInfo.SourceType == 2222))
             {
-                //direct asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 0);
             }
-            else if ((transferRequest.TransferInfo.SourceType == 3) || (transferRequest.TransferInfo.SourceType == 3333))
+            else if ((transferRequest.TransferInfo.SourceType == (int)SourceType.SimInventoryItem) 
+                 || (transferRequest.TransferInfo.SourceType == 3333))
             {
-                //inventory asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
-                source = 3;
+                source = (byte)SourceType.SimInventoryItem;
                 //m_log.Debug("asset request " + requestID);
             }
 
@@ -11414,9 +11429,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if ((userAssets != string.Empty) && (userAssets != m_hyperAssets.GetSimAssetServer()))
                     {
                         m_log.DebugFormat("[CLIENT]: asset {0} not found in local asset storage. Trying user's storage.", id);
-                        if (transferRequest.TransferInfo.SourceType == 2)
+                        if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset)
                             transferRequest.TransferInfo.SourceType = 2222; // marker
-                        else if (transferRequest.TransferInfo.SourceType == 3)
+                        else if (transferRequest.TransferInfo.SourceType == (int)SourceType.SimInventoryItem)
                             transferRequest.TransferInfo.SourceType = 3333; // marker
 
                         m_assetService.Get(userAssets + "/" + id, transferRequest, AssetReceived);
@@ -11431,7 +11446,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Scripts cannot be retrieved by direct request
-            if (transferRequest.TransferInfo.SourceType == 2 && asset.Type == 10)
+            if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset && asset.Type == 10)
                 return;
 
             // The asset is known to exist and is in our cache, so add it to the AssetRequests list
