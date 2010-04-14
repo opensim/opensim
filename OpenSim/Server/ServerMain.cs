@@ -47,7 +47,7 @@ namespace OpenSim.Server
         protected static List<IServiceConnector> m_ServiceConnectors =
                 new List<IServiceConnector>();
 
-        static int Main(string[] args)
+        public static int Main(string[] args)
         {
             m_Server = new HttpServerBase("R.O.B.U.S.T.", args);
 
