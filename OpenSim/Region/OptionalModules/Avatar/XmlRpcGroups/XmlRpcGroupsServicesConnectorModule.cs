@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 
 using Nwc.XmlRpc;
 
@@ -69,6 +70,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         private string m_groupWriteKey = string.Empty;
 
         private IUserAccountService m_accountService = null;
+
+        private ExpiringCache<string, XmlRpcResponse> m_memoryCache;
+        private int m_cacheTimeout = 30;
 
         // Used to track which agents are have dropped from a group chat session
         // Should be reset per agent, on logon
@@ -111,7 +115,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     return;
                 }
 
-                m_log.InfoFormat("[GROUPS-CONNECTOR]: Initializing {0}", this.Name);
+                m_log.InfoFormat("[XMLRPC-GROUPS-CONNECTOR]: Initializing {0}", this.Name);
 
                 m_groupsServerURI = groupsConfig.GetString("GroupsServerURI", string.Empty);
                 if ((m_groupsServerURI == null) ||
@@ -127,7 +131,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 m_groupReadKey = groupsConfig.GetString("XmlRpcServiceReadKey", string.Empty);
                 m_groupWriteKey = groupsConfig.GetString("XmlRpcServiceWriteKey", string.Empty);
 
-                
+
+                m_cacheTimeout = groupsConfig.GetInt("GroupsCacheTimeout", 30);
+                if (m_cacheTimeout == 0)
+                {
+                    m_log.WarnFormat("[XMLRPC-GROUPS-CONNECTOR]: Groups Cache Disabled.");
+                }
+                else
+                {
+                    m_log.InfoFormat("[XMLRPC-GROUPS-CONNECTOR]: Groups Cache Timeout set to {0}.", m_cacheTimeout);
+                }
 
 
                 // If we got all the config options we need, lets start'er'up
@@ -137,7 +150,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public void Close()
         {
-            m_log.InfoFormat("[GROUPS-CONNECTOR]: Closing {0}", this.Name);
+            m_log.InfoFormat("[XMLRPC-GROUPS-CONNECTOR]: Closing {0}", this.Name);
         }
 
         public void AddRegion(OpenSim.Region.Framework.Scenes.Scene scene)
@@ -919,50 +932,84 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         /// </summary>
         private Hashtable XmlRpcCall(UUID requestingAgentID, string function, Hashtable param)
         {
-            string UserService;
-            UUID SessionID;
-            GetClientGroupRequestID(requestingAgentID, out UserService, out SessionID);
-            param.Add("requestingAgentID", requestingAgentID.ToString());
-            param.Add("RequestingAgentUserService", UserService);
-            param.Add("RequestingSessionID", SessionID.ToString());
-            
-
-            param.Add("ReadKey", m_groupReadKey);
-            param.Add("WriteKey", m_groupWriteKey);
-
-
-            IList parameters = new ArrayList();
-            parameters.Add(param);
-
-            ConfigurableKeepAliveXmlRpcRequest req;
-            req = new ConfigurableKeepAliveXmlRpcRequest(function, parameters, m_disableKeepAlive);
-
             XmlRpcResponse resp = null;
+            string CacheKey = null;
 
-            try
+            // Only bother with the cache if it isn't disabled.
+            if (m_cacheTimeout > 0)
             {
-                resp = req.Send(m_groupsServerURI, 10000);
+                if (!function.StartsWith("groups.get"))
+                {
+                    // Any and all updates cause the cache to clear
+                    m_memoryCache.Clear();
+                }
+                else
+                {
+                    StringBuilder sb = new StringBuilder(requestingAgentID + function);
+                    foreach (object key in param.Keys)
+                    {
+                        if (param[key] != null)
+                        {
+                            sb.AppendFormat(",{0}:{1}", key.ToString(), param[key].ToString());
+                        }
+                    }
+
+                    CacheKey = sb.ToString();
+                    m_memoryCache.TryGetValue(CacheKey, out resp);
+                }
+
             }
-            catch (Exception e)
+            
+            if( resp == null )
             {
-                
+                string UserService;
+                UUID SessionID;
+                GetClientGroupRequestID(requestingAgentID, out UserService, out SessionID);
+                param.Add("requestingAgentID", requestingAgentID.ToString());
+                param.Add("RequestingAgentUserService", UserService);
+                param.Add("RequestingSessionID", SessionID.ToString());
 
-                m_log.ErrorFormat("[XMLRPCGROUPDATA]: An error has occured while attempting to access the XmlRpcGroups server method: {0}", function);
-                m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0} ", e.ToString());
 
-                foreach (string ResponseLine in req.RequestResponse.Split(new string[] { Environment.NewLine },StringSplitOptions.None))
+                param.Add("ReadKey", m_groupReadKey);
+                param.Add("WriteKey", m_groupWriteKey);
+
+
+                IList parameters = new ArrayList();
+                parameters.Add(param);
+
+                ConfigurableKeepAliveXmlRpcRequest req;
+                req = new ConfigurableKeepAliveXmlRpcRequest(function, parameters, m_disableKeepAlive);
+
+
+                try
                 {
-                    m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0} ", ResponseLine);
-                }
+                    resp = req.Send(m_groupsServerURI, 10000);
 
-                foreach (string key in param.Keys)
+                    if ((m_cacheTimeout > 0) && (CacheKey != null))
+                    {
+                        m_memoryCache.AddOrUpdate(CacheKey, resp, TimeSpan.FromSeconds(m_cacheTimeout));
+                    }
+
+                }
+                catch (Exception e)
                 {
-                    m_log.WarnFormat("[XMLRPCGROUPDATA]: {0} :: {1}", key, param[key].ToString());
-                }
+                    m_log.ErrorFormat("[XMLRPC-GROUPS-CONNECTOR]: An error has occured while attempting to access the XmlRpcGroups server method: {0}", function);
+                    m_log.ErrorFormat("[XMLRPC-GROUPS-CONNECTOR]: {0} ", e.ToString());
 
-                Hashtable respData = new Hashtable();
-                respData.Add("error", e.ToString());
-                return respData;
+                    foreach (string ResponseLine in req.RequestResponse.Split(new string[] { Environment.NewLine }, StringSplitOptions.None))
+                    {
+                        m_log.ErrorFormat("[XMLRPC-GROUPS-CONNECTOR]: {0} ", ResponseLine);
+                    }
+
+                    foreach (string key in param.Keys)
+                    {
+                        m_log.WarnFormat("[XMLRPC-GROUPS-CONNECTOR]: {0} :: {1}", key, param[key].ToString());
+                    }
+
+                    Hashtable respData = new Hashtable();
+                    respData.Add("error", e.ToString());
+                    return respData;
+                }
             }
 
             if (resp.Value is Hashtable)
@@ -976,21 +1023,21 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 return respData;
             }
 
-            m_log.ErrorFormat("[XMLRPCGROUPDATA]: The XmlRpc server returned a {1} instead of a hashtable for {0}", function, resp.Value.GetType().ToString());
+            m_log.ErrorFormat("[XMLRPC-GROUPS-CONNECTOR]: The XmlRpc server returned a {1} instead of a hashtable for {0}", function, resp.Value.GetType().ToString());
 
             if (resp.Value is ArrayList)
             {
                 ArrayList al = (ArrayList)resp.Value;
-                m_log.ErrorFormat("[XMLRPCGROUPDATA]: Contains {0} elements", al.Count);
+                m_log.ErrorFormat("[XMLRPC-GROUPS-CONNECTOR]: Contains {0} elements", al.Count);
 
                 foreach (object o in al)
                 {
-                    m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0} :: {1}", o.GetType().ToString(), o.ToString());
+                    m_log.ErrorFormat("[XMLRPC-GROUPS-CONNECTOR]: {0} :: {1}", o.GetType().ToString(), o.ToString());
                 }
             }
             else
             {
-                m_log.ErrorFormat("[XMLRPCGROUPDATA]: Function returned: {0}", resp.Value.ToString());
+                m_log.ErrorFormat("[XMLRPC-GROUPS-CONNECTOR]: Function returned: {0}", resp.Value.ToString());
             }
 
             Hashtable error = new Hashtable();
@@ -1000,16 +1047,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private void LogRespDataToConsoleError(Hashtable respData)
         {
-            m_log.Error("[XMLRPCGROUPDATA]: Error:");
+            m_log.Error("[XMLRPC-GROUPS-CONNECTOR]: Error:");
 
             foreach (string key in respData.Keys)
             {
-                m_log.ErrorFormat("[XMLRPCGROUPDATA]: Key: {0}", key);
+                m_log.ErrorFormat("[XMLRPC-GROUPS-CONNECTOR]: Key: {0}", key);
 
                 string[] lines = respData[key].ToString().Split(new char[] { '\n' });
                 foreach (string line in lines)
                 {
-                    m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0}", line);
+                    m_log.ErrorFormat("[XMLRPC-GROUPS-CONNECTOR]: {0}", line);
                 }
 
             }

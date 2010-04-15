@@ -167,6 +167,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private bool m_debugEnabled = false;
 
+        private ExpiringCache<string, OSDMap> m_memoryCache;
+        private int m_cacheTimeout = 30;
+
         // private IUserAccountService m_accountService = null;
         
 
@@ -203,7 +206,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     return;
                 }
 
-                m_log.InfoFormat("[GROUPS-CONNECTOR]: Initializing {0}", this.Name);
+                m_log.InfoFormat("[SIMIAN-GROUPS-CONNECTOR]: Initializing {0}", this.Name);
 
                 m_groupsServerURI = groupsConfig.GetString("GroupsServerURI", string.Empty);
                 if ((m_groupsServerURI == null) ||
@@ -213,6 +216,22 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     m_connectorEnabled = false;
                     return;
                 }
+
+
+                m_cacheTimeout = groupsConfig.GetInt("GroupsCacheTimeout", 30);
+                if (m_cacheTimeout == 0)
+                {
+                    m_log.WarnFormat("[SIMIAN-GROUPS-CONNECTOR] Groups Cache Disabled.");
+                }
+                else
+                {
+                    m_log.InfoFormat("[SIMIAN-GROUPS-CONNECTOR] Groups Cache Timeout set to {0}.", m_cacheTimeout);
+                }
+
+                
+
+                m_memoryCache = new ExpiringCache<string,OSDMap>();
+                
 
                 // If we got all the config options we need, lets start'er'up
                 m_connectorEnabled = true;
@@ -224,7 +243,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public void Close()
         {
-            m_log.InfoFormat("[GROUPS-CONNECTOR]: Closing {0}", this.Name);
+            m_log.InfoFormat("[SIMIAN-GROUPS-CONNECTOR]: Closing {0}", this.Name);
         }
 
         public void AddRegion(OpenSim.Region.Framework.Scenes.Scene scene)
@@ -657,7 +676,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             };
 
 
-            OSDMap response = WebUtil.PostToService(m_groupsServerURI, requestArgs);
+            OSDMap response = CachedPostRequest(requestArgs);
             if (response["Success"].AsBoolean() && response["Entries"] is OSDArray)
             {
                 OSDArray entryArray = (OSDArray)response["Entries"];
@@ -1086,7 +1105,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             };
 
 
-            OSDMap Response = WebUtil.PostToService(m_groupsServerURI, RequestArgs);
+            OSDMap Response = CachedPostRequest(RequestArgs);
             if (Response["Success"].AsBoolean())
             {
                 return true;
@@ -1113,7 +1132,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             };
 
 
-            OSDMap Response = WebUtil.PostToService(m_groupsServerURI, RequestArgs);
+            OSDMap Response = CachedPostRequest(RequestArgs);
             if (Response["Success"].AsBoolean() && Response["Entries"] is OSDArray)
             {
                 OSDArray entryArray = (OSDArray)Response["Entries"];
@@ -1153,7 +1172,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             };
 
 
-            OSDMap Response = WebUtil.PostToService(m_groupsServerURI, RequestArgs);
+            OSDMap Response = CachedPostRequest(RequestArgs);
             if (Response["Success"].AsBoolean() && Response["Entries"] is OSDArray)
             {
                 OSDArray entryArray = (OSDArray)Response["Entries"];
@@ -1194,7 +1213,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             };
 
 
-            OSDMap Response = WebUtil.PostToService(m_groupsServerURI, RequestArgs);
+            OSDMap Response = CachedPostRequest(RequestArgs);
             if (Response["Success"].AsBoolean() && Response["Entries"] is OSDArray)
             {
                 OSDArray entryArray = (OSDArray)Response["Entries"];
@@ -1234,7 +1253,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             
 
 
-            OSDMap response = WebUtil.PostToService(m_groupsServerURI, requestArgs);
+            OSDMap response = CachedPostRequest(requestArgs);
             if (response["Success"].AsBoolean() && response["Entries"] is OSDArray)
             {
                 maps = new Dictionary<string, OSDMap>();
@@ -1272,7 +1291,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
 
 
-            OSDMap response = WebUtil.PostToService(m_groupsServerURI, requestArgs);
+            OSDMap response = CachedPostRequest(requestArgs);
             if (response["Success"].AsBoolean() && response["Entries"] is OSDArray)
             {
                 maps = new Dictionary<UUID, OSDMap>();
@@ -1310,7 +1329,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             };
 
 
-            OSDMap response = WebUtil.PostToService(m_groupsServerURI, requestArgs);
+            OSDMap response = CachedPostRequest(requestArgs);
             if (response["Success"].AsBoolean())
             {
                 return true;
@@ -1320,6 +1339,48 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 m_log.WarnFormat("[SIMIAN GROUPS CONNECTOR]: Error {0}, {1}, {2}, {3}", ownerID, type, key, response["Message"]);
                 return false;
             }
+        }
+        #endregion
+
+        #region CheesyCache
+        OSDMap CachedPostRequest(NameValueCollection requestArgs)
+        {
+            // Immediately forward the request if the cache is disabled.
+            if (m_cacheTimeout == 0)
+            {
+                return WebUtil.PostToService(m_groupsServerURI, requestArgs);
+            }
+
+            // Check if this is an update or a request
+            if ( requestArgs["RequestMethod"] == "RemoveGeneric"
+                || requestArgs["RequestMethod"] == "AddGeneric"
+                )
+
+            {
+                // Any and all updates cause the cache to clear
+                m_memoryCache.Clear();
+
+                // Send update to server, return the response without caching it
+                return WebUtil.PostToService(m_groupsServerURI, requestArgs);
+
+            }
+
+            // If we're not doing an update, we must be requesting data
+
+            // Create the cache key for the request and see if we have it cached
+            string CacheKey = WebUtil.BuildQueryString(requestArgs);
+            OSDMap response = null;
+            if (!m_memoryCache.TryGetValue(CacheKey, out response))
+            {
+                // if it wasn't in the cache, pass the request to the Simian Grid Services 
+                response = WebUtil.PostToService(m_groupsServerURI, requestArgs);
+
+                // and cache the response
+                m_memoryCache.AddOrUpdate(CacheKey, response, TimeSpan.FromSeconds(m_cacheTimeout));
+            }
+
+            // return cached response
+            return response;
         }
         #endregion
 
