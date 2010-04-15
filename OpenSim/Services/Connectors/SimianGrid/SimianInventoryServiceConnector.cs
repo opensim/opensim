@@ -792,7 +792,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                         }
 
                         if (extraData.ContainsKey("LinkedItemType"))
-                            invItem.AssetType = extraData["LinkedItemType"].AsInteger();
+                            invItem.AssetType = SLUtil.ContentTypeToSLAssetType(extraData["LinkedItemType"].AsString());
                     }
 
                     if (invItem.BasePermissions == 0)
