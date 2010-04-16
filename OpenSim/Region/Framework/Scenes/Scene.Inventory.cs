@@ -471,7 +471,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             }
 
-
             if (recipientParentFolderId == UUID.Zero)
             {
                 InventoryFolderBase recipientRootFolder = InventoryService.GetRootFolder(recipientId);
