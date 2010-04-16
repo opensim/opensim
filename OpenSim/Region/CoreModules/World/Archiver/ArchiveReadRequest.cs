@@ -53,25 +53,30 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
-        private static UTF8Encoding m_utf8Encoding = new UTF8Encoding();
+        protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
+        protected static UTF8Encoding m_utf8Encoding = new UTF8Encoding();
 
-        private Scene m_scene;
-        private Stream m_loadStream;
-        private Guid m_requestId;
-        private string m_errorMessage;
+        protected Scene m_scene;
+        protected Stream m_loadStream;
+        protected Guid m_requestId;
+        protected string m_errorMessage;
 
         /// <value>
         /// Should the archive being loaded be merged with what is already on the region?
         /// </value>
-        private bool m_merge;
+        protected bool m_merge;
+
+        /// <value>
+        /// Should we ignore any assets when reloading the archive?
+        /// </value>
+        protected bool m_skipAssets;
 
         /// <summary>
         /// Used to cache lookups for valid uuids.
         /// </summary>
         private IDictionary<UUID, bool> m_validUserUuids = new Dictionary<UUID, bool>();
 
-        public ArchiveReadRequest(Scene scene, string loadPath, bool merge, Guid requestId)
+        public ArchiveReadRequest(Scene scene, string loadPath, bool merge, bool skipAssets, Guid requestId)
         {
             m_scene = scene;
 
@@ -89,14 +94,16 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         
             m_errorMessage = String.Empty;
             m_merge = merge;
+            m_skipAssets = skipAssets;
             m_requestId = requestId;
         }
 
-        public ArchiveReadRequest(Scene scene, Stream loadStream, bool merge, Guid requestId)
+        public ArchiveReadRequest(Scene scene, Stream loadStream, bool merge, bool skipAssets, Guid requestId)
         {
             m_scene = scene;
             m_loadStream = loadStream;
             m_merge = merge;
+            m_skipAssets = skipAssets;
             m_requestId = requestId;
         }
 
@@ -135,7 +142,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     {
                         serialisedSceneObjects.Add(m_utf8Encoding.GetString(data));
                     }
-                    else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
+                    else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH) && !m_skipAssets)
                     {
                         if (LoadAsset(filePath, data))
                             successfulAssetRestores++;
@@ -178,12 +185,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 archive.Close();
             }
 
-            m_log.InfoFormat("[ARCHIVER]: Restored {0} assets", successfulAssetRestores);
-
-            if (failedAssetRestores > 0)
+            if (!m_skipAssets)
             {
-                m_log.ErrorFormat("[ARCHIVER]: Failed to load {0} assets", failedAssetRestores);
-                m_errorMessage += String.Format("Failed to load {0} assets", failedAssetRestores);
+                m_log.InfoFormat("[ARCHIVER]: Restored {0} assets", successfulAssetRestores);
+
+                if (failedAssetRestores > 0)
+                {
+                    m_log.ErrorFormat("[ARCHIVER]: Failed to load {0} assets", failedAssetRestores);
+                    m_errorMessage += String.Format("Failed to load {0} assets", failedAssetRestores);
+                }
             }
 
             if (!m_merge)
