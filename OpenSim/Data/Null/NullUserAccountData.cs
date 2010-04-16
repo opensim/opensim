@@ -135,5 +135,26 @@ namespace OpenSim.Data.Null
             return result;
         }
 
+        public bool Delete(string field, string val)
+        {
+            // Only delete by PrincipalID
+            if (field.Equals("PrincipalID"))
+            {
+                UUID uuid = UUID.Zero;
+                if (UUID.TryParse(val, out uuid) && m_DataByUUID.ContainsKey(uuid))
+                {
+                    UserAccountData account = m_DataByUUID[uuid];
+                    m_DataByUUID.Remove(uuid);
+                    if (m_DataByName.ContainsKey(account.FirstName + " " + account.LastName))
+                        m_DataByName.Remove(account.FirstName + " " + account.LastName);
+                    if (account.Data.ContainsKey("Email") && account.Data["Email"] != string.Empty && m_DataByEmail.ContainsKey(account.Data["Email"]))
+                        m_DataByEmail.Remove(account.Data["Email"]);
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
