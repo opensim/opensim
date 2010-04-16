@@ -343,10 +343,28 @@ namespace OpenSim
             else m_log.Error("[MODULES]: The new RegionModulesController is missing...");
 
             scene.SetModuleInterfaces();
+// First Step of bootreport sequence
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.ColdStart(1,scene);
+            }
+
+// it should be a LinkDown event
+// Maped inside opennms
+// bad...
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.Warning("Loading prins", scene);
+            }
 
             // Prims have to be loaded after module configuration since some modules may be invoked during the load
             scene.LoadPrimsFromStorage(regionInfo.originRegionID);
             
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.Warning("Creating region texture", scene);
+            }
+
             // moved these here as the terrain texture has to be created after the modules are initialized
             // and has to happen before the region is registered with the grid.
             scene.CreateTerrainTexture(false);
@@ -354,6 +372,10 @@ namespace OpenSim
             // TODO : Try setting resource for region xstats here on scene
             MainServer.Instance.AddStreamHandler(new Region.Framework.Scenes.RegionStatsHandler(regionInfo)); 
             
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.Warning("Grid Registration in progress", scene);
+            }
             try
             {
                 scene.RegisterRegionWithGrid();
@@ -362,9 +384,18 @@ namespace OpenSim
             {
                 m_log.ErrorFormat("[STARTUP]: Registration of region with grid failed, aborting startup - {0}", e.StackTrace);
 
+                if (scene.SnmpService != null)
+                {
+                    scene.SnmpService.Critical("Grid registration failed. Startup aborted.", scene);
+                }
                 // Carrying on now causes a lot of confusion down the
                 // line - we need to get the user's attention
                 Environment.Exit(1);
+            }
+
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.Warning("Grid Registration done", scene);
             }
 
             // We need to do this after we've initialized the
@@ -374,6 +405,11 @@ namespace OpenSim
             scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
             scene.EventManager.TriggerParcelPrimCountUpdate();
 
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.Warning("ScriptEngine started", scene);
+            }
+
             m_sceneManager.Add(scene);
 
             if (m_autoCreateClientStack)
@@ -382,6 +418,10 @@ namespace OpenSim
                 clientServer.Start();
             }
 
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.Warning("Initializing region modules", scene);
+            }
             if (do_post_init)
             {
                 foreach (IRegionModule module in modules)
@@ -392,6 +432,11 @@ namespace OpenSim
             scene.EventManager.OnShutdown += delegate() { ShutdownRegion(scene); };
 
             mscene = scene;
+
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.Warning("The region is operational", scene);
+            }
 
             scene.StartTimer();
 
