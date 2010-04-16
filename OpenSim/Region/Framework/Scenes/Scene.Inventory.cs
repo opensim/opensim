@@ -1868,11 +1868,6 @@ namespace OpenSim.Region.Framework.Scenes
                 EventManager.TriggerStopScript(part.LocalId, itemID);
         }
 
-        internal void SendAttachEvent(uint localID, UUID itemID, UUID avatarID)
-        {
-            EventManager.TriggerOnAttach(localID, itemID, avatarID);
-        }
-
         public void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
         {
             EventManager.TriggerGetScriptRunning(controllingClient, objectID, itemID);
