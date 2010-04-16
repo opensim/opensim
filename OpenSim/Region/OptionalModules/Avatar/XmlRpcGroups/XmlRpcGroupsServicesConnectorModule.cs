@@ -142,8 +142,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     m_log.InfoFormat("[XMLRPC-GROUPS-CONNECTOR]: Groups Cache Timeout set to {0}.", m_cacheTimeout);
                 }
 
-
                 // If we got all the config options we need, lets start'er'up
+                m_memoryCache = new ExpiringCache<string, XmlRpcResponse>();
                 m_connectorEnabled = true;
             }
         }
