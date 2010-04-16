@@ -92,6 +92,13 @@ namespace OpenSim.Region.Framework.Interfaces
             IClientAPI remoteClient,
             RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
             RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects);
+
+        /// <summary>
+        /// Detach the given item to the ground.
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <param name="remoteClient"></param>
+        void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient);
             
         /// <summary>
         /// Update the user inventory to the attachment of an item

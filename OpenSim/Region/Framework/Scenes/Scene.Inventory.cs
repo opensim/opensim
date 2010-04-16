@@ -1873,36 +1873,6 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.TriggerOnAttach(localID, itemID, avatarID);
         }
 
-        public void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient)
-        {
-            SceneObjectPart part = GetSceneObjectPart(itemID);
-            if (part == null || part.ParentGroup == null)
-                return;
-
-            UUID inventoryID = part.ParentGroup.GetFromItemID();
-
-            ScenePresence presence;
-            if (TryGetScenePresence(remoteClient.AgentId, out presence))
-            {
-                if (!Permissions.CanRezObject(part.ParentGroup.Children.Count, remoteClient.AgentId, presence.AbsolutePosition))
-                    return;
-
-                presence.Appearance.DetachAttachment(itemID);
-                IAvatarFactory ava = RequestModuleInterface<IAvatarFactory>();
-                if (ava != null)
-                {
-                    ava.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
-                }
-                part.ParentGroup.DetachToGround();
-
-                List<UUID> uuids = new List<UUID>();
-                uuids.Add(inventoryID);
-                InventoryService.DeleteItems(remoteClient.AgentId, uuids);
-                remoteClient.SendRemoveInventoryItem(inventoryID);
-            }
-            SendAttachEvent(part.ParentGroup.LocalId, itemID, UUID.Zero);
-        }
-
         public void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
         {
             EventManager.TriggerGetScriptRunning(controllingClient, objectID, itemID);

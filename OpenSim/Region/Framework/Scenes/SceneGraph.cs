@@ -443,9 +443,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectGroup group = GetGroupByPrim(objectLocalID);
             if (group != null)
-            {
-                m_parentScene.DetachSingleAttachmentToGround(group.UUID, remoteClient);
-            }
+                m_parentScene.AttachmentsModule.DetachSingleAttachmentToGround(group.UUID, remoteClient);
         }
 
         protected internal void DetachObject(uint objectLocalID, IClientAPI remoteClient)

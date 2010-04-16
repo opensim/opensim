@@ -341,6 +341,38 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             DetachSingleAttachmentToInv(itemID, remoteClient);
         }
 
+        public void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient)
+        {
+            SceneObjectPart part = m_scene.GetSceneObjectPart(itemID);
+            if (part == null || part.ParentGroup == null)
+                return;
+
+            UUID inventoryID = part.ParentGroup.GetFromItemID();
+
+            ScenePresence presence;
+            if (m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
+            {
+                if (!m_scene.Permissions.CanRezObject(
+                        part.ParentGroup.Children.Count, remoteClient.AgentId, presence.AbsolutePosition))
+                    return;
+
+                presence.Appearance.DetachAttachment(itemID);
+
+                if (m_scene.AvatarFactory != null)
+                {
+                    m_scene.AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+                }
+                part.ParentGroup.DetachToGround();
+
+                List<UUID> uuids = new List<UUID>();
+                uuids.Add(inventoryID);
+                m_scene.InventoryService.DeleteItems(remoteClient.AgentId, uuids);
+                remoteClient.SendRemoveInventoryItem(inventoryID);
+            }
+
+            m_scene.EventManager.TriggerOnAttach(part.ParentGroup.LocalId, itemID, UUID.Zero);
+        }
+        
         // What makes this method odd and unique is it tries to detach using an UUID....     Yay for standards.
         // To LocalId or UUID, *THAT* is the question. How now Brown UUID??
         protected void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient)
