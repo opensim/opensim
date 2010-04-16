@@ -94,6 +94,16 @@ namespace OpenSim.Region.Framework.Interfaces
             RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects);
 
         /// <summary>
+        /// Detach an object from the avatar.
+        /// </summary>
+        ///
+        /// This method is called in response to a client's detach request, so we only update the information in
+        /// inventory
+        /// <param name="objectLocalID"></param>
+        /// <param name="remoteClient"></param>
+        void DetachObject(uint objectLocalID, IClientAPI remoteClient);
+            
+        /// <summary>
         /// Detach the given item to the ground.
         /// </summary>
         /// <param name="itemID"></param>

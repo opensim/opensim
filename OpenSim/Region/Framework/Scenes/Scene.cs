@@ -2769,14 +2769,13 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public virtual void SubscribeToClientAttachmentEvents(IClientAPI client)
-        {                        
-            client.OnObjectDetach += m_sceneGraph.DetachObject;
-
+        {                                    
             if (AttachmentsModule != null)
             {
                 client.OnRezSingleAttachmentFromInv += AttachmentsModule.RezSingleAttachmentFromInventory;
                 client.OnRezMultipleAttachmentsFromInv += AttachmentsModule.RezMultipleAttachmentsFromInventory;
                 client.OnObjectAttach += AttachmentsModule.AttachObject;
+                client.OnObjectDetach += AttachmentsModule.DetachObject;
                 client.OnDetachAttachmentIntoInv += AttachmentsModule.ShowDetachInUserInventory;
             }
         }
@@ -2925,14 +2924,13 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public virtual void UnSubscribeToClientAttachmentEvents(IClientAPI client)
-        {
-            client.OnObjectDetach -= m_sceneGraph.DetachObject;
-
+        {            
             if (AttachmentsModule != null)
             {
                 client.OnRezSingleAttachmentFromInv -= AttachmentsModule.RezSingleAttachmentFromInventory;
                 client.OnRezMultipleAttachmentsFromInv -= AttachmentsModule.RezMultipleAttachmentsFromInventory;
                 client.OnObjectAttach -= AttachmentsModule.AttachObject;
+                client.OnObjectDetach -= AttachmentsModule.DetachObject;
                 client.OnDetachAttachmentIntoInv -= AttachmentsModule.ShowDetachInUserInventory;
             }
         }

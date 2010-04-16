@@ -323,6 +323,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
         }
 
+        public void DetachObject(uint objectLocalID, IClientAPI remoteClient)
+        {
+            SceneObjectGroup group = m_scene.GetGroupByPrim(objectLocalID);
+            if (group != null)
+            {
+                //group.DetachToGround();
+                ShowDetachInUserInventory(group.GetFromItemID(), remoteClient);
+            }
+        }
+        
         public void ShowDetachInUserInventory(UUID itemID, IClientAPI remoteClient)
         {
             ScenePresence presence;
