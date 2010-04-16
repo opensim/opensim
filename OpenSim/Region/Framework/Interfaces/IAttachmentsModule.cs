@@ -27,6 +27,7 @@
 
 using System;
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 
@@ -81,6 +82,17 @@ namespace OpenSim.Region.Framework.Interfaces
         UUID RezSingleAttachmentFromInventory(
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus);
 
+        /// <summary>
+        /// Rez multiple attachments from a user's inventory
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="header"></param>
+        /// <param name="objects"></param>
+        void RezMultipleAttachmentsFromInventory(
+            IClientAPI remoteClient,
+            RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
+            RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects);
+            
         /// <summary>
         /// Update the user inventory to the attachment of an item
         /// </summary>

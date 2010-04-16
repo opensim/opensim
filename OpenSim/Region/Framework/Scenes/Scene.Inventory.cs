@@ -35,7 +35,6 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
-
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Serialization;
@@ -1873,15 +1872,6 @@ namespace OpenSim.Region.Framework.Scenes
         internal void SendAttachEvent(uint localID, UUID itemID, UUID avatarID)
         {
             EventManager.TriggerOnAttach(localID, itemID, avatarID);
-        }
-
-        public void RezMultipleAttachments(IClientAPI remoteClient, RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
-                                       RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects)
-        {
-            foreach (RezMultipleAttachmentsFromInvPacket.ObjectDataBlock obj in objects)
-            {
-                AttachmentsModule.RezSingleAttachmentFromInventory(remoteClient, obj.ItemID, obj.AttachmentPt);
-            }
         }
 
         public void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient)

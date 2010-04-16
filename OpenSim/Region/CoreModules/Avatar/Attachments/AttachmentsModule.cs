@@ -30,6 +30,7 @@ using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -169,6 +170,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             return true;
         }
 
+        public void RezMultipleAttachmentsFromInventory(
+            IClientAPI remoteClient, 
+            RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
+            RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects)
+        {
+            foreach (RezMultipleAttachmentsFromInvPacket.ObjectDataBlock obj in objects)
+            {
+                RezSingleAttachmentFromInventory(remoteClient, obj.ItemID, obj.AttachmentPt);
+            }
+        }
+        
         public UUID RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
             m_log.DebugFormat("[ATTACHMENTS MODULE]: Rezzing single attachment from item {0} for {1}", itemID, remoteClient.Name);
