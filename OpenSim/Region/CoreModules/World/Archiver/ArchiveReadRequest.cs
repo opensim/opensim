@@ -53,9 +53,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
-        protected static UTF8Encoding m_utf8Encoding = new UTF8Encoding();
-
         protected Scene m_scene;
         protected Stream m_loadStream;
         protected Guid m_requestId;
@@ -140,7 +137,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                     if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
                     {
-                        serialisedSceneObjects.Add(m_utf8Encoding.GetString(data));
+                        serialisedSceneObjects.Add(Encoding.UTF8.GetString(data));
                     }
                     else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH) && !m_skipAssets)
                     {
@@ -162,7 +159,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     } 
                     else if (!m_merge && filePath.StartsWith(ArchiveConstants.LANDDATA_PATH))
                     {
-                        serialisedParcels.Add(m_utf8Encoding.GetString(data));
+                        serialisedParcels.Add(Encoding.UTF8.GetString(data));
                     } 
                     else if (filePath == ArchiveConstants.CONTROL_FILE_PATH)
                     {
@@ -551,7 +548,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             XmlParserContext context = new XmlParserContext(null, nsmgr, null, XmlSpace.None);
 
             XmlTextReader xtr 
-                = new XmlTextReader(m_asciiEncoding.GetString(data), XmlNodeType.Document, context);
+                = new XmlTextReader(Encoding.ASCII.GetString(data), XmlNodeType.Document, context);
 
             RegionSettings currentRegionSettings = m_scene.RegionInfo.RegionSettings;
 
