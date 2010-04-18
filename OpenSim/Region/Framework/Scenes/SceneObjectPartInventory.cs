@@ -290,7 +290,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_items.LockItemsForWrite(false);
                     m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
                         m_part.LocalId, item.ItemID, String.Empty, startParam, postOnRez, engine, stateSource);
-                    StoreScriptErrors(item.ItemID, GetScriptErrors(item.ItemID));
+                    StoreScriptErrors(item.ItemID, null);
                     m_part.ParentGroup.AddActiveScriptCount(1);
                     m_part.ScheduleFullUpdate();
                     return;
@@ -319,7 +319,7 @@ namespace OpenSim.Region.Framework.Scenes
                                        string script = Utils.BytesToString(asset.Data);
                                        m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
                                             m_part.LocalId, item.ItemID, script, startParam, postOnRez, engine, stateSource);
-                                       StoreScriptErrors(item.ItemID, GetScriptErrors(item.ItemID));
+                                       StoreScriptErrors(item.ItemID, null);
                                        m_part.ParentGroup.AddActiveScriptCount(1);
                                        m_part.ScheduleFullUpdate();
                                    }
@@ -388,11 +388,22 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Start a script which is in this prim's inventory.
+        /// Some processing may occur in the background, but this routine returns asap.
         /// </summary>
         /// <param name="itemId">
         /// A <see cref="UUID"/>
         /// </param>
         public void CreateScriptInstance(UUID itemId, int startParam, bool postOnRez, string engine, int stateSource)
+        {
+            lock (m_scriptErrors)
+            {
+                // Indicate to CreateScriptInstanceInternal() we don't want it to wait for completion
+                m_scriptErrors.Remove(itemId);
+            }
+            CreateScriptInstanceInternal(itemId, startParam, postOnRez, engine, stateSource);
+        }
+
+        private void CreateScriptInstanceInternal(UUID itemId, int startParam, bool postOnRez, string engine, int stateSource)
         {
             m_items.LockItemsForRead(true);
             if (m_items.ContainsKey(itemId))
@@ -425,25 +436,38 @@ namespace OpenSim.Region.Framework.Scenes
             
         }
 
+        /// <summary>
+        /// Start a script which is in this prim's inventory and return any compilation error messages.
+        /// </summary>
+        /// <param name="itemId">
+        /// A <see cref="UUID"/>
+        /// </param>
         public ArrayList CreateScriptInstanceEr(UUID itemId, int startParam, bool postOnRez, string engine, int stateSource)
         {
             ArrayList errors;
 
+            // Indicate to CreateScriptInstanceInternal() we want it to 
+            // post any compilation/loading error messages
             lock (m_scriptErrors)
             {
-                m_scriptErrors.Remove(itemId);
+                m_scriptErrors[itemId] = null;
             }
-            CreateScriptInstance(itemId, startParam, postOnRez, engine, stateSource);
+
+            // Perform compilation/loading
+            CreateScriptInstanceInternal(itemId, startParam, postOnRez, engine, stateSource);
+
+            // Wait for and retrieve any errors
             lock (m_scriptErrors)
             {
-                while (!m_scriptErrors.TryGetValue(itemId, out errors))
+                while ((errors = m_scriptErrors[itemId]) == null)
                 {
                     if (!System.Threading.Monitor.Wait(m_scriptErrors, 15000))
                     {
                         m_log.ErrorFormat(
                             "[PRIM INVENTORY]: " +
                             "timedout waiting for script {0} errors", itemId);
-                        if (!m_scriptErrors.TryGetValue(itemId, out errors))
+                        errors = m_scriptErrors[itemId];
+                        if (errors == null)
                         {
                             errors = new ArrayList(1);
                             errors.Add("timedout waiting for errors");
@@ -455,14 +479,49 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return errors;
         }
+
+        // Signal to CreateScriptInstanceEr() that compilation/loading is complete
         private void StoreScriptErrors(UUID itemId, ArrayList errors)
         {
+            lock (m_scriptErrors)
+            {
+                // If compilation/loading initiated via CreateScriptInstance(),
+                // it does not want the errors, so just get out
+                if (!m_scriptErrors.ContainsKey(itemId))
+                {
+                    return;
+                }
+
+                // Initiated via CreateScriptInstanceEr(), if we know what the
+                // errors are, save them and wake CreateScriptInstanceEr().
+                if (errors != null)
+                {
+                    m_scriptErrors[itemId] = errors;
+                    System.Threading.Monitor.PulseAll(m_scriptErrors);
+                    return;
+                }
+            }
+
+            // Initiated via CreateScriptInstanceEr() but we don't know what
+            // the errors are yet, so retrieve them from the script engine.
+            // This may involve some waiting internal to GetScriptErrors().
+            errors = GetScriptErrors(itemId);
+
+            // Get a default non-null value to indicate success.
+            if (errors == null)
+            {
+                errors = new ArrayList();
+            }
+
+            // Post to CreateScriptInstanceEr() and wake it up
             lock (m_scriptErrors)
             {
                 m_scriptErrors[itemId] = errors;
                 System.Threading.Monitor.PulseAll(m_scriptErrors);
             }
         }
+
+        // Like StoreScriptErrors(), but just posts a single string message
         private void StoreScriptError(UUID itemId, string message)
         {
             ArrayList errors = new ArrayList(1);
