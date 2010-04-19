@@ -7132,7 +7132,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         else
                         {
                             // TODO: Change this code to allow items other than notecards and scripts to be successfully
-                            // shared with group.  In fact, all this permissions checking should move to an IPermissionsModule
+                            // shared with group.  In fact, this whole block of permissions checking should move to an IPermissionsModule
                             if (part.OwnerID != AgentId)
                             {
                                 m_log.WarnFormat(
@@ -7194,7 +7194,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // only to notecards and scripts. All
                         // other asset types are always available
                         //
-                        if (assetRequestItem.AssetType == 10)
+                        if (assetRequestItem.AssetType == (int)AssetType.LSLText)
                         {
                             if (!((Scene)m_scene).Permissions.CanViewScript(itemID, UUID.Zero, AgentId))
                             {
@@ -7202,7 +7202,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 return true;
                             }
                         }
-                        else if (assetRequestItem.AssetType == 7)
+                        else if (assetRequestItem.AssetType == (int)AssetType.Notecard)
                         {
                             if (!((Scene)m_scene).Permissions.CanViewNotecard(itemID, UUID.Zero, AgentId))
                             {
