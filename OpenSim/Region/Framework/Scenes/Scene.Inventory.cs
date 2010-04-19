@@ -1278,6 +1278,7 @@ namespace OpenSim.Region.Framework.Scenes
                         //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
                         //                                         item.inventoryName, localID, remoteClient.Name);
                         part.GetProperties(remoteClient);
+                        part.ParentGroup.ResumeScripts();
                     }
                     else
                     {
@@ -1347,6 +1348,7 @@ namespace OpenSim.Region.Framework.Scenes
                 part.GetProperties(remoteClient);
 
                 part.Inventory.CreateScriptInstance(taskItem, 0, false, DefaultScriptEngine, 0);
+                part.ParentGroup.ResumeScripts();
             }
         }
 
