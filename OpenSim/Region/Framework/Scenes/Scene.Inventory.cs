@@ -201,7 +201,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Update item with new asset
             item.AssetID = asset.FullID;
-            group.UpdateInventoryItem(item);
+            if (group.UpdateInventoryItem(item))
+                remoteClient.SendAgentAlertMessage("Notecard saved", false);                        
+            
             part.GetProperties(remoteClient);
 
             // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
@@ -1224,7 +1226,10 @@ namespace OpenSim.Region.Framework.Scenes
                             remoteClient, part, transactionID, currentItem);
                     }
                     if (part.Inventory.UpdateInventoryItem(itemInfo))
+                    {
+                        remoteClient.SendAgentAlertMessage("Notecard saved", false);                        
                         part.GetProperties(remoteClient);
+                    }
                 }
             }
             else
