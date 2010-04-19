@@ -1453,6 +1453,8 @@ namespace OpenSim.Region.Framework.Scenes
                 destPart.Inventory.CreateScriptInstance(destTaskItem, start_param, false, DefaultScriptEngine, 0);
             }
 
+            destPart.ParentGroup.ResumeScripts();
+
             ScenePresence avatar;
 
             if (TryGetScenePresence(srcTaskItem.OwnerID, out avatar))
