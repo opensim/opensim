@@ -96,7 +96,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private bool m_startedFromSavedState;
         private UUID m_CurrentStateHash;
         private UUID m_RegionID;
-        private bool m_Suspended = true;
+        private bool m_Suspended = false;
 
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
                 m_LineMap;
