@@ -284,6 +284,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 {
                     sceneObjectsLoadedCount++;
                     sceneObject.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, 0);
+                    sceneObject.ResumeScripts();
                 }
             }
 

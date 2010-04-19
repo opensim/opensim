@@ -250,6 +250,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         itemID, remoteClient.Name, AttachmentPt);
                 }
                 
+                objatt.ResumeScripts();
                 return objatt;
             }
             

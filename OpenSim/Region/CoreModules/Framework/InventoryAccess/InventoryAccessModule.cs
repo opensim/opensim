@@ -621,6 +621,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         }
                     }
 
+                    rootPart.ParentGroup.ResumeScripts();
                     return rootPart.ParentGroup;
                 }
             }

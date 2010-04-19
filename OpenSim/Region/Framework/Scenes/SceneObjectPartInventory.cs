@@ -1042,5 +1042,28 @@ namespace OpenSim.Region.Framework.Scenes
             
             return ret;
         }
+        
+        public void ResumeScripts()
+        {
+            IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
+            if (engines == null)
+                return;
+
+
+            lock (m_items)
+            {
+                foreach (TaskInventoryItem item in m_items.Values)
+                {
+                    if (item.InvType == (int)InventoryType.LSL)
+                    {
+                        foreach (IScriptModule engine in engines)
+                        {
+                            if (engine != null)
+                                engine.ResumeScript(item.ItemID);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

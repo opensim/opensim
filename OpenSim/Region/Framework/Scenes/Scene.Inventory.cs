@@ -63,6 +63,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (group is SceneObjectGroup)
                 {
                     ((SceneObjectGroup) group).CreateScriptInstances(0, false, DefaultScriptEngine, 0);
+                    ((SceneObjectGroup) group).ResumeScripts();
                 }
             }
         }
@@ -218,6 +219,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 remoteClient.SendAgentAlertMessage("Script saved", false);
             }
+            part.ParentGroup.ResumeScripts();
             return errors;
         }
 
