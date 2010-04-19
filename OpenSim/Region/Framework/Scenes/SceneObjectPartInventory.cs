@@ -282,36 +282,32 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
 
-                m_part.ParentGroup.Scene.AssetService.Get(
-                    item.AssetID.ToString(), this, delegate(string id, object sender, AssetBase asset)
-                    {
-                        if (null == asset)
-                        {
-                            m_log.ErrorFormat(
-                                "[PRIM INVENTORY]: " +
-                                "Couldn't start script {0}, {1} at {2} in {3} since asset ID {4} could not be found",
-                                item.Name, item.ItemID, m_part.AbsolutePosition, 
-                                m_part.ParentGroup.Scene.RegionInfo.RegionName, item.AssetID);
-                        }
-                        else
-                        {
-                            if (m_part.ParentGroup.m_savedScriptState != null)
-                                RestoreSavedScriptState(item.OldItemID, item.ItemID);
+                AssetBase asset = m_part.ParentGroup.Scene.AssetService.Get(item.AssetID.ToString());
+                if (null == asset)
+                {
+                    m_log.ErrorFormat(
+                        "[PRIM INVENTORY]: " +
+                        "Couldn't start script {0}, {1} at {2} in {3} since asset ID {4} could not be found",
+                        item.Name, item.ItemID, m_part.AbsolutePosition, 
+                        m_part.ParentGroup.Scene.RegionInfo.RegionName, item.AssetID);
+                }
+                else
+                {
+                    if (m_part.ParentGroup.m_savedScriptState != null)
+                        RestoreSavedScriptState(item.OldItemID, item.ItemID);
 
-                            lock (m_items)
-                            {
-                                m_items[item.ItemID].PermsMask = 0;
-                                m_items[item.ItemID].PermsGranter = UUID.Zero;
-                            }
-                        
-                            string script = Utils.BytesToString(asset.Data);
-                            m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
-                                m_part.LocalId, item.ItemID, script, startParam, postOnRez, engine, stateSource);
-                            m_part.ParentGroup.AddActiveScriptCount(1);
-                            m_part.ScheduleFullUpdate();
-                        }
+                    lock (m_items)
+                    {
+                        m_items[item.ItemID].PermsMask = 0;
+                        m_items[item.ItemID].PermsGranter = UUID.Zero;
                     }
-                );
+                
+                    string script = Utils.BytesToString(asset.Data);
+                    m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
+                        m_part.LocalId, item.ItemID, script, startParam, postOnRez, engine, stateSource);
+                    m_part.ParentGroup.AddActiveScriptCount(1);
+                    m_part.ScheduleFullUpdate();
+                }
             }
         }
 
