@@ -959,6 +959,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_isChildAgent = false;
 
+            // send the animations of the other presences to me
             m_scene.ForEachScenePresence(delegate(ScenePresence presence)
             {
                 if (presence != this)

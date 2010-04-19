@@ -27,6 +27,7 @@
 
 using System;
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 
@@ -81,6 +82,34 @@ namespace OpenSim.Region.Framework.Interfaces
         UUID RezSingleAttachmentFromInventory(
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus);
 
+        /// <summary>
+        /// Rez multiple attachments from a user's inventory
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="header"></param>
+        /// <param name="objects"></param>
+        void RezMultipleAttachmentsFromInventory(
+            IClientAPI remoteClient,
+            RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
+            RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects);
+
+        /// <summary>
+        /// Detach an object from the avatar.
+        /// </summary>
+        ///
+        /// This method is called in response to a client's detach request, so we only update the information in
+        /// inventory
+        /// <param name="objectLocalID"></param>
+        /// <param name="remoteClient"></param>
+        void DetachObject(uint objectLocalID, IClientAPI remoteClient);
+            
+        /// <summary>
+        /// Detach the given item to the ground.
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <param name="remoteClient"></param>
+        void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient);
+            
         /// <summary>
         /// Update the user inventory to the attachment of an item
         /// </summary>

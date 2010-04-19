@@ -109,7 +109,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             }
             else
             {
-                m_log.WarnFormat("[IRC-Bridge] Not enabled. Connect for region {0} ignored", scene.RegionInfo.RegionName);
+                //m_log.DebugFormat("[IRC-Bridge] Not enabled. Connect for region {0} ignored", scene.RegionInfo.RegionName);
             }
         }
 

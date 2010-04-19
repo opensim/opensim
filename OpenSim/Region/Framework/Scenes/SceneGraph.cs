@@ -467,9 +467,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectGroup group = GetGroupByPrim(objectLocalID);
             if (group != null)
-            {
-                m_parentScene.DetachSingleAttachmentToGround(group.UUID, remoteClient);
-            }
+                m_parentScene.AttachmentsModule.DetachSingleAttachmentToGround(group.UUID, remoteClient);
         }
 
         protected internal void DetachObject(uint objectLocalID, IClientAPI remoteClient)
@@ -1781,6 +1779,7 @@ namespace OpenSim.Region.Framework.Scenes
                     copy.CreateScriptInstances(0, false, m_parentScene.DefaultScriptEngine, 0);
                     copy.HasGroupChanged = true;
                     copy.ScheduleGroupForFullUpdate();
+                    copy.ResumeScripts();
 
                     // required for physics to update it's position
                     copy.AbsolutePosition = copy.AbsolutePosition;

@@ -129,6 +129,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event Action<UUID> OnRemoveAvatar;
 
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
+        public event LinkInventoryItem OnLinkInventoryItem;
         public event CreateInventoryFolder OnCreateNewInventoryFolder;
         public event UpdateInventoryFolder OnUpdateInventoryFolder;
         public event MoveInventoryFolder OnMoveInventoryFolder;

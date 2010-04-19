@@ -106,6 +106,39 @@ namespace OpenSim.Framework
             }
         }
 
+        public static string SLInvTypeToContentType(int invType)
+        {
+            switch ((InventoryType)invType)
+            {
+                case InventoryType.Animation:
+                    return "application/vnd.ll.animation";
+                case InventoryType.CallingCard:
+                    return "application/vnd.ll.callingcard";
+                case InventoryType.Folder:
+                    return "application/vnd.ll.folder";
+                case InventoryType.Gesture:
+                    return "application/vnd.ll.gesture";
+                case InventoryType.Landmark:
+                    return "application/vnd.ll.landmark";
+                case InventoryType.LSL:
+                    return "application/vnd.ll.lsltext";
+                case InventoryType.Notecard:
+                    return "application/vnd.ll.notecard";
+                case InventoryType.Attachment:
+                case InventoryType.Object:
+                    return "application/vnd.ll.primitive";
+                case InventoryType.Sound:
+                    return "application/ogg";
+                case InventoryType.Snapshot:
+                case InventoryType.Texture:
+                    return "image/x-j2c";
+                case InventoryType.Wearable:
+                    return "application/vnd.ll.clothing";
+                default:
+                    return "application/octet-stream";
+            }
+        }
+
         public static sbyte ContentTypeToSLAssetType(string contentType)
         {
             switch (contentType)

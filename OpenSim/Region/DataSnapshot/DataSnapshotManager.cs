@@ -94,7 +94,7 @@ namespace OpenSim.Region.DataSnapshot
             if (!m_configLoaded) 
             {
                 m_configLoaded = true;
-                m_log.Info("[DATASNAPSHOT]: Loading configuration");
+                //m_log.Debug("[DATASNAPSHOT]: Loading configuration");
                 //Read from the config for options
                 lock (m_syncInit)
                 {
@@ -123,7 +123,7 @@ namespace OpenSim.Region.DataSnapshot
                     }
                     catch (Exception)
                     {
-                        m_log.Info("[DATASNAPSHOT]: Could not load configuration. DataSnapshot will be disabled.");
+                        m_log.Warn("[DATASNAPSHOT]: Could not load configuration. DataSnapshot will be disabled.");
                         m_enabled = false;
                         return;
                     }
@@ -179,7 +179,7 @@ namespace OpenSim.Region.DataSnapshot
             }
             else
             {
-                m_log.Warn("[DATASNAPSHOT]: Data snapshot disabled, not adding scene to module (or anything else).");
+                //m_log.Debug("[DATASNAPSHOT]: Data snapshot disabled, not adding scene to module (or anything else).");
             }
         }
 

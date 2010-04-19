@@ -171,7 +171,9 @@ namespace OpenSim.Region.Framework.Scenes
                             item.NextPermissions;
                     taskItem.NextPermissions = item.NextPermissions;
                     taskItem.CurrentPermissions |= 8;
-                } else {
+                } 
+                else 
+                {
                     taskItem.BasePermissions = item.BasePermissions;
                     taskItem.CurrentPermissions = item.CurrentPermissions;
                     taskItem.CurrentPermissions |= 8;
@@ -410,6 +412,14 @@ namespace OpenSim.Region.Framework.Scenes
                 UUID itemID = new UUID(stateE.GetAttribute("UUID"));
 
                 scriptModule.SetXMLState(itemID, n.OuterXml);
+            }
+        }
+
+        public void ResumeScripts()
+        {
+            foreach (SceneObjectPart part in m_parts.Values)
+            {
+                part.Inventory.ResumeScripts();
             }
         }
     }

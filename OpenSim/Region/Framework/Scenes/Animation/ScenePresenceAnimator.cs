@@ -420,11 +420,12 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (m_scenePresence.IsChildAgent)
                 return;
 
-            m_scenePresence.Scene.ForEachScenePresence(
-                delegate(ScenePresence SP)
-                {
-                    SP.Animator.SendAnimPack();
-                });
+            UUID[] animIDs;
+            int[] sequenceNums;
+            UUID[] objectIDs;
+
+            m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
+            client.SendAnimations(animIDs, sequenceNums, m_scenePresence.ControllingClient.AgentId, objectIDs);
         }
 
         /// <summary>

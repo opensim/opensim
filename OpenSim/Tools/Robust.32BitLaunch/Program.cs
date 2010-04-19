@@ -26,29 +26,35 @@
  */
 
 using System;
-using System.Collections.Generic;
-using OpenMetaverse;
-using OpenSim.Framework;
+using log4net;
 
-namespace OpenSim.Data
+namespace Robust._32BitLaunch
 {
-    public class UserAccountData
+    class Program
     {
-        public UUID PrincipalID;
-        public UUID ScopeID;
-        public string FirstName;
-        public string LastName;
-        public Dictionary<string, string> Data;
-    }
+        static void Main(string[] args)
+        {
+            log4net.Config.XmlConfigurator.Configure();
 
-    /// <summary>
-    /// An interface for connecting to the user accounts datastore
-    /// </summary>
-    public interface IUserAccountData
-    {
-        UserAccountData[] Get(string[] fields, string[] values);
-        bool Store(UserAccountData data);
-        bool Delete(string field, string val);
-        UserAccountData[] GetUsers(UUID scopeID, string query);
+            System.Console.WriteLine("32-bit OpenSim executor");
+            System.Console.WriteLine("-----------------------");
+            System.Console.WriteLine("");
+            System.Console.WriteLine("This application is compiled for 32-bit CPU and will run under WOW32 or similar.");
+            System.Console.WriteLine("All 64-bit incompatibilities should be gone.");
+            System.Console.WriteLine("");
+            System.Threading.Thread.Sleep(300);
+            try
+            {
+                global::OpenSim.Server.OpenSimServer.Main(args);
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine("OpenSim threw an exception:");
+                System.Console.WriteLine(ex.ToString());
+                System.Console.WriteLine("");
+                System.Console.WriteLine("Application will now terminate!");
+                System.Console.WriteLine("");
+            }
+        }
     }
 }

@@ -182,6 +182,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event TeleportLocationRequest OnSetStartLocationRequest;
         public event UpdateAvatarProperties OnUpdateAvatarProperties;
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
+        public event LinkInventoryItem OnLinkInventoryItem;
         public event CreateInventoryFolder OnCreateNewInventoryFolder;
         public event UpdateInventoryFolder OnUpdateInventoryFolder;
         public event MoveInventoryFolder OnMoveInventoryFolder;
@@ -641,7 +642,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (pprocessor.Async)
                 {
                     object obj = new AsyncPacketProcess(this, pprocessor.method, packet);
-                    Util.FireAndForget(ProcessSpecificPacketAsync,obj);
+                    Util.FireAndForget(ProcessSpecificPacketAsync, obj);
                     result = true;
                 }
                 else
@@ -669,8 +670,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void ProcessSpecificPacketAsync(object state)
         {
             AsyncPacketProcess packetObject = (AsyncPacketProcess)state;
-            packetObject.result = packetObject.Method(packetObject.ClientView, packetObject.Pack);
-            
+
+            try
+            {
+                packetObject.result = packetObject.Method(packetObject.ClientView, packetObject.Pack);
+            }
+            catch (Exception e)
+            {
+                // Make sure that we see any exception caused by the asynchronous operation.
+                m_log.Error(
+                    string.Format("[LLCLIENTVIEW]: Caught exception while processing {0}", packetObject.Pack), e);
+            }            
         }
 
         #endregion Packet Handling
@@ -4726,6 +4736,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.UpdateInventoryFolder, HandleUpdateInventoryFolder);
             AddLocalPacketHandler(PacketType.MoveInventoryFolder, HandleMoveInventoryFolder);
             AddLocalPacketHandler(PacketType.CreateInventoryItem, HandleCreateInventoryItem);
+            AddLocalPacketHandler(PacketType.LinkInventoryItem, HandleLinkInventoryItem);
             AddLocalPacketHandler(PacketType.FetchInventory, HandleFetchInventory);
             AddLocalPacketHandler(PacketType.FetchInventoryDescendents, HandleFetchInventoryDescendents);
             AddLocalPacketHandler(PacketType.PurgeInventoryDescendents, HandlePurgeInventoryDescendents);
@@ -7045,6 +7056,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
+        /// <summary>
+        /// This is the entry point for the UDP route by which the client can retrieve asset data.  If the request
+        /// is successful then a TransferInfo packet will be sent back, followed by one or more TransferPackets
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="Pack"></param>
+        /// <returns>This parameter may be ignored since we appear to return true whatever happens</returns>
         private bool HandleTransferRequest(IClientAPI sender, Packet Pack)
         {
             //m_log.Debug("ClientView.ProcessPackets.cs:ProcessInPacket() - Got transfer request");
@@ -7055,7 +7073,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Has to be done here, because AssetCache can't do it
             //
             UUID taskID = UUID.Zero;
-            if (transfer.TransferInfo.SourceType == 3)
+            if (transfer.TransferInfo.SourceType == (int)SourceType.SimInventoryItem)
             {
                 taskID = new UUID(transfer.TransferInfo.Params, 48);
                 UUID itemID = new UUID(transfer.TransferInfo.Params, 64);
@@ -7323,6 +7341,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                               createItem.InventoryBlock.NextOwnerMask,
                                               Util.UnixTimeSinceEpoch());
             }
+            return true;
+        }
+
+        private bool HandleLinkInventoryItem(IClientAPI sender, Packet Pack)
+        {
+            LinkInventoryItemPacket createLink = (LinkInventoryItemPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (createLink.AgentData.SessionID != SessionId ||
+                    createLink.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            LinkInventoryItem linkInventoryItem = OnLinkInventoryItem;
+
+            if (linkInventoryItem != null)
+            {
+                linkInventoryItem(
+                    this,
+                    createLink.InventoryBlock.TransactionID,
+                    createLink.InventoryBlock.FolderID,
+                    createLink.InventoryBlock.CallbackID,
+                    Util.FieldToString(createLink.InventoryBlock.Description),
+                    Util.FieldToString(createLink.InventoryBlock.Name),
+                    createLink.InventoryBlock.InvType,
+                    createLink.InventoryBlock.Type,
+                    createLink.InventoryBlock.OldItemID);
+            }
+
             return true;
         }
 
@@ -7670,12 +7720,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         newTaskItem.GroupPermissions = updatetask.InventoryData.GroupMask;
                         newTaskItem.EveryonePermissions = updatetask.InventoryData.EveryoneMask;
                         newTaskItem.NextPermissions = updatetask.InventoryData.NextOwnerMask;
+
+                        // Unused?  Clicking share with group sets GroupPermissions instead, so perhaps this is something
+                        // different
                         //newTaskItem.GroupOwned=updatetask.InventoryData.GroupOwned;
                         newTaskItem.Type = updatetask.InventoryData.Type;
                         newTaskItem.InvType = updatetask.InventoryData.InvType;
                         newTaskItem.Flags = updatetask.InventoryData.Flags;
                         //newTaskItem.SaleType=updatetask.InventoryData.SaleType;
-                        //newTaskItem.SalePrice=updatetask.InventoryData.SalePrice;;
+                        //newTaskItem.SalePrice=updatetask.InventoryData.SalePrice;
                         newTaskItem.Name = Util.FieldToString(updatetask.InventoryData.Name);
                         newTaskItem.Description = Util.FieldToString(updatetask.InventoryData.Description);
                         newTaskItem.CreationDate = (uint)updatetask.InventoryData.CreationDate;
@@ -7683,7 +7736,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                    newTaskItem, updatetask.UpdateData.LocalID);
                     }
                 }
-            }
+            }               
 
             return true;
         }
@@ -11075,7 +11128,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (m_debugPacketLevel >= 255)
                 m_log.DebugFormat("[CLIENT]: Packet IN {0}", Pack.Type);
-            
+
             if (!ProcessPacketMethod(Pack))
                 m_log.Warn("[CLIENT]: unhandled packet " + Pack.Type);
 
@@ -11297,17 +11350,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return String.Empty;
         }
 
-        public void MakeAssetRequest(TransferRequestPacket transferRequest, UUID taskID)
+        /// <summary>
+        /// Make an asset request to the asset service in response to a client request.
+        /// </summary>
+        /// <param name="transferRequest"></param>
+        /// <param name="taskID"></param>
+        protected void MakeAssetRequest(TransferRequestPacket transferRequest, UUID taskID)
         {
             UUID requestID = UUID.Zero;
-            if (transferRequest.TransferInfo.SourceType == 2)
+            if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset)
             {
-                //direct asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 0);
             }
-            else if (transferRequest.TransferInfo.SourceType == 3)
+            else if (transferRequest.TransferInfo.SourceType == (int)SourceType.SimInventoryItem)
             {
-                //inventory asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
                 //m_log.Debug("[XXX] inventory asset request " + requestID);
                 //if (taskID == UUID.Zero) // Agent
@@ -11320,29 +11376,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //    }
             }
 
-            //check to see if asset is in local cache, if not we need to request it from asset server.
-            //m_log.Debug("asset request " + requestID);
+            //m_log.DebugFormat("[LLCLIENTVIEW]: {0} requesting asset {1}", Name, requestID);
 
             m_assetService.Get(requestID.ToString(), transferRequest, AssetReceived);
-
         }
 
+        /// <summary>
+        /// When we get a reply back from the asset service in response to a client request, send back the data.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="sender"></param>
+        /// <param name="asset"></param>
         protected void AssetReceived(string id, Object sender, AssetBase asset)
         {
             TransferRequestPacket transferRequest = (TransferRequestPacket)sender;
 
             UUID requestID = UUID.Zero;
-            byte source = 2;
-            if ((transferRequest.TransferInfo.SourceType == 2) || (transferRequest.TransferInfo.SourceType == 2222))
+            byte source = (byte)SourceType.Asset;
+            
+            if ((transferRequest.TransferInfo.SourceType == (int)SourceType.Asset) 
+                || (transferRequest.TransferInfo.SourceType == 2222))
             {
-                //direct asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 0);
             }
-            else if ((transferRequest.TransferInfo.SourceType == 3) || (transferRequest.TransferInfo.SourceType == 3333))
+            else if ((transferRequest.TransferInfo.SourceType == (int)SourceType.SimInventoryItem) 
+                 || (transferRequest.TransferInfo.SourceType == 3333))
             {
-                //inventory asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
-                source = 3;
+                source = (byte)SourceType.SimInventoryItem;
                 //m_log.Debug("asset request " + requestID);
             }
 
@@ -11355,9 +11416,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if ((userAssets != string.Empty) && (userAssets != m_hyperAssets.GetSimAssetServer()))
                     {
                         m_log.DebugFormat("[CLIENT]: asset {0} not found in local asset storage. Trying user's storage.", id);
-                        if (transferRequest.TransferInfo.SourceType == 2)
+                        if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset)
                             transferRequest.TransferInfo.SourceType = 2222; // marker
-                        else if (transferRequest.TransferInfo.SourceType == 3)
+                        else if (transferRequest.TransferInfo.SourceType == (int)SourceType.SimInventoryItem)
                             transferRequest.TransferInfo.SourceType = 3333; // marker
 
                         m_assetService.Get(userAssets + "/" + id, transferRequest, AssetReceived);
@@ -11372,7 +11433,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Scripts cannot be retrieved by direct request
-            if (transferRequest.TransferInfo.SourceType == 2 && asset.Type == 10)
+            if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset && asset.Type == 10)
                 return;
 
             // The asset is known to exist and is in our cache, so add it to the AssetRequests list
@@ -11605,6 +11666,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             public PacketMethod method;
             public bool Async;
         }
+        
         public class AsyncPacketProcess
         {
             public bool result = false;

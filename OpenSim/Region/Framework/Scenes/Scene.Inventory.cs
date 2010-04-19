@@ -35,7 +35,6 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using log4net;
 using OpenSim.Framework;
-
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Serialization;
@@ -64,6 +63,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (group is SceneObjectGroup)
                 {
                     ((SceneObjectGroup) group).CreateScriptInstances(0, false, DefaultScriptEngine, 0);
+                    ((SceneObjectGroup) group).ResumeScripts();
                 }
             }
         }
@@ -218,6 +218,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 remoteClient.SendAgentAlertMessage("Script saved", false);
             }
+            part.ParentGroup.ResumeScripts();
             return errors;
         }
 
@@ -471,7 +472,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             }
 
-
             if (recipientParentFolderId == UUID.Zero)
             {
                 InventoryFolderBase recipientRootFolder = InventoryService.GetRootFolder(recipientId);
@@ -718,6 +718,37 @@ namespace OpenSim.Region.Framework.Scenes
                         remoteClient, transactionID, folderID, callbackID, description,
                         name, invType, assetType, wearableType, nextOwnerMask);
                 }
+            }
+        }
+
+        private void HandleLinkInventoryItem(IClientAPI remoteClient, UUID transActionID, UUID folderID,
+                                             uint callbackID, string description, string name,
+                                             sbyte invType, sbyte type, UUID olditemID)
+        {
+            m_log.DebugFormat("[AGENT INVENTORY]: Received request to create inventory item link {0} in folder {1} pointing to {2}", name, folderID, olditemID);
+
+            if (!Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
+                return;
+
+            ScenePresence presence;
+            if (TryGetScenePresence(remoteClient.AgentId, out presence))
+            {
+                byte[] data = null;
+
+                AssetBase asset = new AssetBase();
+                asset.FullID = olditemID;
+                asset.Type = type;
+                asset.Name = name;
+                asset.Description = description;
+                
+                CreateNewInventoryItem(remoteClient, remoteClient.AgentId.ToString(), folderID, name, 0, callbackID, asset, invType, (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All, Util.UnixTimeSinceEpoch());
+
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "ScenePresence for agent uuid {0} unexpectedly not found in HandleLinkInventoryItem",
+                    remoteClient.AgentId);
             }
         }
 
@@ -1163,6 +1194,7 @@ namespace OpenSim.Region.Framework.Scenes
                             item = LibraryService.LibraryRootFolder.FindItem(itemID);
                         }
 
+                        // If we've found the item in the user's inventory or in the library
                         if (item != null)
                         {
                             part.ParentGroup.AddInventoryItem(remoteClient, primLocalID, item, copyID);
@@ -1839,50 +1871,6 @@ namespace OpenSim.Region.Framework.Scenes
                 EventManager.TriggerStartScript(part.LocalId, itemID);
             else
                 EventManager.TriggerStopScript(part.LocalId, itemID);
-        }
-
-        internal void SendAttachEvent(uint localID, UUID itemID, UUID avatarID)
-        {
-            EventManager.TriggerOnAttach(localID, itemID, avatarID);
-        }
-
-        public void RezMultipleAttachments(IClientAPI remoteClient, RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
-                                       RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects)
-        {
-            foreach (RezMultipleAttachmentsFromInvPacket.ObjectDataBlock obj in objects)
-            {
-                AttachmentsModule.RezSingleAttachmentFromInventory(remoteClient, obj.ItemID, obj.AttachmentPt);
-            }
-        }
-
-        public void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient)
-        {
-            SceneObjectPart part = GetSceneObjectPart(itemID);
-            if (part == null || part.ParentGroup == null)
-                return;
-
-            UUID inventoryID = part.ParentGroup.GetFromItemID();
-
-            ScenePresence presence;
-            if (TryGetScenePresence(remoteClient.AgentId, out presence))
-            {
-                if (!Permissions.CanRezObject(part.ParentGroup.Children.Count, remoteClient.AgentId, presence.AbsolutePosition))
-                    return;
-
-                presence.Appearance.DetachAttachment(itemID);
-                IAvatarFactory ava = RequestModuleInterface<IAvatarFactory>();
-                if (ava != null)
-                {
-                    ava.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
-                }
-                part.ParentGroup.DetachToGround();
-
-                List<UUID> uuids = new List<UUID>();
-                uuids.Add(inventoryID);
-                InventoryService.DeleteItems(remoteClient.AgentId, uuids);
-                remoteClient.SendRemoveInventoryItem(inventoryID);
-            }
-            SendAttachEvent(part.ParentGroup.LocalId, itemID, UUID.Zero);
         }
 
         public void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)

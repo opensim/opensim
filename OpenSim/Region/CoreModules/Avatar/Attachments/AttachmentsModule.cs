@@ -30,6 +30,7 @@ using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -169,6 +170,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             return true;
         }
 
+        public void RezMultipleAttachmentsFromInventory(
+            IClientAPI remoteClient, 
+            RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
+            RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects)
+        {
+            foreach (RezMultipleAttachmentsFromInvPacket.ObjectDataBlock obj in objects)
+            {
+                RezSingleAttachmentFromInventory(remoteClient, obj.ItemID, obj.AttachmentPt);
+            }
+        }
+        
         public UUID RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
             m_log.DebugFormat("[ATTACHMENTS MODULE]: Rezzing single attachment from item {0} for {1}", itemID, remoteClient.Name);
@@ -238,6 +250,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         itemID, remoteClient.Name, AttachmentPt);
                 }
                 
+                objatt.ResumeScripts();
                 return objatt;
             }
             
@@ -311,6 +324,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
         }
 
+        public void DetachObject(uint objectLocalID, IClientAPI remoteClient)
+        {
+            SceneObjectGroup group = m_scene.GetGroupByPrim(objectLocalID);
+            if (group != null)
+            {
+                //group.DetachToGround();
+                ShowDetachInUserInventory(group.GetFromItemID(), remoteClient);
+            }
+        }
+        
         public void ShowDetachInUserInventory(UUID itemID, IClientAPI remoteClient)
         {
             ScenePresence presence;
@@ -329,6 +352,38 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             DetachSingleAttachmentToInv(itemID, remoteClient);
         }
 
+        public void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient)
+        {
+            SceneObjectPart part = m_scene.GetSceneObjectPart(itemID);
+            if (part == null || part.ParentGroup == null)
+                return;
+
+            UUID inventoryID = part.ParentGroup.GetFromItemID();
+
+            ScenePresence presence;
+            if (m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
+            {
+                if (!m_scene.Permissions.CanRezObject(
+                        part.ParentGroup.Children.Count, remoteClient.AgentId, presence.AbsolutePosition))
+                    return;
+
+                presence.Appearance.DetachAttachment(itemID);
+
+                if (m_scene.AvatarFactory != null)
+                {
+                    m_scene.AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+                }
+                part.ParentGroup.DetachToGround();
+
+                List<UUID> uuids = new List<UUID>();
+                uuids.Add(inventoryID);
+                m_scene.InventoryService.DeleteItems(remoteClient.AgentId, uuids);
+                remoteClient.SendRemoveInventoryItem(inventoryID);
+            }
+
+            m_scene.EventManager.TriggerOnAttach(part.ParentGroup.LocalId, itemID, UUID.Zero);
+        }
+        
         // What makes this method odd and unique is it tries to detach using an UUID....     Yay for standards.
         // To LocalId or UUID, *THAT* is the question. How now Brown UUID??
         protected void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient)

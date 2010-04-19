@@ -1570,5 +1570,23 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return new ArrayList();
             }
         }
+
+        public void SuspendScript(UUID itemID)
+        {
+            IScriptInstance instance = GetInstance(itemID);
+            if (instance == null)
+                return;
+
+            instance.Suspend();
+        }
+
+        public void ResumeScript(UUID itemID)
+        {
+            IScriptInstance instance = GetInstance(itemID);
+            if (instance == null)
+                return;
+
+            instance.Resume();
+        }
     }
 }
