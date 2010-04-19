@@ -7053,32 +7053,89 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 taskID = new UUID(transfer.TransferInfo.Params, 48);
                 UUID itemID = new UUID(transfer.TransferInfo.Params, 64);
                 UUID requestID = new UUID(transfer.TransferInfo.Params, 80);
+
+//                m_log.DebugFormat(
+//                    "[CLIENT]: Got request for asset {0} from item {1} in prim {2} by {3}", 
+//                    requestID, itemID, taskID, Name);
+
                 if (!(((Scene)m_scene).Permissions.BypassPermissions()))
                 {
                     if (taskID != UUID.Zero) // Prim
                     {
                         SceneObjectPart part = ((Scene)m_scene).GetSceneObjectPart(taskID);
                         if (part == null)
+                        {
+                            m_log.WarnFormat(
+                                "[CLIENT]: {0} requested asset {1} from item {2} in prim {3} but prim does not exist", 
+                                Name, requestID, itemID, taskID);
                             return true;
+                        }
 
-                        if (part.OwnerID != AgentId)
+                        TaskInventoryItem tii = part.Inventory.GetInventoryItem(itemID);
+                        if (tii == null)
+                        {
+                            m_log.WarnFormat(
+                                "[CLIENT]: {0} requested asset {1} from item {2} in prim {3} but item does not exist", 
+                                Name, requestID, itemID, taskID);                            
                             return true;
-
-                        if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
-                            return true;
-
-                        TaskInventoryItem ti = part.Inventory.GetInventoryItem(itemID);
-                        if (ti == null)
-                            return true;
-
-                        if (ti.OwnerID != AgentId)
-                            return true;
-
-                        if ((ti.CurrentPermissions & ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer)) != ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer))
-                            return true;
-
-                        if (ti.AssetID != requestID)
-                            return true;
+                        }                        
+                        
+                        if (tii.Type == (int)AssetType.LSLText)
+                        {
+                            if (!((Scene)m_scene).Permissions.CanEditScript(itemID, taskID, AgentId))
+                                return true;
+                        }
+                        else if (tii.Type == (int)AssetType.Notecard)
+                        {
+                            if (!((Scene)m_scene).Permissions.CanEditNotecard(itemID, taskID, AgentId))
+                                return true;
+                        }
+                        else
+                        {
+                            // TODO: Change this code to allow items other than notecards and scripts to be successfully
+                            // shared with group.  In fact, all this permissions checking should move to an IPermissionsModule
+                            if (part.OwnerID != AgentId)
+                            {
+                                m_log.WarnFormat(
+                                    "[CLIENT]: {0} requested asset {1} from item {2} in prim {3} but the prim is owned by {4}",
+                                    Name, requestID, itemID, taskID, part.OwnerID);                            
+                                return true;
+                            }
+    
+                            if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                            {
+                                m_log.WarnFormat(
+                                    "[CLIENT]: {0} requested asset {1} from item {2} in prim {3} but modify permissions are not set", 
+                                    Name, requestID, itemID, taskID);                            
+                                return true;
+                            }
+    
+                            if (tii.OwnerID != AgentId)
+                            {
+                                m_log.WarnFormat(
+                                    "[CLIENT]: {0} requested asset {1} from item {2} in prim {3} but the item is owned by {4}", 
+                                    Name, requestID, itemID, taskID, tii.OwnerID);                            
+                                return true;
+                            }
+    
+                            if ((
+                                tii.CurrentPermissions & ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer)) 
+                                    != ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer))
+                            {
+                                m_log.WarnFormat(
+                                    "[CLIENT]: {0} requested asset {1} from item {2} in prim {3} but item permissions are not modify/copy/transfer", 
+                                    Name, requestID, itemID, taskID);                            
+                                return true;
+                            }
+    
+                            if (tii.AssetID != requestID)
+                            {
+                                m_log.WarnFormat(
+                                    "[CLIENT]: {0} requested asset {1} from item {2} in prim {3} but this does not match item's asset {4}", 
+                                    Name, requestID, itemID, taskID, tii.AssetID);                            
+                                return true;
+                            }
+                        }
                     }
                     else // Agent
                     {
@@ -7114,7 +7171,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
 
                         if (assetRequestItem.AssetID != requestID)
+                        {
+                            m_log.WarnFormat(
+                                "[CLIENT]: {0} requested asset {1} from item {2} but this does not match item's asset {3}", 
+                                Name, requestID, itemID, assetRequestItem.AssetID);                            
                             return true;
+                        }
                     }
                 }
             }
@@ -11310,8 +11372,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //    }
             }
 
-            //check to see if asset is in local cache, if not we need to request it from asset server.
-            //m_log.Debug("asset request " + requestID);
+//            m_log.DebugFormat("[CLIENT]: {0} requesting asset {1}", Name, requestID);
 
             m_assetService.Get(requestID.ToString(), transferRequest, AssetReceived);
 
