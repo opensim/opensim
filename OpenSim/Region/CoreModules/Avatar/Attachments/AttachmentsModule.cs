@@ -241,7 +241,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     objatt.CreateScriptInstances(0, true, m_scene.DefaultScriptEngine, 3);
 
                     // Do this last so that event listeners have access to all the effects of the attachment
-                    m_scene.EventManager.TriggerOnAttach(objatt.LocalId, itemID, remoteClient.AgentId);
+                    //m_scene.EventManager.TriggerOnAttach(objatt.LocalId, itemID, remoteClient.AgentId);
                 }
                 else
                 {
