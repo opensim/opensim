@@ -81,6 +81,9 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 
         void PostEvent(EventParams data);
         
+        void Suspend();
+        void Resume();
+
         /// <summary>
         /// Process the next event queued for this script
         /// </summary>

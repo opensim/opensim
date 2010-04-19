@@ -74,6 +74,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource);
         
         ArrayList GetScriptErrors(UUID itemID);
+        void ResumeScripts();
 
         /// <summary>
         /// Stop all the scripts in this entity.
