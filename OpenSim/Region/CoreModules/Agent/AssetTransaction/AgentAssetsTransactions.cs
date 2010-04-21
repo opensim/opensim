@@ -181,7 +181,10 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                     Manager.MyScene.AssetService.Store(asset);
 
                     if (part.Inventory.UpdateInventoryItem(item))
+                    {
+                        remoteClient.SendAgentAlertMessage("Notecard saved", false);                        
                         part.GetProperties(remoteClient);
+                    }
                 }
             }
         }
