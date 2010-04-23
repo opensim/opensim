@@ -146,18 +146,23 @@ namespace OpenSim.Framework
                 {
                     using (Stream responseStream = response.GetResponseStream())
                     {
+                        string responseStr = null;
+
                         try
                         {
-                            string responseStr = responseStream.GetStreamString();
+                            responseStr = responseStream.GetStreamString();
                             OSD responseOSD = OSDParser.Deserialize(responseStr);
                             if (responseOSD.Type == OSDType.Map)
                                 return (OSDMap)responseOSD;
                             else
                                 errorMessage = "Response format was invalid.";
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            errorMessage = "Failed to parse the response.";
+                            if (!String.IsNullOrEmpty(responseStr))
+                                errorMessage = "Failed to parse the response:\n" + responseStr;
+                            else
+                                errorMessage = "Failed to retrieve the response: " + ex.Message;
                         }
                     }
                 }
