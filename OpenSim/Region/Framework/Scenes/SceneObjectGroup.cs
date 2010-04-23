@@ -612,6 +612,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         UUID itemid = new UUID(node.Attributes["UUID"].Value);
                         m_savedScriptState.Add(itemid, node.InnerXml);
+                        m_log.DebugFormat("[ScriptState]: Retrieved state for script item ID {0}", itemid.ToString());
                     }
                 } 
             }

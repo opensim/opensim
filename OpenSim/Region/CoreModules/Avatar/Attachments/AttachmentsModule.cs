@@ -271,7 +271,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
             {
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
-                item = m_scene.InventoryService.GetItem(item);
+                if (m_scene.InventoryService != null)
+                    item = m_scene.InventoryService.GetItem(item);
 
                 presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
             }

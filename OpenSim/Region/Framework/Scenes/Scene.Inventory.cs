@@ -1628,6 +1628,7 @@ namespace OpenSim.Region.Framework.Scenes
                         remoteClient.AgentId);
                     AssetService.Store(asset);
 
+                    m_log.DebugFormat("[ScriptState]: Saved attachment as asset {0}", asset.FullID);
                     item.AssetID = asset.FullID;
                     item.Description = asset.Description;
                     item.Name = asset.Name;
