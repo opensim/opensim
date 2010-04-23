@@ -32,7 +32,7 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 using log4net;
-using Mono.Data.SqliteClient;
+using Mono.Data.Sqlite;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -87,119 +87,139 @@ namespace OpenSim.Data.SQLite
         /// <param name="connectionString">the connection string</param>
         public void Initialise(string connectionString)
         {
-            m_connectionString = connectionString;
-
-            ds = new DataSet();
-
-            m_log.Info("[REGION DB]: Sqlite - connecting: " + connectionString);
-            m_conn = new SqliteConnection(m_connectionString);
-            m_conn.Open();
-
-
-
-            SqliteCommand primSelectCmd = new SqliteCommand(primSelect, m_conn);
-            primDa = new SqliteDataAdapter(primSelectCmd);
-            //            SqliteCommandBuilder primCb = new SqliteCommandBuilder(primDa);
-
-            SqliteCommand shapeSelectCmd = new SqliteCommand(shapeSelect, m_conn);
-            shapeDa = new SqliteDataAdapter(shapeSelectCmd);
-            // SqliteCommandBuilder shapeCb = new SqliteCommandBuilder(shapeDa);
-
-            SqliteCommand itemsSelectCmd = new SqliteCommand(itemsSelect, m_conn);
-            itemsDa = new SqliteDataAdapter(itemsSelectCmd);
-
-            SqliteCommand terrainSelectCmd = new SqliteCommand(terrainSelect, m_conn);
-            terrainDa = new SqliteDataAdapter(terrainSelectCmd);
-
-            SqliteCommand landSelectCmd = new SqliteCommand(landSelect, m_conn);
-            landDa = new SqliteDataAdapter(landSelectCmd);
-
-            SqliteCommand landAccessListSelectCmd = new SqliteCommand(landAccessListSelect, m_conn);
-            landAccessListDa = new SqliteDataAdapter(landAccessListSelectCmd);
-
-            SqliteCommand regionSettingsSelectCmd = new SqliteCommand(regionSettingsSelect, m_conn);
-            regionSettingsDa = new SqliteDataAdapter(regionSettingsSelectCmd);
-            // This actually does the roll forward assembly stuff
-            Assembly assem = GetType().Assembly;
-            Migration m = new Migration(m_conn, assem, "RegionStore");
-            m.Update();
-
-            lock (ds)
+            try
             {
-                ds.Tables.Add(createPrimTable());
-                setupPrimCommands(primDa, m_conn);
-                primDa.Fill(ds.Tables["prims"]);
+                m_connectionString = connectionString;
 
-                ds.Tables.Add(createShapeTable());
-                setupShapeCommands(shapeDa, m_conn);
+                ds = new DataSet("Region");
 
-                ds.Tables.Add(createItemsTable());
-                setupItemsCommands(itemsDa, m_conn);
-                itemsDa.Fill(ds.Tables["primitems"]);
+                m_log.Info("[REGION DB]: Sqlite - connecting: " + connectionString);
+                m_conn = new SqliteConnection(m_connectionString);
+                m_conn.Open();
 
-                ds.Tables.Add(createTerrainTable());
-                setupTerrainCommands(terrainDa, m_conn);
+                SqliteCommand primSelectCmd = new SqliteCommand(primSelect, m_conn);
+                //SqliteCommand primSelectCmd = new SqliteCommand(primSelect, m_conn);
+                //primDa = new SqliteDataAdapter(primSelectCmd);
+                primDa = new SqliteDataAdapter(primSelect, m_connectionString);
+                //            SqliteCommandBuilder primCb = new SqliteCommandBuilder(primDa);
 
-                ds.Tables.Add(createLandTable());
-                setupLandCommands(landDa, m_conn);
+                SqliteCommand shapeSelectCmd = new SqliteCommand(shapeSelect, m_conn);
+                shapeDa = new SqliteDataAdapter(shapeSelectCmd);
+                // SqliteCommandBuilder shapeCb = new SqliteCommandBuilder(shapeDa);
 
-                ds.Tables.Add(createLandAccessListTable());
-                setupLandAccessCommands(landAccessListDa, m_conn);
+                SqliteCommand itemsSelectCmd = new SqliteCommand(itemsSelect, m_conn);
+                itemsDa = new SqliteDataAdapter(itemsSelectCmd);
 
-                ds.Tables.Add(createRegionSettingsTable());
-                
-                setupRegionSettingsCommands(regionSettingsDa, m_conn);
+                SqliteCommand terrainSelectCmd = new SqliteCommand(terrainSelect, m_conn);
+                terrainDa = new SqliteDataAdapter(terrainSelectCmd);
 
-                // WORKAROUND: This is a work around for sqlite on
-                // windows, which gets really unhappy with blob columns
-                // that have no sample data in them.  At some point we
-                // need to actually find a proper way to handle this.
-                try
+                SqliteCommand landSelectCmd = new SqliteCommand(landSelect, m_conn);
+                landDa = new SqliteDataAdapter(landSelectCmd);
+
+                SqliteCommand landAccessListSelectCmd = new SqliteCommand(landAccessListSelect, m_conn);
+                landAccessListDa = new SqliteDataAdapter(landAccessListSelectCmd);
+
+                SqliteCommand regionSettingsSelectCmd = new SqliteCommand(regionSettingsSelect, m_conn);
+                regionSettingsDa = new SqliteDataAdapter(regionSettingsSelectCmd);
+                // This actually does the roll forward assembly stuff
+                Assembly assem = GetType().Assembly;
+                Migration m = new Migration(m_conn, assem, "RegionStore");
+                m.Update();
+
+                lock (ds)
                 {
-                    shapeDa.Fill(ds.Tables["primshapes"]);
-                }
-                catch (Exception)
-                {
-                    m_log.Info("[REGION DB]: Caught fill error on primshapes table");
-                }
+                    //ds.Tables.Add(createPrimTable());
+                    //setupPrimCommands(primDa, m_conn);
+                    //primDa.Fill(ds.Tables["prims"]);
+                    primDa.Fill(ds, "prims");
 
-                try
-                {
-                    terrainDa.Fill(ds.Tables["terrain"]);
-                }
-                catch (Exception)
-                {
-                    m_log.Info("[REGION DB]: Caught fill error on terrain table");
-                }
+                    ds.Tables.Add(createShapeTable());
+                    setupShapeCommands(shapeDa, m_conn);
 
-                try
-                {
-                    landDa.Fill(ds.Tables["land"]);
-                }
-                catch (Exception)
-                {
-                    m_log.Info("[REGION DB]: Caught fill error on land table");
-                }
+                    ds.Tables.Add(createItemsTable());
+                    setupItemsCommands(itemsDa, m_conn);
+                    itemsDa.Fill(ds.Tables["primitems"]);
 
-                try
-                {
-                    landAccessListDa.Fill(ds.Tables["landaccesslist"]);
-                }
-                catch (Exception)
-                {
-                    m_log.Info("[REGION DB]: Caught fill error on landaccesslist table");
-                }
+                    ds.Tables.Add(createTerrainTable());
+                    setupTerrainCommands(terrainDa, m_conn);
 
-                try
-                {
-                    regionSettingsDa.Fill(ds.Tables["regionsettings"]);
+                    ds.Tables.Add(createLandTable());
+                    setupLandCommands(landDa, m_conn);
+
+                    ds.Tables.Add(createLandAccessListTable());
+                    setupLandAccessCommands(landAccessListDa, m_conn);
+
+                    ds.Tables.Add(createRegionSettingsTable());
+                    
+                    setupRegionSettingsCommands(regionSettingsDa, m_conn);
+
+                    // WORKAROUND: This is a work around for sqlite on
+                    // windows, which gets really unhappy with blob columns
+                    // that have no sample data in them.  At some point we
+                    // need to actually find a proper way to handle this.
+                    try
+                    {
+                        shapeDa.Fill(ds.Tables["primshapes"]);
+                    }
+                    catch (Exception)
+                    {
+                        m_log.Info("[REGION DB]: Caught fill error on primshapes table");
+                    }
+
+                    try
+                    {
+                        terrainDa.Fill(ds.Tables["terrain"]);
+                    }
+                    catch (Exception)
+                    {
+                        m_log.Info("[REGION DB]: Caught fill error on terrain table");
+                    }
+
+                    try
+                    {
+                        landDa.Fill(ds.Tables["land"]);
+                    }
+                    catch (Exception)
+                    {
+                        m_log.Info("[REGION DB]: Caught fill error on land table");
+                    }
+
+                    try
+                    {
+                        landAccessListDa.Fill(ds.Tables["landaccesslist"]);
+                    }
+                    catch (Exception)
+                    {
+                        m_log.Info("[REGION DB]: Caught fill error on landaccesslist table");
+                    }
+
+                    try
+                    {
+                        regionSettingsDa.Fill(ds.Tables["regionsettings"]);
+                    }
+                    catch (Exception)
+                    {
+                        m_log.Info("[REGION DB]: Caught fill error on regionsettings table");
+                    }
+
+                    // We have to create a data set mapping for every table, otherwise the IDataAdaptor.Update() will not populate rows with values!
+                    // Not sure exactly why this is - this kind of thing was not necessary before - justincc 20100409
+                    CreateDataSetMapping(primDa, "prims");
+                    CreateDataSetMapping(shapeDa, "primshapes");
+                    CreateDataSetMapping(itemsDa, "primitems");
+                    CreateDataSetMapping(terrainDa, "terrain");
+                    CreateDataSetMapping(landDa, "land");
+                    CreateDataSetMapping(landAccessListDa, "landaccesslist");
+                    CreateDataSetMapping(regionSettingsDa, "regionsettings");
                 }
-                catch (Exception)
-                {
-                    m_log.Info("[REGION DB]: Caught fill error on regionsettings table");
-                }
-                return;
             }
+            catch (Exception e)
+            {
+              m_log.Error(e);
+              Environment.Exit(23);
+            }
+
+            return;
         }
 
         public void Dispose()
@@ -603,7 +623,7 @@ namespace OpenSim.Data.SQLite
                                     }
                                 }
                             }
-                            rev = (int) row["Revision"];
+                            rev = Convert.ToInt32(row["Revision"]);
                         }
                         else
                         {
@@ -755,6 +775,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         public void Commit()
         {
+            m_log.Debug("[SQLITE]: Starting commit");
             lock (ds)
             {
                 primDa.Update(ds, "prims");
@@ -769,18 +790,11 @@ namespace OpenSim.Data.SQLite
                 {
                     regionSettingsDa.Update(ds, "regionsettings");
                 } 
-                catch (SqliteExecutionException SqlEx)
+                catch (SqliteException SqlEx)
                 {
-                  if (SqlEx.Message.Contains("logic error"))
-                  {
-                      throw new Exception(
-                          "There was a SQL error or connection string configuration error when saving the region settings.  This could be a bug, it could also happen if ConnectionString is defined in the [DatabaseService] section of StandaloneCommon.ini in the config_include folder.  This could also happen if the config_include folder doesn't exist or if the OpenSim.ini [Architecture] section isn't set.  If this is your first time running OpenSimulator, please restart the simulator and bug a developer to fix this!",
-                          SqlEx);
-                  }
-                  else
-                  {
-                      throw SqlEx;
-                  }
+                    throw new Exception(
+                        "There was a SQL error or connection string configuration error when saving the region settings.  This could be a bug, it could also happen if ConnectionString is defined in the [DatabaseService] section of StandaloneCommon.ini in the config_include folder.  This could also happen if the config_include folder doesn't exist or if the OpenSim.ini [Architecture] section isn't set.  If this is your first time running OpenSimulator, please restart the simulator and bug a developer to fix this!",
+                        SqlEx);
                 }
                 ds.AcceptChanges();
             }
@@ -801,6 +815,15 @@ namespace OpenSim.Data.SQLite
          *  This should be db agnostic as we define them in ADO.NET terms
          *
          **********************************************************************/
+
+        protected void CreateDataSetMapping(IDataAdapter da, string tableName)
+        {
+            ITableMapping dbMapping = da.TableMappings.Add(tableName, tableName);
+            foreach (DataColumn col in ds.Tables[tableName].Columns)
+            {
+                dbMapping.ColumnMappings.Add(col.ColumnName, col.ColumnName);
+            }
+        }
 
         /// <summary>
         ///
@@ -1964,6 +1987,7 @@ namespace OpenSim.Data.SQLite
             sql += ") values (:";
             sql += String.Join(", :", cols);
             sql += ")";
+            m_log.DebugFormat("[SQLITE]: Created insert command {0}", sql);
             SqliteCommand cmd = new SqliteCommand(sql);
 
             // this provides the binding for all our parameters, so
@@ -2258,6 +2282,36 @@ namespace OpenSim.Data.SQLite
             {
                 return DbType.String;
             }
+        }
+        
+        static void PrintDataSet(DataSet ds)
+        {
+          // Print out any name and extended properties.
+          Console.WriteLine("DataSet is named: {0}", ds.DataSetName);
+          foreach (System.Collections.DictionaryEntry de in ds.ExtendedProperties)
+          {
+            Console.WriteLine("Key = {0}, Value = {1}", de.Key, de.Value);
+          }
+          Console.WriteLine();
+          foreach (DataTable dt in ds.Tables)
+          {
+            Console.WriteLine("=> {0} Table:", dt.TableName);
+            // Print out the column names.
+            for (int curCol = 0; curCol < dt.Columns.Count; curCol++)
+            {
+              Console.Write(dt.Columns[curCol].ColumnName + "\t");
+            }
+            Console.WriteLine("\n----------------------------------");
+            // Print the DataTable.
+            for (int curRow = 0; curRow < dt.Rows.Count; curRow++)
+            {
+              for (int curCol = 0; curCol < dt.Columns.Count; curCol++)
+              {
+                Console.Write(dt.Rows[curRow][curCol].ToString() + "\t");
+              }
+              Console.WriteLine();
+            }
+          }
         }
 
     }
