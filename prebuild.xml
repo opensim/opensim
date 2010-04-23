@@ -1299,7 +1299,7 @@
     </Project>
 
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Server" path="OpenSim/Server" type="Exe">
+    <Project frameworkVersion="v3_5" name="Robust" path="OpenSim/Server" type="Exe">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../bin/</OutputPath>

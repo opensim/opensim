@@ -146,6 +146,8 @@ namespace OpenSim.Data
                 {
                     m_log.DebugFormat("[MIGRATIONS] Cmd was {0}", cmd.CommandText);
                     m_log.DebugFormat("[MIGRATIONS]: An error has occurred in the migration {0}.\n This may mean you could see errors trying to run OpenSim. If you see database related errors, you will need to fix the issue manually. Continuing.", e.Message);
+                    cmd.CommandText = "ROLLBACK;";
+                    cmd.ExecuteNonQuery();
                 }
 
                 if (version == 0)
