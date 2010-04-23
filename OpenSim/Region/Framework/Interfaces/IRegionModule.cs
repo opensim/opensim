@@ -30,6 +30,9 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
+    /// <summary>
+    /// DEPRECATED! Use INonSharedRegionModule or ISharedRegionModule instead
+    /// </summary>
     public interface IRegionModule
     {
         void Initialise(Scene scene, IConfigSource source);
