@@ -35,7 +35,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 
-namespace OpenSim.Data.SQLite
+namespace OpenSim.Data.SQLiteNG
 {
     public class SQLiteEstateStore : IEstateDataStore
     {

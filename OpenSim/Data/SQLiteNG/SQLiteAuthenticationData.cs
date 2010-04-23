@@ -33,7 +33,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using Mono.Data.Sqlite;
 
-namespace OpenSim.Data.SQLite
+namespace OpenSim.Data.SQLiteNG
 {
     public class SQLiteAuthenticationData : SQLiteFramework, IAuthenticationData
     {
