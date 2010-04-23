@@ -34,7 +34,7 @@ using Mono.Data.Sqlite;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-namespace OpenSim.Data.SQLite
+namespace OpenSim.Data.SQLiteNG
 {
     /// <summary>
     /// An asset storage interface for the SQLite database system

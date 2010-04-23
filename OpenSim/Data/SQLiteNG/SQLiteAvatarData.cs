@@ -35,7 +35,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using Mono.Data.Sqlite;
 
-namespace OpenSim.Data.SQLite
+namespace OpenSim.Data.SQLiteNG
 {
     /// <summary>
     /// A SQLite Interface for Avatar Data

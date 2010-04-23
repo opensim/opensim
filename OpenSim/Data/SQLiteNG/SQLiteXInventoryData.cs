@@ -34,7 +34,7 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-namespace OpenSim.Data.SQLite
+namespace OpenSim.Data.SQLiteNG
 {
     /// <summary>
     /// A MySQL Interface for the Asset Server
