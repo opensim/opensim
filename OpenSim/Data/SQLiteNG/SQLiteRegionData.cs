@@ -98,10 +98,7 @@ namespace OpenSim.Data.SQLiteNG
                 m_conn.Open();
 
                 SqliteCommand primSelectCmd = new SqliteCommand(primSelect, m_conn);
-                //SqliteCommand primSelectCmd = new SqliteCommand(primSelect, m_conn);
-                //primDa = new SqliteDataAdapter(primSelectCmd);
-                primDa = new SqliteDataAdapter(primSelect, m_connectionString);
-                //            SqliteCommandBuilder primCb = new SqliteCommandBuilder(primDa);
+                primDa = new SqliteDataAdapter(primSelectCmd);
 
                 SqliteCommand shapeSelectCmd = new SqliteCommand(shapeSelect, m_conn);
                 shapeDa = new SqliteDataAdapter(shapeSelectCmd);
@@ -128,17 +125,14 @@ namespace OpenSim.Data.SQLiteNG
 
                 lock (ds)
                 {
-                    //ds.Tables.Add(createPrimTable());
-                    //setupPrimCommands(primDa, m_conn);
-                    //primDa.Fill(ds.Tables["prims"]);
-                    primDa.Fill(ds, "prims");
+                    ds.Tables.Add(createPrimTable());
+                    setupPrimCommands(primDa, m_conn);
 
                     ds.Tables.Add(createShapeTable());
                     setupShapeCommands(shapeDa, m_conn);
 
                     ds.Tables.Add(createItemsTable());
                     setupItemsCommands(itemsDa, m_conn);
-                    itemsDa.Fill(ds.Tables["primitems"]);
 
                     ds.Tables.Add(createTerrainTable());
                     setupTerrainCommands(terrainDa, m_conn);
@@ -150,13 +144,21 @@ namespace OpenSim.Data.SQLiteNG
                     setupLandAccessCommands(landAccessListDa, m_conn);
 
                     ds.Tables.Add(createRegionSettingsTable());
-                    
                     setupRegionSettingsCommands(regionSettingsDa, m_conn);
 
                     // WORKAROUND: This is a work around for sqlite on
                     // windows, which gets really unhappy with blob columns
                     // that have no sample data in them.  At some point we
                     // need to actually find a proper way to handle this.
+                    try
+                    {
+                        primDa.Fill(ds.Tables["prims"]);
+                    }
+                    catch (Exception)
+                    {
+                        m_log.Info("[REGION DB]: Caught fill error on prims table");
+                    }
+
                     try
                     {
                         shapeDa.Fill(ds.Tables["primshapes"]);
@@ -204,6 +206,7 @@ namespace OpenSim.Data.SQLiteNG
 
                     // We have to create a data set mapping for every table, otherwise the IDataAdaptor.Update() will not populate rows with values!
                     // Not sure exactly why this is - this kind of thing was not necessary before - justincc 20100409
+                    // Possibly because we manually set up our own DataTables before connecting to the database
                     CreateDataSetMapping(primDa, "prims");
                     CreateDataSetMapping(shapeDa, "primshapes");
                     CreateDataSetMapping(itemsDa, "primitems");
