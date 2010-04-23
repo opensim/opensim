@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.CoreModules.Avatar.Attachments
 {
@@ -405,6 +406,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     if (group.GetFromItemID() == itemID)
                     {
                         m_scene.EventManager.TriggerOnAttach(group.LocalId, itemID, UUID.Zero);
+                        // CM / XMREngine!!!! Needed to conclude attach event
+                        SceneObjectSerializer.ToOriginalXmlFormat(group);
                         group.DetachToInventoryPrep();
                         m_log.Debug("[ATTACHMENTS MODULE]: Saving attachpoint: " + ((uint)group.GetAttachmentPoint()).ToString());
                         m_scene.UpdateKnownItem(remoteClient, group,group.GetFromItemID(), group.OwnerID);
