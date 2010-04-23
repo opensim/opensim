@@ -149,8 +149,9 @@ namespace OpenSim.Data
                     UpdateVersion(_type, newversion);
                 }
                 version = newversion;
-                cmd.Dispose();
             }
+
+            cmd.Dispose();            
         }
 
         // private int MaxVersion()
