@@ -1228,10 +1228,6 @@
 ;; These defaults allow OpenSim to work out of the box with
 ;; zero configuration
 ;;
-[DatabaseService]
-    ;; default standalone, overridable in StandaloneCommon.ini
-    StorageProvider = "OpenSim.Data.SQLite.dll"
-
 [AssetService]
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
