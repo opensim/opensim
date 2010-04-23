@@ -1232,7 +1232,6 @@
     ;; default standalone, overridable in StandaloneCommon.ini
     StorageProvider = "OpenSim.Data.SQLite.dll"
 
-
 [AssetService]
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
