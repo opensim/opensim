@@ -94,8 +94,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public void HandleLoadOarConsoleCommand(string module, string[] cmdparams)
         {
             bool mergeOar = false;
+            bool skipAssets = false;
             
             OptionSet options = new OptionSet().Add("m|merge", delegate (string v) { mergeOar = v != null; });
+            options.Add("s|skip-assets", delegate (string v) { skipAssets = v != null; });
+            
             List<string> mainParams = options.Parse(cmdparams);
           
 //            m_log.DebugFormat("MERGE OAR IS [{0}]", mergeOar);
@@ -105,11 +108,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             
             if (mainParams.Count > 2)
             {
-                DearchiveRegion(mainParams[2], mergeOar, Guid.Empty);
+                DearchiveRegion(mainParams[2], mergeOar, skipAssets, Guid.Empty);
             }
             else
             {
-                DearchiveRegion(DEFAULT_OAR_BACKUP_FILENAME, mergeOar, Guid.Empty);
+                DearchiveRegion(DEFAULT_OAR_BACKUP_FILENAME, mergeOar, skipAssets, Guid.Empty);
             }
         }
 
@@ -154,25 +157,25 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void DearchiveRegion(string loadPath)
         {
-            DearchiveRegion(loadPath, false, Guid.Empty);
+            DearchiveRegion(loadPath, false, false, Guid.Empty);
         }
         
-        public void DearchiveRegion(string loadPath, bool merge, Guid requestId)
+        public void DearchiveRegion(string loadPath, bool merge, bool skipAssets, Guid requestId)
         {
             m_log.InfoFormat(
                 "[ARCHIVER]: Loading archive to region {0} from {1}", m_scene.RegionInfo.RegionName, loadPath);
             
-            new ArchiveReadRequest(m_scene, loadPath, merge, requestId).DearchiveRegion();
+            new ArchiveReadRequest(m_scene, loadPath, merge, skipAssets, requestId).DearchiveRegion();
         }
         
         public void DearchiveRegion(Stream loadStream)
         {
-            DearchiveRegion(loadStream, false, Guid.Empty);
+            DearchiveRegion(loadStream, false, false, Guid.Empty);
         }
         
-        public void DearchiveRegion(Stream loadStream, bool merge, Guid requestId)
+        public void DearchiveRegion(Stream loadStream, bool merge, bool skipAssets, Guid requestId)
         {
-            new ArchiveReadRequest(m_scene, loadStream, merge, requestId).DearchiveRegion();
+            new ArchiveReadRequest(m_scene, loadStream, merge, skipAssets, requestId).DearchiveRegion();
         }
     }
 }

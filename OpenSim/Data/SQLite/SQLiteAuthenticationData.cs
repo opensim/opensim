@@ -235,7 +235,7 @@ namespace OpenSim.Data.SQLite
             if (System.Environment.TickCount - m_LastExpire > 30000)
                 DoExpire();
 
-            SqliteCommand cmd = new SqliteCommand("update tokens set validity = datetime('now, 'localtime', '+" + lifetime.ToString() + 
+            SqliteCommand cmd = new SqliteCommand("update tokens set validity = datetime('now', 'localtime', '+" + lifetime.ToString() + 
                 " minutes') where UUID = '" + principalID.ToString() + "' and token = '" + token + "' and validity > datetime('now', 'localtime')");
 
             if (ExecuteNonQuery(cmd, m_Connection) > 0)

@@ -59,7 +59,8 @@ Once you are presented with a prompt that looks like:
 
 You have successfully started OpenSim.
 
-Before you can log in you will need to create a user account.  You can do
+Before you can log in you will need to create a user account if you didn't already create
+your user as the "Master Avatar" during the region configuration stage.  You can do
 this by running the "create user" command on the OpenSim console.  This will
 ask you a series of questions such as first name, last name and password.
 

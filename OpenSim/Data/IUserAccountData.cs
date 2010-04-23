@@ -48,6 +48,7 @@ namespace OpenSim.Data
     {
         UserAccountData[] Get(string[] fields, string[] values);
         bool Store(UserAccountData data);
+        bool Delete(string field, string val);
         UserAccountData[] GetUsers(UUID scopeID, string query);
     }
 }

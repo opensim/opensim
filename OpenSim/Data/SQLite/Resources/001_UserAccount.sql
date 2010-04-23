@@ -2,7 +2,7 @@
 
 -- useraccounts table
 CREATE TABLE UserAccounts (
-    PrincipalID CHAR(36) NOT NULL,
+    PrincipalID CHAR(36)  primary key,
     ScopeID CHAR(36) NOT NULL,
     FirstName VARCHAR(64) NOT NULL,
     LastName VARCHAR(64) NOT NULL,

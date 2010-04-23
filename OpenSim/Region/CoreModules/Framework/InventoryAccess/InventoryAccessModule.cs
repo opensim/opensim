@@ -601,6 +601,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         
                         // Fire on_rez
                         group.CreateScriptInstances(0, true, m_Scene.DefaultScriptEngine, 0);
+                        rootPart.ParentGroup.ResumeScripts();
 
                         rootPart.ScheduleFullUpdate();
                     }

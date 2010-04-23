@@ -1079,7 +1079,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             
                     if ((part.GroupMask & (uint)PermissionMask.Modify) == 0)
                         return false;
-                } else {
+                } 
+                else
+                {
                     if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
                     return false;
                 }
@@ -1095,7 +1097,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                         return false;
 
                     if (!IsGroupMember(ti.GroupID, user, 0))
-                    return false;
+                        return false;
                 }
 
                 // Require full perms
@@ -1593,14 +1595,16 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 if (part.OwnerID != user)
                 {
                     if (part.GroupID == UUID.Zero)
-                    return false;
+                        return false;
 
                     if (!IsGroupMember(part.GroupID, user, 0))
                         return false;
             
                     if ((part.GroupMask & (uint)PermissionMask.Modify) == 0)
                         return false;
-                } else {
+                } 
+                else 
+                {
                     if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
                         return false;
                 }
@@ -1855,7 +1859,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return GenericObjectPermission(agentID, prim, false);
         }
 
-        private bool CanCompileScript(UUID ownerUUID, int scriptType, Scene scene) {
+        private bool CanCompileScript(UUID ownerUUID, int scriptType, Scene scene) 
+        {
              //m_log.DebugFormat("check if {0} is allowed to compile {1}", ownerUUID, scriptType);
             switch (scriptType) {
                 case 0:

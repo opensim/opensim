@@ -416,5 +416,13 @@ namespace OpenSim.Region.Framework.Scenes
                 scriptModule.SetXMLState(itemID, n.OuterXml);
             }
         }
+
+        public void ResumeScripts()
+        {
+            foreach (SceneObjectPart part in m_parts.Values)
+            {
+                part.Inventory.ResumeScripts();
+            }
+        }
     }
 }

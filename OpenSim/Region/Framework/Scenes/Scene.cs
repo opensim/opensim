@@ -1131,7 +1131,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_scripts_enabled != !ScriptEngine)
             {
-                // Tedd!   Here's the method to disable the scripting engine!
                 if (ScriptEngine)
                 {
                     m_log.Info("Stopping all Scripts in Scene");
@@ -1153,6 +1152,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (ent is SceneObjectGroup)
                             {
                                 ((SceneObjectGroup)ent).CreateScriptInstances(0, false, DefaultScriptEngine, 0);
+                                ((SceneObjectGroup)ent).ResumeScripts();
                             }
                         }
                     }
@@ -2769,14 +2769,13 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public virtual void SubscribeToClientAttachmentEvents(IClientAPI client)
-        {            
-            client.OnRezMultipleAttachmentsFromInv += RezMultipleAttachments;            
-            client.OnObjectDetach += m_sceneGraph.DetachObject;
-
+        {                                    
             if (AttachmentsModule != null)
             {
                 client.OnRezSingleAttachmentFromInv += AttachmentsModule.RezSingleAttachmentFromInventory;
+                client.OnRezMultipleAttachmentsFromInv += AttachmentsModule.RezMultipleAttachmentsFromInventory;
                 client.OnObjectAttach += AttachmentsModule.AttachObject;
+                client.OnObjectDetach += AttachmentsModule.DetachObject;
                 client.OnDetachAttachmentIntoInv += AttachmentsModule.ShowDetachInUserInventory;
             }
         }
@@ -2925,14 +2924,13 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public virtual void UnSubscribeToClientAttachmentEvents(IClientAPI client)
-        {
-            client.OnRezMultipleAttachmentsFromInv -= RezMultipleAttachments;            
-            client.OnObjectDetach -= m_sceneGraph.DetachObject;
-
+        {            
             if (AttachmentsModule != null)
             {
-                client.OnRezSingleAttachmentFromInv -= AttachmentsModule.RezSingleAttachmentFromInventory;            
+                client.OnRezSingleAttachmentFromInv -= AttachmentsModule.RezSingleAttachmentFromInventory;
+                client.OnRezMultipleAttachmentsFromInv -= AttachmentsModule.RezMultipleAttachmentsFromInventory;
                 client.OnObjectAttach -= AttachmentsModule.AttachObject;
+                client.OnObjectDetach -= AttachmentsModule.DetachObject;
                 client.OnDetachAttachmentIntoInv -= AttachmentsModule.ShowDetachInUserInventory;
             }
         }
