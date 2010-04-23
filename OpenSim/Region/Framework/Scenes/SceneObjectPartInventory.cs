@@ -333,10 +333,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (engines == null) // No engine at all
                 return;
 
-            m_log.DebugFormat("[ScriptState]: Item ID changed: {0} to {1}", oldID, newID);
             if (m_part.ParentGroup.m_savedScriptState.ContainsKey(oldID))
             {
-                m_log.DebugFormat("[ScriptState]: Found script state for {0}, applying to new script item {1}", oldID, newID);
                 XmlDocument doc = new XmlDocument();
 
                 doc.LoadXml(m_part.ParentGroup.m_savedScriptState[oldID]);
@@ -381,10 +379,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
                 m_part.ParentGroup.m_savedScriptState.Remove(oldID);
-            }
-            else
-            {
-                m_log.DebugFormat("[ScriptState]: No state for old ID {0}", oldID);
             }
         }
 
