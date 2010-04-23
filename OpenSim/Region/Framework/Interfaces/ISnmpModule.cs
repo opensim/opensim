@@ -20,4 +20,5 @@ public interface ISnmpModule
 	//
     void LinkUp(Scene scene);
     void LinkDown(Scene scene);
+    void BootInfo(string data, Scene scene);
 }
