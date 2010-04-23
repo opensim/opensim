@@ -350,11 +350,9 @@ namespace OpenSim
             if (scene.SnmpService != null)
             {
                 scene.SnmpService.ColdStart(1,scene);
+                scene.SnmpService.LinkDown(scene);
             }
 
-// it should be a LinkDown event
-// Maped inside opennms
-// bad...
             if (scene.SnmpService != null)
             {
                 scene.SnmpService.Warning("Loading prins", scene);
@@ -439,6 +437,7 @@ namespace OpenSim
             if (scene.SnmpService != null)
             {
                 scene.SnmpService.Warning("The region is operational", scene);
+                scene.SnmpService.LinkUp(scene);
             }
 
             scene.StartTimer();
