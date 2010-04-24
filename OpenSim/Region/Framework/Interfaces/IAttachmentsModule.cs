@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Xml;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
@@ -81,6 +82,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns>The uuid of the scene object that was attached.  Null if the scene object could not be found</returns>
         UUID RezSingleAttachmentFromInventory(
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus);
+
+        // Same as above, but also load script states from a separate doc
+        UUID RezSingleAttachmentFromInventory(
+            IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus, XmlDocument doc);
 
         /// <summary>
         /// Rez multiple attachments from a user's inventory

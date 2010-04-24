@@ -27,6 +27,7 @@
 
 using System.Collections.Generic;
 using System.Reflection;
+using System.Xml;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
@@ -191,8 +192,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public UUID RezSingleAttachmentFromInventory(
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus)
+        {
+            return RezSingleAttachmentFromInventory(remoteClient, itemID, AttachmentPt, true, null);
+        }
+
+        public UUID RezSingleAttachmentFromInventory(
+            IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus, XmlDocument doc)
         {                        
-            SceneObjectGroup att = RezSingleAttachmentFromInventoryInternal(remoteClient, itemID, AttachmentPt);
+            SceneObjectGroup att = RezSingleAttachmentFromInventoryInternal(remoteClient, itemID, AttachmentPt, doc);
 
             if (updateInventoryStatus)
             {
@@ -211,7 +218,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         }        
 
         protected SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
-            IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
+            IClientAPI remoteClient, UUID itemID, uint AttachmentPt, XmlDocument doc)
         {
             IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
             if (invAccess != null)
@@ -236,6 +243,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     
                     if (tainted)
                         objatt.HasGroupChanged = true;
+
+                    if (doc != null)
+                        objatt.LoadScriptState(doc);
 
                     // Fire after attach, so we don't get messy perms dialogs
                     // 3 == AttachedRez
@@ -318,6 +328,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             {
                 // XXYY!!
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
+                if (item == null)
+                    m_log.Error("[ATTACHMENT]: item == null");
+                if (m_scene == null)
+                    m_log.Error("[ATTACHMENT]: m_scene == null");
+                if (m_scene.InventoryService == null)
+                    m_log.Error("[ATTACHMENT]: m_scene.InventoryService == null");
                 item = m_scene.InventoryService.GetItem(item);
                 presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /* att.UUID */);
 

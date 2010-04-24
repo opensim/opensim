@@ -3984,7 +3984,7 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
                 {
                     // Rez from inventory
                     UUID asset 
-                        = m_scene.AttachmentsModule.RezSingleAttachmentFromInventory(ControllingClient, itemID, (uint)p);
+                        = m_scene.AttachmentsModule.RezSingleAttachmentFromInventory(ControllingClient, itemID, (uint)p, true, null);
 
                     m_log.InfoFormat(
                         "[ATTACHMENT]: Rezzed attachment in point {0} from item {1} and asset {2} ({3})",
