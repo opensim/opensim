@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Xml;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Timers;
@@ -3963,6 +3964,32 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
                 return;
             }
 
+            XmlDocument doc = new XmlDocument();
+            string stateData = String.Empty;
+
+            IAttachmentsService attServ = m_scene.RequestModuleInterface<IAttachmentsService>();
+            if (attServ != null)
+            {
+                m_log.DebugFormat("[ATTACHMENT]: Loading attachment data from attachment service");
+                stateData = attServ.Get(ControllingClient.AgentId.ToString());
+                doc.LoadXml(stateData);
+            }
+
+            Dictionary<UUID, string> itemData = new Dictionary<UUID, string>();
+
+            XmlNodeList nodes = doc.GetElementsByTagName("Attachment");
+            if (nodes.Count > 0)
+            {
+                foreach (XmlNode n in nodes)
+                {
+                    XmlElement elem = (XmlElement)n;
+                    string itemID = elem.GetAttribute("ItemID");
+                    string xml = elem.InnerXml;
+
+                    itemData[new UUID(itemID)] = xml;
+                }
+            }
+
             List<int> attPoints = m_appearance.GetAttachedPoints();
             foreach (int p in attPoints)
             {
@@ -3982,9 +4009,17 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
 
                 try
                 {
+                    string xmlData;
+                    XmlDocument d = new XmlDocument();
+                    if (itemData.TryGetValue(itemID, out xmlData))
+                    {
+                        d.LoadXml(xmlData);
+                        m_log.InfoFormat("[ATTACHMENT]: Found saved state for item {0}, loading it", itemID);
+                    }
+
                     // Rez from inventory
                     UUID asset 
-                        = m_scene.AttachmentsModule.RezSingleAttachmentFromInventory(ControllingClient, itemID, (uint)p, true, null);
+                        = m_scene.AttachmentsModule.RezSingleAttachmentFromInventory(ControllingClient, itemID, (uint)p, true, d);
 
                     m_log.InfoFormat(
                         "[ATTACHMENT]: Rezzed attachment in point {0} from item {1} and asset {2} ({3})",

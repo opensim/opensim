@@ -524,7 +524,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     }
                     else
                     {
-                        throw new Exception("AttachTracer");
                         group.SetFromItemID(itemID);
                     }
 
