@@ -261,11 +261,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         //    }
         //}
 
-        public object GetCompilerOutput(UUID assetID)
+        public string GetCompilerOutput(string assetID)
         {
             return Path.Combine(ScriptEnginesPath, Path.Combine(
                     m_scriptEngine.World.RegionInfo.RegionID.ToString(),
                     FilePrefix + "_compiled_" + assetID + ".dll"));
+        }
+
+        public string GetCompilerOutput(UUID assetID)
+        {
+            return GetCompilerOutput(assetID.ToString());
         }
 
         /// <summary>
@@ -279,9 +284,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             linemap = null;
             m_warnings.Clear();
 
-            assembly = Path.Combine(ScriptEnginesPath, Path.Combine(
-                    m_scriptEngine.World.RegionInfo.RegionID.ToString(),
-                    FilePrefix + "_compiled_" + asset + ".dll"));
+            assembly = GetCompilerOutput(asset);
 
             if (!Directory.Exists(ScriptEnginesPath))
             {
