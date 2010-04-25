@@ -1041,6 +1041,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SaveScriptedState(XmlTextWriter writer)
         {
+            SaveScriptedState(writer, false);
+        }
+
+        public void SaveScriptedState(XmlTextWriter writer, bool oldIDs)
+        {
             XmlDocument doc = new XmlDocument();
             Dictionary<UUID,string> states = new Dictionary<UUID,string>();
 
@@ -1050,7 +1055,7 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
                     
-                    Dictionary<UUID,string> pstates = part.Inventory.GetScriptStates();
+                    Dictionary<UUID,string> pstates = part.Inventory.GetScriptStates(oldIDs);
                     foreach (UUID itemid in pstates.Keys)
                     {
                         states.Add(itemid, pstates[itemid]);

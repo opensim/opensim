@@ -311,11 +311,12 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_part.ParentGroup.m_savedScriptState != null)
                         RestoreSavedScriptState(item.OldItemID, item.ItemID);
 
-                    lock (m_items)
-                    {
-                        m_items[item.ItemID].PermsMask = 0;
-                        m_items[item.ItemID].PermsGranter = UUID.Zero;
-                    }
+                    m_items.LockItemsForWrite(true);
+
+                    m_items[item.ItemID].PermsMask = 0;
+                    m_items[item.ItemID].PermsGranter = UUID.Zero;
+
+                    m_items.LockItemsForWrite(false);
                 
                     string script = Utils.BytesToString(asset.Data);
                     m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
@@ -713,14 +714,15 @@ namespace OpenSim.Region.Framework.Scenes
         {
             IList<TaskInventoryItem> items = new List<TaskInventoryItem>();
 
-            lock (m_items)
+            m_items.LockItemsForRead(true);
+
+            foreach (TaskInventoryItem item in m_items.Values)
             {
-                foreach (TaskInventoryItem item in m_items.Values)
-                {
-                    if (item.Name == name)
-                        items.Add(item);
-                }
+                if (item.Name == name)
+                    items.Add(item);
             }
+
+            m_items.LockItemsForRead(false);
 
             return items;
         }
@@ -1115,6 +1117,11 @@ namespace OpenSim.Region.Framework.Scenes
         
         public Dictionary<UUID, string> GetScriptStates()
         {
+            return GetScriptStates(false);
+        }
+
+        public Dictionary<UUID, string> GetScriptStates(bool oldIDs)
+        {
             IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
 
             Dictionary<UUID, string> ret = new Dictionary<UUID, string>();
@@ -1132,8 +1139,16 @@ namespace OpenSim.Region.Framework.Scenes
                             string n = e.GetXMLState(item.ItemID);
                             if (n != String.Empty)
                             {
-                                if (!ret.ContainsKey(item.ItemID))
-                                    ret[item.ItemID] = n;
+                                if (oldIDs)
+                                {
+                                    if (!ret.ContainsKey(item.OldItemID))
+                                        ret[item.OldItemID] = n;
+                                }
+                                else
+                                {
+                                    if (!ret.ContainsKey(item.ItemID))
+                                        ret[item.ItemID] = n;
+                                }
                                 break;
                             }
                         }
