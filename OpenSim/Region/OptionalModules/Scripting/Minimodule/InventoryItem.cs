@@ -39,11 +39,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     public class InventoryItem : IInventoryItem
     {
         TaskInventoryItem m_privateItem;
-        Scene m_rootSceene;
+        Scene m_rootScene;
         
         public InventoryItem(Scene rootScene, TaskInventoryItem internalItem)
         {
-            m_rootSceene = rootScene;
+            m_rootScene = rootScene;
             m_privateItem = internalItem;
         }
 
@@ -82,9 +82,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public UUID AssetID { get { return m_privateItem.AssetID; } }
         
         // This method exposes OpenSim/OpenMetaverse internals and needs to be replaced with a IAsset specific to MRM.
-        public T RetreiveAsset<T>() where T : OpenMetaverse.Assets.Asset, new()
+        public T RetrieveAsset<T>() where T : OpenMetaverse.Assets.Asset, new()
         {
-            AssetBase a = m_rootSceene.AssetService.Get(AssetID.ToString());
+            AssetBase a = m_rootScene.AssetService.Get(AssetID.ToString());
             T result = new T();
 
             if ((sbyte)result.AssetType != a.Type)

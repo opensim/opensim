@@ -39,6 +39,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     {
         int Type { get; }
         UUID AssetID { get; }
-        T RetreiveAsset<T>() where T : Asset, new();
+        T RetrieveAsset<T>() where T : Asset, new();
     }
 }
