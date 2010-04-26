@@ -2215,7 +2215,6 @@
       </Files>
     </Project>
 
-    <!--
     <Project frameworkVersion="v3_5" name="OpenSim.Data.SQLiteNG" path="OpenSim/Data/SQLiteNG" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -2251,7 +2250,7 @@
         <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
--->
+
     
     <Project frameworkVersion="v3_5" name="OpenSim.Region.ScriptEngine.Shared" path="OpenSim/Region/ScriptEngine/Shared" type="Library">
       <Configuration name="Debug">
