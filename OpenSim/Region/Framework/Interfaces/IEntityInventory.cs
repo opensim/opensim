@@ -161,6 +161,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// in this prim's inventory.</param>
         /// <returns>false if the item did not exist, true if the update occurred successfully</returns>
         bool UpdateInventoryItem(TaskInventoryItem item);
+        bool UpdateInventoryItem(TaskInventoryItem item, bool fireScriptEvents);
 
         /// <summary>
         /// Remove an item from this entity's inventory
