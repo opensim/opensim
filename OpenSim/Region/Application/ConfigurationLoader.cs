@@ -349,12 +349,6 @@ namespace OpenSim
                 m_configSettings.See_into_region_from_neighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor", true);
 
                 m_configSettings.StorageDll = startupConfig.GetString("storage_plugin");
-                if (m_configSettings.StorageDll == "OpenSim.DataStore.MonoSqlite.dll")
-                {
-                    m_configSettings.StorageDll = "OpenSim.Data.SQLite.dll";
-                    m_log.Warn("WARNING: OpenSim.DataStore.MonoSqlite.dll is deprecated. Set storage_plugin to OpenSim.Data.SQLite.dll.");
-                    Thread.Sleep(3000);
-                }
 
                 m_configSettings.StorageConnectionString 
                     = startupConfig.GetString("storage_connection_string");

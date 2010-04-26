@@ -303,9 +303,11 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 HttpWebResponse response = MultipartForm.Post(request, postParameters);
                 using (Stream responseStream = response.GetResponseStream())
                 {
+                    string responseStr = null;
+
                     try
                     {
-                        string responseStr = responseStream.GetStreamString();
+                        responseStr = responseStream.GetStreamString();
                         OSD responseOSD = OSDParser.Deserialize(responseStr);
                         if (responseOSD.Type == OSDType.Map)
                         {
@@ -317,12 +319,15 @@ namespace OpenSim.Services.Connectors.SimianGrid
                         }
                         else
                         {
-                            errorMessage = "Response format was invalid.";
+                            errorMessage = "Response format was invalid:\n" + responseStr;
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        errorMessage = "Failed to parse the response.";
+                        if (!String.IsNullOrEmpty(responseStr))
+                            errorMessage = "Failed to parse the response:\n" + responseStr;
+                        else
+                            errorMessage = "Failed to retrieve the response: " + ex.Message;
                     }
                 }
             }

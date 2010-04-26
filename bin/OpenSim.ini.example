@@ -112,9 +112,11 @@
     ;storage_plugin = "OpenSim.Data.Null.dll"
 
     ; --- To use sqlite as region storage:
-    ; NOTE: SQLite and OpenSim are not functioning properly with Mono 2.4.3 or greater.
-    ; If you are using Mono you probably should be using MySQL
+    ; PLEASE NOTE: If you use want to use SQLite with Mono 2.6 and above, you must use the SQLiteNG plugin rather than the existing SQLite one
+    ; do this by commenting out the OpenSim.Data.SQLite.dll line below and uncommenting the OpenSim.Data.SQLiteNG.dll one
+    ; You will also need to do the same thing in config-include/StandaloneCommon.ini if you are running in standalone mode
     storage_plugin = "OpenSim.Data.SQLite.dll"
+    ; storage_plugin = "OpenSim.Data.SQLiteNG.dll"
     storage_connection_string="URI=file:OpenSim.db,version=3";
 
     ; --- To use MySQL storage, supply your own connection string (this is only an example):
@@ -1237,11 +1239,6 @@
 ;; These defaults allow OpenSim to work out of the box with
 ;; zero configuration
 ;;
-[DatabaseService]
-    ;; default standalone, overridable in StandaloneCommon.ini
-    StorageProvider = "OpenSim.Data.SQLite.dll"
-
-
 [AssetService]
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"

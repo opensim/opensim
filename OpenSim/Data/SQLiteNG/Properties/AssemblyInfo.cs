@@ -25,20 +25,41 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using Nini.Config;
-using OpenSim.Region.Framework.Scenes;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
-namespace OpenSim.Region.Framework.Interfaces
-{
-    /// <summary>
-    /// DEPRECATED! Use INonSharedRegionModule or ISharedRegionModule instead
-    /// </summary>
-    public interface IRegionModule
-    {
-        void Initialise(Scene scene, IConfigSource source);
-        void PostInitialise();
-        void Close();
-        string Name { get; }
-        bool IsSharedModule { get; }
-    }
-}
+// General information about an assembly is controlled through the following
+// set of attributes. Change these attribute values to modify the information
+// associated with an assembly.
+
+[assembly : AssemblyTitle("OpenSim.Data.SQLiteNG")]
+[assembly : AssemblyDescription("")]
+[assembly : AssemblyConfiguration("")]
+[assembly : AssemblyCompany("http://opensimulator.org")]
+[assembly : AssemblyProduct("OpenSim.Data.SQLiteNG")]
+[assembly : AssemblyCopyright("Copyright (c) OpenSimulator.org Developers 2007-2009")]
+[assembly : AssemblyTrademark("")]
+[assembly : AssemblyCulture("")]
+
+// Setting ComVisible to false makes the types in this assembly not visible
+// to COM components.  If you need to access a type in this assembly from
+// COM, set the ComVisible attribute to true on that type.
+
+[assembly : ComVisible(false)]
+
+// The following GUID is for the ID of the typelib if this project is exposed to COM
+
+[assembly : Guid("6113d5ce-4547-49f4-9236-0dcc503457b1")]
+
+// Version information for an assembly consists of the following four values:
+//
+//      Major Version
+//      Minor Version
+//      Build Number
+//      Revision
+//
+// You can specify all the values or you can default the Revision and Build Numbers
+// by using the '*' as shown below:
+
+[assembly : AssemblyVersion("0.6.5.*")]
+[assembly : AssemblyFileVersion("0.6.5.0")]

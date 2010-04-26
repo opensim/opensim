@@ -25,20 +25,50 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using Nini.Config;
-using OpenSim.Region.Framework.Scenes;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Reflection;
+using System.Threading;
+using log4net;
+using OpenMetaverse;
+using OpenSim.Framework;
+using Mono.Data.Sqlite;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Data.SQLiteNG
 {
     /// <summary>
-    /// DEPRECATED! Use INonSharedRegionModule or ISharedRegionModule instead
+    /// A SQLite Interface for Avatar Data
     /// </summary>
-    public interface IRegionModule
+    public class SQLiteAvatarData : SQLiteGenericTableHandler<AvatarBaseData>,
+            IAvatarData
     {
-        void Initialise(Scene scene, IConfigSource source);
-        void PostInitialise();
-        void Close();
-        string Name { get; }
-        bool IsSharedModule { get; }
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public SQLiteAvatarData(string connectionString, string realm) :
+                base(connectionString, realm, "Avatar")
+        {
+        }
+
+        public bool Delete(UUID principalID, string name)
+        {
+            SqliteCommand cmd = new SqliteCommand();
+
+            cmd.CommandText = String.Format("delete from {0} where `PrincipalID` = :PrincipalID and `Name` = :Name", m_Realm);
+            cmd.Parameters.AddWithValue(":PrincipalID", principalID.ToString());
+            cmd.Parameters.AddWithValue(":Name", name);
+
+            try
+            {
+                if (ExecuteNonQuery(cmd, m_Connection) > 0)
+                    return true;
+
+                return false;
+            }
+            finally
+            {
+                //CloseCommand(cmd);
+            }
+        }
     }
 }

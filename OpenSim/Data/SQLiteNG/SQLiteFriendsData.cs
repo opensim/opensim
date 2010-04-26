@@ -25,20 +25,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using Nini.Config;
-using OpenSim.Region.Framework.Scenes;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data;
+using OpenMetaverse;
+using OpenSim.Framework;
+using Mono.Data.Sqlite;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Data.SQLiteNG
 {
-    /// <summary>
-    /// DEPRECATED! Use INonSharedRegionModule or ISharedRegionModule instead
-    /// </summary>
-    public interface IRegionModule
+    public class SQLiteFriendsData : SQLiteGenericTableHandler<FriendsData>, IFriendsData
     {
-        void Initialise(Scene scene, IConfigSource source);
-        void PostInitialise();
-        void Close();
-        string Name { get; }
-        bool IsSharedModule { get; }
+        public SQLiteFriendsData(string connectionString, string realm)
+            : base(connectionString, realm, "FriendsStore")
+        {
+        }
+
+        public FriendsData[] GetFriends(UUID userID)
+        {
+            SqliteCommand cmd = new SqliteCommand();
+
+            cmd.CommandText = String.Format("select a.*,case when b.Flags is null then -1 else b.Flags end as TheirFlags from {0} as a left join {0} as b on a.PrincipalID = b.Friend and a.Friend = b.PrincipalID where a.PrincipalID = :PrincipalID", m_Realm);
+            cmd.Parameters.AddWithValue(":PrincipalID", userID.ToString());
+
+            return DoQuery(cmd);
+
+        }
+
+        public bool Delete(UUID principalID, string friend)
+        {
+            SqliteCommand cmd = new SqliteCommand();
+
+            cmd.CommandText = String.Format("delete from {0} where PrincipalID = :PrincipalID and Friend = :Friend", m_Realm);
+            cmd.Parameters.AddWithValue(":PrincipalID", principalID.ToString());
+            cmd.Parameters.AddWithValue(":Friend", friend);
+
+            ExecuteNonQuery(cmd, cmd.Connection);
+
+            return true;
+        }
+
     }
 }
