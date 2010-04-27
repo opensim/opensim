@@ -144,6 +144,8 @@ namespace OpenSim.Server.Handlers.Asset
                         return HandleGetActiveGestures(request);
                     case "GETASSETPERMISSIONS":
                         return HandleGetAssetPermissions(request);
+                    case "GETSYSTEMFOLDERS":
+                        return HandleGetSystemFolders(request);
                 }
                 m_log.DebugFormat("[XINVENTORY HANDLER]: unknown method request: {0}", method);
             }
@@ -197,7 +199,7 @@ namespace OpenSim.Server.Handlers.Asset
 
             return ms.ToArray();
         }
-        
+
         byte[] HandleCreateUserInventory(Dictionary<string,object> request)
         {
             Dictionary<string,object> result = new Dictionary<string,object>();
@@ -540,6 +542,24 @@ namespace OpenSim.Server.Handlers.Asset
             return encoding.GetBytes(xmlString);
         }
 
+        byte[] HandleGetSystemFolders(Dictionary<string, object> request)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            UUID principal = UUID.Zero;
+            UUID.TryParse(request["PRINCIPAL"].ToString(), out principal);
+
+            Dictionary<AssetType, InventoryFolderBase> sfolders = GetSystemFolders(principal);
+
+            if (sfolders != null)
+                foreach (KeyValuePair<AssetType, InventoryFolderBase> kvp in sfolders)
+                    result[kvp.Key.ToString()] = EncodeFolder(kvp.Value);
+            
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
         private Dictionary<string, object> EncodeFolder(InventoryFolderBase f)
         {
             Dictionary<string, object> ret = new Dictionary<string, object>();
@@ -623,5 +643,31 @@ namespace OpenSim.Server.Handlers.Asset
 
             return item;
         }
+
+        #region Extra
+        private Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
+        {
+            InventoryFolderBase root = m_InventoryService.GetRootFolder(userID);
+            if (root != null)
+            {
+                InventoryCollection content = m_InventoryService.GetFolderContent(userID, root.ID);
+                if (content != null)
+                {
+                    Dictionary<AssetType, InventoryFolderBase> folders = new Dictionary<AssetType, InventoryFolderBase>();
+                    foreach (InventoryFolderBase folder in content.Folders)
+                    {
+                        if ((folder.Type != (short)AssetType.Folder) && (folder.Type != (short)AssetType.Unknown))
+                            folders[(AssetType)folder.Type] = folder;
+                    }
+                    // Put the root folder there, as type Folder
+                    folders[AssetType.Folder] = root;
+                    return folders;
+                }
+            }
+            m_log.WarnFormat("[INVENTORY SERVICE]: System folders for {0} not found", userID);
+            return new Dictionary<AssetType, InventoryFolderBase>();
+        }
+        #endregion
+
     }
 }

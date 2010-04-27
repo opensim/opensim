@@ -455,6 +455,35 @@ namespace OpenSim.Services.Connectors
             return int.Parse(ret["RESULT"].ToString());
         }
 
+        public Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
+        {
+            Dictionary<string, object> ret = MakeRequest("GETSYSTEMFOLDERS",
+                    new Dictionary<string, object> {
+                        { "PRINCIPAL", userID.ToString() },
+                    });
+
+            if (ret == null)
+                return new Dictionary<AssetType,InventoryFolderBase>();
+
+            Dictionary<AssetType, InventoryFolderBase> sfolders = new Dictionary<AssetType, InventoryFolderBase>();
+
+            try
+            {
+                foreach (KeyValuePair<string, object> kvp in ret)
+                {
+                    InventoryFolderBase folder = BuildFolder((Dictionary<string, object>)(kvp.Value));
+                    short type = 0;
+                    if (Int16.TryParse(kvp.Key, out type))
+                        sfolders.Add((AssetType)type, folder);
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: exception {0}", e.Message);
+            }
+
+            return sfolders;
+        }
 
         // These are either obsolete or unused
         //

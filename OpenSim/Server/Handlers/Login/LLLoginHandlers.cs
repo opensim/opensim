@@ -72,6 +72,9 @@ namespace OpenSim.Server.Handlers.Login
                     string last = requestData["last"].ToString();
                     string passwd = requestData["passwd"].ToString();
                     string startLocation = string.Empty;
+                    UUID scopeID = UUID.Zero;
+                    if (requestData["scope_id"] != null)
+                        scopeID = new UUID(requestData["scope_id"].ToString());
                     if (requestData.ContainsKey("start"))
                         startLocation = requestData["start"].ToString();
 
@@ -83,7 +86,7 @@ namespace OpenSim.Server.Handlers.Login
                     m_log.InfoFormat("[LOGIN]: XMLRPC Login Requested for {0} {1}, starting in {2}, using {3}", first, last, startLocation, clientVersion);
 
                     LoginResponse reply = null;
-                    reply = m_LocalService.Login(first, last, passwd, startLocation, remoteClient);
+                    reply = m_LocalService.Login(first, last, passwd, startLocation, scopeID, remoteClient);
 
                     XmlRpcResponse response = new XmlRpcResponse();
                     response.Value = reply.ToHashtable();
@@ -109,10 +112,15 @@ namespace OpenSim.Server.Handlers.Login
                     if (map.ContainsKey("start"))
                         startLocation = map["start"].AsString();
 
+                    UUID scopeID = UUID.Zero;
+
+                    if (map.ContainsKey("scope_id"))
+                        scopeID = new UUID(map["scope_id"].AsString());
+
                     m_log.Info("[LOGIN]: LLSD Login Requested for: '" + map["first"].AsString() + "' '" + map["last"].AsString() + "' / " + startLocation);
 
                     LoginResponse reply = null;
-                    reply = m_LocalService.Login(map["first"].AsString(), map["last"].AsString(), map["passwd"].AsString(), startLocation, remoteClient);
+                    reply = m_LocalService.Login(map["first"].AsString(), map["last"].AsString(), map["passwd"].AsString(), startLocation, scopeID, remoteClient);
                     return reply.ToOSDMap();
 
                 }
