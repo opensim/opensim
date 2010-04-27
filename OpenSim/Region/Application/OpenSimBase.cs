@@ -347,14 +347,12 @@ namespace OpenSim
             if (scene.SnmpService != null)
             {
                 scene.SnmpService.ColdStart(1,scene);
+                scene.SnmpService.LinkDown(scene);
             }
 
-// it should be a LinkDown event
-// Maped inside opennms
-// bad...
             if (scene.SnmpService != null)
             {
-                scene.SnmpService.Warning("Loading prins", scene);
+                scene.SnmpService.BootInfo("Loading prins", scene);
             }
 
             // Prims have to be loaded after module configuration since some modules may be invoked during the load
@@ -362,7 +360,7 @@ namespace OpenSim
             
             if (scene.SnmpService != null)
             {
-                scene.SnmpService.Warning("Creating region texture", scene);
+                scene.SnmpService.BootInfo("Creating region texture", scene);
             }
 
             // moved these here as the terrain texture has to be created after the modules are initialized
@@ -374,8 +372,8 @@ namespace OpenSim
             
             if (scene.SnmpService != null)
             {
-                scene.SnmpService.Warning("Grid Registration in progress", scene);
-            }
+                scene.SnmpService.BootInfo("Grid Registration in progress", scene);
+            } 
             try
             {
                 scene.RegisterRegionWithGrid();
@@ -395,7 +393,7 @@ namespace OpenSim
 
             if (scene.SnmpService != null)
             {
-                scene.SnmpService.Warning("Grid Registration done", scene);
+                scene.SnmpService.BootInfo("Grid Registration done", scene);
             }
 
             // We need to do this after we've initialized the
@@ -407,7 +405,7 @@ namespace OpenSim
 
             if (scene.SnmpService != null)
             {
-                scene.SnmpService.Warning("ScriptEngine started", scene);
+                scene.SnmpService.BootInfo("ScriptEngine started", scene);
             }
 
             m_sceneManager.Add(scene);
@@ -420,7 +418,7 @@ namespace OpenSim
 
             if (scene.SnmpService != null)
             {
-                scene.SnmpService.Warning("Initializing region modules", scene);
+                scene.SnmpService.BootInfo("Initializing region modules", scene);
             }
             if (do_post_init)
             {
@@ -435,7 +433,8 @@ namespace OpenSim
 
             if (scene.SnmpService != null)
             {
-                scene.SnmpService.Warning("The region is operational", scene);
+                scene.SnmpService.BootInfo("The region is operational", scene);
+                scene.SnmpService.LinkUp(scene);
             }
 
             scene.StartTimer();
@@ -446,6 +445,11 @@ namespace OpenSim
         private void ShutdownRegion(Scene scene)
         {
             m_log.DebugFormat("[SHUTDOWN]: Shutting down region {0}", scene.RegionInfo.RegionName);
+            if (scene.SnmpService != null)
+            {
+                scene.SnmpService.BootInfo("The region is shutting down", scene);
+                scene.SnmpService.LinkDown(scene);
+            }
             IRegionModulesController controller;
             if (ApplicationRegistry.TryGet<IRegionModulesController>(out controller))
             {
