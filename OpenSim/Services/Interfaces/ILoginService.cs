@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Net;
 
 using OpenMetaverse.StructuredData;
+using OpenMetaverse;
 
 namespace OpenSim.Services.Interfaces
 {
@@ -46,7 +47,7 @@ namespace OpenSim.Services.Interfaces
 
     public interface ILoginService
     {
-        LoginResponse Login(string firstName, string lastName, string passwd, string startLocation, IPEndPoint clientIP);
+        LoginResponse Login(string firstName, string lastName, string passwd, string startLocation, UUID scopeID, IPEndPoint clientIP);
     }
 
 
