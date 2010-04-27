@@ -735,6 +735,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>false if the item did not exist, true if the update occurred successfully</returns>
         public bool UpdateInventoryItem(TaskInventoryItem item)
         {
+            return UpdateInventoryItem(item, true);
+        }
+
+        public bool UpdateInventoryItem(TaskInventoryItem item, bool fireScriptEvents)
+        {
             m_items.LockItemsForWrite(true);
 
             if (m_items.ContainsKey(item.ItemID))
@@ -765,7 +770,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_items[item.ItemID] = item;
                 m_inventorySerial++;
-                m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
+                if (fireScriptEvents)
+                    m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
                 HasInventoryChanged = true;
                 m_part.ParentGroup.HasGroupChanged = true;
                 m_items.LockItemsForWrite(false);
