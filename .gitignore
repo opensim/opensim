@@ -9,6 +9,13 @@
 *.pdb
 *.pidb
 *.dll.build
+*.dll
+*/*/obj
+*/*/*/obj
+*/*/*/*/obj
+*/*/*/*/*/obj
+*/*/*/*/*/*/obj
+*/*/*/*/*/*/*/obj
 */*/bin
 */*/*/bin
 */*/*/*/bin
@@ -45,6 +52,7 @@ bin/OpenSim.Grid.InventoryServer.log
 bin/OpenSim.Grid.MessagingServer.log
 bin/OpenSim.Grid.UserServer.log
 bin/OpenSim.log
+bin/*.manifest
 bin/crashes/
 Examples/*.dll
 OpenSim.build
