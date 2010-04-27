@@ -43,6 +43,7 @@ namespace OpenSim.Data.Tests
         public UUID uuid2;
         public UUID uuid3;
         public byte[] asset1;
+        PropertyScrambler<AssetBase> scrambler;
 
         public void SuperInit()
         {
@@ -53,6 +54,15 @@ namespace OpenSim.Data.Tests
             uuid3 = UUID.Random();
             asset1 = new byte[100];
             asset1.Initialize();
+
+            scrambler = new PropertyScrambler<AssetBase>()
+                .DontScramble(x => x.ID)
+                .DontScramble(x => x.FullID)
+                .DontScramble(x => x.Metadata.ID)
+                .DontScramble(x => x.Metadata.Type)
+                .DontScramble(x => x.Metadata.CreatorID)
+                .DontScramble(x => x.Metadata.ContentType)
+                .DontScramble(x => x.Metadata.FullID);
         }
 
         [Test]
@@ -72,15 +82,6 @@ namespace OpenSim.Data.Tests
             a1.Data = asset1;
             a2.Data = asset1;
             a3.Data = asset1;
-
-            PropertyScrambler<AssetBase> scrambler = new PropertyScrambler<AssetBase>()
-                .DontScramble(x => x.Data)
-                .DontScramble(x => x.ID)
-                .DontScramble(x => x.FullID)
-                .DontScramble(x => x.Metadata.ID)
-                .DontScramble(x => x.Metadata.CreatorID)
-                .DontScramble(x => x.Metadata.ContentType)
-                .DontScramble(x => x.Metadata.FullID);
 
             scrambler.Scramble(a1);
             scrambler.Scramble(a2);
