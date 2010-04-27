@@ -633,24 +633,24 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             item.AssetID = m_items[item.ItemID].AssetID;
                         }
-                    m_items[item.ItemID] = item;
-                    m_inventorySerial++;
-                    if (fireScriptEvents)
-                        m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
-                    HasInventoryChanged = true;
-                    m_part.ParentGroup.HasGroupChanged = true;
-                    m_items.LockItemsForWrite(false);
-                    return true;
-                }
-                else
-                {
-                    m_log.ErrorFormat(
-                        "[PRIM INVENTORY]: " +
-                        "Tried to retrieve item ID {0} from prim {1}, {2} at {3} in {4} but the item does not exist in this inventory",
-                        item.ItemID, m_part.Name, m_part.UUID, 
-                        m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
-                }
+                        m_items[item.ItemID] = item;
+                        m_inventorySerial++;
+                        if (fireScriptEvents)
+                            m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
+                        HasInventoryChanged = true;
+                        m_part.ParentGroup.HasGroupChanged = true;
+                        return true;
+                    }
+                    else
+                    {
+                        m_log.ErrorFormat(
+                            "[PRIM INVENTORY]: " +
+                            "Tried to retrieve item ID {0} from prim {1}, {2} at {3} in {4} but the item does not exist in this inventory",
+                            item.ItemID, m_part.Name, m_part.UUID, 
+                            m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
+                    }
 
+                }
                 return false;
             }
         }
