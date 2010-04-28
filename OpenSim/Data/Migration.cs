@@ -53,8 +53,8 @@ namespace OpenSim.Data
     /// When a database driver starts up, it specifies a resource that
     /// needs to be brought up to the current revision.  For instance:
     ///
-    ///    Migration um = new Migration(Assembly, DbConnection, "Users");
-    ///    um.Upgrade();
+    ///    Migration um = new Migration(DbConnection, Assembly, "Users");
+    ///    um.Update();
     ///
     /// This works out which version Users is at, and applies all the
     /// revisions past it to it.  If there is no users table, all
