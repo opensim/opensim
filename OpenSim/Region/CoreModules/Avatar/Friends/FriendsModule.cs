@@ -149,7 +149,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             if (m_FriendsService == null)
             {
-                m_log.Error("[FRIENDS]: No Connector defined in section Friends, or filed to load, cannot continue");
+                m_log.Error("[FRIENDS]: No Connector defined in section Friends, or failed to load, cannot continue");
                 throw new Exception("Connector load error");
             }
 
