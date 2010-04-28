@@ -127,7 +127,7 @@ namespace OpenSim.Services.AuthenticationService
             return true;
         }
         
-        protected string GetToken(UUID principalID, int lifetime)
+        public string GetToken(UUID principalID, int lifetime)
         {
             UUID token = UUID.Random();
 
