@@ -145,7 +145,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Returns a list of the root folders within a users inventory
         /// </summary>
-        /// <param name="user">The user whos inventory is to be searched</param>
+        /// <param name="user">The user whose inventory is to be searched</param>
         /// <returns>A list of folder objects</returns>
         public List<InventoryFolderBase> getUserRootFolders(UUID user)
         {
@@ -284,7 +284,7 @@ namespace OpenSim.Data.MySQL
             {
                 InventoryItemBase item = new InventoryItemBase();
 
-                // TODO: this is to handle a case where NULLs creep in there, which we are not sure is indemic to the system, or legacy.  It would be nice to live fix these.
+                // TODO: this is to handle a case where NULLs creep in there, which we are not sure is endemic to the system, or legacy.  It would be nice to live fix these.
                 if (reader["creatorID"] == null) 
                 {
                     item.CreatorId  = UUID.Zero.ToString();

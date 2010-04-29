@@ -109,7 +109,7 @@ namespace OpenSim.Services.InventoryService
             {
                 existingRootFolder = GetRootFolder(user);
             }
-            catch (Exception e)
+            catch /*(Exception e)*/
             {
                 // Munch the exception, it has already been reported
                 //

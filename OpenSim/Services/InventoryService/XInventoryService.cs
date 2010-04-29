@@ -184,7 +184,7 @@ namespace OpenSim.Services.InventoryService
 
             foreach (XInventoryFolder x in allFolders)
             {
-                m_log.DebugFormat("[INVENTORY]: Adding folder {0} to skeleton", x.folderName);
+                //m_log.DebugFormat("[XINVENTORY]: Adding folder {0} to skeleton", x.folderName);
                 folders.Add(ConvertToOpenSim(x));
             }
 
@@ -221,7 +221,7 @@ namespace OpenSim.Services.InventoryService
             // connector. So we disregard the principal and look
             // by ID.
             //
-            m_log.DebugFormat("[INVENTORY]: Fetch contents for folder {0}", folderID.ToString());
+            m_log.DebugFormat("[XINVENTORY]: Fetch contents for folder {0}", folderID.ToString());
             InventoryCollection inventory = new InventoryCollection();
             inventory.UserID = principalID;
             inventory.Folders = new List<InventoryFolderBase>();
@@ -233,7 +233,7 @@ namespace OpenSim.Services.InventoryService
 
             foreach (XInventoryFolder x in folders)
             {
-                m_log.DebugFormat("[INVENTORY]: Adding folder {0} to response", x.folderName);
+                //m_log.DebugFormat("[XINVENTORY]: Adding folder {0} to response", x.folderName);
                 inventory.Folders.Add(ConvertToOpenSim(x));
             }
 
@@ -243,7 +243,7 @@ namespace OpenSim.Services.InventoryService
 
             foreach (XInventoryItem i in items)
             {
-                m_log.DebugFormat("[INVENTORY]: Adding item {0} to response", i.inventoryName);
+                //m_log.DebugFormat("[XINVENTORY]: Adding item {0} to response", i.inventoryName);
                 inventory.Items.Add(ConvertToOpenSim(i));
             }
 

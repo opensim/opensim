@@ -65,6 +65,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
         }
 
+        public RemoteXInventoryServicesConnector(string url)
+        {
+            m_RemoteConnector = new XInventoryServicesConnector(url);
+        }
+
         public RemoteXInventoryServicesConnector(IConfigSource source)
         {
             Init(source);
@@ -183,6 +188,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public override InventoryCollection GetFolderContent(UUID userID, UUID folderID)
         {
+            m_log.DebugFormat("[XINVENTORY CONNECTOR]: GetFolderContent {0}", folderID);
             try
             {
                 return m_RemoteConnector.GetFolderContent(userID, folderID);
@@ -295,6 +301,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public override InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
+            m_log.DebugFormat("[XINVENTORY CONNECTOR]: GetFolder {0}", folder.ID);
             if (folder == null)
                 return null;
 
