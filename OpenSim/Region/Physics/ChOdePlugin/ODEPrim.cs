@@ -3395,6 +3395,44 @@ Console.WriteLine(" JointCreateFixed");
 
 //if(frcount == 0) Console.WriteLine("VA = {0}", angObjectVel);   
 
+		            if ( (! m_angularMotorDVel.ApproxEquals(Vector3.Zero, 0.01f)) || (! angObjectVel.ApproxEquals(Vector3.Zero, 0.01f)) )
+		            {  // if motor or object have motion
+		            	if(!d.BodyIsEnabled (Body))  d.BodyEnable (Body);
+            	
+		                if (m_angularMotorTimescale < 300.0f)
+		                {	
+			                Vector3 attack_error = m_angularMotorDVel - angObjectVel;	
+			                float angfactor = m_angularMotorTimescale/timestep;
+			                Vector3 attackAmount = (attack_error/angfactor);
+		                	angObjectVel += attackAmount;
+//if(frcount == 0) Console.WriteLine("Accel {0}      Attk {1}",FrAaccel, attackAmount);                	
+//if(frcount == 0) Console.WriteLine("V2+= {0}", angObjectVel);        	
+		                }
+                
+				        angObjectVel.X -= angObjectVel.X / (m_angularFrictionTimescale.X * 0.7f / timestep);
+				        angObjectVel.Y -= angObjectVel.Y / (m_angularFrictionTimescale.Y * 0.7f / timestep);
+				        angObjectVel.Z -= angObjectVel.Z / (m_angularFrictionTimescale.Z * 0.7f / timestep);
+					} // else no signif. motion
+			
+//if(frcount == 0) Console.WriteLine("Dmotor {0}      Obj {1}", m_angularMotorDVel, angObjectVel);
+					// Bank section tba
+					// Deflection section tba
+//if(frcount == 0) Console.WriteLine("V3 = {0}", angObjectVel);        	
+			
+	
+					// Rotation Axis Disables:
+				    if (!m_angularEnable.ApproxEquals(Vector3.One, 0.003f))
+			        {
+		                if (m_angularEnable.X == 0)
+			            	angObjectVel.X = 0f;
+			            if (m_angularEnable.Y == 0)
+			            	angObjectVel.Y = 0f;
+			            if (m_angularEnable.Z == 0)
+			            	angObjectVel.Z = 0f;
+			        }        
+			        
+					angObjectVel = angObjectVel * rotq; // ================ Converts to WORLD rotation
+					
 		            // Vertical attractor section
 					Vector3 vertattr = Vector3.Zero;
             
@@ -3419,8 +3457,9 @@ Console.WriteLine(" JointCreateFixed");
 						}
 						verterr *= 0.5f;
 						// verterror is 0 (no error) to +/- 1 (max error at 180-deg tilt)
-	
-						if ((!angObjectVel.ApproxEquals(Vector3.Zero, 0.001f)) || (verterr.Z < 0.49f))
+						Vector3 xyav = angObjectVel;
+						xyav.Z = 0.0f;
+						if ((!xyav.ApproxEquals(Vector3.Zero, 0.001f)) || (verterr.Z < 0.49f))
 						{
 							// As the body rotates around the X axis, then verterr.Y increases; Rotated around Y then .X increases, so 
 							// Change  Body angular velocity  X based on Y, and Y based on X. Z is not changed.
@@ -3452,46 +3491,9 @@ Console.WriteLine(" JointCreateFixed");
 					} // else vertical attractor is off
 //if(frcount == 0) Console.WriteLine("V1 = {0}", angObjectVel);        	
 
-		            if ( (! m_angularMotorDVel.ApproxEquals(Vector3.Zero, 0.01f)) || (! angObjectVel.ApproxEquals(Vector3.Zero, 0.01f)) )
-		            {  // if motor or object have motion
-		            	if(!d.BodyIsEnabled (Body))  d.BodyEnable (Body);
-            	
-		                if (m_angularMotorTimescale < 300.0f)
-		                {	
-			                Vector3 attack_error = m_angularMotorDVel - angObjectVel;	
-			                float angfactor = m_angularMotorTimescale/timestep;
-			                Vector3 attackAmount = (attack_error/angfactor);
-		                	angObjectVel += attackAmount;
-//if(frcount == 0) Console.WriteLine("Accel {0}      Attk {1}",FrAaccel, attackAmount);                	
-//if(frcount == 0) Console.WriteLine("V2+= {0}", angObjectVel);        	
-		                }
-                
-				        angObjectVel.X -= angObjectVel.X / (m_angularFrictionTimescale.X * 0.7f / timestep);
-				        angObjectVel.Y -= angObjectVel.Y / (m_angularFrictionTimescale.Y * 0.7f / timestep);
-				        angObjectVel.Z -= angObjectVel.Z / (m_angularFrictionTimescale.Z * 0.7f / timestep);
-					} // else no signif. motion
-			
-//if(frcount == 0) Console.WriteLine("Dmotor {0}      Obj {1}", m_angularMotorDVel, angObjectVel);
-					// Bank section tba
-					// Deflection section tba
-//if(frcount == 0) Console.WriteLine("V3 = {0}", angObjectVel);        	
-			
+					
 					m_lastAngularVelocity = angObjectVel;
-
-				    if (!m_angularEnable.ApproxEquals(Vector3.One, 0.003f))
-			        {
-		                if (m_angularEnable.X == 0)
-			            	m_lastAngularVelocity.X = 0f;
-			            if (m_angularEnable.Y == 0)
-			            	m_lastAngularVelocity.Y = 0f;
-			            if (m_angularEnable.Z == 0)
-			            	m_lastAngularVelocity.Z = 0f;
-			        }        
-					// Apply to the body
-// Vector3 aInc = m_lastAngularVelocity - initavel;
-//if(frcount == 0) Console.WriteLine("Inc {0}", aInc);	
-					m_lastAngularVelocity = m_lastAngularVelocity * rotq; // ================ Converts to WORLD rotation
-
+					// apply Angular Velocity to body
 					d.BodySetAngularVel (Body, m_lastAngularVelocity.X, m_lastAngularVelocity.Y, m_lastAngularVelocity.Z);
 //if(frcount == 0) Console.WriteLine("V4 = {0}", m_lastAngularVelocity);        	
 		            
