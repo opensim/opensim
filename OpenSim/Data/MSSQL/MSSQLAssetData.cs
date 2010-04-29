@@ -210,7 +210,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="asset">the asset</param>
         private void UpdateAsset(AssetBase asset)
         {
-            string sql = @"UPDATE assets set id = @id, name = @name, description = @description, assetType = @assetType,
+            string sql = @"UPDATE assets set name = @name, description = @description, assetType = @assetType,
                             local = @local, temporary = @temporary, data = @data
                            WHERE id = @keyId;";
 
@@ -231,14 +231,13 @@ namespace OpenSim.Data.MSSQL
             using (SqlConnection conn = new SqlConnection(m_connectionString))
             using (SqlCommand command = new SqlCommand(sql, conn))
             {
-                command.Parameters.Add(m_database.CreateParameter("id", asset.FullID));
+                command.Parameters.Add(m_database.CreateParameter("keyId", asset.FullID));
                 command.Parameters.Add(m_database.CreateParameter("name", assetName));
                 command.Parameters.Add(m_database.CreateParameter("description", assetDescription));
                 command.Parameters.Add(m_database.CreateParameter("assetType", asset.Type));
                 command.Parameters.Add(m_database.CreateParameter("local", asset.Local));
                 command.Parameters.Add(m_database.CreateParameter("temporary", asset.Temporary));
                 command.Parameters.Add(m_database.CreateParameter("data", asset.Data));
-                command.Parameters.Add(m_database.CreateParameter("@keyId", asset.FullID));
                 conn.Open();
                 try
                 {
@@ -295,15 +294,21 @@ namespace OpenSim.Data.MSSQL
         public override List<AssetMetadata> FetchAssetMetadataSet(int start, int count)
         {
             List<AssetMetadata> retList = new List<AssetMetadata>(count);
-            string sql = @"SELECT (name,description,assetType,temporary,id), Row = ROW_NUMBER() 
-                            OVER (ORDER BY (some column to order by)) 
-                            WHERE Row >= @Start AND Row < @Start + @Count";
+            string sql = @"WITH OrderedAssets AS
+                (
+                    SELECT id, name, description, assetType, temporary, 
+                    Row = ROW_NUMBER() OVER (ORDER BY id)
+                    FROM assets 
+                ) 
+                SELECT * 
+                FROM OrderedAssets
+                WHERE RowNumber BETWEEN @start AND @stop;";
 
             using (SqlConnection conn = new SqlConnection(m_connectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(m_database.CreateParameter("start", start));
-                cmd.Parameters.Add(m_database.CreateParameter("count", count));
+                cmd.Parameters.Add(m_database.CreateParameter("stop", start + count - 1));
                 conn.Open();
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
