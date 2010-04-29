@@ -106,6 +106,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 //            return m_OSSL_Functions.osWindParamGet(plugin, param);
 //        }
 
+        public void osParcelJoin(vector pos1, vector pos2)
+        {
+            m_OSSL_Functions.osParcelJoin(pos1,pos2);
+        }
+
+        public void osParcelSubdivide(vector pos1, vector pos2)
+        {
+            m_OSSL_Functions.osParcelSubdivide(pos1, pos2);
+        }
+        
+        public void osParcelSetDetails(vector pos, LSL_List rules)
+        {
+            m_OSSL_Functions.osParcelSetDetails(pos,rules);
+        }
+
         public double osList2Double(LSL_Types.list src, int index)
         {
             return m_OSSL_Functions.osList2Double(src, index);

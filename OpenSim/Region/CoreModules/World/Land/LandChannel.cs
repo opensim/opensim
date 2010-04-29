@@ -154,6 +154,22 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_landManagementModule.UpdateLandObject(localID, data);
             }
         }
+
+        public void Join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
+        {
+            if (m_landManagementModule != null)
+            {
+                m_landManagementModule.Join(start_x, start_y, end_x, end_y, attempting_user_id);
+            }
+        }
+
+        public void Subdivide(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
+        {
+            if (m_landManagementModule != null)
+            {
+                m_landManagementModule.Subdivide(start_x, start_y, end_x, end_y, attempting_user_id);
+            }
+        }
         
         public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient)
         {
