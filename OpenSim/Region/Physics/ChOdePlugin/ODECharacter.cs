@@ -1025,11 +1025,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // m_iscolliding includes collisions with the ground.
 
                     // d.Vector3 pos = d.BodyGetPosition(Body);
-                    if (_target_velocity.X > 0)
+                    if (Math.Abs(_target_velocity.X) > 0)
                     {
                         vec.X = ((_target_velocity.X - vel.X)/1.2f)*PID_D;
                     }
-                    if (_target_velocity.Y > 0)
+                    if (Math.Abs(_target_velocity.Y) > 0)
                     {
                         vec.Y = ((_target_velocity.Y - vel.Y)/1.2f)*PID_D;
                     }
