@@ -184,7 +184,7 @@ namespace OpenSim.Services.InventoryService
 
             foreach (XInventoryFolder x in allFolders)
             {
-                m_log.DebugFormat("[XINVENTORY]: Adding folder {0} to skeleton", x.folderName);
+                //m_log.DebugFormat("[XINVENTORY]: Adding folder {0} to skeleton", x.folderName);
                 folders.Add(ConvertToOpenSim(x));
             }
 
@@ -233,7 +233,7 @@ namespace OpenSim.Services.InventoryService
 
             foreach (XInventoryFolder x in folders)
             {
-                m_log.DebugFormat("[XINVENTORY]: Adding folder {0} to response", x.folderName);
+                //m_log.DebugFormat("[XINVENTORY]: Adding folder {0} to response", x.folderName);
                 inventory.Folders.Add(ConvertToOpenSim(x));
             }
 
@@ -243,7 +243,7 @@ namespace OpenSim.Services.InventoryService
 
             foreach (XInventoryItem i in items)
             {
-                m_log.DebugFormat("[XINVENTORY]: Adding item {0} to response", i.inventoryName);
+                //m_log.DebugFormat("[XINVENTORY]: Adding item {0} to response", i.inventoryName);
                 inventory.Items.Add(ConvertToOpenSim(i));
             }
 

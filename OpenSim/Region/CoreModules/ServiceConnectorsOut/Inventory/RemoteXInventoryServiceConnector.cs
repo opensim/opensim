@@ -65,6 +65,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
         }
 
+        public RemoteXInventoryServicesConnector(string url)
+        {
+            m_RemoteConnector = new XInventoryServicesConnector(url);
+        }
+
         public RemoteXInventoryServicesConnector(IConfigSource source)
         {
             Init(source);
