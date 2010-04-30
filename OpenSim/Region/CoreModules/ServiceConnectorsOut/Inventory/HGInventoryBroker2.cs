@@ -41,7 +41,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
-    public class HGInventoryBroker2 : BaseInventoryConnector, INonSharedRegionModule, IInventoryService
+    public class HGInventoryBroker2 : INonSharedRegionModule, IInventoryService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -54,8 +54,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         private static ISessionAuthInventoryService m_HGService; // obsolete
         private Dictionary<string, IInventoryService> m_connectors = new Dictionary<string, IInventoryService>();
 
+        // A cache of userIDs --> ServiceURLs, for HGBroker only
+        protected Dictionary<UUID, string> m_InventoryURLs;
 
         private Scene m_Scene;
+        private List<Scene> m_Scenes = new List<Scene>();
+
         private IUserAccountService m_UserAccountService; 
 
         public Type ReplaceableInterface 
@@ -124,8 +128,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                             return;
                         }
 
-                        Init(source);
-
                         m_Enabled = true;
                         m_log.Info("[HG INVENTORY CONNECTOR]: HG inventory broker enabled");
                     }
@@ -148,18 +150,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 return;
 
             m_Scene = scene;
+            m_Scenes.Add(scene);
             m_UserAccountService = m_Scene.UserAccountService;
 
             scene.RegisterModuleInterface<IInventoryService>(this);
-            m_cache.AddRegion(scene);
+
+            scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
+            scene.EventManager.OnClientClosed += OnClientClosed;
+
         }
 
         public void RemoveRegion(Scene scene)
         {
             if (!m_Enabled)
                 return;
-            
-            m_cache.RemoveRegion(scene);
+
+            m_Scenes.Remove(scene);
         }
 
         public void RegionLoaded(Scene scene)
@@ -171,282 +177,302 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         }
 
+        #region Cache
+
+        void OnMakeRootAgent(ScenePresence presence)
+        {
+            if (!m_InventoryURLs.ContainsKey(presence.UUID))
+                CacheInventoryServiceURL(presence.Scene, presence.UUID);
+        }
+
+        void OnClientClosed(UUID clientID, Scene scene)
+        {
+            if (m_InventoryURLs.ContainsKey(clientID)) // if it's in cache
+            {
+                ScenePresence sp = null;
+                foreach (Scene s in m_Scenes)
+                {
+                    s.TryGetScenePresence(clientID, out sp);
+                    if ((sp != null) && !sp.IsChildAgent && (s != scene))
+                    {
+                        m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed in {0}, but user {1} still in sim. Keeping inventoryURL in cache",
+                            scene.RegionInfo.RegionName, clientID);
+                        return;
+                    }
+                }
+
+                m_log.DebugFormat(
+                    "[INVENTORY CACHE]: OnClientClosed in {0}, user {1} out of sim. Dropping inventory URL",
+                    scene.RegionInfo.RegionName, clientID);
+                DropInventoryServiceURL(clientID);
+            }
+        }
+
+        /// <summary>
+        /// Gets the user's inventory URL from its serviceURLs, if the user is foreign,
+        /// and sticks it in the cache
+        /// </summary>
+        /// <param name="userID"></param>
+        private void CacheInventoryServiceURL(Scene scene, UUID userID)
+        {
+            if (scene.UserAccountService.GetUserAccount(scene.RegionInfo.ScopeID, userID) == null)
+            {
+                // The user does not have a local account; let's cache its service URL
+                string inventoryURL = string.Empty;
+                ScenePresence sp = null;
+                scene.TryGetScenePresence(userID, out sp);
+                if (sp != null)
+                {
+                    AgentCircuitData aCircuit = scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
+                    if (aCircuit.ServiceURLs.ContainsKey("InventoryServerURI"))
+                    {
+                        inventoryURL = aCircuit.ServiceURLs["InventoryServerURI"].ToString();
+                        if (inventoryURL != null && inventoryURL != string.Empty)
+                        {
+                            inventoryURL = inventoryURL.Trim(new char[] { '/' });
+                            m_InventoryURLs.Add(userID, inventoryURL);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void DropInventoryServiceURL(UUID userID)
+        {
+            lock (m_InventoryURLs)
+                if (m_InventoryURLs.ContainsKey(userID))
+                    m_InventoryURLs.Remove(userID);
+        }
+
+        public string GetInventoryServiceURL(UUID userID)
+        {
+            if (m_InventoryURLs.ContainsKey(userID))
+                return m_InventoryURLs[userID];
+
+            return null;
+        }
+        #endregion
 
         #region IInventoryService
 
-        public override bool CreateUserInventory(UUID userID)
+        public bool CreateUserInventory(UUID userID)
         {
             return m_LocalGridInventoryService.CreateUserInventory(userID);
         }
 
-        public override List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
+        public List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
         {
             return m_LocalGridInventoryService.GetInventorySkeleton(userId);
         }
 
-        public override InventoryCollection GetUserInventory(UUID userID)
+        public InventoryCollection GetUserInventory(UUID userID)
         {
             return null;
         }
 
-        public override void GetUserInventory(UUID userID, InventoryReceiptCallback callback)
+        public void GetUserInventory(UUID userID, InventoryReceiptCallback callback)
         {
         }
 
-        // Inherited. See base
-        //public override InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
-        //{
-        //    if (IsLocalGridUser(userID))
-        //        return m_GridService.GetFolderForType(userID, type);
-        //    else
-        //    {
-        //        UUID sessionID = GetSessionID(userID);
-        //        string uri = GetUserInventoryURI(userID) + "/" + userID.ToString();
-        //        // !!!!!!
-        //        return null;
-        //        //return m_HGService.GetFolderForType(uri, sessionID, type);
-        //    }
-        //}
+        public InventoryFolderBase GetRootFolder(UUID userID)
+        {
+            m_log.DebugFormat("[HGInventory]: GetRootFolder for {0}", userID);
 
-        public override InventoryCollection GetFolderContent(UUID userID, UUID folderID)
+            string invURL = GetInventoryServiceURL(userID);
+
+            if (invURL == null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.GetRootFolder(userID);
+
+            IInventoryService connector = GetConnector(invURL);
+
+            return connector.GetRootFolder(userID);
+        }
+
+        public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
+        {
+            m_log.DebugFormat("[HGInventory]: GetFolderForType {0} type {1}", userID, type);
+
+            string invURL = GetInventoryServiceURL(userID);
+
+            if (invURL == null) // not there, forward to local inventory connector to resolve
+                return m_LocalGridInventoryService.GetFolderForType(userID, type);
+
+            IInventoryService connector = GetConnector(invURL);
+
+            return connector.GetFolderForType(userID, type);
+        }
+
+        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
         {
             m_log.Debug("[HGInventory]: GetFolderContent " + folderID);
-            string url = string.Empty;
 
-            string invURL = m_cache.GetInventoryServiceURL(userID);
+            string invURL = GetInventoryServiceURL(userID);
 
             if (invURL == null) // not there, forward to local inventory connector to resolve
                 return m_LocalGridInventoryService.GetFolderContent(userID, folderID);
 
-            IInventoryService connector = GetConnector(url);
+            IInventoryService connector = GetConnector(invURL);
+
             return connector.GetFolderContent(userID, folderID);
 
-            //if (StringToUrlAndUserID(id, out url, out userID))
-            //{
-            //    ISessionAuthInventoryService connector = GetConnector(url);
-            //    return connector.GetFolderContent(userID, folderID, sessionID);
-            //}
-
-            //return null;
- 
-            //////////
-
-            //string uri = string.Empty;
-            //if (!IsForeignUser(userID, out uri))
-            //    return m_GridService.GetFolderContent(userID, folderID);
-            //else
-            //{
-            //    UUID sessionID = GetSessionID(userID);
-            //    uri = uri + "/" + userID.ToString();
-            //    return m_HGService.GetFolderContent(uri, folderID, sessionID);
-            //}
         }
 
-        public override Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
+        public  List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
-            string uri = string.Empty;
-            if (!IsForeignUser(userID, out uri))
-            {
-                // This is not pretty, but it will have to do for now
-                if (m_LocalGridInventoryService is BaseInventoryConnector)
-                {
-                    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetSystemsFolders redirected to RemoteInventoryServiceConnector module");
-                    return ((BaseInventoryConnector)m_LocalGridInventoryService).GetSystemFolders(userID);
-                }
-                else
-                {
-                    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetSystemsFolders redirected to GetSystemFoldersLocal");
-                    return GetSystemFoldersLocal(userID);
-                }
-            }
-            else
-            {
-                UUID sessionID = GetSessionID(userID);
-                uri = uri + "/" + userID.ToString();
-                return m_HGService.GetSystemFolders(uri, sessionID);
-            }
-        }
+            m_log.Debug("[HGInventory]: GetFolderItems " + folderID);
 
-        private Dictionary<AssetType, InventoryFolderBase> GetSystemFoldersLocal(UUID userID)
-        {
-            InventoryFolderBase root = m_LocalGridInventoryService.GetRootFolder(userID);
-            if (root != null)
-            {
-                InventoryCollection content = m_LocalGridInventoryService.GetFolderContent(userID, root.ID);
-                if (content != null)
-                {
-                    Dictionary<AssetType, InventoryFolderBase> folders = new Dictionary<AssetType, InventoryFolderBase>();
-                    foreach (InventoryFolderBase folder in content.Folders)
-                    {
-                        //m_log.DebugFormat("[HG INVENTORY CONNECTOR]: scanning folder type {0}", (AssetType)folder.Type);
-                        if ((folder.Type != (short)AssetType.Folder) && (folder.Type != (short)AssetType.Unknown))
-                            folders[(AssetType)folder.Type] = folder;
-                    }
-                    // Put the root folder there, as type Folder
-                    folders[AssetType.Folder] = root;
-                    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: System folders count for {0}: {1}", userID, folders.Count);
-                    return folders;
-                }
-                m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Root folder content not found for {0}", userID);
+            string invURL = GetInventoryServiceURL(userID);
 
-            }
-
-            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Root folder not found for {0}", userID);
-
-            return new Dictionary<AssetType, InventoryFolderBase>();
-        }
-
-        public override List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
-        {
-            string uri = string.Empty;
-            if (!IsForeignUser(userID, out uri))
+            if (invURL == null) // not there, forward to local inventory connector to resolve
                 return m_LocalGridInventoryService.GetFolderItems(userID, folderID);
-            else
-            {
-                UUID sessionID = GetSessionID(userID);
-                uri = uri + "/" + userID.ToString();
-                return m_HGService.GetFolderItems(uri, folderID, sessionID);
-            }
+
+            IInventoryService connector = GetConnector(invURL);
+
+            return connector.GetFolderItems(userID, folderID);
+
         }
 
-        public override bool AddFolder(InventoryFolderBase folder)
+        public  bool AddFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return false;
 
-            string uri = string.Empty;
-            if (!IsForeignUser(folder.Owner, out uri))
+            m_log.Debug("[HGInventory]: AddFolder " + folder.ID);
+
+            string invURL = GetInventoryServiceURL(folder.Owner);
+
+            if (invURL == null) // not there, forward to local inventory connector to resolve
                 return m_LocalGridInventoryService.AddFolder(folder);
-            else
-            {
-                UUID sessionID = GetSessionID(folder.Owner);
-                uri = uri + "/" + folder.Owner.ToString();
-                return m_HGService.AddFolder(uri, folder, sessionID);
-            }
+
+            IInventoryService connector = GetConnector(invURL);
+
+            return connector.AddFolder(folder);
         }
 
-        public override bool UpdateFolder(InventoryFolderBase folder)
+        public  bool UpdateFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return false;
 
-            string uri = string.Empty;
-            if (!IsForeignUser(folder.Owner, out uri))
+            m_log.Debug("[HGInventory]: UpdateFolder " + folder.ID);
+
+            string invURL = GetInventoryServiceURL(folder.Owner);
+
+            if (invURL == null) // not there, forward to local inventory connector to resolve
                 return m_LocalGridInventoryService.UpdateFolder(folder);
-            else
-            {
-                UUID sessionID = GetSessionID(folder.Owner);
-                uri = uri + "/" + folder.Owner.ToString();
-                return m_HGService.UpdateFolder(uri, folder, sessionID);
-            }
+
+            IInventoryService connector = GetConnector(invURL);
+
+            return connector.UpdateFolder(folder);
         }
 
-        public override bool DeleteFolders(UUID ownerID, List<UUID> folderIDs)
+        public  bool DeleteFolders(UUID ownerID, List<UUID> folderIDs)
         {
             if (folderIDs == null)
                 return false;
             if (folderIDs.Count == 0)
                 return false;
 
-            string uri = string.Empty;
-            if (!IsForeignUser(ownerID, out uri))
+            m_log.Debug("[HGInventory]: DeleteFolders for " + ownerID);
+
+            string invURL = GetInventoryServiceURL(ownerID);
+
+            if (invURL == null) // not there, forward to local inventory connector to resolve
                 return m_LocalGridInventoryService.DeleteFolders(ownerID, folderIDs);
-            else
-            {
-                UUID sessionID = GetSessionID(ownerID);
-                uri = uri + "/" + ownerID.ToString();
-                return m_HGService.DeleteFolders(uri, folderIDs, sessionID);
-            }
+
+            IInventoryService connector = GetConnector(invURL);
+
+            return connector.DeleteFolders(ownerID, folderIDs);
         }
 
-        public override bool MoveFolder(InventoryFolderBase folder)
+        public  bool MoveFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return false;
 
-            string uri = string.Empty;
-            if (!IsForeignUser(folder.Owner, out uri))
+            m_log.Debug("[HGInventory]: MoveFolder for " + folder.Owner);
+
+            string invURL = GetInventoryServiceURL(folder.Owner);
+
+            if (invURL == null) // not there, forward to local inventory connector to resolve
                 return m_LocalGridInventoryService.MoveFolder(folder);
-            else
-            {
-                UUID sessionID = GetSessionID(folder.Owner);
-                uri = uri + "/" + folder.Owner.ToString();
-                return m_HGService.MoveFolder(uri, folder, sessionID);
-            }
+
+            IInventoryService connector = GetConnector(invURL);
+
+            return connector.MoveFolder(folder);
         }
 
-        public override bool PurgeFolder(InventoryFolderBase folder)
+        public  bool PurgeFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return false;
 
-            string uri = string.Empty;
-            if (!IsForeignUser(folder.Owner, out uri))
+            m_log.Debug("[HGInventory]: PurgeFolder for " + folder.Owner);
+
+            string invURL = GetInventoryServiceURL(folder.Owner);
+
+            if (invURL == null) // not there, forward to local inventory connector to resolve
                 return m_LocalGridInventoryService.PurgeFolder(folder);
-            else
-            {
-                UUID sessionID = GetSessionID(folder.Owner);
-                uri = uri + "/" + folder.Owner.ToString();
-                return m_HGService.PurgeFolder(uri, folder, sessionID);
-            }
+
+            IInventoryService connector = GetConnector(invURL);
+
+            return connector.PurgeFolder(folder);
         }
 
-        // public bool AddItem(InventoryItemBase item) inherited
-        // Uses AddItemPlain
-
-        protected override bool AddItemPlain(InventoryItemBase item)
+        public bool AddItem(InventoryItemBase item)
         {
             if (item == null)
                 return false;
 
-            string uri = string.Empty;
-            if (!IsForeignUser(item.Owner, out uri))
-            {
+            m_log.Debug("[HGInventory]: AddItem " + item.ID);
+
+            string invURL = GetInventoryServiceURL(item.Owner);
+
+            if (invURL == null) // not there, forward to local inventory connector to resolve
                 return m_LocalGridInventoryService.AddItem(item);
-            }
-            else
-            {
-                UUID sessionID = GetSessionID(item.Owner);
-                uri = uri + "/" + item.Owner.ToString();
-                return m_HGService.AddItem(uri, item, sessionID);
-            }
+
+            IInventoryService connector = GetConnector(invURL);
+
+            return connector.AddItem(item);
         }
 
-        public override bool UpdateItem(InventoryItemBase item)
+        public  bool UpdateItem(InventoryItemBase item)
         {
             if (item == null)
                 return false;
 
-            string uri = string.Empty;
-            if (!IsForeignUser(item.Owner, out uri))
+            m_log.Debug("[HGInventory]: UpdateItem " + item.ID);
+
+            string invURL = GetInventoryServiceURL(item.Owner);
+
+            if (invURL == null) // not there, forward to local inventory connector to resolve
                 return m_LocalGridInventoryService.UpdateItem(item);
-            else
-            {
-                UUID sessionID = GetSessionID(item.Owner);
-                uri = uri + "/" + item.Owner.ToString();
-                return m_HGService.UpdateItem(uri, item, sessionID);
-            }
+
+            IInventoryService connector = GetConnector(invURL);
+
+            return connector.UpdateItem(item);
         }
 
-        public override bool MoveItems(UUID ownerID, List<InventoryItemBase> items)
+        public  bool MoveItems(UUID ownerID, List<InventoryItemBase> items)
         {
             if (items == null)
                 return false;
             if (items.Count == 0)
                 return true;
 
-            string uri = string.Empty;
-            if (!IsForeignUser(ownerID, out uri))
+            m_log.Debug("[HGInventory]: MoveItems for " + ownerID);
+
+            string invURL = GetInventoryServiceURL(ownerID);
+
+            if (invURL == null) // not there, forward to local inventory connector to resolve
                 return m_LocalGridInventoryService.MoveItems(ownerID, items);
-            else
-            {
-                UUID sessionID = GetSessionID(ownerID);
-                uri = uri + "/" + ownerID.ToString();
-                return m_HGService.MoveItems(uri, items, sessionID);
-            }
+
+            IInventoryService connector = GetConnector(invURL);
+
+            return connector.MoveItems(ownerID, items);
         }
 
-        public override bool DeleteItems(UUID ownerID, List<UUID> itemIDs)
+        public  bool DeleteItems(UUID ownerID, List<UUID> itemIDs)
         {
             m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Delete {0} items for user {1}", itemIDs.Count, ownerID);
 
@@ -455,70 +481,73 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (itemIDs.Count == 0)
                 return true;
 
-            string uri = string.Empty;
-            if (!IsForeignUser(ownerID, out uri))
+            m_log.Debug("[HGInventory]: DeleteItems for " + ownerID);
+
+            string invURL = GetInventoryServiceURL(ownerID);
+
+            if (invURL == null) // not there, forward to local inventory connector to resolve
                 return m_LocalGridInventoryService.DeleteItems(ownerID, itemIDs);
-            else
-            {
-                UUID sessionID = GetSessionID(ownerID);
-                uri = uri + "/" + ownerID.ToString();
-                return m_HGService.DeleteItems(uri, itemIDs, sessionID);
-            }
+
+            IInventoryService connector = GetConnector(invURL);
+
+            return connector.DeleteItems(ownerID, itemIDs);
         }
 
-        public override InventoryItemBase GetItem(InventoryItemBase item)
+        public  InventoryItemBase GetItem(InventoryItemBase item)
         {
             if (item == null)
                 return null;
-            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetItem {0} for user {1}", item.ID, item.Owner);
-            string uri = string.Empty;
-            if (!IsForeignUser(item.Owner, out uri))
+            m_log.Debug("[HGInventory]: GetItem " + item.ID);
+
+            string invURL = GetInventoryServiceURL(item.Owner);
+
+            if (invURL == null) // not there, forward to local inventory connector to resolve
                 return m_LocalGridInventoryService.GetItem(item);
-            else
-            {
-                UUID sessionID = GetSessionID(item.Owner);
-                uri = uri + "/" + item.Owner.ToString();
-                return m_HGService.QueryItem(uri, item, sessionID);
-            }
+
+            IInventoryService connector = GetConnector(invURL);
+
+            return connector.GetItem(item);
         }
 
-        public override InventoryFolderBase GetFolder(InventoryFolderBase folder)
+        public  InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return null;
 
-            string uri = string.Empty;
-            if (!IsForeignUser(folder.Owner, out uri))
+            m_log.Debug("[HGInventory]: GetFolder " + folder.ID);
+
+            string invURL = GetInventoryServiceURL(folder.Owner);
+
+            if (invURL == null) // not there, forward to local inventory connector to resolve
                 return m_LocalGridInventoryService.GetFolder(folder);
-            else
-            {
-                UUID sessionID = GetSessionID(folder.Owner);
-                uri = uri + "/" + folder.Owner.ToString();
-                return m_HGService.QueryFolder(uri, folder, sessionID);
-            }
+
+            IInventoryService connector = GetConnector(invURL);
+
+            return connector.GetFolder(folder);
         }
 
-        public override bool HasInventoryForUser(UUID userID)
+        public  bool HasInventoryForUser(UUID userID)
         {
             return false;
         }
 
-        public override List<InventoryItemBase> GetActiveGestures(UUID userId)
+        public  List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
             return new List<InventoryItemBase>();
         }
 
-        public override int GetAssetPermissions(UUID userID, UUID assetID)
+        public  int GetAssetPermissions(UUID userID, UUID assetID)
         {
-            string uri = string.Empty;
-            if (!IsForeignUser(userID, out uri))
+            m_log.Debug("[HGInventory]: GetAssetPermissions " + assetID);
+
+            string invURL = GetInventoryServiceURL(userID);
+
+            if (invURL == null) // not there, forward to local inventory connector to resolve
                 return m_LocalGridInventoryService.GetAssetPermissions(userID, assetID);
-            else
-            {
-                UUID sessionID = GetSessionID(userID);
-                uri = uri + "/" + userID.ToString();
-                return m_HGService.GetAssetPermissions(uri, assetID, sessionID);
-            }
+
+            IInventoryService connector = GetConnector(invURL);
+
+            return connector.GetAssetPermissions(userID, assetID);
         }
 
         #endregion
