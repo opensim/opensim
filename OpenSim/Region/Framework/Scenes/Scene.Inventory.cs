@@ -2594,8 +2594,17 @@ namespace OpenSim.Region.Framework.Scenes
             List<SceneObjectPart> children = new List<SceneObjectPart>();
             SceneObjectPart root = GetSceneObjectPart(parentPrimId);
 
-            if (Permissions.CanLinkObject(client.AgentId, root.ParentGroup.RootPart.UUID))
+            if (root == null)
+            {
+                m_log.DebugFormat("[LINK]: Can't find linkset root prim {0{", parentPrimId);
                 return;
+            }
+
+            if (!Permissions.CanLinkObject(client.AgentId, root.ParentGroup.RootPart.UUID))
+            {
+                m_log.DebugFormat("[LINK]: Refusing link. No permissions on root prim");
+                return;
+            }
 
             foreach (uint localID in childPrimIds)
             {
@@ -2614,7 +2623,16 @@ namespace OpenSim.Region.Framework.Scenes
             // Must be all one owner
             //
             if (owners.Count > 1)
+            {
+                m_log.DebugFormat("[LINK]: Refusing link. Too many owners");
                 return;
+            }
+
+            if (children.Count == 0)
+            {
+                m_log.DebugFormat("[LINK]: Refusing link. No permissions to link any of the children");
+                return;
+            }
 
             m_sceneGraph.LinkObjects(root, children);
         }
