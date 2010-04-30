@@ -30,11 +30,11 @@ using System.Data;
 using System.Reflection;
 using System.Collections.Generic;
 using log4net;
-using Mono.Data.Sqlite;
+using Mono.Data.SqliteClient;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-namespace OpenSim.Data.SQLiteNG
+namespace OpenSim.Data.SQLiteLegacy
 {
     /// <summary>
     /// An asset storage interface for the SQLite database system
@@ -137,7 +137,7 @@ namespace OpenSim.Data.SQLiteNG
                         cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
                         cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
                         cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
-
+ 
                         cmd.ExecuteNonQuery();
                     }
                 }

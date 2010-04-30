@@ -39,7 +39,8 @@ namespace OpenSim.Data.Tests
     public class DataTestUtil
     {
         public const uint UNSIGNED_INTEGER_MIN = uint.MinValue;
-        public const uint UNSIGNED_INTEGER_MAX = uint.MaxValue;
+        //public const uint UNSIGNED_INTEGER_MAX = uint.MaxValue;
+        public const uint UNSIGNED_INTEGER_MAX = INTEGER_MAX;
 
         public const int INTEGER_MIN = int.MinValue + 1; // Postgresql requires +1 to .NET int.MinValue
         public const int INTEGER_MAX = int.MaxValue;

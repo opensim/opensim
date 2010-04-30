@@ -26,70 +26,49 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Reflection;
+using System.Threading;
+using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using Mono.Data.Sqlite;
+using Mono.Data.SqliteClient;
 
-namespace OpenSim.Data.SQLiteNG
+namespace OpenSim.Data.SQLiteLegacy
 {
     /// <summary>
-    /// A database interface class to a user profile storage system
+    /// A SQLite Interface for Avatar Data
     /// </summary>
-    public class SQLiteFramework
+    public class SQLiteAvatarData : SQLiteGenericTableHandler<AvatarBaseData>,
+            IAvatarData
     {
-        protected Object m_lockObject = new Object();
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected SQLiteFramework(string connectionString)
+        public SQLiteAvatarData(string connectionString, string realm) :
+                base(connectionString, realm, "Avatar")
         {
         }
 
-        //////////////////////////////////////////////////////////////
-        //
-        // All non queries are funneled through one connection
-        // to increase performance a little
-        //
-        protected int ExecuteNonQuery(SqliteCommand cmd, SqliteConnection connection)
+        public bool Delete(UUID principalID, string name)
         {
-            lock (connection)
+            SqliteCommand cmd = new SqliteCommand();
+
+            cmd.CommandText = String.Format("delete from {0} where `PrincipalID` = :PrincipalID and `Name` = :Name", m_Realm);
+            cmd.Parameters.Add(":PrincipalID", principalID.ToString());
+            cmd.Parameters.Add(":Name", name);
+
+            try
             {
-/*
-                SqliteConnection newConnection =
-                        (SqliteConnection)((ICloneable)connection).Clone();
-                newConnection.Open();
+                if (ExecuteNonQuery(cmd, m_Connection) > 0)
+                    return true;
 
-                cmd.Connection = newConnection;
-*/
-                cmd.Connection = connection;
-                //Console.WriteLine("XXX " + cmd.CommandText);
-
-                return cmd.ExecuteNonQuery();
+                return false;
             }
-        }
-
-        protected IDataReader ExecuteReader(SqliteCommand cmd, SqliteConnection connection)
-        {
-            lock (connection)
+            finally
             {
-                //SqliteConnection newConnection =
-                //        (SqliteConnection)((ICloneable)connection).Clone();
-                //newConnection.Open();
-
-                //cmd.Connection = newConnection;
-                cmd.Connection = connection;
-                //Console.WriteLine("XXX " + cmd.CommandText);
-
-                return cmd.ExecuteReader();
+                CloseCommand(cmd);
             }
-        }
-
-        protected void CloseCommand(SqliteCommand cmd)
-        {
-            cmd.Connection.Close();
-            cmd.Connection.Dispose();
-            cmd.Dispose();
         }
     }
 }

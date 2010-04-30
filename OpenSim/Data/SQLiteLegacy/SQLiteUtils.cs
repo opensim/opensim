@@ -27,9 +27,9 @@
 
 using System;
 using System.Data;
-using Mono.Data.Sqlite;
+using Mono.Data.SqliteClient;
 
-namespace OpenSim.Data.SQLiteNG
+namespace OpenSim.Data.SQLiteLegacy
 {
     /// <summary>
     /// A base class for methods needed by all SQLite database classes
