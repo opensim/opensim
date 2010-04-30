@@ -609,43 +609,50 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>false if the item did not exist, true if the update occurred successfully</returns>
         public bool UpdateInventoryItem(TaskInventoryItem item)
         {
-            lock (m_items)
+            return UpdateInventoryItem(item, true);
+        }
+
+        public bool UpdateInventoryItem(TaskInventoryItem item, bool fireScriptEvents)
+        {
+            lock(m_items)
             {
                 if (m_items.ContainsKey(item.ItemID))
                 {
-                    item.ParentID = m_part.UUID;
-                    item.ParentPartID = m_part.UUID;
-                    item.Flags = m_items[item.ItemID].Flags;
-
-                    // If group permissions have been set on, check that the groupID is up to date in case it has
-                    // changed since permissions were last set.
-                    if (item.GroupPermissions != (uint)PermissionMask.None)
-                        item.GroupID = m_part.GroupID;
-                    
-                    if (item.AssetID == UUID.Zero)
+                    if (m_items.ContainsKey(item.ItemID))
                     {
-                        item.AssetID = m_items[item.ItemID].AssetID;
+                        item.ParentID = m_part.UUID;
+                        item.ParentPartID = m_part.UUID;
+                        item.Flags = m_items[item.ItemID].Flags;
+
+                        // If group permissions have been set on, check that the groupID is up to date in case it has
+                        // changed since permissions were last set.
+                        if (item.GroupPermissions != (uint)PermissionMask.None)
+                            item.GroupID = m_part.GroupID;
+                        
+                        if (item.AssetID == UUID.Zero)
+                        {
+                            item.AssetID = m_items[item.ItemID].AssetID;
+                        }
+                        m_items[item.ItemID] = item;
+                        m_inventorySerial++;
+                        if (fireScriptEvents)
+                            m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
+                        HasInventoryChanged = true;
+                        m_part.ParentGroup.HasGroupChanged = true;
+                        return true;
+                    }
+                    else
+                    {
+                        m_log.ErrorFormat(
+                            "[PRIM INVENTORY]: " +
+                            "Tried to retrieve item ID {0} from prim {1}, {2} at {3} in {4} but the item does not exist in this inventory",
+                            item.ItemID, m_part.Name, m_part.UUID, 
+                            m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
                     }
 
-                    m_items[item.ItemID] = item;
-                    m_inventorySerial++;
-                    m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
-                    HasInventoryChanged = true;
-                    m_part.ParentGroup.HasGroupChanged = true;
-
-                    return true;
                 }
-                else
-                {
-                    m_log.ErrorFormat(
-                        "[PRIM INVENTORY]: " +
-                        "Tried to retrieve item ID {0} from prim {1}, {2} at {3} in {4} but the item does not exist in this inventory",
-                        item.ItemID, m_part.Name, m_part.UUID, 
-                        m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
-                }
+                return false;
             }
-
-            return false;
         }
 
         /// <summary>

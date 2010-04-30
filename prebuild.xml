@@ -2251,6 +2251,7 @@
       </Files>
     </Project>
 
+    
     <Project frameworkVersion="v3_5" name="OpenSim.Region.ScriptEngine.Shared" path="OpenSim/Region/ScriptEngine/Shared" type="Library">
       <Configuration name="Debug">
         <Options>

@@ -112,8 +112,15 @@ namespace OpenSim.Services.Connectors
 
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
 
-            foreach (Object o in ret.Values)
-                folders.Add(BuildFolder((Dictionary<string,object>)o));
+            try
+            {
+                foreach (Object o in ret.Values)
+                    folders.Add(BuildFolder((Dictionary<string, object>)o));
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception unwrapping folder list: {0}", e.Message);
+            }
 
             return folders;
         }
@@ -130,7 +137,7 @@ namespace OpenSim.Services.Connectors
             if (ret.Count == 0)
                 return null;
 
-            return BuildFolder(ret);
+            return BuildFolder((Dictionary<string, object>)ret["folder"]);
         }
 
         public InventoryFolderBase GetFolderForType(UUID principalID, AssetType type)
@@ -146,7 +153,7 @@ namespace OpenSim.Services.Connectors
             if (ret.Count == 0)
                 return null;
 
-            return BuildFolder(ret);
+            return BuildFolder((Dictionary<string, object>)ret["folder"]);
         }
 
         public InventoryCollection GetFolderContent(UUID principalID, UUID folderID)
@@ -173,10 +180,17 @@ namespace OpenSim.Services.Connectors
             Dictionary<string,object> items =
                     (Dictionary<string,object>)ret["ITEMS"];
 
-            foreach (Object o in folders.Values)
-                inventory.Folders.Add(BuildFolder((Dictionary<string,object>)o));
-            foreach (Object o in items.Values)
-                inventory.Items.Add(BuildItem((Dictionary<string,object>)o));
+            try
+            {
+                foreach (Object o in folders.Values) // getting the values directly, we don't care about the keys folder_i
+                    inventory.Folders.Add(BuildFolder((Dictionary<string, object>)o));
+                foreach (Object o in items.Values) // getting the values directly, we don't care about the keys item_i
+                    inventory.Items.Add(BuildItem((Dictionary<string, object>)o));
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception unwrapping content list: {0}", e.Message);
+            }
 
             return inventory;
         }
@@ -194,13 +208,12 @@ namespace OpenSim.Services.Connectors
             if (ret.Count == 0)
                 return null;
 
-            
-            List<InventoryItemBase> items = new List<InventoryItemBase>();
-            
-            foreach (Object o in ret.Values)
-                items.Add(BuildItem((Dictionary<string,object>)o));
+            Dictionary<string, object> items = (Dictionary<string, object>)ret["ITEMS"];
+            List<InventoryItemBase> fitems = new List<InventoryItemBase>();
+            foreach (Object o in items.Values) // getting the values directly, we don't care about the keys item_i
+                fitems.Add(BuildItem((Dictionary<string, object>)o));
 
-            return items;
+            return fitems;
         }
 
         public bool AddFolder(InventoryFolderBase folder)
@@ -405,7 +418,7 @@ namespace OpenSim.Services.Connectors
             if (ret.Count == 0)
                 return null;
 
-            return BuildItem(ret);
+            return BuildItem((Dictionary<string, object>)ret["item"]);
         }
 
         public InventoryFolderBase GetFolder(InventoryFolderBase folder)
@@ -420,7 +433,7 @@ namespace OpenSim.Services.Connectors
             if (ret.Count == 0)
                 return null;
 
-            return BuildFolder(ret);
+            return BuildFolder((Dictionary<string, object>)ret["folder"]);
         }
 
         public List<InventoryItemBase> GetActiveGestures(UUID principalID)
@@ -435,8 +448,8 @@ namespace OpenSim.Services.Connectors
 
             List<InventoryItemBase> items = new List<InventoryItemBase>();
 
-            foreach (Object o in ret.Values)
-                items.Add(BuildItem((Dictionary<string,object>)o));
+            foreach (Object o in ret.Values) // getting the values directly, we don't care about the keys item_i
+                items.Add(BuildItem((Dictionary<string, object>)o));
 
             return items;
         }
@@ -455,6 +468,36 @@ namespace OpenSim.Services.Connectors
             return int.Parse(ret["RESULT"].ToString());
         }
 
+        public Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
+        {
+            Dictionary<string, object> ret = MakeRequest("GETSYSTEMFOLDERS",
+                    new Dictionary<string, object> {
+                        { "PRINCIPAL", userID.ToString() },
+                    });
+
+            if (ret == null)
+                return new Dictionary<AssetType,InventoryFolderBase>();
+
+            Dictionary<AssetType, InventoryFolderBase> sfolders = new Dictionary<AssetType, InventoryFolderBase>();
+
+            try
+            {
+                Dictionary<string, object> folders = (Dictionary<string, object>)ret["FOLDERS"];
+
+                foreach (Object o in folders.Values) // getting the values directly, we don't care about the keys folder_i
+                {
+                    InventoryFolderBase folder = BuildFolder((Dictionary<string, object>)o);
+                    sfolders.Add((AssetType)folder.Type, folder);
+                }
+
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: exception {0}", e.Message);
+            }
+
+            return sfolders;
+        }
 
         // These are either obsolete or unused
         //
@@ -493,13 +536,20 @@ namespace OpenSim.Services.Connectors
         {
             InventoryFolderBase folder = new InventoryFolderBase();
 
-            folder.ParentID =  new UUID(data["ParentID"].ToString());
-            folder.Type = short.Parse(data["Type"].ToString());
-            folder.Version = ushort.Parse(data["Version"].ToString());
-            folder.Name = data["Name"].ToString();
-            folder.Owner =  new UUID(data["Owner"].ToString());
-            folder.ID = new UUID(data["ID"].ToString());
-            
+            try
+            {                
+                folder.ParentID = new UUID(data["ParentID"].ToString());
+                folder.Type = short.Parse(data["Type"].ToString());
+                folder.Version = ushort.Parse(data["Version"].ToString());
+                folder.Name = data["Name"].ToString();
+                folder.Owner = new UUID(data["Owner"].ToString());
+                folder.ID = new UUID(data["ID"].ToString());
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception building folder: {0}", e.Message);
+            }
+
             return folder;
         }
 
@@ -507,26 +557,33 @@ namespace OpenSim.Services.Connectors
         {
             InventoryItemBase item = new InventoryItemBase();
 
-            item.AssetID = new UUID(data["AssetID"].ToString());
-            item.AssetType = int.Parse(data["AssetType"].ToString());
-            item.Name = data["Name"].ToString();
-            item.Owner = new UUID(data["Owner"].ToString());
-            item.ID = new UUID(data["ID"].ToString());
-            item.InvType = int.Parse(data["InvType"].ToString());
-            item.Folder = new UUID(data["Folder"].ToString());
-            item.CreatorId = data["CreatorId"].ToString();
-            item.Description = data["Description"].ToString();
-            item.NextPermissions = uint.Parse(data["NextPermissions"].ToString());
-            item.CurrentPermissions = uint.Parse(data["CurrentPermissions"].ToString());
-            item.BasePermissions = uint.Parse(data["BasePermissions"].ToString());
-            item.EveryOnePermissions = uint.Parse(data["EveryOnePermissions"].ToString());
-            item.GroupPermissions = uint.Parse(data["GroupPermissions"].ToString());
-            item.GroupID = new UUID(data["GroupID"].ToString());
-            item.GroupOwned = bool.Parse(data["GroupOwned"].ToString());
-            item.SalePrice = int.Parse(data["SalePrice"].ToString());
-            item.SaleType = byte.Parse(data["SaleType"].ToString());
-            item.Flags = uint.Parse(data["Flags"].ToString());
-            item.CreationDate = int.Parse(data["CreationDate"].ToString());
+            try
+            {
+                item.AssetID = new UUID(data["AssetID"].ToString());
+                item.AssetType = int.Parse(data["AssetType"].ToString());
+                item.Name = data["Name"].ToString();
+                item.Owner = new UUID(data["Owner"].ToString());
+                item.ID = new UUID(data["ID"].ToString());
+                item.InvType = int.Parse(data["InvType"].ToString());
+                item.Folder = new UUID(data["Folder"].ToString());
+                item.CreatorId = data["CreatorId"].ToString();
+                item.Description = data["Description"].ToString();
+                item.NextPermissions = uint.Parse(data["NextPermissions"].ToString());
+                item.CurrentPermissions = uint.Parse(data["CurrentPermissions"].ToString());
+                item.BasePermissions = uint.Parse(data["BasePermissions"].ToString());
+                item.EveryOnePermissions = uint.Parse(data["EveryOnePermissions"].ToString());
+                item.GroupPermissions = uint.Parse(data["GroupPermissions"].ToString());
+                item.GroupID = new UUID(data["GroupID"].ToString());
+                item.GroupOwned = bool.Parse(data["GroupOwned"].ToString());
+                item.SalePrice = int.Parse(data["SalePrice"].ToString());
+                item.SaleType = byte.Parse(data["SaleType"].ToString());
+                item.Flags = uint.Parse(data["Flags"].ToString());
+                item.CreationDate = int.Parse(data["CreationDate"].ToString());
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception building item: {0}", e.Message);
+            }
 
             return item;
         }
