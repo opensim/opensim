@@ -29,6 +29,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using Mono.Data.Sqlite;
@@ -37,6 +39,8 @@ namespace OpenSim.Data.SQLite
 {
     public class SQLiteAuthenticationData : SQLiteFramework, IAuthenticationData
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private string m_Realm;
         private List<string> m_ColumnNames;
         private int m_LastExpire;
@@ -157,7 +161,7 @@ namespace OpenSim.Data.SQLite
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.ToString());
+                    m_log.Error("[SQLITE]: Exception storing authentication data", e);
                     //CloseCommand(cmd);
                     return false;
                 }
