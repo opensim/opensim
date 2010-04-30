@@ -2568,5 +2568,55 @@ namespace OpenSim.Region.Framework.Scenes
                 part.GetProperties(remoteClient);
             }
         }
+
+        public void DelinkObjects(List<uint> primIds, IClientAPI client)
+        {
+            List<SceneObjectPart> parts = new List<SceneObjectPart>();
+
+            foreach (uint localID in primIds)
+            {
+                SceneObjectPart part = GetSceneObjectPart(localID);
+
+                if (part == null)
+                    continue;
+
+                if (Permissions.CanDelinkObject(client.AgentId, part.ParentGroup.RootPart.UUID))
+                    parts.Add(part);
+            }
+
+            m_sceneGraph.DelinkObjects(parts);
+        }
+
+        public void LinkObjects(IClientAPI client, uint parentPrimId, List<uint> childPrimIds)
+        {
+            List<UUID> owners = new List<UUID>();
+
+            List<SceneObjectPart> children = new List<SceneObjectPart>();
+            SceneObjectPart root = GetSceneObjectPart(parentPrimId);
+
+            if (Permissions.CanLinkObject(client.AgentId, root.ParentGroup.RootPart.UUID))
+                return;
+
+            foreach (uint localID in childPrimIds)
+            {
+                SceneObjectPart part = GetSceneObjectPart(localID);
+
+                if (part == null)
+                    continue;
+
+                if (!owners.Contains(part.OwnerID))
+                    owners.Add(part.OwnerID);
+
+                if (Permissions.CanLinkObject(client.AgentId, part.ParentGroup.RootPart.UUID))
+                    children.Add(part);
+            }
+
+            // Must be all one owner
+            //
+            if (owners.Count > 1)
+                return;
+
+            m_sceneGraph.LinkObjects(root, children);
+        }
     }
 }
