@@ -769,7 +769,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         public void Commit()
         {
-            m_log.Debug("[SQLITE]: Starting commit");
+            //m_log.Debug("[SQLITE]: Starting commit");
             lock (ds)
             {
                 primDa.Update(ds, "prims");
@@ -1914,7 +1914,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="items"></param>
         public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
         {
-            m_log.InfoFormat("[REGION DB]: Entered StorePrimInventory with prim ID {0}", primID);
+            //m_log.InfoFormat("[REGION DB]: Entered StorePrimInventory with prim ID {0}", primID);
 
             DataTable dbItems = ds.Tables["primitems"];
 
@@ -1981,7 +1981,7 @@ namespace OpenSim.Data.SQLite
             sql += ") values (:";
             sql += String.Join(", :", cols);
             sql += ")";
-            m_log.DebugFormat("[SQLITE]: Created insert command {0}", sql);
+            //m_log.DebugFormat("[SQLITE]: Created insert command {0}", sql);
             SqliteCommand cmd = new SqliteCommand(sql);
 
             // this provides the binding for all our parameters, so
