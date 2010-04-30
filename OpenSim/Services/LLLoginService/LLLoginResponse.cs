@@ -57,6 +57,7 @@ namespace OpenSim.Services.LLLoginService
         public static LLFailedLoginResponse InventoryProblem;
         public static LLFailedLoginResponse DeadRegionProblem;
         public static LLFailedLoginResponse LoginBlockedProblem;
+        public static LLFailedLoginResponse UnverifiedAccountProblem;
         public static LLFailedLoginResponse AlreadyLoggedInProblem;
         public static LLFailedLoginResponse InternalError;
 
@@ -79,6 +80,10 @@ namespace OpenSim.Services.LLLoginService
                 "false");
             LoginBlockedProblem = new LLFailedLoginResponse("presence",
                 "Logins are currently restricted. Please try again later.",
+                "false");
+            UnverifiedAccountProblem = new LLFailedLoginResponse("presence",
+                "Your account has not yet been verified. Please check " +
+                "your email and click the provided link.",
                 "false");
             AlreadyLoggedInProblem = new LLFailedLoginResponse("presence",
                 "You appear to be already logged in. " +

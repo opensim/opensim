@@ -164,6 +164,12 @@ namespace OpenSim.Services.LLLoginService
                     return LLFailedLoginResponse.UserProblem;
                 }
 
+                if (account.UserLevel < 0)
+                {
+                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: Unverified account");
+                    return LLFailedLoginResponse.UnverifiedAccountProblem;
+                }
+
                 if (account.UserLevel < m_MinLoginLevel)
                 {
                     m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: login is blocked for user level {0}", account.UserLevel);
