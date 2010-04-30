@@ -2749,8 +2749,8 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnObjectName += m_sceneGraph.PrimName;
             client.OnObjectClickAction += m_sceneGraph.PrimClickAction;
             client.OnObjectMaterial += m_sceneGraph.PrimMaterial;
-            client.OnLinkObjects += m_sceneGraph.LinkObjects;
-            client.OnDelinkObjects += m_sceneGraph.DelinkObjects;
+            client.OnLinkObjects += LinkObjects;
+            client.OnDelinkObjects += DelinkObjects;
             client.OnObjectDuplicate += m_sceneGraph.DuplicateObject;
             client.OnObjectDuplicateOnRay += doObjectDuplicateOnRay;
             client.OnUpdatePrimFlags += m_sceneGraph.UpdatePrimFlags;
@@ -2906,8 +2906,8 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnObjectName -= m_sceneGraph.PrimName;
             client.OnObjectClickAction -= m_sceneGraph.PrimClickAction;
             client.OnObjectMaterial -= m_sceneGraph.PrimMaterial;
-            client.OnLinkObjects -= m_sceneGraph.LinkObjects;
-            client.OnDelinkObjects -= m_sceneGraph.DelinkObjects;
+            client.OnLinkObjects -= LinkObjects;
+            client.OnDelinkObjects -= DelinkObjects;
             client.OnObjectDuplicate -= m_sceneGraph.DuplicateObject;
             client.OnObjectDuplicateOnRay -= doObjectDuplicateOnRay;
             client.OnUpdatePrimFlags -= m_sceneGraph.UpdatePrimFlags;

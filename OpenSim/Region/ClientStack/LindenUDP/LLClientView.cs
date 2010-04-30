@@ -6138,7 +6138,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             DelinkObjects handlerDelinkObjects = OnDelinkObjects;
             if (handlerDelinkObjects != null)
             {
-                handlerDelinkObjects(prims);
+                handlerDelinkObjects(prims, this);
             }
 
             return true;

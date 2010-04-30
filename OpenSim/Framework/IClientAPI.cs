@@ -73,7 +73,7 @@ namespace OpenSim.Framework
 
     public delegate void LinkObjects(IClientAPI remoteClient, uint parent, List<uint> children);
 
-    public delegate void DelinkObjects(List<uint> primIds);
+    public delegate void DelinkObjects(List<uint> primIds, IClientAPI client);
 
     public delegate void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag);
 
