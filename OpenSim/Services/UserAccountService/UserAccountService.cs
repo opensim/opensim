@@ -104,6 +104,12 @@ namespace OpenSim.Services.UserAccountService
                 d = m_Database.Get(
                         new string[] { "ScopeID", "FirstName", "LastName" },
                         new string[] { scopeID.ToString(), firstName, lastName });
+                if (d.Length < 1)
+                {
+                    d = m_Database.Get(
+                            new string[] { "ScopeID", "FirstName", "LastName" },
+                            new string[] { UUID.Zero.ToString(), firstName, lastName });
+                }
             }
             else
             {
@@ -172,6 +178,12 @@ namespace OpenSim.Services.UserAccountService
                 d = m_Database.Get(
                         new string[] { "ScopeID", "Email" },
                         new string[] { scopeID.ToString(), email });
+                if (d.Length < 1)
+                {
+                    d = m_Database.Get(
+                            new string[] { "ScopeID", "Email" },
+                            new string[] { UUID.Zero.ToString(), email });
+                }
             }
             else
             {
@@ -195,6 +207,12 @@ namespace OpenSim.Services.UserAccountService
                 d = m_Database.Get(
                         new string[] { "ScopeID", "PrincipalID" },
                         new string[] { scopeID.ToString(), principalID.ToString() });
+                if (d.Length < 1)
+                {
+                    d = m_Database.Get(
+                            new string[] { "ScopeID", "PrincipalID" },
+                            new string[] { UUID.Zero.ToString(), principalID.ToString() });
+                }
             }
             else
             {
