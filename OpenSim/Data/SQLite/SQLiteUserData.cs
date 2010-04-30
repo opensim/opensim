@@ -108,32 +108,26 @@ namespace OpenSim.Data.SQLite
 
             lock (ds)
             {
-                Console.WriteLine("Here1");
                 ds.Tables.Add(createUsersTable());
                 ds.Tables.Add(createUserAgentsTable());
                 ds.Tables.Add(createUserFriendsTable());
                 ds.Tables.Add(createAvatarAppearanceTable());
 
-                Console.WriteLine("Here2");
                 setupUserCommands(da, conn);
                 da.Fill(ds.Tables["users"]);
                 CreateDataSetMapping(da, "users");
 
-                Console.WriteLine("Here3");
                 setupAgentCommands(dua, conn);
                 dua.Fill(ds.Tables["useragents"]);
                 CreateDataSetMapping(dua, "useragents");
 
-                Console.WriteLine("Here4");
                 setupUserFriendsCommands(daf, conn);
                 daf.Fill(ds.Tables["userfriends"]);
                 CreateDataSetMapping(daf, "userfriends");
 
-                Console.WriteLine("Here5");
                 setupAvatarAppearanceCommands(daa, conn);
                 daa.Fill(ds.Tables["avatarappearance"]);
                 CreateDataSetMapping(daa, "avatarappearance");
-                Console.WriteLine("Here6");
             }
 
             return;
