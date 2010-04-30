@@ -1463,20 +1463,21 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="client"></param>
         /// <param name="parentPrim"></param>
         /// <param name="childPrims"></param>
-        protected internal void LinkObjects(IClientAPI client, uint parentPrimId, List<uint> childPrimIds)
+        protected internal void LinkObjects(SceneObjectPart root, List<SceneObjectPart> children)
         {
             Monitor.Enter(m_updateLock);
             try
             {
-                SceneObjectGroup parentGroup = GetGroupByPrim(parentPrimId);
+                SceneObjectGroup parentGroup = root.ParentGroup;
 
                 List<SceneObjectGroup> childGroups = new List<SceneObjectGroup>();
                 if (parentGroup != null)
                 {
                     // We do this in reverse to get the link order of the prims correct
-                    for (int i = childPrimIds.Count - 1; i >= 0; i--)
+                    for (int i = children.Count - 1; i >= 0; i--)
                     {
-                        SceneObjectGroup child = GetGroupByPrim(childPrimIds[i]);
+                        SceneObjectGroup child = children[i].ParentGroup;
+
                         if (child != null)
                         {
                             // Make sure no child prim is set for sale
@@ -1509,17 +1510,6 @@ namespace OpenSim.Region.Framework.Scenes
                 parentGroup.HasGroupChanged = true;
                 parentGroup.ScheduleGroupForFullUpdate();
                 
-//                if (client != null)
-//                {
-//                    parentGroup.GetProperties(client);
-//                }
-//                else
-//                {
-//                    foreach (ScenePresence p in GetScenePresences())
-//                    {
-//                        parentGroup.GetProperties(p.ControllingClient);
-//                    }
-//                }
             }
             finally
             {
@@ -1531,12 +1521,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Delink a linkset
         /// </summary>
         /// <param name="prims"></param>
-        protected internal void DelinkObjects(List<uint> primIds)
-        {
-            DelinkObjects(primIds, true);
-        }
-
-        protected internal void DelinkObjects(List<uint> primIds, bool sendEvents)
+        protected internal void DelinkObjects(List<SceneObjectPart> prims)
         {
             Monitor.Enter(m_updateLock);
             try
@@ -1546,9 +1531,8 @@ namespace OpenSim.Region.Framework.Scenes
                 List<SceneObjectGroup> affectedGroups = new List<SceneObjectGroup>();
                 // Look them all up in one go, since that is comparatively expensive
                 //
-                foreach (uint primID in primIds)
+                foreach (SceneObjectPart part in prims)
                 {
-                    SceneObjectPart part = m_parentScene.GetSceneObjectPart(primID);
                     if (part != null)
                     {
                         if (part.ParentGroup.Children.Count != 1) // Skip single
@@ -1563,17 +1547,13 @@ namespace OpenSim.Region.Framework.Scenes
                                 affectedGroups.Add(group);
                         }
                     }
-                    else
-                    {
-                        m_log.ErrorFormat("Viewer requested unlink of nonexistent part {0}", primID);
-                    }
                 }
 
                 foreach (SceneObjectPart child in childParts)
                 {
                     // Unlink all child parts from their groups
                     //
-                    child.ParentGroup.DelinkFromGroup(child, sendEvents);
+                    child.ParentGroup.DelinkFromGroup(child, true);
                 }
 
                 foreach (SceneObjectPart root in rootParts)
@@ -1628,12 +1608,9 @@ namespace OpenSim.Region.Framework.Scenes
                             List<uint> linkIDs = new List<uint>();
 
                             foreach (SceneObjectPart newChild in newSet)
-                            {
                                 newChild.UpdateFlag = 0;
-                                linkIDs.Add(newChild.LocalId);
-                            }
 
-                            LinkObjects(null, newRoot.LocalId, linkIDs);
+                            LinkObjects(newRoot, newSet);
                             if (!affectedGroups.Contains(newRoot.ParentGroup))
                                 affectedGroups.Add(newRoot.ParentGroup);
                         }
