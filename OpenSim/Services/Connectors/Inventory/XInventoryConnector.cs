@@ -158,30 +158,31 @@ namespace OpenSim.Services.Connectors
 
         public InventoryCollection GetFolderContent(UUID principalID, UUID folderID)
         {
-            Dictionary<string,object> ret = MakeRequest("GETFOLDERCONTENT",
-                    new Dictionary<string,object> {
-                        { "PRINCIPAL", principalID.ToString() },
-                        { "FOLDER", folderID.ToString() }
-                    });
-
-            if (ret == null)
-                return null;
-            if (ret.Count == 0)
-                return null;
-
-            
             InventoryCollection inventory = new InventoryCollection();
-            inventory.Folders = new List<InventoryFolderBase>();
-            inventory.Items = new List<InventoryItemBase>();
-            inventory.UserID = principalID;
             
-            Dictionary<string,object> folders =
-                    (Dictionary<string,object>)ret["FOLDERS"];
-            Dictionary<string,object> items =
-                    (Dictionary<string,object>)ret["ITEMS"];
-
             try
             {
+                Dictionary<string,object> ret = MakeRequest("GETFOLDERCONTENT",
+                        new Dictionary<string,object> {
+                            { "PRINCIPAL", principalID.ToString() },
+                            { "FOLDER", folderID.ToString() }
+                        });
+
+                if (ret == null)
+                    return null;
+                if (ret.Count == 0)
+                    return null;
+
+                
+                inventory.Folders = new List<InventoryFolderBase>();
+                inventory.Items = new List<InventoryItemBase>();
+                inventory.UserID = principalID;
+                
+                Dictionary<string,object> folders =
+                        (Dictionary<string,object>)ret["FOLDERS"];
+                Dictionary<string,object> items =
+                        (Dictionary<string,object>)ret["ITEMS"];
+
                 foreach (Object o in folders.Values) // getting the values directly, we don't care about the keys folder_i
                     inventory.Folders.Add(BuildFolder((Dictionary<string, object>)o));
                 foreach (Object o in items.Values) // getting the values directly, we don't care about the keys item_i
@@ -189,7 +190,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception unwrapping content list: {0}", e.Message);
+                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception in GetFolderContent: {0}", e.Message);
             }
 
             return inventory;
@@ -408,32 +409,50 @@ namespace OpenSim.Services.Connectors
 
         public InventoryItemBase GetItem(InventoryItemBase item)
         {
-            Dictionary<string,object> ret = MakeRequest("GETITEM",
-                    new Dictionary<string,object> {
+            try
+            {
+                Dictionary<string, object> ret = MakeRequest("GETITEM",
+                        new Dictionary<string, object> {
                         { "ID", item.ID.ToString() }
                     });
 
-            if (ret == null)
-                return null;
-            if (ret.Count == 0)
-                return null;
+                if (ret == null)
+                    return null;
+                if (ret.Count == 0)
+                    return null;
 
-            return BuildItem((Dictionary<string, object>)ret["item"]);
+                return BuildItem((Dictionary<string, object>)ret["item"]);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception in GetItem: {0}", e.Message);
+            }
+
+            return null;
         }
 
         public InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
-            Dictionary<string,object> ret = MakeRequest("GETFOLDER",
-                    new Dictionary<string,object> {
+            try
+            {
+                Dictionary<string, object> ret = MakeRequest("GETFOLDER",
+                        new Dictionary<string, object> {
                         { "ID", folder.ID.ToString() }
                     });
 
-            if (ret == null)
-                return null;
-            if (ret.Count == 0)
-                return null;
+                if (ret == null)
+                    return null;
+                if (ret.Count == 0)
+                    return null;
 
-            return BuildFolder((Dictionary<string, object>)ret["folder"]);
+                return BuildFolder((Dictionary<string, object>)ret["folder"]);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: Exception in GetFolder: {0}", e.Message);
+            }
+
+            return null;
         }
 
         public List<InventoryItemBase> GetActiveGestures(UUID principalID)
@@ -468,36 +487,6 @@ namespace OpenSim.Services.Connectors
             return int.Parse(ret["RESULT"].ToString());
         }
 
-        public Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
-        {
-            Dictionary<string, object> ret = MakeRequest("GETSYSTEMFOLDERS",
-                    new Dictionary<string, object> {
-                        { "PRINCIPAL", userID.ToString() },
-                    });
-
-            if (ret == null)
-                return new Dictionary<AssetType,InventoryFolderBase>();
-
-            Dictionary<AssetType, InventoryFolderBase> sfolders = new Dictionary<AssetType, InventoryFolderBase>();
-
-            try
-            {
-                Dictionary<string, object> folders = (Dictionary<string, object>)ret["FOLDERS"];
-
-                foreach (Object o in folders.Values) // getting the values directly, we don't care about the keys folder_i
-                {
-                    InventoryFolderBase folder = BuildFolder((Dictionary<string, object>)o);
-                    sfolders.Add((AssetType)folder.Type, folder);
-                }
-
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[XINVENTORY CONNECTOR STUB]: exception {0}", e.Message);
-            }
-
-            return sfolders;
-        }
 
         // These are either obsolete or unused
         //

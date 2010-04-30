@@ -172,11 +172,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.GetFolderForType(userID, type);
         }
 
-        public  Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
-        {
-            return m_RemoteConnector.GetSystemFolders(userID);
-        }
-
         public  InventoryCollection GetFolderContent(UUID userID, UUID folderID)
         {
             return m_RemoteConnector.GetFolderContent(userID, folderID);
@@ -267,9 +262,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public  InventoryItemBase GetItem(InventoryItemBase item)
         {
+            m_log.DebugFormat("[XINVENTORY CONNECTOR]: GetItem {0}", item.ID);
             if (item == null)
                 return null;
 
+            if (m_RemoteConnector == null)
+                m_log.DebugFormat("[XINVENTORY CONNECTOR]: connector stub is null!!!");
             return m_RemoteConnector.GetItem(item);
         }
 

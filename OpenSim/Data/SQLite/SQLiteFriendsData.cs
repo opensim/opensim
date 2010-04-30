@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using System.Data;
 using OpenMetaverse;
 using OpenSim.Framework;
-using Mono.Data.SqliteClient;
+using Mono.Data.Sqlite;
 
 namespace OpenSim.Data.SQLite
 {
@@ -47,7 +47,7 @@ namespace OpenSim.Data.SQLite
             SqliteCommand cmd = new SqliteCommand();
 
             cmd.CommandText = String.Format("select a.*,case when b.Flags is null then -1 else b.Flags end as TheirFlags from {0} as a left join {0} as b on a.PrincipalID = b.Friend and a.Friend = b.PrincipalID where a.PrincipalID = :PrincipalID", m_Realm);
-            cmd.Parameters.Add(":PrincipalID", userID.ToString());
+            cmd.Parameters.AddWithValue(":PrincipalID", userID.ToString());
 
             return DoQuery(cmd);
 
@@ -58,8 +58,8 @@ namespace OpenSim.Data.SQLite
             SqliteCommand cmd = new SqliteCommand();
 
             cmd.CommandText = String.Format("delete from {0} where PrincipalID = :PrincipalID and Friend = :Friend", m_Realm);
-            cmd.Parameters.Add(":PrincipalID", principalID.ToString());
-            cmd.Parameters.Add(":Friend", friend);
+            cmd.Parameters.AddWithValue(":PrincipalID", principalID.ToString());
+            cmd.Parameters.AddWithValue(":Friend", friend);
 
             ExecuteNonQuery(cmd, cmd.Connection);
 

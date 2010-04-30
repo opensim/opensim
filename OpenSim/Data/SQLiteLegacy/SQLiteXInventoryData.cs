@@ -29,12 +29,12 @@ using System;
 using System.Data;
 using System.Reflection;
 using System.Collections.Generic;
-using Mono.Data.Sqlite;
+using Mono.Data.SqliteClient;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-namespace OpenSim.Data.SQLiteNG
+namespace OpenSim.Data.SQLiteLegacy
 {
     /// <summary>
     /// A MySQL Interface for the Asset Server
@@ -147,7 +147,7 @@ namespace OpenSim.Data.SQLiteNG
             }
 
             reader.Close();
-            //CloseCommand(cmd);
+            CloseCommand(cmd);
 
             return perms;
         }

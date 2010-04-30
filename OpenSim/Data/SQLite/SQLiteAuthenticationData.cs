@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using System.Data;
 using OpenMetaverse;
 using OpenSim.Framework;
-using Mono.Data.SqliteClient;
+using Mono.Data.Sqlite;
 
 namespace OpenSim.Data.SQLite
 {
@@ -56,13 +56,8 @@ namespace OpenSim.Data.SQLite
                 m_Connection = new SqliteConnection(connectionString);
                 m_Connection.Open();
 
-                using (SqliteConnection dbcon = (SqliteConnection)((ICloneable)m_Connection).Clone())
-                {
-                    dbcon.Open();
-                    Migration m = new Migration(dbcon, GetType().Assembly, "AuthStore");
-                    m.Update();
-                    dbcon.Close();
-                }
+                Migration m = new Migration(m_Connection, GetType().Assembly, "AuthStore");
+                m.Update();
 
                 m_initialized = true;
             }
@@ -113,7 +108,7 @@ namespace OpenSim.Data.SQLite
             }
             finally
             {
-                CloseCommand(cmd);
+                //CloseCommand(cmd);
             }
 
             return null;
@@ -156,14 +151,14 @@ namespace OpenSim.Data.SQLite
                 {
                     if (ExecuteNonQuery(cmd, m_Connection) < 1)
                     {
-                        CloseCommand(cmd);
+                        //CloseCommand(cmd);
                         return false;
                     }
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e.ToString());
-                    CloseCommand(cmd);
+                    //CloseCommand(cmd);
                     return false;
                 }
             }
@@ -184,19 +179,19 @@ namespace OpenSim.Data.SQLite
                 {
                     if (ExecuteNonQuery(cmd, m_Connection) < 1)
                     {
-                        CloseCommand(cmd);
+                        //CloseCommand(cmd);
                         return false;
                     }
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e.ToString());
-                    CloseCommand(cmd);
+                    //CloseCommand(cmd);
                     return false;
                 }
             }
 
-            CloseCommand(cmd);
+            //CloseCommand(cmd);
 
             return true;
         }

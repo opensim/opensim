@@ -365,6 +365,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         List<UUID> GetOnlineFriends(UUID userID)
         {
             List<string> friendList = new List<string>();
+            List<UUID> online = new List<UUID>();
 
             foreach (FriendInfo fi in m_Friends[userID].Friends)
             {
@@ -372,9 +373,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     friendList.Add(fi.Friend);
             }
 
-            PresenceInfo[] presence = PresenceService.GetAgents(friendList.ToArray());
+            if (friendList.Count == 0)
+                // no friends whatsoever
+                return online;
 
-            List<UUID> online = new List<UUID>();
+            PresenceInfo[] presence = PresenceService.GetAgents(friendList.ToArray());
 
             foreach (PresenceInfo pi in presence)
             {

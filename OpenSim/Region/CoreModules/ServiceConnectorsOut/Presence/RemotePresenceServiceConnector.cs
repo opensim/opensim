@@ -76,7 +76,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
                     m_PresenceDetector = new PresenceDetector(this);
 
-                    m_log.Info("[INVENTORY CONNECTOR]: Remote presence enabled");
+                    m_log.Info("[REMOTE PRESENCE CONNECTOR]: Remote presence enabled");
                 }
             }
 
