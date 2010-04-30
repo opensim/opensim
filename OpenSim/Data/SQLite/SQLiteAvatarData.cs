@@ -33,7 +33,7 @@ using System.Threading;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using Mono.Data.SqliteClient;
+using Mono.Data.Sqlite;
 
 namespace OpenSim.Data.SQLite
 {
@@ -55,8 +55,8 @@ namespace OpenSim.Data.SQLite
             SqliteCommand cmd = new SqliteCommand();
 
             cmd.CommandText = String.Format("delete from {0} where `PrincipalID` = :PrincipalID and `Name` = :Name", m_Realm);
-            cmd.Parameters.Add(":PrincipalID", principalID.ToString());
-            cmd.Parameters.Add(":Name", name);
+            cmd.Parameters.AddWithValue(":PrincipalID", principalID.ToString());
+            cmd.Parameters.AddWithValue(":Name", name);
 
             try
             {
@@ -67,7 +67,7 @@ namespace OpenSim.Data.SQLite
             }
             finally
             {
-                CloseCommand(cmd);
+                //CloseCommand(cmd);
             }
         }
     }

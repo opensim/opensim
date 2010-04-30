@@ -30,12 +30,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using log4net;
-using Mono.Data.Sqlite;
+using Mono.Data.SqliteClient;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 
-namespace OpenSim.Data.SQLiteNG
+namespace OpenSim.Data.SQLiteLegacy
 {
     public class SQLiteGenericTableHandler<T> : SQLiteFramework where T: class, new()
     {
@@ -59,21 +59,19 @@ namespace OpenSim.Data.SQLiteNG
             if (!m_initialized)
             {
                 m_Connection = new SqliteConnection(connectionString);
-                Console.WriteLine(string.Format("OPENING CONNECTION FOR {0} USING {1}", storeName, connectionString));
                 m_Connection.Open();
 
                 if (storeName != String.Empty)
                 {
                     Assembly assem = GetType().Assembly;
-                    //SqliteConnection newConnection =
-                    //        (SqliteConnection)((ICloneable)m_Connection).Clone();
-                    //newConnection.Open();
+                    SqliteConnection newConnection =
+                            (SqliteConnection)((ICloneable)m_Connection).Clone();
+                    newConnection.Open();
 
-                    //Migration m = new Migration(newConnection, assem, storeName);
-                    Migration m = new Migration(m_Connection, assem, storeName);
+                    Migration m = new Migration(newConnection, assem, storeName);
                     m.Update();
-                    //newConnection.Close();
-                    //newConnection.Dispose();
+                    newConnection.Close();
+                    newConnection.Dispose();
                 }
 
                 m_initialized = true;
@@ -199,7 +197,7 @@ namespace OpenSim.Data.SQLiteNG
                 result.Add(row);
             }
 
-            //CloseCommand(cmd);
+            CloseCommand(cmd);
 
             return result.ToArray();
         }

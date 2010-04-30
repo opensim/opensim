@@ -30,11 +30,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using log4net;
-using Mono.Data.Sqlite;
+using Mono.Data.SqliteClient;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-namespace OpenSim.Data.SQLiteNG
+namespace OpenSim.Data.SQLiteLegacy
 {
     /// <summary>
     /// An Inventory Interface to the SQLite database
@@ -98,13 +98,11 @@ namespace OpenSim.Data.SQLiteNG
                 ds.Tables.Add(createInventoryFoldersTable());
                 invFoldersDa.Fill(ds.Tables["inventoryfolders"]);
                 setupFoldersCommands(invFoldersDa, conn);
-                CreateDataSetMapping(invFoldersDa, "inventoryfolders");
                 m_log.Info("[INVENTORY DB]: Populated Inventory Folders Definitions");
 
                 ds.Tables.Add(createInventoryItemsTable());
                 invItemsDa.Fill(ds.Tables["inventoryitems"]);
                 setupItemsCommands(invItemsDa, conn);
-                CreateDataSetMapping(invItemsDa, "inventoryitems");
                 m_log.Info("[INVENTORY DB]: Populated Inventory Items Definitions");
 
                 ds.AcceptChanges();
@@ -729,15 +727,6 @@ namespace OpenSim.Data.SQLiteNG
          *  Data Table definitions
          *
          **********************************************************************/
-
-        protected void CreateDataSetMapping(IDataAdapter da, string tableName)
-        {       
-            ITableMapping dbMapping = da.TableMappings.Add(tableName, tableName);
-            foreach (DataColumn col in ds.Tables[tableName].Columns)
-            {       
-                dbMapping.ColumnMappings.Add(col.ColumnName, col.ColumnName);
-            }       
-        }
 
         /// <summary>
         /// Create the "inventoryitems" table

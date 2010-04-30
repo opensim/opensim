@@ -113,14 +113,14 @@
 
     ; --- To use sqlite as region storage:
     ;
-    ; PLEASE NOTE: Unfortunately, the SQLiteNG database plugin, while necessary to use sqlite with Mono on Linux, is 
+    ; PLEASE NOTE: Unfortunately, the current SQLite database plugin (necessary to use SQLite with Mono on Linux) is 
     ; not compatible with the sqlite3 library installed on Mac OSX.  If you're using Mono 2.4 you can still use the old sqlite
-    ; library by uncommenting the SQLite.dll storage plugin (and commenting out SQLiteNG).  Unfortunately, the older library
-    ; will not work with Mono 2.6 on Mac OSX so you will either need to replace the sqlite3 system library or use MySQL instead
+    ; library by uncommenting the SQLiteLegacy.dll storage plugin (and commenting out SQLite.dll).  Unfortunately, the older library
+    ; will not work with Mono 2.6 on Mac OSX so you will either need to replace the OSX sqlite3 system library or use MySQL instead
     ;
     ; You will also need to do the same thing in config-include/StandaloneCommon.ini if you are running in standalone mode
-    storage_plugin = "OpenSim.Data.SQLiteNG.dll"
-    ;storage_plugin = "OpenSim.Data.SQLite.dll"
+    storage_plugin = "OpenSim.Data.SQLite.dll"
+    ;storage_plugin = "OpenSim.Data.SQLiteLegacy.dll"
     storage_connection_string="URI=file:OpenSim.db,version=3";
 
     ; --- To use MySQL storage, supply your own connection string (this is only an example):
