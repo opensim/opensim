@@ -147,12 +147,8 @@ namespace OpenSim.Data.SQLite
             }
 
             reader.Close();
-<<<<<<< HEAD:OpenSim/Data/SQLite/SQLiteXInventoryData.cs
-            CloseReaderCommand(cmd);
-=======
+            
             //CloseCommand(cmd);
->>>>>>> cc67de5... rename SQLiteNG to SQLite and SQLite to SQLiteLegacy:OpenSim/Data/SQLite/SQLiteXInventoryData.cs
-
             return perms;
         }
     }

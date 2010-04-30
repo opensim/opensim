@@ -88,30 +88,18 @@ namespace OpenSim.Data.SQLite
             invFoldersDa = new SqliteDataAdapter(foldersSelectCmd);
 
             ds = new DataSet();
-
-<<<<<<< HEAD:OpenSim/Data/SQLite/SQLiteInventoryStore.cs
+            
             ds.Tables.Add(createInventoryFoldersTable());
             invFoldersDa.Fill(ds.Tables["inventoryfolders"]);
             setupFoldersCommands(invFoldersDa, conn);
+            CreateDataSetMapping(invFoldersDa, "inventoryfolders");
             m_log.Info("[INVENTORY DB]: Populated Inventory Folders Definitions");
 
             ds.Tables.Add(createInventoryItemsTable());
             invItemsDa.Fill(ds.Tables["inventoryitems"]);
             setupItemsCommands(invItemsDa, conn);
+            CreateDataSetMapping(invItemsDa, "inventoryitems");
             m_log.Info("[INVENTORY DB]: Populated Inventory Items Definitions");
-=======
-                ds.Tables.Add(createInventoryFoldersTable());
-                invFoldersDa.Fill(ds.Tables["inventoryfolders"]);
-                setupFoldersCommands(invFoldersDa, conn);
-                CreateDataSetMapping(invFoldersDa, "inventoryfolders");
-                m_log.Info("[INVENTORY DB]: Populated Inventory Folders Definitions");
-
-                ds.Tables.Add(createInventoryItemsTable());
-                invItemsDa.Fill(ds.Tables["inventoryitems"]);
-                setupItemsCommands(invItemsDa, conn);
-                CreateDataSetMapping(invItemsDa, "inventoryitems");
-                m_log.Info("[INVENTORY DB]: Populated Inventory Items Definitions");
->>>>>>> cc67de5... rename SQLiteNG to SQLite and SQLite to SQLiteLegacy:OpenSim/Data/SQLite/SQLiteInventoryStore.cs
 
             ds.AcceptChanges();
         }

@@ -80,7 +80,7 @@ namespace OpenSim.Data.SQLiteLegacy
             get { return new List<string>(m_FieldMap.Keys).ToArray(); }
         }
 
-        public EstateSettings LoadEstateSettings(UUID regionID, bool create)
+        public EstateSettings LoadEstateSettings(UUID regionID)
         {
             string sql = "select estate_settings."+String.Join(",estate_settings.", FieldList)+" from estate_map left join estate_settings on estate_map.EstateID = estate_settings.EstateID where estate_settings.EstateID is not null and RegionID = :RegionID";
 
@@ -89,10 +89,10 @@ namespace OpenSim.Data.SQLiteLegacy
             cmd.CommandText = sql;
             cmd.Parameters.Add(":RegionID", regionID.ToString());
 
-            return DoLoad(cmd, regionID, create);
+            return DoLoad(cmd, regionID);
         }
 
-        private EstateSettings DoLoad(SqliteCommand cmd, UUID regionID, bool create)
+        private EstateSettings DoLoad(SqliteCommand cmd, UUID regionID)
         {
             EstateSettings es = new EstateSettings();
             es.OnSave += StoreEstateSettings;
@@ -125,8 +125,10 @@ namespace OpenSim.Data.SQLiteLegacy
                 }
                 r.Close();
             }
-            else if (create)
+            else
             {
+                // Migration case
+                //
                 r.Close();
 
                 List<string> names = new List<string>(FieldList);
@@ -335,7 +337,7 @@ namespace OpenSim.Data.SQLiteLegacy
             cmd.CommandText = sql;
             cmd.Parameters.Add(":EstateID", estateID.ToString());
 
-            return DoLoad(cmd, UUID.Zero, false);
+            return DoLoad(cmd, UUID.Zero);
         }
 
         public List<int> GetEstates(string search)

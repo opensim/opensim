@@ -234,8 +234,7 @@ namespace OpenSim.Data.SQLiteLegacy
             AssetBase asset = new AssetBase(
                 new UUID((String)row["UUID"]),
                 (String)row["Name"],
-                Convert.ToSByte(row["Type"]),
-                UUID.Zero.ToString()
+                Convert.ToSByte(row["Type"])
             );
 
             asset.Description = (String) row["Description"];

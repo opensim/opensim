@@ -272,16 +272,7 @@ namespace OpenSim.Data.SQLiteLegacy
                 Commit();
             }
         }
-        public RegionLightShareData LoadRegionWindlightSettings(UUID regionUUID)
-        {
-            //This connector doesn't support the windlight module yet
-            //Return default LL windlight settings
-            return new RegionLightShareData();
-        }
-        public void StoreRegionWindlightSettings(RegionLightShareData wl)
-        {
-            //This connector doesn't support the windlight module yet
-        }
+
         public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
             lock (ds)

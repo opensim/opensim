@@ -54,11 +54,8 @@ namespace OpenSim.Data.SQLite
             m_Realm = realm;
             if (storeName != String.Empty)
             {
-<<<<<<< HEAD:OpenSim/Data/SQLite/SQLiteGenericTableHandler.cs
-                Assembly assem = GetType().Assembly;
-=======
                 m_Connection = new SqliteConnection(connectionString);
-                Console.WriteLine(string.Format("OPENING CONNECTION FOR {0} USING {1}", storeName, connectionString));
+                //Console.WriteLine(string.Format("OPENING CONNECTION FOR {0} USING {1}", storeName, connectionString));
                 m_Connection.Open();
 
                 if (storeName != String.Empty)
@@ -74,10 +71,6 @@ namespace OpenSim.Data.SQLite
                     //newConnection.Close();
                     //newConnection.Dispose();
                 }
->>>>>>> cc67de5... rename SQLiteNG to SQLite and SQLite to SQLiteLegacy:OpenSim/Data/SQLite/SQLiteGenericTableHandler.cs
-
-                Migration m = new Migration(m_Connection, assem, storeName);
-                m.Update();
             }
 
             Type t = typeof(T);
@@ -200,11 +193,7 @@ namespace OpenSim.Data.SQLite
                 result.Add(row);
             }
 
-<<<<<<< HEAD:OpenSim/Data/SQLite/SQLiteGenericTableHandler.cs
-            CloseReaderCommand(cmd);
-=======
             //CloseCommand(cmd);
->>>>>>> cc67de5... rename SQLiteNG to SQLite and SQLite to SQLiteLegacy:OpenSim/Data/SQLite/SQLiteGenericTableHandler.cs
 
             return result.ToArray();
         }

@@ -180,7 +180,7 @@ namespace OpenSim.Data.SQLite
                 //
                 cmd.Parameters.Clear();
                 cmd.CommandText = "insert into estateban select "+es.EstateID.ToString()+", bannedUUID, bannedIp, bannedIpHostMask, '' from regionban where regionban.regionUUID = :UUID";
-                cmd.Parameters.Add(":UUID", regionID.ToString());
+                cmd.Parameters.AddWithValue(":UUID", regionID.ToString());
 
                 try
                 {
@@ -336,66 +336,5 @@ namespace OpenSim.Data.SQLite
 
             return uuids.ToArray();
         }
-<<<<<<< HEAD:OpenSim/Data/SQLite/SQLiteEstateData.cs
-=======
-
-        public EstateSettings LoadEstateSettings(int estateID)
-        {
-            string sql = "select estate_settings."+String.Join(",estate_settings.", FieldList)+" from estate_settings where estate_settings.EstateID :EstateID";
-
-            SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
-
-            cmd.CommandText = sql;
-            cmd.Parameters.AddWithValue(":EstateID", estateID.ToString());
-
-            return DoLoad(cmd, UUID.Zero, false);
-        }
-
-        public List<int> GetEstates(string search)
-        {
-            List<int> result = new List<int>();
-
-            string sql = "select EstateID from estate_settings where estate_settings.EstateName :EstateName";
-
-            SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
-
-            cmd.CommandText = sql;
-            cmd.Parameters.AddWithValue(":EstateName", search);
-
-            IDataReader r = cmd.ExecuteReader();
-
-            while (r.Read())
-            {
-                result.Add(Convert.ToInt32(r["EstateID"]));
-            }
-            r.Close();
-
-            return result;
-        }
-
-        public bool LinkRegion(UUID regionID, int estateID)
-        {
-            SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
-
-            cmd.CommandText = "insert into estate_map values (:RegionID, :EstateID)";
-            cmd.Parameters.AddWithValue(":RegionID", regionID.ToString());
-            cmd.Parameters.AddWithValue(":EstateID", estateID.ToString());
-
-            if (cmd.ExecuteNonQuery() == 0)
-                return false;
-
-            return true;
-        }
-
-        public List<UUID> GetRegions(int estateID)
-        {
-            return new List<UUID>();
-        }
-
-        public bool DeleteEstate(int estateID)
-        {
-            return false;
-        }
->>>>>>> cc67de5... rename SQLiteNG to SQLite and SQLite to SQLiteLegacy:OpenSim/Data/SQLite/SQLiteEstateData.cs
     }
 }
