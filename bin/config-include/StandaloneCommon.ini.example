@@ -6,12 +6,12 @@
     ;
 
     ; SQLite
-    ; Uncomment this line if you want to use sqlite storage with Mono 2.4
-    Include-Storage = "config-include/storage/SQLiteStandalone.ini";
+    Include-Storage = "config-include/storage/SQLiteNGStandalone.ini";
 
-    ; If you want to use sqlite with Mono 2.6 and above, uncomment this line instead.
-    ; Don't forget to do the same thing for the storage_plugin setting in OpenSim.ini
-    ; Include-Storage = "config-include/storage/SQLiteNGStandalone.ini";
+    ; Unfortunately SQLiteNG is not compatible with Mac OSX.  You can still use the older
+    ; sqlite library if you are using Mono 2.4.  Please see the notes in OpenSim.ini for sqlite
+    ; for more details
+    ;Include-Storage = "config-include/storage/SQLiteStandalone.ini";
 
     ; MySql  
     ; Uncomment these lines if you want to use mysql storage 
