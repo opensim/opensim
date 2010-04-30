@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using log4net;
-using Mono.Data.SqliteClient;
+using Mono.Data.Sqlite;
 using OpenMetaverse;
 using OpenSim.Framework;
 
@@ -89,6 +89,7 @@ namespace OpenSim.Data.SQLite
 
             ds = new DataSet();
 
+<<<<<<< HEAD:OpenSim/Data/SQLite/SQLiteInventoryStore.cs
             ds.Tables.Add(createInventoryFoldersTable());
             invFoldersDa.Fill(ds.Tables["inventoryfolders"]);
             setupFoldersCommands(invFoldersDa, conn);
@@ -98,6 +99,19 @@ namespace OpenSim.Data.SQLite
             invItemsDa.Fill(ds.Tables["inventoryitems"]);
             setupItemsCommands(invItemsDa, conn);
             m_log.Info("[INVENTORY DB]: Populated Inventory Items Definitions");
+=======
+                ds.Tables.Add(createInventoryFoldersTable());
+                invFoldersDa.Fill(ds.Tables["inventoryfolders"]);
+                setupFoldersCommands(invFoldersDa, conn);
+                CreateDataSetMapping(invFoldersDa, "inventoryfolders");
+                m_log.Info("[INVENTORY DB]: Populated Inventory Folders Definitions");
+
+                ds.Tables.Add(createInventoryItemsTable());
+                invItemsDa.Fill(ds.Tables["inventoryitems"]);
+                setupItemsCommands(invItemsDa, conn);
+                CreateDataSetMapping(invItemsDa, "inventoryitems");
+                m_log.Info("[INVENTORY DB]: Populated Inventory Items Definitions");
+>>>>>>> cc67de5... rename SQLiteNG to SQLite and SQLite to SQLiteLegacy:OpenSim/Data/SQLite/SQLiteInventoryStore.cs
 
             ds.AcceptChanges();
         }
@@ -720,6 +734,15 @@ namespace OpenSim.Data.SQLite
          *  Data Table definitions
          *
          **********************************************************************/
+
+        protected void CreateDataSetMapping(IDataAdapter da, string tableName)
+        {       
+            ITableMapping dbMapping = da.TableMappings.Add(tableName, tableName);
+            foreach (DataColumn col in ds.Tables[tableName].Columns)
+            {       
+                dbMapping.ColumnMappings.Add(col.ColumnName, col.ColumnName);
+            }       
+        }
 
         /// <summary>
         /// Create the "inventoryitems" table

@@ -33,7 +33,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using Mono.Data.Sqlite;
 
-namespace OpenSim.Data.SQLiteNG
+namespace OpenSim.Data.SQLite
 {
     public class SQLiteUserAccountData : SQLiteGenericTableHandler<UserAccountData>, IUserAccountData
     {

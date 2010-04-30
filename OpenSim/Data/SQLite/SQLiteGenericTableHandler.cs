@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using log4net;
-using Mono.Data.SqliteClient;
+using Mono.Data.Sqlite;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -54,7 +54,27 @@ namespace OpenSim.Data.SQLite
             m_Realm = realm;
             if (storeName != String.Empty)
             {
+<<<<<<< HEAD:OpenSim/Data/SQLite/SQLiteGenericTableHandler.cs
                 Assembly assem = GetType().Assembly;
+=======
+                m_Connection = new SqliteConnection(connectionString);
+                Console.WriteLine(string.Format("OPENING CONNECTION FOR {0} USING {1}", storeName, connectionString));
+                m_Connection.Open();
+
+                if (storeName != String.Empty)
+                {
+                    Assembly assem = GetType().Assembly;
+                    //SqliteConnection newConnection =
+                    //        (SqliteConnection)((ICloneable)m_Connection).Clone();
+                    //newConnection.Open();
+
+                    //Migration m = new Migration(newConnection, assem, storeName);
+                    Migration m = new Migration(m_Connection, assem, storeName);
+                    m.Update();
+                    //newConnection.Close();
+                    //newConnection.Dispose();
+                }
+>>>>>>> cc67de5... rename SQLiteNG to SQLite and SQLite to SQLiteLegacy:OpenSim/Data/SQLite/SQLiteGenericTableHandler.cs
 
                 Migration m = new Migration(m_Connection, assem, storeName);
                 m.Update();
@@ -180,7 +200,11 @@ namespace OpenSim.Data.SQLite
                 result.Add(row);
             }
 
+<<<<<<< HEAD:OpenSim/Data/SQLite/SQLiteGenericTableHandler.cs
             CloseReaderCommand(cmd);
+=======
+            //CloseCommand(cmd);
+>>>>>>> cc67de5... rename SQLiteNG to SQLite and SQLite to SQLiteLegacy:OpenSim/Data/SQLite/SQLiteGenericTableHandler.cs
 
             return result.ToArray();
         }

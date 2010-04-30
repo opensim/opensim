@@ -31,40 +31,51 @@ using System.Collections.Generic;
 using System.Data;
 using OpenMetaverse;
 using OpenSim.Framework;
-using Mono.Data.Sqlite;
+using Mono.Data.SqliteClient;
 
-namespace OpenSim.Data.SQLiteNG
+namespace OpenSim.Data.SQLiteLegacy
 {
-    public class SQLiteFriendsData : SQLiteGenericTableHandler<FriendsData>, IFriendsData
+    public class SQLiteUserAccountData : SQLiteGenericTableHandler<UserAccountData>, IUserAccountData
     {
-        public SQLiteFriendsData(string connectionString, string realm)
-            : base(connectionString, realm, "FriendsStore")
+        public SQLiteUserAccountData(string connectionString, string realm)
+                : base(connectionString, realm, "UserAccount")
         {
         }
 
-        public FriendsData[] GetFriends(UUID userID)
+        public UserAccountData[] GetUsers(UUID scopeID, string query)
         {
+            string[] words = query.Split(new char[] {' '});
+
+            for (int i = 0 ; i < words.Length ; i++)
+            {
+                if (words[i].Length < 3)
+                {
+                    if (i != words.Length - 1)
+                        Array.Copy(words, i + 1, words, i, words.Length - i - 1);
+                    Array.Resize(ref words, words.Length - 1);
+                }
+            }
+
+            if (words.Length == 0)
+                return new UserAccountData[0];
+
+            if (words.Length > 2)
+                return new UserAccountData[0];
+
             SqliteCommand cmd = new SqliteCommand();
 
-            cmd.CommandText = String.Format("select a.*,case when b.Flags is null then -1 else b.Flags end as TheirFlags from {0} as a left join {0} as b on a.PrincipalID = b.Friend and a.Friend = b.PrincipalID where a.PrincipalID = :PrincipalID", m_Realm);
-            cmd.Parameters.AddWithValue(":PrincipalID", userID.ToString());
+            if (words.Length == 1)
+            {
+                cmd.CommandText = String.Format("select * from {0} where (ScopeID='{1}' or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like '{2}%' or LastName like '{2}%')",
+                    m_Realm, scopeID.ToString(), words[0]);
+            }
+            else
+            {
+                cmd.CommandText = String.Format("select * from {0} where (ScopeID='{1}' or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like '{2}%' or LastName like '{3}%')", 
+                    m_Realm, scopeID.ToString(), words[0], words[1]);
+            }
 
             return DoQuery(cmd);
-
         }
-
-        public bool Delete(UUID principalID, string friend)
-        {
-            SqliteCommand cmd = new SqliteCommand();
-
-            cmd.CommandText = String.Format("delete from {0} where PrincipalID = :PrincipalID and Friend = :Friend", m_Realm);
-            cmd.Parameters.AddWithValue(":PrincipalID", principalID.ToString());
-            cmd.Parameters.AddWithValue(":Friend", friend);
-
-            ExecuteNonQuery(cmd, cmd.Connection);
-
-            return true;
-        }
-
     }
 }

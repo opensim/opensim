@@ -29,7 +29,7 @@ using System;
 using System.Data;
 using System.Reflection;
 using System.Collections.Generic;
-using Mono.Data.SqliteClient;
+using Mono.Data.Sqlite;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -147,7 +147,11 @@ namespace OpenSim.Data.SQLite
             }
 
             reader.Close();
+<<<<<<< HEAD:OpenSim/Data/SQLite/SQLiteXInventoryData.cs
             CloseReaderCommand(cmd);
+=======
+            //CloseCommand(cmd);
+>>>>>>> cc67de5... rename SQLiteNG to SQLite and SQLite to SQLiteLegacy:OpenSim/Data/SQLite/SQLiteXInventoryData.cs
 
             return perms;
         }

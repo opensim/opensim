@@ -30,7 +30,7 @@ using System.Data;
 using System.Reflection;
 using System.Collections.Generic;
 using log4net;
-using Mono.Data.SqliteClient;
+using Mono.Data.Sqlite;
 using OpenMetaverse;
 using OpenSim.Framework;
 
