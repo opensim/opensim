@@ -329,7 +329,7 @@ namespace OpenSim.Services.Connectors
                         reqString);
                 if (reply == null || (reply != null && reply == string.Empty))
                 {
-                    m_log.DebugFormat("[PRESENCE CONNECTOR]: GetAgent received null or empty reply");
+                    m_log.DebugFormat("[PRESENCE CONNECTOR]: GetAgents received null or empty reply");
                     return null;
                 }
             }

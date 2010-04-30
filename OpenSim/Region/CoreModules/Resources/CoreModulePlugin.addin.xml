@@ -47,6 +47,7 @@
         <RegionModule id="RemoteInventoryServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory.RemoteInventoryServicesConnector" />
         <RegionModule id="RemoteXInventoryServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory.RemoteXInventoryServicesConnector" />
         <RegionModule id="HGInventoryBroker" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory.HGInventoryBroker" />
+        <RegionModule id="HGInventoryBroker2" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory.HGInventoryBroker2" />
         <RegionModule id="LocalNeighbourServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour.LocalNeighbourServicesConnector" />
         <RegionModule id="RemoteNeighbourServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour.RemoteNeighbourServicesConnector" />
         <RegionModule id="LocalLandServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Land.LocalLandServicesConnector" />
