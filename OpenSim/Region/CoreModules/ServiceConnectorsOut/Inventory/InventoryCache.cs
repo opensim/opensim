@@ -52,7 +52,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         protected Dictionary<UUID, Dictionary<AssetType, InventoryFolderBase>> m_InventoryCache;
 
         // A cache of userIDs --> ServiceURLs, for HGBroker only
-        protected Dictionary<UUID, string> m_InventoryURLs;
+        protected Dictionary<UUID, string> m_InventoryURLs =
+                new Dictionary<UUID, string>();
 
         public virtual void Init(IConfigSource source, BaseInventoryConnector connector)
         {
