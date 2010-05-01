@@ -1,3 +1,0 @@
-BEGIN;
-ALTER TABLE estate_settings AUTO_INCREMENT = 100;
-COMMIT;

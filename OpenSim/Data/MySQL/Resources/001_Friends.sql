@@ -1,9 +1,0 @@
-BEGIN;
-
-CREATE TABLE `Friends` (
-    `PrincipalID` CHAR(36) NOT NULL,
-    `FriendID` VARCHAR(255) NOT NULL,
-    `Flags` CHAR(16) NOT NULL DEFAULT '0'
-) ENGINE=InnoDB;
-
-COMMIT;
