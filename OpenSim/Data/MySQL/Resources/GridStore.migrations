@@ -1,3 +1,5 @@
+﻿:VERSION 1
+
 CREATE TABLE `regions` (
   `uuid` varchar(36) NOT NULL,
   `regionHandle` bigint(20) unsigned NOT NULL,
@@ -30,3 +32,58 @@ CREATE TABLE `regions` (
   KEY `regionHandle` (`regionHandle`),
   KEY `overrideHandles` (`eastOverrideHandle`,`westOverrideHandle`,`southOverrideHandle`,`northOverrideHandle`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Rev. 3';
+
+:VERSION 2
+
+BEGIN;
+
+ALTER TABLE regions add column access integer unsigned default 1;
+
+COMMIT;
+
+:VERSION 3
+
+BEGIN;
+
+ALTER TABLE regions add column ScopeID char(36) not null default '00000000-0000-0000-0000-000000000000';
+
+create index ScopeID on regions(ScopeID);
+
+COMMIT;
+
+:VERSION 4
+
+BEGIN;
+
+ALTER TABLE regions add column sizeX integer not null default 0;
+ALTER TABLE regions add column sizeY integer not null default 0;
+
+COMMIT;
+
+:VERSION 5
+
+BEGIN;
+
+ALTER TABLE `regions` ADD COLUMN `flags` integer NOT NULL DEFAULT 0;
+CREATE INDEX flags ON regions(flags);
+
+COMMIT;
+
+:VERSION 6
+
+BEGIN;
+
+ALTER TABLE `regions` ADD COLUMN `last_seen` integer NOT NULL DEFAULT 0;
+
+COMMIT;
+
+:VERSION 7
+
+BEGIN;
+
+ALTER TABLE `regions` ADD COLUMN `PrincipalID` char(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+ALTER TABLE `regions` ADD COLUMN `Token` varchar(255) NOT NULL;
+
+COMMIT;
+
+

@@ -1,3 +1,5 @@
+﻿:VERSION 1          # -----------------------------
+
 BEGIN;
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -105,3 +107,62 @@ CREATE TABLE `users` (
 -- Records 
 -- ----------------------------
 COMMIT;
+
+:VERSION 2          # -----------------------------
+
+BEGIN;
+
+ALTER TABLE users add homeRegionID char(36) NOT NULL default '00000000-0000-0000-0000-000000000000';
+
+COMMIT;
+
+:VERSION 3          # -----------------------------
+
+BEGIN;
+
+ALTER TABLE users add userFlags integer NOT NULL default 0;
+ALTER TABLE users add godLevel integer NOT NULL default 0;
+
+COMMIT;
+
+:VERSION 4          # -----------------------------
+
+BEGIN;
+
+ALTER TABLE users add customType varchar(32) not null default '';
+ALTER TABLE users add partner char(36) not null default '00000000-0000-0000-0000-000000000000';
+
+COMMIT;
+
+:VERSION 5          # -----------------------------
+
+BEGIN;
+
+CREATE TABLE `avatarattachments` (`UUID` char(36) NOT NULL, `attachpoint` int(11) NOT NULL, `item` char(36) NOT NULL, `asset` char(36) NOT NULL) ENGINE=InnoDB;
+
+COMMIT;
+
+:VERSION 6          # -----------------------------
+
+BEGIN;
+
+ALTER TABLE agents add currentLookAt varchar(36) not null default '';
+
+COMMIT;
+
+:VERSION 7          # -----------------------------
+
+BEGIN;
+
+ALTER TABLE users add email varchar(250);
+
+COMMIT;
+
+:VERSION 8          # -----------------------------
+
+BEGIN;
+
+ALTER TABLE users add scopeID char(36) not null default '00000000-0000-0000-0000-000000000000';
+
+COMMIT;
+
