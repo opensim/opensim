@@ -204,7 +204,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             // Is the sensor type is AGENT and not SCRIPTED then include agents
             if ((ts.type & AGENT) != 0 && (ts.type & SCRIPTED) == 0)
             {
-               sensedEntities.AddRange(doAgentSensor(ts));
+                sensedEntities.AddRange(doAgentSensor(ts));
             }
 
             // If SCRIPTED or PASSIVE or ACTIVE check objects
@@ -309,6 +309,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // in mouselook.
 
                 ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.RootPart.AttachedAvatar);
+                fromRegionPos = avatar.AbsolutePosition;
                 q = avatar.Rotation;
             }
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
@@ -422,6 +423,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             SceneObjectPart SensePoint = ts.host;
             Vector3 fromRegionPos = SensePoint.AbsolutePosition;
             Quaternion q = SensePoint.RotationOffset;
+            if (SensePoint.ParentGroup.RootPart.IsAttachment)
+            {
+                // In attachments, the sensor cone always orients with the
+                // avatar rotation. This may include a nonzero elevation if
+                // in mouselook.
+
+                ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.RootPart.AttachedAvatar);
+                fromRegionPos = avatar.AbsolutePosition;
+                q = avatar.Rotation;
+            }
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
             LSL_Types.Vector3 forward_dir = (new LSL_Types.Vector3(1, 0, 0) * r);
             double mag_fwd = LSL_Types.Vector3.Mag(forward_dir);
