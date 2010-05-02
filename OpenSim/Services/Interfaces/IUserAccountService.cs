@@ -84,11 +84,11 @@ namespace OpenSim.Services.Interfaces
             if (kvp.ContainsKey("ScopeID"))
                 UUID.TryParse(kvp["ScopeID"].ToString(), out ScopeID);
             if (kvp.ContainsKey("UserLevel"))
-                Convert.ToInt32(kvp["UserLevel"].ToString());
+                UserLevel = Convert.ToInt32(kvp["UserLevel"].ToString());
             if (kvp.ContainsKey("UserFlags"))
-                Convert.ToInt32(kvp["UserFlags"].ToString());
+                UserFlags = Convert.ToInt32(kvp["UserFlags"].ToString());
             if (kvp.ContainsKey("UserTitle"))
-                Email = kvp["UserTitle"].ToString();
+                UserTitle = kvp["UserTitle"].ToString();
 
             if (kvp.ContainsKey("Created"))
                 Convert.ToInt32(kvp["Created"].ToString());
