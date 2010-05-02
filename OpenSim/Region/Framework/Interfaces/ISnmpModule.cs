@@ -21,4 +21,7 @@ public interface ISnmpModule
     void LinkUp(Scene scene);
     void LinkDown(Scene scene);
     void BootInfo(string data, Scene scene);
+    void trapDebug(string Module,string data, Scene scene);
+    void trapXMRE(int data, string Message, Scene scene);
+
 }
