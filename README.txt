@@ -1,6 +1,6 @@
 Welcome to OpenSim!
 
-== OVERVIEW ==
+=== OVERVIEW ===
 
 OpenSim is a BSD Licensed Open Source project to develop a functioning
 virtual worlds server platform capable of supporting multiple clients
