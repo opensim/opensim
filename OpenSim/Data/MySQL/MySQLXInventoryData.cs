@@ -160,5 +160,36 @@ namespace OpenSim.Data.MySQL
                 }
             }
         }
+
+        public override bool Store(XInventoryItem item)
+        {
+            if (base.Store(item))
+                return false;
+
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+
+                using (MySqlCommand cmd = new MySqlCommand())
+                {
+                    cmd.Connection = dbcon;
+
+                    cmd.CommandText = String.Format("update inventoryfolders set version=version+1 where folderID = ?folderID");
+                    cmd.Parameters.AddWithValue("?folderID", item.parentFolderID.ToString());
+
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch (Exception e)
+                    {
+                        return false;
+                    }
+                    cmd.Dispose();
+                }
+                dbcon.Close();
+            }
+            return true;
+        }
     }
 }
