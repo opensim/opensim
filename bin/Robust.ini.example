@@ -11,7 +11,7 @@
 ; *
 [Startup]
 
-ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:InventoryServiceInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
+ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none if specified above
@@ -45,8 +45,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 ; * the function of the legacy inventory server
 ; *
 [InventoryService]
-    LocalServiceModule = "OpenSim.Services.InventoryService.dll:InventoryService"
-    SessionAuthentication = "false"
+    LocalServiceModule = "OpenSim.Services.InventoryService.dll:XInventoryService"
 
 ; * This is the new style grid service.
 ; * "Realm" is the table that is used for user lookup.
@@ -94,7 +93,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     AuthenticationService = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
     PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
     GridService = "OpenSim.Services.GridService.dll:GridService"
-    InventoryService = "OpenSim.Services.InventoryService.dll:InventoryService"
+    InventoryService = "OpenSim.Services.InventoryService.dll:XInventoryService"
 
 [PresenceService]
     ; for the server connector
@@ -118,7 +117,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; for the service
     UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
     AuthenticationService = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
-    InventoryService = "OpenSim.Services.InventoryService.dll:InventoryService"
+    InventoryService = "OpenSim.Services.InventoryService.dll:XInventoryService"
     AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
     PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
     GridService = "OpenSim.Services.GridService.dll:GridService"

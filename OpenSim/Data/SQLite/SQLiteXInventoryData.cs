@@ -49,7 +49,7 @@ namespace OpenSim.Data.SQLite
         public SQLiteXInventoryData(string conn, string realm)
         {
             m_Folders = new SQLiteGenericTableHandler<XInventoryFolder>(
-                    conn, "inventoryfolders", "InventoryStore");
+                    conn, "inventoryfolders", "XInventoryStore");
             m_Items = new SqliteItemHandler(
                     conn, "inventoryitems", String.Empty);
         }

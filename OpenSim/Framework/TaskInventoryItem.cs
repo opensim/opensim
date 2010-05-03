@@ -122,6 +122,8 @@ namespace OpenSim.Framework
         private int _type = 0;
         private UUID _oldID;
 
+        private bool _ownerChanged = false;
+
         public UUID AssetID {
             get {
                 return _assetID;
@@ -317,6 +319,15 @@ namespace OpenSim.Framework
             }
             set {
                 _type = value;
+            }
+        }
+
+        public bool OwnerChanged {
+            get {
+                return _ownerChanged;
+            }
+            set {
+                _ownerChanged = value;
             }
         }
 

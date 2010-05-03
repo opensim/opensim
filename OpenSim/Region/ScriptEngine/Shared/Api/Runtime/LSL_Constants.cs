@@ -549,5 +549,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int STATS_ACTIVE_SCRIPTS = 19;
         public const int STATS_SCRIPT_LPS = 20;
 
+        public const string URL_REQUEST_GRANTED = "URL_REQUEST_GRANTED";
+        public const string URL_REQUEST_DENIED = "URL_REQUEST_DENIED";
     }
 }

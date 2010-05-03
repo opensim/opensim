@@ -1082,12 +1082,11 @@ namespace OpenSim.Region.Framework.Scenes
                         item.CurrentPermissions &= ~(uint)PermissionMask.Modify;
                     item.CurrentPermissions |= 8;
                 }
+                item.OwnerChanged = true;
                 item.CurrentPermissions &= item.NextPermissions;
                 item.BasePermissions &= item.NextPermissions;
                 item.EveryonePermissions &= item.NextPermissions;
             }
-
-            m_part.TriggerScriptChangedEvent(Changed.OWNER);
         }
 
         public void ApplyGodPermissions(uint perms)
@@ -1180,7 +1179,10 @@ namespace OpenSim.Region.Framework.Scenes
                     foreach (IScriptModule engine in engines)
                     {
                         if (engine != null)
+                        {
+                            engine.PostScriptEvent(item.ItemID, "changed", new Object[] { Changed.OWNER });
                             engine.ResumeScript(item.ItemID);
+                        }
                     }
                 }
             }
