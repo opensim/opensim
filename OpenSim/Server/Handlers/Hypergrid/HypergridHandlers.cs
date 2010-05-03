@@ -48,6 +48,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
         public HypergridHandlers(IGatekeeperService gatekeeper)
         {
             m_GatekeeperService = gatekeeper;
+            m_log.DebugFormat("[HYPERGRID HANDLERS]: Active");
         }
 
         /// <summary>
@@ -61,6 +62,8 @@ namespace OpenSim.Server.Handlers.Hypergrid
             //string host = (string)requestData["host"];
             //string portstr = (string)requestData["port"];
             string name = (string)requestData["region_name"];
+            if (name == null)
+                name = string.Empty;
 
             UUID regionID = UUID.Zero;
             string externalName = string.Empty;
