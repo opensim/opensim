@@ -1051,7 +1051,9 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (engine != null)
                             {
-                                engine.PostScriptEvent(item.ItemID, "changed", new Object[] { Changed.OWNER });
+                                if (item.OwnerChanged)
+                                    engine.PostScriptEvent(item.ItemID, "changed", new Object[] { (int)Changed.OWNER });
+                                item.OwnerChanged = false;
                                 engine.ResumeScript(item.ItemID);
                             }
                         }
