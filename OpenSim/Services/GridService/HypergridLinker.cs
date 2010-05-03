@@ -79,9 +79,16 @@ namespace OpenSim.Services.GridService
                         m_DefaultRegion = defs[0];
                     else
                     {
-                        // Best guess, may be totally off
-                        m_DefaultRegion = new GridRegion(1000, 1000);
-                        m_log.WarnFormat("[HYPERGRID LINKER]: This grid does not have a default region. Assuming default coordinates at 1000, 1000.");
+                        // Get any region
+                        defs = m_GridService.GetRegionsByName(m_ScopeID, "", 1);
+                        if (defs != null && defs.Count > 0)
+                            m_DefaultRegion = defs[0];
+                        else
+                        {
+                            // This shouldn't happen
+                            m_DefaultRegion = new GridRegion(1000, 1000);
+                            m_log.Error("[HYPERGRID LINKER]: Something is wrong with this grid. It has no regions?");
+                        }
                     }
                 }
                 return m_DefaultRegion;
@@ -90,7 +97,7 @@ namespace OpenSim.Services.GridService
 
         public HypergridLinker(IConfigSource config, GridService gridService, IRegionData db)
         {
-            m_log.DebugFormat("[HYPERGRID LINKER]: Starting...");
+            m_log.DebugFormat("[HYPERGRID LINKER]: Starting with db {0}", db.GetType());
 
             m_Database = db;
             m_GridService = gridService;
@@ -196,7 +203,7 @@ namespace OpenSim.Services.GridService
         public bool TryCreateLink(UUID scopeID, int xloc, int yloc,
             string externalRegionName, uint externalPort, string externalHostName, out GridRegion regInfo, out string reason)
         {
-            m_log.DebugFormat("[HYPERGRID LINKER]: Link to {0}:{1}, in {2}-{3}", externalHostName, externalPort, xloc, yloc);
+            m_log.DebugFormat("[HYPERGRID LINKER]: Link to {0}:{1}:{2}, in {3}-{4}", externalHostName, externalPort, externalRegionName, xloc, yloc);
 
             reason = string.Empty;
             regInfo = new GridRegion();
@@ -280,29 +287,28 @@ namespace OpenSim.Services.GridService
 
         public bool TryUnlinkRegion(string mapName)
         {
+            m_log.DebugFormat("[HYPERGRID LINKER]: Request to unlink {0}", mapName);
             GridRegion regInfo = null;
-            if (mapName.Contains(":"))
-            {
-                string host = "127.0.0.1";
-                //string portstr;
-                //string regionName = "";
-                uint port = 9000;
-                string[] parts = mapName.Split(new char[] { ':' });
-                if (parts.Length >= 1)
-                {
-                    host = parts[0];
-                }
 
-                foreach (GridRegion r in m_HyperlinkRegions.Values)
-                    if (host.Equals(r.ExternalHostName) && (port == r.HttpPort))
-                        regInfo = r;
-            }
-            else
+            List<RegionData> regions = m_Database.Get(mapName, m_ScopeID);
+            if (regions != null && regions.Count > 0)
             {
-                foreach (GridRegion r in m_HyperlinkRegions.Values)
-                    if (r.RegionName.Equals(mapName))
-                        regInfo = r;
+                OpenSim.Data.RegionFlags rflags = (OpenSim.Data.RegionFlags)Convert.ToInt32(regions[0].Data["flags"]);
+                if ((rflags & OpenSim.Data.RegionFlags.Hyperlink) != 0)
+                {
+                    regInfo = new GridRegion(); 
+                    regInfo.RegionID = regions[0].RegionID;
+                    regInfo.ScopeID = m_ScopeID;
+                }
             }
+
+            //foreach (GridRegion r in m_HyperlinkRegions.Values)
+            //{
+            //    m_log.DebugFormat("XXX Comparing {0}:{1} with {2}:{3}", host, port, r.ExternalHostName, r.HttpPort);
+            //    if (host.Equals(r.ExternalHostName) && (port == r.HttpPort))
+            //        regInfo = r;
+            //}
+
             if (regInfo != null)
             {
                 RemoveHyperlinkRegion(regInfo.RegionID);
