@@ -163,7 +163,7 @@ namespace OpenSim.Data.MySQL
 
         public override bool Store(XInventoryItem item)
         {
-            if (base.Store(item))
+            if (!base.Store(item))
                 return false;
 
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
