@@ -135,7 +135,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             data.Y = 0;
             blocks.Add(data);
 
-            remoteClient.SendMapBlock(blocks, 0);
+            remoteClient.SendMapBlock(blocks, 2);
         }
 
         private Scene GetClientScene(IClientAPI client)
