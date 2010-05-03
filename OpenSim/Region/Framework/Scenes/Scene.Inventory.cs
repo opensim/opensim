@@ -94,6 +94,22 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AddInventoryItem(UUID AgentID, InventoryItemBase item)
         {
+            InventoryFolderBase folder;
+
+            if (item.Folder == UUID.Zero)
+            {
+                folder = InventoryService.GetFolderForType(AgentID, (AssetType)item.AssetType);
+                if (folder == null)
+                {
+                    folder = InventoryService.GetRootFolder(AgentID);
+
+                    if (folder == null)
+                        return;
+                }
+
+                item.Folder = folder.ID;
+            }
+
             if (InventoryService.AddItem(item))
             {
                 int userlevel = 0;
