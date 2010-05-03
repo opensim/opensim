@@ -415,6 +415,25 @@ namespace OpenSim.Region.Framework.Scenes
                     itemCopy.BasePermissions = item.BasePermissions;
                 }
                 
+                if (itemCopy.Folder == UUID.Zero)
+                {
+                    InventoryFolderBase folder = InventoryService.GetFolderForType(recipient, (AssetType)itemCopy.AssetType);
+
+                    if (folder != null)
+                    {
+                        itemCopy.Folder = folder.ID;
+                    }
+                    else
+                    {
+                        InventoryFolderBase root = InventoryService.GetRootFolder(recipient);
+
+                        if (root != null)
+                            itemCopy.Folder = root.ID;
+                        else
+                            return null; // No destination
+                    }
+                }
+
                 itemCopy.GroupID = UUID.Zero;
                 itemCopy.GroupOwned = false;
                 itemCopy.Flags = item.Flags;
