@@ -4011,15 +4011,24 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
                 {
                     string xmlData;
                     XmlDocument d = new XmlDocument();
+                    UUID asset;
                     if (itemData.TryGetValue(itemID, out xmlData))
                     {
                         d.LoadXml(xmlData);
                         m_log.InfoFormat("[ATTACHMENT]: Found saved state for item {0}, loading it", itemID);
-                    }
 
-                    // Rez from inventory
-                    UUID asset 
-                        = m_scene.AttachmentsModule.RezSingleAttachmentFromInventory(ControllingClient, itemID, (uint)p, true, d);
+                        // Rez from inventory
+                        asset 
+                            = m_scene.AttachmentsModule.RezSingleAttachmentFromInventory(ControllingClient, itemID, (uint)p, true, d);
+
+                    }
+                    else
+                    {
+                        // Rez from inventory (with a null doc to let
+                        // CHANGED_OWNER happen)
+                        asset 
+                            = m_scene.AttachmentsModule.RezSingleAttachmentFromInventory(ControllingClient, itemID, (uint)p, true, null);
+                    }
 
                     m_log.InfoFormat(
                         "[ATTACHMENT]: Rezzed attachment in point {0} from item {1} and asset {2} ({3})",

@@ -245,7 +245,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         objatt.HasGroupChanged = true;
 
                     if (doc != null)
+                    {
                         objatt.LoadScriptState(doc);
+                        objatt.ResetOwnerChangeFlag();
+                    }
 
                     // Fire after attach, so we don't get messy perms dialogs
                     // 3 == AttachedRez

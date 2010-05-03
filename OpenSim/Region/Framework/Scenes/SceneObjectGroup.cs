@@ -3931,5 +3931,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             return priority;
         }
+
+        public void ResetOwnerChangeFlag()
+        {
+            ForEachPart(delegate(SceneObjectPart part)
+            {
+                part.ResetOwnerChangeFlag();
+            });
+        }
     }
 }

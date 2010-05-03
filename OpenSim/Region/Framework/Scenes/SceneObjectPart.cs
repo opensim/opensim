@@ -4683,5 +4683,17 @@ namespace OpenSim.Region.Framework.Scenes
         {
             return new Color4((byte)Color.R, (byte)Color.G, (byte)Color.B, (byte)(0xFF - Color.A));
         }
+
+        public void ResetOwnerChangeFlag()
+        {
+            List<UUID> inv = Inventory.GetInventoryList();
+
+            foreach (UUID itemID in inv)
+            {
+                TaskInventoryItem item = Inventory.GetInventoryItem(itemID);
+                item.OwnerChanged = false;
+                Inventory.UpdateInventoryItem(item);
+            }
+        }
     }
 }
