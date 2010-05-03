@@ -1592,7 +1592,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            return true;
+            return GenericObjectPermission(userID, objectID, false);
         }
 
         private bool CanDelinkObject(UUID userID, UUID objectID)
@@ -1600,7 +1600,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            return true;
+            return GenericObjectPermission(userID, objectID, false);
         }
 
         private bool CanBuyLand(UUID userID, ILandObject parcel, Scene scene)
