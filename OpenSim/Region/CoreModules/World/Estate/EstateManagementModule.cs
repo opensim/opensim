@@ -1167,7 +1167,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             ChangeDelegate change = OnRegionInfoChange;
 
             if (change != null)
-                change();
+                change(m_scene.RegionInfo.RegionID);
         }
 
         protected void TriggerEstateInfoChange()
@@ -1175,7 +1175,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             ChangeDelegate change = OnEstateInfoChange;
 
             if (change != null)
-                change();
+                change(m_scene.RegionInfo.RegionID);
         }
     }
 }
