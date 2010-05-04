@@ -483,6 +483,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                             sensedEntities.Add(new SensedEntity(dis, presence.UUID));
                         }
                     }
+                    else
+                    {
+                        // If full circle is asked for, just add it
+                        sensedEntities.Add(new SensedEntity(dis, presence.UUID));
+                    }
                 }
             });
 
