@@ -132,14 +132,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
                 sp.ControllingClient.SendLoadURL(objectName, objectID, ownerID, groupOwned, message, url);
         }
         
-        public void SendNotificationToUsersInEstate(
-            UUID fromAvatarID, string fromAvatarName, string message)
-        {
-            // TODO: This does not yet do what it says on the tin - it only sends the message to users in the same
-            // region as the sending avatar.
-            SendNotificationToUsersInRegion(fromAvatarID, fromAvatarName, message);
-        }
-
         public void SendTextBoxToUser(UUID avatarid, string message, int chatChannel, string name, UUID objectid, UUID ownerid)
         {
              UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, ownerid);

@@ -50,6 +50,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public event ChangeDelegate OnRegionInfoChange;
         public event ChangeDelegate OnEstateInfoChange;
+        public event MessageDelegate OnEstateMessage;
 
         #region Packet Data Responders
 
@@ -440,10 +441,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private void SendEstateBlueBoxMessage(
             IClientAPI remote_client, UUID invoice, UUID senderID, UUID sessionID, string senderName, string message)
         {
-            IDialogModule dm = m_scene.RequestModuleInterface<IDialogModule>();
-            
-            if (dm != null)
-                dm.SendNotificationToUsersInEstate(senderID, senderName, message);
+            TriggerEstateMessage(senderID, senderName, message);
         }
 
         private void handleEstateDebugRegionRequest(IClientAPI remote_client, UUID invoice, UUID senderID, bool scripted, bool collisionEvents, bool physics)
@@ -1176,6 +1174,14 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             if (change != null)
                 change(m_scene.RegionInfo.RegionID);
+        }
+
+        protected void TriggerEstateMessage(UUID fromID, string fromName, string message)
+        {
+            MessageDelegate onmessage = OnEstateMessage;
+
+            if (onmessage != null)
+                onmessage(m_scene.RegionInfo.RegionID, fromID, fromName, message);
         }
     }
 }
