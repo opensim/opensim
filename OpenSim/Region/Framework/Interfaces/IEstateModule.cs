@@ -29,7 +29,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public delegate void ChangeDelegate();
+    public delegate void ChangeDelegate(UUID regionID);
 
     public interface IEstateModule : IRegionModule
     {
