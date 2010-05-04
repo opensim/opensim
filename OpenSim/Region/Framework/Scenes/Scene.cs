@@ -5075,5 +5075,51 @@ namespace OpenSim.Region.Framework.Scenes
         {
             return new Vector3(x, y, GetGroundHeight(x, y));
         }
+
+        public List<UUID> GetEstateRegions(int estateID)
+        {
+            if (m_storageManager.EstateDataStore == null)
+                return new List<UUID>();
+
+            return m_storageManager.EstateDataStore.GetRegions(estateID);
+        }
+
+        public void ReloadEstateData()
+        {
+            m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID, false);
+
+            TriggerEstateSunUpdate();
+        }
+
+        public void TriggerEstateSunUpdate()
+        {
+            float sun;
+            if (RegionInfo.RegionSettings.UseEstateSun)
+            {
+                sun = (float)RegionInfo.EstateSettings.SunPosition;
+                if (RegionInfo.EstateSettings.UseGlobalTime)
+                {
+                    sun = EventManager.GetCurrentTimeAsSunLindenHour() - 6.0f;
+                }
+
+                // 
+                EventManager.TriggerEstateToolsSunUpdate(
+                        RegionInfo.RegionHandle,
+                        RegionInfo.EstateSettings.FixedSun,
+                        RegionInfo.RegionSettings.UseEstateSun,
+                        sun);
+            }
+            else
+            {
+                // Use the Sun Position from the Region Settings
+                sun = (float)RegionInfo.RegionSettings.SunPosition - 6.0f;
+
+                EventManager.TriggerEstateToolsSunUpdate(
+                        RegionInfo.RegionHandle,
+                        RegionInfo.RegionSettings.FixedSun,
+                        RegionInfo.RegionSettings.UseEstateSun,
+                        sun);
+            }
+        }
     }
 }
