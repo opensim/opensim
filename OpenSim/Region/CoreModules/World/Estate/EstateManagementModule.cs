@@ -212,7 +212,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             m_scene.RegionInfo.RegionSettings.FixedSun = UseFixedSun;
             m_scene.RegionInfo.RegionSettings.SunPosition = SunHour;
 
-            TriggerEstateToolsSunUpdate();
+            m_scene.TriggerEstateSunUpdate();
 
             //m_log.Debug("[ESTATE]: UFS: " + UseFixedSun.ToString());
             //m_log.Debug("[ESTATE]: SunHour: " + SunHour.ToString());
@@ -861,7 +861,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             m_scene.RegionInfo.EstateSettings.Save();
 
-            TriggerEstateToolsSunUpdate();
+            m_scene.TriggerEstateSunUpdate();
 
             sendDetailedEstateData(remoteClient, invoice);
         }
@@ -983,7 +983,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {
             // Sets up the sun module based no the saved Estate and Region Settings
             // DO NOT REMOVE or the sun will stop working
-            TriggerEstateToolsSunUpdate();
+            m_scene.TriggerEstateSunUpdate();
         }
 
         public void Close()
@@ -1003,40 +1003,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
         #endregion
 
         #region Other Functions
-
-        private void TriggerEstateToolsSunUpdate()
-        {
-            float sun;
-            if (m_scene.RegionInfo.RegionSettings.UseEstateSun)
-            {
-                sun = (float)m_scene.RegionInfo.EstateSettings.SunPosition;
-                if (m_scene.RegionInfo.EstateSettings.UseGlobalTime)
-                {
-                    sun = m_scene.EventManager.GetCurrentTimeAsSunLindenHour() - 6.0f;
-                }
-
-                // 
-                m_scene.EventManager.TriggerEstateToolsSunUpdate(
-                        m_scene.RegionInfo.RegionHandle,
-                        m_scene.RegionInfo.EstateSettings.FixedSun,
-                        m_scene.RegionInfo.RegionSettings.UseEstateSun, 
-                        sun);
-            }
-            else
-            {
-                // Use the Sun Position from the Region Settings
-                sun = (float)m_scene.RegionInfo.RegionSettings.SunPosition - 6.0f;
-
-                m_scene.EventManager.TriggerEstateToolsSunUpdate(
-                        m_scene.RegionInfo.RegionHandle,
-                        m_scene.RegionInfo.RegionSettings.FixedSun,
-                        m_scene.RegionInfo.RegionSettings.UseEstateSun, 
-                        sun);
-            }
-
-
-        }
-
 
         public void changeWaterHeight(float height)
         {
