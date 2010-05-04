@@ -646,6 +646,10 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            MainConsole.Instance.Commands.AddCommand("region", false, "reload estate",
+                                          "reload estate",
+                                          "Reload the estate data", HandleReloadEstate);
+
             //Bind Storage Manager functions to some land manager functions for this scene
             EventManager.OnLandObjectAdded +=
                 new EventManager.LandObjectAdded(m_storageManager.DataStore.StoreLandObject);
@@ -5119,6 +5123,16 @@ namespace OpenSim.Region.Framework.Scenes
                         RegionInfo.RegionSettings.FixedSun,
                         RegionInfo.RegionSettings.UseEstateSun,
                         sun);
+            }
+        }
+
+        private void HandleReloadEstate(string module, string[] cmd)
+        {
+            if (MainConsole.Instance.ConsoleScene == null ||
+                (MainConsole.Instance.ConsoleScene is Scene &&
+                (Scene)MainConsole.Instance.ConsoleScene == this))
+            {
+                ReloadEstateData();
             }
         }
     }
