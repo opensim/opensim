@@ -474,7 +474,36 @@ namespace OpenSim.Data.MySQL
 
         public List<UUID> GetRegions(int estateID)
         {
-            return new List<UUID>();
+            List<UUID> result = new List<UUID>();
+
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+
+                try
+                {
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "select RegionID from estate_map where EstateID = ?EstateID";
+                        cmd.Parameters.AddWithValue("?EstateID", estateID.ToString());
+
+                        using (IDataReader reader = cmd.ExecuteReader())
+                        {
+                            while(reader.Read())
+                                result.Add(new UUID(reader["RegionID"].ToString()));
+                            reader.Close();
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[REGION DB]: Error reading estate map. " + e.ToString());
+                    return result;
+                }
+                dbcon.Close();
+            }
+
+            return result;
         }
 
         public bool DeleteEstate(int estateID)
