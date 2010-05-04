@@ -113,10 +113,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Hypergrid
 
                 ISimulationService simService = scene.RequestModuleInterface<ISimulationService>();
                 m_HypergridHandler = new GatekeeperServiceInConnector(m_Config, MainServer.Instance, simService);
-                scene.RegisterModuleInterface<IGatekeeperService>(m_HypergridHandler.GateKeeper);
 
                 new UserAgentServerConnector(m_Config, MainServer.Instance);
             }
+            scene.RegisterModuleInterface<IGatekeeperService>(m_HypergridHandler.GateKeeper);
         }
 
         #endregion
