@@ -470,6 +470,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void handleEstateTeleportOneUserHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID, UUID prey)
         {
+            if (!m_scene.Permissions.CanIssueEstateCommand(remover_client.AgentId, false))
+                return;
+
             if (prey != UUID.Zero)
             {
                 ScenePresence s = m_scene.GetScenePresence(prey);
@@ -483,6 +486,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void handleEstateTeleportAllUsersHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID)
         {
+            if (!m_scene.Permissions.CanIssueEstateCommand(remover_client.AgentId, false))
+                return;
+
             m_scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
                 if (sp.UUID != senderID)
