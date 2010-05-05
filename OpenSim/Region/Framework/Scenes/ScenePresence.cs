@@ -655,6 +655,7 @@ namespace OpenSim.Region.Framework.Scenes
         public string Viewer
         {
             get { return m_Viewer; }
+            set { m_Viewer = value; }
         }
 
         #endregion
