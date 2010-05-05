@@ -176,6 +176,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
+
             // The InstantMessageModule itself doesn't do this, 
             // so lets see if things explode if we don't do it
             // scene.EventManager.OnClientClosed += OnClientClosed;
@@ -509,7 +510,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 IClientAPI ejectee = GetActiveClient(ejecteeID);
                 if (ejectee != null)
                 {
-                    UUID groupID = new UUID(im.imSessionID);
+                    UUID groupID = new UUID(im.fromAgentID);
                     ejectee.SendAgentDropGroup(groupID);
                 }
             }
