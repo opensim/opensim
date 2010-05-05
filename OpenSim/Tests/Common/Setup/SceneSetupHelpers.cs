@@ -142,7 +142,7 @@ namespace OpenSim.Tests.Common.Setup
             //{
             //    System.Console.WriteLine("Starting a brand new scene");
             //    newScene = true;
-            //    MainConsole.Instance = new LocalConsole("TEST PROMPT");
+            MainConsole.Instance = new MockConsole("TEST PROMPT");
             //    MainServer.Instance = new BaseHttpServer(980);
             //    commsManager = cm;
             //}
@@ -204,7 +204,7 @@ namespace OpenSim.Tests.Common.Setup
             m_inventoryService.PostInitialise();
             m_assetService.PostInitialise();
             m_userAccountService.PostInitialise();
-
+            testScene.RegionInfo.EstateSettings.EstateOwner = UUID.Random();
             testScene.SetModuleInterfaces();
 
             testScene.LandChannel = new TestLandChannel(testScene);
