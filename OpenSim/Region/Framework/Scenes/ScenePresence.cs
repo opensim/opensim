@@ -218,6 +218,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_followCamAuto;
 
         private int m_movementUpdateCount;
+        private string m_Viewer = String.Empty;
 
         private const int NumMovementsBetweenRayCast = 5;
 
@@ -649,6 +650,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_flyDisabled; }
             set { m_flyDisabled = value; }
+        }
+
+        public string Viewer
+        {
+            get { return m_Viewer; }
         }
 
         #endregion
