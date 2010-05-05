@@ -36,41 +36,42 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
     interface IGroupsServicesConnector
     {
-        UUID CreateGroup(UUID RequestingAgentID, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish, UUID founderID);
-        void UpdateGroup(UUID RequestingAgentID, UUID groupID, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish);
-        GroupRecord GetGroupRecord(UUID RequestingAgentID, UUID GroupID, string GroupName);
-        List<DirGroupsReplyData> FindGroups(UUID RequestingAgentID, string search);
-        List<GroupMembersData> GetGroupMembers(UUID RequestingAgentID, UUID GroupID);
+        UUID CreateGroup(GroupRequestID requestID, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish, UUID founderID);
+        void UpdateGroup(GroupRequestID requestID, UUID groupID, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish);
+        GroupRecord GetGroupRecord(GroupRequestID requestID, UUID GroupID, string GroupName);
+        List<DirGroupsReplyData> FindGroups(GroupRequestID requestID, string search);
+        List<GroupMembersData> GetGroupMembers(GroupRequestID requestID, UUID GroupID);
 
-        void AddGroupRole(UUID RequestingAgentID, UUID groupID, UUID roleID, string name, string description, string title, ulong powers);
-        void UpdateGroupRole(UUID RequestingAgentID, UUID groupID, UUID roleID, string name, string description, string title, ulong powers);
-        void RemoveGroupRole(UUID RequestingAgentID, UUID groupID, UUID roleID);
-        List<GroupRolesData> GetGroupRoles(UUID RequestingAgentID, UUID GroupID);
-        List<GroupRoleMembersData> GetGroupRoleMembers(UUID RequestingAgentID, UUID GroupID);
+        void AddGroupRole(GroupRequestID requestID, UUID groupID, UUID roleID, string name, string description, string title, ulong powers);
+        void UpdateGroupRole(GroupRequestID requestID, UUID groupID, UUID roleID, string name, string description, string title, ulong powers);
+        void RemoveGroupRole(GroupRequestID requestID, UUID groupID, UUID roleID);
+        List<GroupRolesData> GetGroupRoles(GroupRequestID requestID, UUID GroupID);
+        List<GroupRoleMembersData> GetGroupRoleMembers(GroupRequestID requestID, UUID GroupID);
 
-        void AddAgentToGroup(UUID RequestingAgentID, UUID AgentID, UUID GroupID, UUID RoleID);
-        void RemoveAgentFromGroup(UUID RequestingAgentID, UUID AgentID, UUID GroupID);
+        void AddAgentToGroup(GroupRequestID requestID, UUID AgentID, UUID GroupID, UUID RoleID);
+        void RemoveAgentFromGroup(GroupRequestID requestID, UUID AgentID, UUID GroupID);
 
-        void AddAgentToGroupInvite(UUID RequestingAgentID, UUID inviteID, UUID groupID, UUID roleID, UUID agentID);
-        GroupInviteInfo GetAgentToGroupInvite(UUID RequestingAgentID, UUID inviteID);
-        void RemoveAgentToGroupInvite(UUID RequestingAgentID, UUID inviteID);
+        void AddAgentToGroupInvite(GroupRequestID requestID, UUID inviteID, UUID groupID, UUID roleID, UUID agentID);
+        GroupInviteInfo GetAgentToGroupInvite(GroupRequestID requestID, UUID inviteID);
+        void RemoveAgentToGroupInvite(GroupRequestID requestID, UUID inviteID);
 
-        void AddAgentToGroupRole(UUID RequestingAgentID, UUID AgentID, UUID GroupID, UUID RoleID);
-        void RemoveAgentFromGroupRole(UUID RequestingAgentID, UUID AgentID, UUID GroupID, UUID RoleID);
-        List<GroupRolesData> GetAgentGroupRoles(UUID RequestingAgentID, UUID AgentID, UUID GroupID);
 
-        void SetAgentActiveGroup(UUID RequestingAgentID, UUID AgentID, UUID GroupID);
-        GroupMembershipData GetAgentActiveMembership(UUID RequestingAgentID, UUID AgentID);
+        void AddAgentToGroupRole(GroupRequestID requestID, UUID AgentID, UUID GroupID, UUID RoleID);
+        void RemoveAgentFromGroupRole(GroupRequestID requestID, UUID AgentID, UUID GroupID, UUID RoleID);
+        List<GroupRolesData> GetAgentGroupRoles(GroupRequestID requestID, UUID AgentID, UUID GroupID);
 
-        void SetAgentActiveGroupRole(UUID RequestingAgentID, UUID AgentID, UUID GroupID, UUID RoleID);
-        void SetAgentGroupInfo(UUID RequestingAgentID, UUID AgentID, UUID GroupID, bool AcceptNotices, bool ListInProfile);
+        void SetAgentActiveGroup(GroupRequestID requestID, UUID AgentID, UUID GroupID);
+        GroupMembershipData GetAgentActiveMembership(GroupRequestID requestID, UUID AgentID);
 
-        GroupMembershipData GetAgentGroupMembership(UUID RequestingAgentID, UUID AgentID, UUID GroupID);
-        List<GroupMembershipData> GetAgentGroupMemberships(UUID RequestingAgentID, UUID AgentID);
+        void SetAgentActiveGroupRole(GroupRequestID requestID, UUID AgentID, UUID GroupID, UUID RoleID);
+        void SetAgentGroupInfo(GroupRequestID requestID, UUID AgentID, UUID GroupID, bool AcceptNotices, bool ListInProfile);
 
-        void AddGroupNotice(UUID RequestingAgentID, UUID groupID, UUID noticeID, string fromName, string subject, string message, byte[] binaryBucket);
-        GroupNoticeInfo GetGroupNotice(UUID RequestingAgentID, UUID noticeID);
-        List<GroupNoticeData> GetGroupNotices(UUID RequestingAgentID, UUID GroupID);
+        GroupMembershipData GetAgentGroupMembership(GroupRequestID requestID, UUID AgentID, UUID GroupID);
+        List<GroupMembershipData> GetAgentGroupMemberships(GroupRequestID requestID, UUID AgentID);
+
+        void AddGroupNotice(GroupRequestID requestID, UUID groupID, UUID noticeID, string fromName, string subject, string message, byte[] binaryBucket);
+        GroupNoticeInfo GetGroupNotice(GroupRequestID requestID, UUID noticeID);
+        List<GroupNoticeData> GetGroupNotices(GroupRequestID requestID, UUID GroupID);
     }
 
     public class GroupInviteInfo
@@ -79,5 +80,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         public UUID RoleID   = UUID.Zero;
         public UUID AgentID  = UUID.Zero;
         public UUID InviteID = UUID.Zero;
+    }
+
+    public class GroupRequestID
+    {
+        public UUID AgentID = UUID.Zero;
+        public string UserServiceURL = string.Empty;
+        public UUID SessionID = UUID.Zero;
     }
 }
