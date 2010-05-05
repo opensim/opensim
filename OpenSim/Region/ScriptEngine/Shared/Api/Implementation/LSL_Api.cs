@@ -2033,14 +2033,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             float ground = World.GetGroundHeight((float)targetPos.x, (float)targetPos.y);
             bool disable_underground_movement = m_ScriptEngine.Config.GetBoolean("DisableUndergroundMovement", true);
 
-            if (part.ParentGroup == null)
-            {
-                if ((targetPos.z < ground) && disable_underground_movement)
-                    targetPos.z = ground;
-                    LSL_Vector real_vec = SetPosAdjust(currentPos, targetPos);
-                    part.UpdateOffSet(new Vector3((float)real_vec.x, (float)real_vec.y, (float)real_vec.z));
-            }
-            else if (part.ParentGroup.RootPart == part)
+            if (part.ParentGroup.RootPart == part)
             {
                 if ((targetPos.z < ground) && disable_underground_movement)
                     targetPos.z = ground;
@@ -2050,7 +2043,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                //it's late... i think this is right ?
                 if (llVecDist(new LSL_Vector(0,0,0), targetPos) <= 10.0f)
                 {
                     part.OffsetPosition = new Vector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z);
