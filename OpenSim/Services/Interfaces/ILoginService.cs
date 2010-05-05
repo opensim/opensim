@@ -48,6 +48,7 @@ namespace OpenSim.Services.Interfaces
     public interface ILoginService
     {
         LoginResponse Login(string firstName, string lastName, string passwd, string startLocation, UUID scopeID, IPEndPoint clientIP);
+        Hashtable SetLevel(string firstName, string lastName, string passwd, int level, IPEndPoint clientIP);
     }
 
 
