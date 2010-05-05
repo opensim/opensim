@@ -290,7 +290,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agentCircuit.child = true;
                 agentCircuit.Appearance = sp.Appearance;
                 if (currentAgentCircuit != null)
+                {
                     agentCircuit.ServiceURLs = currentAgentCircuit.ServiceURLs;
+                    agentCircuit.Viewer = currentAgentCircuit.Viewer;
+                }
 
                 if (NeedsNewAgent(oldRegionX, newRegionX, oldRegionY, newRegionY))
                 {
@@ -986,7 +989,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     agent.child = true;
                     agent.Appearance = sp.Appearance;
                     if (currentAgentCircuit != null)
+                    {
                         agent.ServiceURLs = currentAgentCircuit.ServiceURLs;
+                        agent.Viewer = currentAgentCircuit.Viewer;
+                    }
 
                     if (newRegions.Contains(neighbour.RegionHandle))
                     {
