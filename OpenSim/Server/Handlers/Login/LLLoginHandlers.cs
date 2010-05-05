@@ -99,6 +99,43 @@ namespace OpenSim.Server.Handlers.Login
 
         }
 
+        public XmlRpcResponse HandleXMLRPCSetLoginLevel(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            if (requestData != null)
+            {
+                if (requestData.ContainsKey("first") && requestData["first"] != null &&
+                    requestData.ContainsKey("last") && requestData["last"] != null &&
+                    requestData.ContainsKey("level") && requestData["level"] != null &&
+                    requestData.ContainsKey("passwd") && requestData["passwd"] != null)
+                {
+                    string first = requestData["first"].ToString();
+                    string last = requestData["last"].ToString();
+                    string passwd = requestData["passwd"].ToString();
+                    int level = Int32.Parse(requestData["level"].ToString());
+
+                    m_log.InfoFormat("[LOGIN]: XMLRPC Set Level to {2} Requested by {0} {1}", first, last, level);
+
+                    Hashtable reply = m_LocalService.SetLevel(first, last, passwd, level, remoteClient);
+
+                    XmlRpcResponse response = new XmlRpcResponse();
+                    response.Value = reply;
+
+                    return response;
+
+                }
+            }
+
+            XmlRpcResponse failResponse = new XmlRpcResponse();
+            Hashtable failHash = new Hashtable();
+            failHash["success"] = "false";
+            failResponse.Value = failHash;
+
+            return failResponse;
+
+        }
+
         public OSD HandleLLSDLogin(OSD request, IPEndPoint remoteClient)
         {
             if (request.Type == OSDType.Map)

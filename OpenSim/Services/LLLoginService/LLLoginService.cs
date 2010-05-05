@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
@@ -70,6 +71,7 @@ namespace OpenSim.Services.LLLoginService
         private bool m_RequireInventory;
         protected int m_MinLoginLevel;
         private string m_GatekeeperURL;
+        private bool m_AllowRemoteSetLoginLevel;
 
         IConfig m_LoginServerConfig;
 
@@ -93,6 +95,8 @@ namespace OpenSim.Services.LLLoginService
             m_DefaultRegionName = m_LoginServerConfig.GetString("DefaultRegion", String.Empty);
             m_WelcomeMessage = m_LoginServerConfig.GetString("WelcomeMessage", "Welcome to OpenSim!");
             m_RequireInventory = m_LoginServerConfig.GetBoolean("RequireInventory", true);
+            m_AllowRemoteSetLoginLevel = m_LoginServerConfig.GetBoolean("AllowRemoteSetLoginLevel", false);
+            m_MinLoginLevel = m_LoginServerConfig.GetInt("MinLoginLevel", 0);
             m_GatekeeperURL = m_LoginServerConfig.GetString("GatekeeperURI", string.Empty);
 
             // These are required; the others aren't
@@ -145,6 +149,55 @@ namespace OpenSim.Services.LLLoginService
 
         public LLLoginService(IConfigSource config) : this(config, null, null)
         {
+        }
+
+        public Hashtable SetLevel(string firstName, string lastName, string passwd, int level, IPEndPoint clientIP)
+        {
+            Hashtable response = new Hashtable();
+            response["success"] = "false";
+
+            if (!m_AllowRemoteSetLoginLevel)
+                return response;
+
+            try
+            {
+                UserAccount account = m_UserAccountService.GetUserAccount(UUID.Zero, firstName, lastName);
+                if (account == null)
+                {
+                    m_log.InfoFormat("[LLOGIN SERVICE]: Set Level failed, user {0} {1} not found", firstName, lastName);
+                    return response;
+                }
+
+                if (account.UserLevel < 200)
+                {
+                    m_log.InfoFormat("[LLOGIN SERVICE]: Set Level failed, reason: user level too low");
+                    return response;
+                }
+
+                //
+                // Authenticate this user
+                //
+                // We don't support clear passwords here
+                //
+                string token = m_AuthenticationService.Authenticate(account.PrincipalID, passwd, 30);
+                UUID secureSession = UUID.Zero;
+                if ((token == string.Empty) || (token != string.Empty && !UUID.TryParse(token, out secureSession)))
+                {
+                    m_log.InfoFormat("[LLOGIN SERVICE]: SetLevel failed, reason: authentication failed");
+                    return response;
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[LLOGIN SERVICE]: SetLevel failed, exception " + e.ToString());
+                return response;
+            }
+
+            m_MinLoginLevel = level;
+            m_log.InfoFormat("[LLOGIN SERVICE]: Login level set to {0} by {1} {2}", level, firstName, lastName);
+
+            response["success"] = true;
+            return response;
         }
 
         public LoginResponse Login(string firstName, string lastName, string passwd, string startLocation, UUID scopeID, IPEndPoint clientIP)
