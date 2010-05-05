@@ -5,6 +5,11 @@ using System.Text;
 
 namespace OpenSim.Framework.Console
 {
+    /// <summary>
+    /// This is a Fake console that's used when setting up the Scene in Unit Tests
+    /// Don't use this except for Unit Testing or you're in for a world of hurt when the 
+    /// sim gets to ReadLine
+    /// </summary>
     public class MockConsole : CommandConsole
     {
         public MockConsole(string defaultPrompt) : base(defaultPrompt)
