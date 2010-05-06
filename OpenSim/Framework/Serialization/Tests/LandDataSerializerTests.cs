@@ -96,15 +96,19 @@ namespace OpenSim.Framework.Serialization.Tests
         [Test]
         public void LandDataSerializerSerializeTest()
         {
-            string serialized = LandDataSerializer.Serialize(this.land);
+            string serialized = LandDataSerializer.Serialize(this.land).Replace("\r\n", "\n");
             Assert.That(serialized.Length > 0, "Serialize(LandData) returned empty string");
-            Assert.That(serialized == LandDataSerializerTest.preSerialized, 
-                        "result of Serialize(LandData) does not match expected result");
 
-            string serializedWithParcelAccessList = LandDataSerializer.Serialize(this.landWithParcelAccessList);
-            Assert.That(serializedWithParcelAccessList.Length > 0, 
+            // adding a simple boolean variable because resharper nUnit integration doesn't like this
+            // XML data in the Assert.That statement.   Not sure why.
+            bool result = (serialized == preSerialized);
+            Assert.That(result, "result of Serialize LandData  does not match expected result");
+
+            string serializedWithParcelAccessList = LandDataSerializer.Serialize(this.landWithParcelAccessList).Replace("\r\n", "\n");
+            Assert.That(serializedWithParcelAccessList.Length > 0,
                         "Serialize(LandData) returned empty string for LandData object with ParcelAccessList");
-            Assert.That(serializedWithParcelAccessList == LandDataSerializerTest.preSerializedWithParcelAccessList, 
+            result = (serializedWithParcelAccessList == preSerializedWithParcelAccessList);
+            Assert.That(result,
                         "result of Serialize(LandData) does not match expected result (pre-serialized with parcel access list");
         }
 

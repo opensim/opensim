@@ -126,7 +126,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
 
     WelcomeMessage = "Welcome, Avatar!"
-    AllowRemoteSetLoginLevel = "false";
+    AllowRemoteSetLoginLevel = "false"
 
 
 [GridInfoService]
