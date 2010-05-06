@@ -1,3 +1,5 @@
+﻿:VERSION 1
+
 BEGIN TRANSACTION;
 
 CREATE TABLE `Friends` (
@@ -6,5 +8,13 @@ CREATE TABLE `Friends` (
 	`Flags` VARCHAR(16) NOT NULL DEFAULT 0, 
 	`Offered` VARCHAR(32) NOT NULL DEFAULT 0, 
 	PRIMARY KEY(`PrincipalID`, `Friend`));
+
+COMMIT;
+
+:VERSION 2
+
+BEGIN TRANSACTION;
+
+INSERT INTO `Friends` SELECT `ownerID`, `friendID`, `friendPerms`, 0 FROM `userfriends`;
 
 COMMIT;
