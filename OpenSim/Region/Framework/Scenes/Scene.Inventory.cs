@@ -1154,6 +1154,21 @@ namespace OpenSim.Region.Framework.Scenes
             if (folder == null)
                 return;
 
+            // TODO: This code for looking in the folder for the library should be folded somewhere else
+            // so that this class doesn't have to know the details (and so that multiple libraries, etc.
+            // can be handled transparently).
+            InventoryFolderImpl fold = null;
+            if (LibraryService != null && LibraryService.LibraryRootFolder != null)
+            {
+                if ((fold = LibraryService.LibraryRootFolder.FindFolder(folder.ID)) != null)
+                {
+                    client.SendInventoryFolderDetails(
+                        fold.Owner, folder.ID, fold.RequestListOfItems(),
+                        fold.RequestListOfFolders(), fold.Version, fetchFolders, fetchItems);
+                    return;
+                }
+            }
+
             // Fetch the folder contents
             InventoryCollection contents = InventoryService.GetFolderContent(client.AgentId, folder.ID);
 
@@ -1164,7 +1179,7 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat("[AGENT INVENTORY]: Sending inventory folder contents ({0} nodes) for \"{1}\" to {2} {3}",
             //    contents.Folders.Count + contents.Items.Count, containingFolder.Name, client.FirstName, client.LastName);
 
-            if (containingFolder != null)
+            if (containingFolder != null && containingFolder != null)
                 client.SendInventoryFolderDetails(client.AgentId, folder.ID, contents.Items, contents.Folders, containingFolder.Version, fetchFolders, fetchItems);
         }
 

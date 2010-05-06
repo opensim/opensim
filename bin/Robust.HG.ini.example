@@ -125,6 +125,8 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
 
     WelcomeMessage = "Welcome, Avatar!"
+    AllowRemoteSetLoginLevel = "false"
+    
     ; Defaults for the users, if none is specified in the useraccounts table entry (ServiceURLs)
     ; CHANGE THIS
     HomeURI = "http://127.0.0.1:8002"
