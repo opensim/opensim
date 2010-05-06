@@ -218,8 +218,6 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_followCamAuto;
 
         private int m_movementUpdateCount;
-        private string m_Viewer = String.Empty;
-
         private const int NumMovementsBetweenRayCast = 5;
 
         private bool CameraConstraintActive;
@@ -654,8 +652,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public string Viewer
         {
-            get { return m_Viewer; }
-            set { m_Viewer = value; }
+            get { return m_scene.AuthenticateHandler.GetAgentCircuitData(ControllingClient.CircuitCode).Viewer; }
         }
 
         #endregion
