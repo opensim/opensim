@@ -247,7 +247,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             newData.ClaimPrice = claimprice;
             newData.SalePrice = 0;
             newData.AuthBuyerID = UUID.Zero;
-            newData.Flags &= ~(uint) (ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects);
+            newData.Flags &= ~(uint) (ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects | ParcelFlags.ShowDirectory);
             m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
 
             SendLandUpdateToAvatarsOverMe(true);
@@ -259,6 +259,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             newData.OwnerID = groupID;
             newData.GroupID = groupID;
             newData.IsGroupOwned = true;
+
+            // Reset show in directory flag on deed
+            newData.Flags &= ~(uint) (ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects | ParcelFlags.ShowDirectory);
 
             m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
 
