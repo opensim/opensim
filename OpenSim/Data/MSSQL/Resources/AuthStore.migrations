@@ -1,3 +1,5 @@
+﻿:VERSION 1
+
 BEGIN TRANSACTION
 
 CREATE TABLE [auth] (
@@ -13,5 +15,14 @@ CREATE TABLE [tokens] (
   [token] [varchar](255) NOT NULL,
   [validity] [datetime] NOT NULL )
   ON [PRIMARY]
+
+COMMIT
+
+:VERSION 2
+
+BEGIN TRANSACTION
+
+INSERT INTO auth (UUID, passwordHash, passwordSalt, webLoginKey, accountType) SELECT [UUID] AS UUID, [passwordHash] AS passwordHash, [passwordSalt] AS passwordSalt, [webLoginKey] AS webLoginKey, 'UserAccount' as [accountType] FROM users;
+
 
 COMMIT
