@@ -71,6 +71,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         void AddGroupNotice(UUID RequestingAgentID, UUID groupID, UUID noticeID, string fromName, string subject, string message, byte[] binaryBucket);
         GroupNoticeInfo GetGroupNotice(UUID RequestingAgentID, UUID noticeID);
         List<GroupNoticeData> GetGroupNotices(UUID RequestingAgentID, UUID GroupID);
+
+        void ResetAgentGroupChatSessions(UUID agentID);
+        bool hasAgentBeenInvitedToGroupChatSession(UUID agentID, UUID groupID);
+        bool hasAgentDroppedGroupChatSession(UUID agentID, UUID groupID);
+        void AgentDroppedFromGroupChatSession(UUID agentID, UUID groupID);
+        void AgentInvitedToGroupChatSession(UUID agentID, UUID groupID);
     }
 
     public class GroupInviteInfo
