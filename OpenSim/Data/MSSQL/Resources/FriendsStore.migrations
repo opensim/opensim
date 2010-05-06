@@ -1,3 +1,5 @@
+﻿:VERSION 1
+
 BEGIN TRANSACTION
 
 CREATE TABLE [Friends] (
@@ -7,5 +9,12 @@ CREATE TABLE [Friends] (
 [Offered] varchar(32) NOT NULL DEFAULT 0)
  ON [PRIMARY]
 
+COMMIT
+
+:VERSION 2
+
+BEGIN TRANSACTION
+
+INSERT INTO Friends (PrincipalID, Friend, Flags, Offered) SELECT [ownerID], [friendID], [friendPerms], 0 FROM userfriends;
 
 COMMIT
