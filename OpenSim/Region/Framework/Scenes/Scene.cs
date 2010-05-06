@@ -2679,10 +2679,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 ScenePresence sp = CreateAndAddScenePresence(client);
                 if (aCircuit != null)
-                {
                     sp.Appearance = aCircuit.Appearance;
-                    sp.Viewer = aCircuit.Viewer;
-                }
 
                 // HERE!!! Do the initial attachments right here
                 // first agent upon login is a root agent by design.

@@ -227,8 +227,6 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_lastColCount = -1;		//KF: Look for Collision chnages
         private int m_updateCount = 0;			//KF: Update Anims for a while
         private static readonly int UPDATE_COUNT = 10;		// how many frames to update for
-        private string m_Viewer = String.Empty;
-
         private const int NumMovementsBetweenRayCast = 5;
 
         private bool CameraConstraintActive;
@@ -667,8 +665,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public string Viewer
         {
-            get { return m_Viewer; }
-            set { m_Viewer = value; }
+            get { return m_scene.AuthenticateHandler.GetAgentCircuitData(ControllingClient.CircuitCode).Viewer; }
         }
 
         #endregion
