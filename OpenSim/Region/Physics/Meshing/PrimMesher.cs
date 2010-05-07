@@ -257,7 +257,6 @@ namespace PrimMesher
         public int uv2;
         public int uv3;
 
-
         public Face(int v1, int v2, int v3)
         {
             primFace = 0;
@@ -630,6 +629,9 @@ namespace PrimMesher
         internal int numOuterVerts = 0;
         internal int numHollowVerts = 0;
 
+        internal int outerFaceNumber = -1;
+        internal int hollowFaceNumber = -1;
+
         internal bool calcVertexNormals = false;
         internal int bottomFaceNumber = 0;
         internal int numPrimFaces = 0;
@@ -936,10 +938,10 @@ namespace PrimMesher
 
             if (calcVertexNormals && hasProfileCut)
             {
+                int lastOuterVertIndex = this.numOuterVerts - 1;
+
                 if (hasHollow)
                 {
-                    int lastOuterVertIndex = this.numOuterVerts - 1;
-
                     this.cut1CoordIndices.Add(0);
                     this.cut1CoordIndices.Add(this.coords.Count - 1);
 
@@ -955,6 +957,12 @@ namespace PrimMesher
 
                 else
                 {
+                    this.cut1CoordIndices.Add(0);
+                    this.cut1CoordIndices.Add(1);
+
+                    this.cut2CoordIndices.Add(lastOuterVertIndex);
+                    this.cut2CoordIndices.Add(0);
+
                     this.cutNormal1.X = this.vertexNormals[1].Y;
                     this.cutNormal1.Y = -this.vertexNormals[1].X;
 
@@ -979,11 +987,14 @@ namespace PrimMesher
                 // I know it's ugly but so is the whole concept of prim face numbers
 
                 int faceNum = 1; // start with outer faces
+                this.outerFaceNumber = faceNum;
+
                 int startVert = hasProfileCut && !hasHollow ? 1 : 0;
                 if (startVert > 0)
                     this.faceNumbers.Add(-1);
                 for (int i = 0; i < this.numOuterVerts - 1; i++)
-                    this.faceNumbers.Add(sides < 5 ? faceNum++ : faceNum);
+                    //this.faceNumbers.Add(sides < 5 ? faceNum++ : faceNum);
+                    this.faceNumbers.Add(sides < 5 && i < sides ? faceNum++ : faceNum);
 
                 //if (!hasHollow && !hasProfileCut)
                 //    this.bottomFaceNumber = faceNum++;
@@ -993,12 +1004,15 @@ namespace PrimMesher
                 if (sides > 4 && (hasHollow || hasProfileCut))
                     faceNum++;
 
+                if (sides < 5 && (hasHollow || hasProfileCut) && this.numOuterVerts < sides)
+                    faceNum++;
+
                 if (hasHollow)
                 {
                     for (int i = 0; i < this.numHollowVerts; i++)
                         this.faceNumbers.Add(faceNum);
 
-                    faceNum++;
+                    this.hollowFaceNumber = faceNum++;
                 }
                 //if (hasProfileCut || hasHollow)
                 //    this.bottomFaceNumber = faceNum++;
@@ -1006,10 +1020,10 @@ namespace PrimMesher
 
                 if (hasHollow && hasProfileCut)
                     this.faceNumbers.Add(faceNum++);
+
                 for (int i = 0; i < this.faceNumbers.Count; i++)
                     if (this.faceNumbers[i] == -1)
                         this.faceNumbers[i] = faceNum++;
-
 
                 this.numPrimFaces = faceNum;
             }
@@ -1455,11 +1469,15 @@ namespace PrimMesher
         public float revolutions = 1.0f;
         public int stepsPerRevolution = 24;
 
+        private int profileOuterFaceNumber = -1;
+        private int profileHollowFaceNumber = -1;
+
         private bool hasProfileCut = false;
         private bool hasHollow = false;
         public bool calcVertexNormals = false;
         private bool normalsProcessed = false;
         public bool viewerMode = false;
+        public bool sphereMode = false;
 
         public int numPrimFaces = 0;
 
@@ -1491,9 +1509,34 @@ namespace PrimMesher
             s += "\nradius...............: " + this.radius.ToString();
             s += "\nrevolutions..........: " + this.revolutions.ToString();
             s += "\nstepsPerRevolution...: " + this.stepsPerRevolution.ToString();
+            s += "\nsphereMode...........: " + this.sphereMode.ToString();
+            s += "\nhasProfileCut........: " + this.hasProfileCut.ToString();
+            s += "\nhasHollow............: " + this.hasHollow.ToString();
+            s += "\nviewerMode...........: " + this.viewerMode.ToString();
 
             return s;
         }
+
+        public int ProfileOuterFaceNumber
+        {
+            get { return profileOuterFaceNumber; }
+        }
+
+        public int ProfileHollowFaceNumber
+        {
+            get { return profileHollowFaceNumber; }
+        }
+
+        public bool HasProfileCut
+        {
+            get { return hasProfileCut; }
+        }
+
+        public bool HasHollow
+        {
+            get { return hasHollow; }
+        }
+
 
         /// <summary>
         /// Constructs a PrimMesh object and creates the profile for extrusion.
@@ -1531,8 +1574,12 @@ namespace PrimMesher
             if (hollow < 0.0f)
                 this.hollow = 0.0f;
 
-            this.hasProfileCut = (this.profileStart > 0.0f || this.profileEnd < 1.0f);
-            this.hasHollow = (this.hollow > 0.001f);
+            //if (sphereMode)
+            //    this.hasProfileCut = this.profileEnd - this.profileStart < 0.4999f;
+            //else
+            //    //this.hasProfileCut = (this.profileStart > 0.0f || this.profileEnd < 1.0f);
+            //    this.hasProfileCut = this.profileEnd - this.profileStart < 0.9999f;
+            //this.hasHollow = (this.hollow > 0.001f);
         }
 
         /// <summary>
@@ -1540,6 +1587,8 @@ namespace PrimMesher
         /// </summary>
         public void Extrude(PathType pathType)
         {
+            bool needEndFaces = false;
+
             this.coords = new List<Coord>();
             this.faces = new List<Face>();
 
@@ -1565,6 +1614,12 @@ namespace PrimMesher
                     steps = (int)(steps * 4.5 * length);
             }
 
+            if (sphereMode)
+                this.hasProfileCut = this.profileEnd - this.profileStart < 0.4999f;
+            else
+                //this.hasProfileCut = (this.profileStart > 0.0f || this.profileEnd < 1.0f);
+                this.hasProfileCut = this.profileEnd - this.profileStart < 0.9999f;
+            this.hasHollow = (this.hollow > 0.001f);
 
             float twistBegin = this.twistBegin / 360.0f * twoPi;
             float twistEnd = this.twistEnd / 360.0f * twoPi;
@@ -1634,6 +1689,32 @@ namespace PrimMesher
 
             this.numPrimFaces = profile.numPrimFaces;
 
+            //profileOuterFaceNumber = profile.faceNumbers[0];
+            //if (!needEndFaces)
+            //    profileOuterFaceNumber--;
+            //profileOuterFaceNumber = needEndFaces ? 1 : 0;
+
+
+            //if (hasHollow)
+            //{
+            //    if (needEndFaces)
+            //        profileHollowFaceNumber = profile.faceNumbers[profile.numOuterVerts + 1];
+            //    else
+            //        profileHollowFaceNumber = profile.faceNumbers[profile.numOuterVerts] - 1;
+            //}
+
+
+            profileOuterFaceNumber = profile.outerFaceNumber;
+            if (!needEndFaces)
+                profileOuterFaceNumber--;
+
+            if (hasHollow)
+            {
+                profileHollowFaceNumber = profile.hollowFaceNumber;
+                if (!needEndFaces)
+                    profileHollowFaceNumber--;
+            }
+
             int cut1Vert = -1;
             int cut2Vert = -1;
             if (hasProfileCut)
@@ -1673,7 +1754,7 @@ namespace PrimMesher
 
             path.Create(pathType, steps);
 
-            bool needEndFaces = false;
+
             if (pathType == PathType.Circular)
             {
                 needEndFaces = false;
@@ -1761,7 +1842,7 @@ namespace PrimMesher
                     int startVert = coordsLen + 1;
                     int endVert = this.coords.Count;
 
-                    if (sides < 5 || this.hasProfileCut || hollow > 0.0f)
+                    if (sides < 5 || this.hasProfileCut || this.hasHollow)
                         startVert--;
 
                     for (int i = startVert; i < endVert; i++)
@@ -1813,11 +1894,13 @@ namespace PrimMesher
                                     u1 -= (int)u1;
                                     if (u2 < 0.1f)
                                         u2 = 1.0f;
+                                    //this.profileOuterFaceNumber = primFaceNum;
                                 }
                                 else if (whichVert > profile.coords.Count - profile.numHollowVerts - 1)
                                 {
                                     u1 *= 2.0f;
                                     u2 *= 2.0f;
+                                    //this.profileHollowFaceNumber = primFaceNum;
                                 }
                             }
 
