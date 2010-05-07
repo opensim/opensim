@@ -60,21 +60,23 @@ namespace PrimMesher
 
             int numLodPixels = lod * 2 * lod * 2;  // (32 * 2)^2  = 64^2 pixels for default sculpt map image
 
+            bool needsScaling = false;
+
             width = bmW;
             height = bmH;
             while (width * height > numLodPixels)
             {
                 width >>= 1;
                 height >>= 1;
+                needsScaling = true;
             }
 
-            width >>= 1;
-            height >>= 1;
+
 
             try
             {
-                if (!(bmW == width * 2 && bmH == height * 2))
-                    bm = ScaleImage(bm, width * 2, height * 2,
+                if (needsScaling)
+                    bm = ScaleImage(bm, width, height,
                         System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor);
             }
 
@@ -83,6 +85,11 @@ namespace PrimMesher
                 throw new Exception("Exception in ScaleImage(): e: " + e.ToString());
             }
 
+            if (width * height > lod * lod)
+            {
+                width >>= 1;
+                height >>= 1;
+            }
 
             int numBytes = (width + 1) * (height + 1);
             redBytes = new byte[numBytes];
