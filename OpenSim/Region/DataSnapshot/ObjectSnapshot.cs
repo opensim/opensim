@@ -69,7 +69,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                 byte RayEndIsIntersection) { this.Stale = true; };
             client.OnLinkObjects += delegate (IClientAPI remoteClient, uint parent, List<uint> children)
                 { this.Stale = true; };
-            client.OnDelinkObjects += delegate(List<uint> primIds) { this.Stale = true; };
+            client.OnDelinkObjects += delegate(List<uint> primIds, IClientAPI clientApi) { this.Stale = true; };
             client.OnGrabUpdate += delegate(UUID objectID, Vector3 offset, Vector3 grapPos,
                 IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs) { this.Stale = true; };
             client.OnObjectAttach += delegate(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt,

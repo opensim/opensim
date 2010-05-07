@@ -2577,5 +2577,73 @@ namespace OpenSim.Region.Framework.Scenes
                 part.GetProperties(remoteClient);
             }
         }
+
+        public void DelinkObjects(List<uint> primIds, IClientAPI client)
+        {
+            List<SceneObjectPart> parts = new List<SceneObjectPart>();
+
+            foreach (uint localID in primIds)
+            {
+                SceneObjectPart part = GetSceneObjectPart(localID);
+
+                if (part == null)
+                    continue;
+
+                if (Permissions.CanDelinkObject(client.AgentId, part.ParentGroup.RootPart.UUID))
+                    parts.Add(part);
+            }
+
+            m_sceneGraph.DelinkObjects(parts);
+        }
+
+        public void LinkObjects(IClientAPI client, uint parentPrimId, List<uint> childPrimIds)
+        {
+            List<UUID> owners = new List<UUID>();
+
+            List<SceneObjectPart> children = new List<SceneObjectPart>();
+            SceneObjectPart root = GetSceneObjectPart(parentPrimId);
+
+            if (root == null)
+            {
+                m_log.DebugFormat("[LINK]: Can't find linkset root prim {0{", parentPrimId);
+                return;
+            }
+
+            if (!Permissions.CanLinkObject(client.AgentId, root.ParentGroup.RootPart.UUID))
+            {
+                m_log.DebugFormat("[LINK]: Refusing link. No permissions on root prim");
+                return;
+            }
+
+            foreach (uint localID in childPrimIds)
+            {
+                SceneObjectPart part = GetSceneObjectPart(localID);
+
+                if (part == null)
+                    continue;
+
+                if (!owners.Contains(part.OwnerID))
+                    owners.Add(part.OwnerID);
+
+                if (Permissions.CanLinkObject(client.AgentId, part.ParentGroup.RootPart.UUID))
+                    children.Add(part);
+            }
+
+            // Must be all one owner
+            //
+            if (owners.Count > 1)
+            {
+                m_log.DebugFormat("[LINK]: Refusing link. Too many owners");
+                return;
+            }
+
+            if (children.Count == 0)
+            {
+                m_log.DebugFormat("[LINK]: Refusing link. No permissions to link any of the children");
+                return;
+            }
+
+            m_sceneGraph.LinkObjects(root, children);
+        }
     }
 }
