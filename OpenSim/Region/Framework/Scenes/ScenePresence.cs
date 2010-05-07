@@ -665,7 +665,7 @@ namespace OpenSim.Region.Framework.Scenes
             CreateSceneViewer();
             m_animator = new ScenePresenceAnimator(this);
         }
-        
+
         private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo) : this()
         {
             m_rootRegionHandle = reginfo.RegionHandle;
@@ -1459,7 +1459,6 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         i++;
                     }
-
                     //Paupaw:Do Proper PID for Autopilot here
                     if (bResetMoveToPosition)
                     {
@@ -2433,10 +2432,11 @@ namespace OpenSim.Region.Framework.Scenes
             Rotation = rotation;
             Vector3 direc = vec * rotation;
             direc.Normalize();
+            PhysicsActor actor = m_physicsActor;
+            if ((vec.Z == 0f) && !actor.Flying) direc.Z = 0f; // Prevent camera WASD up.
 
             direc *= 0.03f * 128f * m_speedModifier;
 
-            PhysicsActor actor = m_physicsActor;
             if (actor != null)
             {
                 if (actor.Flying)
@@ -2458,11 +2458,18 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (direc.Z > 2.0f)
                     {
-                        direc.Z *= 3.0f;
-
-                        // TODO: PreJump and jump happen too quickly.  Many times prejump gets ignored.
-                        Animator.TrySetMovementAnimation("PREJUMP");
-                        Animator.TrySetMovementAnimation("JUMP");
+                        if(m_animator.m_animTickJump == -1)
+						{
+                    		direc.Z *= 3.0f;	// jump
+                    	}
+                    	else
+                    	{
+                    		direc.Z *= 0.1f;	// prejump
+                    	}
+                        /* Animations are controlled via  GetMovementAnimation() in ScenePresenceAnimator.cs
+                           Animator.TrySetMovementAnimation("PREJUMP");
+                           Animator.TrySetMovementAnimation("JUMP");
+                        */
                     }
                 }
             }

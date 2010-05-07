@@ -56,7 +56,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
  //       protected string m_movementAnimation = "DEFAULT"; 	//KF: 'DEFAULT' does not exist!
         protected string m_movementAnimation = "CROUCH";		//KF: CROUCH ensures reliable Av Anim. init.
         private int m_animTickFall;
-        private int m_animTickJump;
+//        private int m_animTickJump;
+        public int m_animTickJump;		// ScenePresence has to see this to control +Z force
         
         /// <value>
         /// The scene presence that this animator applies to
@@ -123,22 +124,15 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// </summary>
         public void TrySetMovementAnimation(string anim)
         {
-//Console.WriteLine("Updating movement animation to {0}", anim);
-
             if (!m_scenePresence.IsChildAgent)
             {
                 if (m_animations.TrySetDefaultAnimation(
                     anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID))
                 {
-//Console.WriteLine("TSMA {0} success.", anim);    
                     // 16384 is CHANGED_ANIMATION
                     m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { 16384 });
                     SendAnimPack();
                 }
-                else
-                {
-//Console.WriteLine("TSMA {0} fail.", anim);                   
-				}
             }
         }
 
@@ -267,7 +261,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     m_animTickJump = Environment.TickCount;
                     return "PREJUMP";
                 }
-                else if (Environment.TickCount - m_animTickJump > PREJUMP_DELAY * 1000.0f)
+                else if (Environment.TickCount - m_animTickJump > PREJUMP_DELAY * 800.0f)
                 {
                     // Start actual jump
                     if (m_animTickJump == -1)
@@ -317,7 +311,6 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         public void UpdateMovementAnimations()
         {
             m_movementAnimation = GetMovementAnimation();
-//Console.WriteLine("UMA got {0}", m_movementAnimation);
             if (m_movementAnimation == "PREJUMP" && !m_scenePresence.Scene.m_usePreJump)
             {
                 // This was the previous behavior before PREJUMP
