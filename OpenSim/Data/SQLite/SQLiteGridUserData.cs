@@ -33,24 +33,20 @@ using System.Threading;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using System.Data.SqlClient;
 
-namespace OpenSim.Data.MSSQL
+namespace OpenSim.Data.SQLite
 {
     /// <summary>
-    /// A MSSQL Interface for Avatar Storage
+    /// A SQL Interface for user grid data
     /// </summary>
-    public class MSSQLGridUserData : MSSQLGenericTableHandler<GridUserData>,
-            IGridUserData
+    public class SQLiteGridUserData : SQLiteGenericTableHandler<GridUserData>, IGridUserData
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public MSSQLGridUserData(string connectionString, string realm) :
-            base(connectionString, realm, "GridUserStore")
-        {
-        }
+        public SQLiteGridUserData(string connectionString, string realm) 
+            : base(connectionString, realm, "GridUserStore") {}
 
-        public GridUserData Get(string userID)
+        public new GridUserData Get(string userID)
         {
             GridUserData[] ret = Get("UserID", userID);
 
@@ -59,6 +55,7 @@ namespace OpenSim.Data.MSSQL
 
             return ret[0];
         }
+
 
     }
 }

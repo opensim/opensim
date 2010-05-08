@@ -50,10 +50,8 @@ namespace OpenSim.Data
 
         PresenceData Get(UUID sessionID);
         void LogoutRegionAgents(UUID regionID);
-        bool ReportAgent(UUID sessionID, UUID regionID, string position, string lookAt);
-        bool SetHomeLocation(string userID, UUID regionID, Vector3 position, Vector3 lookAt);
+        bool ReportAgent(UUID sessionID, UUID regionID);
         PresenceData[] Get(string field, string data);
-        void Prune(string userID);
         bool Delete(string field, string val);
     }
 }

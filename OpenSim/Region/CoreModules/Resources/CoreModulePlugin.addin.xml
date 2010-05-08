@@ -59,9 +59,11 @@
         <RegionModule id="RemoteUserAccountServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts.RemoteUserAccountServicesConnector" />
         
         <RegionModule id="LocalGridUserServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser.LocalGridUserServicesConnector" />
-        
+        <RegionModule id="RemoteGridUserServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser.RemoteGridUserServicesConnector" />
+
         <RegionModule id="LocalSimulationConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation.LocalSimulationConnectorModule" />
         <RegionModule id="RemoteSimulationConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation.RemoteSimulationConnectorModule" />
+      
       <!-- Service connectors IN modules -->
         <RegionModule id="AssetServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset.AssetServiceInConnectorModule" />
         <RegionModule id="InventoryServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory.InventoryServiceInConnectorModule" />

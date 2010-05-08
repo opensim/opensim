@@ -77,7 +77,7 @@ namespace OpenSim.Tests.Clients.PresenceClient
                     pinfo.UserID, pinfo.Online, pinfo.RegionID, pinfo.HomeRegionID);
 
             System.Console.WriteLine("\n");
-            success = m_Connector.ReportAgent(session1, region1, new Vector3(128, 128, 128), new Vector3(4, 5, 6));
+            success = m_Connector.ReportAgent(session1, region1);
             if (success)
                 m_log.InfoFormat("[PRESENCE CLIENT]: Successfully reported session {0} in region {1}", user1, region1);
             else
@@ -90,20 +90,7 @@ namespace OpenSim.Tests.Clients.PresenceClient
                     pinfo.UserID, pinfo.Online, pinfo.RegionID, pinfo.HomeRegionID);
 
             System.Console.WriteLine("\n");
-            success = m_Connector.SetHomeLocation(user1.ToString(), region1, new Vector3(128, 128, 128), new Vector3(4, 5, 6));
-            if (success)
-                m_log.InfoFormat("[PRESENCE CLIENT]: Successfully set home for user {0} in region {1}", user1, region1);
-            else
-                m_log.InfoFormat("[PRESENCE CLIENT]: failed to set home for user {0}", user1);
-            pinfo = m_Connector.GetAgent(session1);
-            if (pinfo == null)
-                m_log.InfoFormat("[PRESENCE CLIENT]: Unable to retrieve presence for {0} for third time", user1);
-            else
-                m_log.InfoFormat("[PRESENCE CLIENT]: Presence retrieved correctly: userID={0}; Online={1}; regionID={2}; homeRegion={3}",
-                    pinfo.UserID, pinfo.Online, pinfo.RegionID, pinfo.HomeRegionID);
-
-            System.Console.WriteLine("\n");
-            success = m_Connector.LogoutAgent(session1, Vector3.Zero, Vector3.UnitY);
+            success = m_Connector.LogoutAgent(session1);
             if (success)
                 m_log.InfoFormat("[PRESENCE CLIENT]: Successfully logged out user {0}", user1);
             else
@@ -116,7 +103,7 @@ namespace OpenSim.Tests.Clients.PresenceClient
                     pinfo.UserID, pinfo.Online, pinfo.RegionID, pinfo.HomeRegionID);
 
             System.Console.WriteLine("\n");
-            success = m_Connector.ReportAgent(session1, UUID.Random(), Vector3.Zero, Vector3.Zero);
+            success = m_Connector.ReportAgent(session1, UUID.Random());
             if (success)
                 m_log.InfoFormat("[PRESENCE CLIENT]: Report agent succeeded, but this is wrong");
             else

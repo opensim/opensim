@@ -11,7 +11,7 @@
 ;;
 
 [Startup]
-ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryServiceInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8003/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector,8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector,HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector,8002/OpenSim.Server.Handlers.dll:AssetServiceConnector"
+ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryServiceInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8003/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector,8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector,HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector,8002/OpenSim.Server.Handlers.dll:AssetServiceConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none if specified above
@@ -93,6 +93,10 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     GridService = "OpenSim.Services.GridService.dll:GridService"
     InventoryService = "OpenSim.Services.InventoryService.dll:XInventoryService"
 
+[GridUserService]
+    ; for the server connector
+    LocalServiceModule = "OpenSim.Services.UserAccountService.dll:GridUserService"
+
 [PresenceService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.PresenceService.dll:PresenceService"
@@ -114,6 +118,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     LocalServiceModule = "OpenSim.Services.LLLoginService.dll:LLLoginService"
     ; for the service
     UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+    GridUserService = "OpenSim.Services.UserAccountService.dll:GridUserService"
     AuthenticationService = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
     InventoryService = "OpenSim.Services.InventoryService.dll:XInventoryService"
     AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
@@ -196,7 +201,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [UserAgentService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:UserAgentService"
     ;; for the service
-    PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
+    GridUserService = "OpenSim.Services.UserAccountService.dll:GridUserService"
     GridService = "OpenSim.Services.GridService.dll:GridService"
 
 ;; The interface that local users get when they are in other grids.

@@ -31,6 +31,7 @@ using System.Reflection;
 using Nini.Config;
 using OpenSim.Data;
 using OpenSim.Services.Interfaces;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
@@ -50,27 +51,109 @@ namespace OpenSim.Services.UserAccountService
 
         public GridUserInfo GetGridUserInfo(string userID)
         {
-            GridUserData d = m_Database.GetGridUserData(userID);
-            
+            GridUserData d = m_Database.Get(userID);
+
+            if (d == null)
+                return null;
+
             GridUserInfo info = new GridUserInfo();
             info.UserID = d.UserID;
             info.HomeRegionID = new UUID(d.Data["HomeRegionID"]);
             info.HomePosition = Vector3.Parse(d.Data["HomePosition"]);
             info.HomeLookAt = Vector3.Parse(d.Data["HomeLookAt"]);
 
+            info.LastRegionID = new UUID(d.Data["LastRegionID"]);
+            info.LastPosition = Vector3.Parse(d.Data["LastPosition"]);
+            info.LastLookAt = Vector3.Parse(d.Data["LastLookAt"]);
+
+            info.Online = bool.Parse(d.Data["Online"]);
+            info.Login = Util.ToDateTime(Convert.ToInt32(d.Data["Login"]));
+            info.Logout = Util.ToDateTime(Convert.ToInt32(d.Data["Logout"]));
+
             return info;
         }
-        
-        public bool StoreGridUserInfo(GridUserInfo info)
+
+        public GridUserInfo LoggedIn(string userID)
+        {
+            m_log.DebugFormat("[GRID USER SERVICE]: User {0} is online", userID);
+            GridUserData d = m_Database.Get(userID);
+
+            if (d == null)
+            {
+                d = new GridUserData();
+                d.UserID = userID;
+            }
+
+            d.Data["Online"] = true.ToString();
+            d.Data["Login"] = Util.UnixTimeSinceEpoch().ToString();
+
+            m_Database.Store(d);
+
+            return GetGridUserInfo(userID);
+        }
+
+        public bool LoggedOut(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
+        {
+            m_log.DebugFormat("[GRID USER SERVICE]: User {0} is offline", userID);
+            GridUserData d = m_Database.Get(userID);
+
+            if (d == null)
+            {
+                d = new GridUserData();
+                d.UserID = userID;
+            }
+
+            d.Data["Online"] = false.ToString();
+            d.Data["Logout"] = Util.UnixTimeSinceEpoch().ToString();
+            d.Data["LastRegionID"] = regionID.ToString();
+            d.Data["LastPosition"] = lastPosition.ToString();
+            d.Data["LastLookAt"] = lastLookAt.ToString();
+
+            return m_Database.Store(d);
+        }
+
+        protected bool StoreGridUserInfo(GridUserInfo info)
         {
             GridUserData d = new GridUserData();
 
-            d.Data["UserID"] = info.UserID;
             d.Data["HomeRegionID"] = info.HomeRegionID.ToString();
             d.Data["HomePosition"] = info.HomePosition.ToString();
             d.Data["HomeLookAt"] = info.HomeLookAt.ToString();
 
-            return m_Database.StoreGridUserData(d);
+            return m_Database.Store(d);
+        }
+
+        public bool SetHome(string userID, UUID homeID, Vector3 homePosition, Vector3 homeLookAt)
+        {
+            GridUserData d = m_Database.Get(userID);
+            if (d == null)
+            {
+                d = new GridUserData();
+                d.UserID = userID;
+            }
+
+            d.Data["HomeRegionID"] = homeID.ToString();
+            d.Data["HomePosition"] = homePosition.ToString();
+            d.Data["HomeLookAt"] = homeLookAt.ToString();
+
+            return m_Database.Store(d);
+        }
+
+        public bool SetLastPosition(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
+        {
+            //m_log.DebugFormat("[Grid User Service]: SetLastPosition for {0}", userID);
+            GridUserData d = m_Database.Get(userID);
+            if (d == null)
+            {
+                d = new GridUserData();
+                d.UserID = userID;
+            }
+
+            d.Data["LastRegionID"] = regionID.ToString();
+            d.Data["LastPosition"] = lastPosition.ToString();
+            d.Data["LastLookAt"] = lastLookAt.ToString();
+
+            return m_Database.Store(d);
         }
     }
 }

@@ -44,9 +44,9 @@ namespace OpenSim.Data.MySQL
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public MySQLGridUserData(string connectionString, string realm) : base(connectionString, realm, "UserGrid") {}
+        public MySQLGridUserData(string connectionString, string realm) : base(connectionString, realm, "GridUserStore") {}
 
-        public GridUserData GetGridUserData(string userID)
+        public GridUserData Get(string userID)
         {
             GridUserData[] ret = Get("UserID", userID);
 
@@ -56,9 +56,6 @@ namespace OpenSim.Data.MySQL
             return ret[0];
         }
 
-        public bool StoreGridUserData(GridUserData data)
-        {
-            return Store(data);
-        }
+
     }
 }

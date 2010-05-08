@@ -42,18 +42,18 @@ using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenMetaverse;
 
-namespace OpenSim.Server.Handlers.Presence
+namespace OpenSim.Server.Handlers.GridUser
 {
-    public class PresenceServerPostHandler : BaseStreamHandler
+    public class GridUserServerPostHandler : BaseStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IPresenceService m_PresenceService;
+        private IGridUserService m_GridUserService;
 
-        public PresenceServerPostHandler(IPresenceService service) :
-                base("POST", "/presence")
+        public GridUserServerPostHandler(IGridUserService service) :
+                base("POST", "/griduser")
         {
-            m_PresenceService = service;
+            m_GridUserService = service;
         }
 
         public override byte[] Handle(string path, Stream requestData,
@@ -78,176 +78,146 @@ namespace OpenSim.Server.Handlers.Presence
 
                 switch (method)
                 {
-                    case "login":
-                        return LoginAgent(request);
-                    case "logout":
-                        return LogoutAgent(request);
-                    case "logoutregion":
-                        return LogoutRegionAgents(request);
-                    case "report":
-                        return Report(request);
-                    case "getagent":
-                        return GetAgent(request);
-                    case "getagents":
-                        return GetAgents(request);
+                    case "loggedin":
+                        return LoggedIn(request);
+                    case "loggedout":
+                        return LoggedOut(request);
+                    case "sethome":
+                        return SetHome(request);
+                    case "setposition":
+                        return SetPosition(request);
+                    case "getgriduserinfo":
+                        return GetGridUserInfo(request);
                 }
-                m_log.DebugFormat("[PRESENCE HANDLER]: unknown method request: {0}", method);
+                m_log.DebugFormat("[GRID USER HANDLER]: unknown method request: {0}", method);
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[PRESENCE HANDLER]: Exception in method {0}: {1}", method, e);
+                m_log.DebugFormat("[GRID USER HANDLER]: Exception in method {0}: {1}", method, e);
             }
 
             return FailureResult();
 
         }
 
-        byte[] LoginAgent(Dictionary<string, object> request)
+        byte[] LoggedIn(Dictionary<string, object> request)
         {
             string user = String.Empty;
-            UUID session = UUID.Zero;
-            UUID ssession = UUID.Zero;
 
-            if (!request.ContainsKey("UserID") || !request.ContainsKey("SessionID"))
+            if (!request.ContainsKey("UserID"))
                 return FailureResult();
 
             user = request["UserID"].ToString();
 
-            if (!UUID.TryParse(request["SessionID"].ToString(), out session))
-                return FailureResult();
+            GridUserInfo guinfo = m_GridUserService.LoggedIn(user);
 
-            if (request.ContainsKey("SecureSessionID"))
-                // If it's malformed, we go on with a Zero on it
-                UUID.TryParse(request["SecureSessionID"].ToString(), out ssession);
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            result["result"] = guinfo.ToKeyValuePairs();
 
-            if (m_PresenceService.LoginAgent(user, session, ssession))
-                return SuccessResult();
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            //m_log.DebugFormat("[GRID USER HANDLER]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
 
-            return FailureResult();
         }
 
-        byte[] LogoutAgent(Dictionary<string, object> request)
+        byte[] LoggedOut(Dictionary<string, object> request)
         {
-            UUID session = UUID.Zero;
+            string userID = string.Empty;
+            UUID regionID = UUID.Zero;
             Vector3 position = Vector3.Zero;
             Vector3 lookat = Vector3.Zero;
 
-            if (!request.ContainsKey("SessionID"))
+            if (!UnpackArgs(request, out userID, out regionID, out position, out lookat))
                 return FailureResult();
 
-            if (!UUID.TryParse(request["SessionID"].ToString(), out session))
-                return FailureResult();
-
-            if (m_PresenceService.LogoutAgent(session))
+            if (m_GridUserService.LoggedOut(userID, regionID, position, lookat))
                 return SuccessResult();
 
             return FailureResult();
         }
 
-        byte[] LogoutRegionAgents(Dictionary<string, object> request)
+        byte[] SetHome(Dictionary<string, object> request)
         {
+            string user = string.Empty;
             UUID region = UUID.Zero;
+            Vector3 position = new Vector3(128, 128, 70);
+            Vector3 look = Vector3.Zero;
 
-            if (!request.ContainsKey("RegionID"))
+            if (!UnpackArgs(request, out user, out region, out position, out look))
                 return FailureResult();
 
-            if (!UUID.TryParse(request["RegionID"].ToString(), out region))
-                return FailureResult();
-
-            if (m_PresenceService.LogoutRegionAgents(region))
+            if (m_GridUserService.SetHome(user, region, position, look))
                 return SuccessResult();
 
             return FailureResult();
         }
-        
-        byte[] Report(Dictionary<string, object> request)
+
+        byte[] SetPosition(Dictionary<string, object> request)
         {
-            UUID session = UUID.Zero;
+            string user = string.Empty;
             UUID region = UUID.Zero;
+            Vector3 position = new Vector3(128, 128, 70);
+            Vector3 look = Vector3.Zero;
 
-            if (!request.ContainsKey("SessionID") || !request.ContainsKey("RegionID"))
+            if (!request.ContainsKey("UserID") || !request.ContainsKey("RegionID"))
                 return FailureResult();
 
-            if (!UUID.TryParse(request["SessionID"].ToString(), out session))
+            if (!UnpackArgs(request, out user, out region, out position, out look))
                 return FailureResult();
 
-            if (!UUID.TryParse(request["RegionID"].ToString(), out region))
-                return FailureResult();
-
-            if (m_PresenceService.ReportAgent(session, region))
-            {
+            if (m_GridUserService.SetLastPosition(user, region, position, look))
                 return SuccessResult();
-            }
 
             return FailureResult();
         }
 
-        byte[] GetAgent(Dictionary<string, object> request)
+        byte[] GetGridUserInfo(Dictionary<string, object> request)
         {
-            UUID session = UUID.Zero;
+            string user = String.Empty;
 
-            if (!request.ContainsKey("SessionID"))
+            if (!request.ContainsKey("UserID"))
                 return FailureResult();
 
-            if (!UUID.TryParse(request["SessionID"].ToString(), out session))
-                return FailureResult();
+            user = request["UserID"].ToString();
 
-            PresenceInfo pinfo = m_PresenceService.GetAgent(session);
+            GridUserInfo guinfo = m_GridUserService.GetGridUserInfo(user);
 
             Dictionary<string, object> result = new Dictionary<string, object>();
-            if (pinfo == null)
-                result["result"] = "null";
-            else
-                result["result"] = pinfo.ToKeyValuePairs();
+            result["result"] = guinfo.ToKeyValuePairs();
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
-            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            //m_log.DebugFormat("[GRID USER HANDLER]: resp string: {0}", xmlString);
             UTF8Encoding encoding = new UTF8Encoding();
             return encoding.GetBytes(xmlString);
+
         }
 
-        byte[] GetAgents(Dictionary<string, object> request)
+        private bool UnpackArgs(Dictionary<string, object> request, out string user, out UUID region, out Vector3 position, out Vector3 lookAt)
         {
+            user = string.Empty;
+            region = UUID.Zero;
+            position = new Vector3(128, 128, 70);
+            lookAt = Vector3.Zero;
 
-            string[] userIDs;
+            if (!request.ContainsKey("UserID") || !request.ContainsKey("RegionID"))
+                return false;
 
-            if (!request.ContainsKey("uuids"))
-            {
-                m_log.DebugFormat("[PRESENCE HANDLER]: GetAgents called without required uuids argument");
-                return FailureResult();
-            }
+            user = request["UserID"].ToString();
 
-            if (!(request["uuids"] is List<string>))
-            {
-                m_log.DebugFormat("[PRESENCE HANDLER]: GetAgents input argument was of unexpected type {0}", request["uuids"].GetType().ToString());
-                return FailureResult();
-            }
+            if (!UUID.TryParse(request["RegionID"].ToString(), out region))
+                return false;
 
-            userIDs = ((List<string>)request["uuids"]).ToArray();
+            if (request.ContainsKey("Position"))
+                Vector3.TryParse(request["Position"].ToString(), out position);
 
-            PresenceInfo[] pinfos = m_PresenceService.GetAgents(userIDs);
+            if (request.ContainsKey("LookAt"))
+                Vector3.TryParse(request["LookAt"].ToString(), out lookAt);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            if ((pinfos == null) || ((pinfos != null) && (pinfos.Length == 0)))
-                result["result"] = "null";
-            else
-            {
-                int i = 0;
-                foreach (PresenceInfo pinfo in pinfos)
-                {
-                    Dictionary<string, object> rinfoDict = pinfo.ToKeyValuePairs();
-                    result["presence" + i] = rinfoDict;
-                    i++;
-                }
-            }
-
-            string xmlString = ServerUtils.BuildXmlResponse(result);
-            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            return true;
         }
 
-        
+
         private byte[] SuccessResult()
         {
             XmlDocument doc = new XmlDocument();
@@ -302,6 +272,7 @@ namespace OpenSim.Server.Handlers.Presence
 
             return ms.ToArray();
         }
+
 
     }
 }

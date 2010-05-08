@@ -26,39 +26,36 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Reflection;
-using System.Threading;
-using log4net;
-using OpenMetaverse;
-using OpenSim.Framework;
-using System.Data.SqlClient;
+using Nini.Config;
+using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Server.Handlers.Base;
 
-namespace OpenSim.Data.MSSQL
+namespace OpenSim.Server.Handlers.GridUser
 {
-    /// <summary>
-    /// A MSSQL Interface for Avatar Storage
-    /// </summary>
-    public class MSSQLGridUserData : MSSQLGenericTableHandler<GridUserData>,
-            IGridUserData
+    public class GridUserServiceConnector : ServiceConnector
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private IGridUserService m_GridUserService;
+        private string m_ConfigName = "GridUserService";
 
-        public MSSQLGridUserData(string connectionString, string realm) :
-            base(connectionString, realm, "GridUserStore")
+        public GridUserServiceConnector(IConfigSource config, IHttpServer server, string configName) :
+                base(config, server, configName)
         {
+            IConfig serverConfig = config.Configs[m_ConfigName];
+            if (serverConfig == null)
+                throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
+
+            string service = serverConfig.GetString("LocalServiceModule",
+                    String.Empty);
+
+            if (service == String.Empty)
+                throw new Exception("No LocalServiceModule in config file");
+
+            Object[] args = new Object[] { config };
+            m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(service, args);
+
+            server.AddStreamHandler(new GridUserServerPostHandler(m_GridUserService));
         }
-
-        public GridUserData Get(string userID)
-        {
-            GridUserData[] ret = Get("UserID", userID);
-
-            if (ret.Length == 0)
-                return null;
-
-            return ret[0];
-        }
-
     }
 }

@@ -51,7 +51,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// message routing) to the SimianGrid backend
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianPresenceServiceConnector : IPresenceService, ISharedRegionModule
+    public class SimianPresenceServiceConnector : IPresenceService, IGridUserService, ISharedRegionModule
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -73,6 +73,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             if (!String.IsNullOrEmpty(m_serverUrl))
             {
                 scene.RegisterModuleInterface<IPresenceService>(this);
+                scene.RegisterModuleInterface<IGridUserService>(this);
 
                 scene.EventManager.OnMakeRootAgent += MakeRootAgentHandler;
                 scene.EventManager.OnNewClient += NewClientHandler;
@@ -86,6 +87,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             if (!String.IsNullOrEmpty(m_serverUrl))
             {
                 scene.UnregisterModuleInterface<IPresenceService>(this);
+                scene.UnregisterModuleInterface<IGridUserService>(this);
 
                 scene.EventManager.OnMakeRootAgent -= MakeRootAgentHandler;
                 scene.EventManager.OnNewClient -= NewClientHandler;
@@ -151,7 +153,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return success;
         }
 
-        public bool LogoutAgent(UUID sessionID, Vector3 position, Vector3 lookAt)
+        public bool LogoutAgent(UUID sessionID)
         {
             m_log.InfoFormat("[SIMIAN PRESENCE CONNECTOR]: Logout requested for agent with sessionID " + sessionID);
 
@@ -189,7 +191,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return success;
         }
 
-        public bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt)
+        public bool ReportAgent(UUID sessionID, UUID regionID)
+        {
+            return ReportAgent(sessionID, regionID, Vector3.Zero, Vector3.Zero);
+        }
+
+        protected bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
             //m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Updating session data for agent with sessionID " + sessionID);
 
@@ -261,7 +268,23 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return presences.ToArray();
         }
 
-        public bool SetHomeLocation(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
+        #endregion IPresenceService
+
+        #region IGridUserService
+
+        public GridUserInfo LoggedIn(string userID)
+        {
+            // never implemented at the sim
+            return null;
+        }
+
+        public bool LoggedOut(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
+        {
+            // Not needed for simian grid, event handler is doing it
+            return true;
+        }
+
+        public bool SetHome(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
             m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Setting home location for user  " + userID);
 
@@ -281,7 +304,35 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return success;
         }
 
-        #endregion IPresenceService
+        public bool SetLastPosition(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
+        {
+            // Not needed for simian grid, presence detection is doing it
+            return true;
+        }
+
+        public GridUserInfo GetGridUserInfo(string user)
+        {
+            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting session data for agent " + user);
+
+            UUID userID = new UUID(user);
+            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting user data for " + userID);
+
+            NameValueCollection requestArgs = new NameValueCollection
+            {
+                { "RequestMethod", "GetUser" },
+                { "UserID", userID.ToString() }
+            };
+
+            OSDMap userResponse = WebUtil.PostToService(m_serverUrl, requestArgs);
+            if (userResponse["Success"].AsBoolean())
+                return ResponseToGridUserInfo(userResponse);
+            else
+                m_log.Warn("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve user data for " + userID + ": " + userResponse["Message"].AsString());
+
+            return null;
+        }
+
+        #endregion
 
         #region Presence Detection
 
@@ -325,7 +376,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     SetLastLocation(client.SessionId);
                 }
 
-                LogoutAgent(client.SessionId, Vector3.Zero, Vector3.UnitX);
+                LogoutAgent(client.SessionId);
             }
         }
 
@@ -478,6 +529,31 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return info;
         }
 
+        private GridUserInfo ResponseToGridUserInfo(OSDMap userResponse)
+        {
+            if (userResponse != null && userResponse["User"] is OSDMap)
+            {
+
+                GridUserInfo info = new GridUserInfo();
+
+                info.Online = true;
+                info.UserID = userResponse["UserID"].AsUUID().ToString();
+                info.LastRegionID = userResponse["SceneID"].AsUUID();
+                info.LastPosition = userResponse["ScenePosition"].AsVector3();
+                info.LastLookAt = userResponse["SceneLookAt"].AsVector3();
+
+                OSDMap user = (OSDMap)userResponse["User"];
+
+                info.Login = user["LastLoginDate"].AsDate();
+                info.Logout = user["LastLogoutDate"].AsDate();
+                DeserializeLocation(user["HomeLocation"].AsString(), out info.HomeRegionID, out info.HomePosition, out info.HomeLookAt);
+
+                return info;
+            }
+
+            return null;
+        }
+        
         private string SerializeLocation(UUID regionID, Vector3 position, Vector3 lookAt)
         {
             return "{" + String.Format("\"SceneID\":\"{0}\",\"Position\":\"{1}\",\"LookAt\":\"{2}\"", regionID, position, lookAt) + "}";

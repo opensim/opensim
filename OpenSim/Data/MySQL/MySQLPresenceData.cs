@@ -65,15 +65,14 @@ namespace OpenSim.Data.MySQL
         {
             MySqlCommand cmd = new MySqlCommand();
 
-            cmd.CommandText = String.Format("update {0} set Online='false' where `RegionID`=?RegionID", m_Realm);
+            cmd.CommandText = String.Format("delete from {0} where `RegionID`=?RegionID", m_Realm);
 
             cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
 
             ExecuteNonQuery(cmd);
         }
 
-        public bool ReportAgent(UUID sessionID, UUID regionID, string position,
-                string lookAt)
+        public bool ReportAgent(UUID sessionID, UUID regionID)
         {
             PresenceData[] pd = Get("SessionID", sessionID.ToString());
             if (pd.Length == 0)
@@ -81,12 +80,10 @@ namespace OpenSim.Data.MySQL
 
             MySqlCommand cmd = new MySqlCommand();
 
-            cmd.CommandText = String.Format("update {0} set RegionID=?RegionID, Position=?Position, LookAt=?LookAt, Online='true' where `SessionID`=?SessionID", m_Realm);
+            cmd.CommandText = String.Format("update {0} set RegionID=?RegionID where `SessionID`=?SessionID", m_Realm);
 
             cmd.Parameters.AddWithValue("?SessionID", sessionID.ToString());
             cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
-            cmd.Parameters.AddWithValue("?Position", position.ToString());
-            cmd.Parameters.AddWithValue("?LookAt", lookAt.ToString());
 
             if (ExecuteNonQuery(cmd) == 0)
                 return false;
@@ -94,62 +91,5 @@ namespace OpenSim.Data.MySQL
             return true;
         }
 
-        public bool SetHomeLocation(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
-        {
-            PresenceData[] pd = Get("UserID", userID);
-            if (pd.Length == 0)
-                return false;
-
-            MySqlCommand cmd = new MySqlCommand();
-
-            cmd.CommandText = String.Format("update {0} set HomeRegionID=?HomeRegionID, HomePosition=?HomePosition, HomeLookAt=?HomeLookAt where UserID=?UserID", m_Realm);
-
-            cmd.Parameters.AddWithValue("?UserID", userID);
-            cmd.Parameters.AddWithValue("?HomeRegionID", regionID.ToString());
-            cmd.Parameters.AddWithValue("?HomePosition", position);
-            cmd.Parameters.AddWithValue("?HomeLookAt", lookAt);
-
-            if (ExecuteNonQuery(cmd) == 0)
-                return false;
-
-            return true;
-        }
-
-        public void Prune(string userID)
-        {
-            MySqlCommand cmd = new MySqlCommand();
-
-            cmd.CommandText = String.Format("select * from {0} where UserID=?UserID", m_Realm);
-
-            cmd.Parameters.AddWithValue("?UserID", userID);
-
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-            { 
-                dbcon.Open();
-
-                cmd.Connection = dbcon;
-
-                using (IDataReader reader = cmd.ExecuteReader())
-                {
-                    List<UUID> deleteSessions = new List<UUID>();
-                    int online = 0;
-
-                    while (reader.Read())
-                    {
-                        if (bool.Parse(reader["Online"].ToString()))
-                            online++;
-                        else
-                            deleteSessions.Add(new UUID(reader["SessionID"].ToString()));
-                    }
-
-                    // Leave one session behind so that we can pick up details such as home location
-                    if (online == 0 && deleteSessions.Count > 0)
-                        deleteSessions.RemoveAt(0);
-
-                    foreach (UUID s in deleteSessions)
-                        Delete("SessionID", s.ToString());
-                }
-            }
-        }
     }
 }

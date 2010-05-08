@@ -53,50 +53,6 @@ namespace PrimMesher
         public enum SculptType { sphere = 1, torus = 2, plane = 3, cylinder = 4 };
 
 #if SYSTEM_DRAWING
-        private Bitmap ScaleImage(Bitmap srcImage, float scale, bool removeAlpha)
-        {
-            int sourceWidth = srcImage.Width;
-            int sourceHeight = srcImage.Height;
-            int sourceX = 0;
-            int sourceY = 0;
-
-            int destX = 0;
-            int destY = 0;
-            int destWidth = (int)(srcImage.Width * scale);
-            int destHeight = (int)(srcImage.Height * scale);
-
-            Bitmap scaledImage;
-
-            if (removeAlpha)
-            {
-                if (srcImage.PixelFormat == PixelFormat.Format32bppArgb)
-                    for (int y = 0; y < srcImage.Height; y++)
-                        for (int x = 0; x < srcImage.Width; x++)
-                        {
-                            Color c = srcImage.GetPixel(x, y);
-                            srcImage.SetPixel(x, y, Color.FromArgb(255, c.R, c.G, c.B));
-                        }
-
-                scaledImage = new Bitmap(destWidth, destHeight,
-                                         PixelFormat.Format24bppRgb);
-            }
-            else
-                scaledImage = new Bitmap(srcImage, destWidth, destHeight);
-
-            scaledImage.SetResolution(96.0f, 96.0f);
-
-            Graphics grPhoto = Graphics.FromImage(scaledImage);
-            grPhoto.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Low;
-
-            grPhoto.DrawImage(srcImage,
-                new Rectangle(destX, destY, destWidth, destHeight),
-                new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight),
-                GraphicsUnit.Pixel);
-
-            grPhoto.Dispose();
-            return scaledImage;
-        }
-
 
         public SculptMesh SculptMeshFromFile(string fileName, SculptType sculptType, int lod, bool viewerMode)
         {
@@ -105,6 +61,7 @@ namespace PrimMesher
             bitmap.Dispose();
             return sculptMesh;
         }
+
 
         public SculptMesh(string fileName, int sculptType, int lod, int viewerMode, int mirror, int invert)
         {
@@ -296,35 +253,52 @@ namespace PrimMesher
             return rows;
         }
 
+        private List<List<Coord>> bitmap2CoordsSampled(Bitmap bitmap, int scale, bool mirror)
+        {
+            int numRows = bitmap.Height / scale;
+            int numCols = bitmap.Width / scale;
+            List<List<Coord>> rows = new List<List<Coord>>(numRows);
+
+            float pixScale = 1.0f / 256.0f;
+
+            int imageX, imageY = 0;
+
+            int rowNdx, colNdx;
+
+            for (rowNdx = 0; rowNdx <= numRows; rowNdx++)
+            {
+                List<Coord> row = new List<Coord>(numCols);
+                imageY = rowNdx * scale;
+                if (rowNdx == numRows) imageY--;
+                for (colNdx = 0; colNdx <= numCols; colNdx++)
+                {
+                    imageX = colNdx * scale;
+                    if (colNdx == numCols) imageX--;
+
+                    Color c = bitmap.GetPixel(imageX, imageY);
+                    if (c.A != 255)
+                    {
+                        bitmap.SetPixel(imageX, imageY, Color.FromArgb(255, c.R, c.G, c.B));
+                        c = bitmap.GetPixel(imageX, imageY);
+                    }
+
+                    if (mirror)
+                        row.Add(new Coord(-(c.R * pixScale - 0.5f), c.G * pixScale - 0.5f, c.B * pixScale - 0.5f));
+                    else
+                        row.Add(new Coord(c.R * pixScale - 0.5f, c.G * pixScale - 0.5f, c.B * pixScale - 0.5f));
+
+                }
+                rows.Add(row);
+            }
+            return rows;
+        }
+
 
         void _SculptMesh(Bitmap sculptBitmap, SculptType sculptType, int lod, bool viewerMode, bool mirror, bool invert)
         {
-            coords = new List<Coord>();
-            faces = new List<Face>();
-            normals = new List<Coord>();
-            uvs = new List<UVCoord>();
-
-            sculptType = (SculptType)(((int)sculptType) & 0x07);
-
-            if (mirror)
-                if (sculptType == SculptType.plane)
-                    invert = !invert;
-
-            float sculptBitmapLod = (float)Math.Sqrt(sculptBitmap.Width * sculptBitmap.Height);
-
-            float sourceScaleFactor = (float)(lod) / sculptBitmapLod;
-
-            float fScale = 1.0f / sourceScaleFactor;
-
-            int iScale = (int)fScale;
-            if (iScale < 1) iScale = 1;
-            if (iScale > 2 && iScale % 2 == 0)
-                _SculptMesh(bitmap2Coords(ScaleImage(sculptBitmap, 64.0f / sculptBitmapLod, true), 64 / lod, mirror), sculptType, viewerMode, mirror, invert);
-            else
-                _SculptMesh(bitmap2Coords(sculptBitmap, iScale, mirror), sculptType, viewerMode, mirror, invert);
+            _SculptMesh(new SculptMap(sculptBitmap, lod).ToRows(mirror), sculptType, viewerMode, mirror, invert);
         }
 #endif
-
 
         void _SculptMesh(List<List<Coord>> rows, SculptType sculptType, bool viewerMode, bool mirror, bool invert)
         {
@@ -349,8 +323,18 @@ namespace PrimMesher
 
             if (sculptType != SculptType.plane)
             {
-                for (int rowNdx = 0; rowNdx < rows.Count; rowNdx++)
-                    rows[rowNdx].Add(rows[rowNdx][0]);
+                if (rows.Count % 2 == 0)
+                {
+                    for (int rowNdx = 0; rowNdx < rows.Count; rowNdx++)
+                        rows[rowNdx].Add(rows[rowNdx][0]);
+                }
+                else
+                {
+                    int lastIndex = rows[0].Count - 1;
+
+                    for (int i = 0; i < rows.Count; i++)
+                        rows[i][0] = rows[i][lastIndex];
+                }
             }
 
             Coord topPole = rows[0][width / 2];
@@ -358,23 +342,41 @@ namespace PrimMesher
 
             if (sculptType == SculptType.sphere)
             {
-                int count = rows[0].Count;
-                List<Coord> topPoleRow = new List<Coord>(count);
-                List<Coord> bottomPoleRow = new List<Coord>(count);
-
-                for (int i = 0; i < count; i++)
+                if (rows.Count % 2 == 0)
                 {
-                    topPoleRow.Add(topPole);
-                    bottomPoleRow.Add(bottomPole);
+                    int count = rows[0].Count;
+                    List<Coord> topPoleRow = new List<Coord>(count);
+                    List<Coord> bottomPoleRow = new List<Coord>(count);
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        topPoleRow.Add(topPole);
+                        bottomPoleRow.Add(bottomPole);
+                    }
+                    rows.Insert(0, topPoleRow);
+                    rows.Add(bottomPoleRow);
                 }
-                rows.Insert(0, topPoleRow);
-                rows.Add(bottomPoleRow);
+                else
+                {
+                    int count = rows[0].Count;
+
+                    List<Coord> topPoleRow = rows[0];
+                    List<Coord> bottomPoleRow = rows[rows.Count - 1];
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        topPoleRow[i] = topPole;
+                        bottomPoleRow[i] = bottomPole;
+                    }
+                }
             }
-            else if (sculptType == SculptType.torus)
+
+            if (sculptType == SculptType.torus)
                 rows.Add(rows[0]);
 
             int coordsDown = rows.Count;
             int coordsAcross = rows[0].Count;
+            int lastColumn = coordsAcross - 1;
 
             float widthUnit = 1.0f / (coordsAcross - 1);
             float heightUnit = 1.0f / (coordsDown - 1);

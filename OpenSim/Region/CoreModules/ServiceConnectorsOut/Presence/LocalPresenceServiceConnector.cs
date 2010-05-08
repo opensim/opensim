@@ -167,9 +167,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             return false;
         }
 
-        public bool LogoutAgent(UUID sessionID, Vector3 position, Vector3 lookat)
+        public bool LogoutAgent(UUID sessionID)
         {
-            return m_PresenceService.LogoutAgent(sessionID, position, lookat);
+            return m_PresenceService.LogoutAgent(sessionID);
         }
 
 
@@ -178,9 +178,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             return m_PresenceService.LogoutRegionAgents(regionID);
         }
 
-        public bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt)
+        public bool ReportAgent(UUID sessionID, UUID regionID)
         {
-            return m_PresenceService.ReportAgent(sessionID, regionID, position, lookAt);
+            return m_PresenceService.ReportAgent(sessionID, regionID);
         }
 
         public PresenceInfo GetAgent(UUID sessionID)
@@ -191,11 +191,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
         public PresenceInfo[] GetAgents(string[] userIDs)
         {
             return m_PresenceService.GetAgents(userIDs);
-        }
-
-        public bool SetHomeLocation(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
-        {
-            return m_PresenceService.SetHomeLocation(userID, regionID, position, lookAt);
         }
 
         #endregion

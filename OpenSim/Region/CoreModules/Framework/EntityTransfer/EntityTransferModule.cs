@@ -526,11 +526,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Request to teleport {0} {1} home", client.FirstName, client.LastName);
 
-            OpenSim.Services.Interfaces.PresenceInfo pinfo = m_aScene.PresenceService.GetAgent(client.SessionId);
+            //OpenSim.Services.Interfaces.PresenceInfo pinfo = m_aScene.PresenceService.GetAgent(client.SessionId);
+            GridUserInfo uinfo = m_aScene.GridUserService.GetGridUserInfo(client.AgentId.ToString());
 
-            if (pinfo != null)
+            if (uinfo != null)
             {
-                GridRegion regionInfo = m_aScene.GridService.GetRegionByUUID(UUID.Zero, pinfo.HomeRegionID);
+                GridRegion regionInfo = m_aScene.GridService.GetRegionByUUID(UUID.Zero, uinfo.HomeRegionID);
                 if (regionInfo == null)
                 {
                     // can't find the Home region: Tell viewer and abort
@@ -539,7 +540,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
                 // a little eekie that this goes back to Scene and with a forced cast, will fix that at some point...
                 ((Scene)(client.Scene)).RequestTeleportLocation(
-                    client, regionInfo.RegionHandle, pinfo.HomePosition, pinfo.HomeLookAt,
+                    client, regionInfo.RegionHandle, uinfo.HomePosition, uinfo.HomeLookAt,
                     (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaHome));
             }
         }

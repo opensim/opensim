@@ -33,15 +33,14 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors;
-using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 
 using OpenMetaverse;
 using log4net;
 using Nini.Config;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
+namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
 {
-    public class RemotePresenceServicesConnector : ISharedRegionModule, IPresenceService
+    public class RemoteGridUserServicesConnector : ISharedRegionModule, IGridUserService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -49,8 +48,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
         private bool m_Enabled = false;
 
-        private PresenceDetector m_PresenceDetector;
-        private IPresenceService m_RemoteConnector;
+        private ActivityDetector m_ActivityDetector;
+        private IGridUserService m_RemoteConnector;
 
         public Type ReplaceableInterface
         {
@@ -59,7 +58,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
         public string Name
         {
-            get { return "RemotePresenceServicesConnector"; }
+            get { return "RemoteGridUserServicesConnector"; }
         }
 
         public void Initialise(IConfigSource source)
@@ -67,16 +66,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("PresenceServices", "");
+                string name = moduleConfig.GetString("GridUserServices", "");
                 if (name == Name)
                 {
-                    m_RemoteConnector = new PresenceServicesConnector(source);
+                    m_RemoteConnector = new GridUserServicesConnector(source);
 
                     m_Enabled = true;
 
-                    m_PresenceDetector = new PresenceDetector(this);
+                    m_ActivityDetector = new ActivityDetector(this);
 
-                    m_log.Info("[REMOTE PRESENCE CONNECTOR]: Remote presence enabled");
+                    m_log.Info("[REMOTE GRID USER CONNECTOR]: Remote grid user enabled");
                 }
             }
 
@@ -95,10 +94,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             if (!m_Enabled)
                 return;
 
-            scene.RegisterModuleInterface<IPresenceService>(this);
-            m_PresenceDetector.AddRegion(scene);
+            scene.RegisterModuleInterface<IGridUserService>(this);
+            m_ActivityDetector.AddRegion(scene);
 
-            m_log.InfoFormat("[REMOTE PRESENCE CONNECTOR]: Enabled remote presence for region {0}", scene.RegionInfo.RegionName);
+            m_log.InfoFormat("[REMOTE GRID USER CONNECTOR]: Enabled remote grid user for region {0}", scene.RegionInfo.RegionName);
 
         }
 
@@ -107,7 +106,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             if (!m_Enabled)
                 return;
 
-            m_PresenceDetector.RemoveRegion(scene);
+            m_ActivityDetector.RemoveRegion(scene);
         }
 
         public void RegionLoaded(Scene scene)
@@ -119,38 +118,33 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
         #endregion
 
-        #region IPresenceService
+        #region IGridUserService
 
-        public bool LoginAgent(string userID, UUID sessionID, UUID secureSessionID)
+        public GridUserInfo LoggedIn(string userID)
         {
-            m_log.Warn("[REMOTE PRESENCE CONNECTOR]: LoginAgent connector not implemented at the simulators");
-            return false;
+            m_log.Warn("[REMOTE GRID USER CONNECTOR]: LoggedIn not implemented at the simulators");
+            return null;
         }
 
-        public bool LogoutAgent(UUID sessionID)
+        public bool LoggedOut(string userID, UUID region, Vector3 position, Vector3 lookat)
         {
-            return m_RemoteConnector.LogoutAgent(sessionID);
+            return m_RemoteConnector.LoggedOut(userID, region, position, lookat);
         }
 
 
-        public bool LogoutRegionAgents(UUID regionID)
+        public bool SetHome(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
-            return m_RemoteConnector.LogoutRegionAgents(regionID);
+            return m_RemoteConnector.SetHome(userID, regionID, position, lookAt);
         }
 
-        public bool ReportAgent(UUID sessionID, UUID regionID)
+        public bool SetLastPosition(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
-            return m_RemoteConnector.ReportAgent(sessionID, regionID);
+            return m_RemoteConnector.SetLastPosition(userID, regionID, position, lookAt);
         }
 
-        public PresenceInfo GetAgent(UUID sessionID)
+        public GridUserInfo GetGridUserInfo(string userID)
         {
-            return m_RemoteConnector.GetAgent(sessionID);
-        }
-
-        public PresenceInfo[] GetAgents(string[] userIDs)
-        {
-            return m_RemoteConnector.GetAgents(userIDs);
+            return m_RemoteConnector.GetGridUserInfo(userID);
         }
 
         #endregion

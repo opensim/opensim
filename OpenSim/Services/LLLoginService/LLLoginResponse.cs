@@ -220,7 +220,7 @@ namespace OpenSim.Services.LLLoginService
             SetDefaultValues();
         }
 
-        public LLLoginResponse(UserAccount account, AgentCircuitData aCircuit, PresenceInfo pinfo,
+        public LLLoginResponse(UserAccount account, AgentCircuitData aCircuit, GridUserInfo pinfo,
             GridRegion destination, List<InventoryFolderBase> invSkel, FriendInfo[] friendsList, ILibraryService libService,
             string where, string startlocation, Vector3 position, Vector3 lookAt, string message,
             GridRegion home, IPEndPoint clientIP)
@@ -288,7 +288,7 @@ namespace OpenSim.Services.LLLoginService
             }
         }
 
-        private void FillOutHomeData(PresenceInfo pinfo, GridRegion home)
+        private void FillOutHomeData(GridUserInfo pinfo, GridRegion home)
         {
             int x = 1000 * (int)Constants.RegionSize, y = 1000 * (int)Constants.RegionSize;
             if (home != null)

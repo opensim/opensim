@@ -96,45 +96,20 @@ namespace OpenSim.Data.Null
                 m_presenceData.Remove(u);
         }
 
-        public bool ReportAgent(UUID sessionID, UUID regionID, string position, string lookAt)
+        public bool ReportAgent(UUID sessionID, UUID regionID)
         {
             if (Instance != this)
-                return Instance.ReportAgent(sessionID, regionID, position, lookAt);
+                return Instance.ReportAgent(sessionID, regionID);
             
             if (m_presenceData.ContainsKey(sessionID))
             {
                 m_presenceData[sessionID].RegionID = regionID;
-                m_presenceData[sessionID].Data["Position"] = position;
-                m_presenceData[sessionID].Data["LookAt"] = lookAt;
                 return true;
             }
 
             return false;
         }
 
-        public bool SetHomeLocation(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
-        {
-            if (Instance != this)
-                return Instance.SetHomeLocation(userID, regionID, position, lookAt);
-
-            bool foundone = false;
-            foreach (PresenceData p in m_presenceData.Values)
-            {
-                if (p.UserID == userID)
-                {
-//                    m_log.DebugFormat(
-//                        "[NULL PRESENCE DATA]: Setting home location {0} {1} {2} for {3}", 
-//                        regionID, position, lookAt, p.UserID);
-
-                    p.Data["HomeRegionID"] = regionID.ToString();
-                    p.Data["HomePosition"] = position.ToString();
-                    p.Data["HomeLookAt"] = lookAt.ToString();
-                    foundone = true;
-                }
-            }
-
-            return foundone;
-        }
 
         public PresenceData[] Get(string field, string data)
         {
@@ -193,39 +168,6 @@ namespace OpenSim.Data.Null
             return presences.ToArray();
         }
 
-        public void Prune(string userID)
-        {
-            if (Instance != this)
-            {
-                Instance.Prune(userID);
-                return;
-            }
-
-//            m_log.DebugFormat("[NULL PRESENCE DATA]: Prune called for {0}", userID);
-
-            List<UUID> deleteSessions = new List<UUID>();
-            int online = 0;
-
-            foreach (KeyValuePair<UUID, PresenceData> kvp in m_presenceData)
-            {
-//                m_log.DebugFormat("Online: {0}", kvp.Value.Data["Online"]);
-                
-                bool on = false;
-                if (bool.TryParse(kvp.Value.Data["Online"], out on) && on)
-                    online++;
-                else
-                    deleteSessions.Add(kvp.Key);
-            }
-
-//            m_log.DebugFormat("[NULL PRESENCE DATA]: online [{0}], deleteSession.Count [{1}]", online, deleteSessions.Count);
-
-            // Leave one session behind so that we can pick up details such as home location
-            if (online == 0 && deleteSessions.Count > 0)
-                deleteSessions.RemoveAt(0);
-
-            foreach (UUID s in deleteSessions)
-                m_presenceData.Remove(s);
-        }
 
         public bool Delete(string field, string data)
         {

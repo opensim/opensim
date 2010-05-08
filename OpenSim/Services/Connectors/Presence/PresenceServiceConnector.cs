@@ -132,7 +132,7 @@ namespace OpenSim.Services.Connectors
 
         }
 
-        public bool LogoutAgent(UUID sessionID, Vector3 position, Vector3 lookat)
+        public bool LogoutAgent(UUID sessionID)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["SCOPEID"] = scopeID.ToString();
@@ -141,8 +141,6 @@ namespace OpenSim.Services.Connectors
             sendData["METHOD"] = "logout";
 
             sendData["SessionID"] = sessionID.ToString();
-            sendData["Position"] = position.ToString();
-            sendData["LookAt"] = lookat.ToString();
 
             string reqString = ServerUtils.BuildQueryString(sendData);
             // m_log.DebugFormat("[PRESENCE CONNECTOR]: queryString = {0}", reqString);
@@ -220,7 +218,7 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
-        public bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt)
+        public bool ReportAgent(UUID sessionID, UUID regionID)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["SCOPEID"] = scopeID.ToString();
@@ -230,8 +228,6 @@ namespace OpenSim.Services.Connectors
 
             sendData["SessionID"] = sessionID.ToString();
             sendData["RegionID"] = regionID.ToString();
-            sendData["position"] = position.ToString();
-            sendData["lookAt"] = lookAt.ToString();
 
             string reqString = ServerUtils.BuildQueryString(sendData);
             // m_log.DebugFormat("[PRESENCE CONNECTOR]: queryString = {0}", reqString);
@@ -370,52 +366,6 @@ namespace OpenSim.Services.Connectors
             return rinfos.ToArray();
         }
 
-
-        public bool SetHomeLocation(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
-        {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "sethome";
-
-            sendData["UserID"] = userID;
-            sendData["RegionID"] = regionID.ToString();
-            sendData["position"] = position.ToString();
-            sendData["lookAt"] = lookAt.ToString();
-
-            string reqString = ServerUtils.BuildQueryString(sendData);
-            // m_log.DebugFormat("[PRESENCE CONNECTOR]: queryString = {0}", reqString);
-            try
-            {
-                string reply = SynchronousRestFormsRequester.MakeRequest("POST",
-                        m_ServerURI + "/presence",
-                        reqString);
-                if (reply != string.Empty)
-                {
-                    Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
-
-                    if (replyData.ContainsKey("result"))
-                    {
-                        if (replyData["result"].ToString().ToLower() == "success")
-                            return true;
-                        else
-                            return false;
-                    }
-                    else
-                        m_log.DebugFormat("[PRESENCE CONNECTOR]: SetHomeLocation reply data does not contain result field");
-
-                }
-                else
-                    m_log.DebugFormat("[PRESENCE CONNECTOR]: SetHomeLocation received empty reply");
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[PRESENCE CONNECTOR]: Exception when contacting presence server: {0}", e.Message);
-            }
-
-            return false;
-        }
 
         #endregion
 

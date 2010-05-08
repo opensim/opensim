@@ -35,26 +35,28 @@ using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 using log4net;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
+namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
 {
-    public class PresenceDetector 
+    public class ActivityDetector 
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IPresenceService m_PresenceService;
+        private IGridUserService m_GridUserService;
         private Scene m_aScene;
 
-        public PresenceDetector(IPresenceService presenceservice)
+        public ActivityDetector(IGridUserService guservice)
         {
-            m_PresenceService = presenceservice;
+            m_GridUserService = guservice;
+            m_log.DebugFormat("[ACTIVITY DETECTOR]: starting ");
         }
 
         public void AddRegion(Scene scene)
         {
+            // For now the only events we listen to are these
+            // But we could trigger the position update more often
             scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
             scene.EventManager.OnNewClient += OnNewClient;
-
-            m_PresenceService.LogoutRegionAgents(scene.RegionInfo.RegionID);
+            scene.EventManager.OnAvatarEnteringNewParcel += OnEnteringNewParcel;
 
             if (m_aScene == null)
                 m_aScene = scene;
@@ -64,15 +66,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
         {
             scene.EventManager.OnMakeRootAgent -= OnMakeRootAgent;
             scene.EventManager.OnNewClient -= OnNewClient;
-
-            m_PresenceService.LogoutRegionAgents(scene.RegionInfo.RegionID);
-
         }
 
         public void OnMakeRootAgent(ScenePresence sp)
         {
-            m_log.DebugFormat("[PRESENCE DETECTOR]: Detected root presence {0} in {1}", sp.UUID, sp.Scene.RegionInfo.RegionName);
-            m_PresenceService.ReportAgent(sp.ControllingClient.SessionId, sp.Scene.RegionInfo.RegionID);
+            m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected root presence {0} in {1}", sp.UUID, sp.Scene.RegionInfo.RegionName);
+
+            m_GridUserService.SetLastPosition(sp.UUID.ToString(), sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
         }
 
         public void OnNewClient(IClientAPI client)
@@ -85,19 +85,32 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             if (client.IsLoggingOut)
             {
                 object sp = null;
+                Vector3 position = new Vector3(128, 128, 0);
+                Vector3 lookat = new Vector3(0, 1, 0);
+
                 if (client.Scene.TryGetScenePresence(client.AgentId, out sp))
                 {
                     if (sp is ScenePresence)
                     {
                         if (((ScenePresence)sp).IsChildAgent)
                             return;
+
+                        position = ((ScenePresence)sp).AbsolutePosition;
+                        lookat = ((ScenePresence)sp).Lookat;
                     }
                 }
-
-                m_log.DebugFormat("[PRESENCE DETECTOR]: Detected client logout {0} in {1}", client.AgentId, client.Scene.RegionInfo.RegionName);
-                m_PresenceService.LogoutAgent(client.SessionId);
+                m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected client logout {0} in {1}", client.AgentId, client.Scene.RegionInfo.RegionName);
+                m_GridUserService.LoggedOut(client.AgentId.ToString(), client.Scene.RegionInfo.RegionID, position, lookat);
             }
 
         }
+
+        void OnEnteringNewParcel(ScenePresence sp, int localLandID, UUID regionID)
+        {
+            // TODO: grab the parcel ID from ILandModule
+            // and send that along
+            m_GridUserService.SetLastPosition(sp.UUID.ToString(), sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
+        }
+
     }
 }

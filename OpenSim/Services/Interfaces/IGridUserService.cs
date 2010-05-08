@@ -37,9 +37,18 @@ namespace OpenSim.Services.Interfaces
     public class GridUserInfo
     {
         public string UserID;
+        
         public UUID HomeRegionID;
         public Vector3 HomePosition;
         public Vector3 HomeLookAt;
+
+        public UUID LastRegionID;
+        public Vector3 LastPosition;
+        public Vector3 LastLookAt;
+        
+        public bool Online;
+        public DateTime Login;
+        public DateTime Logout;
 
         public GridUserInfo() {}
         
@@ -47,29 +56,60 @@ namespace OpenSim.Services.Interfaces
         {
             if (kvp.ContainsKey("UserID"))
                 UserID = kvp["UserID"].ToString();
+
             if (kvp.ContainsKey("HomeRegionID"))
                 UUID.TryParse(kvp["HomeRegionID"].ToString(), out HomeRegionID);
             if (kvp.ContainsKey("HomePosition"))
                 Vector3.TryParse(kvp["HomePosition"].ToString(), out HomePosition);
             if (kvp.ContainsKey("HomeLookAt"))
                 Vector3.TryParse(kvp["HomeLookAt"].ToString(), out HomeLookAt);
+
+            if (kvp.ContainsKey("LastRegionID"))
+                UUID.TryParse(kvp["LastRegionID"].ToString(), out HomeRegionID);
+            if (kvp.ContainsKey("LastPosition"))
+                Vector3.TryParse(kvp["LastPosition"].ToString(), out LastPosition);
+            if (kvp.ContainsKey("LastLookAt"))
+                Vector3.TryParse(kvp["LastLookAt"].ToString(), out LastLookAt);
+
+            if (kvp.ContainsKey("Login"))
+                DateTime.TryParse(kvp["Login"].ToString(), out Login);
+            if (kvp.ContainsKey("Logout"))
+                DateTime.TryParse(kvp["Logout"].ToString(), out Logout);
+            if (kvp.ContainsKey("Online"))
+                Boolean.TryParse(kvp["Online"].ToString(), out Online);
+
         }
 
         public Dictionary<string, object> ToKeyValuePairs()
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
             result["UserID"] = UserID;
+
             result["HomeRegionID"] = HomeRegionID.ToString();
             result["HomePosition"] = HomePosition.ToString();
             result["HomeLookAt"] = HomeLookAt.ToString();
 
+            result["LastRegionID"] = LastRegionID.ToString();
+            result["LastPosition"] = LastPosition.ToString();
+            result["LastLookAt"] = LastLookAt.ToString();
+
+            result["Online"] = Online.ToString();
+            result["Login"] = Login.ToString();
+            result["Logout"] = Logout.ToString();
+
+            
             return result;
         }
     }
     
     public interface IGridUserService
     {
+        GridUserInfo LoggedIn(string userID);
+        bool LoggedOut(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt);
+        
+        bool SetHome(string userID, UUID homeID, Vector3 homePosition, Vector3 homeLookAt);
+        bool SetLastPosition(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt);
+    
         GridUserInfo GetGridUserInfo(string userID);
-        bool StoreGridUserInfo(GridUserInfo info);
     }
 }
