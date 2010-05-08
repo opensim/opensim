@@ -133,20 +133,14 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             foreach (PresenceInfo pi in status)
             {
                 UUID uuid = new UUID(pi.UserID);
-                if (pi.Online)
-                {
-                    if (!online.Contains(uuid))
-                    {
-                        online.Add(uuid);
-                        if (offline.Contains(uuid))
-                            offline.Remove(uuid);
-                    }
-                }
-                else
-                {
-                    if (!online.Contains(uuid) && !offline.Contains(uuid))
-                        offline.Add(uuid);
-                }
+                if (!online.Contains(uuid))
+                    online.Add(uuid);
+            }
+            foreach (string s in args)
+            {
+                UUID uuid = new UUID(s);
+                if (!online.Contains(uuid) && !offline.Contains(uuid))
+                    offline.Add(uuid);
             }
 
             if (online.Count > 0)

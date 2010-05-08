@@ -471,7 +471,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 if (m_UserRegionMap.ContainsKey(toAgentID))
                 {
                     upd = new PresenceInfo();
-                    upd.Online = true;
                     upd.RegionID = m_UserRegionMap[toAgentID];
 
                     // We need to compare the current regionhandle with the previous region handle
@@ -493,15 +492,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             {
                 // Non-cached user agent lookup.
                 PresenceInfo[] presences = PresenceService.GetAgents(new string[] { toAgentID.ToString() }); 
-                if (presences != null)
-                {
-                    foreach (PresenceInfo p in presences)
-                        if (p.Online)
-                        {
-                            upd = presences[0];
-                            break;
-                        }
-                }
+                if (presences != null && presences.Length > 0)
+                    upd = presences[0];
 
                 if (upd != null)
                 {
@@ -525,61 +517,53 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             if (upd != null)
             {
-                if (upd.Online)
+                GridRegion reginfo = m_Scenes[0].GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID,
+                    upd.RegionID);
+                if (reginfo != null)
                 {
-                    GridRegion reginfo = m_Scenes[0].GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID,
-                        upd.RegionID);
-                    if (reginfo != null)
+                    Hashtable msgdata = ConvertGridInstantMessageToXMLRPC(im);
+                    // Not actually used anymore, left in for compatibility
+                    // Remove at next interface change
+                    //
+                    msgdata["region_handle"] = 0;
+                    bool imresult = doIMSending(reginfo, msgdata);
+                    if (imresult)
                     {
-                        Hashtable msgdata = ConvertGridInstantMessageToXMLRPC(im);
-                        // Not actually used anymore, left in for compatibility
-                        // Remove at next interface change
-                        //
-                        msgdata["region_handle"] = 0;
-                        bool imresult = doIMSending(reginfo, msgdata);
-                        if (imresult)
+                        // IM delivery successful, so store the Agent's location in our local cache.
+                        lock (m_UserRegionMap)
                         {
-                            // IM delivery successful, so store the Agent's location in our local cache.
-                            lock (m_UserRegionMap)
+                            if (m_UserRegionMap.ContainsKey(toAgentID))
                             {
-                                if (m_UserRegionMap.ContainsKey(toAgentID))
-                                {
-                                    m_UserRegionMap[toAgentID] = upd.RegionID;
-                                }
-                                else
-                                {
-                                    m_UserRegionMap.Add(toAgentID, upd.RegionID);
-                                }
+                                m_UserRegionMap[toAgentID] = upd.RegionID;
                             }
-                            result(true);
+                            else
+                            {
+                                m_UserRegionMap.Add(toAgentID, upd.RegionID);
+                            }
                         }
-                        else
-                        {
-                            // try again, but lookup user this time.
-                            // Warning, this must call the Async version
-                            // of this method or we'll be making thousands of threads
-                            // The version within the spawned thread is SendGridInstantMessageViaXMLRPCAsync
-                            // The version that spawns the thread is SendGridInstantMessageViaXMLRPC
-
-                            // This is recursive!!!!!
-                            SendGridInstantMessageViaXMLRPCAsync(im, result,
-                                    upd.RegionID);
-                        }
+                        result(true);
                     }
                     else
                     {
-                        m_log.WarnFormat("[GRID INSTANT MESSAGE]: Unable to find region {0}", upd.RegionID);
-                        HandleUndeliveredMessage(im, result);
+                        // try again, but lookup user this time.
+                        // Warning, this must call the Async version
+                        // of this method or we'll be making thousands of threads
+                        // The version within the spawned thread is SendGridInstantMessageViaXMLRPCAsync
+                        // The version that spawns the thread is SendGridInstantMessageViaXMLRPC
+
+                        // This is recursive!!!!!
+                        SendGridInstantMessageViaXMLRPCAsync(im, result,
+                                upd.RegionID);
                     }
                 }
                 else
                 {
+                    m_log.WarnFormat("[GRID INSTANT MESSAGE]: Unable to find region {0}", upd.RegionID);
                     HandleUndeliveredMessage(im, result);
                 }
             }
             else
             {
-                m_log.WarnFormat("[GRID INSTANT MESSAGE]: Unable to find user {0}", toAgentID);
                 HandleUndeliveredMessage(im, result);
             }
         }

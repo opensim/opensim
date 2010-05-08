@@ -73,8 +73,8 @@ namespace OpenSim.Tests.Clients.PresenceClient
             if (pinfo == null)
                 m_log.InfoFormat("[PRESENCE CLIENT]: Unable to retrieve presence for {0}", user1);
             else
-                m_log.InfoFormat("[PRESENCE CLIENT]: Presence retrieved correctly: userID={0}; Online={1}; regionID={2}; homeRegion={3}", 
-                    pinfo.UserID, pinfo.Online, pinfo.RegionID, pinfo.HomeRegionID);
+                m_log.InfoFormat("[PRESENCE CLIENT]: Presence retrieved correctly: userID={0}; regionID={1}", 
+                    pinfo.UserID, pinfo.RegionID);
 
             System.Console.WriteLine("\n");
             success = m_Connector.ReportAgent(session1, region1);
@@ -86,8 +86,8 @@ namespace OpenSim.Tests.Clients.PresenceClient
             if (pinfo == null)
                 m_log.InfoFormat("[PRESENCE CLIENT]: Unable to retrieve presence for {0} for second time", user1);
             else
-                m_log.InfoFormat("[PRESENCE CLIENT]: Presence retrieved correctly: userID={0}; Online={1}; regionID={2}; homeRegion={3}",
-                    pinfo.UserID, pinfo.Online, pinfo.RegionID, pinfo.HomeRegionID);
+                m_log.InfoFormat("[PRESENCE CLIENT]: Presence retrieved correctly: userID={0}; regionID={2}",
+                    pinfo.UserID, pinfo.RegionID);
 
             System.Console.WriteLine("\n");
             success = m_Connector.LogoutAgent(session1);
@@ -99,8 +99,8 @@ namespace OpenSim.Tests.Clients.PresenceClient
             if (pinfo == null)
                 m_log.InfoFormat("[PRESENCE CLIENT]: Unable to retrieve presence for {0} for fourth time", user1);
             else
-                m_log.InfoFormat("[PRESENCE CLIENT]: Presence retrieved correctly: userID={0}; Online={1}; regionID={2}; homeRegion={3}",
-                    pinfo.UserID, pinfo.Online, pinfo.RegionID, pinfo.HomeRegionID);
+                m_log.InfoFormat("[PRESENCE CLIENT]: Presence retrieved correctly: userID={0}; regionID={1}",
+                    pinfo.UserID, pinfo.RegionID);
 
             System.Console.WriteLine("\n");
             success = m_Connector.ReportAgent(session1, UUID.Random());
