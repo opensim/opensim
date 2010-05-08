@@ -304,7 +304,18 @@ namespace OpenSim.Region.Framework.Scenes
                 return m_AvatarService;
             }
         }
-        
+
+        protected IGridUserService m_GridUserService;
+        public IGridUserService GridUserService
+        {
+            get
+            {
+                if (m_GridUserService == null)
+                    m_GridUserService = RequestModuleInterface<IGridUserService>();
+                return m_GridUserService;
+            }
+        }
+
         protected IXMLRPC m_xmlrpcModule;
         protected IWorldComm m_worldCommModule;
         public IAttachmentsModule AttachmentsModule { get; set; }
@@ -1306,8 +1317,8 @@ namespace OpenSim.Region.Framework.Scenes
                             if (defaultRegions != null && defaultRegions.Count >= 1)
                                 home = defaultRegions[0];
 
-                            if (PresenceService != null && home != null)
-                                PresenceService.SetHomeLocation(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
+                            if (GridUserService != null && home != null)
+                                GridUserService.SetHome(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
                             else
                                 m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set home for account {0} {1}.",
                                    first, last);
@@ -3095,7 +3106,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="flags"></param>
         public virtual void SetHomeRezPoint(IClientAPI remoteClient, ulong regionHandle, Vector3 position, Vector3 lookAt, uint flags)
         {
-            if (PresenceService.SetHomeLocation(remoteClient.AgentId.ToString(), RegionInfo.RegionID, position, lookAt))
+            if (GridUserService != null && GridUserService.SetHome(remoteClient.AgentId.ToString(), RegionInfo.RegionID, position, lookAt))
                 // FUBAR ALERT: this needs to be "Home position set." so the viewer saves a home-screenshot.
                 m_dialogModule.SendAlertToUser(remoteClient, "Home position set.");
             else
@@ -3543,7 +3554,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             OpenSim.Services.Interfaces.PresenceInfo pinfo = presence.GetAgent(agent.SessionID);
 
-            if (pinfo == null || (pinfo != null && pinfo.Online == false))
+            if (pinfo == null)
             {
                 reason = String.Format("Failed to verify user {0} {1}, access denied to region {2}.", agent.firstname, agent.lastname, RegionInfo.RegionName);
                 return false;

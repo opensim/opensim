@@ -59,7 +59,7 @@ namespace OpenSim.Services.HypergridService
 
         static bool m_Initialized = false;
 
-        protected static IPresenceService m_PresenceService;
+        protected static IGridUserService m_GridUserService;
         protected static IGridService m_GridService;
         protected static GatekeeperServiceConnector m_GatekeeperConnector;
 
@@ -74,14 +74,14 @@ namespace OpenSim.Services.HypergridService
                     throw new Exception(String.Format("No section UserAgentService in config file"));
 
                 string gridService = serverConfig.GetString("GridService", String.Empty);
-                string presenceService = serverConfig.GetString("PresenceService", String.Empty);
+                string gridUserService = serverConfig.GetString("GridUserService", String.Empty);
 
-                if (gridService == string.Empty || presenceService == string.Empty)
+                if (gridService == string.Empty || gridUserService == string.Empty)
                     throw new Exception(String.Format("Incomplete specifications, UserAgent Service cannot function."));
 
                 Object[] args = new Object[] { config };
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
-                m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
+                m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(gridUserService, args);
                 m_GatekeeperConnector = new GatekeeperServiceConnector();
 
                 m_Initialized = true;
@@ -95,15 +95,14 @@ namespace OpenSim.Services.HypergridService
             m_log.DebugFormat("[USER AGENT SERVICE]: Request to get home region of user {0}", userID);
 
             GridRegion home = null;
-            PresenceInfo[] presences = m_PresenceService.GetAgents(new string[] { userID.ToString() });
-            if (presences != null && presences.Length > 0)
+            GridUserInfo uinfo = m_GridUserService.GetGridUserInfo(userID.ToString());
+            if (uinfo != null)
             {
-                UUID homeID = presences[0].HomeRegionID;
-                if (homeID != UUID.Zero)
+                if (uinfo.HomeRegionID != UUID.Zero)
                 {
-                    home = m_GridService.GetRegionByUUID(UUID.Zero, homeID);
-                    position = presences[0].HomePosition;
-                    lookAt = presences[0].HomeLookAt;
+                    home = m_GridService.GetRegionByUUID(UUID.Zero, uinfo.HomeRegionID);
+                    position = uinfo.HomePosition;
+                    lookAt = uinfo.HomeLookAt;
                 }
                 if (home == null)
                 {

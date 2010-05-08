@@ -37,6 +37,11 @@ namespace OpenSim.Data
     {
         public string UserID;
         public Dictionary<string, string> Data;
+
+        public GridUserData()
+        {
+            Data = new Dictionary<string, string>();
+        }
     }
 
     /// <summary>
@@ -44,7 +49,7 @@ namespace OpenSim.Data
     /// </summary>
     public interface IGridUserData 
     {
-        GridUserData GetGridUserData(string userID);
-        bool StoreGridUserData(GridUserData data);
+        GridUserData Get(string userID);
+        bool Store(GridUserData data);
     }
 }

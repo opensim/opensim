@@ -40,6 +40,12 @@
     ;
     UserAccountServerURI = "http://mygridserver.com:8003"
 
+[GridUserService]
+    ;
+    ; change this to your grid-wide user accounts server
+    ;
+    GridUserServerURI = "http://mygridserver.com:8003"
+
 [AuthenticationService]
     ;
     ; change this to your grid-wide authentication server

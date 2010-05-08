@@ -46,11 +46,11 @@ namespace OpenSim.Data.MSSQL
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public MSSQLGridUserData(string connectionString, string realm) :
-            base(connectionString, realm, "UserGrid")
+            base(connectionString, realm, "GridUserStore")
         {
         }
 
-        public GridUserData GetGridUserData(string userID)
+        public GridUserData Get(string userID)
         {
             GridUserData[] ret = Get("UserID", userID);
 
@@ -60,9 +60,5 @@ namespace OpenSim.Data.MSSQL
             return ret[0];
         }
 
-        public bool StoreGridUserData(GridUserData data)
-        {
-            return Store(data);
-        }
     }
 }

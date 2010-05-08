@@ -67,7 +67,7 @@ namespace OpenSim.Data.MSSQL
             using (SqlCommand cmd = new SqlCommand())
             {
 
-                cmd.CommandText = String.Format("UPDATE {0} SET Online='false' WHERE [RegionID]=@RegionID", m_Realm);
+                cmd.CommandText = String.Format("DELETE FROM {0} WHERE [RegionID]=@RegionID", m_Realm);
 
                 cmd.Parameters.Add(m_database.CreateParameter("@RegionID", regionID.ToString()));
                 cmd.Connection = conn;
@@ -76,8 +76,7 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
-        public bool ReportAgent(UUID sessionID, UUID regionID, string position,
-                string lookAt)
+        public bool ReportAgent(UUID sessionID, UUID regionID)
         {
             PresenceData[] pd = Get("SessionID", sessionID.ToString());
             if (pd.Length == 0)
@@ -88,16 +87,11 @@ namespace OpenSim.Data.MSSQL
             {
 
                 cmd.CommandText = String.Format(@"UPDATE {0} SET 
-                                                [RegionID] = @RegionID, 
-                                                [Position] = @Position, 
-                                                [LookAt] = @LookAt, 
-                                                [Online] = 'true'
+                                                [RegionID] = @RegionID
                                         WHERE [SessionID] = @SessionID", m_Realm);
 
                 cmd.Parameters.Add(m_database.CreateParameter("@SessionID", sessionID.ToString()));
                 cmd.Parameters.Add(m_database.CreateParameter("@RegionID", regionID.ToString()));
-                cmd.Parameters.Add(m_database.CreateParameter("@Position", position.ToString()));
-                cmd.Parameters.Add(m_database.CreateParameter("@LookAt", lookAt.ToString()));
                 cmd.Connection = conn;
                 conn.Open();
                 if (cmd.ExecuteNonQuery() == 0)
@@ -106,65 +100,5 @@ namespace OpenSim.Data.MSSQL
             return true;
         }
 
-        public bool SetHomeLocation(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
-        {
-            PresenceData[] pd = Get("UserID", userID);
-            if (pd.Length == 0)
-                return false;
-
-            using (SqlConnection conn = new SqlConnection(m_ConnectionString))
-            using (SqlCommand cmd = new SqlCommand())
-            {
-
-                cmd.CommandText = String.Format(@"UPDATE {0} SET 
-                                                [HomeRegionID] = @HomeRegionID, 
-                                                [HomePosition] = @HomePosition, 
-                                                [HomeLookAt] = @HomeLookAt 
-                                            WHERE [UserID] = @UserID", m_Realm);
-
-                cmd.Parameters.Add(m_database.CreateParameter("@UserID", userID));
-                cmd.Parameters.Add(m_database.CreateParameter("@HomeRegionID", regionID.ToString()));
-                cmd.Parameters.Add(m_database.CreateParameter("@HomePosition", position));
-                cmd.Parameters.Add(m_database.CreateParameter("@HomeLookAt", lookAt));
-                cmd.Connection = conn;
-                conn.Open();
-                if (cmd.ExecuteNonQuery() == 0)
-                    return false;
-            }
-            return true;
-        }
-
-        public void Prune(string userID)
-        {
-            using (SqlConnection conn = new SqlConnection(m_ConnectionString))
-            using (SqlCommand cmd = new SqlCommand())
-            {
-                cmd.CommandText = String.Format("SELECT * from {0} WHERE [UserID] = @UserID", m_Realm);
-
-                cmd.Parameters.Add(m_database.CreateParameter("@UserID", userID));
-                cmd.Connection = conn;
-                conn.Open();
-
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    List<UUID> deleteSessions = new List<UUID>();
-                    int online = 0;
-
-                    while (reader.Read())
-                    {
-                        if (bool.Parse(reader["Online"].ToString()))
-                            online++;
-                        else
-                            deleteSessions.Add(new UUID(reader["SessionID"].ToString()));
-                    }
-
-                    if (online == 0 && deleteSessions.Count > 0)
-                        deleteSessions.RemoveAt(0);
-
-                    foreach (UUID s in deleteSessions)
-                        Delete("SessionID", s.ToString());
-                }
-            }
-        }
     }
 }

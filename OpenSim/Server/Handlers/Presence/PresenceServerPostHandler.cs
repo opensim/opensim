@@ -90,8 +90,6 @@ namespace OpenSim.Server.Handlers.Presence
                         return GetAgent(request);
                     case "getagents":
                         return GetAgents(request);
-                    case "sethome":
-                        return SetHome(request);
                 }
                 m_log.DebugFormat("[PRESENCE HANDLER]: unknown method request: {0}", method);
             }
@@ -140,12 +138,7 @@ namespace OpenSim.Server.Handlers.Presence
             if (!UUID.TryParse(request["SessionID"].ToString(), out session))
                 return FailureResult();
 
-            if (request.ContainsKey("Position") && request["Position"] != null)
-                Vector3.TryParse(request["Position"].ToString(), out position);
-            if (request.ContainsKey("LookAt") && request["Position"] != null)
-                Vector3.TryParse(request["LookAt"].ToString(), out lookat);
-
-            if (m_PresenceService.LogoutAgent(session, position, lookat))
+            if (m_PresenceService.LogoutAgent(session))
                 return SuccessResult();
 
             return FailureResult();
@@ -171,8 +164,6 @@ namespace OpenSim.Server.Handlers.Presence
         {
             UUID session = UUID.Zero;
             UUID region = UUID.Zero;
-            Vector3 position = new Vector3(128, 128, 70);
-            Vector3 look = Vector3.Zero;
 
             if (!request.ContainsKey("SessionID") || !request.ContainsKey("RegionID"))
                 return FailureResult();
@@ -183,13 +174,7 @@ namespace OpenSim.Server.Handlers.Presence
             if (!UUID.TryParse(request["RegionID"].ToString(), out region))
                 return FailureResult();
 
-            if (request.ContainsKey("position"))
-                Vector3.TryParse(request["position"].ToString(), out position);
-
-            if (request.ContainsKey("lookAt"))
-                Vector3.TryParse(request["lookAt"].ToString(), out look);
-
-            if (m_PresenceService.ReportAgent(session, region, position, look))
+            if (m_PresenceService.ReportAgent(session, region))
             {
                 return SuccessResult();
             }
@@ -316,32 +301,6 @@ namespace OpenSim.Server.Handlers.Presence
             xw.Flush();
 
             return ms.ToArray();
-        }
-
-        byte[] SetHome(Dictionary<string, object> request)
-        {
-            UUID region = UUID.Zero;
-            Vector3 position = new Vector3(128, 128, 70);
-            Vector3 look = Vector3.Zero;
-
-            if (!request.ContainsKey("UserID") || !request.ContainsKey("RegionID"))
-                return FailureResult();
-
-            string user = request["UserID"].ToString();
-
-            if (!UUID.TryParse(request["RegionID"].ToString(), out region))
-                return FailureResult();
-
-            if (request.ContainsKey("position"))
-                Vector3.TryParse(request["position"].ToString(), out position);
-
-            if (request.ContainsKey("lookAt"))
-                Vector3.TryParse(request["lookAt"].ToString(), out look);
-            
-            if (m_PresenceService.SetHomeLocation(user, region, position, look))
-                return SuccessResult();
-
-            return FailureResult();
         }
 
     }

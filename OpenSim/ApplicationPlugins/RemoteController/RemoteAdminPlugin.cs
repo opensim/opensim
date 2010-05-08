@@ -1611,7 +1611,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                 GridRegion home = m_app.SceneManager.CurrentOrFirstScene.GridService.GetRegionByPosition(scopeID, 
                                     (int)(regX * Constants.RegionSize), (int)(regY * Constants.RegionSize));
                                 if (home != null)
-                                    m_app.SceneManager.CurrentOrFirstScene.PresenceService.SetHomeLocation(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
+                                    m_app.SceneManager.CurrentOrFirstScene.GridUserService.SetHome(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
                             }
                             else
                             {
