@@ -142,7 +142,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         // unique UUID of this character object
         public UUID m_uuid;
         public bool bad = false;
-
+        
         public OdeCharacter(String avName, OdeScene parent_scene, Vector3 pos, CollisionLocker dode, Vector3 size, float pid_d, float pid_p, float capsule_radius, float tensor, float density, float height_fudge_factor, float walk_divisor, float rundivisor)
         {
             m_uuid = UUID.Random();
@@ -892,7 +892,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // If the PID Controller isn't active then we set our force
             // calculating base velocity to the current position
-
+                
             if (Body == IntPtr.Zero)
                 return;
 
@@ -972,8 +972,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // Prim to avatar collisions
 
                     d.Vector3 pos = d.BodyGetPosition(Body);
-                    vec.X = (_target_velocity.X - vel.X) * (PID_D) + (_zeroPosition.X - pos.X) * (PID_P * 2);
-                    vec.Y = (_target_velocity.Y - vel.Y)*(PID_D) + (_zeroPosition.Y - pos.Y)* (PID_P * 2);
+                    float errX = _zeroPosition.X - pos.X;
+                    float errY = _zeroPosition.Y - pos.Y;
+                    if( (Math.Abs(errX) > 0.1f) || (Math.Abs(errY) > 0.1f) )
+                    {
+                    	vec.X = (_target_velocity.X - vel.X) * (PID_D) + (errX) * (PID_P * 2);
+                    	vec.Y = (_target_velocity.Y - vel.Y) * (PID_D) + (errY) * (PID_P * 2);
+                    }
+                    else
+                    {	// close, jump to lateral destination
+                    	d.BodySetPosition(Body, _zeroPosition.X, _zeroPosition.Y, pos.Z);
+                    }
                     if (flying)
                     {
                         vec.Z = (_target_velocity.Z - vel.Z) * (PID_D) + (_zeroPosition.Z - pos.Z) * PID_P;
@@ -1056,11 +1065,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             if (vec.IsFinite())
             {
-                doForce(vec);
-                if (!_zeroFlag)
-                {
-                  AlignAvatarTiltWithCurrentDirectionOfMovement(vec);
-                }
+            	if (!vec.ApproxEquals(Vector3.Zero, 0.01f))
+            	{
+	                doForce(vec);
+	                if (!_zeroFlag)
+	                {
+	                  AlignAvatarTiltWithCurrentDirectionOfMovement(vec);
+	                }
+	            }
             }
             else
             {
