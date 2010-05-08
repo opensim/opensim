@@ -90,7 +90,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.Tests
             PresenceInfo result = m_LocalConnector.GetAgent(session1);
             Assert.IsNotNull(result, "Retrieved GetAgent is null");
             Assert.That(result.UserID, Is.EqualTo(user1), "Retrieved userID does not match");
-            Assert.IsTrue(result.Online, "Agent just logged in but is offline");
 
             UUID region1 = UUID.Random();
             bool r = m_LocalConnector.ReportAgent(session1, region1);
@@ -107,8 +106,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.Tests
             r = m_LocalConnector.LogoutAgent(session1);
             Assert.IsTrue(r, "LogoutAgent returned false");
             result = m_LocalConnector.GetAgent(session1);
-            Assert.IsNotNull(result, "Agent session disappeared from storage after logout");
-            Assert.IsFalse(result.Online, "Agent is reported to be Online after logout");
+            Assert.IsNull(result, "Agent session is still stored after logout");
 
             r = m_LocalConnector.ReportAgent(session1, region1);
             Assert.IsFalse(r, "ReportAgent of non-logged in user returned true");

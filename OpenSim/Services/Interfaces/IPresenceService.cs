@@ -55,10 +55,6 @@ namespace OpenSim.Services.Interfaces
                 UserID = kvp["UserID"].ToString();
             if (kvp.ContainsKey("RegionID"))
                 UUID.TryParse(kvp["RegionID"].ToString(), out RegionID);
-            if (kvp.ContainsKey("lookAt"))
-                Vector3.TryParse(kvp["lookAt"].ToString(), out LookAt);
-            if (kvp.ContainsKey("position"))
-                Vector3.TryParse(kvp["position"].ToString(), out Position);
         }
 
         public Dictionary<string, object> ToKeyValuePairs()
@@ -66,8 +62,6 @@ namespace OpenSim.Services.Interfaces
             Dictionary<string, object> result = new Dictionary<string, object>();
             result["UserID"] = UserID;
             result["RegionID"] = RegionID.ToString();
-            result["position"] = Position.ToString();
-            result["lookAt"] = LookAt.ToString();
 
             return result;
         }
