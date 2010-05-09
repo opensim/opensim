@@ -161,8 +161,8 @@ namespace OpenSim.Data.MySQL
 
                     MySqlCommand cmd =
                         new MySqlCommand(
-                            "replace INTO assets(id, name, description, assetType, local, temporary, create_time, access_time, data)" +
-                            "VALUES(?id, ?name, ?description, ?assetType, ?local, ?temporary, ?create_time, ?access_time, ?data)",
+                            "replace INTO assets(id, name, description, assetType, local, temporary, create_time, access_time, asset_flags, data)" +
+                            "VALUES(?id, ?name, ?description, ?assetType, ?local, ?temporary, ?create_time, ?access_time, ?asset_flags, ?data)",
                             dbcon);
 
                     string assetName = asset.Name;
@@ -194,6 +194,7 @@ namespace OpenSim.Data.MySQL
                             cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
                             cmd.Parameters.AddWithValue("?create_time", now);
                             cmd.Parameters.AddWithValue("?access_time", now);
+                            cmd.Parameters.AddWithValue("?asset_flags", (int)asset.Flags);
                             cmd.Parameters.AddWithValue("?data", asset.Data);
                             cmd.ExecuteNonQuery();
                             cmd.Dispose();
@@ -302,7 +303,7 @@ namespace OpenSim.Data.MySQL
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
-                    MySqlCommand cmd = new MySqlCommand("SELECT name,description,assetType,temporary,id FROM assets LIMIT ?start, ?count", dbcon);
+                    MySqlCommand cmd = new MySqlCommand("SELECT name,description,assetType,temporary,id,asset_flags FROM assets LIMIT ?start, ?count", dbcon);
                     cmd.Parameters.AddWithValue("?start", start);
                     cmd.Parameters.AddWithValue("?count", count);
 
@@ -317,6 +318,7 @@ namespace OpenSim.Data.MySQL
                                 metadata.Description = (string)dbReader["description"];
                                 metadata.Type = (sbyte)dbReader["assetType"];
                                 metadata.Temporary = Convert.ToBoolean(dbReader["temporary"]); // Not sure if this is correct.
+                                metadata.Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]);
                                 metadata.FullID = new UUID((string)dbReader["id"]);
 
                                 // Current SHA1s are not stored/computed.

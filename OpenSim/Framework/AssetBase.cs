@@ -33,6 +33,15 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
+    [Flags]
+    public enum AssetFlags : int
+    {
+        Normal = 0,
+        Maptile = 1,
+        Rewritable = 2,
+        Collectable = 4
+    }
+
     /// <summary>
     /// Asset class.   All Assets are reference by this class or a class derived from this class
     /// </summary>
@@ -206,6 +215,12 @@ namespace OpenSim.Framework
             set { m_metadata.Temporary = value; }
         }
 
+        public AssetFlags Flags
+        {
+            get { return m_metadata.Flags; }
+            set { m_metadata.Flags = value; }
+        }
+
         [XmlIgnore]
         public AssetMetadata Metadata
         {
@@ -233,6 +248,7 @@ namespace OpenSim.Framework
         private bool m_local;
         private bool m_temporary;
         private string m_creatorid;
+        private AssetFlags m_flags;
 
         public UUID FullID
         {
@@ -329,6 +345,12 @@ namespace OpenSim.Framework
         {
             get { return m_creatorid; }
             set { m_creatorid = value; }
+        }
+
+        public AssetFlags Flags
+        {
+            get { return m_flags; }
+            set { m_flags = value; }
         }
     }
 }
