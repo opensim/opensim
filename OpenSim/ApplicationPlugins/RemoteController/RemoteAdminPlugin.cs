@@ -1237,9 +1237,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 }
                 else
                 {
-                    PresenceInfo[] pinfos = m_app.SceneManager.CurrentOrFirstScene.PresenceService.GetAgents(new string[] { account.PrincipalID.ToString() });
-                    if (pinfos != null && pinfos.Length >= 1)
-                        responseData["lastlogin"] = pinfos[0].Login;
+                    GridUserInfo guinfo = m_app.SceneManager.CurrentOrFirstScene.GridUserService.GetGridUserInfo(account.PrincipalID.ToString());
+                    if (guinfo != null)
+                        responseData["lastlogin"] = guinfo.Login;
                     else
                         responseData["lastlogin"] = 0;
 

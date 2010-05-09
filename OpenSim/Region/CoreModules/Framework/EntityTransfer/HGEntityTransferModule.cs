@@ -245,6 +245,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         return;
                 }
 
+                // Let's find out if this is a foreign user or a local user
+                UserAccount account = m_aScene.UserAccountService.GetUserAccount(m_aScene.RegionInfo.ScopeID, obj.AgentId);
+                if (account != null)
+                {
+                    // local grid user
+                    return;
+                }
+
                 AgentCircuitData aCircuit = ((Scene)(obj.Scene)).AuthenticateHandler.GetAgentCircuitData(obj.CircuitCode);
 
                 if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))

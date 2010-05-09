@@ -4108,8 +4108,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, uuid);
 
+            PresenceInfo pinfo = null;
             PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
-            PresenceInfo pinfo = PresenceInfo.GetOnlinePresence(pinfos);
+            if (pinfos != null && pinfos.Length > 0)
+                pinfo = pinfos[0];
 
             if (pinfo == null)
                 return UUID.Zero.ToString();
