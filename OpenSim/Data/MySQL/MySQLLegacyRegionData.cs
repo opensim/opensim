@@ -975,7 +975,7 @@ namespace OpenSim.Data.MySQL
                             "use_estate_sun, fixed_sun, sun_position, " +
                             "covenant, Sandbox, sunvectorx, sunvectory, " +
                             "sunvectorz, loaded_creation_datetime, " +
-                            "loaded_creation_id) values (?RegionUUID, ?BlockTerraform, " +
+                            "loaded_creation_id, map_tile_ID) values (?RegionUUID, ?BlockTerraform, " +
                             "?BlockFly, ?AllowDamage, ?RestrictPushing, " +
                             "?AllowLandResell, ?AllowLandJoinDivide, " +
                             "?BlockShowInSearch, ?AgentLimit, ?ObjectBonus, " +
@@ -990,7 +990,7 @@ namespace OpenSim.Data.MySQL
                             "?SunPosition, ?Covenant, ?Sandbox, " +
                             "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
                             "?LoadedCreationDateTime, ?LoadedCreationID, " +
-                            "?map_tile_ID)";
+                            "?TerrainImageID)";
 
                         FillRegionSettingsCommand(cmd, rs);
 
