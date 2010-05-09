@@ -111,7 +111,7 @@ namespace OpenSim.Data.MySQL
                     dbcon.Open();
 
                     using (MySqlCommand cmd = new MySqlCommand(
-                        "SELECT name, description, assetType, local, temporary, data FROM assets WHERE id=?id",
+                        "SELECT name, description, assetType, local, temporary, asset_flags, data FROM assets WHERE id=?id",
                         dbcon))
                     {
                         cmd.Parameters.AddWithValue("?id", assetID.ToString());
@@ -133,6 +133,7 @@ namespace OpenSim.Data.MySQL
                                         asset.Local = false;
 
                                     asset.Temporary = Convert.ToBoolean(dbReader["temporary"]);
+                                    asset.Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]);
                                 }
                             }
                         }
@@ -345,7 +346,7 @@ namespace OpenSim.Data.MySQL
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
-                    MySqlCommand cmd = new MySqlCommand("delete from assets where id=?id");
+                    MySqlCommand cmd = new MySqlCommand("delete from assets where id=?id", dbcon);
                     cmd.Parameters.AddWithValue("?id", id);
                     cmd.ExecuteNonQuery();
 

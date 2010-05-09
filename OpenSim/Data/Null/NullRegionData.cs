@@ -40,7 +40,7 @@ namespace OpenSim.Data.Null
     {
         private static NullRegionData Instance = null;
 
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         Dictionary<UUID, RegionData> m_regionData = new Dictionary<UUID, RegionData>();
 
@@ -62,12 +62,14 @@ namespace OpenSim.Data.Null
             {
                 if (regionName.Contains("%"))
                 {
-                    if (r.RegionName.Contains(regionName.Replace("%", "")))
+                    string cleanname = regionName.Replace("%", "");
+                    m_log.DebugFormat("[NULL REGION DATA]: comparing {0} to {1}", cleanname.ToLower(), r.RegionName.ToLower());
+                    if (r.RegionName.ToLower().Contains(cleanname.ToLower()))
                         ret.Add(r);
                 }
                 else
                 {
-                    if (r.RegionName == regionName)
+                    if (r.RegionName.ToLower() == regionName.ToLower())
                         ret.Add(r);
                 }
             }

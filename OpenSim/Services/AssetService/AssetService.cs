@@ -156,6 +156,7 @@ namespace OpenSim.Services.AssetService
 
         public bool Delete(string id)
         {
+            m_log.DebugFormat("[ASSET SERVICE]: Deleting asset {0}", id);
             UUID assetID;
             if (!UUID.TryParse(id, out assetID))
                 return false;
@@ -165,7 +166,11 @@ namespace OpenSim.Services.AssetService
                 return false;
 
             if ((int)(asset.Flags & AssetFlags.Maptile) != 0)
+            {
                 return m_Database.Delete(id);
+            }
+            else
+                m_log.DebugFormat("[ASSET SERVICE]: Request to delete asset {0}, but flags are not Maptile", id);
 
             return false;
         }
