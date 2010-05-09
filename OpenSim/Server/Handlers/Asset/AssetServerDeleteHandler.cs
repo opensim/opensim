@@ -47,11 +47,13 @@ namespace OpenSim.Server.Handlers.Asset
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IAssetService m_AssetService;
+        protected bool m_allowDelete;
 
-        public AssetServerDeleteHandler(IAssetService service) :
+        public AssetServerDeleteHandler(IAssetService service, bool allowDelete) :
                 base("DELETE", "/assets")
         {
             m_AssetService = service;
+            m_allowDelete = allowDelete;
         }
 
         public override byte[] Handle(string path, Stream request,
@@ -61,9 +63,9 @@ namespace OpenSim.Server.Handlers.Asset
 
             string[] p = SplitParams(path);
 
-            if (p.Length > 0)
+            if (p.Length > 0 && m_allowDelete)
             {
-                // result = m_AssetService.Delete(p[0]);
+                result = m_AssetService.Delete(p[0]);
             }
 
             XmlSerializer xs = new XmlSerializer(typeof(bool));

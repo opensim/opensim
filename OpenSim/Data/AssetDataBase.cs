@@ -48,5 +48,6 @@ namespace OpenSim.Data
         public abstract void Initialise(string connect);
         public abstract void Initialise();
         public abstract void Dispose();
+        public abstract bool Delete(string id);
     }
 }

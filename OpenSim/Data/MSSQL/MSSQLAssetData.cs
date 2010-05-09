@@ -322,6 +322,10 @@ namespace OpenSim.Data.MSSQL
             return retList;
         }
 
+        public override bool Delete(string id)
+        {
+            return false;
+        }
         #endregion
     }
 }

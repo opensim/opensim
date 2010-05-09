@@ -156,6 +156,17 @@ namespace OpenSim.Services.AssetService
 
         public bool Delete(string id)
         {
+            UUID assetID;
+            if (!UUID.TryParse(id, out assetID))
+                return false;
+
+            AssetBase asset = m_Database.GetAsset(assetID);
+            if (asset == null)
+                return false;
+
+            if ((int)(asset.Flags & AssetFlags.Maptile) != 0)
+                return m_Database.Delete(id);
+
             return false;
         }
 
