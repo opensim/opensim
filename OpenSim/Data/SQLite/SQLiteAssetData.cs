@@ -44,7 +44,7 @@ namespace OpenSim.Data.SQLite
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private const string SelectAssetSQL = "select * from assets where UUID=:UUID";
-        private const string SelectAssetMetadataSQL = "select Name, Description, Type, Temporary, UUID from assets limit :start, :count";
+        private const string SelectAssetMetadataSQL = "select Name, Description, Type, Temporary, asset_flags, UUID from assets limit :start, :count";
         private const string DeleteAssetSQL = "delete from assets where UUID=:UUID";
         private const string InsertAssetSQL = "insert into assets(UUID, Name, Description, Type, Local, Temporary, asset_flags, Data) values(:UUID, :Name, :Description, :Type, :Local, :Temporary, :Flags, :Data)";
         private const string UpdateAssetSQL = "update assets set Name=:Name, Description=:Description, Type=:Type, Local=:Local, Temporary=:Temporary, asset_flags=:Flags, Data=:Data where UUID=:UUID";

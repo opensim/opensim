@@ -989,8 +989,8 @@ namespace OpenSim.Data.MySQL
                             "?TerrainLowerLimit, ?UseEstateSun, ?FixedSun, " +
                             "?SunPosition, ?Covenant, ?Sandbox, " +
                             "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
-                            "?LoadedCreationDateTime, ?LoadedCreationID)" +
-                            "?map_tile_ID, ?TerrainImageID";
+                            "?LoadedCreationDateTime, ?LoadedCreationID, " +
+                            "?map_tile_ID)";
 
                         FillRegionSettingsCommand(cmd, rs);
 
