@@ -338,6 +338,10 @@ namespace OpenSim.Data.SQLiteLegacy
             get { return "SQLite Asset storage engine"; }
         }
 
+        public override bool Delete(string id)
+        {
+            return false;
+        }
         #endregion
     }
 }

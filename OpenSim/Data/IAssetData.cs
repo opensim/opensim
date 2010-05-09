@@ -38,6 +38,7 @@ namespace OpenSim.Data
         bool ExistsAsset(UUID uuid);
         List<AssetMetadata> FetchAssetMetadataSet(int start, int count);
         void Initialise(string connect);
+        bool Delete(string id);
     }
 
     public class AssetDataInitialiser : PluginInitialiserBase

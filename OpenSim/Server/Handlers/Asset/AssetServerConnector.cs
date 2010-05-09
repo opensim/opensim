@@ -59,9 +59,11 @@ namespace OpenSim.Server.Handlers.Asset
             m_AssetService =
                     ServerUtils.LoadPlugin<IAssetService>(assetService, args);
 
+            bool allowDelete = serverConfig.GetBoolean("AllowRemoteDelete", false);
+
             server.AddStreamHandler(new AssetServerGetHandler(m_AssetService));
             server.AddStreamHandler(new AssetServerPostHandler(m_AssetService));
-            server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService));
+            server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService, allowDelete));
         }
     }
 }

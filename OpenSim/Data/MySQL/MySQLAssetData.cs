@@ -338,6 +338,24 @@ namespace OpenSim.Data.MySQL
             return retList;
         }
 
+        public override bool Delete(string id)
+        {
+            lock (m_dbLock)
+            {
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+                    MySqlCommand cmd = new MySqlCommand("delete from assets where id=?id");
+                    cmd.Parameters.AddWithValue("?id", id);
+                    cmd.ExecuteNonQuery();
+
+                    cmd.Dispose();
+                }
+            }
+
+            return true;
+        }
+
         #endregion
     }
 }
