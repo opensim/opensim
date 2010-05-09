@@ -208,20 +208,6 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// Delete an asset from database
-        /// </summary>
-        /// <param name="uuid"></param>
-        public void DeleteAsset(UUID uuid)
-        {
-            using (SqliteCommand cmd = new SqliteCommand(DeleteAssetSQL, m_conn))
-            {
-                cmd.Parameters.Add(new SqliteParameter(":UUID", uuid.ToString()));
-
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-        /// <summary>
         ///
         /// </summary>
         /// <param name="row"></param>
@@ -340,7 +326,22 @@ namespace OpenSim.Data.SQLite
 
         public override bool Delete(string id)
         {
-            return false;
+            UUID assetID;
+
+            if (!UUID.TryParse(id, out assetID))
+                return false;
+
+            lock (this)
+            {
+                using (SqliteCommand cmd = new SqliteCommand(DeleteAssetSQL, m_conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":UUID", assetID.ToString()));
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            return true;
         }
 
         #endregion
