@@ -123,7 +123,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 if (m_partsLock.RecursiveWriteCount > 0)
                 {
-                    m_log.Error("[SceneObjectGroup.m_parts] Recursive read lock requested. This should not happen and means something needs to be fixed.");
+                    m_log.Error("[SceneObjectGroup.m_parts] Recursive read lock requested (write lock exists on this thread). This should not happen and means something needs to be fixed.");
                     m_partsLock.ExitWriteLock();
                 }
 
@@ -1667,6 +1667,7 @@ namespace OpenSim.Region.Framework.Scenes
                             remoteClient, m_scene.Permissions.GenerateClientFlags(remoteClient.AgentId, part.UUID));
                 }
             }
+            lockPartsForRead(false);
         }
 
         #region Copying
