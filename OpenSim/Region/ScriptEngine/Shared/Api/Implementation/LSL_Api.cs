@@ -5596,7 +5596,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetLandOwnerAt(LSL_Vector pos)
         {
             m_host.AddScriptLPS(1);
-            return World.LandChannel.GetLandObject((float)pos.x, (float)pos.y).LandData.OwnerID.ToString();
+            ILandObject land = World.LandChannel.GetLandObject((float)pos.x, (float)pos.y);
+            if (land == null)
+                return UUID.Zero.ToString();
+            return land.LandData.OwnerID.ToString();
         }
 
         /// <summary>
