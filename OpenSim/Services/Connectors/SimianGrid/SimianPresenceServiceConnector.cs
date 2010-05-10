@@ -511,20 +511,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             PresenceInfo info = new PresenceInfo();
 
-            info.Online = true;
             info.UserID = sessionResponse["UserID"].AsUUID().ToString();
             info.RegionID = sessionResponse["SceneID"].AsUUID();
-            info.Position = sessionResponse["ScenePosition"].AsVector3();
-            info.LookAt = sessionResponse["SceneLookAt"].AsVector3();
-
-            if (userResponse != null && userResponse["User"] is OSDMap)
-            {
-                OSDMap user = (OSDMap)userResponse["User"];
-
-                info.Login = user["LastLoginDate"].AsDate();
-                info.Logout = user["LastLogoutDate"].AsDate();
-                DeserializeLocation(user["HomeLocation"].AsString(), out info.HomeRegionID, out info.HomePosition, out info.HomeLookAt);
-            }
 
             return info;
         }

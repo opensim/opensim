@@ -121,6 +121,7 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
             UUID textureID;
             if (!String.IsNullOrEmpty(textureStr) && UUID.TryParse(textureStr, out textureID))
             {
+                //m_log.DebugFormat("[GETTEXTURE]: {0}", textureID);
                 AssetBase texture;
 
                 if (!String.IsNullOrEmpty(REDIRECT_URL))
@@ -167,6 +168,7 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
         private void SendTexture(OSHttpRequest request, OSHttpResponse response, AssetBase texture)
         {
             string range = request.Headers.GetOne("Range");
+            //m_log.DebugFormat("[GETTEXTURE]: Range {0}", range);
             if (!String.IsNullOrEmpty(range))
             {
                 // Range request

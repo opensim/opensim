@@ -975,7 +975,7 @@ namespace OpenSim.Data.MySQL
                             "use_estate_sun, fixed_sun, sun_position, " +
                             "covenant, Sandbox, sunvectorx, sunvectory, " +
                             "sunvectorz, loaded_creation_datetime, " +
-                            "loaded_creation_id) values (?RegionUUID, ?BlockTerraform, " +
+                            "loaded_creation_id, map_tile_ID) values (?RegionUUID, ?BlockTerraform, " +
                             "?BlockFly, ?AllowDamage, ?RestrictPushing, " +
                             "?AllowLandResell, ?AllowLandJoinDivide, " +
                             "?BlockShowInSearch, ?AgentLimit, ?ObjectBonus, " +
@@ -989,7 +989,8 @@ namespace OpenSim.Data.MySQL
                             "?TerrainLowerLimit, ?UseEstateSun, ?FixedSun, " +
                             "?SunPosition, ?Covenant, ?Sandbox, " +
                             "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
-                            "?LoadedCreationDateTime, ?LoadedCreationID)";
+                            "?LoadedCreationDateTime, ?LoadedCreationID, " +
+                            "?TerrainImageID)";
 
                         FillRegionSettingsCommand(cmd, rs);
 
@@ -1275,6 +1276,8 @@ namespace OpenSim.Data.MySQL
                 newSettings.LoadedCreationID = "";
             else 
                 newSettings.LoadedCreationID = (String) row["loaded_creation_id"];
+
+            newSettings.TerrainImageID = new UUID((String)row["map_tile_ID"]);
 
             return newSettings;
         }
@@ -1596,6 +1599,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("Covenant", settings.Covenant.ToString());
             cmd.Parameters.AddWithValue("LoadedCreationDateTime", settings.LoadedCreationDateTime);
             cmd.Parameters.AddWithValue("LoadedCreationID", settings.LoadedCreationID);
+            cmd.Parameters.AddWithValue("TerrainImageID", settings.TerrainImageID);
 
         }
 

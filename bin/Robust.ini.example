@@ -40,6 +40,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
+    AllowRemoteDelete = "false"
 
 ; * This configuration loads the inventory server modules. It duplicates
 ; * the function of the legacy inventory server

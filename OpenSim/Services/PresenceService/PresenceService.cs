@@ -115,10 +115,6 @@ namespace OpenSim.Services.PresenceService
 
             ret.UserID = data.UserID;
             ret.RegionID = data.RegionID;
-            if (data.Data.ContainsKey("Position"))
-                ret.Position = Vector3.Parse(data.Data["Position"]);
-            if (data.Data.ContainsKey("LookAt"))
-                ret.LookAt = Vector3.Parse(data.Data["LookAt"]);
 
             return ret;
         }
@@ -138,8 +134,6 @@ namespace OpenSim.Services.PresenceService
 
                     ret.UserID = d.UserID;
                     ret.RegionID = d.RegionID;
-                    ret.Position = Vector3.Parse(d.Data["Position"]);
-                    ret.LookAt = Vector3.Parse(d.Data["LookAt"]);
 
                     info.Add(ret);
                 }

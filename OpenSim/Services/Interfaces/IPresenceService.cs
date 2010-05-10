@@ -36,14 +36,6 @@ namespace OpenSim.Services.Interfaces
     {
         public string UserID;
         public UUID RegionID;
-        public bool Online;
-        public DateTime Login;
-        public DateTime Logout;
-        public Vector3 Position;
-        public Vector3 LookAt;
-        public UUID HomeRegionID;
-        public Vector3 HomePosition;
-        public Vector3 HomeLookAt;
 
         public PresenceInfo()
         {
@@ -64,26 +56,6 @@ namespace OpenSim.Services.Interfaces
             result["RegionID"] = RegionID.ToString();
 
             return result;
-        }
-
-        public static PresenceInfo[] GetOnlinePresences(PresenceInfo[] pinfos)
-        {
-            if (pinfos == null)
-                return null;
-
-            List<PresenceInfo> lst = new List<PresenceInfo>(pinfos);
-            lst = lst.FindAll(delegate(PresenceInfo each) { return each.Online; });
-
-            return lst.ToArray();
-        }
-
-        public static PresenceInfo GetOnlinePresence(PresenceInfo[] pinfos)
-        {
-            pinfos = GetOnlinePresences(pinfos);
-            if (pinfos != null && pinfos.Length >= 1)
-                return pinfos[0];
-
-            return null;
         }
     }
 

@@ -4108,8 +4108,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, uuid);
 
+            PresenceInfo pinfo = null;
             PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
-            PresenceInfo pinfo = PresenceInfo.GetOnlinePresence(pinfos);
+            if (pinfos != null && pinfos.Length > 0)
+                pinfo = pinfos[0];
 
             if (pinfo == null)
                 return UUID.Zero.ToString();
@@ -5822,7 +5824,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetLandOwnerAt(LSL_Vector pos)
         {
             m_host.AddScriptLPS(1);
-            return World.LandChannel.GetLandObject((float)pos.x, (float)pos.y).LandData.OwnerID.ToString();
+            ILandObject land = World.LandChannel.GetLandObject((float)pos.x, (float)pos.y);
+            if (land == null)
+                return UUID.Zero.ToString();
+            return land.LandData.OwnerID.ToString();
         }
 
         /// <summary>
