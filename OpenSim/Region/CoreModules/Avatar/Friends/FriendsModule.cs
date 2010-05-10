@@ -67,7 +67,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 return false;
             }
         }
-            
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected List<Scene> m_Scenes = new List<Scene>();
@@ -234,7 +234,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             newFriends.RegionID = UUID.Zero;
 
             m_Friends.Add(client.AgentId, newFriends);
-            
+
             //StatusChange(client.AgentId, true);
         }
 
@@ -289,7 +289,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             // Inform the friends that this user is online
             StatusChange(agentID, true);
-            
+
             // Register that we need to send the list of online friends to this user
             lock (m_NeedsListOfFriends)
                 if (!m_NeedsListOfFriends.Contains(agentID))
@@ -442,10 +442,43 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     if (((fi.MyFlags & 1) != 0) && (fi.TheirFlags != -1))
                         friendList.Add(fi);
                 }
+                /*
                 foreach (FriendInfo fi in friendList)
                 {
                     // Notify about this user status
                     StatusNotify(fi, agentID, online);
+                }
+                */
+
+                StatusNotifyMass(friendList, agentID, online);
+            }
+        }
+
+        private void StatusNotifyMass(List<FriendInfo> friendList, UUID userID, bool online)
+        {
+            string[] friendIDs = new string[friendList.Count];
+            int notlocal = 0;
+            for (int x = 0; x < friendList.Count; x++)
+            {
+                UUID friendID = UUID.Zero;
+                if (UUID.TryParse(friendList[x].Friend, out friendID))
+                {
+                    if (!LocalStatusNotification(userID, friendID, online))
+                    {
+                        friendIDs[notlocal++] = friendID.ToString();
+                    }
+                }
+            }
+
+            PresenceInfo[] friendSessions = PresenceService.GetAgents(friendIDs);
+
+            for (int x = 0; x < friendSessions.GetLength(0); x++)
+            {
+                PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
+                if (friendSession != null)
+                {
+                    GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                    m_FriendsSimConnector.StatusNotify(region, userID, new UUID(friendIDs[x]), online);
                 }
             }
         }
@@ -459,7 +492,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 // Try local
                 if (LocalStatusNotification(userID, friendID, online))
                     return;
-                
+
                 // The friend is not here [as root]. Let's forward.
                 PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
                 PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
@@ -476,7 +509,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
             if (im.dialog == (byte)OpenMetaverse.InstantMessageDialog.FriendshipOffered)
-            { 
+            {
                 // we got a friendship offer
                 UUID principalID = new UUID(im.fromAgentID);
                 UUID friendID = new UUID(im.toAgentID);
@@ -688,7 +721,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 // we're done
                 return true;
             }
-            
+
             return false;
         }
 
