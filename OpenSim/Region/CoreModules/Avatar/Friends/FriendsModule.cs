@@ -471,7 +471,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             for (int x = 0; x < friendSessions.GetLength(0); x++)
             {
-                PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
+                PresenceInfo friendSession = friendSessions[x];
                 if (friendSession != null)
                 {
                     GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
