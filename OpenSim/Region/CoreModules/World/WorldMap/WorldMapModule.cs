@@ -1000,7 +1000,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             return responsemap;
         }
 
-        public void LazySaveGeneratedMaptile(byte[] data, bool temporary)
+        public void RegenerateMaptile(byte[] data)
         {
             // Overwrites the local Asset cache with new maptile data
             // Assets are single write, this causes the asset server to ignore this update,
@@ -1010,7 +1010,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // map tile while protecting the (grid) asset database from bloat caused by a new asset each
             // time a mapimage is generated!
 
-            UUID lastMapRegionUUID = m_scene.RegionInfo.lastMapUUID;
+            UUID lastMapRegionUUID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
 
             int lastMapRefresh = 0;
             int twoDays = 172800;
@@ -1030,21 +1030,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             {
             }
 
-            UUID TerrainImageUUID = UUID.Random();
+            m_log.Debug("[MAPTILE]: STORING MAPTILE IMAGE");
 
-            if (lastMapRegionUUID == UUID.Zero || (lastMapRefresh + RefreshSeconds) < Util.UnixTimeSinceEpoch())
-            {
-                m_scene.RegionInfo.SaveLastMapUUID(TerrainImageUUID);
-
-                m_log.Debug("[MAPTILE]: STORING MAPTILE IMAGE");
-            }
-            else
-            {
-                TerrainImageUUID = lastMapRegionUUID;
-                m_log.Debug("[MAPTILE]: REUSING OLD MAPTILE IMAGE ID");
-            }
-
-            m_scene.RegionInfo.RegionSettings.TerrainImageID = TerrainImageUUID;
+            m_scene.RegionInfo.RegionSettings.TerrainImageID = UUID.Random();
 
             AssetBase asset = new AssetBase(
                 m_scene.RegionInfo.RegionSettings.TerrainImageID,
@@ -1053,8 +1041,17 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 m_scene.RegionInfo.RegionID.ToString());
             asset.Data = data;
             asset.Description = m_scene.RegionInfo.RegionName;
-            asset.Temporary = temporary;
+            asset.Temporary = false;
+            asset.Flags = AssetFlags.Maptile;
+
+            // Store the new one
+            m_log.DebugFormat("[WORLDMAP]: Storing map tile {0}", asset.ID);
             m_scene.AssetService.Store(asset);
+            m_scene.RegionInfo.RegionSettings.Save();
+            
+            // Delete the old one
+            m_log.DebugFormat("[WORLDMAP]: Deleting old map tile {0}", lastMapRegionUUID);
+            m_scene.AssetService.Delete(lastMapRegionUUID.ToString());
         }
 
         private void MakeRootAgent(ScenePresence avatar)

@@ -324,6 +324,7 @@ namespace OpenSim.Services.GridService
 
             if (rdatas != null)
             {
+                m_log.DebugFormat("[GRID SERVICE]: Found {0} regions", rdatas.Count);
                 foreach (RegionData rdata in rdatas)
                 {
                     if (count++ < maxNumber)
@@ -331,7 +332,7 @@ namespace OpenSim.Services.GridService
                 }
             }
 
-            if (m_AllowHypergridMapSearch && (rdatas == null || (rdatas != null && rdatas.Count == 0) && name.Contains(".")))
+            if (m_AllowHypergridMapSearch && (rdatas == null || (rdatas != null && rdatas.Count == 0)) && name.Contains("."))
             {
                 GridRegion r = m_HypergridLinker.LinkRegion(scopeID, name);
                 if (r != null)

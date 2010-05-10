@@ -36,10 +36,10 @@ namespace OpenSim.Framework
     [Flags]
     public enum AssetFlags : int
     {
-        Normal = 0,
-        Maptile = 1,
-        Rewritable = 2,
-        Collectable = 4
+        Normal = 0,         // Immutable asset
+        Maptile = 1,        // What it says
+        Rewritable = 2,     // Content can be rewritten
+        Collectable = 4     // Can be GC'ed after some time
     }
 
     /// <summary>

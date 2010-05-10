@@ -1823,7 +1823,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Create a terrain texture for this scene
         /// </summary>
-        public void CreateTerrainTexture(bool temporary)
+        public void CreateTerrainTexture()
         {
             //create a texture asset of the terrain
             IMapImageGenerator terrain = RequestModuleInterface<IMapImageGenerator>();
@@ -1841,7 +1841,9 @@ namespace OpenSim.Region.Framework.Scenes
                 IWorldMapModule mapModule = RequestModuleInterface<IWorldMapModule>();
 
                 if (mapModule != null)
-                    mapModule.LazySaveGeneratedMaptile(data, temporary);
+                    mapModule.RegenerateMaptile(data);
+                else
+                    m_log.DebugFormat("[SCENE]: MapModule is null, can't save maptile");
             }
         }
 

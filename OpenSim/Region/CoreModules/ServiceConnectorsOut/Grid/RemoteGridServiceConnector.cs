@@ -197,7 +197,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (grinfo != null)
             {
                 //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Remote GetRegionsByName {0} found {1} regions", name, grinfo.Count);
-                rinfo.AddRange(grinfo);
+                foreach (GridRegion r in grinfo)
+                    if (rinfo.Find(delegate(GridRegion gr) { return gr.RegionID == r.RegionID; }) == null)
+                        rinfo.Add(r);
             }
 
             return rinfo;
