@@ -62,7 +62,7 @@ namespace OpenSim.Services.Interfaces
         public Dictionary<string, object> ToKeyValuePairs()
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
-            result["PricipalID"] = PrincipalID.ToString();
+            result["PrincipalID"] = PrincipalID.ToString();
             result["Friend"] = Friend;
             result["MyFlags"] = MyFlags.ToString();
             result["TheirFlags"] = TheirFlags.ToString();
