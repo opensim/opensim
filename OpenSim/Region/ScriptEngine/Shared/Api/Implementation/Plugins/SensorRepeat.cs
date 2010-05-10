@@ -472,6 +472,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                             sensedEntities.Add(new SensedEntity(dis, presence.UUID));
                         }
                     }
+                    else
+                    {
+                        sensedEntities.Add(new SensedEntity(dis, presence.UUID));
+                    }
                 }
             });
 
