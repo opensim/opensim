@@ -365,7 +365,7 @@ namespace OpenSim
 
             // moved these here as the terrain texture has to be created after the modules are initialized
             // and has to happen before the region is registered with the grid.
-            scene.CreateTerrainTexture(false);
+            scene.CreateTerrainTexture();
             
             // TODO : Try setting resource for region xstats here on scene
             MainServer.Instance.AddStreamHandler(new Region.Framework.Scenes.RegionStatsHandler(regionInfo)); 
