@@ -70,6 +70,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected Dictionary<UUID, ScenePresence> m_scenePresences = new Dictionary<UUID, ScenePresence>();
         protected ScenePresence[] m_scenePresenceArray = new ScenePresence[0];
+        protected List<ScenePresence> m_scenePresenceList = new List<ScenePresence>();
+
+        protected OpenMetaverse.ReaderWriterLockSlim m_scenePresencesLock = new OpenMetaverse.ReaderWriterLockSlim();
 
         // SceneObjects is not currently populated or used.
         //public Dictionary<UUID, SceneObjectGroup> SceneObjects;
@@ -132,10 +135,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void Close()
         {
-            lock (m_scenePresences)
+            m_scenePresencesLock.EnterWriteLock();
+            try
             {
                 m_scenePresences.Clear();
                 m_scenePresenceArray = new ScenePresence[0];
+                m_scenePresenceList = new List<ScenePresence>();
+            }
+            finally
+            {
+                m_scenePresencesLock.ExitWriteLock();
             }
 
             lock (m_dictionary_lock)
@@ -542,7 +551,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             Entities[presence.UUID] = presence;
 
-            lock (m_scenePresences)
+            m_scenePresencesLock.EnterWriteLock();
+            try
             {
                 if (!m_scenePresences.ContainsKey(presence.UUID))
                 {
@@ -554,11 +564,12 @@ namespace OpenSim.Region.Framework.Scenes
                     Array.Copy(m_scenePresenceArray, newArray, oldLength);
                     newArray[oldLength] = presence;
                     m_scenePresenceArray = newArray;
+                    m_scenePresenceList = new List<ScenePresence>(m_scenePresenceArray);
                 }
                 else
                 {
                     m_scenePresences[presence.UUID] = presence;
-                    
+
                     // Do a linear search through the array of ScenePresence references
                     // and update the modified entry
                     for (int i = 0; i < m_scenePresenceArray.Length; i++)
@@ -569,7 +580,12 @@ namespace OpenSim.Region.Framework.Scenes
                             break;
                         }
                     }
+                    m_scenePresenceList = new List<ScenePresence>(m_scenePresenceArray);
                 }
+            }
+            finally
+            {
+                m_scenePresencesLock.ExitWriteLock();
             }
         }
 
@@ -585,7 +601,8 @@ namespace OpenSim.Region.Framework.Scenes
                     agentID);
             }
 
-            lock (m_scenePresences)
+            m_scenePresencesLock.EnterWriteLock();
+            try
             {
                 if (m_scenePresences.Remove(agentID))
                 {
@@ -604,11 +621,16 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                     m_scenePresenceArray = newArray;
+                    m_scenePresenceList = new List<ScenePresence>(m_scenePresenceArray);
                 }
                 else
                 {
                     m_log.WarnFormat("[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
                 }
+            }
+            finally
+            {
+                m_scenePresencesLock.ExitWriteLock();
             }
         }
 
@@ -730,8 +752,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         private List<ScenePresence> GetScenePresences()
         {
-            lock (m_scenePresences)
-                return new List<ScenePresence>(m_scenePresenceArray);
+            m_scenePresencesLock.EnterReadLock();
+            try
+            {
+                return m_scenePresenceList;
+            }
+            finally
+            {
+                m_scenePresencesLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -742,9 +771,14 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal ScenePresence GetScenePresence(UUID agentID)
         {
             ScenePresence sp;
-            lock (m_scenePresences)
+            m_scenePresencesLock.EnterReadLock();
+            try
             {
                 m_scenePresences.TryGetValue(agentID, out sp);
+            }
+            finally
+            {
+                m_scenePresencesLock.ExitReadLock();
             }
             return sp;
         }
@@ -780,9 +814,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal bool TryGetScenePresence(UUID agentID, out ScenePresence avatar)
         {
-            lock (m_scenePresences)
+            m_scenePresencesLock.EnterReadLock();
+            try
             {
                 m_scenePresences.TryGetValue(agentID, out avatar);
+            }
+            finally
+            {
+                m_scenePresencesLock.ExitReadLock();
             }
             return (avatar != null);
         }
@@ -1061,6 +1100,7 @@ namespace OpenSim.Region.Framework.Scenes
             Parallel.ForEach<ScenePresence>(GetScenePresences(), protectedAction);
             */
             // For now, perform actiona serially
+            
             foreach (ScenePresence sp in GetScenePresences())
             {
                 try
