@@ -1026,23 +1026,6 @@ namespace OpenSim.Client.MXP.ClientStack
             // Need to translate to MXP somehow
         }
 
-        public void SendAvatarData(SendAvatarData data)
-        {
-            //ScenePresence presence=((Scene)this.Scene).GetScenePresence(avatarID);
-            UUID ownerID = data.AvatarID;
-            MXPSendAvatarData(data.FirstName + " " + data.LastName, ownerID, UUID.Zero, data.AvatarID, data.AvatarLocalID, data.Position, data.Rotation);
-        }
-
-        public void SendAvatarTerseUpdate(SendAvatarTerseData data)
-        {
-            MovementEventMessage me = new MovementEventMessage();
-            me.ObjectIndex = data.LocalID;
-            me.Location = ToOmVector(data.Position);
-            me.Orientation = ToOmQuaternion(data.Rotation);
-
-            Session.Send(me);
-        }
-
         public void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations)
         {
             // Minimap function, not used.
@@ -1058,23 +1041,31 @@ namespace OpenSim.Client.MXP.ClientStack
             // Need to translate to MXP somehow
         }
 
-        public void SendPrimitiveToClient(SendPrimitiveData data)
+        public void SendAvatarDataImmediate(ISceneEntity avatar)
         {
-            MXPSendPrimitive(data.localID, data.ownerID, data.acc, data.rvel, data.primShape, data.pos, data.objectID, data.vel,
-                data.rotation, (uint)data.flags, data.text, data.color, data.parentID, data.particleSystem, data.clickAction,
-                data.material, data.textureanim);
+            //ScenePresence presence=((Scene)this.Scene).GetScenePresence(avatarID);
+            ScenePresence presence = (ScenePresence)avatar;
+            UUID ownerID = presence.UUID;
+            MXPSendAvatarData(presence.Firstname + " " + presence.Lastname, ownerID, UUID.Zero, presence.UUID, presence.LocalId, presence.AbsolutePosition, presence.Rotation);
         }
 
-        public void SendPrimTerseUpdate(SendPrimitiveTerseData data)
+        public void SendPrimUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
         {
-            MovementEventMessage me = new MovementEventMessage();
-            me.ObjectIndex = data.LocalID;
-            me.Location = ToOmVector(data.Position);
-            me.Orientation = ToOmQuaternion(data.Rotation);
-            Session.Send(me);
+            //MovementEventMessage me = new MovementEventMessage();
+            //me.ObjectIndex = data.LocalID;
+            //me.Location = ToOmVector(data.Position);
+            //me.Orientation = ToOmQuaternion(data.Rotation);
+
+            //MXPSendPrimitive(data.localID, data.ownerID, data.acc, data.rvel, data.primShape, data.pos, data.objectID, data.vel,
+            //    data.rotation, (uint)data.flags, data.text, data.color, data.parentID, data.particleSystem, data.clickAction,
+            //    data.material, data.textureanim);
+
+            //Session.Send(me);
+
+            throw new System.NotImplementedException();
         }
 
-        public void ReprioritizeUpdates(StateUpdateTypes type, UpdatePriorityHandler handler)
+        public void ReprioritizeUpdates(UpdatePriorityHandler handler)
         {
         }
 
