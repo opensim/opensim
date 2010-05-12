@@ -3651,7 +3651,8 @@ namespace OpenSim.Region.Framework.Scenes
                     if (atRotTargets.Count > 0)
                     {
                         uint[] localids = new uint[0];
-                        lock (m_parts)
+                        lockPartsForRead(true);
+                        try
                         {
                             localids = new uint[m_parts.Count];
                             int cntr = 0;
@@ -3660,6 +3661,10 @@ namespace OpenSim.Region.Framework.Scenes
                                 localids[cntr] = part.LocalId;
                                 cntr++;
                             }
+                        }
+                        finally
+                        {
+                            lockPartsForRead(false);
                         }
 
                         for (int ctr = 0; ctr < localids.Length; ctr++)
@@ -3679,7 +3684,8 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         //trigger not_at_target
                         uint[] localids = new uint[0];
-                        lock (m_parts)
+                        lockPartsForRead(true);
+                        try
                         {
                             localids = new uint[m_parts.Count];
                             int cntr = 0;
@@ -3688,6 +3694,10 @@ namespace OpenSim.Region.Framework.Scenes
                                 localids[cntr] = part.LocalId;
                                 cntr++;
                             }
+                        }
+                        finally
+                        {
+                            lockPartsForRead(false);
                         }
 
                         for (int ctr = 0; ctr < localids.Length; ctr++)
