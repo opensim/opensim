@@ -3476,13 +3476,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Lazy<List<ObjectUpdateCompressedPacket.ObjectDataBlock>> compressedUpdateBlocks = new Lazy<List<ObjectUpdateCompressedPacket.ObjectDataBlock>>();
             Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>> terseUpdateBlocks = new Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>>();
 
+            if (maxUpdates <= 0) maxUpdates = Int32.MaxValue;
             int updatesThisCall = 0;
 
             lock (m_entityUpdates.SyncRoot)
             {
                 EntityUpdate update;
-                while (m_entityUpdates.TryDequeue(out update))
+                while (updatesThisCall < maxUpdates && m_entityUpdates.TryDequeue(out update))
                 {
+                    ++updatesThisCall;
+
                     #region UpdateFlags to packet type conversion
 
                     PrimUpdateFlags updateFlags = update.Flags;
@@ -3552,10 +3555,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     #endregion Block Construction
-
-                    ++updatesThisCall;
-                    if (maxUpdates > 0 && updatesThisCall >= maxUpdates)
-                        break;
                 }
             }
 
