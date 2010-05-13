@@ -58,21 +58,21 @@ namespace OpenSim.Services.LLLoginService
         protected IInventoryService m_InventoryService;
         protected IGridService m_GridService;
         protected IPresenceService m_PresenceService;
-        private ISimulationService m_LocalSimulationService;
-        private ISimulationService m_RemoteSimulationService;
+        protected ISimulationService m_LocalSimulationService;
+        protected ISimulationService m_RemoteSimulationService;
         protected ILibraryService m_LibraryService;
         protected IFriendsService m_FriendsService;
         protected IAvatarService m_AvatarService;
-        private IUserAgentService m_UserAgentService;
+        protected IUserAgentService m_UserAgentService;
 
-        private GatekeeperServiceConnector m_GatekeeperConnector;
+        protected GatekeeperServiceConnector m_GatekeeperConnector;
 
-        private string m_DefaultRegionName;
+        protected string m_DefaultRegionName;
         protected string m_WelcomeMessage;
-        private bool m_RequireInventory;
+        protected bool m_RequireInventory;
         protected int m_MinLoginLevel;
-        private string m_GatekeeperURL;
-        private bool m_AllowRemoteSetLoginLevel;
+        protected string m_GatekeeperURL;
+        protected bool m_AllowRemoteSetLoginLevel;
 
         IConfig m_LoginServerConfig;
 
