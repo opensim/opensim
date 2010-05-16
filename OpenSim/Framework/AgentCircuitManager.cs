@@ -92,7 +92,7 @@ namespace OpenSim.Framework
                 else
                 {
                     AgentCircuits.Add(circuitCode, agentData);
-                    AgentCircuitsByUUID.Add(agentData.AgentID, agentData);
+                    AgentCircuitsByUUID[agentData.AgentID] = agentData;
                 }
             }
         }
