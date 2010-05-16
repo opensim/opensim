@@ -70,6 +70,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             {
                 throw new NotImplementedException();
             }
+
+            public override bool CheckClient(UUID agentID, System.Net.IPEndPoint ep)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         [Test]

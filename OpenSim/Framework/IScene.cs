@@ -102,5 +102,7 @@ namespace OpenSim.Framework
         void AddCommand(object module, string command, string shorthelp, string longhelp, CommandDelegate callback);
 
         ISceneObject DeserializeObject(string representation);
+
+        bool CheckClient(UUID agentID, System.Net.IPEndPoint ep);
     }
 }

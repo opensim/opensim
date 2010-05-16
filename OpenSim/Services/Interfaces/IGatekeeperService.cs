@@ -49,6 +49,7 @@ namespace OpenSim.Services.Interfaces
     public interface IUserAgentService
     {
         bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, out string reason);
+        void SetClientToken(UUID sessionID, string token);
         void LogoutAgent(UUID userID, UUID sessionID);
         GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt);
 
