@@ -36,6 +36,7 @@ namespace OpenSim.Framework
     public class AgentCircuitManager
     {
         public Dictionary<uint, AgentCircuitData> AgentCircuits = new Dictionary<uint, AgentCircuitData>();
+        public Dictionary<UUID, AgentCircuitData> AgentCircuitsByUUID = new Dictionary<UUID, AgentCircuitData>();
 
         public virtual AuthenticateResponse AuthenticateSession(UUID sessionID, UUID agentID, uint circuitcode)
         {
@@ -86,10 +87,12 @@ namespace OpenSim.Framework
                 if (AgentCircuits.ContainsKey(circuitCode))
                 {
                     AgentCircuits[circuitCode] = agentData;
+                    AgentCircuitsByUUID[agentData.AgentID] = agentData;
                 }
                 else
                 {
                     AgentCircuits.Add(circuitCode, agentData);
+                    AgentCircuitsByUUID.Add(agentData.AgentID, agentData);
                 }
             }
         }
@@ -99,14 +102,37 @@ namespace OpenSim.Framework
             lock (AgentCircuits)
             {
                 if (AgentCircuits.ContainsKey(circuitCode))
+                {
+                    UUID agentID = AgentCircuits[circuitCode].AgentID;
                     AgentCircuits.Remove(circuitCode);
+                    AgentCircuitsByUUID.Remove(agentID);
+                }
             }
         }
 
+        public virtual void RemoveCircuit(UUID agentID)
+        {
+            lock (AgentCircuits)
+            {
+                if (AgentCircuitsByUUID.ContainsKey(agentID))
+                {
+                    uint circuitCode = AgentCircuitsByUUID[agentID].circuitcode;
+                    AgentCircuits.Remove(circuitCode);
+                    AgentCircuitsByUUID.Remove(agentID);
+                }
+            }
+        }
         public AgentCircuitData GetAgentCircuitData(uint circuitCode)
         {
             AgentCircuitData agentCircuit = null;
             AgentCircuits.TryGetValue(circuitCode, out agentCircuit);
+            return agentCircuit;
+        }
+
+        public AgentCircuitData GetAgentCircuitData(UUID agentID)
+        {
+            AgentCircuitData agentCircuit = null;
+            AgentCircuitsByUUID.TryGetValue(agentID, out agentCircuit);
             return agentCircuit;
         }
 
