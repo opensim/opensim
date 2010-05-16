@@ -201,9 +201,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             UserFriendData data = m_Friends[principalID];
 
+            string searchFor = friendID.ToString();
             foreach (FriendInfo fi in data.Friends)
             {
-                if (fi.Friend == friendID.ToString())
+                if (fi.Friend == searchFor)
                     return (uint)fi.TheirFlags;
             }
             return 0;

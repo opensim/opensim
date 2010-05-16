@@ -840,12 +840,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
+                m_items.LockItemsForRead(false);
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: " +
                     "Tried to remove item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
                     itemID, m_part.Name, m_part.UUID);
             }
-            m_items.LockItemsForWrite(false);
 
             return -1;
         }

@@ -909,7 +909,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 client.OnLogout += LogoutHandler;
 
                 // Start the IClientAPI
-                client.Start();
+                // Spin it off so that it doesn't clog up the LLUDPServer
+                Util.FireAndForget(delegate(object o) { client.Start(); });
             }
             else
             {
