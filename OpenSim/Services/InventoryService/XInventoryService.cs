@@ -386,7 +386,7 @@ namespace OpenSim.Services.InventoryService
             XInventoryItem[] items = m_Database.GetActiveGestures(principalID);
 
             if (items.Length == 0)
-                return null;
+                return new List<InventoryItemBase>();
 
             List<InventoryItemBase> ret = new List<InventoryItemBase>();
             
