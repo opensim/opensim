@@ -746,8 +746,10 @@ namespace OpenSim.Services.LLLoginService
             m_log.Debug("[LLOGIN SERVICE] Launching agent at " + destination.RegionName);
             if (m_UserAgentService.LoginAgentToGrid(aCircuit, gatekeeper, destination, out reason))
             {
-                //IPAddress addr = NetworkUtil.GetIPFor(clientIP.Address, gatekeeper.ExternalEndPoint.Address);
-                m_UserAgentService.SetClientToken(aCircuit.SessionID, clientIP.Address.ToString());
+                // We may need to do this at some point,
+                // so leaving it here in comments.
+                //IPAddress addr = NetworkUtil.GetIPFor(clientIP.Address, destination.ExternalEndPoint.Address);
+                m_UserAgentService.SetClientToken(aCircuit.SessionID, /*addr.Address.ToString() */ clientIP.Address.ToString());
                 return true;
             }
             return false;
