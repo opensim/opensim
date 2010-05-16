@@ -272,6 +272,9 @@ namespace OpenSim.Services.LLLoginService
                     return LLFailedLoginResponse.InventoryProblem;
                 }
 
+                // Get active gestures
+                List<InventoryItemBase> gestures = m_InventoryService.GetActiveGestures(account.PrincipalID);
+
                 //
                 // Login the presence
                 //
@@ -350,7 +353,7 @@ namespace OpenSim.Services.LLLoginService
                 // Finally, fill out the response and return it
                 //
                 LLLoginResponse response = new LLLoginResponse(account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
-                    where, startLocation, position, lookAt, m_WelcomeMessage, home, clientIP);
+                    where, startLocation, position, lookAt, gestures, m_WelcomeMessage, home, clientIP);
 
                 m_log.DebugFormat("[LLOGIN SERVICE]: All clear. Sending login response to client.");
                 return response;

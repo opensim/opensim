@@ -217,11 +217,13 @@ namespace OpenSim.Services.LLLoginService
 
         public LLLoginResponse(UserAccount account, AgentCircuitData aCircuit, GridUserInfo pinfo,
             GridRegion destination, List<InventoryFolderBase> invSkel, FriendInfo[] friendsList, ILibraryService libService,
-            string where, string startlocation, Vector3 position, Vector3 lookAt, string message,
+            string where, string startlocation, Vector3 position, Vector3 lookAt, List<InventoryItemBase> gestures, string message,
             GridRegion home, IPEndPoint clientIP)
             : this()
         {
             FillOutInventoryData(invSkel, libService);
+
+            ActiveGestures = new ArrayList(gestures);
 
             CircuitCode = (int)aCircuit.circuitcode;
             Lastname = account.LastName;
