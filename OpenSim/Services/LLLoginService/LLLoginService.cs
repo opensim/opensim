@@ -58,21 +58,21 @@ namespace OpenSim.Services.LLLoginService
         protected IInventoryService m_InventoryService;
         protected IGridService m_GridService;
         protected IPresenceService m_PresenceService;
-        private ISimulationService m_LocalSimulationService;
-        private ISimulationService m_RemoteSimulationService;
+        protected ISimulationService m_LocalSimulationService;
+        protected ISimulationService m_RemoteSimulationService;
         protected ILibraryService m_LibraryService;
         protected IFriendsService m_FriendsService;
         protected IAvatarService m_AvatarService;
-        private IUserAgentService m_UserAgentService;
+        protected IUserAgentService m_UserAgentService;
 
-        private GatekeeperServiceConnector m_GatekeeperConnector;
+        protected GatekeeperServiceConnector m_GatekeeperConnector;
 
-        private string m_DefaultRegionName;
+        protected string m_DefaultRegionName;
         protected string m_WelcomeMessage;
-        private bool m_RequireInventory;
+        protected bool m_RequireInventory;
         protected int m_MinLoginLevel;
-        private string m_GatekeeperURL;
-        private bool m_AllowRemoteSetLoginLevel;
+        protected string m_GatekeeperURL;
+        protected bool m_AllowRemoteSetLoginLevel;
 
         IConfig m_LoginServerConfig;
 
@@ -335,7 +335,7 @@ namespace OpenSim.Services.LLLoginService
                 // Instantiate/get the simulation interface and launch an agent at the destination
                 //
                 string reason = string.Empty;
-                AgentCircuitData aCircuit = LaunchAgentAtGrid(gatekeeper, destination, account, avatar, session, secureSession, position, where, clientVersion, out where, out reason);
+                AgentCircuitData aCircuit = LaunchAgentAtGrid(gatekeeper, destination, account, avatar, session, secureSession, position, where, clientVersion, clientIP, out where, out reason);
 
                 if (aCircuit == null)
                 {
@@ -595,7 +595,7 @@ namespace OpenSim.Services.LLLoginService
         }
 
         protected AgentCircuitData LaunchAgentAtGrid(GridRegion gatekeeper, GridRegion destination, UserAccount account, AvatarData avatar,
-            UUID session, UUID secureSession, Vector3 position, string currentWhere, string viewer, out string where, out string reason)
+            UUID session, UUID secureSession, Vector3 position, string currentWhere, string viewer, IPEndPoint clientIP, out string where, out string reason)
         {
             where = currentWhere;
             ISimulationService simConnector = null;
@@ -661,7 +661,7 @@ namespace OpenSim.Services.LLLoginService
             {
                 circuitCode = (uint)Util.RandomClass.Next(); ;
                 aCircuit = MakeAgent(destination, account, avatar, session, secureSession, circuitCode, position, viewer);
-                success = LaunchAgentIndirectly(gatekeeper, destination, aCircuit, out reason);
+                success = LaunchAgentIndirectly(gatekeeper, destination, aCircuit, clientIP, out reason);
                 if (!success && m_GridService != null)
                 {
                     // Try the fallback regions
@@ -670,7 +670,7 @@ namespace OpenSim.Services.LLLoginService
                     {
                         foreach (GridRegion r in fallbacks)
                         {
-                            success = LaunchAgentIndirectly(gatekeeper, r, aCircuit, out reason);
+                            success = LaunchAgentIndirectly(gatekeeper, r, aCircuit, clientIP, out reason);
                             if (success)
                             {
                                 where = "safe";
@@ -747,10 +747,18 @@ namespace OpenSim.Services.LLLoginService
             return simConnector.CreateAgent(region, aCircuit, (int)Constants.TeleportFlags.ViaLogin, out reason);
         }
 
-        private bool LaunchAgentIndirectly(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, out string reason)
+        private bool LaunchAgentIndirectly(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, IPEndPoint clientIP, out string reason)
         {
             m_log.Debug("[LLOGIN SERVICE] Launching agent at " + destination.RegionName);
-            return m_UserAgentService.LoginAgentToGrid(aCircuit, gatekeeper, destination, out reason);
+            if (m_UserAgentService.LoginAgentToGrid(aCircuit, gatekeeper, destination, out reason))
+            {
+                // We may need to do this at some point,
+                // so leaving it here in comments.
+                //IPAddress addr = NetworkUtil.GetIPFor(clientIP.Address, destination.ExternalEndPoint.Address);
+                m_UserAgentService.SetClientToken(aCircuit.SessionID, /*addr.Address.ToString() */ clientIP.Address.ToString());
+                return true;
+            }
+            return false;
         }
 
         #region Console Commands

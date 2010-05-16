@@ -2657,34 +2657,23 @@ namespace OpenSim.Region.Framework.Scenes
                 AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(client.CircuitCode);
 
                 // Do the verification here
-                System.Net.EndPoint ep = client.GetClientEP();
+                System.Net.IPEndPoint ep = (System.Net.IPEndPoint)client.GetClientEP();
                 if (aCircuit != null)
                 {
-                    if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0)
+                    if (!VerifyClient(aCircuit, ep, out vialogin))
                     {
-                        m_log.DebugFormat("[Scene]: Incoming client {0} {1} in region {2} via Login", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
-                        vialogin = true;
-                        IUserAgentVerificationModule userVerification = RequestModuleInterface<IUserAgentVerificationModule>();
-                        if (userVerification != null && ep != null)
+                        // uh-oh, this is fishy
+                        m_log.WarnFormat("[Scene]: Agent {0} with session {1} connecting with unidentified end point {2}. Refusing service.",
+                            client.AgentId, client.SessionId, ep.ToString());
+                        try
                         {
-                            if (!userVerification.VerifyClient(aCircuit, ep.ToString()))
-                            {
-                                // uh-oh, this is fishy
-                                m_log.WarnFormat("[Scene]: Agent {0} with session {1} connecting with unidentified end point {2}. Refusing service.",
-                                    client.AgentId, client.SessionId, ep.ToString());
-                                try
-                                {
-                                    client.Close();
-                                }
-                                catch (Exception e)
-                                {
-                                    m_log.DebugFormat("[Scene]: Exception while closing aborted client: {0}", e.StackTrace);
-                                }
-                                return;
-                            }
-                            else
-                                m_log.DebugFormat("[Scene]: User Client Verification for {0} {1} returned true", aCircuit.firstname, aCircuit.lastname);
+                            client.Close();
                         }
+                        catch (Exception e)
+                        {
+                            m_log.DebugFormat("[Scene]: Exception while closing aborted client: {0}", e.StackTrace);
+                        }
+                        return;
                     }
                 }
 
@@ -2710,7 +2699,65 @@ namespace OpenSim.Region.Framework.Scenes
                 EventManager.TriggerOnClientLogin(client);
         }
 
-        
+        private bool VerifyClient(AgentCircuitData aCircuit, System.Net.IPEndPoint ep, out bool vialogin)
+        {
+            vialogin = false;
+            
+            // Do the verification here
+            if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0)
+            {
+                m_log.DebugFormat("[Scene]: Incoming client {0} {1} in region {2} via Login", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
+                vialogin = true;
+                IUserAgentVerificationModule userVerification = RequestModuleInterface<IUserAgentVerificationModule>();
+                if (userVerification != null && ep != null)
+                {
+                    if (!userVerification.VerifyClient(aCircuit, ep.Address.ToString()))
+                    {
+                        // uh-oh, this is fishy
+                        m_log.DebugFormat("[Scene]: User Client Verification for {0} {1} in {2} returned false", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
+                        return false;
+                    }
+                    else
+                        m_log.DebugFormat("[Scene]: User Client Verification for {0} {1} in {2} returned true", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
+                }
+            }
+
+            return true;
+        }
+
+        // Called by Caps, on the first HTTP contact from the client
+        public override bool CheckClient(UUID agentID, System.Net.IPEndPoint ep)
+        {
+            AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(agentID);
+            if (aCircuit != null)
+            {
+                bool vialogin = false;
+                if (!VerifyClient(aCircuit, ep, out vialogin))
+                {
+                    // if it doesn't pass, we remove the agentcircuitdata altogether
+                    // and the scene presence and the client, if they exist
+                    try
+                    {
+                        ScenePresence sp = GetScenePresence(agentID);
+                        if (sp != null)
+                            sp.ControllingClient.Close();
+
+                        // BANG! SLASH!
+                        m_authenticateHandler.RemoveCircuit(agentID);
+
+                        return false;
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.DebugFormat("[Scene]: Exception while closing aborted client: {0}", e.StackTrace);
+                    }
+                }
+                else
+                    return true;
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Register for events from the client

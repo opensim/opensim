@@ -204,6 +204,11 @@ namespace OpenSim.Services.Connectors.Hypergrid
             return args;
         }
 
+        public void SetClientToken(UUID sessionID, string token)
+        { 
+            // no-op
+        }
+
         public GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt)
         {
             position = Vector3.UnitY; lookAt = Vector3.UnitY;

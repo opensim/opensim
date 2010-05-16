@@ -148,6 +148,15 @@ namespace OpenSim.Services.HypergridService
             return true;
         }
 
+        public void SetClientToken(UUID sessionID, string token)
+        {
+            if (m_TravelingAgents.ContainsKey(sessionID))
+            {
+                m_log.DebugFormat("[USER AGENT SERVICE]: Setting token {0} for session {1}", token, sessionID);
+                m_TravelingAgents[sessionID].ClientToken = token;
+            }
+        }
+
         TravelingAgentInfo UpdateTravelInfo(AgentCircuitData agentCircuit, GridRegion region)
         {
             TravelingAgentInfo travel = new TravelingAgentInfo();
@@ -203,22 +212,16 @@ namespace OpenSim.Services.HypergridService
 
         public bool VerifyClient(UUID sessionID, string token)
         {
-            return true;
+            m_log.DebugFormat("[USER AGENT SERVICE]: Verifying Client session {0} with token {1}", sessionID, token);
+            //return true;
 
             // Commenting this for now until I understand better what part of a sender's
             // info stays unchanged throughout a session
-            //
-            //if (m_TravelingAgents.ContainsKey(sessionID))
-            //{
-            //    // Aquiles heel. Must trust the first grid upon login
-            //    if (m_TravelingAgents[sessionID].ClientToken == string.Empty)
-            //    {
-            //        m_TravelingAgents[sessionID].ClientToken = token;
-            //        return true;
-            //    }
-            //    return m_TravelingAgents[sessionID].ClientToken == token;
-            //}
-            //return false;
+
+            if (m_TravelingAgents.ContainsKey(sessionID))
+                return m_TravelingAgents[sessionID].ClientToken == token;
+
+            return false;
         }
 
         public bool VerifyAgent(UUID sessionID, string token)

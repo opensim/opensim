@@ -99,6 +99,7 @@ namespace OpenSim.Framework.Capabilities
         // private static readonly string m_remoteParcelRequestPath = "0009/";// This is in the LandManagementModule.
 
         //private string eventQueue = "0100/";
+        private IScene m_Scene;
         private IHttpServer m_httpListener;
         private UUID m_agentID;
         private IAssetService m_assetCache;
@@ -130,9 +131,10 @@ namespace OpenSim.Framework.Capabilities
         public FetchInventoryDescendentsCAPS CAPSFetchInventoryDescendents = null;
         public GetClientDelegate GetClient = null;
 
-        public Caps(IAssetService assetCache, IHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
+        public Caps(IScene scene, IAssetService assetCache, IHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
                     UUID agent, bool dumpAssetsToFile, string regionName)
         {
+            m_Scene = scene;
             m_assetCache = assetCache;
             m_capsObjectPath = capsPath;
             m_httpListener = httpServer;
@@ -278,7 +280,13 @@ namespace OpenSim.Framework.Capabilities
         public string CapsRequest(string request, string path, string param,
                                   OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            //m_log.Debug("[CAPS]: Seed Caps Request in region: " + m_regionName);
+            m_log.Debug("[CAPS]: Seed Caps Request in region: " + m_regionName);
+
+            if (!m_Scene.CheckClient(m_agentID, httpRequest.RemoteIPEndPoint))
+            {
+                m_log.DebugFormat("[CAPS]: Unauthorized CAPS client");
+                return string.Empty;
+            }
 
             string result = LLSDHelpers.SerialiseLLSDReply(m_capsHandlers.CapsDetails);
 

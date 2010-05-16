@@ -286,6 +286,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 fromName = avatar.Name;
                 sourceType = ChatSourceType.Agent;
             }
+            else if (c.SenderUUID != UUID.Zero) 
+            {
+                fromID = c.SenderUUID; 
+            }
             
             // m_log.DebugFormat("[CHAT] Broadcast: fromID {0} fromName {1}, cType {2}, sType {3}", fromID, fromName, cType, sourceType);
             if (c.Scene != null)

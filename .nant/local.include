@@ -20,6 +20,7 @@
   <delete dir="${distbindir}/.nant"/>
   <delete>
     <fileset basedir="${distbindir}">
+      <include name="BUILDING.txt"/>
       <include name="Makefile"/>
       <include name="nant-color"/>
       <include name="OpenSim.*"/>
