@@ -123,6 +123,7 @@ namespace OpenSim
             // Validate that the user has the most basic configuration done
             // If not, offer to do the most basic configuration for them warning them along the way of the importance of 
             // reading these files.
+            /*
             m_log.Info("Checking for reguired configuration...\n");
 
             bool OpenSim_Ini = (File.Exists(Path.Combine(Util.configDir(), "OpenSim.ini")))
@@ -225,7 +226,7 @@ namespace OpenSim
                 }
                 MainConsole.Instance = null;
             }      
-
+            */
             configSource.Alias.AddAlias("On", true);
             configSource.Alias.AddAlias("Off", false);
             configSource.Alias.AddAlias("True", true);
