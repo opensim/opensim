@@ -223,7 +223,7 @@ namespace OpenSim.Services.LLLoginService
         {
             FillOutInventoryData(invSkel, libService);
 
-            ActiveGestures = new ArrayList(gestures);
+            FillOutActiveGestures(gestures);
 
             CircuitCode = (int)aCircuit.circuitcode;
             Lastname = account.LastName;
@@ -283,6 +283,22 @@ namespace OpenSim.Services.LLLoginService
                 InventoryLibraryOwner = GetLibraryOwner(libService.LibraryRootFolder);
                 InventoryLibrary = GetInventoryLibrary(libService);
             }
+        }
+
+        private void FillOutActiveGestures(List<InventoryItemBase> gestures)
+        {
+            ArrayList list = new ArrayList();
+            if (gestures != null)
+            {
+                foreach (InventoryItemBase gesture in gestures)
+                {
+                    Hashtable item = new Hashtable();
+                    item["item_id"] = gesture.ID.ToString();
+                    item["asset_id"] = gesture.AssetID.ToString();
+                    list.Add(item);
+                }
+            }
+            ActiveGestures = list;
         }
 
         private void FillOutHomeData(GridUserInfo pinfo, GridRegion home)
