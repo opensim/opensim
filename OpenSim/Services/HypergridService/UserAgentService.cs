@@ -213,15 +213,15 @@ namespace OpenSim.Services.HypergridService
         public bool VerifyClient(UUID sessionID, string token)
         {
             m_log.DebugFormat("[USER AGENT SERVICE]: Verifying Client session {0} with token {1}", sessionID, token);
-            return true;
+            //return true;
 
             // Commenting this for now until I understand better what part of a sender's
             // info stays unchanged throughout a session
-            //
-            //if (m_TravelingAgents.ContainsKey(sessionID))
-            //    return m_TravelingAgents[sessionID].ClientToken == token;
 
-            //return false;
+            if (m_TravelingAgents.ContainsKey(sessionID))
+                return m_TravelingAgents[sessionID].ClientToken == token;
+
+            return false;
         }
 
         public bool VerifyAgent(UUID sessionID, string token)
