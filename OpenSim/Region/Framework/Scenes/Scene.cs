@@ -3355,7 +3355,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void RegisterCommsEvents()
         {
-            m_sceneGridService.OnExpectUser += HandleNewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion += AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection += IncomingCloseAgent;
             //m_eventManager.OnRegionUp += OtherRegionUp;
@@ -3376,7 +3375,6 @@ namespace OpenSim.Region.Framework.Scenes
             //m_sceneGridService.OnRemoveKnownRegionFromAvatar -= HandleRemoveKnownRegionsFromAvatar;
             //m_sceneGridService.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;
             //m_eventManager.OnRegionUp -= OtherRegionUp;
-            m_sceneGridService.OnExpectUser -= HandleNewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion -= AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection -= IncomingCloseAgent;
             m_sceneGridService.OnGetLandData -= GetLandData;
@@ -3388,22 +3386,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", m_regInfo.RegionName);
         }
 
-        /// <summary>
-        /// A handler for the SceneCommunicationService event, to match that events return type of void.
-        /// Use NewUserConnection() directly if possible so the return type can refuse connections.
-        /// At the moment nothing actually seems to use this event,
-        /// as everything is switching to calling the NewUserConnection method directly.
-        /// 
-        /// Now obsoleting this because it doesn't handle teleportFlags propertly
-        /// 
-        /// </summary>
-        /// <param name="agent"></param>
-        [Obsolete("Please call NewUserConnection directly.")]
-        public void HandleNewUserConnection(AgentCircuitData agent)
-        {
-            string reason;
-            NewUserConnection(agent, 0, out reason);
-        }
 
         /// <summary>
         /// Do the work necessary to initiate a new user connection for a particular scene.
@@ -3465,13 +3447,22 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence sp = GetScenePresence(agent.AgentID);
             if (sp != null)
             {
-                m_log.DebugFormat(
-                    "[SCENE]: Adjusting known seeds for existing agent {0} in {1}",
-                    agent.AgentID, RegionInfo.RegionName);
+                if (sp.IsChildAgent)
+                {
+                    m_log.DebugFormat(
+                        "[SCENE]: Adjusting known seeds for existing agent {0} in {1}",
+                        agent.AgentID, RegionInfo.RegionName);
 
-                sp.AdjustKnownSeeds();
+                    sp.AdjustKnownSeeds();
 
-                return true;
+                    return true;
+                }
+                else
+                {
+                    // We have a zombie from a crashed session. Kill it.
+                    m_log.DebugFormat("[SCENE]: Zombie scene presence detected for {0} in {1}", agent.AgentID, RegionInfo.RegionName);
+                    sp.ControllingClient.Close();
+                }
             }
 
             CapsModule.AddCapsHandler(agent.AgentID);
