@@ -38,58 +38,79 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using log4net;
 using System.Reflection;
+using System.Data.Common;
+
+// DBMS-specific:
+using MySql.Data.MySqlClient;
+using OpenSim.Data.MySQL;
+
+using System.Data.SqlClient;
+using OpenSim.Data.MSSQL;
+
+using Mono.Data.Sqlite;
+using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
-    public class BasicRegionTest
+    [TestFixture(typeof(MySqlConnection), typeof(MySqlRegionData), Description = "Region store tests (MySQL)")]
+    [TestFixture(typeof(SqlConnection), typeof(MSSQLRegionData), Description = "Region store tests (MS SQL Server)")]
+    [TestFixture(typeof(SqliteConnection), typeof(SQLiteRegionData), Description = "Region store tests (SQLite)")]
+
+    public class RegionTests<TConn, TRegStore> : BasicDataServiceTest<TConn, TRegStore>
+        where TConn : DbConnection, new()
+        where TRegStore : class, IRegionDataStore, new()
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public IRegionDataStore db;
         public UUID zero = UUID.Zero;
-        public UUID region1;
-        public UUID region2;
-        public UUID region3;
-        public UUID region4;
-        public UUID prim1;
-        public UUID prim2;
-        public UUID prim3;
-        public UUID prim4;
-        public UUID prim5;
-        public UUID prim6;
-        public UUID item1;
-        public UUID item2;
-        public UUID item3;
+        public UUID region1 = UUID.Random();
+        public UUID region2 = UUID.Random();
+        public UUID region3 = UUID.Random();
+        public UUID region4 = UUID.Random();
+        public UUID prim1 = UUID.Random();
+        public UUID prim2 = UUID.Random();
+        public UUID prim3 = UUID.Random();
+        public UUID prim4 = UUID.Random();
+        public UUID prim5 = UUID.Random();
+        public UUID prim6 = UUID.Random();
+        public UUID item1 = UUID.Random();
+        public UUID item2 = UUID.Random();
+        public UUID item3 = UUID.Random();
 
-        public static Random random;
+        public static Random random = new Random();
         
         public string itemname1 = "item1";
 
-        public uint localID;
-        
-        public double height1;
-        public double height2;
+        public uint localID = 1;
 
-        public void SuperInit()
+        public double height1 = 20;
+        public double height2 = 100;
+
+
+        protected override void InitService(object service)
         {
-            OpenSim.Tests.Common.TestLogging.LogToConsole();
-
-            region1 = UUID.Random();
-            region3 = UUID.Random();
-            region4 = UUID.Random();
-            prim1 = UUID.Random();
-            prim2 = UUID.Random();
-            prim3 = UUID.Random();
-            prim4 = UUID.Random();
-            prim5 = UUID.Random();
-            prim6 = UUID.Random();
-            item1 = UUID.Random();
-            item2 = UUID.Random();
-            item3 = UUID.Random();
-            random = new Random();
-            localID = 1;
-            height1 = 20;
-            height2 = 100;
+            db = (IRegionDataStore)service;
+            db.Initialise(m_connStr);
+            ClearDB();
         }
+
+
+        private void ClearDB()
+        {
+            // if a new table is added, it has to be dropped here
+            ExecuteSql("delete from migrations where name='RegionStore';");
+
+            DropTables(
+                "prims",
+                "primshapes",
+                "primitems",
+                "terrain",
+                "land",
+                "landaccesslist",
+                "regionban",
+                "regionsettings"
+            );
+        }
+
 
         // Test Plan
         // Prims

@@ -35,13 +35,31 @@ using OpenSim.Region.Framework.Interfaces;
 using System.Text;
 using log4net;
 using System.Reflection;
+using System.Data.Common;
+
+
+// DBMS-specific:
+using MySql.Data.MySqlClient;
+using OpenSim.Data.MySQL;
+
+using System.Data.SqlClient;
+using OpenSim.Data.MSSQL;
+
+using Mono.Data.Sqlite;
+using OpenSim.Data.SQLite;
+
 
 namespace OpenSim.Data.Tests
 {
-    public class BasicEstateTest
+    [TestFixture(typeof(MySqlConnection), typeof(MySQLEstateStore), Description = "Estate store tests (MySQL)")]
+    [TestFixture(typeof(SqlConnection), typeof(MSSQLEstateStore), Description = "Estate store tests (MS SQL Server)")]
+    [TestFixture(typeof(SqliteConnection), typeof(SQLiteEstateStore), Description = "Estate store tests (SQLite)")]
+
+    public class EstateTests<TConn, TEstateStore> : BasicDataServiceTest<TConn, TEstateStore>
+        where TConn : DbConnection, new()
+        where TEstateStore : class, IEstateDataStore, new()
     {
         public IEstateDataStore db;
-        public IRegionDataStore regionDb;
 
         public static UUID REGION_ID = new UUID("250d214e-1c7e-4f9b-a488-87c5e53feed7");
 
@@ -54,9 +72,34 @@ namespace OpenSim.Data.Tests
         public static UUID GROUP_ID_1 = new UUID("250d214e-1c7e-4f9b-a488-87c5e53feed5");
         public static UUID GROUP_ID_2 = new UUID("250d214e-1c7e-4f9b-a488-87c5e53feed6");
 
-        public void SuperInit()
+        protected override void InitService(object service)
         {
-            OpenSim.Tests.Common.TestLogging.LogToConsole();
+            db = (IEstateDataStore)service;
+            db.Initialise(m_connStr);
+            ClearDB();
+        }
+
+        private void ClearDB()
+        {
+            // if a new table is added, it has to be dropped here
+            ExecuteSql("delete from migrations where name='EstateStore';");
+  
+            DropTables(
+                "prims",
+                "primshapes",
+                "primitems",
+                "terrain",
+                "land",
+                "landaccesslist",
+                "regionban",
+                "regionsettings",
+                "estate_managers",
+                "estate_groups",
+                "estate_users",
+                "estateban",
+                "estate_settings",
+                "estate_map"
+            );
         }
 
         #region 0Tests

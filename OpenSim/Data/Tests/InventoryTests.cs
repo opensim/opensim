@@ -33,62 +33,70 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using log4net;
 using System.Reflection;
+using System.Data.Common;
+
+// DBMS-specific:
+using MySql.Data.MySqlClient;
+using OpenSim.Data.MySQL;
+
+using System.Data.SqlClient;
+using OpenSim.Data.MSSQL;
+
+using Mono.Data.Sqlite;
+using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
-    public class BasicInventoryTest
+    [TestFixture(typeof(MySqlConnection), typeof(MySQLInventoryData), Description = "Inventory store tests (MySQL)")]
+    [TestFixture(typeof(SqlConnection), typeof(MSSQLInventoryData), Description = "Inventory store tests (MS SQL Server)")]
+    [TestFixture(typeof(SqliteConnection), typeof(SQLiteInventoryStore), Description = "Inventory store tests (SQLite)")]
+
+    public class InventoryTests<TConn, TInvStore> : BasicDataServiceTest<TConn, TInvStore>
+        where TConn : DbConnection, new()
+        where TInvStore : class, IInventoryDataPlugin, new()
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public IInventoryDataPlugin db;
+
         public UUID zero = UUID.Zero;
 
-        public UUID folder1;
-        public UUID folder2;
-        public UUID folder3;
-        public UUID owner1;
-        public UUID owner2;
-        public UUID owner3;
+        public UUID folder1 = UUID.Random();
+        public UUID folder2 = UUID.Random();
+        public UUID folder3 = UUID.Random();
+        public UUID owner1 = UUID.Random();
+        public UUID owner2 = UUID.Random();
+        public UUID owner3 = UUID.Random();
 
-        public UUID item1;
-        public UUID item2;
-        public UUID item3;
-        public UUID asset1;
-        public UUID asset2;
-        public UUID asset3;
+        public UUID item1 = UUID.Random();
+        public UUID item2 = UUID.Random();
+        public UUID item3 = UUID.Random();
+        public UUID asset1 = UUID.Random();
+        public UUID asset2 = UUID.Random();
+        public UUID asset3 = UUID.Random();
 
         public string name1;
-        public string name2;
-        public string name3;
-        public string niname1;
-        public string iname1;
-        public string iname2;
-        public string iname3;
+        public string name2 = "First Level folder";
+        public string name3 = "First Level folder 2";
+        public string niname1 = "My Shirt";
+        public string iname1 = "Shirt";
+        public string iname2 = "Text Board";
+        public string iname3 = "No Pants Barrel";
 
-        public void SuperInit()
+        public InventoryTests(string conn) : base(conn)
         {
-            OpenSim.Tests.Common.TestLogging.LogToConsole();
-
-            folder1 = UUID.Random();
-            folder2 = UUID.Random();
-            folder3 = UUID.Random();
-            owner1 = UUID.Random();
-            owner2 = UUID.Random();
-            owner3 = UUID.Random();
-            item1 = UUID.Random();
-            item2 = UUID.Random();
-            item3 = UUID.Random();
-            asset1 = UUID.Random();
-            asset2 = UUID.Random();
-            asset3 = UUID.Random();
-
             name1 = "Root Folder for " + owner1.ToString();
-            name2 = "First Level folder";
-            name3 = "First Level folder 2";
-            niname1 = "My Shirt";
-            iname1 = "Shirt";
-            iname2 = "Text Board";
-            iname3 = "No Pants Barrel";
+        }
 
+        protected override void InitService(object service)
+        {
+            db = (IInventoryDataPlugin)service;
+            db.Initialise(m_connStr);
+            ClearDB();
+        }
+
+        private void ClearDB()
+        {
+            DropTables("inventoryitems", "inventoryfolders");
+            ExecuteSql("delete from migrations where name='Inventory'");
         }
 
         [Test]
