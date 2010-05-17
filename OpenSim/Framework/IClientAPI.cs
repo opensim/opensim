@@ -1101,6 +1101,7 @@ namespace OpenSim.Framework
         void InPacket(object NewPack);
         void ProcessInPacket(Packet NewPack);
         void Close();
+        void Close(bool sendStop);
         void Kick(string message);
         
         /// <summary>

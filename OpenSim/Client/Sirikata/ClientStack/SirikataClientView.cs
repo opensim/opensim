@@ -439,6 +439,11 @@ namespace OpenSim.Client.Sirikata.ClientStack
 
         public void Close()
         {
+            Close(true);
+        }
+
+        public void Close(bool sendStop)
+        {
             throw new System.NotImplementedException();
         }
 

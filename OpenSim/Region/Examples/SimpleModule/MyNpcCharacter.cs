@@ -825,6 +825,11 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public void Close()
         {
+            Close(true);
+        }
+
+        public void Close(bool sendStop)
+        {
         }
 
         public void Start()
