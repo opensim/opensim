@@ -100,9 +100,9 @@ namespace OpenSim.Data.Tests
 
         protected override void InitService(object service)
         {
+            ClearDB();
             db = (IRegionDataStore)service;
             db.Initialise(m_connStr);
-            ClearDB();
         }
 
         private void ClearDB()
