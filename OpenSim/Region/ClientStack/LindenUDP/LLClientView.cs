@@ -502,18 +502,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Client Methods
 
+
         /// <summary>
         /// Shut down the client view
         /// </summary>
         public void Close()
         {
+            Close(true);
+        }
+
+        /// <summary>
+        /// Shut down the client view
+        /// </summary>
+        public void Close(bool sendStop)
+        {
             m_log.DebugFormat(
                 "[CLIENT]: Close has been called for {0} attached to scene {1}",
                 Name, m_scene.RegionInfo.RegionName);
 
-            // Send the STOP packet
-            DisableSimulatorPacket disable = (DisableSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.DisableSimulator);
-            OutPacket(disable, ThrottleOutPacketType.Unknown);
+            if (sendStop)
+            {
+                // Send the STOP packet
+                DisableSimulatorPacket disable = (DisableSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.DisableSimulator);
+                OutPacket(disable, ThrottleOutPacketType.Unknown);
+            }
 
             IsActive = false;
 

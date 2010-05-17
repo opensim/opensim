@@ -845,6 +845,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public void Close()
         {
+            Close(true);
+        }
+
+        public void Close(bool sendStop)
+        {
         }
 
         public void Start()

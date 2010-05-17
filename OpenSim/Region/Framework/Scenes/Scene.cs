@@ -3489,7 +3489,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // We have a zombie from a crashed session. Kill it.
                     m_log.DebugFormat("[SCENE]: Zombie scene presence detected for {0} in {1}", agent.AgentID, RegionInfo.RegionName);
-                    sp.ControllingClient.Close();
+                    sp.ControllingClient.Close(false);
                 }
             }
 

@@ -835,10 +835,18 @@ namespace OpenSim.Client.MXP.ClientStack
 
         public void Close()
         {
+            Close(true);
+        }
+
+        public void Close(bool sendStop)
+        {
             m_log.Info("[MXP ClientStack] Close Called");
 
             // Tell the client to go
-            SendLogoutPacket();
+            if (sendStop == true)
+            {
+                SendLogoutPacket();
+            }
 
             // Let MXPPacketServer clean it up
             if (Session.SessionState != SessionState.Disconnected)
