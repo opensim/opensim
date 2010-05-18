@@ -253,6 +253,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return false;
         }
 
+        public bool CloseChildAgent(GridRegion destination, UUID id)
+        {
+            if (destination == null)
+                return false;
+
+            // Try local first
+            if (m_localBackend.CloseChildAgent(destination, id))
+                return true;
+
+            // else do the remote thing
+            if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
+                return m_remoteConnector.CloseChildAgent(destination, id);
+
+            return false;
+        }
 
         public bool CloseAgent(GridRegion destination, UUID id)
         {

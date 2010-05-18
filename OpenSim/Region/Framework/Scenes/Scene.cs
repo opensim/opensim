@@ -3914,12 +3914,22 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        public bool IncomingCloseAgent(UUID agentID)
+        {
+            return IncomingCloseAgent(agentID, false);
+        }
+
+        public bool IncomingCloseChildAgent(UUID agentID)
+        {
+            return IncomingCloseAgent(agentID, true);
+        }
+
         /// <summary>
         /// Tell a single agent to disconnect from the region.
         /// </summary>
-        /// <param name="regionHandle"></param>
         /// <param name="agentID"></param>
-        public bool IncomingCloseAgent(UUID agentID)
+        /// <param name="childOnly"></param>
+        public bool IncomingCloseAgent(UUID agentID, bool childOnly)
         {
             //m_log.DebugFormat("[SCENE]: Processing incoming close agent for {0}", agentID);
 
@@ -3931,7 +3941,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                    m_sceneGraph.removeUserCount(false);
                 }
-                else
+                else if (!childOnly)
                 {
                    m_sceneGraph.removeUserCount(true);
                 }
@@ -3947,9 +3957,12 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                         presence.ControllingClient.SendShutdownConnectionNotice();
+                    presence.ControllingClient.Close();
                 }
-
-                presence.ControllingClient.Close();
+                else if (!childOnly)
+                {
+                    presence.ControllingClient.Close();
+                }
                 return true;
             }
 

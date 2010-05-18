@@ -108,6 +108,11 @@ namespace OpenSim.Server.Handlers.Simulation
                 DoAgentDelete(request, responsedata, agentID, action, regionID);
                 return responsedata;
             }
+            else if (method.Equals("DELETECHILD"))
+            {
+                DoChildAgentDelete(request, responsedata, agentID, action, regionID);
+                return responsedata;
+            }
             else
             {
                 m_log.InfoFormat("[AGENT HANDLER]: method {0} not supported in agent message", method);
@@ -318,6 +323,24 @@ namespace OpenSim.Server.Handlers.Simulation
                 responsedata["int_response_code"] = HttpStatusCode.NotFound;
                 responsedata["str_response_string"] = "Not Found";
             }
+        }
+
+        protected void DoChildAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, UUID regionID)
+        {
+            m_log.Debug(" >>> DoChildAgentDelete action:" + action + "; RegionID:" + regionID);
+
+            GridRegion destination = new GridRegion();
+            destination.RegionID = regionID;
+
+            if (action.Equals("release"))
+                ReleaseAgent(regionID, id);
+            else
+                m_SimulationService.CloseChildAgent(destination, id);
+
+            responsedata["int_response_code"] = HttpStatusCode.OK;
+            responsedata["str_response_string"] = "OpenSim agent " + id.ToString();
+
+            m_log.Debug("[AGENT HANDLER]: Child Agent Released/Deleted.");
         }
 
         protected void DoAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, UUID regionID)

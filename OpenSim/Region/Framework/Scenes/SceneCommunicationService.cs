@@ -281,7 +281,7 @@ namespace OpenSim.Region.Framework.Scenes
             uint x = 0, y = 0;
             Utils.LongToUInts(regionHandle, out x, out y);
             GridRegion destination = m_scene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
-            m_scene.SimulationService.CloseAgent(destination, agentID);
+            m_scene.SimulationService.CloseChildAgent(destination, agentID);
         }
 
         private void SendCloseChildAgentCompleted(IAsyncResult iar)

@@ -290,6 +290,23 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return false;
         }
 
+        public bool CloseChildAgent(GridRegion destination, UUID id)
+        {
+            if (destination == null)
+                return false;
+
+            foreach (Scene s in m_sceneList)
+            {
+                if (s.RegionInfo.RegionID == destination.RegionID)
+                {
+                    //m_log.Debug("[LOCAL COMMS]: Found region to SendCloseAgent");
+                    return s.IncomingCloseChildAgent(id);
+                }
+            }
+            //m_log.Debug("[LOCAL COMMS]: region not found in SendCloseAgent");
+            return false;
+        }
+
         /**
          * Object-related communications
          */

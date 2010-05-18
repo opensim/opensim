@@ -68,6 +68,14 @@ namespace OpenSim.Region.Framework.Interfaces
         bool SendReleaseAgent(ulong regionHandle, UUID id, string uri);
 
         /// <summary>
+        /// Close chid agent.
+        /// </summary>
+        /// <param name="regionHandle"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        bool SendCloseChildAgent(ulong regionHandle, UUID id);
+
+        /// <summary>
         /// Close agent.
         /// </summary>
         /// <param name="regionHandle"></param>

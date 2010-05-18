@@ -442,7 +442,7 @@ namespace OpenSim.Services.Connectors.Simulation
             return true;
         }
 
-        public bool CloseAgent(GridRegion destination, UUID id)
+        private bool CloseAgent(GridRegion destination, UUID id, bool ChildOnly)
         {
             string uri = string.Empty;
             try
@@ -459,6 +459,8 @@ namespace OpenSim.Services.Connectors.Simulation
 
             WebRequest request = WebRequest.Create(uri);
             request.Method = "DELETE";
+            if (ChildOnly)
+                request.Method += "CHILD";
             request.Timeout = 10000;
 
             StreamReader sr = null;
@@ -489,6 +491,16 @@ namespace OpenSim.Services.Connectors.Simulation
             }
 
             return true;
+        }
+
+        public bool CloseChildAgent(GridRegion destination, UUID id)
+        {
+            return CloseAgent(destination, id, true);
+        }
+
+        public bool CloseAgent(GridRegion destination, UUID id)
+        {
+            return CloseAgent(destination, id, false);
         }
 
         #endregion Agents
