@@ -101,22 +101,30 @@ namespace OpenSim.Data.MSSQL
                     {
                         foreach (string name in FieldList)
                         {
-                            if (_FieldMap[name].GetValue(es) is bool)
+                            FieldInfo f = _FieldMap[name];
+                            object v = reader[name];
+                            if (f.FieldType == typeof(bool) )
                             {
-                                int v = Convert.ToInt32(reader[name]);
-                                if (v != 0)
-                                    _FieldMap[name].SetValue(es, true);
-                                else
-                                    _FieldMap[name].SetValue(es, false);
+                                f.SetValue(es, Convert.ToInt32(v) != 0);
                             }
-                            else if (_FieldMap[name].GetValue(es) is UUID)
+                            else if (f.FieldType == typeof(UUID) )
                             {
-                                _FieldMap[name].SetValue(es, new UUID((Guid)reader[name])); // uuid);
+                                f.SetValue(es, new UUID((Guid)v)); // uuid);
+                            }
+                            else if (f.FieldType == typeof(string)) 
+                            {
+                                f.SetValue(es, v.ToString());
+                            }
+                            else if (f.FieldType == typeof(UInt32))  
+                            {
+                                f.SetValue(es, Convert.ToUInt32(v));
+                            }
+                            else if (f.FieldType == typeof(Single))
+                            {
+                                f.SetValue(es, Convert.ToSingle(v));
                             }
                             else
-                            {
-                                es.EstateID = Convert.ToUInt32(reader["EstateID"].ToString());
-                            }
+                                f.SetValue(es, v);
                         }
                     }
                     else
@@ -288,61 +296,45 @@ namespace OpenSim.Data.MSSQL
         private void SaveBanList(EstateSettings es)
         {
             //Delete first
-            string sql = "delete from estateban where EstateID = @EstateID";
             using (SqlConnection conn = new SqlConnection(m_connectionString))
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                cmd.Parameters.Add(_Database.CreateParameter("@EstateID", es.EstateID));
                 conn.Open();
-                cmd.ExecuteNonQuery();
-            }
-
-            //Insert after
-            sql = "insert into estateban (EstateID, bannedUUID) values ( @EstateID, @bannedUUID )";
-            using (SqlConnection conn = new SqlConnection(m_connectionString))
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
-            {
-                foreach (EstateBan b in es.EstateBans)
+                using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.Parameters.Add(_Database.CreateParameter("@EstateID", es.EstateID));
-                    cmd.Parameters.Add(_Database.CreateParameter("@bannedUUID", b.BannedUserID));
-                    conn.Open();
+                    cmd.CommandText  = "delete from estateban where EstateID = @EstateID";
+                    cmd.Parameters.AddWithValue("@EstateID", (int)es.EstateID);
                     cmd.ExecuteNonQuery();
-                    cmd.Parameters.Clear();
+
+                    //Insert after
+                    cmd.CommandText = "insert into estateban (EstateID, bannedUUID) values ( @EstateID, @bannedUUID )";
+                    cmd.Parameters.AddWithValue("@bannedUUID", Guid.Empty);
+                    foreach (EstateBan b in es.EstateBans)
+                    {
+                        cmd.Parameters["@bannedUUID"].Value = b.BannedUserID.Guid;
+                        cmd.ExecuteNonQuery();
+                    }
                 }
             }
         }
 
         private void SaveUUIDList(uint estateID, string table, UUID[] data)
         {
-            //Delete first
-            string sql = string.Format("delete from {0} where EstateID = @EstateID", table);
             using (SqlConnection conn = new SqlConnection(m_connectionString))
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                cmd.Parameters.Add(_Database.CreateParameter("@EstateID", estateID));
-                cmd.ExecuteNonQuery();
-            }
-
-            sql = string.Format("insert into {0} (EstateID, uuid) values ( @EstateID, @uuid )", table);
-            using (SqlConnection conn = new SqlConnection(m_connectionString))
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
-            {
-                cmd.Parameters.Add(_Database.CreateParameter("@EstateID", estateID));
-
-                bool createParamOnce = true;
-
-                foreach (UUID uuid in data)
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    if (createParamOnce)
-                    {
-                        cmd.Parameters.Add(_Database.CreateParameter("@uuid", uuid));
-                        createParamOnce = false;
-                    }
-                    else
-                        cmd.Parameters["@uuid"].Value = uuid.Guid; //.ToString(); //TODO check if this works
-                    conn.Open();
+                    cmd.Parameters.AddWithValue("@EstateID", (int)estateID);
+                    cmd.CommandText = string.Format("delete from {0} where EstateID = @EstateID", table);
                     cmd.ExecuteNonQuery();
+
+                    cmd.CommandText = string.Format("insert into {0} (EstateID, uuid) values ( @EstateID, @uuid )", table);
+                    cmd.Parameters.AddWithValue("@uuid", Guid.Empty);
+                    foreach (UUID uuid in data)
+                    {
+                        cmd.Parameters["@uuid"].Value = uuid.Guid; //.ToString(); //TODO check if this works
+                        cmd.ExecuteNonQuery();
+                    }
                 }
             }
         }
