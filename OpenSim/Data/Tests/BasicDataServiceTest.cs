@@ -167,5 +167,46 @@ namespace OpenSim.Data.Tests
                 }
             }
         }
+
+        /// <summary>Clear tables listed as parameters (without dropping them). 
+        /// </summary>
+        /// <param name="tables"></param>
+        protected virtual void ResetMigrations(params string[] stores)
+        {
+            string lst = "";
+            foreach (string store in stores)
+            {
+                string s = "'" + store + "'";
+                if (lst == "")
+                    lst = s;
+                else
+                    lst += ", " + s;
+            }
+
+            try
+            {
+                ExecuteSql("DELETE FROM `migrations` where name in (" + lst + ");");
+            }
+            catch
+            {
+            }
+        }
+
+        /// <summary>Clear tables listed as parameters (without dropping them). 
+        /// </summary>
+        /// <param name="tables"></param>
+        protected virtual void ClearTables(params string[] tables)
+        {
+            foreach (string tbl in tables)
+            {
+                try
+                {
+                    ExecuteSql("DELETE FROM " + tbl + ";");
+                }
+                catch
+                {
+                }
+            }
+        }
     }
 }
