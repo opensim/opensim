@@ -3957,11 +3957,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                         presence.ControllingClient.SendShutdownConnectionNotice();
-                    presence.ControllingClient.Close();
+                    presence.ControllingClient.Close(false);
                 }
                 else if (!childOnly)
                 {
-                    presence.ControllingClient.Close();
+                    presence.ControllingClient.Close(true);
                 }
                 return true;
             }
