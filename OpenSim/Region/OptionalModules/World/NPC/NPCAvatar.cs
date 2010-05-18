@@ -839,6 +839,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
+        public void ProcessPendingPackets()
+        {
+        }
+
         public void ProcessInPacket(Packet NewPack)
         {
         }

@@ -878,6 +878,10 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
+        public void ProcessPendingPackets()
+        {
+        }
+
         public void ProcessInPacket(Packet NewPack)
         {
             

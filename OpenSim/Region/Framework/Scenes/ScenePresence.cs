@@ -715,8 +715,11 @@ namespace OpenSim.Region.Framework.Scenes
             // Request info about all the (root) agents in this region
             // Note: This won't send data *to* other clients in that region (children don't send)
             SendInitialFullUpdateToAllClients();
-
             RegisterToEvents();
+            if (m_controllingClient != null)
+            {
+                m_controllingClient.ProcessPendingPackets();
+            }
             SetDirectionVectors();
         }
 
@@ -858,7 +861,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_grouptitle = gm.GetGroupTitle(m_uuid);
 
             m_rootRegionHandle = m_scene.RegionInfo.RegionHandle;
-
             m_scene.SetRootAgentScene(m_uuid);
 
             // Moved this from SendInitialData to ensure that m_appearance is initialized
@@ -1173,7 +1175,6 @@ namespace OpenSim.Region.Framework.Scenes
                 pos.Z = ground + 1.5f;
                 AbsolutePosition = pos;
             }
-
             m_isChildAgent = false;
             bool m_flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
             MakeRootAgent(AbsolutePosition, m_flying);
@@ -3744,7 +3745,10 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
             m_scene = scene;
 
             RegisterToEvents();
-
+            if (m_controllingClient != null)
+            {
+                m_controllingClient.ProcessPendingPackets();
+            }
             /*
             AbsolutePosition = client.StartPos;
 
