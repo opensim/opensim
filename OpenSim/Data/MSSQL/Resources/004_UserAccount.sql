@@ -1,7 +1,0 @@
-BEGIN TRANSACTION
-
-ALTER TABLE UserAccounts ADD UserLevel integer NOT NULL DEFAULT 0;
-ALTER TABLE UserAccounts ADD UserFlags integer NOT NULL DEFAULT 0;
-ALTER TABLE UserAccounts ADD UserTitle varchar(64) NOT NULL DEFAULT '';
-
-COMMIT
