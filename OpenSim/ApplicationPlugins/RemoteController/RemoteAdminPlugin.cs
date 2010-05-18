@@ -63,7 +63,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         private static Object   SOLock = new Object();
 
         private OpenSimBase m_app;
-        private BaseHttpServer m_httpd;
+        private IHttpServer m_httpd;
         private IConfig m_config;
         private IConfigSource m_configSource;
         private string m_requiredPassword = String.Empty;
@@ -113,9 +113,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_config = m_configSource.Configs["RemoteAdmin"];
                     m_log.Info("[RADMIN]: Remote Admin Plugin Enabled");
                     m_requiredPassword = m_config.GetString("access_password", String.Empty);
+                    int port = m_config.GetInt("port", 0);
 
                     m_app = openSim;
-                    m_httpd = openSim.HttpServer;
+                    m_httpd = MainServer.GetHttpServer((uint)port);
 
                     Dictionary<string, XmlRpcMethod> availableMethods = new Dictionary<string, XmlRpcMethod>();
                     availableMethods["admin_create_region"] = XmlRpcCreateRegionMethod;
