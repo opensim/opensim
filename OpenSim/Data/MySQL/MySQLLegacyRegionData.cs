@@ -38,6 +38,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Data;
 
 namespace OpenSim.Data.MySQL
 {
@@ -269,7 +270,7 @@ namespace OpenSim.Data.MySQL
                         using (IDataReader reader = ExecuteReader(cmd))
                         {
                             while (reader.Read())
-                                uuids.Add(new UUID(reader["UUID"].ToString()));
+                                uuids.Add(DBGuid.FromDB(reader["UUID"].ToString()));
                         }
 
                         // delete the main prims
@@ -422,7 +423,7 @@ namespace OpenSim.Data.MySQL
                                 else
                                     prim.Shape = BuildShape(reader);
 
-                                UUID parentID = new UUID(reader["SceneGroupID"].ToString());
+                                UUID parentID = DBGuid.FromDB(reader["SceneGroupID"].ToString());
                                 if (parentID != prim.UUID)
                                     prim.ParentUUID = parentID;
 
@@ -500,7 +501,7 @@ namespace OpenSim.Data.MySQL
                             {
                                 if (!(itemReader["primID"] is DBNull))
                                 {
-                                    UUID primID = new UUID(itemReader["primID"].ToString());
+                                    UUID primID = DBGuid.FromDB(itemReader["primID"].ToString());
                                     if (prims.ContainsKey(primID))
                                         primsWithInventory.Add(prims[primID]);
                                 }
@@ -738,7 +739,7 @@ namespace OpenSim.Data.MySQL
                     }
                     else
                     {
-                        UUID.TryParse(result["region_id"].ToString(), out nWP.regionID);
+                        nWP.regionID = DBGuid.FromDB(result["region_id"]);
                         nWP.waterColor.X = Convert.ToSingle(result["water_color_r"]);
                         nWP.waterColor.Y = Convert.ToSingle(result["water_color_g"]);
                         nWP.waterColor.Z = Convert.ToSingle(result["water_color_b"]);
@@ -1055,7 +1056,14 @@ namespace OpenSim.Data.MySQL
         private SceneObjectPart BuildPrim(IDataReader row)
         {
             SceneObjectPart prim = new SceneObjectPart();
-            prim.UUID = new UUID((string)row["UUID"]);
+
+            // depending on the MySQL connector version, CHAR(36) may be already converted to Guid! 
+            prim.UUID = DBGuid.FromDB(row["UUID"]);
+            prim.CreatorID = DBGuid.FromDB(row["CreatorID"]);
+            prim.OwnerID = DBGuid.FromDB(row["OwnerID"]);
+            prim.GroupID = DBGuid.FromDB(row["GroupID"]);
+            prim.LastOwnerID = DBGuid.FromDB(row["LastOwnerID"]);
+
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
             prim.CreationDate = (int)row["CreationDate"];
@@ -1074,15 +1082,12 @@ namespace OpenSim.Data.MySQL
             prim.TouchName = (string)row["TouchName"];
             // Permissions
             prim.ObjectFlags = (uint)(int)row["ObjectFlags"];
-            prim.CreatorID = new UUID((string)row["CreatorID"]);
-            prim.OwnerID = new UUID((string)row["OwnerID"]);
-            prim.GroupID = new UUID((string)row["GroupID"]);
-            prim.LastOwnerID = new UUID((string)row["LastOwnerID"]);
             prim.OwnerMask = (uint)(int)row["OwnerMask"];
             prim.NextOwnerMask = (uint)(int)row["NextOwnerMask"];
             prim.GroupMask = (uint)(int)row["GroupMask"];
             prim.EveryoneMask = (uint)(int)row["EveryoneMask"];
             prim.BaseMask = (uint)(int)row["BaseMask"];
+
             // Vectors
             prim.OffsetPosition = new Vector3(
                 (float)(double)row["PositionX"],
@@ -1134,7 +1139,7 @@ namespace OpenSim.Data.MySQL
             prim.PayPrice[3] = (int)row["PayButton3"];
             prim.PayPrice[4] = (int)row["PayButton4"];
 
-            prim.Sound = new UUID(row["LoopedSound"].ToString());
+            prim.Sound = DBGuid.FromDB(row["LoopedSound"].ToString());
             prim.SoundGain = (float)(double)row["LoopedSoundGain"];
             prim.SoundFlags = 1; // If it's persisted at all, it's looped
 
@@ -1161,16 +1166,10 @@ namespace OpenSim.Data.MySQL
                 (float)(double)row["CameraAtOffsetZ"]
                 ));
 
-            if ((sbyte)row["ForceMouselook"] != 0)
-                prim.SetForceMouselook(true);
-
+            prim.SetForceMouselook((sbyte)row["ForceMouselook"] != 0);
             prim.ScriptAccessPin = (int)row["ScriptAccessPin"];
-
-            if ((sbyte)row["AllowedDrop"] != 0)
-                prim.AllowedDrop = true;
-
-            if ((sbyte)row["DieAtEdge"] != 0)
-                prim.DIE_AT_EDGE = true;
+            prim.AllowedDrop = ((sbyte)row["AllowedDrop"] != 0);
+            prim.DIE_AT_EDGE = ((sbyte)row["DieAtEdge"] != 0);
 
             prim.SalePrice = (int)row["SalePrice"];
             prim.ObjectSaleType = unchecked((byte)(sbyte)row["SaleType"]);
@@ -1180,11 +1179,10 @@ namespace OpenSim.Data.MySQL
             if (!(row["ClickAction"] is DBNull))
                 prim.ClickAction = unchecked((byte)(sbyte)row["ClickAction"]);
 
-            prim.CollisionSound = new UUID(row["CollisionSound"].ToString());
+            prim.CollisionSound = DBGuid.FromDB(row["CollisionSound"]);
             prim.CollisionSoundVolume = (float)(double)row["CollisionSoundVolume"];
             
-            if ((sbyte)row["PassTouches"] != 0)
-                prim.PassTouches = true;
+            prim.PassTouches = ((sbyte)row["PassTouches"] != 0);
             prim.LinkNum = (int)row["LinkNumber"];
 
             return prim;
@@ -1200,10 +1198,10 @@ namespace OpenSim.Data.MySQL
         {
             TaskInventoryItem taskItem = new TaskInventoryItem();
 
-            taskItem.ItemID        = new UUID((String)row["itemID"]);
-            taskItem.ParentPartID  = new UUID((String)row["primID"]);
-            taskItem.AssetID       = new UUID((String)row["assetID"]);
-            taskItem.ParentID      = new UUID((String)row["parentFolderID"]);
+            taskItem.ItemID        = DBGuid.FromDB(row["itemID"]);
+            taskItem.ParentPartID  = DBGuid.FromDB(row["primID"]);
+            taskItem.AssetID       = DBGuid.FromDB(row["assetID"]);
+            taskItem.ParentID      = DBGuid.FromDB(row["parentFolderID"]);
 
             taskItem.InvType       = Convert.ToInt32(row["invType"]);
             taskItem.Type          = Convert.ToInt32(row["assetType"]);
@@ -1211,10 +1209,10 @@ namespace OpenSim.Data.MySQL
             taskItem.Name          = (String)row["name"];
             taskItem.Description   = (String)row["description"];
             taskItem.CreationDate  = Convert.ToUInt32(row["creationDate"]);
-            taskItem.CreatorID     = new UUID((String)row["creatorID"]);
-            taskItem.OwnerID       = new UUID((String)row["ownerID"]);
-            taskItem.LastOwnerID   = new UUID((String)row["lastOwnerID"]);
-            taskItem.GroupID       = new UUID((String)row["groupID"]);
+            taskItem.CreatorID     = DBGuid.FromDB(row["creatorID"]);
+            taskItem.OwnerID       = DBGuid.FromDB(row["ownerID"]);
+            taskItem.LastOwnerID   = DBGuid.FromDB(row["lastOwnerID"]);
+            taskItem.GroupID       = DBGuid.FromDB(row["groupID"]);
 
             taskItem.NextPermissions = Convert.ToUInt32(row["nextPermissions"]);
             taskItem.CurrentPermissions     = Convert.ToUInt32(row["currentPermissions"]);
@@ -1230,7 +1228,7 @@ namespace OpenSim.Data.MySQL
         {
             RegionSettings newSettings = new RegionSettings();
 
-            newSettings.RegionUUID = new UUID((string) row["regionUUID"]);
+            newSettings.RegionUUID = DBGuid.FromDB(row["regionUUID"]);
             newSettings.BlockTerraform = Convert.ToBoolean(row["block_terraform"]);
             newSettings.AllowDamage = Convert.ToBoolean(row["allow_damage"]);
             newSettings.BlockFly = Convert.ToBoolean(row["block_fly"]);
@@ -1244,10 +1242,10 @@ namespace OpenSim.Data.MySQL
             newSettings.DisableScripts = Convert.ToBoolean(row["disable_scripts"]);
             newSettings.DisableCollisions = Convert.ToBoolean(row["disable_collisions"]);
             newSettings.DisablePhysics = Convert.ToBoolean(row["disable_physics"]);
-            newSettings.TerrainTexture1 = new UUID((String) row["terrain_texture_1"]);
-            newSettings.TerrainTexture2 = new UUID((String) row["terrain_texture_2"]);
-            newSettings.TerrainTexture3 = new UUID((String) row["terrain_texture_3"]);
-            newSettings.TerrainTexture4 = new UUID((String) row["terrain_texture_4"]);
+            newSettings.TerrainTexture1 = DBGuid.FromDB(row["terrain_texture_1"]);
+            newSettings.TerrainTexture2 = DBGuid.FromDB(row["terrain_texture_2"]);
+            newSettings.TerrainTexture3 = DBGuid.FromDB(row["terrain_texture_3"]);
+            newSettings.TerrainTexture4 = DBGuid.FromDB(row["terrain_texture_4"]);
             newSettings.Elevation1NW = Convert.ToDouble(row["elevation_1_nw"]);
             newSettings.Elevation2NW = Convert.ToDouble(row["elevation_2_nw"]);
             newSettings.Elevation1NE = Convert.ToDouble(row["elevation_1_ne"]);
@@ -1268,7 +1266,7 @@ namespace OpenSim.Data.MySQL
                                                  );
             newSettings.FixedSun = Convert.ToBoolean(row["fixed_sun"]);
             newSettings.SunPosition = Convert.ToDouble(row["sun_position"]);
-            newSettings.Covenant = new UUID((String) row["covenant"]);
+            newSettings.Covenant = DBGuid.FromDB(row["covenant"]);
 
             newSettings.LoadedCreationDateTime = Convert.ToInt32(row["loaded_creation_datetime"]);
             
@@ -1277,7 +1275,7 @@ namespace OpenSim.Data.MySQL
             else 
                 newSettings.LoadedCreationID = (String) row["loaded_creation_id"];
 
-            newSettings.TerrainImageID = new UUID((String)row["map_tile_ID"]);
+            newSettings.TerrainImageID = DBGuid.FromDB(row["map_tile_ID"]);
 
             return newSettings;
         }
@@ -1291,7 +1289,7 @@ namespace OpenSim.Data.MySQL
         {
             LandData newData = new LandData();
 
-            newData.GlobalID = new UUID((String) row["UUID"]);
+            newData.GlobalID = DBGuid.FromDB(row["UUID"]);
             newData.LocalID = Convert.ToInt32(row["LocalLandID"]);
 
             // Bitmap is a byte[512]
@@ -1299,7 +1297,7 @@ namespace OpenSim.Data.MySQL
 
             newData.Name = (String) row["Name"];
             newData.Description = (String) row["Description"];
-            newData.OwnerID = new UUID((String)row["OwnerUUID"]);
+            newData.OwnerID = DBGuid.FromDB(row["OwnerUUID"]);
             newData.IsGroupOwned = Convert.ToBoolean(row["IsGroupOwned"]);
             newData.Area = Convert.ToInt32(row["Area"]);
             newData.AuctionID = Convert.ToUInt32(row["AuctionID"]); //Unimplemented
@@ -1307,14 +1305,14 @@ namespace OpenSim.Data.MySQL
                 //Enum libsecondlife.Parcel.ParcelCategory
             newData.ClaimDate = Convert.ToInt32(row["ClaimDate"]);
             newData.ClaimPrice = Convert.ToInt32(row["ClaimPrice"]);
-            newData.GroupID = new UUID((String) row["GroupUUID"]);
+            newData.GroupID = DBGuid.FromDB(row["GroupUUID"]);
             newData.SalePrice = Convert.ToInt32(row["SalePrice"]);
             newData.Status = (ParcelStatus) Convert.ToInt32(row["LandStatus"]);
                 //Enum. libsecondlife.Parcel.ParcelStatus
             newData.Flags = Convert.ToUInt32(row["LandFlags"]);
             newData.LandingType = Convert.ToByte(row["LandingType"]);
             newData.MediaAutoScale = Convert.ToByte(row["MediaAutoScale"]);
-            newData.MediaID = new UUID((String) row["MediaTextureUUID"]);
+            newData.MediaID = DBGuid.FromDB(row["MediaTextureUUID"]);
             newData.MediaURL = (String) row["MediaURL"];
             newData.MusicURL = (String) row["MusicURL"];
             newData.PassHours = Convert.ToSingle(row["PassHours"]);
@@ -1358,7 +1356,7 @@ namespace OpenSim.Data.MySQL
         private static ParcelManager.ParcelAccessEntry BuildLandAccessData(IDataReader row)
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
-            entry.AgentID = new UUID((string) row["AccessUUID"]);
+            entry.AgentID = DBGuid.FromDB(row["AccessUUID"]);
             entry.Flags = (AccessList) Convert.ToInt32(row["Flags"]);
             entry.Time = new DateTime();
             return entry;
