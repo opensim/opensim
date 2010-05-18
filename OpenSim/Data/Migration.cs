@@ -70,7 +70,7 @@ namespace OpenSim.Data
 
     public class Migration
     {
-        protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected string _type;
         protected DbConnection _conn;

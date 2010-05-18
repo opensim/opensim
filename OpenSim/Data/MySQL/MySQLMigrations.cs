@@ -43,6 +43,8 @@ namespace OpenSim.Data.MySQL
     /// </summary>
     public class MySqlMigration : Migration
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public MySqlMigration()
             : base()
         { 
