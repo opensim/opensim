@@ -33,6 +33,7 @@ using log4net;
 using MySql.Data.MySqlClient;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Data;
 
 namespace OpenSim.Data.MySQL
 {
@@ -320,7 +321,7 @@ namespace OpenSim.Data.MySQL
                                 metadata.Type = (sbyte)dbReader["assetType"];
                                 metadata.Temporary = Convert.ToBoolean(dbReader["temporary"]); // Not sure if this is correct.
                                 metadata.Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]);
-                                metadata.FullID = new UUID((string)dbReader["id"]);
+                                metadata.FullID = DBGuid.FromDB(dbReader["id"]);
 
                                 // Current SHA1s are not stored/computed.
                                 metadata.SHA1 = new byte[] { };
