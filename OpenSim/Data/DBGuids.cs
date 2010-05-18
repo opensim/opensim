@@ -27,7 +27,7 @@ namespace OpenSim.Data
             {
                 if (((byte[])id).Length == 0)
                     return UUID.Zero;
-                else if (((byte[])id).Length == 36)
+                else if (((byte[])id).Length == 16)
                     return new UUID((byte[])id, 0);
             }
             else if (id.GetType() == typeof(string))
