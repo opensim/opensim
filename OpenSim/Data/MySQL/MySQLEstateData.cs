@@ -34,6 +34,7 @@ using MySql.Data.MySqlClient;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Data;
 
 namespace OpenSim.Data.MySQL
 {
@@ -156,20 +157,13 @@ namespace OpenSim.Data.MySQL
 
                         foreach (string name in FieldList)
                         {
-                            if (m_FieldMap[name].GetValue(es) is bool)
+                            if (m_FieldMap[name].FieldType == typeof(bool))
                             {
-                                int v = Convert.ToInt32(r[name]);
-                                if (v != 0)
-                                    m_FieldMap[name].SetValue(es, true);
-                                else
-                                    m_FieldMap[name].SetValue(es, false);
+                                m_FieldMap[name].SetValue(es, Convert.ToInt32(r[name]) != 0);
                             }
-                            else if (m_FieldMap[name].GetValue(es) is UUID)
+                            else if (m_FieldMap[name].FieldType == typeof(UUID))
                             {
-                                UUID uuid = UUID.Zero;
-
-                                UUID.TryParse(r[name].ToString(), out uuid);
-                                m_FieldMap[name].SetValue(es, uuid);
+                                m_FieldMap[name].SetValue(es, DBGuid.FromDB(r[name]));
                             }
                             else
                             {
@@ -385,11 +379,7 @@ namespace OpenSim.Data.MySQL
                         while (r.Read())
                         {
                             // EstateBan eb = new EstateBan();
-
-                            UUID uuid = new UUID();
-                            UUID.TryParse(r["uuid"].ToString(), out uuid);
-
-                            uuids.Add(uuid);
+                            uuids.Add(DBGuid.FromDB(r["uuid"]));
                         }
                     }
                 }
@@ -490,7 +480,7 @@ namespace OpenSim.Data.MySQL
                         using (IDataReader reader = cmd.ExecuteReader())
                         {
                             while(reader.Read())
-                                result.Add(new UUID(reader["RegionID"].ToString()));
+                                result.Add(DBGuid.FromDB(reader["RegionID"]));
                             reader.Close();
                         }
                     }

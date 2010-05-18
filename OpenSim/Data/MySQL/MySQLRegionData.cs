@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Data;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Data;
 using MySql.Data.MySqlClient;
 
 namespace OpenSim.Data.MySQL
@@ -143,12 +144,9 @@ namespace OpenSim.Data.MySQL
                         RegionData ret = new RegionData();
                         ret.Data = new Dictionary<string, object>();
 
-                        UUID regionID;
-                        UUID.TryParse(result["uuid"].ToString(), out regionID);
-                        ret.RegionID = regionID;
-                        UUID scope;
-                        UUID.TryParse(result["ScopeID"].ToString(), out scope);
-                        ret.ScopeID = scope;
+                        ret.RegionID = DBGuid.FromDB(result["uuid"]);
+                        ret.ScopeID = DBGuid.FromDB(result["ScopeID"]);
+
                         ret.RegionName = result["regionName"].ToString();
                         ret.posX = Convert.ToInt32(result["locX"]);
                         ret.posY = Convert.ToInt32(result["locY"]);

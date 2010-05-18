@@ -32,6 +32,7 @@ using log4net;
 using MySql.Data.MySqlClient;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Data;
 
 namespace OpenSim.Data.MySQL
 {
@@ -285,31 +286,23 @@ namespace OpenSim.Data.MySQL
                 InventoryItemBase item = new InventoryItemBase();
 
                 // TODO: this is to handle a case where NULLs creep in there, which we are not sure is endemic to the system, or legacy.  It would be nice to live fix these.
-                if (reader["creatorID"] == null) 
-                {
-                    item.CreatorId  = UUID.Zero.ToString();
-                }
-                else
-                {
-                    item.CreatorId = (string)reader["creatorID"];
-                }
+                // ( DBGuid.FromDB() reads db NULLs as well, returns UUID.Zero )
+                item.CreatorId = DBGuid.FromDB(reader["creatorID"]).ToString();
                 
                 // Be a bit safer in parsing these because the
                 // database doesn't enforce them to be not null, and
                 // the inventory still works if these are weird in the
                 // db
-                UUID Owner = UUID.Zero;
-                UUID GroupID = UUID.Zero;
-                UUID.TryParse((string)reader["avatarID"], out Owner);
-                UUID.TryParse((string)reader["groupID"], out GroupID);
-                item.Owner = Owner;
-                item.GroupID = GroupID;
+
+                // (Empty is Ok, but "weird" will throw!)
+                item.Owner = DBGuid.FromDB(reader["avatarID"]);
+                item.GroupID = DBGuid.FromDB(reader["groupID"]);
 
                 // Rest of the parsing.  If these UUID's fail, we're dead anyway
-                item.ID = new UUID((string) reader["inventoryID"]);
-                item.AssetID = new UUID((string) reader["assetID"]);
+                item.ID = DBGuid.FromDB(reader["inventoryID"]);
+                item.AssetID = DBGuid.FromDB(reader["assetID"]);
                 item.AssetType = (int) reader["assetType"];
-                item.Folder = new UUID((string) reader["parentFolderID"]);
+                item.Folder = DBGuid.FromDB(reader["parentFolderID"]);
                 item.Name = (string)(reader["inventoryName"] ?? String.Empty);
                 item.Description = (string)(reader["inventoryDescription"] ?? String.Empty);
                 item.NextPermissions = (uint) reader["inventoryNextPermissions"];
@@ -382,9 +375,9 @@ namespace OpenSim.Data.MySQL
             try
             {
                 InventoryFolderBase folder = new InventoryFolderBase();
-                folder.Owner = new UUID((string) reader["agentID"]);
-                folder.ParentID = new UUID((string) reader["parentFolderID"]);
-                folder.ID = new UUID((string) reader["folderID"]);
+                folder.Owner = DBGuid.FromDB(reader["agentID"]);
+                folder.ParentID = DBGuid.FromDB(reader["parentFolderID"]);
+                folder.ID = DBGuid.FromDB(reader["folderID"]);
                 folder.Name = (string) reader["folderName"];
                 folder.Type = (short) reader["type"];
                 folder.Version = (ushort) ((int) reader["version"]);

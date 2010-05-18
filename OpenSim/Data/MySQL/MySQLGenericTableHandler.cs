@@ -148,19 +148,16 @@ namespace OpenSim.Data.MySQL
 
                         foreach (string name in m_Fields.Keys)
                         {
-                            if (m_Fields[name].GetValue(row) is bool)
+                            if (m_Fields[name].FieldType == typeof(bool))
                             {
                                 int v = Convert.ToInt32(reader[name]);
                                 m_Fields[name].SetValue(row, v != 0 ? true : false);
                             }
-                            else if (m_Fields[name].GetValue(row) is UUID)
+                            else if (m_Fields[name].FieldType == typeof(UUID))
                             {
-                                UUID uuid = UUID.Zero;
-
-                                UUID.TryParse(reader[name].ToString(), out uuid);
-                                m_Fields[name].SetValue(row, uuid);
+                                m_Fields[name].SetValue(row, DBGuid.FromDB(reader[name]));
                             }
-                            else if (m_Fields[name].GetValue(row) is int)
+                            else if (m_Fields[name].FieldType == typeof(int))
                             {
                                 int v = Convert.ToInt32(reader[name]);
                                 m_Fields[name].SetValue(row, v);
