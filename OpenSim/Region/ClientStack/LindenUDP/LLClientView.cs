@@ -11204,6 +11204,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void ProcessPendingPackets()
         {
             m_IsPresenceReady = true;
+            if (m_pendingPackets == null)
+                return; 
             foreach (Packet p in m_pendingPackets)
             {
                 ProcessInPacket(p);
