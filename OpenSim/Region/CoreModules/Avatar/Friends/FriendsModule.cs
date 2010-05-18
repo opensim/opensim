@@ -454,9 +454,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         private void StatusNotifyMass(List<FriendInfo> friendList, UUID userID, bool online)
         {
-            string[] friendIDs = new string[friendList.Count];
+            int fct = friendList.Count;
+            string[] friendIDs = new string[fct];
             int notlocal = 0;
-            for (int x = 0; x < friendList.Count; x++)
+            for (int x = 0 ; x < fct ; x++)
             {
                 UUID friendID = UUID.Zero;
                 if (UUID.TryParse(friendList[x].Friend, out friendID))
@@ -472,6 +473,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             for (int x = 0; x < friendSessions.GetLength(0); x++)
             {
+                if (friendIDs.Length <= x)
+                    continue;
                 PresenceInfo friendSession = friendSessions[x];
                 if (friendSession != null)
                 {
