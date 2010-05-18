@@ -535,16 +535,9 @@ namespace Amib.Threading
                 // Process until shutdown.
                 while(!_shutdown)
                 {
-                    // Update the last time this thread was seen alive.
-                    // It's good for debugging.
-                    _workerThreads[Thread.CurrentThread] = DateTime.Now;
-
+                    
                     // Wait for a work item, shutdown, or timeout
                     WorkItem workItem = Dequeue();
-
-                    // Update the last time this thread was seen alive.
-                    // It's good for debugging.
-                    _workerThreads[Thread.CurrentThread] = DateTime.Now;
 
                     // On timeout or shut down.
                     if (null == workItem)
@@ -554,6 +547,10 @@ namespace Amib.Threading
                         {
                             lock(_workerThreads.SyncRoot)
                             {
+                                // Update the last time this thread was seen alive.
+                                // It's good for debugging.
+                                _workerThreads[Thread.CurrentThread] = DateTime.Now;
+
                                 if (_workerThreads.Count > _stpStartInfo.MinWorkerThreads)
                                 {
                                     // Inform that the thread is quiting and then quit.
