@@ -121,15 +121,16 @@ namespace OpenSim.Data.MSSQL
                     if (reader.Read())
                     {
                         AssetBase asset = new AssetBase(
-                            new UUID((Guid)reader["id"]),
+                            DBGuid.FromDB(reader["id"]),
                             (string)reader["name"],
                             Convert.ToSByte(reader["assetType"]),
-                            String.Empty
+                            reader["creatorid"].ToString()
                         );
                         // Region Main
                         asset.Description = (string)reader["description"];
                         asset.Local = Convert.ToBoolean(reader["local"]);
                         asset.Temporary = Convert.ToBoolean(reader["temporary"]);
+                        asset.Flags = (AssetFlags)(Convert.ToInt32(reader["asset_flags"]));
                         asset.Data = (byte[])reader["data"];
                         return asset;
                     }
@@ -160,10 +161,10 @@ namespace OpenSim.Data.MSSQL
             
             string sql = @"INSERT INTO assets
                             ([id], [name], [description], [assetType], [local], 
-                             [temporary], [create_time], [access_time], [data])
+                             [temporary], [create_time], [access_time], [creatorid], [asset_flags], [data])
                            VALUES
                             (@id, @name, @description, @assetType, @local, 
-                             @temporary, @create_time, @access_time, @data)";
+                             @temporary, @create_time, @access_time, @creatorid, @asset_flags, @data)";
             
             string assetName = asset.Name;
             if (asset.Name.Length > 64)
@@ -191,6 +192,8 @@ namespace OpenSim.Data.MSSQL
                 command.Parameters.Add(m_database.CreateParameter("temporary", asset.Temporary));
                 command.Parameters.Add(m_database.CreateParameter("access_time", now));
                 command.Parameters.Add(m_database.CreateParameter("create_time", now));
+                command.Parameters.Add(m_database.CreateParameter("asset_flags", (int)asset.Flags));
+                command.Parameters.Add(m_database.CreateParameter("creatorid", asset.Metadata.CreatorID));
                 command.Parameters.Add(m_database.CreateParameter("data", asset.Data));
                 conn.Open();
                 try
@@ -212,6 +215,7 @@ namespace OpenSim.Data.MSSQL
         {
             string sql = @"UPDATE assets set name = @name, description = @description, assetType = @assetType,
                             local = @local, temporary = @temporary, data = @data
+                            , creatorid = @creatorid
                            WHERE id = @keyId;";
 
             string assetName = asset.Name;
@@ -238,6 +242,7 @@ namespace OpenSim.Data.MSSQL
                 command.Parameters.Add(m_database.CreateParameter("local", asset.Local));
                 command.Parameters.Add(m_database.CreateParameter("temporary", asset.Temporary));
                 command.Parameters.Add(m_database.CreateParameter("data", asset.Data));
+                command.Parameters.Add(m_database.CreateParameter("creatorid", asset.Metadata.CreatorID));
                 conn.Open();
                 try
                 {
@@ -296,7 +301,7 @@ namespace OpenSim.Data.MSSQL
             List<AssetMetadata> retList = new List<AssetMetadata>(count);
             string sql = @"WITH OrderedAssets AS
                 (
-                    SELECT id, name, description, assetType, temporary, 
+                    SELECT id, name, description, assetType, temporary, creatorid,
                     Row = ROW_NUMBER() OVER (ORDER BY id)
                     FROM assets 
                 ) 
@@ -320,6 +325,7 @@ namespace OpenSim.Data.MSSQL
                         metadata.Description = (string)reader["description"];
                         metadata.Type = Convert.ToSByte(reader["assetType"]);
                         metadata.Temporary = Convert.ToBoolean(reader["temporary"]);
+                        metadata.CreatorID = (string)reader["creatorid"];
                     }
                 }
             }
