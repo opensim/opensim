@@ -42,6 +42,9 @@ namespace OpenSim.Data.Tests
         public UUID uuid1;
         public UUID uuid2;
         public UUID uuid3;
+        public string critter1 = UUID.Random().ToString();
+        public string critter2 = UUID.Random().ToString();
+        public string critter3 = UUID.Random().ToString();
         public byte[] asset1;
         PropertyScrambler<AssetBase> scrambler;
 
@@ -54,6 +57,7 @@ namespace OpenSim.Data.Tests
             uuid3 = UUID.Random();
             asset1 = new byte[100];
             asset1.Initialize();
+            
 
             scrambler = new PropertyScrambler<AssetBase>()
                 .DontScramble(x => x.ID)
@@ -76,9 +80,9 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T010_StoreSimpleAsset()
         {
-            AssetBase a1 = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, UUID.Zero.ToString());
-            AssetBase a2 = new AssetBase(uuid2, "asset two", (sbyte)AssetType.Texture, UUID.Zero.ToString());
-            AssetBase a3 = new AssetBase(uuid3, "asset three", (sbyte)AssetType.Texture, UUID.Zero.ToString());
+            AssetBase a1 = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, critter1);
+            AssetBase a2 = new AssetBase(uuid2, "asset two", (sbyte)AssetType.Texture, critter2);
+            AssetBase a3 = new AssetBase(uuid3, "asset three", (sbyte)AssetType.Texture, critter3);
             a1.Data = asset1;
             a2.Data = asset1;
             a3.Data = asset1;
@@ -86,7 +90,6 @@ namespace OpenSim.Data.Tests
             scrambler.Scramble(a1);
             scrambler.Scramble(a2);
             scrambler.Scramble(a3);
-
 
             db.StoreAsset(a1);
             db.StoreAsset(a2);
@@ -130,6 +133,34 @@ namespace OpenSim.Data.Tests
             Assert.That(metadata.Type, Is.EqualTo(a1b.Type));
             Assert.That(metadata.Temporary, Is.EqualTo(a1b.Temporary));
             Assert.That(metadata.FullID, Is.EqualTo(a1b.FullID));
+        }
+
+
+        [Test]
+        public void T020_CheckForWeirdCreatorID()
+        {
+            // It is expected that eventually the CreatorID might be an arbitrary string (an URI)
+            // rather than a valid UUID (?).  This test is to make sure that the database layer does not
+            // attempt to convert CreatorID to GUID, but just passes it both ways as a string.
+            AssetBase a1 = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, critter1);
+            AssetBase a2 = new AssetBase(uuid2, "asset two", (sbyte)AssetType.Texture, "This is not a GUID!");
+            AssetBase a3 = new AssetBase(uuid3, "asset three", (sbyte)AssetType.Texture, "");
+            a1.Data = asset1;
+            a2.Data = asset1;
+            a3.Data = asset1;
+
+            db.StoreAsset(a1);
+            db.StoreAsset(a2);
+            db.StoreAsset(a3);
+
+            AssetBase a1a = db.GetAsset(uuid1);
+            Assert.That(a1a, Constraints.PropertyCompareConstraint(a1));
+
+            AssetBase a2a = db.GetAsset(uuid2);
+            Assert.That(a2a, Constraints.PropertyCompareConstraint(a2));
+
+            AssetBase a3a = db.GetAsset(uuid3);
+            Assert.That(a3a, Constraints.PropertyCompareConstraint(a3));
         }
     }
 }
