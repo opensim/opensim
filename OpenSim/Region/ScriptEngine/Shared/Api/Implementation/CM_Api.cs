@@ -121,7 +121,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             LSL_List result = new LSL_List();
             World.ForEachScenePresence(delegate (ScenePresence avatar)
             {
-                if (avatar.UUID != m_host.OwnerID)
+                if (avatar != null && avatar.UUID != m_host.OwnerID)
                 {
                     if (avatar.IsChildAgent == false)
                     {
