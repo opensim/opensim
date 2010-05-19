@@ -200,7 +200,7 @@ namespace OpenSim.Data
                 catch (Exception e)
                 {
                     m_log.DebugFormat("[MIGRATIONS] Cmd was {0}", kvp.Value.ToString());
-                    m_log.DebugFormat("[MIGRATIONS]: An error has occurred in the migration {0}.\n This may mean you could see errors trying to run OpenSim. If you see database related errors, you will need to fix the issue manually. Migration aborted.", e.Message);
+                    m_log.DebugFormat("[MIGRATIONS]: An error has occurred in the migration {0}. This may mean you could see errors trying to run OpenSim. If you see database related errors, you will need to fix the issue manually. Continuing.", e.Message);
                     ExecuteScript("ROLLBACK;");
                 }
 
