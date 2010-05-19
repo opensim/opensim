@@ -206,7 +206,7 @@ namespace OpenSim.Data
                 }
                 catch (Exception e)
                 {
-                    m_log.DebugFormat("[MIGRATIONS] Cmd was {0}", e.Message);
+                    m_log.DebugFormat("[MIGRATIONS] Cmd was {0}", e.Message.Replace("\n", " "));
                     m_log.Debug("[MIGRATIONS]: An error has occurred in the migration. This may mean you could see errors trying to run OpenSim. If you see database related errors, you will need to fix the issue manually. Continuing.");
                     ExecuteScript("ROLLBACK;");
                 }

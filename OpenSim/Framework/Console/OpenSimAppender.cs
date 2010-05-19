@@ -66,7 +66,10 @@ namespace OpenSim.Framework.Console
                 }
                 else
                 {
-                    System.Console.WriteLine(loggingMessage);
+                    if (!loggingMessage.EndsWith("\n"))
+                        System.Console.WriteLine(loggingMessage);
+                    else
+                        System.Console.Write(loggingMessage);
                 }
             }
             catch (Exception e)
