@@ -40,3 +40,27 @@ update assets
 
 COMMIT;
 
+:VERSION 5
+
+BEGIN TRANSACTION;
+
+CREATE TEMPORARY TABLE assets_backup(UUID,Name,Description,Type,Local,Temporary,Data);
+INSERT INTO assets_backup SELECT UUID,Name,Description,Type,Local,Temporary,Data FROM assets;
+DROP TABLE assets;
+CREATE TABLE assets(
+	UUID NOT NULL PRIMARY KEY,
+	Name,
+	Description,
+	Type,
+	Local,
+	Temporary,
+	asset_flags INTEGER NOT NULL DEFAULT 0,
+	CreatorID varchar(36) default '',
+	Data);
+	
+INSERT INTO assets(UUID,Name,Description,Type,Local,Temporary,Data) 
+SELECT UUID,Name,Description,Type,Local,Temporary,Data FROM assets_backup;
+DROP TABLE assets_backup;
+
+COMMIT;
+
