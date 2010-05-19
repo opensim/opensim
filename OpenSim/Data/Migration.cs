@@ -150,9 +150,9 @@ namespace OpenSim.Data
                     {
                         cmd.ExecuteNonQuery();
                     }
-                    catch
+                    catch(Exception e)
                     {
-                        throw new Exception(sql);
+                        throw new Exception(e.Message + " in SQL: " + sql);
                     }
                 }
             }
