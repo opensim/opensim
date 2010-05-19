@@ -77,7 +77,7 @@ namespace OpenSim.Data.MySQL
                     {
                         m_log.ErrorFormat("[MySQL MIGRATION]: Error {0}", args.Exception.Message);
                         m_log.ErrorFormat("[MySQL MIGRATION]: In SQL: {0}", args.StatementText);
-                        throw args.Exception;
+                        m_log.Error("[MySQL MIGRATION]: The above migration failed to complete. This may cause errors in your install, but could also be normal. Continuing.");
                     };
                     scr.Execute();
                 }
