@@ -146,7 +146,14 @@ namespace OpenSim.Data
                 foreach (string sql in script)
                 {
                     cmd.CommandText = sql;
-                    cmd.ExecuteNonQuery();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch
+                    {
+                        throw new Exception(sql);
+                    }
                 }
             }
         }
@@ -199,8 +206,8 @@ namespace OpenSim.Data
                 }
                 catch (Exception e)
                 {
-                    m_log.DebugFormat("[MIGRATIONS] Cmd was {0}", kvp.Value.ToString());
-                    m_log.DebugFormat("[MIGRATIONS]: An error has occurred in the migration {0}. This may mean you could see errors trying to run OpenSim. If you see database related errors, you will need to fix the issue manually. Continuing.", e.Message);
+                    m_log.DebugFormat("[MIGRATIONS] Cmd was {0}", e.Message);
+                    m_log.Debug("[MIGRATIONS]: An error has occurred in the migration. This may mean you could see errors trying to run OpenSim. If you see database related errors, you will need to fix the issue manually. Continuing.");
                     ExecuteScript("ROLLBACK;");
                 }
 

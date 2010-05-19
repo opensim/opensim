@@ -43,8 +43,6 @@ namespace OpenSim.Data.MySQL
     /// </summary>
     public class MySqlMigration : Migration
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
         public MySqlMigration()
             : base()
         { 
@@ -75,9 +73,7 @@ namespace OpenSim.Data.MySQL
                     scr.Query = sql;
                     scr.Error += delegate(object sender, MySqlScriptErrorEventArgs args)
                     {
-                        m_log.ErrorFormat("[MySQL MIGRATION]: Error {0}", args.Exception.Message);
-                        m_log.ErrorFormat("[MySQL MIGRATION]: In SQL: {0}", args.StatementText);
-                        throw args.Exception;
+                        throw new Exception(sql);
                     };
                     scr.Execute();
                 }
