@@ -213,7 +213,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_autopilotMoving;
         private Vector3 m_autoPilotTarget;
         private bool m_sitAtAutoTarget;
-        private Vector3 m_initialSitTarget;		//KF: First estimate of where to sit
+        private Vector3 m_initialSitTarget = Vector3.Zero;		//KF: First estimate of where to sit
 
         private string m_nextSitAnimation = String.Empty;
 
