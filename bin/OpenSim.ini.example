@@ -594,6 +594,10 @@
 
 [RemoteAdmin]
     enabled = false
+
+    ; Set this to a nonzero value to have remote admin use a different port
+    port = 0
+
     access_password = unknown
 
     ; set this variable to true if you want the create_region XmlRpc

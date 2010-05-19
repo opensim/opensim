@@ -158,7 +158,7 @@ namespace OpenSim.Services.Connectors.Friends
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[FRIENDS CONNECTOR]: Exception when contacting remote sim: {0}", e.Message);
+                m_log.DebugFormat("[FRIENDS CONNECTOR]: Exception when contacting remote sim: {0}", e.ToString());
             }
 
             return false;
