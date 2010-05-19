@@ -2357,11 +2357,14 @@ namespace OpenSim.Region.Framework.Scenes
 //    	        {				// single or child prim
     	            partIRot = Quaternion.Inverse(part.GetWorldRotation());
 //    	        }                       
-				float offZ = collisionPoint.Z - m_initialSitTarget.Z;
-				Vector3 offset = new Vector3(0.0f, 0.0f, offZ) * partIRot; // Altitude correction
-//Console.WriteLine("sitPoint={0},  offset={1}",  sitPoint,  offset);
-				m_pos += offset;
-//  ControllingClient.SendClearFollowCamProperties(part.UUID);
+                if (m_initialSitTarget != null)
+                {
+                    float offZ = collisionPoint.Z - m_initialSitTarget.Z;
+                    Vector3 offset = new Vector3(0.0f, 0.0f, offZ) * partIRot; // Altitude correction
+                    //Console.WriteLine("sitPoint={0},  offset={1}",  sitPoint,  offset);
+                    m_pos += offset;
+                    //  ControllingClient.SendClearFollowCamProperties(part.UUID);
+                }
 				
 			}
 		} // End SitAltitudeCallback  KF.
