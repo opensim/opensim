@@ -24,30 +24,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
-
 using OpenMetaverse;
 using log4net;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
+namespace OpenSim.Services.Connectors.SimianGrid
 {
-    public class ActivityDetector 
+    public class SimianActivityDetector
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IGridUserService m_GridUserService;
         private Scene m_aScene;
 
-        public ActivityDetector(IGridUserService guservice)
+        public SimianActivityDetector(IGridUserService guservice)
         {
             m_GridUserService = guservice;
-            m_log.DebugFormat("[ACTIVITY DETECTOR]: starting ");
+            m_log.DebugFormat("[SIMIAN ACTIVITY DETECTOR]: Started");
         }
 
         public void AddRegion(Scene scene)
@@ -66,12 +65,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
         {
             scene.EventManager.OnMakeRootAgent -= OnMakeRootAgent;
             scene.EventManager.OnNewClient -= OnNewClient;
+            scene.EventManager.OnAvatarEnteringNewParcel -= OnEnteringNewParcel;
         }
 
         public void OnMakeRootAgent(ScenePresence sp)
         {
-            m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected root presence {0} in {1}", sp.UUID, sp.Scene.RegionInfo.RegionName);
-
+            m_log.DebugFormat("[SIMIAN ACTIVITY DETECTOR]: Detected root presence {0} in {1}", sp.UUID, sp.Scene.RegionInfo.RegionName);
             m_GridUserService.SetLastPosition(sp.UUID.ToString(), sp.ControllingClient.SessionId, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
         }
 
@@ -99,7 +98,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
                         lookat = ((ScenePresence)sp).Lookat;
                     }
                 }
-                m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected client logout {0} in {1}", client.AgentId, client.Scene.RegionInfo.RegionName);
+
+                m_log.DebugFormat("[SIMIAN ACTIVITY DETECTOR]: Detected client logout {0} in {1}", client.AgentId, client.Scene.RegionInfo.RegionName);
                 m_GridUserService.LoggedOut(client.AgentId.ToString(), client.Scene.RegionInfo.RegionID, position, lookat);
             }
 
@@ -107,10 +107,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
 
         void OnEnteringNewParcel(ScenePresence sp, int localLandID, UUID regionID)
         {
-            // TODO: grab the parcel ID from ILandModule
-            // and send that along
             m_GridUserService.SetLastPosition(sp.UUID.ToString(), sp.ControllingClient.SessionId, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
         }
-
     }
 }

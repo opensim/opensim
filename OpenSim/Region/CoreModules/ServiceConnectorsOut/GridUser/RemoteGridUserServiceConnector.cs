@@ -137,9 +137,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
             return m_RemoteConnector.SetHome(userID, regionID, position, lookAt);
         }
 
-        public bool SetLastPosition(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
+        public bool SetLastPosition(string userID, UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
-            return m_RemoteConnector.SetLastPosition(userID, regionID, position, lookAt);
+            return m_RemoteConnector.SetLastPosition(userID, sessionID, regionID, position, lookAt);
         }
 
         public GridUserInfo GetGridUserInfo(string userID)
