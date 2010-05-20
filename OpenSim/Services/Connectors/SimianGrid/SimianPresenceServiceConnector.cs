@@ -298,6 +298,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return UpdateSession(sessionID, regionID, lastPosition, lastLookAt);
         }
 
+        public bool SetLastPosition(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
+        {
+            // Never called
+            return false;
+        }
+
         public GridUserInfo GetGridUserInfo(string user)
         {
             m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting session data for agent " + user);

@@ -40,10 +40,10 @@ namespace OpenSim.Services.Connectors.SimianGrid
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IGridUserService m_GridUserService;
+        private SimianPresenceServiceConnector m_GridUserService;
         private Scene m_aScene;
 
-        public SimianActivityDetector(IGridUserService guservice)
+        public SimianActivityDetector(SimianPresenceServiceConnector guservice)
         {
             m_GridUserService = guservice;
             m_log.DebugFormat("[SIMIAN ACTIVITY DETECTOR]: Started");

@@ -108,7 +108,7 @@ namespace OpenSim.Services.Interfaces
         bool LoggedOut(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt);
         
         bool SetHome(string userID, UUID homeID, Vector3 homePosition, Vector3 homeLookAt);
-        bool SetLastPosition(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt);
+        bool SetLastPosition(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt);
     
         GridUserInfo GetGridUserInfo(string userID);
     }

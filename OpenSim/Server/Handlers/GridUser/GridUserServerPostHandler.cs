@@ -156,7 +156,6 @@ namespace OpenSim.Server.Handlers.GridUser
         byte[] SetPosition(Dictionary<string, object> request)
         {
             string user = string.Empty;
-            UUID sessionID = UUID.Zero;
             UUID region = UUID.Zero;
             Vector3 position = new Vector3(128, 128, 70);
             Vector3 look = Vector3.Zero;
@@ -167,7 +166,7 @@ namespace OpenSim.Server.Handlers.GridUser
             if (!UnpackArgs(request, out user, out region, out position, out look))
                 return FailureResult();
 
-            if (m_GridUserService.SetLastPosition(user, sessionID, region, position, look))
+            if (m_GridUserService.SetLastPosition(user, region, position, look))
                 return SuccessResult();
 
             return FailureResult();

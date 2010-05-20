@@ -56,7 +56,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
             // But we could trigger the position update more often
             scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
             scene.EventManager.OnNewClient += OnNewClient;
-            scene.EventManager.OnAvatarEnteringNewParcel += OnEnteringNewParcel;
 
             if (m_aScene == null)
                 m_aScene = scene;
@@ -72,7 +71,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
         {
             m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected root presence {0} in {1}", sp.UUID, sp.Scene.RegionInfo.RegionName);
 
-            m_GridUserService.SetLastPosition(sp.UUID.ToString(), sp.ControllingClient.SessionId, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
+            m_GridUserService.SetLastPosition(sp.UUID.ToString(), sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
         }
 
         public void OnNewClient(IClientAPI client)
@@ -103,13 +102,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
                 m_GridUserService.LoggedOut(client.AgentId.ToString(), client.Scene.RegionInfo.RegionID, position, lookat);
             }
 
-        }
-
-        void OnEnteringNewParcel(ScenePresence sp, int localLandID, UUID regionID)
-        {
-            // TODO: grab the parcel ID from ILandModule
-            // and send that along
-            m_GridUserService.SetLastPosition(sp.UUID.ToString(), sp.ControllingClient.SessionId, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
         }
 
     }
