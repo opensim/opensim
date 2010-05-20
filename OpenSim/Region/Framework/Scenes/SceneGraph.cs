@@ -68,8 +68,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Fields
 
-        protected Dictionary<UUID, ScenePresence> m_scenePresences = new Dictionary<UUID, ScenePresence>();
-        protected ScenePresence[] m_scenePresenceArray = new ScenePresence[0];
+        protected object m_presenceLock = new object();
+        protected Dictionary<UUID, ScenePresence> m_scenePresenceMap = new Dictionary<UUID, ScenePresence>();
+        protected List<ScenePresence> m_scenePresenceArray = new List<ScenePresence>();
 
         // SceneObjects is not currently populated or used.
         //public Dictionary<UUID, SceneObjectGroup> SceneObjects;
@@ -132,10 +133,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void Close()
         {
-            lock (m_scenePresences)
+            lock (m_presenceLock)
             {
-                m_scenePresences.Clear();
-                m_scenePresenceArray = new ScenePresence[0];
+                Dictionary<UUID, ScenePresence> newmap = new Dictionary<UUID, ScenePresence>();
+                List<ScenePresence> newlist = new List<ScenePresence>();
+                m_scenePresenceMap = newmap;
+                m_scenePresenceArray = newlist;
             }
 
             lock (m_dictionary_lock)
@@ -518,34 +521,29 @@ namespace OpenSim.Region.Framework.Scenes
 
             Entities[presence.UUID] = presence;
 
-            lock (m_scenePresences)
+            lock (m_presenceLock)
             {
-                if (!m_scenePresences.ContainsKey(presence.UUID))
-                {
-                    m_scenePresences.Add(presence.UUID, presence);
+                Dictionary<UUID, ScenePresence> newmap = new Dictionary<UUID, ScenePresence>(m_scenePresenceMap);
+                List<ScenePresence> newlist = new List<ScenePresence>(m_scenePresenceArray);
 
-                    // Create a new array of ScenePresence references
-                    int oldLength = m_scenePresenceArray.Length;
-                    ScenePresence[] newArray = new ScenePresence[oldLength + 1];
-                    Array.Copy(m_scenePresenceArray, newArray, oldLength);
-                    newArray[oldLength] = presence;
-                    m_scenePresenceArray = newArray;
+                if (!newmap.ContainsKey(presence.UUID))
+                {
+                    newmap.Add(presence.UUID, presence);
+                    newlist.Add(presence);
                 }
                 else
                 {
-                    m_scenePresences[presence.UUID] = presence;
-                    
-                    // Do a linear search through the array of ScenePresence references
-                    // and update the modified entry
-                    for (int i = 0; i < m_scenePresenceArray.Length; i++)
-                    {
-                        if (m_scenePresenceArray[i].UUID == presence.UUID)
-                        {
-                            m_scenePresenceArray[i] = presence;
-                            break;
-                        }
-                    }
+                    // Remember the old presene reference from the dictionary
+                    ScenePresence oldref = newmap[presence.UUID];
+                    // Replace the presence reference in the dictionary with the new value
+                    newmap[presence.UUID] = presence;
+                    // Find the index in the list where the old ref was stored and update the reference
+                    newlist[newlist.IndexOf(oldref)] = presence;
                 }
+
+                // Swap out the dictionary and list with new references
+                m_scenePresenceMap = newmap;
+                m_scenePresenceArray = newlist;
             }
         }
 
@@ -561,25 +559,21 @@ namespace OpenSim.Region.Framework.Scenes
                     agentID);
             }
 
-            lock (m_scenePresences)
+            lock (m_presenceLock)
             {
-                if (m_scenePresences.Remove(agentID))
+                Dictionary<UUID, ScenePresence> newmap = new Dictionary<UUID, ScenePresence>(m_scenePresenceMap);
+                List<ScenePresence> newlist = new List<ScenePresence>(m_scenePresenceArray);
+
+                // Remember the old presene reference from the dictionary
+                ScenePresence oldref = newmap[agentID];
+                // Remove the presence reference from the dictionary
+                if (newmap.Remove(agentID))
                 {
-                    // Copy all of the elements from the previous array
-                    // into the new array except the removed element
-                    int oldLength = m_scenePresenceArray.Length;
-                    ScenePresence[] newArray = new ScenePresence[oldLength - 1];
-                    int j = 0;
-                    for (int i = 0; i < m_scenePresenceArray.Length; i++)
-                    {
-                        ScenePresence presence = m_scenePresenceArray[i];
-                        if (presence.UUID != agentID)
-                        {
-                            newArray[j] = presence;
-                            ++j;
-                        }
-                    }
-                    m_scenePresenceArray = newArray;
+                    // Find the index in the list where the old ref was stored and remove the reference
+                    newlist.RemoveAt(newlist.IndexOf(oldref));
+                    // Swap out the dictionary and list with new references
+                    m_scenePresenceMap = newmap;
+                    m_scenePresenceArray = newlist;
                 }
                 else
                 {
@@ -698,7 +692,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Request a copy of m_scenePresences in this World
+        /// Get a reference to the scene presence list. Changes to the list will be done in a copy
         /// There is no guarantee that presences will remain in the scene after the list is returned.
         /// This list should remain private to SceneGraph. Callers wishing to iterate should instead
         /// pass a delegate to ForEachScenePresence.
@@ -706,8 +700,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         private List<ScenePresence> GetScenePresences()
         {
-            lock (m_scenePresences)
-                return new List<ScenePresence>(m_scenePresenceArray);
+            return m_scenePresenceArray;
         }
 
         /// <summary>
@@ -717,12 +710,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if the presence was not found</returns>
         protected internal ScenePresence GetScenePresence(UUID agentID)
         {
-            ScenePresence sp;
-            lock (m_scenePresences)
-            {
-                m_scenePresences.TryGetValue(agentID, out sp);
-            }
-            return sp;
+            Dictionary<UUID, ScenePresence> presences = m_scenePresenceMap;
+            ScenePresence presence;
+            presences.TryGetValue(agentID, out presence);
+            return presence;
         }
 
         /// <summary>
@@ -733,7 +724,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if the presence was not found</returns>
         protected internal ScenePresence GetScenePresence(string firstName, string lastName)
         {
-            foreach (ScenePresence presence in GetScenePresences())
+            List<ScenePresence> presences = GetScenePresences();
+            foreach (ScenePresence presence in presences)
             {
                 if (presence.Firstname == firstName && presence.Lastname == lastName)
                     return presence;
@@ -748,7 +740,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if the presence was not found</returns>
         protected internal ScenePresence GetScenePresence(uint localID)
         {
-            foreach (ScenePresence presence in GetScenePresences())
+            List<ScenePresence> presences = GetScenePresences();
+            foreach (ScenePresence presence in presences)
                 if (presence.LocalId == localID)
                     return presence;
             return null;
@@ -756,10 +749,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal bool TryGetScenePresence(UUID agentID, out ScenePresence avatar)
         {
-            lock (m_scenePresences)
-            {
-                m_scenePresences.TryGetValue(agentID, out avatar);
-            }
+            Dictionary<UUID, ScenePresence> presences = m_scenePresenceMap;
+            presences.TryGetValue(agentID, out avatar);
             return (avatar != null);
         }
 
@@ -1036,8 +1027,9 @@ namespace OpenSim.Region.Framework.Scenes
                 });
             Parallel.ForEach<ScenePresence>(GetScenePresences(), protectedAction);
             */
-            // For now, perform actiona serially
-            foreach (ScenePresence sp in GetScenePresences())
+            // For now, perform actions serially
+            List<ScenePresence> presences = GetScenePresences();
+            foreach (ScenePresence sp in presences)
             {
                 try
                 {

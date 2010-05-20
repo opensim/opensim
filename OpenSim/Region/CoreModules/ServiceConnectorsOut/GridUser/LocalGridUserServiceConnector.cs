@@ -162,9 +162,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
             return m_GridUserService.SetHome(userID, homeID, homePosition, homeLookAt);
         }
 
-        public bool SetLastPosition(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
+        public bool SetLastPosition(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
         {
-            return m_GridUserService.SetLastPosition(userID, regionID, lastPosition, lastLookAt);
+            return m_GridUserService.SetLastPosition(userID, sessionID, regionID, lastPosition, lastLookAt);
         }
 
         public GridUserInfo GetGridUserInfo(string userID)
