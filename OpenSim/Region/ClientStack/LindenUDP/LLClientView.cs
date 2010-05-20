@@ -4363,7 +4363,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 acceleration = part.Acceleration;
                 angularVelocity = part.AngularVelocity;
                 rotation = part.RotationOffset;
-                textureEntry = part.Shape.TextureEntry;
+
+                if (sendTexture)
+                    textureEntry = part.Shape.TextureEntry;
+                else
+                    textureEntry = null;
             }
 
             #endregion ScenePresence/SOP Handling
