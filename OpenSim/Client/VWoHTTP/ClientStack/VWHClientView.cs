@@ -624,7 +624,7 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
             throw new System.NotImplementedException();
         }
 
-        public void ReprioritizeUpdates(UpdatePriorityHandler handler)
+        public void ReprioritizeUpdates()
         {
             throw new System.NotImplementedException();
         }

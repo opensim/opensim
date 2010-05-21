@@ -458,8 +458,6 @@ namespace OpenSim.Framework
     public delegate void PlacesQuery(UUID QueryID, UUID TransactionID, string QueryText, uint QueryFlags, byte Category, string SimName, IClientAPI client);
 
     public delegate void AgentFOV(IClientAPI client, float verticalAngle);
-
-    public delegate double UpdatePriorityHandler(UpdatePriorityData data);
     
     public delegate void MuteListEntryUpdate(IClientAPI client, UUID MuteID, string Name, int Flags,UUID AgentID);
     
@@ -571,17 +569,16 @@ namespace OpenSim.Framework
         public float dwell;
     }
 
-    public struct UpdatePriorityData {
-        private double m_priority;
-        private uint m_localID;
+    public class EntityUpdate
+    {
+        public ISceneEntity Entity;
+        public PrimUpdateFlags Flags;
 
-        public UpdatePriorityData(double priority, uint localID) {
-            this.m_priority = priority;
-            this.m_localID = localID;
+        public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags)
+        {
+            Entity = entity;
+            Flags = flags;
         }
-
-        public double priority { get { return this.m_priority; } }
-        public uint localID { get { return this.m_localID; } }
     }
 
     /// <summary>
@@ -1026,7 +1023,7 @@ namespace OpenSim.Framework
 
         void SendAvatarDataImmediate(ISceneEntity avatar);
         void SendPrimUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags);
-        void ReprioritizeUpdates(UpdatePriorityHandler handler);
+        void ReprioritizeUpdates();
         void FlushPrimUpdates();
 
         void SendInventoryFolderDetails(UUID ownerID, UUID folderID, List<InventoryItemBase> items,

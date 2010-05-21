@@ -28,7 +28,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
+using log4net;
 
 namespace OpenSim.Framework.Serialization
 {
@@ -37,7 +39,7 @@ namespace OpenSim.Framework.Serialization
     /// </summary>
     public class TarArchiveWriter
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
         protected static UTF8Encoding m_utf8Encoding = new UTF8Encoding();
@@ -148,6 +150,9 @@ namespace OpenSim.Framework.Serialization
         /// <param name="fileType"></param>
         protected void WriteEntry(string filePath, byte[] data, char fileType)
         {
+//            m_log.DebugFormat(
+//                "[TAR ARCHIVE WRITER]: Data for {0} is {1} bytes", filePath, (null == data ? "null" : data.Length.ToString()));
+                  
             byte[] header = new byte[512];
 
             // file path field (100)

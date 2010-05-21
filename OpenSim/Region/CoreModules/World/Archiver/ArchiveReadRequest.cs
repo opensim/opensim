@@ -38,7 +38,6 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
-
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -243,7 +242,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // on the same region server and multiple examples a single object archive to be imported
                 // to the same scene (when this is possible).
                 sceneObject.ResetIDs();
-
 
                 foreach (SceneObjectPart part in sceneObject.Children.Values)
                 {

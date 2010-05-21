@@ -641,7 +641,7 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public void ReprioritizeUpdates(UpdatePriorityHandler handler)
+        public void ReprioritizeUpdates()
         {
         }
 

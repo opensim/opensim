@@ -58,13 +58,6 @@ namespace OpenSim.Region.Framework.Scenes
 
     public partial class Scene : SceneBase
     {
-        public enum UpdatePrioritizationSchemes {
-            Time = 0,
-            Distance = 1,
-            SimpleAngularDistance = 2,
-            FrontBack = 3,
-        }
-
         public delegate void SynchronizeSceneHandler(Scene scene);
         public SynchronizeSceneHandler SynchronizeScene = null;
 
@@ -402,12 +395,6 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_lastUpdate;
         private bool m_firstHeartbeat = true;
 
-        private UpdatePrioritizationSchemes m_update_prioritization_scheme = UpdatePrioritizationSchemes.Time;
-        private bool m_reprioritization_enabled = true;
-        private double m_reprioritization_interval = 5000.0;
-        private double m_root_reprioritization_distance = 10.0;
-        private double m_child_reprioritization_distance = 20.0;
-
         private object m_deleting_scene_object = new object();
 
         // the minimum time that must elapse before a changed object will be considered for persisted
@@ -415,15 +402,21 @@ namespace OpenSim.Region.Framework.Scenes
         // the maximum time that must elapse before a changed object will be considered for persisted
         public long m_persistAfter = DEFAULT_MAX_TIME_FOR_PERSISTENCE * 10000000L;
 
+        private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
+        private bool m_reprioritizationEnabled = true;
+        private double m_reprioritizationInterval = 5000.0;
+        private double m_rootReprioritizationDistance = 10.0;
+        private double m_childReprioritizationDistance = 20.0;
+
         #endregion
 
         #region Properties
 
-        public UpdatePrioritizationSchemes UpdatePrioritizationScheme { get { return this.m_update_prioritization_scheme; } }
-        public bool IsReprioritizationEnabled { get { return m_reprioritization_enabled; } }
-        public double ReprioritizationInterval { get { return m_reprioritization_interval; } }
-        public double RootReprioritizationDistance { get { return m_root_reprioritization_distance; } }
-        public double ChildReprioritizationDistance { get { return m_child_reprioritization_distance; } }
+        public UpdatePrioritizationSchemes UpdatePrioritizationScheme { get { return m_priorityScheme; } }
+        public bool IsReprioritizationEnabled { get { return m_reprioritizationEnabled; } }
+        public double ReprioritizationInterval { get { return m_reprioritizationInterval; } }
+        public double RootReprioritizationDistance { get { return m_rootReprioritizationDistance; } }
+        public double ChildReprioritizationDistance { get { return m_childReprioritizationDistance; } }
 
         public AgentCircuitManager AuthenticateHandler
         {
@@ -625,6 +618,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_asyncSceneObjectDeleter = new AsyncSceneObjectGroupDeleter(this);
             m_asyncSceneObjectDeleter.Enabled = true;
 
+            #region Region Settings
+
             // Load region settings
             m_regInfo.RegionSettings = m_storageManager.DataStore.LoadRegionSettings(m_regInfo.RegionID);
             m_regInfo.WindlightSettings = m_storageManager.DataStore.LoadRegionWindlightSettings(m_regInfo.RegionID);
@@ -673,6 +668,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            #endregion Region Settings
+
             MainConsole.Instance.Commands.AddCommand("region", false, "reload estate",
                                           "reload estate",
                                           "Reload the estate data", HandleReloadEstate);
@@ -716,6 +713,8 @@ namespace OpenSim.Region.Framework.Scenes
             */
 
             m_simulatorVersion = simulatorVersion + " (" + Util.GetRuntimeInformation() + ")";
+
+            #region Region Config
 
             try
             {
@@ -770,38 +769,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
 
-                IConfig interest_management_config = m_config.Configs["InterestManagement"];
-                if (interest_management_config != null)
-                {
-                    string update_prioritization_scheme = interest_management_config.GetString("UpdatePrioritizationScheme", "Time").Trim().ToLower();
-                    switch (update_prioritization_scheme)
-                    {
-                        case "time":
-                            m_update_prioritization_scheme = UpdatePrioritizationSchemes.Time;
-                            break;
-                        case "distance":
-                            m_update_prioritization_scheme = UpdatePrioritizationSchemes.Distance;
-                            break;
-                        case "simpleangulardistance":
-                            m_update_prioritization_scheme = UpdatePrioritizationSchemes.SimpleAngularDistance;
-                            break;
-                        case "frontback":
-                            m_update_prioritization_scheme = UpdatePrioritizationSchemes.FrontBack;
-                            break;
-                        default:
-                            m_log.Warn("[SCENE]: UpdatePrioritizationScheme was not recognized, setting to default settomg of Time");
-                            m_update_prioritization_scheme = UpdatePrioritizationSchemes.Time;
-                            break;
-                    }
-
-                    m_reprioritization_enabled = interest_management_config.GetBoolean("ReprioritizationEnabled", true);
-                    m_reprioritization_interval = interest_management_config.GetDouble("ReprioritizationInterval", 5000.0);
-                    m_root_reprioritization_distance = interest_management_config.GetDouble("RootReprioritizationDistance", 10.0);
-                    m_child_reprioritization_distance = interest_management_config.GetDouble("ChildReprioritizationDistance", 20.0);
-                }
-
-                m_log.Info("[SCENE]: Using the " + m_update_prioritization_scheme + " prioritization scheme");
-
                 #region BinaryStats
 
                 try
@@ -838,6 +805,38 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.Warn("[SCENE]: Failed to load StartupConfig");
             }
+
+            #endregion Region Config
+
+            #region Interest Management
+
+            if (m_config != null)
+            {
+                IConfig interestConfig = m_config.Configs["InterestManagement"];
+                if (interestConfig != null)
+                {
+                    string update_prioritization_scheme = interestConfig.GetString("UpdatePrioritizationScheme", "Time").Trim().ToLower();
+
+                    try
+                    {
+                        m_priorityScheme = (UpdatePrioritizationSchemes)Enum.Parse(typeof(UpdatePrioritizationSchemes), update_prioritization_scheme, true);
+                    }
+                    catch (Exception)
+                    {
+                        m_log.Warn("[PRIORITIZER]: UpdatePrioritizationScheme was not recognized, setting to default prioritizer Time");
+                        m_priorityScheme = UpdatePrioritizationSchemes.Time;
+                    }
+
+                    m_reprioritizationEnabled = interestConfig.GetBoolean("ReprioritizationEnabled", true);
+                    m_reprioritizationInterval = interestConfig.GetDouble("ReprioritizationInterval", 5000.0);
+                    m_rootReprioritizationDistance = interestConfig.GetDouble("RootReprioritizationDistance", 10.0);
+                    m_childReprioritizationDistance = interestConfig.GetDouble("ChildReprioritizationDistance", 20.0);
+                }
+            }
+
+            m_log.Info("[SCENE]: Using the " + m_priorityScheme + " prioritization scheme");
+
+            #endregion Interest Management
         }
 
         /// <summary>

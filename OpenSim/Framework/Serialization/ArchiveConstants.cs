@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 
@@ -85,6 +86,11 @@ namespace OpenSim.Framework.Serialization
         /// </value>
         public const string INVENTORY_NODE_NAME_COMPONENT_SEPARATOR = "__";
 
+        /// <summary>
+        /// Template used for creating filenames in OpenSim Archives.
+        /// </summary>
+        public const string OAR_OBJECT_FILENAME_TEMPLATE = "{0}_{1:000}-{2:000}-{3:000}__{4}.xml";
+
         /// <value>
         /// Extensions used for asset types in the archive
         /// </value>
@@ -139,5 +145,32 @@ namespace OpenSim.Framework.Serialization
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "texture.tga"]              = (sbyte)AssetType.TextureTGA;
             EXTENSION_TO_ASSET_TYPE[ASSET_EXTENSION_SEPARATOR + "trashfolder.txt"]          = (sbyte)AssetType.TrashFolder;
         }
+
+        /// <summary>
+        /// Create the filename used to store an object in an OpenSim Archive.
+        /// </summary>
+        /// <param name="objectName"></param>
+        /// <param name="uuid"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public static string CreateOarObjectFilename(string objectName, UUID uuid, Vector3 pos)
+        {
+            return string.Format(
+                OAR_OBJECT_FILENAME_TEMPLATE, objectName, 
+                Math.Round(pos.X), Math.Round(pos.Y), Math.Round(pos.Z),
+                uuid);            
+        }
+
+        /// <summary>
+        /// Create the path used to store an object in an OpenSim Archives.
+        /// </summary>
+        /// <param name="objectName"></param>
+        /// <param name="uuid"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public static string CreateOarObjectPath(string objectName, UUID uuid, Vector3 pos)
+        {
+            return OBJECTS_PATH + CreateOarObjectFilename(objectName, uuid, pos);          
+        }        
     }
 }

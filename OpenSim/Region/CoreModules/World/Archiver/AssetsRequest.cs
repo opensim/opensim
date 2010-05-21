@@ -239,7 +239,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                                                            
                     if (asset != null)
                     {
-//                        m_log.DebugFormat("[ARCHIVER]: Recording asset {0} as found", id);
+//                        m_log.DebugFormat("[ARCHIVER]: Writing asset {0}", id);
                         m_foundAssetUuids.Add(asset.FullID);
                         m_assetsArchiver.WriteAsset(asset);
                     }

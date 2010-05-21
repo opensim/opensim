@@ -548,7 +548,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public void ReprioritizeUpdates(UpdatePriorityHandler handler)
+        public void ReprioritizeUpdates()
         {
         }
 

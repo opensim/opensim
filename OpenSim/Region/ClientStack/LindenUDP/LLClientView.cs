@@ -50,18 +50,6 @@ using Nini.Config;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
-    public class EntityUpdate
-    {
-        public ISceneEntity Entity;
-        public PrimUpdateFlags Flags;
-
-        public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags)
-        {
-            Entity = entity;
-            Flags = flags;
-        }
-    }
-
     public delegate bool PacketMethod(IClientAPI simClient, Packet packet);
 
     /// <summary>
@@ -325,6 +313,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private int m_cachedTextureSerial;
         private PriorityQueue m_entityUpdates;
+        private Prioritizer m_prioritizer;
 
         /// <value>
         /// List used in construction of data blocks for an object update packet.  This is to stop us having to
@@ -464,6 +453,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_propertiesPacketTimer = new Timer(100);
             m_propertiesPacketTimer.Elapsed += ProcessObjectPropertiesPacket;
+
+            m_prioritizer = new Prioritizer(m_scene);
 
             RegisterLocalPacketHandlers();
         }
@@ -3457,14 +3448,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void SendPrimUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
         {
-            double priority;
-
-            if (entity is SceneObjectPart)
-                priority = ((SceneObjectPart)entity).ParentGroup.GetUpdatePriority(this);
-            else if (entity is ScenePresence)
-                priority = ((ScenePresence)entity).GetUpdatePriority(this);
-            else
-                priority = 0.0d;
+            double priority = m_prioritizer.GetUpdatePriority(this, entity);
 
             lock (m_entityUpdates.SyncRoot)
                 m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags), entity.LocalId);
@@ -3613,19 +3597,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #endregion Packet Sending
         }
 
-        public void ReprioritizeUpdates(UpdatePriorityHandler handler)
+        public void ReprioritizeUpdates()
         {
             //m_log.Debug("[CLIENT]: Reprioritizing prim updates for " + m_firstName + " " + m_lastName);
 
-            PriorityQueue.UpdatePriorityHandler update_priority_handler =
-                delegate(ref double priority, uint local_id)
-                {
-                    priority = handler(new UpdatePriorityData(priority, local_id));
-                    return priority != double.NaN;
-                };
-
             lock (m_entityUpdates.SyncRoot)
-                m_entityUpdates.Reprioritize(update_priority_handler);
+                m_entityUpdates.Reprioritize(UpdatePriorityHandler);
+        }
+
+        private bool UpdatePriorityHandler(ref double priority, uint localID)
+        {
+            EntityBase entity;
+            if (m_scene.Entities.TryGetValue(localID, out entity))
+            {
+                priority = m_prioritizer.GetUpdatePriority(this, entity);
+            }
+
+            return priority != double.NaN;
         }
 
         public void FlushPrimUpdates()

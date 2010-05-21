@@ -123,8 +123,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (SceneObjectPart part in sceneObject.GetParts())
             {
-                //m_log.DebugFormat(
-                //    "[ARCHIVER]: Getting part {0}, {1} for object {2}", part.Name, part.UUID, sceneObject.UUID);
+//                m_log.DebugFormat(
+//                    "[ARCHIVER]: Getting part {0}, {1} for object {2}", part.Name, part.UUID, sceneObject.UUID);
 
                 try
                 {
@@ -155,7 +155,9 @@ namespace OpenSim.Region.Framework.Scenes
                     // Now analyze this prim's inventory items to preserve all the uuids that they reference
                     foreach (TaskInventoryItem tii in taskDictionary.Values)
                     {
-                        //m_log.DebugFormat("[ARCHIVER]: Analysing item asset type {0}", tii.Type);
+//                        m_log.DebugFormat(
+//                            "[ARCHIVER]: Analysing item {0} asset type {1} in {2} {3}", 
+//                            tii.Name, tii.Type, part.Name, part.UUID);
 
                         if (!assetUuids.ContainsKey(tii.AssetID))
                             GatherAssetUuids(tii.AssetID, (AssetType)tii.Type, assetUuids);

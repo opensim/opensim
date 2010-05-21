@@ -32,7 +32,6 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
@@ -114,7 +113,6 @@ namespace OpenSim.Tests.Common.Setup
         {
             return SetupScene(name, id, x, y,"");
         }
-
 
         /// <summary>
         /// Set up a scene. If it's more then one scene, use the same CommunicationsManager to link regions

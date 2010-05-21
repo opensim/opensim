@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -26,13 +26,39 @@
  */
 
 using OpenMetaverse;
+using OpenSim.Framework.Serialization;
+using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Framework
-{
-    public interface ISceneEntity
+namespace OpenSim.Region.CoreModules.World.Archiver
+{        
+    /// <summary>
+    /// Helper methods for archive manipulation
+    /// </summary>
+    /// This is a separate class from ArchiveConstants because we need to bring in very OpenSim specific classes.
+    public static class ArchiveHelpers
     {
-        UUID UUID { get; }
-        uint LocalId { get; }
-        Vector3 AbsolutePosition { get; }
+        /// <summary>
+        /// Create the filename used for objects in OpenSim Archives.
+        /// </summary>
+        /// <param name="objectName"></param>
+        /// <param name="uuid"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public static string CreateObjectFilename(SceneObjectGroup sog)
+        {
+            return ArchiveConstants.CreateOarObjectFilename(sog.Name, sog.UUID, sog.AbsolutePosition);
+        }        
+
+        /// <summary>
+        /// Create the path used to store an object in an OpenSim Archive.
+        /// </summary>
+        /// <param name="objectName"></param>
+        /// <param name="uuid"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public static string CreateObjectPath(SceneObjectGroup sog)
+        {
+            return ArchiveConstants.CreateOarObjectPath(sog.Name, sog.UUID, sog.AbsolutePosition);
+        }             
     }
 }
