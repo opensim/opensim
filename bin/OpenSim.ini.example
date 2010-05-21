@@ -1191,7 +1191,6 @@
 
     ; Service connector to Groups Service [Select One] ServicesConnectorModule
 
-	
     ; Simian Grid Service for Groups
     ;ServicesConnectorModule = SimianGroupsServicesConnector
     ;GroupsServerURI = http://mygridserver.com:82/Grid/

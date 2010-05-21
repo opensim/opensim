@@ -888,10 +888,40 @@ namespace OpenSim.Region.Framework.Scenes
                 if (land != null)
                 {
                     //Don't restrict gods, estate managers, or land owners to the TP point. This behaviour mimics agni.
-                    if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero && m_userLevel < 200 && !m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid) && land.LandData.OwnerID != m_uuid)
+                    if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero && UserLevel < 200 && !m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid) && land.LandData.OwnerID != m_uuid)
                     {
                         pos = land.LandData.UserLocation;
                     }
+                }
+            }
+
+            if (pos.X < 0 || pos.Y < 0 || pos.Z < 0)
+            {
+                Vector3 emergencyPos = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 128);
+                
+                if (pos.X < 0)
+                {
+                    emergencyPos.X = (int)Constants.RegionSize + pos.X;
+                    if (!(pos.Y < 0))
+                        emergencyPos.Y = pos.Y;
+                    if (!(pos.Z < 0))
+                        emergencyPos.Z = pos.Z;
+                }
+                if (pos.Y < 0)
+                {
+                    emergencyPos.Y = (int)Constants.RegionSize + pos.Y;
+                    if (!(pos.X < 0))
+                        emergencyPos.X = pos.X;
+                    if (!(pos.Z < 0))
+                        emergencyPos.Z = pos.Z;
+                }
+                if (pos.Z < 0)
+                {
+                    emergencyPos.Z = 128;
+                    if (!(pos.Y < 0))
+                        emergencyPos.Y = pos.Y;
+                    if (!(pos.X < 0))
+                        emergencyPos.X = pos.X;
                 }
             }
 
