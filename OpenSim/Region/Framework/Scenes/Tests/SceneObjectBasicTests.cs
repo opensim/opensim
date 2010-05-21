@@ -49,7 +49,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// <summary>
         /// Test adding an object to a scene.
         /// </summary>
-        [Test, LongRunning]
+        [Test]
         public void TestAddSceneObject()
         {
             TestHelper.InMethod();
