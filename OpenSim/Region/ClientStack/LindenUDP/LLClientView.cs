@@ -324,8 +324,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly IGroupsModule m_GroupsModule;
 
         private int m_cachedTextureSerial;
-        private PriorityQueue<double, EntityUpdate> m_entityUpdates;
-        private Dictionary<uint, bool> m_seenPrims = new Dictionary<uint, bool>();
+        private PriorityQueue m_entityUpdates;
 
         /// <value>
         /// List used in construction of data blocks for an object update packet.  This is to stop us having to
@@ -439,7 +438,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_scene = scene;
 
-            m_entityUpdates = new PriorityQueue<double, EntityUpdate>(m_scene.Entities.Count);
+            m_entityUpdates = new PriorityQueue(m_scene.Entities.Count);
             m_fullUpdateDataBlocksBuilder = new List<ObjectUpdatePacket.ObjectDataBlock>();
             m_killRecord = new HashSet<uint>();
 
@@ -3499,14 +3498,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         canUseCompressed = false;
                     }
-                    else
-                    {
-                        if (!m_seenPrims.ContainsKey(((SceneObjectPart)update.Entity).LocalId))
-                        {
-                            updateFlags = PrimUpdateFlags.FullUpdate;
-                            m_seenPrims[((SceneObjectPart)update.Entity).LocalId] = true;
-                        }
-                    }
 
                     if (updateFlags.HasFlag(PrimUpdateFlags.FullUpdate))
                     {
@@ -3626,7 +3617,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             //m_log.Debug("[CLIENT]: Reprioritizing prim updates for " + m_firstName + " " + m_lastName);
 
-            PriorityQueue<double, EntityUpdate>.UpdatePriorityHandler update_priority_handler =
+            PriorityQueue.UpdatePriorityHandler update_priority_handler =
                 delegate(ref double priority, uint local_id)
                 {
                     priority = handler(new UpdatePriorityData(priority, local_id));
@@ -11592,26 +11583,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         #region PriorityQueue
-        public class PriorityQueue<TPriority, TValue>
+        public class PriorityQueue
         {
-            internal delegate bool UpdatePriorityHandler(ref TPriority priority, uint local_id);
+            internal delegate bool UpdatePriorityHandler(ref double priority, uint local_id);
 
             private MinHeap<MinHeapItem>[] m_heaps = new MinHeap<MinHeapItem>[1];
             private Dictionary<uint, LookupItem> m_lookupTable;
-            private Comparison<TPriority> m_comparison;
+            private Comparison<double> m_comparison;
             private object m_syncRoot = new object();
 
             internal PriorityQueue() :
-                this(MinHeap<MinHeapItem>.DEFAULT_CAPACITY, Comparer<TPriority>.Default) { }
+                this(MinHeap<MinHeapItem>.DEFAULT_CAPACITY, Comparer<double>.Default) { }
             internal PriorityQueue(int capacity) :
-                this(capacity, Comparer<TPriority>.Default) { }
-            internal PriorityQueue(IComparer<TPriority> comparer) :
-                this(new Comparison<TPriority>(comparer.Compare)) { }
-            internal PriorityQueue(Comparison<TPriority> comparison) :
+                this(capacity, Comparer<double>.Default) { }
+            internal PriorityQueue(IComparer<double> comparer) :
+                this(new Comparison<double>(comparer.Compare)) { }
+            internal PriorityQueue(Comparison<double> comparison) :
                 this(MinHeap<MinHeapItem>.DEFAULT_CAPACITY, comparison) { }
-            internal PriorityQueue(int capacity, IComparer<TPriority> comparer) :
-                this(capacity, new Comparison<TPriority>(comparer.Compare)) { }
-            internal PriorityQueue(int capacity, Comparison<TPriority> comparison)
+            internal PriorityQueue(int capacity, IComparer<double> comparer) :
+                this(capacity, new Comparison<double>(comparer.Compare)) { }
+            internal PriorityQueue(int capacity, Comparison<double> comparison)
             {
                 m_lookupTable = new Dictionary<uint, LookupItem>(capacity);
 
@@ -11632,12 +11623,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            public bool Enqueue(TPriority priority, TValue value, uint local_id)
+            public bool Enqueue(double priority, EntityUpdate value, uint local_id)
             {
                 LookupItem item;
 
                 if (m_lookupTable.TryGetValue(local_id, out item))
                 {
+                    // Combine flags
+                    value.Flags |= item.Heap[item.Handle].Value.Flags;
+
                     item.Heap[item.Handle] = new MinHeapItem(priority, value, local_id, this.m_comparison);
                     return false;
                 }
@@ -11650,7 +11644,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            internal TValue Peek()
+            internal EntityUpdate Peek()
             {
                 for (int i = 0; i < m_heaps.Length; ++i)
                     if (m_heaps[i].Count > 0)
@@ -11658,7 +11652,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 throw new InvalidOperationException(string.Format("The {0} is empty", this.GetType().ToString()));
             }
 
-            internal bool TryDequeue(out TValue value)
+            internal bool TryDequeue(out EntityUpdate value)
             {
                 for (int i = 0; i < m_heaps.Length; ++i)
                 {
@@ -11671,14 +11665,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
 
-                value = default(TValue);
+                value = default(EntityUpdate);
                 return false;
             }
 
             internal void Reprioritize(UpdatePriorityHandler handler)
             {
                 MinHeapItem item;
-                TPriority priority;
+                double priority;
 
                 foreach (LookupItem lookup in new List<LookupItem>(this.m_lookupTable.Values))
                 {
@@ -11704,16 +11698,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #region MinHeapItem
             private struct MinHeapItem : IComparable<MinHeapItem>
             {
-                private TPriority priority;
-                private TValue value;
+                private double priority;
+                private EntityUpdate value;
                 private uint local_id;
-                private Comparison<TPriority> comparison;
+                private Comparison<double> comparison;
 
-                internal MinHeapItem(TPriority priority, TValue value, uint local_id) :
-                    this(priority, value, local_id, Comparer<TPriority>.Default) { }
-                internal MinHeapItem(TPriority priority, TValue value, uint local_id, IComparer<TPriority> comparer) :
-                    this(priority, value, local_id, new Comparison<TPriority>(comparer.Compare)) { }
-                internal MinHeapItem(TPriority priority, TValue value, uint local_id, Comparison<TPriority> comparison)
+                internal MinHeapItem(double priority, EntityUpdate value, uint local_id) :
+                    this(priority, value, local_id, Comparer<double>.Default) { }
+                internal MinHeapItem(double priority, EntityUpdate value, uint local_id, IComparer<double> comparer) :
+                    this(priority, value, local_id, new Comparison<double>(comparer.Compare)) { }
+                internal MinHeapItem(double priority, EntityUpdate value, uint local_id, Comparison<double> comparison)
                 {
                     this.priority = priority;
                     this.value = value;
@@ -11721,8 +11715,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     this.comparison = comparison;
                 }
 
-                internal TPriority Priority { get { return this.priority; } }
-                internal TValue Value { get { return this.value; } }
+                internal double Priority { get { return this.priority; } }
+                internal EntityUpdate Value { get { return this.value; } }
                 internal uint LocalID { get { return this.local_id; } }
 
                 public override string ToString()
