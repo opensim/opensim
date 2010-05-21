@@ -5,6 +5,18 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenMetaverse;
 
+/*
+ * Steps to add a new prioritization policy:
+ * 
+ *  - Add a new value to the UpdatePrioritizationSchemes enum.
+ *  - Specify this new value in the [InterestManagement] section of your
+ *    OpenSim.ini. The name in the config file must match the enum value name
+ *    (although it is not case sensitive).
+ *  - Write a new GetPriorityBy*() method in this class.
+ *  - Add a new entry to the switch statement in GetUpdatePriority() that calls
+ *    your method.
+ */
+
 namespace OpenSim.Region.Framework.Scenes
 {
     public enum UpdatePrioritizationSchemes
@@ -35,7 +47,7 @@ namespace OpenSim.Region.Framework.Scenes
                 case UpdatePrioritizationSchemes.Distance:
                     return GetPriorityByDistance(client, entity);
                 case UpdatePrioritizationSchemes.SimpleAngularDistance:
-                    return GetPriorityByDistance(client, entity);
+                    return GetPriorityByDistance(client, entity); // TODO: Reimplement SimpleAngularDistance
                 case UpdatePrioritizationSchemes.FrontBack:
                     return GetPriorityByFrontBack(client, entity);
                 default:
