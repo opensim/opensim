@@ -382,29 +382,31 @@ namespace OpenSim.Region.Framework.Scenes
                 itemCopy.InvType = item.InvType;
                 itemCopy.Folder = recipientFolderId;
 
-                if (Permissions.PropagatePermissions())
+                if (Permissions.PropagatePermissions() && recipient != senderId)
                 {
+                    // First, make sore base is limited to the next perms
+                    itemCopy.BasePermissions = item.BasePermissions & item.NextPermissions;
+                    // By default, current equals base
+                    itemCopy.CurrentPermissions = itemCopy.BasePermissions;
+
+                    // If this is an object, replace current perms
+                    // with folded perms
                     if (item.InvType == (int)InventoryType.Object)
                     {
-                        itemCopy.BasePermissions &= ~(uint)(PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
-                        itemCopy.BasePermissions |= (item.CurrentPermissions & 7) << 13;
-                    }
-                    else
-                    {
-                        itemCopy.BasePermissions = item.BasePermissions & item.NextPermissions;
+                        itemCopy.CurrentPermissions &= ~(uint)(PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
+                        itemCopy.CurrentPermissions |= (item.CurrentPermissions & 7) << 13;
                     }
 
-                    itemCopy.CurrentPermissions = itemCopy.BasePermissions;
-                    if ((item.CurrentPermissions & 8) != 0) // Propagate slam bit
-                    {
-                        itemCopy.BasePermissions &= item.NextPermissions;
-                        itemCopy.CurrentPermissions = itemCopy.BasePermissions;
-                        itemCopy.CurrentPermissions |= 8;
-                    }
+                    // Ensure there is no escalation
+                    itemCopy.CurrentPermissions &= item.NextPermissions;
+
+                    // Need slam bit on xfer
+                    itemCopy.CurrentPermissions |= 8;
 
                     itemCopy.NextPermissions = item.NextPermissions;
-                    itemCopy.EveryOnePermissions = item.EveryOnePermissions & item.NextPermissions;
-                    itemCopy.GroupPermissions = item.GroupPermissions & item.NextPermissions;
+
+                    itemCopy.EveryOnePermissions = 0;
+                    itemCopy.GroupPermissions = 0;
                 }
                 else
                 {
@@ -895,12 +897,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             if ((part.OwnerID != destAgent) && Permissions.PropagatePermissions())
             {
+                agentItem.BasePermissions = taskItem.BasePermissions & taskItem.NextPermissions;
                 if (taskItem.InvType == (int)InventoryType.Object)
-                    agentItem.BasePermissions = taskItem.BasePermissions & ((taskItem.CurrentPermissions & 7) << 13);
-                else
-                    agentItem.BasePermissions = taskItem.BasePermissions;
-                agentItem.BasePermissions &= taskItem.NextPermissions;
-                agentItem.CurrentPermissions = agentItem.BasePermissions | 8;
+                    agentItem.CurrentPermissions = agentItem.BasePermissions & ((taskItem.CurrentPermissions & 7) << 13);
+                    agentItem.CurrentPermissions = agentItem.BasePermissions ;
+
+                agentItem.CurrentPermissions |= 8;
                 agentItem.NextPermissions = taskItem.NextPermissions;
                 agentItem.EveryOnePermissions = taskItem.EveryonePermissions & taskItem.NextPermissions;
                 agentItem.GroupPermissions = taskItem.GroupPermissions & taskItem.NextPermissions;
