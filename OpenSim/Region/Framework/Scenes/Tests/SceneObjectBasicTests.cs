@@ -55,12 +55,22 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelper.InMethod();
 
             Scene scene = SceneSetupHelpers.SetupScene();
-            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
+
+            string objName = "obj1";
+            UUID objUuid = new UUID("00000000-0000-0000-0000-000000000001");
+
+            SceneObjectPart part
+                = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                    { Name = objName, UUID = objUuid };
+
+            Assert.That(scene.AddNewSceneObject(new SceneObjectGroup(part), false), Is.True);
+            
+            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(objUuid);
             
             //m_log.Debug("retrievedPart : {0}", retrievedPart);
             // If the parts have the same UUID then we will consider them as one and the same
-            Assert.That(retrievedPart.UUID, Is.EqualTo(part.UUID));
+            Assert.That(retrievedPart.Name, Is.EqualTo(objName));
+            Assert.That(retrievedPart.UUID, Is.EqualTo(objUuid));
         }
         
         /// <summary>
