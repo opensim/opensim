@@ -56,7 +56,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
             // But we could trigger the position update more often
             scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
             scene.EventManager.OnNewClient += OnNewClient;
-            scene.EventManager.OnAvatarEnteringNewParcel += OnEnteringNewParcel;
 
             if (m_aScene == null)
                 m_aScene = scene;
@@ -103,13 +102,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
                 m_GridUserService.LoggedOut(client.AgentId.ToString(), client.Scene.RegionInfo.RegionID, position, lookat);
             }
 
-        }
-
-        void OnEnteringNewParcel(ScenePresence sp, int localLandID, UUID regionID)
-        {
-            // TODO: grab the parcel ID from ILandModule
-            // and send that along
-            m_GridUserService.SetLastPosition(sp.UUID.ToString(), sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
         }
 
     }

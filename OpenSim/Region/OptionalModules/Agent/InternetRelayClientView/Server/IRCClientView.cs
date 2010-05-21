@@ -1054,16 +1054,6 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void SendAvatarData(SendAvatarData data)
-        {
-            
-        }
-
-        public void SendAvatarTerseUpdate(SendAvatarTerseData data)
-        {
-            
-        }
-
         public void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations)
         {
             
@@ -1074,32 +1064,27 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void SetChildAgentThrottle(byte[] throttle)
+        public void SendAvatarDataImmediate(ISceneEntity avatar)
         {
-            
+
         }
 
-        public void SendPrimitiveToClient(SendPrimitiveData data)
+        public void SendPrimUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
         {
-            
+
         }
 
-        public void SendPrimTerseUpdate(SendPrimitiveTerseData data)
+        public void ReprioritizeUpdates(UpdatePriorityHandler handler)
         {
-            
+
         }
 
-        public void ReprioritizeUpdates(StateUpdateTypes type, UpdatePriorityHandler handler)
+        public void FlushPrimUpdates()
         {
 
         }
 
         public void SendInventoryFolderDetails(UUID ownerID, UUID folderID, List<InventoryItemBase> items, List<InventoryFolderBase> folders, int version, bool fetchFolders, bool fetchItems)
-        {
-            
-        }
-
-        public void FlushPrimUpdates()
         {
             
         }
@@ -1427,6 +1412,11 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public void SendTexture(AssetBase TextureAsset)
         {
             
+        }
+
+        public virtual void SetChildAgentThrottle(byte[] throttle)
+        {
+
         }
 
         public byte[] GetThrottlesPacked(float multiplier)

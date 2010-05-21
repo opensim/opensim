@@ -2171,6 +2171,7 @@
           <Exclude name="Tests" pattern="Tests" />
         </Match>
         <Match path="Resources" pattern="*.sql" buildAction="EmbeddedResource"/>
+        <Match path="Resources" pattern="*.migrations" buildAction="EmbeddedResource"/>
         <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
@@ -2204,6 +2205,7 @@
       <Files>
         <Match pattern="*.cs" recurse="true"/>
         <Match path="Resources" pattern="*.sql" buildAction="EmbeddedResource"/>
+        <Match path="Resources" pattern="*.migrations" buildAction="EmbeddedResource"/>
         <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
@@ -2241,6 +2243,7 @@
           <Exclude name="Tests" pattern="Tests" />
         </Match>
         <Match path="Resources" pattern="*.sql" buildAction="EmbeddedResource"/>
+        <Match path="Resources" pattern="*.migrations" buildAction="EmbeddedResource"/>
         <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
@@ -2277,6 +2280,7 @@
           <Exclude name="Tests" pattern="Tests" />
         </Match>
         <Match path="Resources" pattern="*.sql" buildAction="EmbeddedResource"/>
+        <Match path="Resources" pattern="*.migrations" buildAction="EmbeddedResource"/>
         <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>

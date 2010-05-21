@@ -1,5 +1,0 @@
-BEGIN;
-
-CREATE TABLE `Friends` (`PrincipalID` CHAR(36) NOT NULL, `Friend` VARCHAR(255) NOT NULL, `Flags` VARCHAR(16) NOT NULL DEFAULT 0, `Offered` VARCHAR(32) NOT NULL DEFAULT 0, PRIMARY KEY(`PrincipalID`, `Friend`), KEY(`PrincipalID`));
-
-COMMIT;

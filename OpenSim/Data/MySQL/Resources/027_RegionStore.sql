@@ -1,5 +1,0 @@
-BEGIN;
-
-ALTER TABLE prims DROP COLUMN ParentID;
-
-COMMIT;

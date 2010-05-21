@@ -1,0 +1,876 @@
+﻿
+:VERSION 1		#---------------------
+
+BEGIN;
+
+CREATE TABLE `prims` (
+  `UUID` varchar(255) NOT NULL,
+  `RegionUUID` varchar(255) default NULL,
+  `ParentID` int(11) default NULL,
+  `CreationDate` int(11) default NULL,
+  `Name` varchar(255) default NULL,
+  `SceneGroupID` varchar(255) default NULL,
+  `Text` varchar(255) default NULL,
+  `Description` varchar(255) default NULL,
+  `SitName` varchar(255) default NULL,
+  `TouchName` varchar(255) default NULL,
+  `ObjectFlags` int(11) default NULL,
+  `CreatorID` varchar(255) default NULL,
+  `OwnerID` varchar(255) default NULL,
+  `GroupID` varchar(255) default NULL,
+  `LastOwnerID` varchar(255) default NULL,
+  `OwnerMask` int(11) default NULL,
+  `NextOwnerMask` int(11) default NULL,
+  `GroupMask` int(11) default NULL,
+  `EveryoneMask` int(11) default NULL,
+  `BaseMask` int(11) default NULL,
+  `PositionX` float default NULL,
+  `PositionY` float default NULL,
+  `PositionZ` float default NULL,
+  `GroupPositionX` float default NULL,
+  `GroupPositionY` float default NULL,
+  `GroupPositionZ` float default NULL,
+  `VelocityX` float default NULL,
+  `VelocityY` float default NULL,
+  `VelocityZ` float default NULL,
+  `AngularVelocityX` float default NULL,
+  `AngularVelocityY` float default NULL,
+  `AngularVelocityZ` float default NULL,
+  `AccelerationX` float default NULL,
+  `AccelerationY` float default NULL,
+  `AccelerationZ` float default NULL,
+  `RotationX` float default NULL,
+  `RotationY` float default NULL,
+  `RotationZ` float default NULL,
+  `RotationW` float default NULL,
+  `SitTargetOffsetX` float default NULL,
+  `SitTargetOffsetY` float default NULL,
+  `SitTargetOffsetZ` float default NULL,
+  `SitTargetOrientW` float default NULL,
+  `SitTargetOrientX` float default NULL,
+  `SitTargetOrientY` float default NULL,
+  `SitTargetOrientZ` float default NULL,
+  PRIMARY KEY  (`UUID`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+CREATE TABLE `primshapes` (
+  `UUID` varchar(255) NOT NULL,
+  `Shape` int(11) default NULL,
+  `ScaleX` float default NULL,
+  `ScaleY` float default NULL,
+  `ScaleZ` float default NULL,
+  `PCode` int(11) default NULL,
+  `PathBegin` int(11) default NULL,
+  `PathEnd` int(11) default NULL,
+  `PathScaleX` int(11) default NULL,
+  `PathScaleY` int(11) default NULL,
+  `PathShearX` int(11) default NULL,
+  `PathShearY` int(11) default NULL,
+  `PathSkew` int(11) default NULL,
+  `PathCurve` int(11) default NULL,
+  `PathRadiusOffset` int(11) default NULL,
+  `PathRevolutions` int(11) default NULL,
+  `PathTaperX` int(11) default NULL,
+  `PathTaperY` int(11) default NULL,
+  `PathTwist` int(11) default NULL,
+  `PathTwistBegin` int(11) default NULL,
+  `ProfileBegin` int(11) default NULL,
+  `ProfileEnd` int(11) default NULL,
+  `ProfileCurve` int(11) default NULL,
+  `ProfileHollow` int(11) default NULL,
+  `State` int(11) default NULL,
+  `Texture` longblob,
+  `ExtraParams` longblob,
+  PRIMARY KEY  (`UUID`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+CREATE TABLE `primitems` (
+  `itemID` varchar(255) NOT NULL,
+  `primID` varchar(255) default NULL,
+  `assetID` varchar(255) default NULL,
+  `parentFolderID` varchar(255) default NULL,
+  `invType` int(11) default NULL,
+  `assetType` int(11) default NULL,
+  `name` varchar(255) default NULL,
+  `description` varchar(255) default NULL,
+  `creationDate` bigint(20) default NULL,
+  `creatorID` varchar(255) default NULL,
+  `ownerID` varchar(255) default NULL,
+  `lastOwnerID` varchar(255) default NULL,
+  `groupID` varchar(255) default NULL,
+  `nextPermissions` int(11) default NULL,
+  `currentPermissions` int(11) default NULL,
+  `basePermissions` int(11) default NULL,
+  `everyonePermissions` int(11) default NULL,
+  `groupPermissions` int(11) default NULL,
+  PRIMARY KEY  (`itemID`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+CREATE TABLE `terrain` (
+  `RegionUUID` varchar(255) default NULL,
+  `Revision` int(11) default NULL,
+  `Heightfield` longblob
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+CREATE TABLE `land` (
+  `UUID` varchar(255) NOT NULL,
+  `RegionUUID` varchar(255) default NULL,
+  `LocalLandID` int(11) default NULL,
+  `Bitmap` longblob,
+  `Name` varchar(255) default NULL,
+  `Description` varchar(255) default NULL,
+  `OwnerUUID` varchar(255) default NULL,
+  `IsGroupOwned` int(11) default NULL,
+  `Area` int(11) default NULL,
+  `AuctionID` int(11) default NULL,
+  `Category` int(11) default NULL,
+  `ClaimDate` int(11) default NULL,
+  `ClaimPrice` int(11) default NULL,
+  `GroupUUID` varchar(255) default NULL,
+  `SalePrice` int(11) default NULL,
+  `LandStatus` int(11) default NULL,
+  `LandFlags` int(11) default NULL,
+  `LandingType` int(11) default NULL,
+  `MediaAutoScale` int(11) default NULL,
+  `MediaTextureUUID` varchar(255) default NULL,
+  `MediaURL` varchar(255) default NULL,
+  `MusicURL` varchar(255) default NULL,
+  `PassHours` float default NULL,
+  `PassPrice` int(11) default NULL,
+  `SnapshotUUID` varchar(255) default NULL,
+  `UserLocationX` float default NULL,
+  `UserLocationY` float default NULL,
+  `UserLocationZ` float default NULL,
+  `UserLookAtX` float default NULL,
+  `UserLookAtY` float default NULL,
+  `UserLookAtZ` float default NULL,
+  `AuthbuyerID` varchar(36) NOT NULL default '00000000-0000-0000-0000-000000000000',
+  PRIMARY KEY  (`UUID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `landaccesslist` (
+  `LandUUID` varchar(255) default NULL,
+  `AccessUUID` varchar(255) default NULL,
+  `Flags` int(11) default NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+COMMIT;
+
+:VERSION 2			#---------------------
+
+BEGIN;
+
+CREATE index prims_regionuuid on prims(RegionUUID);
+CREATE index primitems_primid on primitems(primID);
+
+COMMIT;
+
+:VERSION 3			#---------------------
+
+BEGIN;
+  CREATE TABLE regionban (regionUUID VARCHAR(36) NOT NULL, bannedUUID VARCHAR(36) NOT NULL, bannedIp VARCHAR(16) NOT NULL, bannedIpHostMask VARCHAR(16) NOT NULL) ENGINE=INNODB DEFAULT CHARSET=utf8 COMMENT='Rev. 1';
+COMMIT;
+
+:VERSION 4			#---------------------
+
+BEGIN;
+
+ALTER TABLE primitems add flags integer not null default 0;
+
+COMMIT;
+
+:VERSION 5			#---------------------
+BEGIN;
+
+create table regionsettings (
+	regionUUID char(36) not null,
+	block_terraform integer not null,
+	block_fly integer not null,
+	allow_damage integer not null,
+	restrict_pushing integer not null,
+	allow_land_resell integer not null,
+	allow_land_join_divide integer not null,
+	block_show_in_search integer not null,
+	agent_limit integer not null,
+	object_bonus float not null,
+	maturity integer not null,
+	disable_scripts integer not null,
+	disable_collisions integer not null,
+	disable_physics integer not null,
+	terrain_texture_1 char(36) not null,
+	terrain_texture_2 char(36) not null,
+	terrain_texture_3 char(36) not null,
+	terrain_texture_4 char(36) not null,
+	elevation_1_nw float not null,
+	elevation_2_nw float not null,
+	elevation_1_ne float not null,
+	elevation_2_ne float not null,
+	elevation_1_se float not null,
+	elevation_2_se float not null,
+	elevation_1_sw float not null,
+	elevation_2_sw float not null,
+	water_height float not null,
+	terrain_raise_limit float not null,
+	terrain_lower_limit float not null,
+	use_estate_sun integer not null,
+	fixed_sun integer not null,
+	sun_position float not null,
+	covenant char(36),
+	primary key(regionUUID)
+);
+
+COMMIT;
+
+
+:VERSION 6			#---------------------
+
+BEGIN;
+
+alter table landaccesslist ENGINE = InnoDB;
+alter table migrations ENGINE = InnoDB;
+alter table primitems ENGINE = InnoDB;
+alter table prims ENGINE = InnoDB;
+alter table primshapes ENGINE = InnoDB;
+alter table regionsettings ENGINE = InnoDB;
+alter table terrain ENGINE = InnoDB;
+
+COMMIT;
+
+:VERSION 7			#---------------------
+
+BEGIN;
+
+ALTER TABLE prims change UUID UUIDold varchar(255);
+ALTER TABLE prims change RegionUUID RegionUUIDold varchar(255);
+ALTER TABLE prims change CreatorID CreatorIDold varchar(255);
+ALTER TABLE prims change OwnerID OwnerIDold varchar(255);
+ALTER TABLE prims change GroupID GroupIDold varchar(255);
+ALTER TABLE prims change LastOwnerID LastOwnerIDold varchar(255);
+ALTER TABLE prims add UUID char(36);
+ALTER TABLE prims add RegionUUID char(36);
+ALTER TABLE prims add CreatorID char(36);
+ALTER TABLE prims add OwnerID char(36);
+ALTER TABLE prims add GroupID char(36);
+ALTER TABLE prims add LastOwnerID char(36);
+UPDATE prims set UUID = UUIDold, RegionUUID = RegionUUIDold, CreatorID = CreatorIDold, OwnerID = OwnerIDold, GroupID = GroupIDold, LastOwnerID = LastOwnerIDold;
+ALTER TABLE prims drop UUIDold;
+ALTER TABLE prims drop RegionUUIDold;
+ALTER TABLE prims drop CreatorIDold;
+ALTER TABLE prims drop OwnerIDold;
+ALTER TABLE prims drop GroupIDold;
+ALTER TABLE prims drop LastOwnerIDold;
+ALTER TABLE prims add constraint primary key(UUID);
+ALTER TABLE prims add index prims_regionuuid(RegionUUID);
+
+COMMIT;
+
+:VERSION 8			#---------------------
+
+BEGIN;
+
+ALTER TABLE primshapes change UUID UUIDold varchar(255);
+ALTER TABLE primshapes add UUID char(36);
+UPDATE primshapes set UUID = UUIDold;
+ALTER TABLE primshapes drop UUIDold;
+ALTER TABLE primshapes add constraint primary key(UUID);
+
+COMMIT;
+
+:VERSION 9			#---------------------
+
+BEGIN;
+ 
+ALTER TABLE primitems change itemID itemIDold varchar(255);
+ALTER TABLE primitems change primID primIDold varchar(255);
+ALTER TABLE primitems change assetID assetIDold varchar(255);
+ALTER TABLE primitems change parentFolderID parentFolderIDold varchar(255);
+ALTER TABLE primitems change creatorID creatorIDold varchar(255);
+ALTER TABLE primitems change ownerID ownerIDold varchar(255);
+ALTER TABLE primitems change groupID groupIDold varchar(255);
+ALTER TABLE primitems change lastOwnerID lastOwnerIDold varchar(255);
+ALTER TABLE primitems add itemID char(36);
+ALTER TABLE primitems add primID char(36);
+ALTER TABLE primitems add assetID char(36);
+ALTER TABLE primitems add parentFolderID char(36);
+ALTER TABLE primitems add creatorID char(36);
+ALTER TABLE primitems add ownerID char(36);
+ALTER TABLE primitems add groupID char(36);
+ALTER TABLE primitems add lastOwnerID char(36);
+UPDATE primitems set itemID = itemIDold, primID = primIDold, assetID = assetIDold, parentFolderID = parentFolderIDold, creatorID = creatorIDold, ownerID = ownerIDold, groupID = groupIDold, lastOwnerID = lastOwnerIDold;
+ALTER TABLE primitems drop itemIDold;
+ALTER TABLE primitems drop primIDold;
+ALTER TABLE primitems drop assetIDold;
+ALTER TABLE primitems drop parentFolderIDold;
+ALTER TABLE primitems drop creatorIDold;
+ALTER TABLE primitems drop ownerIDold;
+ALTER TABLE primitems drop groupIDold;
+ALTER TABLE primitems drop lastOwnerIDold;
+ALTER TABLE primitems add constraint primary key(itemID);
+ALTER TABLE primitems add index primitems_primid(primID);
+
+COMMIT;
+
+:VERSION 10			#---------------------
+
+# 1 "010_RegionStore.sql"
+# 1 "<built-in>"
+# 1 "<command line>"
+# 1 "010_RegionStore.sql"
+BEGIN;
+
+DELETE FROM regionsettings;
+
+COMMIT;
+
+
+:VERSION 11			#---------------------
+
+BEGIN;
+
+ALTER TABLE prims change SceneGroupID SceneGroupIDold varchar(255);
+ALTER TABLE prims add SceneGroupID char(36);
+UPDATE prims set SceneGroupID = SceneGroupIDold;
+ALTER TABLE prims drop SceneGroupIDold;
+ALTER TABLE prims add index prims_scenegroupid(SceneGroupID);
+
+COMMIT;
+
+:VERSION 12			#---------------------
+
+BEGIN;
+
+ALTER TABLE prims add index prims_parentid(ParentID);
+
+COMMIT;
+
+:VERSION 13			#---------------------
+begin;
+
+drop table regionsettings;
+
+CREATE TABLE `regionsettings` (
+  `regionUUID` char(36) NOT NULL,
+  `block_terraform` int(11) NOT NULL,
+  `block_fly` int(11) NOT NULL,
+  `allow_damage` int(11) NOT NULL,
+  `restrict_pushing` int(11) NOT NULL,
+  `allow_land_resell` int(11) NOT NULL,
+  `allow_land_join_divide` int(11) NOT NULL,
+  `block_show_in_search` int(11) NOT NULL,
+  `agent_limit` int(11) NOT NULL,
+  `object_bonus` float NOT NULL,
+  `maturity` int(11) NOT NULL,
+  `disable_scripts` int(11) NOT NULL,
+  `disable_collisions` int(11) NOT NULL,
+  `disable_physics` int(11) NOT NULL,
+  `terrain_texture_1` char(36) NOT NULL,
+  `terrain_texture_2` char(36) NOT NULL,
+  `terrain_texture_3` char(36) NOT NULL,
+  `terrain_texture_4` char(36) NOT NULL,
+  `elevation_1_nw` float NOT NULL,
+  `elevation_2_nw` float NOT NULL,
+  `elevation_1_ne` float NOT NULL,
+  `elevation_2_ne` float NOT NULL,
+  `elevation_1_se` float NOT NULL,
+  `elevation_2_se` float NOT NULL,
+  `elevation_1_sw` float NOT NULL,
+  `elevation_2_sw` float NOT NULL,
+  `water_height` float NOT NULL,
+  `terrain_raise_limit` float NOT NULL,
+  `terrain_lower_limit` float NOT NULL,
+  `use_estate_sun` int(11) NOT NULL,
+  `fixed_sun` int(11) NOT NULL,
+  `sun_position` float NOT NULL,
+  `covenant` char(36) default NULL,
+  `Sandbox` tinyint(4) NOT NULL,
+  PRIMARY KEY  (`regionUUID`)
+) ENGINE=InnoDB;
+
+CREATE TABLE `estate_managers` (
+  `EstateID` int(10) unsigned NOT NULL,
+  `uuid` char(36) NOT NULL,
+  KEY `EstateID` (`EstateID`)
+) ENGINE=InnoDB;
+
+CREATE TABLE `estate_groups` (
+  `EstateID` int(10) unsigned NOT NULL,
+  `uuid` char(36) NOT NULL,
+  KEY `EstateID` (`EstateID`)
+) ENGINE=InnoDB;
+
+CREATE TABLE `estate_users` (
+  `EstateID` int(10) unsigned NOT NULL,
+  `uuid` char(36) NOT NULL,
+  KEY `EstateID` (`EstateID`)
+) ENGINE=InnoDB;
+
+CREATE TABLE `estateban` (
+  `EstateID` int(10) unsigned NOT NULL,
+  `bannedUUID` varchar(36) NOT NULL,
+  `bannedIp` varchar(16) NOT NULL,
+  `bannedIpHostMask` varchar(16) NOT NULL,
+  `bannedNameMask` varchar(64) default NULL,
+  KEY `estateban_EstateID` (`EstateID`)
+) ENGINE=InnoDB;
+
+CREATE TABLE `estate_settings` (
+  `EstateID` int(10) unsigned NOT NULL auto_increment,
+  `EstateName` varchar(64) default NULL,
+  `AbuseEmailToEstateOwner` tinyint(4) NOT NULL,
+  `DenyAnonymous` tinyint(4) NOT NULL,
+  `ResetHomeOnTeleport` tinyint(4) NOT NULL,
+  `FixedSun` tinyint(4) NOT NULL,
+  `DenyTransacted` tinyint(4) NOT NULL,
+  `BlockDwell` tinyint(4) NOT NULL,
+  `DenyIdentified` tinyint(4) NOT NULL,
+  `AllowVoice` tinyint(4) NOT NULL,
+  `UseGlobalTime` tinyint(4) NOT NULL,
+  `PricePerMeter` int(11) NOT NULL,
+  `TaxFree` tinyint(4) NOT NULL,
+  `AllowDirectTeleport` tinyint(4) NOT NULL,
+  `RedirectGridX` int(11) NOT NULL,
+  `RedirectGridY` int(11) NOT NULL,
+  `ParentEstateID` int(10) unsigned NOT NULL,
+  `SunPosition` double NOT NULL,
+  `EstateSkipScripts` tinyint(4) NOT NULL,
+  `BillableFactor` float NOT NULL,
+  `PublicAccess` tinyint(4) NOT NULL,
+  PRIMARY KEY  (`EstateID`)
+) ENGINE=InnoDB AUTO_INCREMENT=100;
+
+CREATE TABLE `estate_map` (
+  `RegionID` char(36) NOT NULL default '00000000-0000-0000-0000-000000000000',
+  `EstateID` int(11) NOT NULL,
+  PRIMARY KEY  (`RegionID`),
+  KEY `EstateID` (`EstateID`)
+) ENGINE=InnoDB;
+
+commit;
+
+:VERSION 14			#---------------------
+
+begin;
+
+alter table estate_settings add column AbuseEmail varchar(255) not null;
+
+alter table estate_settings add column EstateOwner varchar(36) not null;
+
+commit;
+
+
+:VERSION 15			#---------------------
+
+begin;
+
+alter table estate_settings add column DenyMinors tinyint not null;
+
+commit;
+
+:VERSION 16			#---------------------
+
+BEGIN;
+
+ALTER TABLE prims ADD COLUMN PayPrice integer not null default 0;
+ALTER TABLE prims ADD COLUMN PayButton1 integer not null default 0;
+ALTER TABLE prims ADD COLUMN PayButton2 integer not null default 0;
+ALTER TABLE prims ADD COLUMN PayButton3 integer not null default 0;
+ALTER TABLE prims ADD COLUMN PayButton4 integer not null default 0;
+ALTER TABLE prims ADD COLUMN LoopedSound char(36) not null default '00000000-0000-0000-0000-000000000000';
+ALTER TABLE prims ADD COLUMN LoopedSoundGain float not null default 0.0;
+ALTER TABLE prims ADD COLUMN TextureAnimation blob;
+ALTER TABLE prims ADD COLUMN OmegaX float not null default 0.0;
+ALTER TABLE prims ADD COLUMN OmegaY float not null default 0.0;
+ALTER TABLE prims ADD COLUMN OmegaZ float not null default 0.0;
+ALTER TABLE prims ADD COLUMN CameraEyeOffsetX float not null default 0.0;
+ALTER TABLE prims ADD COLUMN CameraEyeOffsetY float not null default 0.0;
+ALTER TABLE prims ADD COLUMN CameraEyeOffsetZ float not null default 0.0;
+ALTER TABLE prims ADD COLUMN CameraAtOffsetX float not null default 0.0;
+ALTER TABLE prims ADD COLUMN CameraAtOffsetY float not null default 0.0;
+ALTER TABLE prims ADD COLUMN CameraAtOffsetZ float not null default 0.0;
+ALTER TABLE prims ADD COLUMN ForceMouselook tinyint not null default 0;
+ALTER TABLE prims ADD COLUMN ScriptAccessPin integer not null default 0;
+ALTER TABLE prims ADD COLUMN AllowedDrop tinyint not null default 0;
+ALTER TABLE prims ADD COLUMN DieAtEdge tinyint not null default 0;
+ALTER TABLE prims ADD COLUMN SalePrice integer not null default 10;
+ALTER TABLE prims ADD COLUMN SaleType tinyint not null default 0;
+
+COMMIT;
+
+
+:VERSION 17			#---------------------
+
+BEGIN;
+
+ALTER TABLE prims ADD COLUMN ColorR integer not null default 0;
+ALTER TABLE prims ADD COLUMN ColorG integer not null default 0;
+ALTER TABLE prims ADD COLUMN ColorB integer not null default 0;
+ALTER TABLE prims ADD COLUMN ColorA integer not null default 0;
+ALTER TABLE prims ADD COLUMN ParticleSystem blob;
+
+COMMIT;
+
+
+:VERSION 18			#---------------------
+
+begin;
+
+ALTER TABLE prims ADD COLUMN ClickAction tinyint NOT NULL default 0;
+
+commit;
+
+:VERSION 19			#---------------------
+
+begin;
+
+ALTER TABLE prims ADD COLUMN Material tinyint NOT NULL default 3;
+
+commit;
+
+
+:VERSION 20			#---------------------
+
+begin;
+
+ALTER TABLE land ADD COLUMN OtherCleanTime integer NOT NULL default 0;
+ALTER TABLE land ADD COLUMN Dwell integer NOT NULL default 0;
+
+commit;
+
+:VERSION 21			#---------------------
+
+begin;
+
+ALTER TABLE regionsettings ADD COLUMN sunvectorx double NOT NULL default 0;
+ALTER TABLE regionsettings ADD COLUMN sunvectory double NOT NULL default 0;
+ALTER TABLE regionsettings ADD COLUMN sunvectorz double NOT NULL default 0;
+
+commit;
+
+
+:VERSION 22			#---------------------
+
+BEGIN;
+
+ALTER TABLE prims ADD COLUMN CollisionSound char(36) not null default '00000000-0000-0000-0000-000000000000';
+ALTER TABLE prims ADD COLUMN CollisionSoundVolume float not null default 0.0;
+
+COMMIT;
+
+:VERSION 23			#---------------------
+
+BEGIN;
+
+ALTER TABLE prims ADD COLUMN LinkNumber integer not null default 0;
+
+COMMIT;
+
+:VERSION 24			#---------------------
+
+BEGIN;
+
+alter table regionsettings change column `object_bonus` `object_bonus` double NOT NULL;
+alter table regionsettings change column `elevation_1_nw` `elevation_1_nw` double NOT NULL;
+alter table regionsettings change column `elevation_2_nw` `elevation_2_nw` double NOT NULL;
+alter table regionsettings change column `elevation_1_ne` `elevation_1_ne` double NOT NULL;
+alter table regionsettings change column `elevation_2_ne` `elevation_2_ne` double NOT NULL;
+alter table regionsettings change column `elevation_1_se` `elevation_1_se` double NOT NULL;
+alter table regionsettings change column `elevation_2_se` `elevation_2_se` double NOT NULL;
+alter table regionsettings change column `elevation_1_sw` `elevation_1_sw` double NOT NULL;
+alter table regionsettings change column `elevation_2_sw` `elevation_2_sw` double NOT NULL;
+alter table regionsettings change column `water_height` `water_height` double NOT NULL;
+alter table regionsettings change column `terrain_raise_limit` `terrain_raise_limit` double NOT NULL;
+alter table regionsettings change column `terrain_lower_limit` `terrain_lower_limit` double NOT NULL;
+alter table regionsettings change column `sun_position` `sun_position` double NOT NULL;
+
+COMMIT;
+
+
+:VERSION 25			#---------------------
+
+BEGIN;
+
+alter table prims change column `PositionX` `PositionX` double default NULL;
+alter table prims change column `PositionY` `PositionY` double default NULL;
+alter table prims change column `PositionZ` `PositionZ` double default NULL;
+alter table prims change column `GroupPositionX` `GroupPositionX` double default NULL;
+alter table prims change column `GroupPositionY` `GroupPositionY` double default NULL;
+alter table prims change column `GroupPositionZ` `GroupPositionZ` double default NULL;
+alter table prims change column `VelocityX` `VelocityX` double default NULL;
+alter table prims change column `VelocityY` `VelocityY` double default NULL;
+alter table prims change column `VelocityZ` `VelocityZ` double default NULL;
+alter table prims change column `AngularVelocityX` `AngularVelocityX` double default NULL;
+alter table prims change column `AngularVelocityY` `AngularVelocityY` double default NULL;
+alter table prims change column `AngularVelocityZ` `AngularVelocityZ` double default NULL;
+alter table prims change column `AccelerationX` `AccelerationX` double default NULL;
+alter table prims change column `AccelerationY` `AccelerationY` double default NULL;
+alter table prims change column `AccelerationZ` `AccelerationZ` double default NULL;
+alter table prims change column `RotationX` `RotationX` double default NULL;
+alter table prims change column `RotationY` `RotationY` double default NULL;
+alter table prims change column `RotationZ` `RotationZ` double default NULL;
+alter table prims change column `RotationW` `RotationW` double default NULL;
+alter table prims change column `SitTargetOffsetX` `SitTargetOffsetX` double default NULL;
+alter table prims change column `SitTargetOffsetY` `SitTargetOffsetY` double default NULL;
+alter table prims change column `SitTargetOffsetZ` `SitTargetOffsetZ` double default NULL;
+alter table prims change column `SitTargetOrientW` `SitTargetOrientW` double default NULL;
+alter table prims change column `SitTargetOrientX` `SitTargetOrientX` double default NULL;
+alter table prims change column `SitTargetOrientY` `SitTargetOrientY` double default NULL;
+alter table prims change column `SitTargetOrientZ` `SitTargetOrientZ` double default NULL;
+alter table prims change column `LoopedSoundGain` `LoopedSoundGain` double NOT NULL default '0';
+alter table prims change column `OmegaX` `OmegaX` double NOT NULL default '0';
+alter table prims change column `OmegaY` `OmegaY` double NOT NULL default '0';
+alter table prims change column `OmegaZ` `OmegaZ` double NOT NULL default '0';
+alter table prims change column `CameraEyeOffsetX` `CameraEyeOffsetX` double NOT NULL default '0';
+alter table prims change column `CameraEyeOffsetY` `CameraEyeOffsetY` double NOT NULL default '0';
+alter table prims change column `CameraEyeOffsetZ` `CameraEyeOffsetZ` double NOT NULL default '0';
+alter table prims change column `CameraAtOffsetX` `CameraAtOffsetX` double NOT NULL default '0';
+alter table prims change column `CameraAtOffsetY` `CameraAtOffsetY` double NOT NULL default '0';
+alter table prims change column `CameraAtOffsetZ` `CameraAtOffsetZ` double NOT NULL default '0';
+alter table prims change column `CollisionSoundVolume` `CollisionSoundVolume` double NOT NULL default '0';
+
+alter table primshapes change column `ScaleX` `ScaleX` double NOT NULL default '0';
+alter table primshapes change column `ScaleY` `ScaleY` double NOT NULL default '0';
+alter table primshapes change column `ScaleZ` `ScaleZ` double NOT NULL default '0';
+
+COMMIT;
+
+:VERSION 26			#---------------------
+
+begin;
+
+alter table prims change column `PositionX` `PositionX` double default NULL;
+alter table prims change column `PositionY` `PositionY` double default NULL;
+alter table prims change column `PositionZ` `PositionZ` double default NULL;
+alter table prims change column `GroupPositionX` `GroupPositionX` double default NULL;
+alter table prims change column `GroupPositionY` `GroupPositionY` double default NULL;
+alter table prims change column `GroupPositionZ` `GroupPositionZ` double default NULL;
+alter table prims change column `VelocityX` `VelocityX` double default NULL;
+alter table prims change column `VelocityY` `VelocityY` double default NULL;
+alter table prims change column `VelocityZ` `VelocityZ` double default NULL;
+alter table prims change column `AngularVelocityX` `AngularVelocityX` double default NULL;
+alter table prims change column `AngularVelocityY` `AngularVelocityY` double default NULL;
+alter table prims change column `AngularVelocityZ` `AngularVelocityZ` double default NULL;
+alter table prims change column `AccelerationX` `AccelerationX` double default NULL;
+alter table prims change column `AccelerationY` `AccelerationY` double default NULL;
+alter table prims change column `AccelerationZ` `AccelerationZ` double default NULL;
+alter table prims change column `RotationX` `RotationX` double default NULL;
+alter table prims change column `RotationY` `RotationY` double default NULL;
+alter table prims change column `RotationZ` `RotationZ` double default NULL;
+alter table prims change column `RotationW` `RotationW` double default NULL;
+alter table prims change column `SitTargetOffsetX` `SitTargetOffsetX` double default NULL;
+alter table prims change column `SitTargetOffsetY` `SitTargetOffsetY` double default NULL;
+alter table prims change column `SitTargetOffsetZ` `SitTargetOffsetZ` double default NULL;
+alter table prims change column `SitTargetOrientW` `SitTargetOrientW` double default NULL;
+alter table prims change column `SitTargetOrientX` `SitTargetOrientX` double default NULL;
+alter table prims change column `SitTargetOrientY` `SitTargetOrientY` double default NULL;
+alter table prims change column `SitTargetOrientZ` `SitTargetOrientZ` double default NULL;
+alter table prims change column `LoopedSoundGain` `LoopedSoundGain` double NOT NULL default '0';
+alter table prims change column `OmegaX` `OmegaX` double NOT NULL default '0';
+alter table prims change column `OmegaY` `OmegaY` double NOT NULL default '0';
+alter table prims change column `OmegaZ` `OmegaZ` double NOT NULL default '0';
+alter table prims change column `CameraEyeOffsetX` `CameraEyeOffsetX` double NOT NULL default '0';
+alter table prims change column `CameraEyeOffsetY` `CameraEyeOffsetY` double NOT NULL default '0';
+alter table prims change column `CameraEyeOffsetZ` `CameraEyeOffsetZ` double NOT NULL default '0';
+alter table prims change column `CameraAtOffsetX` `CameraAtOffsetX` double NOT NULL default '0';
+alter table prims change column `CameraAtOffsetY` `CameraAtOffsetY` double NOT NULL default '0';
+alter table prims change column `CameraAtOffsetZ` `CameraAtOffsetZ` double NOT NULL default '0';
+alter table prims change column `CollisionSoundVolume` `CollisionSoundVolume` double NOT NULL default '0';
+
+commit;
+
+:VERSION 27			#---------------------
+
+BEGIN;
+
+ALTER TABLE prims DROP COLUMN ParentID;
+
+COMMIT;
+
+:VERSION 28			#---------------------
+
+BEGIN;
+
+update terrain
+  set RegionUUID = concat(substr(RegionUUID, 1, 8), "-", substr(RegionUUID, 9, 4), "-", substr(RegionUUID, 13, 4), "-", substr(RegionUUID, 17, 4), "-", substr(RegionUUID, 21, 12))
+  where RegionUUID not like '%-%';
+  
+
+update landaccesslist
+  set LandUUID = concat(substr(LandUUID, 1, 8), "-", substr(LandUUID, 9, 4), "-", substr(LandUUID, 13, 4), "-", substr(LandUUID, 17, 4), "-", substr(LandUUID, 21, 12))
+  where LandUUID not like '%-%';  
+
+update landaccesslist
+  set AccessUUID = concat(substr(AccessUUID, 1, 8), "-", substr(AccessUUID, 9, 4), "-", substr(AccessUUID, 13, 4), "-", substr(AccessUUID, 17, 4), "-", substr(AccessUUID, 21, 12))
+  where AccessUUID not like '%-%';  
+  
+
+update prims
+  set UUID = concat(substr(UUID, 1, 8), "-", substr(UUID, 9, 4), "-", substr(UUID, 13, 4), "-", substr(UUID, 17, 4), "-", substr(UUID, 21, 12))
+  where UUID not like '%-%';
+
+update prims
+  set RegionUUID = concat(substr(RegionUUID, 1, 8), "-", substr(RegionUUID, 9, 4), "-", substr(RegionUUID, 13, 4), "-", substr(RegionUUID, 17, 4), "-", substr(RegionUUID, 21, 12))
+  where RegionUUID not like '%-%';  
+
+update prims
+  set SceneGroupID = concat(substr(SceneGroupID, 1, 8), "-", substr(SceneGroupID, 9, 4), "-", substr(SceneGroupID, 13, 4), "-", substr(SceneGroupID, 17, 4), "-", substr(SceneGroupID, 21, 12))
+  where SceneGroupID not like '%-%';  
+
+update prims
+  set CreatorID = concat(substr(CreatorID, 1, 8), "-", substr(CreatorID, 9, 4), "-", substr(CreatorID, 13, 4), "-", substr(CreatorID, 17, 4), "-", substr(CreatorID, 21, 12))
+  where CreatorID not like '%-%';  
+
+update prims
+  set OwnerID = concat(substr(OwnerID, 1, 8), "-", substr(OwnerID, 9, 4), "-", substr(OwnerID, 13, 4), "-", substr(OwnerID, 17, 4), "-", substr(OwnerID, 21, 12))
+  where OwnerID not like '%-%';  
+
+update prims
+  set GroupID = concat(substr(GroupID, 1, 8), "-", substr(GroupID, 9, 4), "-", substr(GroupID, 13, 4), "-", substr(GroupID, 17, 4), "-", substr(GroupID, 21, 12))
+  where GroupID not like '%-%';  
+
+update prims
+  set LastOwnerID = concat(substr(LastOwnerID, 1, 8), "-", substr(LastOwnerID, 9, 4), "-", substr(LastOwnerID, 13, 4), "-", substr(LastOwnerID, 17, 4), "-", substr(LastOwnerID, 21, 12))
+  where LastOwnerID not like '%-%';  
+
+
+update primshapes
+  set UUID = concat(substr(UUID, 1, 8), "-", substr(UUID, 9, 4), "-", substr(UUID, 13, 4), "-", substr(UUID, 17, 4), "-", substr(UUID, 21, 12))
+  where UUID not like '%-%';    
+
+
+update land
+  set UUID = concat(substr(UUID, 1, 8), "-", substr(UUID, 9, 4), "-", substr(UUID, 13, 4), "-", substr(UUID, 17, 4), "-", substr(UUID, 21, 12))
+  where UUID not like '%-%';      
+  
+update land
+  set RegionUUID = concat(substr(RegionUUID, 1, 8), "-", substr(RegionUUID, 9, 4), "-", substr(RegionUUID, 13, 4), "-", substr(RegionUUID, 17, 4), "-", substr(RegionUUID, 21, 12))
+  where RegionUUID not like '%-%';      
+
+update land
+  set OwnerUUID = concat(substr(OwnerUUID, 1, 8), "-", substr(OwnerUUID, 9, 4), "-", substr(OwnerUUID, 13, 4), "-", substr(OwnerUUID, 17, 4), "-", substr(OwnerUUID, 21, 12))
+  where OwnerUUID not like '%-%';      
+
+update land
+  set GroupUUID = concat(substr(GroupUUID, 1, 8), "-", substr(GroupUUID, 9, 4), "-", substr(GroupUUID, 13, 4), "-", substr(GroupUUID, 17, 4), "-", substr(GroupUUID, 21, 12))
+  where GroupUUID not like '%-%';      
+
+update land
+  set MediaTextureUUID = concat(substr(MediaTextureUUID, 1, 8), "-", substr(MediaTextureUUID, 9, 4), "-", substr(MediaTextureUUID, 13, 4), "-", substr(MediaTextureUUID, 17, 4), "-", substr(MediaTextureUUID, 21, 12))
+  where MediaTextureUUID not like '%-%';      
+
+update land
+  set SnapshotUUID = concat(substr(SnapshotUUID, 1, 8), "-", substr(SnapshotUUID, 9, 4), "-", substr(SnapshotUUID, 13, 4), "-", substr(SnapshotUUID, 17, 4), "-", substr(SnapshotUUID, 21, 12))
+  where SnapshotUUID not like '%-%';      
+
+update land
+  set AuthbuyerID = concat(substr(AuthbuyerID, 1, 8), "-", substr(AuthbuyerID, 9, 4), "-", substr(AuthbuyerID, 13, 4), "-", substr(AuthbuyerID, 17, 4), "-", substr(AuthbuyerID, 21, 12))
+  where AuthbuyerID not like '%-%';      
+  
+COMMIT;
+
+:VERSION 29			#---------------------
+
+BEGIN;
+
+ALTER TABLE prims ADD COLUMN PassTouches tinyint not null default 0;
+
+COMMIT;
+
+:VERSION 30			#---------------------
+
+BEGIN;
+
+ALTER TABLE regionsettings ADD COLUMN loaded_creation_date varchar(20) default NULL;
+ALTER TABLE regionsettings ADD COLUMN loaded_creation_time varchar(20) default NULL;
+ALTER TABLE regionsettings ADD COLUMN loaded_creation_id varchar(64) default NULL;
+
+COMMIT;
+
+:VERSION 31			#---------------------
+
+BEGIN;
+
+ALTER TABLE regionsettings DROP COLUMN loaded_creation_date;
+ALTER TABLE regionsettings DROP COLUMN loaded_creation_time;
+ALTER TABLE regionsettings ADD COLUMN loaded_creation_datetime int unsigned NOT NULL default 0;
+
+COMMIT;
+
+:VERSION 32			#---------------------
+
+BEGIN;
+CREATE TABLE `regionwindlight` (
+  `region_id` varchar(36) NOT NULL DEFAULT '000000-0000-0000-0000-000000000000',
+  `water_color_r` float(9,6) unsigned NOT NULL DEFAULT '4.000000',
+  `water_color_g` float(9,6) unsigned NOT NULL DEFAULT '38.000000',
+  `water_color_b` float(9,6) unsigned NOT NULL DEFAULT '64.000000',
+  `water_fog_density_exponent` float(3,1) unsigned NOT NULL DEFAULT '4.0',
+  `underwater_fog_modifier` float(3,2) unsigned NOT NULL DEFAULT '0.25',
+  `reflection_wavelet_scale_1` float(3,1) unsigned NOT NULL DEFAULT '2.0',
+  `reflection_wavelet_scale_2` float(3,1) unsigned NOT NULL DEFAULT '2.0',
+  `reflection_wavelet_scale_3` float(3,1) unsigned NOT NULL DEFAULT '2.0',
+  `fresnel_scale` float(3,2) unsigned NOT NULL DEFAULT '0.40',
+  `fresnel_offset` float(3,2) unsigned NOT NULL DEFAULT '0.50',
+  `refract_scale_above` float(3,2) unsigned NOT NULL DEFAULT '0.03',
+  `refract_scale_below` float(3,2) unsigned NOT NULL DEFAULT '0.20',
+  `blur_multiplier` float(4,3) unsigned NOT NULL DEFAULT '0.040',
+  `big_wave_direction_x` float(3,2) NOT NULL DEFAULT '1.05',
+  `big_wave_direction_y` float(3,2) NOT NULL DEFAULT '-0.42',
+  `little_wave_direction_x` float(3,2) NOT NULL DEFAULT '1.11',
+  `little_wave_direction_y` float(3,2) NOT NULL DEFAULT '-1.16',
+  `normal_map_texture` varchar(36) NOT NULL DEFAULT '822ded49-9a6c-f61c-cb89-6df54f42cdf4',
+  `horizon_r` float(3,2) unsigned NOT NULL DEFAULT '0.25',
+  `horizon_g` float(3,2) unsigned NOT NULL DEFAULT '0.25',
+  `horizon_b` float(3,2) unsigned NOT NULL DEFAULT '0.32',
+  `horizon_i` float(3,2) unsigned NOT NULL DEFAULT '0.32',
+  `haze_horizon` float(3,2) unsigned NOT NULL DEFAULT '0.19',
+  `blue_density_r` float(3,2) unsigned NOT NULL DEFAULT '0.12',
+  `blue_density_g` float(3,2) unsigned NOT NULL DEFAULT '0.22',
+  `blue_density_b` float(3,2) unsigned NOT NULL DEFAULT '0.38',
+  `blue_density_i` float(3,2) unsigned NOT NULL DEFAULT '0.38',
+  `haze_density` float(3,2) unsigned NOT NULL DEFAULT '0.70',
+  `density_multiplier` float(3,2) unsigned NOT NULL DEFAULT '0.18',
+  `distance_multiplier` float(4,1) unsigned NOT NULL DEFAULT '0.8',
+  `max_altitude` int(4) unsigned NOT NULL DEFAULT '1605',
+  `sun_moon_color_r` float(3,2) unsigned NOT NULL DEFAULT '0.24',
+  `sun_moon_color_g` float(3,2) unsigned NOT NULL DEFAULT '0.26',
+  `sun_moon_color_b` float(3,2) unsigned NOT NULL DEFAULT '0.30',
+  `sun_moon_color_i` float(3,2) unsigned NOT NULL DEFAULT '0.30',
+  `sun_moon_position` float(4,3) unsigned NOT NULL DEFAULT '0.317',
+  `ambient_r` float(3,2) unsigned NOT NULL DEFAULT '0.35',
+  `ambient_g` float(3,2) unsigned NOT NULL DEFAULT '0.35',
+  `ambient_b` float(3,2) unsigned NOT NULL DEFAULT '0.35',
+  `ambient_i` float(3,2) unsigned NOT NULL DEFAULT '0.35',
+  `east_angle` float(3,2) unsigned NOT NULL DEFAULT '0.00',
+  `sun_glow_focus` float(3,2) unsigned NOT NULL DEFAULT '0.10',
+  `sun_glow_size` float(3,2) unsigned NOT NULL DEFAULT '1.75',
+  `scene_gamma` float(4,2) unsigned NOT NULL DEFAULT '1.00',
+  `star_brightness` float(3,2) unsigned NOT NULL DEFAULT '0.00',
+  `cloud_color_r` float(3,2) unsigned NOT NULL DEFAULT '0.41',
+  `cloud_color_g` float(3,2) unsigned NOT NULL DEFAULT '0.41',
+  `cloud_color_b` float(3,2) unsigned NOT NULL DEFAULT '0.41',
+  `cloud_color_i` float(3,2) unsigned NOT NULL DEFAULT '0.41',
+  `cloud_x` float(3,2) unsigned NOT NULL DEFAULT '1.00',
+  `cloud_y` float(3,2) unsigned NOT NULL DEFAULT '0.53',
+  `cloud_density` float(3,2) unsigned NOT NULL DEFAULT '1.00',
+  `cloud_coverage` float(3,2) unsigned NOT NULL DEFAULT '0.27',
+  `cloud_scale` float(3,2) unsigned NOT NULL DEFAULT '0.42',
+  `cloud_detail_x` float(3,2) unsigned NOT NULL DEFAULT '1.00',
+  `cloud_detail_y` float(3,2) unsigned NOT NULL DEFAULT '0.53',
+  `cloud_detail_density` float(3,2) unsigned NOT NULL DEFAULT '0.12',
+  `cloud_scroll_x` float(3,2) unsigned NOT NULL DEFAULT '0.20',
+  `cloud_scroll_x_lock` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `cloud_scroll_y` float(3,2) unsigned NOT NULL DEFAULT '0.01',
+  `cloud_scroll_y_lock` tinyint(1) unsigned NOT NULL DEFAULT '0',
+  `draw_classic_clouds` tinyint(1) unsigned NOT NULL DEFAULT '1',
+  PRIMARY KEY (`region_id`)
+);
+
+ALTER TABLE estate_settings AUTO_INCREMENT = 100;
+COMMIT;
+
+:VERSION 33			#---------------------
+
+BEGIN;
+ALTER TABLE regionsettings ADD map_tile_ID CHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
+COMMIT;
+

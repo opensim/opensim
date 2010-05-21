@@ -76,5 +76,8 @@ namespace OpenSim.Region.Framework.Interfaces
         void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel);
         void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel);
         void SetParcelOtherCleanTime(IClientAPI remoteClient, int localID, int otherCleanTime);
+
+        void Join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id);
+        void Subdivide(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id);
     }
 }

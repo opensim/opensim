@@ -123,6 +123,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osWindParamSet(string plugin, string param, float value);
         float osWindParamGet(string plugin, string param);
 
+        // Parcel commands
+        void osParcelJoin(vector pos1, vector pos2);
+        void osParcelSubdivide(vector pos1, vector pos2);
+        void osParcelSetDetails(vector pos, LSL_List rules);
 
         string osGetScriptEngineName();
         string osGetSimulatorVersion();

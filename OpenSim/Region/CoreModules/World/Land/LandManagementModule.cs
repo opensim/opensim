@@ -956,6 +956,16 @@ namespace OpenSim.Region.CoreModules.World.Land
             masterLandObject.SendLandUpdateToAvatarsOverMe();
         }
 
+        public void Join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
+        {
+            join(start_x, start_y, end_x, end_y, attempting_user_id);
+        }
+
+        public void Subdivide(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
+        {
+            subdivide(start_x, start_y, end_x, end_y, attempting_user_id);
+        }
+
         #endregion
 
         #region Parcel Updating

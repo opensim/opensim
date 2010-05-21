@@ -84,7 +84,7 @@ namespace OpenSim.Services.Connectors
         }
 
 
-        #region IPresenceService
+        #region IGridUserService
 
 
         public GridUserInfo LoggedIn(string userID)

@@ -99,15 +99,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>The measured resolution of Environment.TickCount</summary>
         public readonly float TickCountResolution;
-        /// <summary>Number of terse prim updates to put on the queue each time the
+        /// <summary>Number of prim updates to put on the queue each time the 
         /// OnQueueEmpty event is triggered for updates</summary>
-        public readonly int PrimTerseUpdatesPerPacket;
-        /// <summary>Number of terse avatar updates to put on the queue each time the
-        /// OnQueueEmpty event is triggered for updates</summary>
-        public readonly int AvatarTerseUpdatesPerPacket;
-        /// <summary>Number of full prim updates to put on the queue each time the
-        /// OnQueueEmpty event is triggered for updates</summary>
-        public readonly int PrimFullUpdatesPerPacket;
+        public readonly int PrimUpdatesPerCallback;
         /// <summary>Number of texture packets to put on the queue each time the
         /// OnQueueEmpty event is triggered for textures</summary>
         public readonly int TextureSendLimit;
@@ -191,9 +185,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_recvBufferSize = config.GetInt("client_socket_rcvbuf_size", 0);
                 sceneThrottleBps = config.GetInt("scene_throttle_max_bps", 0);
 
-                PrimTerseUpdatesPerPacket = config.GetInt("PrimTerseUpdatesPerPacket", 25);
-                AvatarTerseUpdatesPerPacket = config.GetInt("AvatarTerseUpdatesPerPacket", 10);
-                PrimFullUpdatesPerPacket = config.GetInt("PrimFullUpdatesPerPacket", 100);
+                PrimUpdatesPerCallback = config.GetInt("PrimUpdatesPerCallback", 100);
                 TextureSendLimit = config.GetInt("TextureSendLimit", 20);
 
                 m_defaultRTO = config.GetInt("DefaultRTO", 0);
@@ -201,9 +193,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else
             {
-                PrimTerseUpdatesPerPacket = 25;
-                AvatarTerseUpdatesPerPacket = 10;
-                PrimFullUpdatesPerPacket = 100;
+                PrimUpdatesPerCallback = 100;
                 TextureSendLimit = 20;
             }
 
