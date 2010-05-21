@@ -635,9 +635,9 @@ namespace OpenSim.Data.MSSQL
         /// <param name="connection">connection to the database</param>
         private void DeleteItemsInFolder(UUID folderID, SqlConnection connection)
         {
-            using (SqlCommand command = new SqlCommand("DELETE FROM inventoryitems WHERE folderID=@folderID", connection))
+            using (SqlCommand command = new SqlCommand("DELETE FROM inventoryitems WHERE parentFolderID=@parentFolderID", connection))
             {
-                command.Parameters.Add(database.CreateParameter("folderID", folderID));
+                command.Parameters.Add(database.CreateParameter("parentFolderID", folderID));
 
                 try
                 {
