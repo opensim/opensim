@@ -243,7 +243,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // to the same scene (when this is possible).
                 sceneObject.ResetIDs();
 
-
                 foreach (SceneObjectPart part in sceneObject.Children.Values)
                 {
                     if (!ResolveUserUuid(part.CreatorID))

@@ -278,7 +278,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (sceneObject == null || sceneObject.RootPart == null || sceneObject.RootPart.UUID == UUID.Zero)
                 return false;
 
-            bool alreadyExisted = false;
+            bool newlyAdded = false;
             
             if (m_parentScene.m_clampPrimSize)
             {
@@ -305,7 +305,12 @@ namespace OpenSim.Region.Framework.Scenes
             lock (sceneObject)
             {
                 if (!Entities.ContainsKey(sceneObject.UUID))
-                {
+                {                    
+//                    m_log.DebugFormat(
+//                        "[SCENE GRAPH]: Adding object {0} {1} to region {2}", 
+//                        sceneObject.Name, sceneObject.UUID, m_parentScene.RegionInfo.RegionName);
+                    
+                    newlyAdded = true;                    
                     Entities.Add(sceneObject);
                     m_numPrim += sceneObject.Children.Count;
 
@@ -326,13 +331,15 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-                else
-                {
-                    alreadyExisted = true;
-                }
+//                else
+//                {
+//                    m_log.WarnFormat(
+//                        "[SCENE GRAPH]: Scene object {0} {1} was already in region {2} on add request", 
+//                        sceneObject.Name, sceneObject.UUID, m_parentScene.RegionInfo.RegionName);
+//                }
             }
 
-            return alreadyExisted;
+            return newlyAdded;
         }
 
         /// <summary>
