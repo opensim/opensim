@@ -325,6 +325,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private int m_cachedTextureSerial;
         private PriorityQueue<double, EntityUpdate> m_entityUpdates;
+        private Dictionary<uint, bool> m_seenPrims = new Dictionary<uint, bool>();
 
         /// <value>
         /// List used in construction of data blocks for an object update packet.  This is to stop us having to
@@ -3495,7 +3496,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     // Compressed object updates only make sense for LL primitives
                     if (!(update.Entity is SceneObjectPart))
+                    {
                         canUseCompressed = false;
+                    }
+                    else
+                    {
+                        if (!m_seenPrims.ContainsKey(((SceneObjectPart)update.Entity).LocalId))
+                        {
+                            updateFlags = PrimUpdateFlags.FullUpdate;
+                            m_seenPrims[((SceneObjectPart)update.Entity).LocalId] = true;
+                        }
+                    }
 
                     if (updateFlags.HasFlag(PrimUpdateFlags.FullUpdate))
                     {
