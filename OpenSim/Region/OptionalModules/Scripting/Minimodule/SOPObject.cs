@@ -31,6 +31,7 @@ using System.Security;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.OptionalModules.Scripting.Minimodule.Object;
 using OpenSim.Region.Physics.Manager;
@@ -402,7 +403,48 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             SceneObjectPart sop = GetSOP();
             m_rootScene.SimChat(Utils.StringToBytes(msg), ChatTypeEnum.Say,channel, sop.AbsolutePosition, sop.Name, sop.UUID, false);
         }
-                
+         
+        public void Dialog(UUID avatar, string message, string[] buttons, int chat_channel)
+        {
+            if (!CanEdit())
+                return;
+
+            IDialogModule dm = m_rootScene.RequestModuleInterface<IDialogModule>();
+
+            if (dm == null)
+                return;
+
+            if (buttons.Length < 1)
+            {
+                Say("ERROR: No less than 1 button can be shown",2147483647);
+                return;
+            }
+            if (buttons.Length > 12)
+            {
+                Say("ERROR: No more than 12 buttons can be shown",2147483647);
+                return;
+            }
+
+            foreach(string button in buttons)
+            {
+                if (button == String.Empty)
+                {
+                    Say("ERROR: button label cannot be blank",2147483647);
+                    return;
+                }
+                if (button.Length > 24)
+                {
+                    Say("ERROR: button label cannot be longer than 24 characters",2147483647);
+                    return;
+                }
+            }
+
+            dm.SendDialogToUser(
+                avatar, GetSOP().Name, GetSOP().UUID, GetSOP().OwnerID,
+                message, new UUID("00000000-0000-2222-3333-100000001000"), chat_channel, buttons);         
+            
+        }
+        
         #endregion
 
 
