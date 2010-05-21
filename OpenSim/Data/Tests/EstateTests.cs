@@ -37,6 +37,10 @@ using log4net;
 using System.Reflection;
 using System.Data.Common;
 
+#if !NUNIT25
+using NUnit.Framework.SyntaxHelpers;
+#endif
+
 
 // DBMS-specific:
 using MySql.Data.MySqlClient;
@@ -51,9 +55,31 @@ using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
+
+#if NUNIT25
+
     [TestFixture(typeof(MySqlConnection), typeof(MySQLEstateStore), Description = "Estate store tests (MySQL)")]
     [TestFixture(typeof(SqlConnection), typeof(MSSQLEstateStore), Description = "Estate store tests (MS SQL Server)")]
     [TestFixture(typeof(SqliteConnection), typeof(SQLiteEstateStore), Description = "Estate store tests (SQLite)")]
+
+#else
+
+    [TestFixture(Description = "Estate store tests (SQLite)")]
+    public class SQLiteEstateTests : EstateTests<SqliteConnection, SQLiteEstateStore>
+    {
+    }
+
+    [TestFixture(Description = "Estate store tests (MySQL)")]
+    public class MySqlEstateTests : EstateTests<MySqlConnection, MySQLEstateStore>
+    {
+    }
+
+    [TestFixture(Description = "Estate store tests (MS SQL Server)")]
+    public class MSSQLEstateTests : EstateTests<SqlConnection, MSSQLEstateStore>
+    {
+    }
+
+#endif
 
     public class EstateTests<TConn, TEstateStore> : BasicDataServiceTest<TConn, TEstateStore>
         where TConn : DbConnection, new()

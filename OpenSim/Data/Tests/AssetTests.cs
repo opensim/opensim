@@ -35,6 +35,10 @@ using OpenSim.Framework;
 using System.Data.Common;
 using log4net;
 
+#if !NUNIT25
+using NUnit.Framework.SyntaxHelpers;
+#endif
+
 // DBMS-specific:
 using MySql.Data.MySqlClient;
 using OpenSim.Data.MySQL;
@@ -47,9 +51,32 @@ using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
+
+#if NUNIT25
+
     [TestFixture(typeof(MySqlConnection), typeof(MySQLAssetData), Description="Basic Asset store tests (MySQL)")]
     [TestFixture(typeof(SqlConnection), typeof(MSSQLAssetData), Description = "Basic Asset store tests (MS SQL Server)")]
     [TestFixture(typeof(SqliteConnection), typeof(SQLiteAssetData), Description = "Basic Asset store tests (SQLite)")]
+
+#else
+
+    [TestFixture(Description = "Region store tests (SQLite)")]
+    public class SQLiteAssetTests : AssetTests<SqliteConnection, SQLiteAssetData>
+    {
+    }
+
+    [TestFixture(Description = "Region store tests (MySQL)")]
+    public class MySqlAssetTests : AssetTests<MySqlConnection, MySQLAssetData>
+    {
+    }
+
+    [TestFixture(Description = "Region store tests (MS SQL Server)")]
+    public class MSSQLAssetTests : AssetTests<SqlConnection, MSSQLAssetData>
+    {
+    }
+
+#endif
+
 
     public class AssetTests<TConn, TAssetData> : BasicDataServiceTest<TConn, TAssetData>
         where TConn : DbConnection, new()
@@ -57,15 +84,13 @@ namespace OpenSim.Data.Tests
     {
         TAssetData m_db;
 
-        const bool COMPARE_CREATOR = false;
-
         public UUID uuid1 = UUID.Random();
         public UUID uuid2 = UUID.Random();
         public UUID uuid3 = UUID.Random();
 
-        public UUID critter1 = COMPARE_CREATOR ? UUID.Random() : UUID.Zero;
-        public UUID critter2 = COMPARE_CREATOR ? UUID.Random() : UUID.Zero;
-        public UUID critter3 = COMPARE_CREATOR ? UUID.Random() : UUID.Zero;
+        public string critter1 = UUID.Random().ToString();
+        public string critter2 = UUID.Random().ToString();
+        public string critter3 = UUID.Random().ToString();
 
         public byte[] data1 = new byte[100];
 
@@ -156,6 +181,33 @@ namespace OpenSim.Data.Tests
                 Assert.That(metadata.Temporary, Is.EqualTo(a1b.Temporary));
                 Assert.That(metadata.FullID, Is.EqualTo(a1b.FullID));
             }
+        }
+
+        [Test]
+        public void T020_CheckForWeirdCreatorID()
+        {
+            // It is expected that eventually the CreatorID might be an arbitrary string (an URI)
+            // rather than a valid UUID (?).  This test is to make sure that the database layer does not
+            // attempt to convert CreatorID to GUID, but just passes it both ways as a string.
+            AssetBase a1 = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, critter1);
+            AssetBase a2 = new AssetBase(uuid2, "asset two", (sbyte)AssetType.Texture, "This is not a GUID!");
+            AssetBase a3 = new AssetBase(uuid3, "asset three", (sbyte)AssetType.Texture, "");
+            a1.Data = data1;
+            a2.Data = data1;
+            a3.Data = data1;
+
+            m_db.StoreAsset(a1);
+            m_db.StoreAsset(a2);
+            m_db.StoreAsset(a3);
+
+            AssetBase a1a = m_db.GetAsset(uuid1);
+            Assert.That(a1a, Constraints.PropertyCompareConstraint(a1));
+
+            AssetBase a2a = m_db.GetAsset(uuid2);
+            Assert.That(a2a, Constraints.PropertyCompareConstraint(a2));
+
+            AssetBase a3a = m_db.GetAsset(uuid3);
+            Assert.That(a3a, Constraints.PropertyCompareConstraint(a3));
         }
     }
 }

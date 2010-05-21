@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// #define NUNIT25
+
 using System;
 using log4net.Config;
 using NUnit.Framework;
@@ -34,6 +36,10 @@ using OpenSim.Framework;
 using log4net;
 using System.Reflection;
 using System.Data.Common;
+
+#if !NUNIT25
+using NUnit.Framework.SyntaxHelpers;
+#endif
 
 // DBMS-specific:
 using MySql.Data.MySqlClient;
@@ -47,9 +53,29 @@ using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
+#if NUNIT25
+
+    [TestFixture(typeof(SqliteConnection), typeof(SQLiteInventoryStore), Description = "Inventory store tests (SQLite)")]
     [TestFixture(typeof(MySqlConnection), typeof(MySQLInventoryData), Description = "Inventory store tests (MySQL)")]
     [TestFixture(typeof(SqlConnection), typeof(MSSQLInventoryData), Description = "Inventory store tests (MS SQL Server)")]
-    [TestFixture(typeof(SqliteConnection), typeof(SQLiteInventoryStore), Description = "Inventory store tests (SQLite)")]
+
+#else
+
+    [TestFixture(Description = "Inventory store tests (SQLite)")]
+    public class SQLiteInventoryTests : InventoryTests<SqliteConnection, SQLiteInventoryStore>
+    {
+    }
+
+    [TestFixture(Description = "Inventory store tests (MySQL)")]
+    public class MySqlInventoryTests : InventoryTests<MySqlConnection, MySQLInventoryData>
+    { 
+    }
+
+    [TestFixture(Description = "Inventory store tests (MS SQL Server)")]
+    public class MSSQLInventoryTests : InventoryTests<SqlConnection, MSSQLInventoryData>
+    {
+    }
+#endif
 
     public class InventoryTests<TConn, TInvStore> : BasicDataServiceTest<TConn, TInvStore>
         where TConn : DbConnection, new()
@@ -85,6 +111,7 @@ namespace OpenSim.Data.Tests
         {
             name1 = "Root Folder for " + owner1.ToString();
         }
+        public InventoryTests() : this("") { }
 
         protected override void InitService(object service)
         {

@@ -40,6 +40,10 @@ using log4net;
 using System.Reflection;
 using System.Data.Common;
 
+#if !NUNIT25
+using NUnit.Framework.SyntaxHelpers;
+#endif
+
 // DBMS-specific:
 using MySql.Data.MySqlClient;
 using OpenSim.Data.MySQL;
@@ -52,9 +56,30 @@ using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
+#if NUNIT25
+
+    [TestFixture(typeof(SqliteConnection), typeof(SQLiteRegionData), Description = "Region store tests (SQLite)")]
     [TestFixture(typeof(MySqlConnection), typeof(MySqlRegionData), Description = "Region store tests (MySQL)")]
     [TestFixture(typeof(SqlConnection), typeof(MSSQLRegionData), Description = "Region store tests (MS SQL Server)")]
-    [TestFixture(typeof(SqliteConnection), typeof(SQLiteRegionData), Description = "Region store tests (SQLite)")]
+
+#else
+
+    [TestFixture(Description = "Region store tests (SQLite)")]
+    public class SQLiteRegionTests : RegionTests<SqliteConnection, SQLiteRegionData>
+    {
+    }
+
+    [TestFixture(Description = "Region store tests (MySQL)")]
+    public class MySqlRegionTests : RegionTests<MySqlConnection, MySQLDataStore>
+    {
+    }
+
+    [TestFixture(Description = "Region store tests (MS SQL Server)")]
+    public class MSSQLRegionTests : RegionTests<SqlConnection, MSSQLRegionDataStore>
+    {
+    }
+
+#endif
 
     public class RegionTests<TConn, TRegStore> : BasicDataServiceTest<TConn, TRegStore>
         where TConn : DbConnection, new()
