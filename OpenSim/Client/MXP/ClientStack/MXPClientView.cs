@@ -1065,7 +1065,7 @@ namespace OpenSim.Client.MXP.ClientStack
             throw new System.NotImplementedException();
         }
 
-        public void ReprioritizeUpdates(UpdatePriorityHandler handler)
+        public void ReprioritizeUpdates()
         {
         }
 

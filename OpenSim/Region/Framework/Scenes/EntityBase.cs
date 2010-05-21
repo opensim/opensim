@@ -28,11 +28,12 @@
 using System;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
+using OpenSim.Framework;
 using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Scenes
 {
-    public abstract class EntityBase
+    public abstract class EntityBase : ISceneEntity
     {
         /// <summary>
         /// The scene to which this entity belongs

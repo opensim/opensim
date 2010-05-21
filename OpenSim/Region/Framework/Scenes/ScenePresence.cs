@@ -3777,123 +3777,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public double GetUpdatePriority(IClientAPI client)
-        {
-            switch (Scene.UpdatePrioritizationScheme)
-            {
-                case Scene.UpdatePrioritizationSchemes.Time:
-                    return GetPriorityByTime();
-                case Scene.UpdatePrioritizationSchemes.Distance:
-                    return GetPriorityByDistance(client);
-                case Scene.UpdatePrioritizationSchemes.SimpleAngularDistance:
-                    return GetPriorityByDistance(client);
-                case Scenes.Scene.UpdatePrioritizationSchemes.FrontBack:
-                    return GetPriorityByFrontBack(client);
-                default:
-                    throw new InvalidOperationException("UpdatePrioritizationScheme not defined.");
-            }
-        }
-
-        private double GetPriorityByTime()
-        {
-            return DateTime.Now.ToOADate();
-        }
-
-        private double GetPriorityByDistance(IClientAPI client)
-        {
-            ScenePresence presence = Scene.GetScenePresence(client.AgentId);
-            if (presence != null)
-            {
-                return GetPriorityByDistance((presence.IsChildAgent) ?
-                    presence.AbsolutePosition : presence.CameraPosition);
-            }
-            return double.NaN;
-        }
-
-        private double GetPriorityByFrontBack(IClientAPI client)
-        {
-            ScenePresence presence = Scene.GetScenePresence(client.AgentId);
-            if (presence != null)
-            {
-                return GetPriorityByFrontBack(presence.CameraPosition, presence.CameraAtAxis);
-            }
-            return double.NaN;
-        }
-
-        private double GetPriorityByDistance(Vector3 position)
-        {
-            return Vector3.Distance(AbsolutePosition, position);
-        }
-
-        private double GetPriorityByFrontBack(Vector3 camPosition, Vector3 camAtAxis)
-        {
-            // Distance
-            double priority = Vector3.Distance(camPosition, AbsolutePosition);
-
-            // Plane equation
-            float d = -Vector3.Dot(camPosition, camAtAxis);
-            float p = Vector3.Dot(camAtAxis, AbsolutePosition) + d;
-            if (p < 0.0f) priority *= 2.0f;
-
-            return priority;
-        }
-
-        private double GetSOGUpdatePriority(SceneObjectGroup sog)
-        {
-            switch (Scene.UpdatePrioritizationScheme)
-            {
-                case Scene.UpdatePrioritizationSchemes.Time:
-                    throw new InvalidOperationException("UpdatePrioritizationScheme for time not supported for reprioritization");
-                case Scene.UpdatePrioritizationSchemes.Distance:
-                    return sog.GetPriorityByDistance((IsChildAgent) ? AbsolutePosition : CameraPosition);
-                case Scene.UpdatePrioritizationSchemes.SimpleAngularDistance:
-                    return sog.GetPriorityBySimpleAngularDistance((IsChildAgent) ? AbsolutePosition : CameraPosition);
-                case Scenes.Scene.UpdatePrioritizationSchemes.FrontBack:
-                    return sog.GetPriorityByFrontBack(CameraPosition, CameraAtAxis);
-                default:
-                    throw new InvalidOperationException("UpdatePrioritizationScheme not defined");
-            }
-        }
-
-        private double UpdatePriority(UpdatePriorityData data)
-        {
-            EntityBase entity;
-            SceneObjectGroup group;
-
-            if (Scene.Entities.TryGetValue(data.localID, out entity))
-            {
-                group = entity as SceneObjectGroup;
-                if (group != null)
-                    return GetSOGUpdatePriority(group);
-
-                ScenePresence presence = entity as ScenePresence;
-                if (presence == null)
-                    throw new InvalidOperationException("entity found is neither SceneObjectGroup nor ScenePresence");
-                switch (Scene.UpdatePrioritizationScheme)
-                {
-                    case Scene.UpdatePrioritizationSchemes.Time:
-                        throw new InvalidOperationException("UpdatePrioritization for time not supported for reprioritization");
-                    case Scene.UpdatePrioritizationSchemes.Distance:
-                    case Scene.UpdatePrioritizationSchemes.SimpleAngularDistance:
-                        return GetPriorityByDistance((IsChildAgent) ? AbsolutePosition : CameraPosition);
-                    case Scenes.Scene.UpdatePrioritizationSchemes.FrontBack:
-                        return GetPriorityByFrontBack(CameraPosition, CameraAtAxis);
-                    default:
-                        throw new InvalidOperationException("UpdatePrioritizationScheme not defined");
-                }
-            }
-            else
-            {
-                group = Scene.GetGroupByPrim(data.localID);
-                if (group != null)
-                    return GetSOGUpdatePriority(group);
-            }
-            return double.NaN;
-        }
-
         private void ReprioritizeUpdates()
         {
-            if (Scene.IsReprioritizationEnabled && Scene.UpdatePrioritizationScheme != Scene.UpdatePrioritizationSchemes.Time)
+            if (Scene.IsReprioritizationEnabled && Scene.UpdatePrioritizationScheme != UpdatePrioritizationSchemes.Time)
             {
                 lock (m_reprioritization_timer)
                 {
@@ -3907,7 +3793,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void Reprioritize(object sender, ElapsedEventArgs e)
         {
-            m_controllingClient.ReprioritizeUpdates(UpdatePriority);
+            m_controllingClient.ReprioritizeUpdates();
 
             lock (m_reprioritization_timer)
             {
