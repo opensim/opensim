@@ -1065,7 +1065,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         }
 
-        public void ReprioritizeUpdates(UpdatePriorityHandler handler)
+        public void ReprioritizeUpdates()
         {
 
         }

@@ -638,7 +638,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public void ReprioritizeUpdates(UpdatePriorityHandler handler)
+        public void ReprioritizeUpdates()
         {
         }
 
