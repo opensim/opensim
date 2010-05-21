@@ -72,6 +72,40 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(retrievedPart.Name, Is.EqualTo(objName));
             Assert.That(retrievedPart.UUID, Is.EqualTo(objUuid));
         }
+
+        [Test]
+        /// <summary>
+        /// It shouldn't be possible to add a scene object if one with that uuid already exists in the scene.
+        /// </summary>
+        public void TestAddExistingSceneObjectUuid()
+        {
+            TestHelper.InMethod();
+
+            Scene scene = SceneSetupHelpers.SetupScene();
+
+            string obj1Name = "Alfred";
+            string obj2Name = "Betty";
+            UUID objUuid = new UUID("00000000-0000-0000-0000-000000000001");
+
+            SceneObjectPart part1
+                = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                    { Name = obj1Name, UUID = objUuid };
+
+            Assert.That(scene.AddNewSceneObject(new SceneObjectGroup(part1), false), Is.True);
+
+            SceneObjectPart part2
+                = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                    { Name = obj2Name, UUID = objUuid };
+
+            Assert.That(scene.AddNewSceneObject(new SceneObjectGroup(part2), false), Is.False);
+            
+            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(objUuid);
+            
+            //m_log.Debug("retrievedPart : {0}", retrievedPart);
+            // If the parts have the same UUID then we will consider them as one and the same
+            Assert.That(retrievedPart.Name, Is.EqualTo(obj1Name));
+            Assert.That(retrievedPart.UUID, Is.EqualTo(objUuid));
+        }
         
         /// <summary>
         /// Test deleting an object from a scene.
