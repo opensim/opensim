@@ -794,25 +794,28 @@ namespace OpenSim.Region.Framework.Scenes
 
             #region Interest Management
 
-            IConfig interestConfig = m_config.Configs["InterestManagement"];
-            if (interestConfig != null)
+            if (m_config != null)
             {
-                string update_prioritization_scheme = interestConfig.GetString("UpdatePrioritizationScheme", "Time").Trim().ToLower();
-
-                try
+                IConfig interestConfig = m_config.Configs["InterestManagement"];
+                if (interestConfig != null)
                 {
-                    m_priorityScheme = (UpdatePrioritizationSchemes)Enum.Parse(typeof(UpdatePrioritizationSchemes), update_prioritization_scheme, true);
-                }
-                catch (Exception)
-                {
-                    m_log.Warn("[PRIORITIZER]: UpdatePrioritizationScheme was not recognized, setting to default prioritizer Time");
-                    m_priorityScheme = UpdatePrioritizationSchemes.Time;
-                }
+                    string update_prioritization_scheme = interestConfig.GetString("UpdatePrioritizationScheme", "Time").Trim().ToLower();
 
-                m_reprioritizationEnabled = interestConfig.GetBoolean("ReprioritizationEnabled", true);
-                m_reprioritizationInterval = interestConfig.GetDouble("ReprioritizationInterval", 5000.0);
-                m_rootReprioritizationDistance = interestConfig.GetDouble("RootReprioritizationDistance", 10.0);
-                m_childReprioritizationDistance = interestConfig.GetDouble("ChildReprioritizationDistance", 20.0);
+                    try
+                    {
+                        m_priorityScheme = (UpdatePrioritizationSchemes)Enum.Parse(typeof(UpdatePrioritizationSchemes), update_prioritization_scheme, true);
+                    }
+                    catch (Exception)
+                    {
+                        m_log.Warn("[PRIORITIZER]: UpdatePrioritizationScheme was not recognized, setting to default prioritizer Time");
+                        m_priorityScheme = UpdatePrioritizationSchemes.Time;
+                    }
+
+                    m_reprioritizationEnabled = interestConfig.GetBoolean("ReprioritizationEnabled", true);
+                    m_reprioritizationInterval = interestConfig.GetDouble("ReprioritizationInterval", 5000.0);
+                    m_rootReprioritizationDistance = interestConfig.GetDouble("RootReprioritizationDistance", 10.0);
+                    m_childReprioritizationDistance = interestConfig.GetDouble("ChildReprioritizationDistance", 20.0);
+                }
             }
 
             m_log.Info("[SCENE]: Using the " + m_priorityScheme + " prioritization scheme");
