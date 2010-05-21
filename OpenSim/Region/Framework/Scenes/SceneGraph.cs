@@ -278,68 +278,64 @@ namespace OpenSim.Region.Framework.Scenes
             if (sceneObject == null || sceneObject.RootPart == null || sceneObject.RootPart.UUID == UUID.Zero)
                 return false;
 
-            bool newlyAdded = false;
-            
-            if (m_parentScene.m_clampPrimSize)
-            {
-                foreach (SceneObjectPart part in sceneObject.Children.Values)
-                {
-                    Vector3 scale = part.Shape.Scale;
-
-                    if (scale.X > m_parentScene.m_maxNonphys)
-                        scale.X = m_parentScene.m_maxNonphys;
-                    if (scale.Y > m_parentScene.m_maxNonphys)
-                        scale.Y = m_parentScene.m_maxNonphys;
-                    if (scale.Z > m_parentScene.m_maxNonphys)
-                        scale.Z = m_parentScene.m_maxNonphys;
-
-                    part.Shape.Scale = scale;
-                }
-            }
-
-            sceneObject.AttachToScene(m_parentScene);
-
-            if (sendClientUpdates)
-                sceneObject.ScheduleGroupForFullUpdate();
-
             lock (sceneObject)
-            {
-                if (!Entities.ContainsKey(sceneObject.UUID))
-                {                    
-//                    m_log.DebugFormat(
-//                        "[SCENE GRAPH]: Adding object {0} {1} to region {2}", 
-//                        sceneObject.Name, sceneObject.UUID, m_parentScene.RegionInfo.RegionName);
-                    
-                    newlyAdded = true;                    
-                    Entities.Add(sceneObject);
-                    m_numPrim += sceneObject.Children.Count;
-
-                    if (attachToBackup)
-                        sceneObject.AttachToBackup();
-
-                    if (OnObjectCreate != null)
-                        OnObjectCreate(sceneObject);
-                    
-                    lock (m_dictionary_lock)
-                    {
-                        SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
-                        SceneObjectGroupsByLocalID[sceneObject.LocalId] = sceneObject;
-                        foreach (SceneObjectPart part in sceneObject.Children.Values)
-                        {
-                            SceneObjectGroupsByFullID[part.UUID] = sceneObject;
-                            SceneObjectGroupsByLocalID[part.LocalId] = sceneObject;
-                        }
-                    }
-                }
-//                else
-//                {
+            {            
+                if (Entities.ContainsKey(sceneObject.UUID))
+                {
 //                    m_log.WarnFormat(
 //                        "[SCENE GRAPH]: Scene object {0} {1} was already in region {2} on add request", 
-//                        sceneObject.Name, sceneObject.UUID, m_parentScene.RegionInfo.RegionName);
-//                }
+//                        sceneObject.Name, sceneObject.UUID, m_parentScene.RegionInfo.RegionName);                    
+                    return false;
+                }
+                   
+//                    m_log.DebugFormat(
+//                        "[SCENE GRAPH]: Adding object {0} {1} to region {2}", 
+//                        sceneObject.Name, sceneObject.UUID, m_parentScene.RegionInfo.RegionName);                
+            
+                if (m_parentScene.m_clampPrimSize)
+                {
+                    foreach (SceneObjectPart part in sceneObject.Children.Values)
+                    {
+                        Vector3 scale = part.Shape.Scale;
+    
+                        if (scale.X > m_parentScene.m_maxNonphys)
+                            scale.X = m_parentScene.m_maxNonphys;
+                        if (scale.Y > m_parentScene.m_maxNonphys)
+                            scale.Y = m_parentScene.m_maxNonphys;
+                        if (scale.Z > m_parentScene.m_maxNonphys)
+                            scale.Z = m_parentScene.m_maxNonphys;
+    
+                        part.Shape.Scale = scale;
+                    }
+                }
+    
+                sceneObject.AttachToScene(m_parentScene);
+    
+                if (sendClientUpdates)
+                    sceneObject.ScheduleGroupForFullUpdate();
+                                     
+                Entities.Add(sceneObject);
+                m_numPrim += sceneObject.Children.Count;
+
+                if (attachToBackup)
+                    sceneObject.AttachToBackup();
+
+                if (OnObjectCreate != null)
+                    OnObjectCreate(sceneObject);
+                
+                lock (m_dictionary_lock)
+                {
+                    SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
+                    SceneObjectGroupsByLocalID[sceneObject.LocalId] = sceneObject;
+                    foreach (SceneObjectPart part in sceneObject.Children.Values)
+                    {
+                        SceneObjectGroupsByFullID[part.UUID] = sceneObject;
+                        SceneObjectGroupsByLocalID[part.LocalId] = sceneObject;
+                    }
+                }
             }
 
-            return newlyAdded;
+            return true;
         }
 
         /// <summary>
