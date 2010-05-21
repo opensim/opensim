@@ -98,6 +98,16 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         String Description { get; set; }
 
         /// <summary>
+        /// Returns the UUID of the Owner of the Object.
+        /// </summary>
+        UUID OwnerId { get; }
+
+        /// <summary>
+        /// Returns the UUID of the Creator of the Object.
+        /// </summary>
+        UUID CreatorId { get; }
+
+        /// <summary>
         /// Returns the root object of a linkset. If this object is the root, it will return itself.
         /// </summary>
         IObject Root { get; }

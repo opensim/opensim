@@ -169,6 +169,16 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             }
         }
 
+        public UUID OwnerId
+        {
+            get { return GetSOP().OwnerID;}
+        }
+
+        public UUID CreatorId
+        {
+            get { return GetSOP().CreatorID;}
+        }
+
         public IObject[] Children
         {
             get
