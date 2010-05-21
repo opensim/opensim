@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -129,7 +130,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             //log4net.Config.XmlConfigurator.Configure();
 
             SceneObjectPart part1 = CreateSceneObjectPart1();
-            m_scene.AddNewSceneObject(new SceneObjectGroup(part1), false);
+            SceneObjectGroup sog1 = new SceneObjectGroup(part1);
+            m_scene.AddNewSceneObject(sog1, false);
 
             SceneObjectPart part2 = CreateSceneObjectPart2();
             
@@ -169,20 +171,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             bool gotControlFile = false;
             bool gotNcAssetFile = false;
-            bool gotObject1File = false;
-            bool gotObject2File = false;
             
             string expectedNcAssetFileName = string.Format("{0}_{1}", ncAssetUuid, "notecard.txt");
-            string expectedObject1FileName = string.Format(
-                "{0}_{1:000}-{2:000}-{3:000}__{4}.xml",
-                part1.Name,
-                Math.Round(part1.GroupPosition.X), Math.Round(part1.GroupPosition.Y), Math.Round(part1.GroupPosition.Z),
-                part1.UUID);
-            string expectedObject2FileName = string.Format(
-                "{0}_{1:000}-{2:000}-{3:000}__{4}.xml",
-                part2.Name,
-                Math.Round(part2.GroupPosition.X), Math.Round(part2.GroupPosition.Y), Math.Round(part2.GroupPosition.Z),
-                part2.UUID);
+
+            List<string> foundPaths = new List<string>();
+            List<string> expectedPaths = new List<string>();
+            expectedPaths.Add(ArchiveHelpers.CreateObjectPath(sog1));
+            expectedPaths.Add(ArchiveHelpers.CreateObjectPath(sog2));
 
             string filePath;
             TarArchiveReader.TarEntryType tarEntryType;
@@ -202,25 +197,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 }
                 else if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
                 {
-                    string fileName = filePath.Remove(0, ArchiveConstants.OBJECTS_PATH.Length);
-
-                    if (fileName.StartsWith(part1.Name))
-                    {
-                        Assert.That(fileName, Is.EqualTo(expectedObject1FileName));
-                        gotObject1File = true;
-                    }
-                    else if (fileName.StartsWith(part2.Name))
-                    {
-                        Assert.That(fileName, Is.EqualTo(expectedObject2FileName));
-                        gotObject2File = true;
-                    }
+                    foundPaths.Add(filePath);
                 }
             }
 
             Assert.That(gotControlFile, Is.True, "No control file in archive");
             Assert.That(gotNcAssetFile, Is.True, "No notecard asset file in archive");
-            Assert.That(gotObject1File, Is.True, "No object1 file in archive");
-            Assert.That(gotObject2File, Is.True, "No object2 file in archive");
+            Assert.That(foundPaths, Is.EquivalentTo(expectedPaths));
 
             // TODO: Test presence of more files and contents of files.
         }

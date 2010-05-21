@@ -145,17 +145,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 //m_log.DebugFormat("[ARCHIVER]: Saving {0} {1}, {2}", entity.Name, entity.UUID, entity.GetType());
 
-                Vector3 position = sceneObject.AbsolutePosition;
-
                 string serializedObject = m_serialiser.SerializeGroupToXml2(sceneObject);
-                string filename
-                    = string.Format(
-                        "{0}{1}_{2:000}-{3:000}-{4:000}__{5}.xml",
-                        ArchiveConstants.OBJECTS_PATH, sceneObject.Name,
-                        Math.Round(position.X), Math.Round(position.Y), Math.Round(position.Z),
-                        sceneObject.UUID);
-
-                m_archiveWriter.WriteFile(filename, serializedObject);
+                m_archiveWriter.WriteFile(ArchiveHelpers.CreateObjectPath(sceneObject), serializedObject);
             }
 
             m_log.InfoFormat("[ARCHIVER]: Added scene objects to archive.");
