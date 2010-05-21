@@ -58,7 +58,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelper.InMethod();
             
             UUID corruptAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
-            AssetBase corruptAsset = AssetHelpers.CreateAsset(corruptAssetUuid, "CORRUPT ASSET", UUID.Zero);
+            AssetBase corruptAsset 
+                = AssetHelpers.CreateAsset(corruptAssetUuid, AssetType.Notecard, "CORRUPT ASSET", UUID.Zero);
             m_assetService.Store(corruptAsset);
 
             IDictionary<UUID, AssetType> foundAssetUuids = new Dictionary<UUID, AssetType>();

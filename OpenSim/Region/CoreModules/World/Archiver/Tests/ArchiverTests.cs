@@ -33,8 +33,8 @@ using log4net.Config;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
+using OpenMetaverse.Assets;
 using OpenSim.Framework;
-
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Region.CoreModules.World.Serialiser;
@@ -44,6 +44,9 @@ using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
+using ArchiveConstants = OpenSim.Framework.Serialization.ArchiveConstants;
+using TarArchiveReader = OpenSim.Framework.Serialization.TarArchiveReader;
+using TarArchiveWriter = OpenSim.Framework.Serialization.TarArchiveWriter;
 
 namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 {
@@ -55,6 +58,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
         protected TestScene m_scene;
         protected ArchiverModule m_archiverModule;
+
+        protected TaskInventoryItem m_soundItem;
         
         [SetUp]
         public void SetUp()
@@ -127,7 +132,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             m_scene.AddNewSceneObject(new SceneObjectGroup(part1), false);
 
             SceneObjectPart part2 = CreateSceneObjectPart2();
-            m_scene.AddNewSceneObject(new SceneObjectGroup(part2), false);
+            
+            AssetNotecard nc = new AssetNotecard("Hello World!");
+            UUID ncAssetUuid = new UUID("00000000-0000-0000-1000-000000000000");
+            UUID ncItemUuid = new UUID("00000000-0000-0000-1100-000000000000");
+            AssetBase ncAsset 
+                = AssetHelpers.CreateAsset(ncAssetUuid, AssetType.Notecard, nc.AssetData, UUID.Zero);
+            m_scene.AssetService.Store(ncAsset);
+            SceneObjectGroup sog2 = new SceneObjectGroup(part2);
+            TaskInventoryItem ncItem 
+                = new TaskInventoryItem { Name = "ncItem", AssetID = ncAssetUuid, ItemID = ncItemUuid };
+            part2.Inventory.AddInventoryItem(ncItem, true);
+            
+            m_scene.AddNewSceneObject(sog2, false);
 
             MemoryStream archiveWriteStream = new MemoryStream();
             m_scene.EventManager.OnOarFileSaved += SaveCompleted;
@@ -151,8 +168,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             TarArchiveReader tar = new TarArchiveReader(archiveReadStream);
 
             bool gotControlFile = false;
+            bool gotNcAssetFile = false;
             bool gotObject1File = false;
             bool gotObject2File = false;
+            
+            string expectedNcAssetFileName = string.Format("{0}_{1}", ncAssetUuid, "notecard.txt");
             string expectedObject1FileName = string.Format(
                 "{0}_{1:000}-{2:000}-{3:000}__{4}.xml",
                 part1.Name,
@@ -173,6 +193,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 {
                     gotControlFile = true;
                 }
+                else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
+                {
+                    string fileName = filePath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
+
+                    Assert.That(fileName, Is.EqualTo(expectedNcAssetFileName));
+                    gotNcAssetFile = true;
+                }
                 else if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
                 {
                     string fileName = filePath.Remove(0, ArchiveConstants.OBJECTS_PATH.Length);
@@ -191,6 +218,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             }
 
             Assert.That(gotControlFile, Is.True, "No control file in archive");
+            Assert.That(gotNcAssetFile, Is.True, "No notecard asset file in archive");
             Assert.That(gotObject1File, Is.True, "No object1 file in archive");
             Assert.That(gotObject2File, Is.True, "No object2 file in archive");
 

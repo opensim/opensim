@@ -38,11 +38,19 @@ namespace OpenSim.Tests.Common
         /// <summary>
         /// Create an asset from the given data
         /// </summary>
-        public static AssetBase CreateAsset(UUID assetUuid, string data, UUID creatorID)
+        public static AssetBase CreateAsset(UUID assetUuid, AssetType assetType, byte[] data, UUID creatorID)
         {
-            AssetBase asset = new AssetBase(assetUuid, assetUuid.ToString(), (sbyte)AssetType.Object, creatorID.ToString());
-            asset.Data = Encoding.ASCII.GetBytes(data);
+            AssetBase asset = new AssetBase(assetUuid, assetUuid.ToString(), (sbyte)assetType, creatorID.ToString());
+            asset.Data = data;
             return asset;
+        }
+
+        /// <summary>
+        /// Create an asset from the given data
+        /// </summary>
+        public static AssetBase CreateAsset(UUID assetUuid, AssetType assetType, string data, UUID creatorID)
+        {
+            return CreateAsset(assetUuid, assetType, Encoding.ASCII.GetBytes(data), creatorID);
         }
         
         /// <summary>
