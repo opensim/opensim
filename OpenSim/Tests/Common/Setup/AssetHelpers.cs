@@ -61,9 +61,11 @@ namespace OpenSim.Tests.Common
         /// <returns></returns>
         public static AssetBase CreateAsset(UUID assetUuid, SceneObjectGroup sog)
         {
-            AssetBase asset = new AssetBase(assetUuid, assetUuid.ToString(), (sbyte)AssetType.Object, sog.OwnerID.ToString());
-            asset.Data = Encoding.ASCII.GetBytes(SceneObjectSerializer.ToXml2Format(sog));
-            return asset;
+            return CreateAsset(
+                assetUuid, 
+                AssetType.Object, 
+                Encoding.ASCII.GetBytes(SceneObjectSerializer.ToXml2Format(sog)), 
+                sog.OwnerID);
         }
     }
 }
