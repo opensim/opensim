@@ -171,4 +171,74 @@ CREATE NONCLUSTERED INDEX folder ON dbo.inventoryitems
 
 COMMIT
 
+:VERSION 5
+
+# It would be totally crazy to have to recreate the whole table just to change one column type,
+# just because MS SQL treats each DEFAULT as a constraint object that must be dropped
+# before anything can be done to the column.  Since all defaults here are unnamed, there is
+# no easy way to drop them!  The hairy piece of code below removes all DEFAULT constraints
+# from InventoryItems.
+
+# SO: anything that's NULLable is by default NULL, so please don't declare DEFAULT(NULL), 
+# they do nothing but prevent changes to the columns. If you really
+# need to have DEFAULTs or other constraints, give them names so they can be dropped when needed!
+
+BEGIN TRANSACTION
+DECLARE @nm varchar(80);
+DECLARE x CURSOR LOCAL FORWARD_ONLY READ_ONLY
+  FOR SELECT name FROM sys.default_constraints where parent_object_id = OBJECT_ID('inventoryitems');  
+OPEN x;
+FETCH NEXT FROM x INTO @nm;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+  EXEC('alter table inventoryitems drop ' + @nm);
+  FETCH NEXT FROM x INTO @nm;
+END
+CLOSE x
+DEALLOCATE x 
+COMMIT     
+
+# all DEFAULTs dropped!
+
+:GO
+
+BEGIN TRANSACTION
+
+# Restoring defaults:   
+# NOTE: [inventoryID] does NOT need one: it's NOT NULL PK and a unique Guid must be provided every time anyway!
+ 
+alter table inventoryitems
+   add constraint def_baseperm default 0 for inventoryBasePermissions    
+alter table inventoryitems
+   add constraint def_allperm default 0 for inventoryEveryOnePermissions    
+alter table inventoryitems
+   add constraint def_grpperm default 0 for inventoryGroupPermissions    
+   
+COMMIT     
+   
+:VERSION 7
+
+BEGIN TRANSACTION
+
+# CreatorID goes back to VARCHAR(36) (???)
+
+exec sp_rename 'inventoryitems.CreatorID', 'cr_old', 'COLUMN'
+
+:GO
+
+alter table inventoryitems
+   add creatorID varchar(36) NULL
+   
+:GO   
+   
+update inventoryitems set creatorID = CONVERT(VARCHAR(36), cr_old)
+
+alter table inventoryitems
+   drop column cr_old
+
+COMMIT	
+   
+ 
+
+
 
