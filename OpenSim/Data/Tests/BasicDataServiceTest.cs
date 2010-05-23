@@ -27,7 +27,10 @@ namespace OpenSim.Data.Tests
         private string m_file;
 
         // TODO: Is this in the right place here? 
-        protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // Later:  apparently it's not, but does it matter here?
+//        protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        protected ILog m_log;  // doesn't matter here that it's not static, init to correct type in instance .ctor
 
         public BasicDataServiceTest()
             : this("")
@@ -38,6 +41,7 @@ namespace OpenSim.Data.Tests
         {
             m_connStr = !String.IsNullOrEmpty(conn) ? conn : DefaultTestConns.Get(typeof(TConn));
 
+            m_log = LogManager.GetLogger(this.GetType());       
             OpenSim.Tests.Common.TestLogging.LogToConsole();    // TODO: Is that right?
         }
 
@@ -72,8 +76,25 @@ namespace OpenSim.Data.Tests
             if (String.IsNullOrEmpty(m_connStr))
             {
                 string msg = String.Format("Connection string for {0} is not defined, ignoring tests", typeof(TConn).Name);
-                m_log.Error(msg);
+                m_log.Warn(msg);
                 Assert.Ignore(msg);
+            }
+
+            // Try the connection, ignore tests if Open() fails
+            using (TConn conn = new TConn())
+            {
+                conn.ConnectionString = m_connStr;
+                try
+                {
+                    conn.Open();
+                    conn.Close();
+                }
+                catch
+                {
+                    string msg = String.Format("{0} is unable to connect to the database, ignoring tests", typeof(TConn).Name);
+                    m_log.Warn(msg);
+                    Assert.Ignore(msg);
+                }
             }
 
             // If we manage to connect to the database with the user
