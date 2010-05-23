@@ -98,6 +98,16 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         String Description { get; set; }
 
         /// <summary>
+        /// Returns the UUID of the Owner of the Object.
+        /// </summary>
+        UUID OwnerId { get; }
+
+        /// <summary>
+        /// Returns the UUID of the Creator of the Object.
+        /// </summary>
+        UUID CreatorId { get; }
+
+        /// <summary>
         /// Returns the root object of a linkset. If this object is the root, it will return itself.
         /// </summary>
         IObject Root { get; }
@@ -179,8 +189,24 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// </summary>
         /// <param name="msg">The message to send to the user</param>
         void Say(string msg);
-        
+
+        /// <summary>
+        /// Causes the object to speak to on a specific channel,
+        /// equivilent to LSL/OSSL llSay
+        /// </summary>
+        /// <param name="msg">The message to send to the user</param>
+        /// <param name="channel">The channel on which to send the message</param>
         void Say(string msg,int channel);
+
+        /// <summary>
+        /// Opens a Dialog Panel in the Users Viewer,
+        /// equivilent to LSL/OSSL llDialog
+        /// </summary>
+        /// <param name="avatar">The UUID of the Avatar to which the Dialog should be send</param>
+        /// <param name="message">The Message to display at the top of the Dialog</param>
+        /// <param name="buttons">The Strings that act as label/value of the Bottons in the Dialog</param>
+        /// <param name="chat_channel">The channel on which to send the response</param>
+        void Dialog(UUID avatar, string message, string[] buttons, int chat_channel);
 
         //// <value>
         /// Grants access to the objects inventory

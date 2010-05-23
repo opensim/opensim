@@ -1393,6 +1393,12 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick.
                 Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
+
+                // TODO: This doesn't prevent the user from walking yet.
+                // Setting parent ID would fix this, if we knew what value
+                // to use.  Or we could add a m_isSitting variable.
+                //Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
+                SitGround = true;                
             }
 
             // In the future, these values might need to go global.
@@ -1409,7 +1415,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             bool update_movementflag = false;
 
-            if (m_allowMovement)
+            if (m_allowMovement && !SitGround)
             {
                 if (agentData.UseClientAgentPosition)
                 {

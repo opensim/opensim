@@ -519,6 +519,10 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
             throw new System.NotImplementedException();
         }
 
+        public void SendGenericMessage(string method, List<string> message)
+        {
+        }
+
         public void SendGenericMessage(string method, List<byte[]> message)
         {
             throw new System.NotImplementedException();
