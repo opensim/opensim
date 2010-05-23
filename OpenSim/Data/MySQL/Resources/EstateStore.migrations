@@ -1,6 +1,10 @@
 ﻿:VERSION 13
 
 # The estate migrations used to be in Region store
+# here they will do nothing (bad) if the tables are already there, 
+# just update the store version.
+
+BEGIN;
 
 CREATE TABLE IF NOT EXISTS `estate_managers` (
   `EstateID` int(10) unsigned NOT NULL,
@@ -64,6 +68,14 @@ CREATE TABLE IF NOT EXISTS `estate_map` (
   PRIMARY KEY  (`RegionID`),
   KEY `EstateID` (`EstateID`)
 ) ENGINE=InnoDB;
+
+COMMIT;
+
+:VERSION 32			#--------------------- (moved from RegionStore migr, just in case)
+
+BEGIN;
+ALTER TABLE estate_settings AUTO_INCREMENT = 100;
+COMMIT;
 
 
 

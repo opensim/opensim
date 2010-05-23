@@ -717,12 +717,6 @@ ALTER TABLE regionsettings ADD COLUMN loaded_creation_datetime int unsigned NOT 
 
 COMMIT;
 
-:VERSION 32			#---------------------
-
-BEGIN;
-ALTER TABLE estate_settings AUTO_INCREMENT = 100;
-COMMIT;
-
 :VERSION 33			#---------------------
 
 BEGIN;
