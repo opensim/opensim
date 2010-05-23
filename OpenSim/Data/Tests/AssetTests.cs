@@ -106,9 +106,17 @@ namespace OpenSim.Data.Tests
 
         protected override void InitService(object service)
         {
+            ClearDB();
             m_db = (TAssetData)service;
             m_db.Initialise(m_connStr);
         }
+
+        private void ClearDB()
+        {
+            DropTables("assets");
+            ResetMigrations("AssetStore");
+        }
+
 
         [Test]
         public void T001_LoadEmpty()

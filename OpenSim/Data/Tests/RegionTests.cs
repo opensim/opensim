@@ -118,8 +118,8 @@ namespace OpenSim.Data.Tests
             m_rebuildDB = rebuild;
         }
 
-        public RegionTests() : this("", false) { }
-        public RegionTests(string conn) : this(conn, false) {}
+        public RegionTests() : this("", true) { }
+        public RegionTests(string conn) : this(conn, true) {}
         public RegionTests(bool rebuild): this("", rebuild) {}
 
 

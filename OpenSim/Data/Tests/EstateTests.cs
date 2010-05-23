@@ -108,17 +108,7 @@ namespace OpenSim.Data.Tests
         private void ClearDB()
         {
             // if a new table is added, it has to be dropped here
-            ExecuteSql("delete from migrations where name='EstateStore';");
-  
             DropTables(
-                "prims",
-                "primshapes",
-                "primitems",
-                "terrain",
-                "land",
-                "landaccesslist",
-                "regionban",
-                "regionsettings",
                 "estate_managers",
                 "estate_groups",
                 "estate_users",
@@ -126,6 +116,7 @@ namespace OpenSim.Data.Tests
                 "estate_settings",
                 "estate_map"
             );
+            ResetMigrations("EstateStore");
         }
 
         #region 0Tests

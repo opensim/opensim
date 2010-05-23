@@ -123,7 +123,7 @@ namespace OpenSim.Data.Tests
         private void ClearDB()
         {
             DropTables("inventoryitems", "inventoryfolders");
-            ExecuteSql("delete from migrations where name='Inventory'");
+            ResetMigrations("InventoryStore");
         }
 
         [Test]
@@ -194,8 +194,10 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T013_FolderHierarchy()
         {
-            Assert.That(db.getFolderHierarchy(zero).Count, Is.EqualTo(0), "Assert.That(db.getFolderHierarchy(zero).Count, Is.EqualTo(0))");
-            Assert.That(db.getFolderHierarchy(folder1).Count, Is.EqualTo(2), "Assert.That(db.getFolderHierarchy(folder1).Count, Is.EqualTo(2))");
+            int n = db.getFolderHierarchy(zero).Count;  // (for dbg - easier to see what's returned)
+            Assert.That(n, Is.EqualTo(0), "Assert.That(db.getFolderHierarchy(zero).Count, Is.EqualTo(0))");
+            n = db.getFolderHierarchy(folder1).Count;
+            Assert.That(n, Is.EqualTo(2), "Assert.That(db.getFolderHierarchy(folder1).Count, Is.EqualTo(2))");
             Assert.That(db.getFolderHierarchy(folder2).Count, Is.EqualTo(0), "Assert.That(db.getFolderHierarchy(folder2).Count, Is.EqualTo(0))");
             Assert.That(db.getFolderHierarchy(folder3).Count, Is.EqualTo(0), "Assert.That(db.getFolderHierarchy(folder3).Count, Is.EqualTo(0))");
             Assert.That(db.getFolderHierarchy(UUID.Random()).Count, Is.EqualTo(0), "Assert.That(db.getFolderHierarchy(UUID.Random()).Count, Is.EqualTo(0))");
