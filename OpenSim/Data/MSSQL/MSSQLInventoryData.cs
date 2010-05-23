@@ -111,6 +111,9 @@ namespace OpenSim.Data.MSSQL
         /// <returns>A list of folder objects</returns>
         public List<InventoryFolderBase> getUserRootFolders(UUID user)
         {
+            if (user == UUID.Zero)
+                return new List<InventoryFolderBase>();
+
             return getInventoryFolders(UUID.Zero, user);
         }
 
@@ -184,7 +187,19 @@ namespace OpenSim.Data.MSSQL
             //Note maybe change this to use a Dataset that loading in all folders of a user and then go throw it that way.
             //Note this is changed so it opens only one connection to the database and not everytime it wants to get data.
 
+            /*  NOTE: the implementation below is very inefficient (makes a separate request to get subfolders for
+             * every found folder, recursively).  Inventory code for other DBs has been already rewritten to get ALL
+             * inventory for a specific user at once.
+             * 
+             * Meanwhile, one little thing is corrected:  getFolderHierarchy(UUID.Zero) doesn't make sense and should never 
+             * be used, so check for that and return an empty list.
+             */
+
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
+
+            if (parentID == UUID.Zero)
+                return folders;
+
             string sql = "SELECT * FROM inventoryfolders WHERE parentFolderID = @parentID";
             using (SqlConnection conn = new SqlConnection(m_connectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -249,13 +264,12 @@ namespace OpenSim.Data.MSSQL
         /// <param name="folder">Folder to update</param>
         public void updateInventoryFolder(InventoryFolderBase folder)
         {
-            string sql = @"UPDATE inventoryfolders SET folderID = @folderID, 
-                                                       agentID = @agentID, 
+            string sql = @"UPDATE inventoryfolders SET agentID = @agentID, 
                                                        parentFolderID = @parentFolderID,
                                                        folderName = @folderName,
                                                        type = @type,
                                                        version = @version 
-                           WHERE folderID = @keyFolderID";
+                           WHERE folderID = @folderID";
 
             string folderName = folder.Name;
             if (folderName.Length > 64)
@@ -272,7 +286,6 @@ namespace OpenSim.Data.MSSQL
                 cmd.Parameters.Add(database.CreateParameter("folderName", folderName));
                 cmd.Parameters.Add(database.CreateParameter("type", folder.Type));
                 cmd.Parameters.Add(database.CreateParameter("version", folder.Version));
-                cmd.Parameters.Add(database.CreateParameter("@keyFolderID", folder.ID));
                 conn.Open();
                 try
                 {
@@ -296,7 +309,7 @@ namespace OpenSim.Data.MSSQL
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(database.CreateParameter("parentFolderID", folder.ParentID));
-                cmd.Parameters.Add(database.CreateParameter("@folderID", folder.ID));
+                cmd.Parameters.Add(database.CreateParameter("folderID", folder.ID));
                 conn.Open();
                 try
                 {
@@ -489,8 +502,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="item">Inventory item to update</param>
         public void updateInventoryItem(InventoryItemBase item)
         {
-            string sql = @"UPDATE inventoryitems SET inventoryID = @inventoryID, 
-                                                assetID = @assetID, 
+            string sql = @"UPDATE inventoryitems SET assetID = @assetID, 
                                                 assetType = @assetType,
                                                 parentFolderID = @parentFolderID,
                                                 avatarID = @avatarID,
@@ -502,13 +514,14 @@ namespace OpenSim.Data.MSSQL
                                                 creatorID = @creatorID, 
                                                 inventoryBasePermissions = @inventoryBasePermissions, 
                                                 inventoryEveryOnePermissions = @inventoryEveryOnePermissions, 
+                                                inventoryGroupPermissions = @inventoryGroupPermissions, 
                                                 salePrice = @salePrice, 
                                                 saleType = @saleType, 
                                                 creationDate = @creationDate, 
                                                 groupID = @groupID, 
                                                 groupOwned = @groupOwned, 
                                                 flags = @flags 
-                                        WHERE inventoryID = @keyInventoryID";
+                                        WHERE inventoryID = @inventoryID";
 
             string itemName = item.Name;
             if (item.Name.Length > 64)
@@ -537,16 +550,16 @@ namespace OpenSim.Data.MSSQL
                 command.Parameters.Add(database.CreateParameter("inventoryNextPermissions", item.NextPermissions));
                 command.Parameters.Add(database.CreateParameter("inventoryCurrentPermissions", item.CurrentPermissions));
                 command.Parameters.Add(database.CreateParameter("invType", item.InvType));
-                command.Parameters.Add(database.CreateParameter("creatorID", item.CreatorIdAsUuid));
+                command.Parameters.Add(database.CreateParameter("creatorID", item.CreatorId));
                 command.Parameters.Add(database.CreateParameter("inventoryBasePermissions", item.BasePermissions));
                 command.Parameters.Add(database.CreateParameter("inventoryEveryOnePermissions", item.EveryOnePermissions));
+                command.Parameters.Add(database.CreateParameter("inventoryGroupPermissions", item.GroupPermissions));
                 command.Parameters.Add(database.CreateParameter("salePrice", item.SalePrice));
                 command.Parameters.Add(database.CreateParameter("saleType", item.SaleType));
                 command.Parameters.Add(database.CreateParameter("creationDate", item.CreationDate));
                 command.Parameters.Add(database.CreateParameter("groupID", item.GroupID));
                 command.Parameters.Add(database.CreateParameter("groupOwned", item.GroupOwned));
                 command.Parameters.Add(database.CreateParameter("flags", item.Flags));
-                command.Parameters.Add(database.CreateParameter("keyInventoryID", item.ID));
                 conn.Open();
                 try
                 {
@@ -732,9 +745,9 @@ namespace OpenSim.Data.MSSQL
             try
             {
                 InventoryFolderBase folder = new InventoryFolderBase();
-                folder.Owner = new UUID((Guid)reader["agentID"]);
-                folder.ParentID = new UUID((Guid)reader["parentFolderID"]);
-                folder.ID = new UUID((Guid)reader["folderID"]);
+                folder.Owner = DBGuid.FromDB(reader["agentID"]);
+                folder.ParentID = DBGuid.FromDB(reader["parentFolderID"]);
+                folder.ID = DBGuid.FromDB(reader["folderID"]);
                 folder.Name = (string)reader["folderName"];
                 folder.Type = (short)reader["type"];
                 folder.Version = Convert.ToUInt16(reader["version"]);
@@ -760,24 +773,24 @@ namespace OpenSim.Data.MSSQL
             {
                 InventoryItemBase item = new InventoryItemBase();
 
-                item.ID = new UUID((Guid)reader["inventoryID"]);
-                item.AssetID = new UUID((Guid)reader["assetID"]);
+                item.ID = DBGuid.FromDB(reader["inventoryID"]);
+                item.AssetID = DBGuid.FromDB(reader["assetID"]);
                 item.AssetType = Convert.ToInt32(reader["assetType"].ToString());
-                item.Folder = new UUID((Guid)reader["parentFolderID"]);
-                item.Owner = new UUID((Guid)reader["avatarID"]);
+                item.Folder = DBGuid.FromDB(reader["parentFolderID"]);
+                item.Owner = DBGuid.FromDB(reader["avatarID"]);
                 item.Name = reader["inventoryName"].ToString();
                 item.Description = reader["inventoryDescription"].ToString();
                 item.NextPermissions = Convert.ToUInt32(reader["inventoryNextPermissions"]);
                 item.CurrentPermissions = Convert.ToUInt32(reader["inventoryCurrentPermissions"]);
                 item.InvType = Convert.ToInt32(reader["invType"].ToString());
-                item.CreatorId = ((Guid)reader["creatorID"]).ToString();
+                item.CreatorId = reader["creatorID"].ToString();
                 item.BasePermissions = Convert.ToUInt32(reader["inventoryBasePermissions"]);
                 item.EveryOnePermissions = Convert.ToUInt32(reader["inventoryEveryOnePermissions"]);
                 item.GroupPermissions = Convert.ToUInt32(reader["inventoryGroupPermissions"]);
                 item.SalePrice = Convert.ToInt32(reader["salePrice"]);
                 item.SaleType = Convert.ToByte(reader["saleType"]);
                 item.CreationDate = Convert.ToInt32(reader["creationDate"]);
-                item.GroupID = new UUID((Guid)reader["groupID"]);
+                item.GroupID = DBGuid.FromDB(reader["groupID"]);
                 item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
                 item.Flags = Convert.ToUInt32(reader["flags"]);
 
