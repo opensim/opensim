@@ -1312,8 +1312,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Setting parent ID would fix this, if we knew what value
                 // to use.  Or we could add a m_isSitting variable.
                 //Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
-                SitGround = true;
-                
+                SitGround = true;                
             }
 
             // In the future, these values might need to go global.
@@ -1330,7 +1329,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             bool update_movementflag = false;
 
-            if (m_allowMovement)
+            if (m_allowMovement && !SitGround)
             {
                 if (agentData.UseClientAgentPosition)
                 {
@@ -1672,8 +1671,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void StandUp()
         {
-            if (SitGround)
-                SitGround = false;
+            SitGround = false;
 
             if (m_parentID != 0)
             {
