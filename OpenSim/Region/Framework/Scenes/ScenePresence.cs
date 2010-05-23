@@ -140,6 +140,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3? m_forceToApply;
         private uint m_requestedSitTargetID;
         private UUID m_requestedSitTargetUUID;
+        public bool SitGround = false;
 
         private SendCourseLocationsMethod m_sendCourseLocationsMethod;
 
@@ -1643,7 +1644,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (update_movementflag)
+            if (update_movementflag && !SitGround)
                 Animator.UpdateMovementAnimations();
 
             m_scene.EventManager.TriggerOnClientMovement(this);
@@ -1754,6 +1755,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void StandUp()
         {
+            SitGround = false;
+
             if (m_parentID != 0)
             {
                 SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
