@@ -1514,7 +1514,7 @@ namespace OpenSim.Region.Framework.Scenes
         internal void SendPartFullUpdate(IClientAPI remoteClient, SceneObjectPart part, uint clientFlags)
         {
 //            m_log.DebugFormat(
-//                "[SOG]: Sendinging part full update to {0} for {1} {2}", remoteClient.Name, part.Name, part.LocalId);
+//                "[SOG]: Sending part full update to {0} for {1} {2}", remoteClient.Name, part.Name, part.LocalId);
             
             if (m_rootPart.UUID == part.UUID)
             {

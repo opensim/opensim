@@ -536,7 +536,6 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_log.DebugFormat(
 //                    "[SCENE GRAPH]: Retrieved single object {0} for attachment to {1} on point {2}", 
 //                    objatt.Name, remoteClient.Name, AttachmentPt);
-            
             if (objatt != null)
             {
                 bool tainted = false;
