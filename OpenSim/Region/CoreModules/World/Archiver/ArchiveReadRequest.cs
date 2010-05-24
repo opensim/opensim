@@ -276,7 +276,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     }
                 }
 
-                if (m_scene.AddRestoredSceneObject(sceneObject, true, false))
+                if (!m_scene.AddRestoredSceneObject(sceneObject, true, false))
                 {
                     sceneObjectsLoadedCount++;
                     sceneObject.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, 0);
