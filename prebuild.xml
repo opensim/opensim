@@ -2855,83 +2855,20 @@
       <Reference name="log4net.dll"/>
       <Reference name="Mono.Addins.dll" />
       <Reference name="nunit.framework.dll" />
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
+      <Reference name="Nini.dll" />
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Data.MySQL.Tests" path="OpenSim/Data/MySQL/Tests" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Data"/>
-      <Reference name="System.Drawing"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="MySql.Data.dll"/>
-      <Reference name="OpenSim.Tests.Common"/>
-      <Reference name="OpenSim.Data.Tests"/>
       <Reference name="OpenSim.Data.MySQL"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="log4net.dll"/>
-      <Reference name="nunit.framework.dll" />
-      <Reference name="Mono.Addins.dll" />
-
+      <Reference name="OpenSim.Data.MSSQL"/>
+      <Reference name="OpenSim.Data.SQLite"/>
+      
+      <Reference name="MySql.Data.dll"/>
+      <Reference name="Mono.Data.Sqlite.dll"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
+        <Match path="Resources" pattern="*.ini" buildAction="EmbeddedResource"/>
       </Files>
     </Project>
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Data.SQLite.Tests" path="OpenSim/Data/SQLite/Tests" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Data"/>
-      <Reference name="System.Data.SQLite.dll"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Data.Tests"/>
-      <Reference name="OpenSim.Tests.Common"/>
-      <Reference name="OpenSim.Data.SQLite" />
-      <Reference name="System.Drawing"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="Mono.Data.SqliteClient"/>
-      <Reference name="Mono.Addins.dll" />
-      <Reference name="log4net.dll"/>
-      <Reference name="nunit.framework.dll" />
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
 
     <Project frameworkVersion="v3_5" name="OpenSim.Framework.Tests" path="OpenSim/Framework/Tests" type="Library">
       <Configuration name="Debug">

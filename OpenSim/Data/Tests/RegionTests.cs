@@ -38,58 +38,111 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using log4net;
 using System.Reflection;
+using System.Data.Common;
+
+#if !NUNIT25
+using NUnit.Framework.SyntaxHelpers;
+#endif
+
+// DBMS-specific:
+using MySql.Data.MySqlClient;
+using OpenSim.Data.MySQL;
+
+using System.Data.SqlClient;
+using OpenSim.Data.MSSQL;
+
+using Mono.Data.Sqlite;
+using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
-    public class BasicRegionTest
+#if NUNIT25
+
+    [TestFixture(typeof(SqliteConnection), typeof(SQLiteRegionData), Description = "Region store tests (SQLite)")]
+    [TestFixture(typeof(MySqlConnection), typeof(MySqlRegionData), Description = "Region store tests (MySQL)")]
+    [TestFixture(typeof(SqlConnection), typeof(MSSQLRegionData), Description = "Region store tests (MS SQL Server)")]
+
+#else
+
+    [TestFixture(Description = "Region store tests (SQLite)")]
+    public class SQLiteRegionTests : RegionTests<SqliteConnection, SQLiteRegionData>
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+    }
+
+    [TestFixture(Description = "Region store tests (MySQL)")]
+    public class MySqlRegionTests : RegionTests<MySqlConnection, MySQLDataStore>
+    {
+    }
+
+    [TestFixture(Description = "Region store tests (MS SQL Server)")]
+    public class MSSQLRegionTests : RegionTests<SqlConnection, MSSQLRegionDataStore>
+    {
+    }
+
+#endif
+
+    public class RegionTests<TConn, TRegStore> : BasicDataServiceTest<TConn, TRegStore>
+        where TConn : DbConnection, new()
+        where TRegStore : class, IRegionDataStore, new()
+    {
+        bool m_rebuildDB;
+
         public IRegionDataStore db;
         public UUID zero = UUID.Zero;
-        public UUID region1;
-        public UUID region2;
-        public UUID region3;
-        public UUID region4;
-        public UUID prim1;
-        public UUID prim2;
-        public UUID prim3;
-        public UUID prim4;
-        public UUID prim5;
-        public UUID prim6;
-        public UUID item1;
-        public UUID item2;
-        public UUID item3;
+        public UUID region1 = UUID.Random();
+        public UUID region2 = UUID.Random();
+        public UUID region3 = UUID.Random();
+        public UUID region4 = UUID.Random();
+        public UUID prim1 = UUID.Random();
+        public UUID prim2 = UUID.Random();
+        public UUID prim3 = UUID.Random();
+        public UUID prim4 = UUID.Random();
+        public UUID prim5 = UUID.Random();
+        public UUID prim6 = UUID.Random();
+        public UUID item1 = UUID.Random();
+        public UUID item2 = UUID.Random();
+        public UUID item3 = UUID.Random();
 
-        public static Random random;
+        public static Random random = new Random();
         
         public string itemname1 = "item1";
 
-        public uint localID;
-        
-        public double height1;
-        public double height2;
+        public uint localID = 1;
 
-        public void SuperInit()
+        public double height1 = 20;
+        public double height2 = 100;
+
+        public RegionTests(string conn, bool rebuild)
+            : base(conn)
         {
-            OpenSim.Tests.Common.TestLogging.LogToConsole();
-
-            region1 = UUID.Random();
-            region3 = UUID.Random();
-            region4 = UUID.Random();
-            prim1 = UUID.Random();
-            prim2 = UUID.Random();
-            prim3 = UUID.Random();
-            prim4 = UUID.Random();
-            prim5 = UUID.Random();
-            prim6 = UUID.Random();
-            item1 = UUID.Random();
-            item2 = UUID.Random();
-            item3 = UUID.Random();
-            random = new Random();
-            localID = 1;
-            height1 = 20;
-            height2 = 100;
+            m_rebuildDB = rebuild;
         }
+
+        public RegionTests() : this("", true) { }
+        public RegionTests(string conn) : this(conn, true) {}
+        public RegionTests(bool rebuild): this("", rebuild) {}
+
+
+        protected override void InitService(object service)
+        {
+            ClearDB();
+            db = (IRegionDataStore)service;
+            db.Initialise(m_connStr);
+        }
+
+        private void ClearDB()
+        {
+            string[] reg_tables = new string[] { 
+                "prims", "primshapes", "primitems", "terrain", "land", "landaccesslist", "regionban", "regionsettings" 
+            };
+            if (m_rebuildDB)
+            {
+                DropTables(reg_tables);
+                ResetMigrations("RegionStore");
+            }else
+                ClearTables(reg_tables);
+        }
+
 
         // Test Plan
         // Prims
@@ -580,68 +633,88 @@ namespace OpenSim.Data.Tests
                 .IgnoreProperty(x=>x.PassCollision)
                 .IgnoreProperty(x=>x.RootPart));
         }
+
+
+        private SceneObjectGroup GetMySOG(string name)
+        {
+            SceneObjectGroup sog = FindSOG(name, region1);
+            if (sog == null)
+            {
+                sog = NewSOG(name, prim1, region1); 
+                db.StoreObject(sog, region1);
+            }
+            return sog;
+        }
         
+
+        // NOTE: it is a bad practice to rely on some of the previous tests having been run before.
+        // If the tests are run manually, one at a time, each starts with full class init (DB cleared).
+        // Even when all tests are run, NUnit 2.5+ no longer guarantee a specific test order.
+        // We shouldn't expect to find anything in the DB if we haven't put it there *in the same test*!
+
         [Test]
         public void T020_PrimInventoryEmpty()
         {
-            SceneObjectGroup sog = FindSOG("object1", region1);
+            SceneObjectGroup sog = GetMySOG("object1");
             TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
             Assert.That(t, Is.Null);
         }
 
-        [Test]
-        public void T021_PrimInventoryStore()
+        // TODO: Is there any point to call StorePrimInventory on a list, rather than on the prim itself?
+
+        private void StoreInventory(SceneObjectGroup sog)
         {
-            SceneObjectGroup sog = FindSOG("object1", region1);
+            List<TaskInventoryItem> list = new List<TaskInventoryItem>();
+            // TODO: seriously??? this is the way we need to loop to get this?
+            foreach (UUID uuid in sog.RootPart.Inventory.GetInventoryList())
+            {
+                list.Add(sog.GetInventoryItem(sog.RootPart.LocalId, uuid));
+            }
+
+            db.StorePrimInventory(sog.RootPart.UUID, list);
+        }
+
+
+        [Test]
+        public void T021_PrimInventoryBasic()
+        {
+            SceneObjectGroup sog = GetMySOG("object1");
             InventoryItemBase i = NewItem(item1, zero, zero, itemname1, zero);
 
             Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, i, zero), Is.True);
             TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
             Assert.That(t.Name, Is.EqualTo(itemname1), "Assert.That(t.Name, Is.EqualTo(itemname1))");
             
-            // TODO: seriously??? this is the way we need to loop to get this?
+            StoreInventory(sog);
 
-            List<TaskInventoryItem> list = new List<TaskInventoryItem>();
-            foreach (UUID uuid in sog.RootPart.Inventory.GetInventoryList())
-            {
-                list.Add(sog.GetInventoryItem(sog.RootPart.LocalId, uuid));
-            }
-            
-            db.StorePrimInventory(prim1, list);
-        }
+            SceneObjectGroup sog1 = FindSOG("object1", region1);
+            Assert.That(sog1, Is.Not.Null);
 
-        [Test]
-        public void T022_PrimInventoryRetrieve()
-        {
-            SceneObjectGroup sog = FindSOG("object1", region1);
-            TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
+            TaskInventoryItem t1 = sog1.GetInventoryItem(sog1.RootPart.LocalId, item1);
+            Assert.That(t1, Is.Not.Null);
+            Assert.That(t1.Name, Is.EqualTo(itemname1), "Assert.That(t.Name, Is.EqualTo(itemname1))");
 
-            Assert.That(t.Name, Is.EqualTo(itemname1), "Assert.That(t.Name, Is.EqualTo(itemname1))");
-        }
-        
-        [Test]
-        public void T023_PrimInventoryUpdate()
-        {
-            SceneObjectGroup sog = FindSOG("object1", region1);
-            TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
-            
-            t.Name = "My New Name";
-            sog.UpdateInventoryItem(t);
+            // Updating inventory
+            t1.Name = "My New Name";
+            sog1.UpdateInventoryItem(t1);
 
-            Assert.That(t.Name, Is.EqualTo("My New Name"), "Assert.That(t.Name, Is.EqualTo(\"My New Name\"))");
+            StoreInventory(sog1);
 
-        }
+            SceneObjectGroup sog2 = FindSOG("object1", region1);
+            TaskInventoryItem t2 = sog2.GetInventoryItem(sog2.RootPart.LocalId, item1);
+            Assert.That(t2.Name, Is.EqualTo("My New Name"), "Assert.That(t.Name, Is.EqualTo(\"My New Name\"))");
 
-        [Test]
-        public void T024_PrimInventoryRemove()
-        {
+            // Removing inventory
+
             List<TaskInventoryItem> list = new List<TaskInventoryItem>();
             db.StorePrimInventory(prim1, list);
 
-            SceneObjectGroup sog = FindSOG("object1", region1);
-            TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
+            sog = FindSOG("object1", region1);
+            t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
             Assert.That(t, Is.Null);
+
         }
+
         
         [Test]
         public void T025_PrimInventoryPersistency()
@@ -685,7 +758,7 @@ namespace OpenSim.Data.Tests
             int creationd = random.Next();
             i.CreationDate = creationd;
             
-            SceneObjectGroup sog = FindSOG("object1", region1);
+            SceneObjectGroup sog = GetMySOG("object1");
             Assert.That(sog.AddInventoryItem(null, sog.RootPart.LocalId, i, zero), Is.True);
             TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, id);
             
