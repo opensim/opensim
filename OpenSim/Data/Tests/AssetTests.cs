@@ -60,17 +60,17 @@ namespace OpenSim.Data.Tests
 
 #else
 
-    [TestFixture(Description = "Region store tests (SQLite)")]
+    [TestFixture(Description = "Asset store tests (SQLite)")]
     public class SQLiteAssetTests : AssetTests<SqliteConnection, SQLiteAssetData>
     {
     }
 
-    [TestFixture(Description = "Region store tests (MySQL)")]
+    [TestFixture(Description = "Asset store tests (MySQL)")]
     public class MySqlAssetTests : AssetTests<MySqlConnection, MySQLAssetData>
     {
     }
 
-    [TestFixture(Description = "Region store tests (MS SQL Server)")]
+    [TestFixture(Description = "Asset store tests (MS SQL Server)")]
     public class MSSQLAssetTests : AssetTests<SqlConnection, MSSQLAssetData>
     {
     }
