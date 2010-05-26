@@ -4918,14 +4918,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     arg.SessionID = x.SessionID;
                     arg.State = x.State;
                     UpdateAgent handlerAgentUpdate = OnAgentUpdate;
+                    UpdateAgent handlerPreAgentUpdate = OnPreAgentUpdate;
                     lastarg = arg; // save this set of arguments for nexttime
-                    if (handlerAgentUpdate != null)
-                    {
+                    if (handlerPreAgentUpdate != null)
                         OnPreAgentUpdate(this, arg);
+                    if (handlerAgentUpdate != null)
                         OnAgentUpdate(this, arg);
-                    }
 
                     handlerAgentUpdate = null;
+                    handlerPreAgentUpdate = null;
                 }
             }
 
