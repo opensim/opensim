@@ -310,8 +310,7 @@ namespace PrimMesher
             sculptType = (SculptType)(((int)sculptType) & 0x07);
 
             if (mirror)
-                if (sculptType == SculptType.plane)
-                    invert = !invert;
+                invert = !invert;
 
             viewerFaces = new List<ViewerFace>();
 
