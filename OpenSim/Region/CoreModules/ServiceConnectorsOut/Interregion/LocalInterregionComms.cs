@@ -260,7 +260,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             {
                 if (s.RegionInfo.RegionHandle == regionHandle)
                 {
-                    //m_log.Debug("[LOCAL COMMS]: Found region to SendCreateObject");
+                    m_log.Debug("[LOCAL COMMS]: Found region to SendCreateObject");
                     if (isLocalCall)
                     {
                         // We need to make a local copy of the object
