@@ -158,7 +158,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// the bucket, otherwise false</returns>
         public bool RemoveTokens(int amount, out bool dripSucceeded)
         {
-            if (true) //maxBurst == 0)
+            if (maxBurst == 0)
             {
                 dripSucceeded = true;
                 return true;

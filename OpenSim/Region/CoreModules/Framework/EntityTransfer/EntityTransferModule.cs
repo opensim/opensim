@@ -436,19 +436,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 KillEntity(sp.Scene, sp.LocalId);
 
-                // MT wrapped this in a try because I've been seeing an
-                // eception here, but no line number. Need to see if SP is
-                // valid. This may move the exception to another place
-                // where it can be debugged better.
-                try
-                {
-                    sp.MakeChildAgent();
-                }
-                catch(Exception e)
-                {
-                    m_log.Error("Exception on MakeChildAgent: " + e.ToString());
-                }
-
+                sp.MakeChildAgent();
                 // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 
                 if (NeedsClosing(oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
