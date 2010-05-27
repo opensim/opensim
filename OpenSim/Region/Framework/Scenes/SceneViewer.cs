@@ -84,6 +84,9 @@ namespace OpenSim.Region.Framework.Scenes
             while (m_pendingObjects != null && m_pendingObjects.Count > 0)
             {
                 SceneObjectGroup g = m_pendingObjects.Dequeue();
+                 // Yes, this can really happen
+                 if (g == null)
+                    continue;
 
                 // This is where we should check for draw distance
                 // do culling and stuff. Problem with that is that until
