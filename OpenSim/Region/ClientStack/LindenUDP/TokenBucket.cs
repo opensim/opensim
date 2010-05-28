@@ -133,7 +133,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.parent = parent;
             MaxBurst = maxBurst;
             DripRate = dripRate;
-            lastDrip = Environment.TickCount & Int32.MaxValue;
+            lastDrip = Environment.TickCount;
         }
 
         /// <summary>
@@ -144,40 +144,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// the bucket, otherwise false</returns>
         public bool RemoveTokens(int amount)
         {
-            bool dummy;
-            return RemoveTokens(amount, out dummy);
-        }
-
-        /// <summary>
-        /// Remove a given number of tokens from the bucket
-        /// </summary>
-        /// <param name="amount">Number of tokens to remove from the bucket</param>
-        /// <param name="dripSucceeded">True if tokens were added to the bucket
-        /// during this call, otherwise false</param>
-        /// <returns>True if the requested number of tokens were removed from
-        /// the bucket, otherwise false</returns>
-        public bool RemoveTokens(int amount, out bool dripSucceeded)
-        {
             if (maxBurst == 0)
             {
-                dripSucceeded = true;
                 return true;
             }
 
-            dripSucceeded = Drip();
-
-            if (content - amount >= 0)
+            if (amount > maxBurst)
             {
-                if (parent != null && !parent.RemoveTokens(amount))
-                    return false;
-
-                content -= amount;
-                return true;
+                throw new Exception("amount " + amount + " exceeds maxBurst " + maxBurst);
             }
-            else
+
+            Drip();
+
+            if (content < amount)
             {
                 return false;
             }
+
+            if (parent != null && !parent.RemoveTokens(amount))
+            {
+                return false;
+            }
+
+            content -= amount;
+            return true;
         }
 
         /// <summary>
@@ -193,25 +183,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 content = maxBurst;
                 return true;
             }
-            else
+
+            int now = Environment.TickCount;
+            int deltaMS = now - lastDrip;
+            lastDrip = now;
+
+            if (deltaMS <= 0)
             {
-                int now = Environment.TickCount & Int32.MaxValue;
-                int deltaMS = now - lastDrip;
-
-                if (deltaMS <= 0)
-                {
-                    if (deltaMS < 0)
-                        lastDrip = now;
-                    return false;
-                }
-
-                int dripAmount = deltaMS * tokensPerMS;
-
-                content = Math.Min(content + dripAmount, maxBurst);
-                lastDrip = now;
-
-                return true;
+                return false;
             }
+
+            long dripAmount = (long)deltaMS * (long)tokensPerMS + (long)content;
+            if (dripAmount > maxBurst)
+            {
+                dripAmount = maxBurst;
+            }
+            content = (int)dripAmount;
+            return true;
         }
     }
 }
