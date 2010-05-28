@@ -37,7 +37,6 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-
 using OpenSim.Framework.Communications.Osp;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
@@ -72,7 +71,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 scene,
                 userInfo,
                 invPath,
-                new GZipStream(new FileStream(loadPath, FileMode.Open), CompressionMode.Decompress))
+                new GZipStream(ArchiveHelpers.GetStream(loadPath), CompressionMode.Decompress))
         {
         }
 

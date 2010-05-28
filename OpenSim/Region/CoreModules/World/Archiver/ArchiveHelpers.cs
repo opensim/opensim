@@ -25,6 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.IO;
+using System.Net;
 using OpenMetaverse;
 using OpenSim.Framework.Serialization;
 using OpenSim.Region.Framework.Scenes;
@@ -60,5 +63,66 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             return ArchiveConstants.CreateOarObjectPath(sog.Name, sog.UUID, sog.AbsolutePosition);
         }             
+
+        /// <summary>
+        /// Resolve path to a working FileStream
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static Stream GetStream(string path)
+        {
+            if (File.Exists(path))
+            {
+                return new FileStream(path, FileMode.Open, FileAccess.Read);
+            }
+            else
+            {
+                try
+                {
+                    Uri uri = new Uri(path);
+                    if (uri.Scheme == "file")
+                    {
+                        return new FileStream(uri.AbsolutePath, FileMode.Open, FileAccess.Read);
+                    }
+                    else
+                    {
+                        if (uri.Scheme != "http")
+                            throw new Exception(String.Format("Unsupported URI scheme ({0})", path));
+
+                        // OK, now we know we have an HTTP URI to work with
+                        return URIFetch(uri);
+                    }
+                }
+                catch (UriFormatException)
+                {
+                    // In many cases the user will put in a plain old filename that cannot be found so assume that
+                    // this is the problem rather than confusing the issue with a UriFormatException
+                    throw new Exception(String.Format("Cannot find file {0}", path));
+                }
+            }
+        }
+
+        public static Stream URIFetch(Uri uri)
+        {
+            HttpWebRequest request  = (HttpWebRequest)WebRequest.Create(uri);
+
+            // request.Credentials = credentials;
+
+            request.ContentLength = 0;
+            request.KeepAlive     = false;
+
+            WebResponse response = request.GetResponse();
+            Stream file = response.GetResponseStream();
+
+            // justincc: gonna ignore the content type for now and just try anything
+            //if (response.ContentType != "application/x-oar")
+            //    throw new Exception(String.Format("{0} does not identify an OAR file", uri.ToString()));
+
+            if (response.ContentLength == 0)
+                throw new Exception(String.Format("{0} returned an empty file", uri.ToString()));
+
+            // return new BufferedStream(file, (int) response.ContentLength);
+            return new BufferedStream(file, 1000000);
+        }        
     }
 }
