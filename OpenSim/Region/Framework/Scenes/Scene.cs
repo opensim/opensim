@@ -2121,7 +2121,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Delete every object from the scene
+        /// Delete every object from the scene.  This does not include attachments worn by avatars.
         /// </summary>
         public void DeleteAllSceneObjects()
         {
@@ -2132,7 +2132,11 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (EntityBase e in entities)
                 {
                     if (e is SceneObjectGroup)
-                        DeleteSceneObject((SceneObjectGroup)e, false);
+                    {
+                        SceneObjectGroup sog = (SceneObjectGroup)e;
+                        if (!sog.IsAttachment)
+                            DeleteSceneObject((SceneObjectGroup)e, false);
+                    }
                 }
             }
         }
