@@ -54,7 +54,8 @@ namespace OpenSim.Services.PresenceService
         public bool LoginAgent(string userID, UUID sessionID,
                 UUID secureSessionID)
         {
-            PresenceData[] d = m_Database.Get("UserID", userID);
+            //PresenceData[] d = m_Database.Get("UserID", userID);
+            m_Database.Get("UserID", userID);
 
             PresenceData data = new PresenceData();
 
