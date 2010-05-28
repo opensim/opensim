@@ -376,6 +376,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="mod"></param>
         public void RegisterModuleInterface<M>(M mod)
         {
+            m_log.DebugFormat("[SCENE BASE]: Registering interface {0}", typeof(M));
+            
             List<Object> l = null;
             if (!ModuleInterfaces.TryGetValue(typeof(M), out l))
             {
