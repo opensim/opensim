@@ -27,7 +27,8 @@
 
 using OpenMetaverse;
 using OpenSim.Framework.Communications;
-
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Tests.Common.Setup
 {
@@ -113,5 +114,15 @@ namespace OpenSim.Tests.Common.Setup
 //            
 //            return userInfo;
 //        }
+
+        public static UserAccount CreateUserWithInventory(Scene scene)
+        {
+            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000099");
+            UserAccount ua = new UserAccount(userId) { FirstName = "Bill", LastName = "Bailey" };
+            scene.UserAccountService.StoreUserAccount(ua);
+            scene.InventoryService.CreateUserInventory(ua.PrincipalID);
+
+            return ua;
+        }
     }
 }

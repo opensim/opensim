@@ -540,55 +540,41 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// <summary>
         /// Test replication of an archive path to the user's inventory.
         /// </summary>
-//        [Test]
-//        public void TestReplicateArchivePathToUserInventory()
-//        {
-//            TestHelper.InMethod();
-//            //log4net.Config.XmlConfigurator.Configure();
-//            
-//            Scene scene = SceneSetupHelpers.SetupScene("inventory");
-//            CommunicationsManager commsManager = scene.CommsManager;
-//            CachedUserInfo userInfo;
-//
-//            lock (this)
-//            {
-//                // !!! REFACTORING PROBLEM. This needs to be rewritten
-//                userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager, InventoryReceived);
-//                Monitor.Wait(this, 60000);
-//            }
-//            
-//            //Console.WriteLine("userInfo.RootFolder 1: {0}", userInfo.RootFolder);
-//            
-//            Dictionary <string, InventoryFolderBase> foldersCreated = new Dictionary<string, InventoryFolderBase>();
-//            List<InventoryNodeBase> nodesLoaded = new List<InventoryNodeBase>();
-//            
-//            string folder1Name = "a";
-//            string folder2Name = "b";
-//            string itemName = "c.lsl";
-//            
-//            string folder1ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder1Name, UUID.Random());
-//            string folder2ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder2Name, UUID.Random());
-//            string itemArchiveName = InventoryArchiveWriteRequest.CreateArchiveItemName(itemName, UUID.Random());
-//            
-//            string itemArchivePath
-//                = string.Format(
-//                    "{0}{1}{2}{3}", 
-//                    ArchiveConstants.INVENTORY_PATH, folder1ArchiveName, folder2ArchiveName, itemArchiveName);
-//
-//            //Console.WriteLine("userInfo.RootFolder 2: {0}", userInfo.RootFolder);
-//
-//            new InventoryArchiveReadRequest(scene, userInfo, null, (Stream)null)
-//                .ReplicateArchivePathToUserInventory(
-//                    itemArchivePath, false, scene.InventoryService.GetRootFolder(userInfo.UserProfile.ID), 
-//                    foldersCreated, nodesLoaded);
-//
-//            //Console.WriteLine("userInfo.RootFolder 3: {0}", userInfo.RootFolder);
-//            //InventoryFolderImpl folder1 = userInfo.RootFolder.FindFolderByPath("a");
-//            InventoryFolderBase folder1 
-//                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userInfo.UserProfile.ID, "a");
-//            Assert.That(folder1, Is.Not.Null, "Could not find folder a");
-//            InventoryFolderBase folder2 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1, "b");
-//            Assert.That(folder2, Is.Not.Null, "Could not find folder b");
-//        }
+        [Test]
+        public void TestReplicateArchivePathToUserInventory()
+        {
+            TestHelper.InMethod();
+            //log4net.Config.XmlConfigurator.Configure();
+            
+            Scene scene = SceneSetupHelpers.SetupScene("inventory");
+            UserAccount ua1 = UserProfileTestUtils.CreateUserWithInventory(scene);
+            
+            Dictionary <string, InventoryFolderBase> foldersCreated = new Dictionary<string, InventoryFolderBase>();
+            List<InventoryNodeBase> nodesLoaded = new List<InventoryNodeBase>();
+            
+            string folder1Name = "a";
+            string folder2Name = "b";
+            string itemName = "c.lsl";
+            
+            string folder1ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder1Name, UUID.Random());
+            string folder2ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder2Name, UUID.Random());
+            string itemArchiveName = InventoryArchiveWriteRequest.CreateArchiveItemName(itemName, UUID.Random());
+            
+            string itemArchivePath
+                = string.Format(
+                    "{0}{1}{2}{3}", 
+                    ArchiveConstants.INVENTORY_PATH, folder1ArchiveName, folder2ArchiveName, itemArchiveName);
+
+            new InventoryArchiveReadRequest(scene, ua1, null, (Stream)null)
+                .ReplicateArchivePathToUserInventory(
+                    itemArchivePath, false, scene.InventoryService.GetRootFolder(ua1.PrincipalID), 
+                    foldersCreated, nodesLoaded);
+
+            InventoryFolderBase folder1 
+                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, ua1.PrincipalID, "a");
+            Assert.That(folder1, Is.Not.Null, "Could not find folder a");
+            InventoryFolderBase folder2 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1, "b");
+            Assert.That(folder2, Is.Not.Null, "Could not find folder b");
+        }
     }
 }
