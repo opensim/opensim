@@ -308,6 +308,40 @@ namespace OpenSim.Services.UserAccountService
             CreateUser(firstName, lastName, password, email);
         }
 
+        protected void HandleResetUserPassword(string module, string[] cmdparams)
+        {
+            string firstName;
+            string lastName;
+            string newPassword;
+
+            if (cmdparams.Length < 4)
+                firstName = MainConsole.Instance.CmdPrompt("First name");
+            else firstName = cmdparams[3];
+
+            if (cmdparams.Length < 5)
+                lastName = MainConsole.Instance.CmdPrompt("Last name");
+            else lastName = cmdparams[4];
+
+            if (cmdparams.Length < 6)
+                newPassword = MainConsole.Instance.PasswdPrompt("New password");
+            else newPassword = cmdparams[5];
+
+            UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
+            if (account == null)
+                m_log.ErrorFormat("[USER ACCOUNT SERVICE]: No such user");
+
+            bool success = false;
+            if (m_AuthenticationService != null)
+                success = m_AuthenticationService.SetPassword(account.PrincipalID, newPassword);
+            if (!success)
+                m_log.ErrorFormat("[USER ACCOUNT SERVICE]: Unable to reset password for account {0} {1}.",
+                   firstName, lastName);
+            else
+                m_log.InfoFormat("[USER ACCOUNT SERVICE]: Password reset for user {0} {1}", firstName, lastName);
+        }
+
+        #endregion
+
         /// <summary>
         /// Create a user
         /// </summary>
@@ -369,41 +403,6 @@ namespace OpenSim.Services.UserAccountService
             {
                 m_log.ErrorFormat("[USER ACCOUNT SERVICE]: A user with the name {0} {1} already exists!", firstName, lastName);
             }
-        }
-
-        protected void HandleResetUserPassword(string module, string[] cmdparams)
-        {
-            string firstName;
-            string lastName;
-            string newPassword;
-
-            if (cmdparams.Length < 4)
-                firstName = MainConsole.Instance.CmdPrompt("First name");
-            else firstName = cmdparams[3];
-
-            if (cmdparams.Length < 5)
-                lastName = MainConsole.Instance.CmdPrompt("Last name");
-            else lastName = cmdparams[4];
-
-            if (cmdparams.Length < 6)
-                newPassword = MainConsole.Instance.PasswdPrompt("New password");
-            else newPassword = cmdparams[5];
-
-            UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
-            if (account == null)
-                m_log.ErrorFormat("[USER ACCOUNT SERVICE]: No such user");
-
-            bool success = false;
-            if (m_AuthenticationService != null)
-                success = m_AuthenticationService.SetPassword(account.PrincipalID, newPassword);
-            if (!success)
-                m_log.ErrorFormat("[USER ACCOUNT SERVICE]: Unable to reset password for account {0} {1}.",
-                   firstName, lastName);
-            else
-                m_log.InfoFormat("[USER ACCOUNT SERVICE]: Password reset for user {0} {1}", firstName, lastName);
-        }
-
-        #endregion
-
+        }        
     }
 }
