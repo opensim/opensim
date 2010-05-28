@@ -1278,10 +1278,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_parentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
             {
-                avatar.SceneViewer.QueuePartForUpdate(this);
+                AddFullUpdateToAvatar(avatar);
             });
         }
 
+        /// <summary>
+        /// Tell the scene presence that it should send updates for this part to its client
+        /// </summary>        
         public void AddFullUpdateToAvatar(ScenePresence presence)
         {
             presence.SceneViewer.QueuePartForUpdate(this);
@@ -1302,7 +1305,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_parentGroup.Scene.ForEachScenePresence(delegate(ScenePresence avatar)
             {
-                avatar.SceneViewer.QueuePartForUpdate(this);
+                AddTerseUpdateToAvatar(avatar);
             });
         }
 
