@@ -277,8 +277,9 @@ namespace OpenSim.Services.UserAccountService
         #endregion
 
         #region Console commands
+        
         /// <summary>
-        /// Create a new user
+        /// Handle the create user command from the console.
         /// </summary>
         /// <param name="cmdparams">string array with parameters: firstname, lastname, password, locationX, locationY, email</param>
         protected void HandleCreateUser(string module, string[] cmdparams)
@@ -304,6 +305,18 @@ namespace OpenSim.Services.UserAccountService
                 email = MainConsole.Instance.CmdPrompt("Email", "");
             else email = cmdparams[5];
 
+            CreateUser(firstName, lastName, password, email);
+        }
+
+        /// <summary>
+        /// Create a user
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="password"></param>
+        /// <param name="email"></param>
+        public void CreateUser(string firstName, string lastName, string password, string email)
+        {
             UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
             if (null == account)
             {
@@ -338,7 +351,6 @@ namespace OpenSim.Services.UserAccountService
                         else
                             m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set home for account {0} {1}.",
                                firstName, lastName);
-
                     }
                     else
                         m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to retrieve home region for account {0} {1}.",
@@ -350,7 +362,6 @@ namespace OpenSim.Services.UserAccountService
                         m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to create inventory for account {0} {1}.",
                            firstName, lastName);
 
-
                     m_log.InfoFormat("[USER ACCOUNT SERVICE]: Account {0} {1} created successfully", firstName, lastName);
                 }
             }
@@ -358,7 +369,6 @@ namespace OpenSim.Services.UserAccountService
             {
                 m_log.ErrorFormat("[USER ACCOUNT SERVICE]: A user with the name {0} {1} already exists!", firstName, lastName);
             }
-
         }
 
         protected void HandleResetUserPassword(string module, string[] cmdparams)
