@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// #define NUNIT25
+
 using System;
 using log4net.Config;
 using NUnit.Framework;
@@ -33,62 +35,95 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using log4net;
 using System.Reflection;
+using System.Data.Common;
+
+#if !NUNIT25
+using NUnit.Framework.SyntaxHelpers;
+#endif
+
+// DBMS-specific:
+using MySql.Data.MySqlClient;
+using OpenSim.Data.MySQL;
+
+using System.Data.SqlClient;
+using OpenSim.Data.MSSQL;
+
+using Mono.Data.Sqlite;
+using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
-    public class BasicInventoryTest
+#if NUNIT25
+
+    [TestFixture(typeof(SqliteConnection), typeof(SQLiteInventoryStore), Description = "Inventory store tests (SQLite)")]
+    [TestFixture(typeof(MySqlConnection), typeof(MySQLInventoryData), Description = "Inventory store tests (MySQL)")]
+    [TestFixture(typeof(SqlConnection), typeof(MSSQLInventoryData), Description = "Inventory store tests (MS SQL Server)")]
+
+#else
+
+    [TestFixture(Description = "Inventory store tests (SQLite)")]
+    public class SQLiteInventoryTests : InventoryTests<SqliteConnection, SQLiteInventoryStore>
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+    }
+
+    [TestFixture(Description = "Inventory store tests (MySQL)")]
+    public class MySqlInventoryTests : InventoryTests<MySqlConnection, MySQLInventoryData>
+    { 
+    }
+
+    [TestFixture(Description = "Inventory store tests (MS SQL Server)")]
+    public class MSSQLInventoryTests : InventoryTests<SqlConnection, MSSQLInventoryData>
+    {
+    }
+#endif
+
+    public class InventoryTests<TConn, TInvStore> : BasicDataServiceTest<TConn, TInvStore>
+        where TConn : DbConnection, new()
+        where TInvStore : class, IInventoryDataPlugin, new()
+    {
         public IInventoryDataPlugin db;
+
         public UUID zero = UUID.Zero;
 
-        public UUID folder1;
-        public UUID folder2;
-        public UUID folder3;
-        public UUID owner1;
-        public UUID owner2;
-        public UUID owner3;
+        public UUID folder1 = UUID.Random();
+        public UUID folder2 = UUID.Random();
+        public UUID folder3 = UUID.Random();
+        public UUID owner1 = UUID.Random();
+        public UUID owner2 = UUID.Random();
+        public UUID owner3 = UUID.Random();
 
-        public UUID item1;
-        public UUID item2;
-        public UUID item3;
-        public UUID asset1;
-        public UUID asset2;
-        public UUID asset3;
+        public UUID item1 = UUID.Random();
+        public UUID item2 = UUID.Random();
+        public UUID item3 = UUID.Random();
+        public UUID asset1 = UUID.Random();
+        public UUID asset2 = UUID.Random();
+        public UUID asset3 = UUID.Random();
 
         public string name1;
-        public string name2;
-        public string name3;
-        public string niname1;
-        public string iname1;
-        public string iname2;
-        public string iname3;
+        public string name2 = "First Level folder";
+        public string name3 = "First Level folder 2";
+        public string niname1 = "My Shirt";
+        public string iname1 = "Shirt";
+        public string iname2 = "Text Board";
+        public string iname3 = "No Pants Barrel";
 
-        public void SuperInit()
+        public InventoryTests(string conn) : base(conn)
         {
-            OpenSim.Tests.Common.TestLogging.LogToConsole();
-
-            folder1 = UUID.Random();
-            folder2 = UUID.Random();
-            folder3 = UUID.Random();
-            owner1 = UUID.Random();
-            owner2 = UUID.Random();
-            owner3 = UUID.Random();
-            item1 = UUID.Random();
-            item2 = UUID.Random();
-            item3 = UUID.Random();
-            asset1 = UUID.Random();
-            asset2 = UUID.Random();
-            asset3 = UUID.Random();
-
             name1 = "Root Folder for " + owner1.ToString();
-            name2 = "First Level folder";
-            name3 = "First Level folder 2";
-            niname1 = "My Shirt";
-            iname1 = "Shirt";
-            iname2 = "Text Board";
-            iname3 = "No Pants Barrel";
+        }
+        public InventoryTests() : this("") { }
 
+        protected override void InitService(object service)
+        {
+            ClearDB();
+            db = (IInventoryDataPlugin)service;
+            db.Initialise(m_connStr);
+        }
+
+        private void ClearDB()
+        {
+            DropTables("inventoryitems", "inventoryfolders");
+            ResetMigrations("InventoryStore");
         }
 
         [Test]
@@ -159,8 +194,10 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T013_FolderHierarchy()
         {
-            Assert.That(db.getFolderHierarchy(zero).Count, Is.EqualTo(0), "Assert.That(db.getFolderHierarchy(zero).Count, Is.EqualTo(0))");
-            Assert.That(db.getFolderHierarchy(folder1).Count, Is.EqualTo(2), "Assert.That(db.getFolderHierarchy(folder1).Count, Is.EqualTo(2))");
+            int n = db.getFolderHierarchy(zero).Count;  // (for dbg - easier to see what's returned)
+            Assert.That(n, Is.EqualTo(0), "Assert.That(db.getFolderHierarchy(zero).Count, Is.EqualTo(0))");
+            n = db.getFolderHierarchy(folder1).Count;
+            Assert.That(n, Is.EqualTo(2), "Assert.That(db.getFolderHierarchy(folder1).Count, Is.EqualTo(2))");
             Assert.That(db.getFolderHierarchy(folder2).Count, Is.EqualTo(0), "Assert.That(db.getFolderHierarchy(folder2).Count, Is.EqualTo(0))");
             Assert.That(db.getFolderHierarchy(folder3).Count, Is.EqualTo(0), "Assert.That(db.getFolderHierarchy(folder3).Count, Is.EqualTo(0))");
             Assert.That(db.getFolderHierarchy(UUID.Random()).Count, Is.EqualTo(0), "Assert.That(db.getFolderHierarchy(UUID.Random()).Count, Is.EqualTo(0))");

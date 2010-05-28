@@ -831,6 +831,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        public void SendGenericMessage(string method, List<string> message)
+        {
+            GenericMessagePacket gmp = new GenericMessagePacket();
+            gmp.MethodData.Method = Util.StringToBytes256(method);
+            gmp.ParamList = new GenericMessagePacket.ParamListBlock[message.Count];
+            int i = 0;
+            foreach (string val in message)
+            {
+                gmp.ParamList[i] = new GenericMessagePacket.ParamListBlock();
+                gmp.ParamList[i++].Parameter = Util.StringToBytes256(val);
+            }
+
+            OutPacket(gmp, ThrottleOutPacketType.Task);
+        }
+
         public void SendGenericMessage(string method, List<byte[]> message)
         {
             GenericMessagePacket gmp = new GenericMessagePacket();
@@ -4907,14 +4922,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     arg.SessionID = x.SessionID;
                     arg.State = x.State;
                     UpdateAgent handlerAgentUpdate = OnAgentUpdate;
+                    UpdateAgent handlerPreAgentUpdate = OnPreAgentUpdate;
                     lastarg = arg; // save this set of arguments for nexttime
-                    if (handlerAgentUpdate != null)
-                    {
+                    if (handlerPreAgentUpdate != null)
                         OnPreAgentUpdate(this, arg);
+                    if (handlerAgentUpdate != null)
                         OnAgentUpdate(this, arg);
-                    }
 
                     handlerAgentUpdate = null;
+                    handlerPreAgentUpdate = null;
                 }
             }
 

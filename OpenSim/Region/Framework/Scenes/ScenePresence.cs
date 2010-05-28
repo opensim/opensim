@@ -140,6 +140,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3? m_forceToApply;
         private uint m_requestedSitTargetID;
         private UUID m_requestedSitTargetUUID;
+        public bool SitGround = false;
 
         private SendCourseLocationsMethod m_sendCourseLocationsMethod;
 
@@ -1393,6 +1394,12 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick.
                 Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
+
+                // TODO: This doesn't prevent the user from walking yet.
+                // Setting parent ID would fix this, if we knew what value
+                // to use.  Or we could add a m_isSitting variable.
+                //Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
+                SitGround = true;                
             }
 
             // In the future, these values might need to go global.
@@ -1409,7 +1416,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             bool update_movementflag = false;
 
-            if (m_allowMovement)
+            if (m_allowMovement && !SitGround)
             {
                 if (agentData.UseClientAgentPosition)
                 {
@@ -1637,7 +1644,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (update_movementflag)
+            if (update_movementflag && !SitGround)
                 Animator.UpdateMovementAnimations();
 
             m_scene.EventManager.TriggerOnClientMovement(this);
@@ -1748,6 +1755,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void StandUp()
         {
+            SitGround = false;
+
             if (m_parentID != 0)
             {
                 SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);

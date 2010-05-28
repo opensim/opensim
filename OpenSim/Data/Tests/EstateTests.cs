@@ -35,13 +35,57 @@ using OpenSim.Region.Framework.Interfaces;
 using System.Text;
 using log4net;
 using System.Reflection;
+using System.Data.Common;
+
+#if !NUNIT25
+using NUnit.Framework.SyntaxHelpers;
+#endif
+
+
+// DBMS-specific:
+using MySql.Data.MySqlClient;
+using OpenSim.Data.MySQL;
+
+using System.Data.SqlClient;
+using OpenSim.Data.MSSQL;
+
+using Mono.Data.Sqlite;
+using OpenSim.Data.SQLite;
+
 
 namespace OpenSim.Data.Tests
 {
-    public class BasicEstateTest
+
+#if NUNIT25
+
+    [TestFixture(typeof(MySqlConnection), typeof(MySQLEstateStore), Description = "Estate store tests (MySQL)")]
+    [TestFixture(typeof(SqlConnection), typeof(MSSQLEstateStore), Description = "Estate store tests (MS SQL Server)")]
+    [TestFixture(typeof(SqliteConnection), typeof(SQLiteEstateStore), Description = "Estate store tests (SQLite)")]
+
+#else
+
+    [TestFixture(Description = "Estate store tests (SQLite)")]
+    public class SQLiteEstateTests : EstateTests<SqliteConnection, SQLiteEstateStore>
+    {
+    }
+
+    [TestFixture(Description = "Estate store tests (MySQL)")]
+    public class MySqlEstateTests : EstateTests<MySqlConnection, MySQLEstateStore>
+    {
+    }
+
+    [TestFixture(Description = "Estate store tests (MS SQL Server)")]
+    public class MSSQLEstateTests : EstateTests<SqlConnection, MSSQLEstateStore>
+    {
+    }
+
+#endif
+
+    public class EstateTests<TConn, TEstateStore> : BasicDataServiceTest<TConn, TEstateStore>
+        where TConn : DbConnection, new()
+        where TEstateStore : class, IEstateDataStore, new()
     {
         public IEstateDataStore db;
-        public IRegionDataStore regionDb;
 
         public static UUID REGION_ID = new UUID("250d214e-1c7e-4f9b-a488-87c5e53feed7");
 
@@ -54,9 +98,25 @@ namespace OpenSim.Data.Tests
         public static UUID GROUP_ID_1 = new UUID("250d214e-1c7e-4f9b-a488-87c5e53feed5");
         public static UUID GROUP_ID_2 = new UUID("250d214e-1c7e-4f9b-a488-87c5e53feed6");
 
-        public void SuperInit()
+        protected override void InitService(object service)
         {
-            OpenSim.Tests.Common.TestLogging.LogToConsole();
+            ClearDB();
+            db = (IEstateDataStore)service;
+            db.Initialise(m_connStr);
+        }
+
+        private void ClearDB()
+        {
+            // if a new table is added, it has to be dropped here
+            DropTables(
+                "estate_managers",
+                "estate_groups",
+                "estate_users",
+                "estateban",
+                "estate_settings",
+                "estate_map"
+            );
+            ResetMigrations("EstateStore");
         }
 
         #region 0Tests
@@ -292,8 +352,7 @@ namespace OpenSim.Data.Tests
             // Letting estate store generate rows to database for us
             EstateSettings originalSettings = db.LoadEstateSettings(regionId, true);
 
-            SetEstateSettings(
-                originalSettings,
+            SetEstateSettings(originalSettings,
                 estateName,
                 parentEstateID,
                 billableFactor,
@@ -319,30 +378,6 @@ namespace OpenSim.Data.Tests
                 estateOwner
                 );
 
-            originalSettings.EstateName = estateName;
-            originalSettings.ParentEstateID = parentEstateID;
-            originalSettings.BillableFactor = billableFactor;
-            originalSettings.PricePerMeter = pricePerMeter;
-            originalSettings.RedirectGridX = redirectGridX;
-            originalSettings.RedirectGridY = redirectGridY;
-            originalSettings.UseGlobalTime = useGlobalTime;
-            originalSettings.FixedSun = fixedSun;
-            originalSettings.SunPosition = sunPosition;
-            originalSettings.AllowVoice = allowVoice;
-            originalSettings.AllowDirectTeleport = allowDirectTeleport;
-            originalSettings.ResetHomeOnTeleport = resetHomeOnTeleport;
-            originalSettings.DenyAnonymous = denyAnonymous;
-            originalSettings.DenyIdentified = denyIdentified;
-            originalSettings.DenyTransacted = denyTransacted;
-            originalSettings.DenyMinors = denyMinors;
-            originalSettings.AbuseEmailToEstateOwner = abuseEmailToEstateOwner;
-            originalSettings.BlockDwell = blockDwell;
-            originalSettings.EstateSkipScripts = estateSkipScripts;
-            originalSettings.TaxFree = taxFree;
-            originalSettings.PublicAccess = publicAccess;
-            originalSettings.AbuseEmail = abuseEmail;
-            originalSettings.EstateOwner = estateOwner;
-
             // Saving settings.
             db.StoreEstateSettings(originalSettings);
 
@@ -350,8 +385,7 @@ namespace OpenSim.Data.Tests
             EstateSettings loadedSettings = db.LoadEstateSettings(regionId, true);
 
             // Checking that loaded values are correct.
-            ValidateEstateSettings(
-                loadedSettings,
+            ValidateEstateSettings(loadedSettings,
                 estateName,
                 parentEstateID,
                 billableFactor,
