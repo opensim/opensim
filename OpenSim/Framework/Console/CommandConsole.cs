@@ -182,8 +182,7 @@ namespace OpenSim.Framework.Console
         public void AddCommand(string module, bool shared, string command,
                 string help, string longhelp, CommandDelegate fn)
         {
-            AddCommand(module, shared, command, help, longhelp,
-                    String.Empty, fn);
+            AddCommand(module, shared, command, help, longhelp, String.Empty, fn);
         }
 
         /// <summary>
