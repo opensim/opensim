@@ -261,7 +261,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // This may be a costly operation. The reg.ExternalEndPoint field is not a passive field,
             // it's actually doing a lot of work.
             IPEndPoint endPoint = finalDestination.ExternalEndPoint;
-            if (endPoint.Address != null)
+            if (endPoint != null && endPoint.Address != null)
             {
                 // Fixing a bug where teleporting while sitting results in the avatar ending up removed from
                 // both regions
@@ -825,15 +825,19 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, agent.UUID);
 
                 IEventQueue eq = agent.Scene.RequestModuleInterface<IEventQueue>();
-                if (eq != null)
+                IPEndPoint neighbourExternal = neighbourRegion.ExternalEndPoint;
+                if (neighbourExternal != null)
                 {
-                    eq.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
-                                   capsPath, agent.UUID, agent.ControllingClient.SessionId);
-                }
-                else
-                {
-                    agent.ControllingClient.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
-                                                capsPath);
+                    if (eq != null)
+                    {
+                        eq.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourExternal,
+                                       capsPath, agent.UUID, agent.ControllingClient.SessionId);
+                    }
+                    else
+                    {
+                        agent.ControllingClient.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourExternal,
+                                                    capsPath);
+                    }
                 }
 
                 if (!WaitForCallback(agent.UUID))
@@ -906,10 +910,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             agent.child = true;
             agent.Appearance = sp.Appearance;
 
-            InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
-            d.BeginInvoke(sp, agent, region, region.ExternalEndPoint, true,
+            IPEndPoint external = region.ExternalEndPoint;
+            if (external != null)
+            {
+                InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
+                d.BeginInvoke(sp, agent, region, external, true,
                           InformClientOfNeighbourCompleted,
                           d);
+            }
         }
         #endregion
 
@@ -1038,6 +1046,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
                     try
                     {
+                        //neighbour.ExternalEndPoint may return null, which will be caught
                         d.BeginInvoke(sp, cagents[count], neighbour, neighbour.ExternalEndPoint, newAgent,
                                       InformClientOfNeighbourCompleted,
                                       d);

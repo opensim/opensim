@@ -348,9 +348,11 @@ namespace OpenSim.Services.Connectors.Simulation
 
         public bool RetrieveAgent(GridRegion destination, UUID id, out IAgentData agent)
         {
+            IPEndPoint ext = destination.ExternalEndPoint;
             agent = null;
+            if (ext == null) return false;
             // Eventually, we want to use a caps url instead of the agentID
-            string uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
+            string uri = "http://" + ext.Address + ":" + destination.HttpPort + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
             //Console.WriteLine("   >>> DoRetrieveRootAgentCall <<< " + uri);
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
@@ -514,8 +516,10 @@ namespace OpenSim.Services.Connectors.Simulation
 
         public bool CreateObject(GridRegion destination, ISceneObject sog, bool isLocalCall)
         {
+            IPEndPoint ext = destination.ExternalEndPoint;
+            if (ext == null) return false;
             string uri
-                = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + ObjectPath() + sog.UUID + "/";
+                = "http://" + ext.Address + ":" + destination.HttpPort + ObjectPath() + sog.UUID + "/";
             //m_log.Debug("   >>> DoCreateObjectCall <<< " + uri);
 
             WebRequest ObjectCreateRequest = WebRequest.Create(uri);

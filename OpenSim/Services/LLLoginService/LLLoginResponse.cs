@@ -327,6 +327,7 @@ namespace OpenSim.Services.LLLoginService
         private void FillOutRegionData(GridRegion destination)
         {
             IPEndPoint endPoint = destination.ExternalEndPoint;
+            if (endPoint == null) return;
             SimAddress = endPoint.Address.ToString();
             SimPort = (uint)endPoint.Port;
             RegionX = (uint)destination.RegionLocX;

@@ -104,6 +104,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public string RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
+            IPEndPoint ext = regionInfo.ExternalEndPoint;
+            if (ext == null) return "Region registration for " + regionInfo.RegionName + " failed: Could not resolve EndPoint";
             Vector3d minPosition = new Vector3d(regionInfo.RegionLocX, regionInfo.RegionLocY, 0.0);
             Vector3d maxPosition = minPosition + new Vector3d(Constants.RegionSize, Constants.RegionSize, 4096.0);
 
@@ -114,7 +116,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "ServerURI", OSD.FromString(regionInfo.ServerURI) },
                 { "InternalAddress", OSD.FromString(regionInfo.InternalEndPoint.Address.ToString()) },
                 { "InternalPort", OSD.FromInteger(regionInfo.InternalEndPoint.Port) },
-                { "ExternalAddress", OSD.FromString(regionInfo.ExternalEndPoint.Address.ToString()) },
+                { "ExternalAddress", OSD.FromString(ext.Address.ToString()) },
                 { "ExternalPort", OSD.FromInteger(regionInfo.ExternalEndPoint.Port) },
                 { "MapTexture", OSD.FromUUID(regionInfo.TerrainImage) },
                 { "Access", OSD.FromInteger(regionInfo.Access) },
