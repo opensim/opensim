@@ -1033,6 +1033,38 @@
       </Files>
     </Project>
 
+    <Project frameworkVersion="v3_5" name="OpenSim.Services.Meta7Communities" path="OpenSim/Services/Meta7Communities" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Services.Base"/>
+      <Reference name="OpenSim.Services.Connectors"/>
+      <Reference name="OpenSim.Services.AuthorizationService"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <Project frameworkVersion="v3_5" name="OpenSim.Services.FreeswitchService" path="OpenSim/Services/FreeswitchService" type="Library">
       <Configuration name="Debug">
         <Options>
