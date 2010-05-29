@@ -376,6 +376,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="mod"></param>
         public void RegisterModuleInterface<M>(M mod)
         {
+            m_log.DebugFormat("[SCENE BASE]: Registering interface {0}", typeof(M));
+            
             List<Object> l = null;
             if (!ModuleInterfaces.TryGetValue(typeof(M), out l))
             {
@@ -498,7 +500,30 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Call this from a region module to add a command to the OpenSim console.
+        /// </summary>
+        /// <param name="mod"></param>
+        /// <param name="command"></param>
+        /// <param name="shorthelp"></param>
+        /// <param name="longhelp"></param>
+        /// <param name="callback"></param>
         public void AddCommand(object mod, string command, string shorthelp, string longhelp, CommandDelegate callback)
+        {
+            AddCommand(mod, command, shorthelp, longhelp, string.Empty, callback);
+        }
+
+        /// <summary>
+        /// Call this from a region module to add a command to the OpenSim console.
+        /// </summary>
+        /// <param name="mod"></param>
+        /// <param name="command"></param>
+        /// <param name="shorthelp"></param>
+        /// <param name="longhelp"></param>
+        /// <param name="descriptivehelp"></param>
+        /// <param name="callback"></param>        
+        public void AddCommand(
+            object mod, string command, string shorthelp, string longhelp, string descriptivehelp, CommandDelegate callback)
         {
             if (MainConsole.Instance == null)
                 return;
@@ -523,7 +548,8 @@ namespace OpenSim.Region.Framework.Scenes
                 else throw new Exception("AddCommand module parameter must be IRegionModule or IRegionModuleBase");
             }
 
-            MainConsole.Instance.Commands.AddCommand(modulename, shared, command, shorthelp, longhelp, callback);
+            MainConsole.Instance.Commands.AddCommand(
+                modulename, shared, command, shorthelp, longhelp, descriptivehelp, callback);
         }
 
         public virtual ISceneObject DeserializeObject(string representation)

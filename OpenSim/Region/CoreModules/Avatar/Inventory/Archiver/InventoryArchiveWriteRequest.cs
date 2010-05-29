@@ -37,7 +37,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Framework.Communications;
-
 using OpenSim.Framework.Communications.Osp;
 using OpenSim.Region.CoreModules.World.Archiver;
 using OpenSim.Region.Framework.Scenes;

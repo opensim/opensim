@@ -1014,7 +1014,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             int lastMapRefresh = 0;
             int twoDays = 172800;
-            int RefreshSeconds = twoDays;
+//            int RefreshSeconds = twoDays;
 
             try
             {

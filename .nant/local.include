@@ -127,15 +127,10 @@
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.framework.tests)==0}" /> 
 
-  <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.data.sqlite.tests">
-    <arg value="./bin/OpenSim.Data.SQLite.Tests.dll" />
+  <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.data.tests">
+    <arg value="./bin/OpenSim.Data.Tests.dll" />
   </exec>
-  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.sqlite.tests)==0}" /> 
-
-  <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.data.mysql.tests">
-    <arg value="./bin/OpenSim.Data.MySQL.Tests.dll" />
-  </exec>
-  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.mysql.tests)==0}" /> 
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.tests)==0}" /> 
 
   <delete dir="%temp%"/>
 
@@ -297,14 +292,9 @@
     <arg value="-xml=test-results/OpenSim.Region.Framework.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.data.sqlite.tests">
-    <arg value="./bin/OpenSim.Data.SQLite.Tests.dll" />
-    <arg value="-xml=test-results/OpenSim.Data.SQLite.Tests.dll-Results.xml" />
-  </exec>
-
- <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.data.mysql.tests">
-    <arg value="./bin/OpenSim.Data.MySQL.Tests.dll" />
-    <arg value="-xml=test-results/OpenSim.Data.MySQL.Tests.dll-Results.xml" />
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.data.tests">
+    <arg value="./bin/OpenSim.Data.Tests.dll" />
+    <arg value="-xml=test-results/OpenSim.Data.Tests.dll-Results.xml" />
   </exec>
 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.tests)==0}" /> 
@@ -313,8 +303,7 @@
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.scriptengine.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.coremodules.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.framework.tests)==0}" /> 
- <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.sqlite.tests)==0}" /> 
- <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.mysql.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.tests)==0}" /> 
 
 </target>
 <!--     <exec program="nunit-console.exe" failonerror="false" resultproperty="testresult.acceptancetestassembly"> -->

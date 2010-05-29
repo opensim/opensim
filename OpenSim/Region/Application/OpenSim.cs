@@ -251,14 +251,20 @@ namespace OpenSim
                                           "Save named prim to XML2", SavePrimsXml2);
 
             m_console.Commands.AddCommand("region", false, "load oar",
-                                          "load oar [--merge] [--skip-assets] <oar name>",
-                                          "Load a region's data from OAR archive.  --merge will merge the oar with the existing scene.  --skip-assets will load the oar but ignore the assets it contains", 
+                                          "load oar [--merge] [--skip-assets] [<OAR path>]",
+                                          "Load a region's data from an OAR archive.",
+                                          "--merge will merge the OAR with the existing scene." + Environment.NewLine
+                                          + "--skip-assets will load the OAR but ignore the assets it contains." + Environment.NewLine
+                                          + "The path can be either a filesystem location or a URI."
+                                          + "  If this is not given then the command looks for an OAR named region.oar in the current directory.",
                                           LoadOar);
 
             m_console.Commands.AddCommand("region", false, "save oar",
-                                          "save oar <oar name>",
-                                          "Save a region's data to an OAR archive",
-                                          "More information on forthcoming options here soon", SaveOar);
+                                          "save oar [<OAR path>]",
+                                          "Save a region's data to an OAR archive.",
+                                          "The OAR path must be a filesystem path."
+                                          + "  If this is not given then the oar is saved to region.oar in the current directory.",
+                                          SaveOar);
 
             m_console.Commands.AddCommand("region", false, "edit scale",
                                           "edit scale <name> <x> <y> <z>",

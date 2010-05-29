@@ -91,13 +91,26 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 
                 scene.AddCommand(
                     this, "load iar",
-                    "load iar <first> <last> <inventory path> <password> [<archive path>]",
-                    "Load user inventory archive.", HandleLoadInvConsoleCommand); 
+                    "load iar <first> <last> <inventory path> <password> [<IAR path>]",
+                    "Load user inventory archive (IAR).",
+                    "<first> is user's first name." + Environment.NewLine
+                    + "<last> is user's last name." + Environment.NewLine
+                    + "<inventory path> is the path inside the user's inventory where the IAR should be loaded." + Environment.NewLine
+                    + "<password> is the user's password." + Environment.NewLine
+                    + "<IAR path> is the filesystem path or URI from which to load the IAR."
+                    + string.Format("  If this is not given then the filename {0} in the current directory is used", DEFAULT_INV_BACKUP_FILENAME),
+                    HandleLoadInvConsoleCommand);
                 
                 scene.AddCommand(
                     this, "save iar",
-                    "save iar <first> <last> <inventory path> <password> [<archive path>]",
-                    "Save user inventory archive.", HandleSaveInvConsoleCommand);
+                    "save iar <first> <last> <inventory path> <password> [<IAR path>]",
+                    "Save user inventory archive (IAR).", 
+                    "<first> is the user's first name." + Environment.NewLine
+                    + "<last> is the user's last name." + Environment.NewLine
+                    + "<inventory path> is the path inside the user's inventory for the folder/item to be saved." + Environment.NewLine
+                    + "<IAR path> is the filesystem path at which to save the IAR."
+                    + string.Format("  If this is not given then the filename {0} in the current directory is used", DEFAULT_INV_BACKUP_FILENAME),
+                    HandleSaveInvConsoleCommand);
 
                 m_aScene = scene;
             }
