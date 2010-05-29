@@ -91,7 +91,7 @@ namespace OpenSim.Services.Interfaces
                 UserTitle = kvp["UserTitle"].ToString();
 
             if (kvp.ContainsKey("Created"))
-                Convert.ToInt32(kvp["Created"].ToString());
+                Created = Convert.ToInt32(kvp["Created"].ToString());
             if (kvp.ContainsKey("ServiceURLs") && kvp["ServiceURLs"] != null)
             {
                 ServiceURLs = new Dictionary<string, object>();
