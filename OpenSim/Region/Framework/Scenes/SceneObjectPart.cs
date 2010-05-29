@@ -2724,7 +2724,10 @@ namespace OpenSim.Region.Framework.Scenes
             
             if (m_parentGroup != null)
             {
-                m_parentGroup.QueueForUpdateCheck();
+                if (!m_parentGroup.areUpdatesSuspended)
+                {
+                    m_parentGroup.QueueForUpdateCheck();   
+                }
             }
 
             int timeNow = Util.UnixTimeSinceEpoch();
@@ -4450,8 +4453,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_shape.TextureEntry = textureEntry;
             TriggerScriptChangedEvent(Changed.TEXTURE);
-
+            m_updateFlag = 1;
             ParentGroup.HasGroupChanged = true;
+
             //This is madness..
             //ParentGroup.ScheduleGroupForFullUpdate();
             //This is sparta

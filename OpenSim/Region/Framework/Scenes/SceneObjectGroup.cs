@@ -109,8 +109,25 @@ namespace OpenSim.Region.Framework.Scenes
         private long m_maxPersistTime = 0;
         private long m_minPersistTime = 0;
         private Random m_rand;
+        private bool m_suspendUpdates;
 
         private System.Threading.ReaderWriterLockSlim m_partsLock = new System.Threading.ReaderWriterLockSlim();
+
+        public bool areUpdatesSuspended
+        {
+            get
+            {
+                return m_suspendUpdates;
+            }
+            set 
+            {
+                m_suspendUpdates = value;   
+                if (!value)
+                {
+                    QueueForUpdateCheck();
+                }               
+            }
+        }
 
         public void lockPartsForRead(bool locked)
         {

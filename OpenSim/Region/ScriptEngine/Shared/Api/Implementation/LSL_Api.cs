@@ -1649,9 +1649,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
-
-            foreach (SceneObjectPart part in parts)
-                SetAlpha(part, alpha, face);
+            if (parts.Count > 0)
+            {
+                try
+                {
+                    parts[0].ParentGroup.areUpdatesSuspended = true;
+                    foreach (SceneObjectPart part in parts)
+                        SetAlpha(part, alpha, face);
+                }
+                finally
+                {
+                    parts[0].ParentGroup.areUpdatesSuspended = false;
+                }
+            }
         }
 
         protected void SetAlpha(SceneObjectPart part, double alpha, int face)
@@ -1816,10 +1826,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
-
-            foreach (SceneObjectPart part in parts)
-              SetTexture(part, texture, face);
-
+            if (parts.Count > 0)
+            {
+                try
+                {
+                    parts[0].ParentGroup.areUpdatesSuspended = true;
+                    foreach (SceneObjectPart part in parts)
+                        SetTexture(part, texture, face);
+                }
+                finally
+                {
+                    parts[0].ParentGroup.areUpdatesSuspended = false;
+                }
+            }
             ScriptSleep(200);
         }
 
@@ -3661,9 +3680,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetLinkColor(int linknumber, LSL_Vector color, int face)
         {
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
-
-            foreach (SceneObjectPart part in parts)
-                part.SetFaceColor(new Vector3((float)color.x, (float)color.y, (float)color.z), face);
+            if (parts.Count > 0)
+            {
+                try
+                {
+                    parts[0].ParentGroup.areUpdatesSuspended = true;
+                    foreach (SceneObjectPart part in parts)
+                        part.SetFaceColor(new Vector3((float)color.x, (float)color.y, (float)color.z), face);
+                }
+                finally
+                {
+                    parts[0].ParentGroup.areUpdatesSuspended = false;
+                }
+            }
         }
 
         public void llCreateLink(string target, int parent)
@@ -3776,10 +3805,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // Restructuring Multiple Prims.
                 List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Children.Values);
                 parts.Remove(parentPrim.RootPart);
-                foreach (SceneObjectPart part in parts)
+                if (parts.Count > 0)
                 {
-                    parentPrim.DelinkFromGroup(part.LocalId, true);
+                    try
+                    {
+                        parts[0].ParentGroup.areUpdatesSuspended = true;
+                        foreach (SceneObjectPart part in parts)
+                        {
+                            parentPrim.DelinkFromGroup(part.LocalId, true);
+                        }
+                    }
+                    finally
+                    {
+                        parts[0].ParentGroup.areUpdatesSuspended = false;
+                    }
                 }
+
                 parentPrim.HasGroupChanged = true;
                 parentPrim.ScheduleGroupForFullUpdate();
                 parentPrim.TriggerScriptChangedEvent(Changed.LINK);
@@ -3788,11 +3829,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     SceneObjectPart newRoot = parts[0];
                     parts.Remove(newRoot);
-                    foreach (SceneObjectPart part in parts)
+
+                    try
                     {
-                        part.UpdateFlag = 0;
-                        newRoot.ParentGroup.LinkToGroup(part.ParentGroup);
+                        parts[0].ParentGroup.areUpdatesSuspended = true;
+                        foreach (SceneObjectPart part in parts)
+                        {
+                            part.UpdateFlag = 0;
+                            newRoot.ParentGroup.LinkToGroup(part.ParentGroup);
+                        }
                     }
+                    finally
+                    {
+                        parts[0].ParentGroup.areUpdatesSuspended = false;
+                    }                    
+                    
+                    
                     newRoot.ParentGroup.HasGroupChanged = true;
                     newRoot.ParentGroup.ScheduleGroupForFullUpdate();
                 }
@@ -3818,11 +3870,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Children.Values);
             parts.Remove(parentPrim.RootPart);
-
-            foreach (SceneObjectPart part in parts)
+            if (parts.Count > 0)
             {
-                parentPrim.DelinkFromGroup(part.LocalId, true);
-                parentPrim.TriggerScriptChangedEvent(Changed.LINK);
+                try
+                {
+                    parts[0].ParentGroup.areUpdatesSuspended = true;
+                    foreach (SceneObjectPart part in parts)
+                    {
+                        parentPrim.DelinkFromGroup(part.LocalId, true);
+                        parentPrim.TriggerScriptChangedEvent(Changed.LINK);
+                    }
+                }
+                finally
+                {
+                    parts[0].ParentGroup.areUpdatesSuspended = false;
+                }
             }
             parentPrim.HasGroupChanged = true;
             parentPrim.ScheduleGroupForFullUpdate();
@@ -5664,10 +5726,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
-
-            foreach (var part in parts)
+            if (parts.Count > 0)
             {
-                SetTextureAnim(part, mode, face, sizex, sizey, start, length, rate);
+                try
+                {
+                    parts[0].ParentGroup.areUpdatesSuspended = true;
+                    foreach (var part in parts)
+                    {
+                        SetTextureAnim(part, mode, face, sizex, sizey, start, length, rate);
+                    }
+                }
+                finally
+                {
+                    parts[0].ParentGroup.areUpdatesSuspended = false;
+                }
             }
         }
 
@@ -7068,9 +7140,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
              m_host.AddScriptLPS(1);
 
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
-
-            foreach (SceneObjectPart part in parts)
-                SetPrimParams(part, rules);
+            if (parts.Count>0)
+            {
+                try
+                {
+                    parts[0].ParentGroup.areUpdatesSuspended = true;
+                    foreach (SceneObjectPart part in parts)
+                        SetPrimParams(part, rules);
+                }
+                finally
+                {
+                    parts[0].ParentGroup.areUpdatesSuspended = false;
+                }
+            }
         }
 
         public void llSetLinkPrimitiveParamsFast(int linknumber, LSL_List rules)

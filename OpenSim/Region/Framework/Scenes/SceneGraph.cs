@@ -1499,10 +1499,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="childPrims"></param>
         protected internal void LinkObjects(SceneObjectPart root, List<SceneObjectPart> children)
         {
+            SceneObjectGroup parentGroup = root.ParentGroup;
+            if (parentGroup == null) return;
             Monitor.Enter(m_updateLock);
+
             try
             {
-                SceneObjectGroup parentGroup = root.ParentGroup;
+                parentGroup.areUpdatesSuspended = true;
 
                 List<SceneObjectGroup> childGroups = new List<SceneObjectGroup>();
                 if (parentGroup != null)
@@ -1541,12 +1544,12 @@ namespace OpenSim.Region.Framework.Scenes
                 // occur on link to invoke this elsewhere (such as object selection)
                 parentGroup.RootPart.AddFlag(PrimFlags.CreateSelected);
                 parentGroup.TriggerScriptChangedEvent(Changed.LINK);
-                parentGroup.HasGroupChanged = true;
-                parentGroup.ScheduleGroupForFullUpdate();
-                
             }
             finally
             {
+                parentGroup.areUpdatesSuspended = false;
+                parentGroup.HasGroupChanged = true;
+                parentGroup.ScheduleGroupForFullUpdate();
                 Monitor.Exit(m_updateLock);
             }
         }
@@ -1583,11 +1586,22 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                foreach (SceneObjectPart child in childParts)
+                if (childParts.Count > 0)
                 {
-                    // Unlink all child parts from their groups
-                    //
-                    child.ParentGroup.DelinkFromGroup(child, true);
+                    try
+                    {
+                        childParts[0].ParentGroup.areUpdatesSuspended = true;
+                        foreach (SceneObjectPart child in childParts)
+                        {
+                            // Unlink all child parts from their groups
+                            //
+                            child.ParentGroup.DelinkFromGroup(child, true);
+                        }
+                    }
+                    finally
+                    {
+                        childParts[0].ParentGroup.areUpdatesSuspended = false;
+                    }
                 }
 
                 foreach (SceneObjectPart root in rootParts)
@@ -1611,10 +1625,21 @@ namespace OpenSim.Region.Framework.Scenes
                         if (numChildren > 1)
                             sendEventsToRemainder = false;
 
-                        foreach (SceneObjectPart p in newSet)
+                        if (newSet.Count > 0)
                         {
-                            if (p != group.RootPart)
-                                group.DelinkFromGroup(p, sendEventsToRemainder);
+                            try
+                            {
+                                newSet[0].ParentGroup.areUpdatesSuspended = true;
+                                foreach (SceneObjectPart p in newSet)
+                                {
+                                    if (p != group.RootPart)
+                                        group.DelinkFromGroup(p, sendEventsToRemainder);
+                                }
+                            }
+                            finally
+                            {
+                                newSet[0].ParentGroup.areUpdatesSuspended = false;
+                            }
                         }
 
                         // If there is more than one prim remaining, we

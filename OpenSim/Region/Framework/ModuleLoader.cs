@@ -226,7 +226,8 @@ namespace OpenSim.Region.Framework
                         "[MODULES]: Could not load types for [{0}].  Exception {1}", pluginAssembly.FullName, e);
                     
                     // justincc: Right now this is fatal to really get the user's attention
-                    throw e;
+                    // TomMeta: WTF? No, how about we /don't/ throw a fatal exception when there's no need to?
+                    //throw e;
                 }
             }
 
