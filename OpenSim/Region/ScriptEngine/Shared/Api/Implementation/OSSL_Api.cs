@@ -105,6 +105,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     //            modification of user data, or allows the compromise of
     //            sensitive data by design.
 
+    class FunctionPerms
+    {
+        public List<UUID> AllowedCreators;
+        public List<UUID> AllowedOwners;
+
+        public FunctionPerms()
+        {
+            AllowedCreators = new List<UUID>();
+            AllowedOwners = new List<UUID>();
+        }
+    }
+
     [Serializable]
     public class OSSL_Api : MarshalByRefObject, IOSSL_Api, IScriptApi
     {
@@ -117,7 +129,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal ThreatLevel m_MaxThreatLevel = ThreatLevel.VeryLow;
         internal float m_ScriptDelayFactor = 1.0f;
         internal float m_ScriptDistanceFactor = 1.0f;
-        internal Dictionary<string, List<UUID> > m_FunctionPerms = new Dictionary<string, List<UUID> >();
+        internal Dictionary<string, FunctionPerms > m_FunctionPerms = new Dictionary<string, FunctionPerms >();
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
         {
@@ -217,31 +229,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!m_FunctionPerms.ContainsKey(function))
             {
-                string perm = m_ScriptEngine.Config.GetString("Allow_" + function, "");
-                if (perm == "")
+                FunctionPerms perms = new FunctionPerms();
+                m_FunctionPerms[function] = perms;
+
+                string ownerPerm = m_ScriptEngine.Config.GetString("Allow_" + function, "");
+                string creatorPerm = m_ScriptEngine.Config.GetString("Creators_" + function, "");
+                if (ownerPerm == "" && creatorPerm == "")
                 {
-                    m_FunctionPerms[function] = null; // a null value is default
+                    // Default behavior
+                    perms.AllowedOwners = null;
+                    perms.AllowedCreators = null;
                 }
                 else
                 {
                     bool allowed;
 
-                    if (bool.TryParse(perm, out allowed))
+                    if (bool.TryParse(ownerPerm, out allowed))
                     {
                         // Boolean given
                         if (allowed)
                         {
-                            m_FunctionPerms[function] = new List<UUID>();
-                            m_FunctionPerms[function].Add(UUID.Zero);
+                            // Allow globally
+                            perms.AllowedOwners.Add(UUID.Zero);
                         }
-                        else
-                            m_FunctionPerms[function] = new List<UUID>(); // Empty list = none
                     }
                     else
                     {
-                        m_FunctionPerms[function] = new List<UUID>();
-
-                        string[] ids = perm.Split(new char[] {','});
+                        string[] ids = ownerPerm.Split(new char[] {','});
                         foreach (string id in ids)
                         {
                             string current = id.Trim();
@@ -250,7 +264,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             if (UUID.TryParse(current, out uuid))
                             {
                                 if (uuid != UUID.Zero)
-                                    m_FunctionPerms[function].Add(uuid);
+                                    perms.AllowedOwners.Add(uuid);
+                            }
+                        }
+
+                        ids = creatorPerm.Split(new char[] {','});
+                        foreach (string id in ids)
+                        {
+                            string current = id.Trim();
+                            UUID uuid;
+
+                            if (UUID.TryParse(current, out uuid))
+                            {
+                                if (uuid != UUID.Zero)
+                                    perms.AllowedCreators.Add(uuid);
                             }
                         }
                     }
@@ -266,8 +293,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //
             // To allow use by anyone, the list contains UUID.Zero
             //
-            if (m_FunctionPerms[function] == null) // No list = true
+            if (m_FunctionPerms[function].AllowedOwners == null)
             {
+                // Allow / disallow by threat level
                 if (level > m_MaxThreatLevel)
                     OSSLError(
                         String.Format(
@@ -276,8 +304,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                if (!m_FunctionPerms[function].Contains(UUID.Zero))
+                if (!m_FunctionPerms[function].AllowedOwners.Contains(UUID.Zero))
                 {
+                    // Not anyone. Do detailed checks
+                    if (m_FunctionPerms[function].AllowedOwners.Contains(m_host.OwnerID))
+                    {
+                        // prim owner is in the list of allowed owners
+                        return;
+                    }
+
                     TaskInventoryItem ti = m_host.Inventory.GetInventoryItem(m_itemID);
                     if (ti == null)
                     {
@@ -285,9 +320,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             String.Format("{0} permission error. Can't find script in prim inventory.",
                             function));
                     }
-                    if (!m_FunctionPerms[function].Contains(ti.CreatorID))
+                    if (!m_FunctionPerms[function].AllowedCreators.Contains(ti.CreatorID))
                         OSSLError(
-                            String.Format("{0} permission denied. Script creator is not in the list of users allowed to execute this function.",
+                            String.Format("{0} permission denied. Script creator is not in the list of users allowed to execute this function and prim owner also has no permission.",
                             function));
                     if (ti.CreatorID != ti.OwnerID)
                     {
