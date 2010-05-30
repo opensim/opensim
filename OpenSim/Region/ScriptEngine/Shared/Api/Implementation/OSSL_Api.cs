@@ -278,10 +278,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (!m_FunctionPerms[function].Contains(UUID.Zero))
                 {
-                    if (!m_FunctionPerms[function].Contains(m_host.OwnerID))
+                    TaskInventoryItem ti = m_host.Inventory.GetInventoryItem(m_itemID);
+                    if (ti == null)
+                    {
                         OSSLError(
-                            String.Format("{0} permission denied.  Prim owner is not in the list of users allowed to execute this function.",
+                            String.Format("{0} permission error. Can't find script in prim inventory.",
                             function));
+                    }
+                    if (!m_FunctionPerms[function].Contains(ti.CreatorID))
+                        OSSLError(
+                            String.Format("{0} permission denied. Script creator is not in the list of users allowed to execute this function.",
+                            function));
+                    if (ti.CreatorID != ti.OwnerID)
+                    {
+                        if ((ti.CurrentPermissions & (uint)PermissionMask.Modify) != 0)
+                            OSSLError(
+                                String.Format("{0} permission denied. Script permissions error.",
+                                function));
+
+                    }
                 }
             }
         }
