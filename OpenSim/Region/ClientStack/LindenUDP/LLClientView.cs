@@ -4558,11 +4558,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (recipientID == data.OwnerID)
             {
-                if ((data.Flags & PrimFlags.CreateSelected) != 0)
+                if (data.CreateSelected)
                 {
                     // Only send this flag once, then unset it
                     flags |= PrimFlags.CreateSelected;
-                    data.Flags &= ~PrimFlags.CreateSelected;
+                    data.CreateSelected = false;
                 }
             }
 

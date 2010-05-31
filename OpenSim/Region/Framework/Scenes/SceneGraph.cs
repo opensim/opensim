@@ -1500,7 +1500,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // We need to explicitly resend the newly link prim's object properties since no other actions
                 // occur on link to invoke this elsewhere (such as object selection)
-                parentGroup.RootPart.AddFlag(PrimFlags.CreateSelected);
+                parentGroup.RootPart.CreateSelected = true;
                 parentGroup.TriggerScriptChangedEvent(Changed.LINK);
                 parentGroup.HasGroupChanged = true;
                 parentGroup.ScheduleGroupForFullUpdate();
