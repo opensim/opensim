@@ -9046,17 +9046,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int width = 0;
             int height = 0;
 
-            ParcelMediaCommandEnum? commandToSend = null;
+            uint commandToSend = 0;
             float time = 0.0f; // default is from start
 
             ScenePresence presence = null;
 
             for (int i = 0; i < commandList.Data.Length; i++)
             {
-                ParcelMediaCommandEnum command = (ParcelMediaCommandEnum)commandList.Data[i];
+                uint command = (uint)(commandList.GetLSLIntegerItem(i));
                 switch (command)
                 {
-                    case ParcelMediaCommandEnum.Agent:
+                    case (uint)ParcelMediaCommandEnum.Agent:
                         // we send only to one agent
                         if ((i + 1) < commandList.Length)
                         {
@@ -9073,25 +9073,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case ParcelMediaCommandEnum.Loop:
+                    case (uint)ParcelMediaCommandEnum.Loop:
                         loop = 1;
                         commandToSend = command;
                         update = true; //need to send the media update packet to set looping
                         break;
 
-                    case ParcelMediaCommandEnum.Play:
+                    case (uint)ParcelMediaCommandEnum.Play:
                         loop = 0;
                         commandToSend = command;
                         update = true; //need to send the media update packet to make sure it doesn't loop
                         break;
 
-                    case ParcelMediaCommandEnum.Pause:
-                    case ParcelMediaCommandEnum.Stop:
-                    case ParcelMediaCommandEnum.Unload:
+                    case (uint)ParcelMediaCommandEnum.Pause:
+                    case (uint)ParcelMediaCommandEnum.Stop:
+                    case (uint)ParcelMediaCommandEnum.Unload:
                         commandToSend = command;
                         break;
 
-                    case ParcelMediaCommandEnum.Url:
+                    case (uint)ParcelMediaCommandEnum.Url:
                         if ((i + 1) < commandList.Length)
                         {
                             if (commandList.Data[i + 1] is LSL_String)
@@ -9104,7 +9104,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case ParcelMediaCommandEnum.Texture:
+                    case (uint)ParcelMediaCommandEnum.Texture:
                         if ((i + 1) < commandList.Length)
                         {
                             if (commandList.Data[i + 1] is LSL_String)
@@ -9117,7 +9117,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case ParcelMediaCommandEnum.Time:
+                    case (uint)ParcelMediaCommandEnum.Time:
                         if ((i + 1) < commandList.Length)
                         {
                             if (commandList.Data[i + 1] is LSL_Float)
@@ -9129,7 +9129,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case ParcelMediaCommandEnum.AutoAlign:
+                    case (uint)ParcelMediaCommandEnum.AutoAlign:
                         if ((i + 1) < commandList.Length)
                         {
                             if (commandList.Data[i + 1] is LSL_Integer)
@@ -9143,7 +9143,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case ParcelMediaCommandEnum.Type:
+                    case (uint)ParcelMediaCommandEnum.Type:
                         if ((i + 1) < commandList.Length)
                         {
                             if (commandList.Data[i + 1] is LSL_String)
@@ -9156,7 +9156,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case ParcelMediaCommandEnum.Desc:
+                    case (uint)ParcelMediaCommandEnum.Desc:
                         if ((i + 1) < commandList.Length)
                         {
                             if (commandList.Data[i + 1] is LSL_String)
@@ -9169,7 +9169,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         break;
 
-                    case ParcelMediaCommandEnum.Size:
+                    case (uint)ParcelMediaCommandEnum.Size:
                         if ((i + 2) < commandList.Length)
                         {
                             if (commandList.Data[i + 1] is LSL_Integer)
@@ -9239,7 +9239,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
 
-            if (commandToSend != null)
+            if (commandToSend != 0)
             {
                 // the commandList contained a start/stop/... command, too
                 if (presence == null)
