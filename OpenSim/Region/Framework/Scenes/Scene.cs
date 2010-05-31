@@ -5189,5 +5189,49 @@ namespace OpenSim.Region.Framework.Scenes
                 ReloadEstateData();
             }
         }
+
+        public Vector3[] GetCombinedBoundingBox(List<SceneObjectGroup> objects, out float minX, out float maxX, out float minY, out float maxY, out float minZ, out float maxZ)
+        {
+            minX = 256;
+            maxX = -256;
+            minY = 256;
+            maxY = -256;
+            minZ = 8192;
+            maxZ = -256;
+
+            List<Vector3> offsets = new List<Vector3>();
+
+            foreach (SceneObjectGroup g in objects)
+            {
+                float ominX, ominY, ominZ, omaxX, omaxY, omaxZ;
+
+                g.GetAxisAlignedBoundingBoxRaw(out ominX, out omaxX, out ominY, out omaxY, out ominZ, out omaxZ);
+
+                if (minX > ominX)
+                    minX = ominX;
+                if (minY > ominY)
+                    minY = ominY;
+                if (minZ > ominZ)
+                    minZ = ominZ;
+                if (maxX < omaxX)
+                    maxX = omaxX;
+                if (maxY < omaxY)
+                    maxY = omaxY;
+                if (maxZ < omaxZ)
+                    maxZ = omaxZ;
+            }
+
+            foreach (SceneObjectGroup g in objects)
+            {
+                Vector3 vec = g.AbsolutePosition;
+                vec.X -= minX;
+                vec.Y -= minY;
+                vec.Z -= minZ;
+
+                offsets.Add(vec);
+            }
+
+            return offsets.ToArray();
+        }
     }
 }
