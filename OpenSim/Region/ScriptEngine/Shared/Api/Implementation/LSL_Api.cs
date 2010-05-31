@@ -3742,7 +3742,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             parentPrim.TriggerScriptChangedEvent(Changed.LINK);
-            parentPrim.RootPart.AddFlag(PrimFlags.CreateSelected);
+            parentPrim.RootPart.CreateSelected = true;
             parentPrim.HasGroupChanged = true;
             parentPrim.ScheduleGroupForFullUpdate();
 
