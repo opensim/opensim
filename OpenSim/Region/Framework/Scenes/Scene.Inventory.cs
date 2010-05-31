@@ -532,7 +532,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             }
 
-
             if (recipientParentFolderId == UUID.Zero)
             {
                 InventoryFolderBase recipientRootFolder = InventoryService.GetRootFolder(recipientId);
@@ -2086,7 +2085,10 @@ namespace OpenSim.Region.Framework.Scenes
                         group.RootPart.IsAttachment = true;
                     }
 
-                    AddNewSceneObject(group, true);
+                    // If we're rezzing an attachment then don't ask AddNewSceneObject() to update the client since
+                    // we'll be doing that later on.  Scheduling more than one full update during the attachment
+                    // process causes some clients to fail to display the attachment properly.
+                    AddNewSceneObject(group, true, !attachment);
 
                   //  m_log.InfoFormat("ray end point for inventory rezz is {0} {1} {2} ", RayEnd.X, RayEnd.Y, RayEnd.Z);
                     // if attachment we set it's asset id so object updates can reflect that
@@ -2456,6 +2458,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
+            m_log.DebugFormat("[SCENE INVENTORY]: {0} {1} IsAttachment={2}", att.Name, att.LocalId, att.IsAttachment);
+            Console.WriteLine("HERE X");
             ScenePresence presence;
             if (TryGetAvatar(remoteClient.AgentId, out presence))
             {
@@ -2463,9 +2467,12 @@ namespace OpenSim.Region.Framework.Scenes
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
                 item = InventoryService.GetItem(item);
                 presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
+                Console.WriteLine("HERE Y");
 
                 if (m_AvatarFactory != null)
                     m_AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+
+                Console.WriteLine("HERE Z");
             }
         }
 

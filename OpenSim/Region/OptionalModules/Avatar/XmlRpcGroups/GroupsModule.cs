@@ -342,7 +342,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private void OnInstantMessage(IClientAPI remoteClient, GridInstantMessage im)
         {
-            if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+            if (m_debugEnabled)
+            {
+                m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+                m_log.DebugFormat("[GROUPS]: remoteClient ({0}) im ({1})", remoteClient, im);
+
+            }
+
 
             // Group invitations
             if ((im.dialog == (byte)InstantMessageDialog.GroupInvitationAccept) || (im.dialog == (byte)InstantMessageDialog.GroupInvitationDecline))
@@ -481,7 +487,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                        if (member.AcceptNotices)
                         {
                             // Build notice IIM
-                            GridInstantMessage msg = CreateGroupNoticeIM(UUID.Zero, NoticeID, (byte)OpenMetaverse.InstantMessageDialog.GroupNotice);
+                            GridInstantMessage msg = CreateGroupNoticeIM(GetRequestingAgentID(remoteClient), NoticeID, (byte)OpenMetaverse.InstantMessageDialog.GroupNotice);
 
                             msg.toAgentID = member.AgentID.Guid;
                             OutgoingInstantMessage(msg, member.AgentID);
@@ -1024,12 +1030,22 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public void InviteGroupRequest(IClientAPI remoteClient, UUID groupID, UUID invitedAgentID, UUID roleID)
         {
-            if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+            if (m_debugEnabled)
+            {
+                m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+                m_log.DebugFormat("[GROUPS]: remoteClient({0}) groupID({0}) invitedAgentID({0}) roleID({0})", remoteClient, groupID, invitedAgentID, roleID);
+            }
+
 
             // Todo: Security check, probably also want to send some kind of notification
             UUID InviteID = UUID.Random();
 
-            m_groupData.AddAgentToGroupInvite(GetRequestingAgentID(remoteClient), InviteID, groupID, roleID, invitedAgentID);
+            UUID requestingAgentID = GetRequestingAgentID(remoteClient);
+            if (requestingAgentID == UUID.Zero)
+            {
+                m_log.Error("[GROUPS] Group Invite Requires a valid requesting agent to be specified");
+            }
+            m_groupData.AddAgentToGroupInvite(requestingAgentID, InviteID, groupID, roleID, invitedAgentID);
 
             // Check to see if the invite went through, if it did not then it's possible
             // the remoteClient did not validate or did not have permission to invite.

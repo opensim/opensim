@@ -79,7 +79,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         {
             ScenePresence sp = m_scene.GetScenePresence(agentID);
             
-            if (sp != null)
+            if (sp != null && !sp.IsChildAgent)
                 sp.ControllingClient.SendAgentAlertMessage(message, modal);
         }
         
@@ -91,7 +91,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             {
                 ScenePresence presence = presenceList[i];
 
-                if (presence.Firstname == firstName && presence.Lastname == lastName)
+                if (!presence.IsChildAgent && presence.Firstname == firstName && presence.Lastname == lastName)
                 {
                     presence.ControllingClient.SendAgentAlertMessage(message, modal);
                     break;
@@ -130,7 +130,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             }
 
             ScenePresence sp = m_scene.GetScenePresence(avatarID);
-            if (sp != null)
+            if (sp != null && !sp.IsChildAgent)
                 sp.ControllingClient.SendDialog(objectName, objectID, ownerFirstName, ownerLastName, message, textureID, ch, buttonlabels);
         }
 
@@ -139,7 +139,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         {
             ScenePresence sp = m_scene.GetScenePresence(avatarID);
             
-            if (sp != null)
+            if (sp != null && !sp.IsChildAgent)
                 sp.ControllingClient.SendLoadURL(objectName, objectID, ownerID, groupOwned, message, url);
         }
         

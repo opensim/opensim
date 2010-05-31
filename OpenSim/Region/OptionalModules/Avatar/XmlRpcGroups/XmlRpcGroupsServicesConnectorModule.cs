@@ -40,6 +40,7 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
 using OpenSim.Framework;
+using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
@@ -65,6 +66,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private string m_groupReadKey  = string.Empty;
         private string m_groupWriteKey = string.Empty;
+
+        private IUserService m_userService = null;
+        private CommunicationsManager m_commManager = null;
+
+        private bool m_debugEnabled = false;
 
 
         // Used to track which agents are have dropped from a group chat session
@@ -110,7 +116,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 m_log.InfoFormat("[GROUPS-CONNECTOR]: Initializing {0}", this.Name);
 
-                m_groupsServerURI = groupsConfig.GetString("GroupsServerURI", string.Empty);
+                m_groupsServerURI = groupsConfig.GetString("GroupsServerURI", groupsConfig.GetString("XmlRpcServiceURL", string.Empty));
                 if ((m_groupsServerURI == null) ||
                     (m_groupsServerURI == string.Empty))
                 {
@@ -124,7 +130,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 m_groupReadKey = groupsConfig.GetString("XmlRpcServiceReadKey", string.Empty);
                 m_groupWriteKey = groupsConfig.GetString("XmlRpcServiceWriteKey", string.Empty);
 
-                
+                m_debugEnabled = groupsConfig.GetBoolean("DebugEnabled", true);
 
 
                 // If we got all the config options we need, lets start'er'up
@@ -142,6 +148,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if (m_connectorEnabled)
             {
                 scene.RegisterModuleInterface<IGroupsServicesConnector>(this);
+
+                if (m_userService == null)
+                {
+                    m_userService = scene.CommsManager.UserService;
+                    m_commManager = scene.CommsManager;
+                }
             }
         }
 
@@ -912,7 +924,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             string UserService;
             UUID SessionID;
             GetClientGroupRequestID(requestingAgentID, out UserService, out SessionID);
-            param.Add("requestingAgentID", requestingAgentID.ToString());
+            param.Add("RequestingAgentID", requestingAgentID.ToString());
             param.Add("RequestingAgentUserService", UserService);
             param.Add("RequestingSessionID", SessionID.ToString());
             
@@ -920,6 +932,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             param.Add("ReadKey", m_groupReadKey);
             param.Add("WriteKey", m_groupWriteKey);
 
+            if (m_debugEnabled)
+            {
+                m_log.Debug("[XMLRPCGROUPDATA] XmlRpcCall Params:");
+                foreach (string key in param.Keys)
+                {
+                    m_log.DebugFormat("[XMLRPCGROUPDATA] {0} : {1}", key, param[key]);
+                }
+            }
 
             IList parameters = new ArrayList();
             parameters.Add(param);
@@ -940,9 +960,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 m_log.ErrorFormat("[XMLRPCGROUPDATA]: An error has occured while attempting to access the XmlRpcGroups server method: {0}", function);
                 m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0} ", e.ToString());
 
-                foreach (string ResponseLine in req.RequestResponse.Split(new string[] { Environment.NewLine },StringSplitOptions.None))
+                if ((req != null) && (req.RequestResponse != null))
+                {
+                    foreach (string ResponseLine in req.RequestResponse.Split(new string[] { Environment.NewLine }, StringSplitOptions.None))
                 {
                     m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0} ", ResponseLine);
+                }
                 }
 
                 foreach (string key in param.Keys)
@@ -955,12 +978,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 return respData;
             }
 
+
             if (resp.Value is Hashtable)
             {
                 Hashtable respData = (Hashtable)resp.Value;
                 if (respData.Contains("error") && !respData.Contains("succeed"))
                 {
-                    LogRespDataToConsoleError(respData);
+                    LogRespDataToConsoleError(function, respData);
                 }
 
                 return respData;
@@ -988,18 +1012,26 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return error;
         }
 
-        private void LogRespDataToConsoleError(Hashtable respData)
+        private void LogRespDataToConsoleError(string function, Hashtable respData)
         {
+            m_log.ErrorFormat("[XMLRPCGROUPDATA]: Error data from XmlRpcGroups server method: {0}", function);
             m_log.Error("[XMLRPCGROUPDATA]: Error:");
 
             foreach (string key in respData.Keys)
             {
                 m_log.ErrorFormat("[XMLRPCGROUPDATA]: Key: {0}", key);
 
-                string[] lines = respData[key].ToString().Split(new char[] { '\n' });
-                foreach (string line in lines)
+                if ((respData != null) && (respData.ContainsKey(key)) && (respData[key]!=null))
                 {
-                    m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0}", line);
+                    string[] lines = respData[key].ToString().Split(new char[] { '\n' });
+                    foreach (string line in lines)
+                    {
+                        m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0}", line);
+                    }
+                }
+                else
+                {
+                    m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0} : Empty/NULL", key);
                 }
 
             }
@@ -1015,23 +1047,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         /// <returns></returns>
         private void GetClientGroupRequestID(UUID AgentID, out string UserServiceURL, out UUID SessionID)
         {
-            UserServiceURL = "";
+            // Default to local grid user service
+            UserServiceURL = m_commManager.NetworkServersInfo.UserURL; ;
+
+            // if AgentID == UUID, there will be no SessionID.  This will be true when
+            // the region is requesting information for region use (object permissions for example)
             SessionID = UUID.Zero;
 
+            // Attempt to get User Profile, for  SessionID
+            UserProfileData userProfile = m_userService.GetUserProfile(AgentID);
 
-            // Need to rework this based on changes to User Services
-            /*
-            UserAccount userAccount = m_accountService.GetUserAccount(UUID.Zero,AgentID);
-            if (userAccount == null)
-            {
-                // This should be impossible.  If I've been passed a reference to a client
-                // that client should be registered with the UserService.  So something
-                // is horribly wrong somewhere.
-
-                m_log.WarnFormat("[GROUPS]: Could not find a UserServiceURL for {0}", AgentID);
-
-            }
-            else if (userProfile is ForeignUserProfileData)
+            if ((userProfile != null) && (userProfile is ForeignUserProfileData))
             {
                 // They aren't from around here
                 ForeignUserProfileData fupd = (ForeignUserProfileData)userProfile;
@@ -1039,13 +1065,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 SessionID = fupd.CurrentAgent.SessionID;
 
             }
-            else
+            else if (userProfile != null)
             {
-                // They're a local user, use this:
-                UserServiceURL = m_commManager.NetworkServersInfo.UserURL;
+                // Local, just use the local SessionID
                 SessionID = userProfile.CurrentAgent.SessionID;
             }
-            */
+            else if (AgentID != UUID.Zero)
+            {
+                // This should be impossible.  If I've been passed a reference to a client
+                // that client should be registered with the UserService.  So something
+                // is horribly wrong somewhere.
+
+                // m_log.WarnFormat("[XMLRPCGROUPDATA]: Could not find a UserServiceURL for {0}", AgentID);
+
+            }
         }
         
     }

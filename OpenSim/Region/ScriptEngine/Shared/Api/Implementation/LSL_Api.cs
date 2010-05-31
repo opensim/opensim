@@ -10160,88 +10160,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 Notecard nc = new Notecard();
                 nc.lastRef = DateTime.Now;
-                nc.text = ParseText(text.Replace("\r", "").Split('\n'));
+                nc.text = SLUtil.ParseNotecardToList(text).ToArray();
                 m_Notecards[assetID] = nc;
             }
-        }
-
-        protected static string[] ParseText(string[] input)
-        {
-            int idx = 0;
-            int level = 0;
-            List<string> output = new List<string>();
-            string[] words;
-
-            while (idx < input.Length)
-            {
-                if (input[idx] == "{")
-                {
-                    level++;
-                    idx++;
-                    continue;
-                }
-
-                if (input[idx]== "}")
-                {
-                    level--;
-                    idx++;
-                    continue;
-                }
-
-                switch (level)
-                {
-                case 0:
-                    words = input[idx].Split(' '); // Linden text ver
-                    // Notecards are created *really* empty. Treat that as "no text" (just like after saving an empty notecard)
-                    if (words.Length < 3)
-                        return new String[0];
-
-                    int version = int.Parse(words[3]);
-                    if (version != 2)
-                        return new String[0];
-                    break;
-                case 1:
-                    words = input[idx].Split(' ');
-                    if (words[0] == "LLEmbeddedItems")
-                        break;
-                    if (words[0] == "Text")
-                    {
-                        int len = int.Parse(words[2]);
-                        idx++;
-
-                        int count = -1;
-
-                        while (count < len)
-                        {
-                            // int l = input[idx].Length;
-                            string ln = input[idx];
-
-                            int need = len-count-1;
-                            if (ln.Length > need)
-                                ln = ln.Substring(0, need);
-
-                            output.Add(ln);
-                            count += ln.Length + 1;
-                            idx++;
-                        }
-
-                        return output.ToArray();
-                    }
-                    break;
-                case 2:
-                    words = input[idx].Split(' '); // count
-                    if (words[0] == "count")
-                    {
-                        int c = int.Parse(words[1]);
-                        if (c > 0)
-                            return new String[0];
-                        break;
-                    }
-                    break;
-                }
-                idx++;
-            }
-            return output.ToArray();
         }
 
         public static bool IsCached(UUID assetID)

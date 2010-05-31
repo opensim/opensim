@@ -37,6 +37,37 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         event NewGroupNotice OnNewGroupNotice;
 
+        /// <summary>
+        /// Create a group
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="name"></param>
+        /// <param name="charter"></param>
+        /// <param name="showInList"></param>
+        /// <param name="insigniaID"></param>
+        /// <param name="membershipFee"></param>
+        /// <param name="openEnrollment"></param>
+        /// <param name="allowPublish"></param>
+        /// <param name="maturePublish"></param>
+        /// <returns>The UUID of the created group</returns>
+        UUID CreateGroup(
+            IClientAPI remoteClient, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, 
+            bool openEnrollment, bool allowPublish, bool maturePublish);
+
+        /// <summary>
+        /// Get a group
+        /// </summary>
+        /// <param name="name">Name of the group</param>
+        /// <returns>The group's data.  Null if there is no such group.</returns>
+        GroupRecord GetGroupRecord(string name);
+
+        /// <summary>
+        /// Get a group
+        /// </summary>
+        /// <param name="GroupID">ID of the group</param>
+        /// <returns>The group's data.  Null if there is no such group.</returns>        
+        GroupRecord GetGroupRecord(UUID GroupID);
+        
         void ActivateGroup(IClientAPI remoteClient, UUID groupID);
         List<GroupTitlesData> GroupTitlesRequest(IClientAPI remoteClient, UUID groupID);
         List<GroupMembersData> GroupMembersRequest(IClientAPI remoteClient, UUID groupID);
@@ -51,7 +82,6 @@ namespace OpenSim.Region.Framework.Interfaces
         void SetGroupAcceptNotices(IClientAPI remoteClient, UUID groupID, bool acceptNotices, bool listInProfile);
 
         void GroupTitleUpdate(IClientAPI remoteClient, UUID GroupID, UUID TitleRoleID);
-        UUID CreateGroup(IClientAPI remoteClient, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish);
         
         GroupNoticeData[] GroupNoticesListRequest(IClientAPI remoteClient, UUID GroupID);
         string GetGroupTitle(UUID avatarID);
@@ -64,7 +94,6 @@ namespace OpenSim.Region.Framework.Interfaces
         void LeaveGroupRequest(IClientAPI remoteClient, UUID GroupID);
         void EjectGroupMemberRequest(IClientAPI remoteClient, UUID GroupID, UUID EjecteeID);
         void InviteGroupRequest(IClientAPI remoteClient, UUID GroupID, UUID InviteeID, UUID RoleID);
-        GroupRecord GetGroupRecord(UUID GroupID);
         void NotifyChange(UUID GroupID);
     }
 }

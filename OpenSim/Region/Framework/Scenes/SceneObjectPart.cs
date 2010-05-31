@@ -1270,16 +1270,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// Tell all scene presences that they should send updates for this part to their clients
         /// </summary>
         public void AddFullUpdateToAllAvatars()
-        {
+        {                        
             ScenePresence[] avatars = m_parentGroup.Scene.GetScenePresences();
             for (int i = 0; i < avatars.Length; i++)
-            {
-                avatars[i].SceneViewer.QueuePartForUpdate(this);
-            }
+                AddFullUpdateToAvatar(avatars[i]);
         }
 
         public void AddFullUpdateToAvatar(ScenePresence presence)
         {
+            if (IsAttachment)
+                m_log.DebugFormat("AddFullUpdateToAllAvatar() {0} for {1} {2}", presence.Name, Name, LocalId);
+            
             presence.SceneViewer.QueuePartForUpdate(this);
         }
 
@@ -1298,13 +1299,14 @@ namespace OpenSim.Region.Framework.Scenes
         {
             ScenePresence[] avatars = m_parentGroup.Scene.GetScenePresences();
             for (int i = 0; i < avatars.Length; i++)
-            {
-                avatars[i].SceneViewer.QueuePartForUpdate(this);
-            }
+                AddTerseUpdateToAvatar(avatars[i]);
         }
 
         public void AddTerseUpdateToAvatar(ScenePresence presence)
         {
+            if (IsAttachment)
+                m_log.DebugFormat("AddTerseUpdateToAvatar() {0} for {1} {2}", presence.Name, Name, LocalId);
+            
             presence.SceneViewer.QueuePartForUpdate(this);
         }
 
@@ -2713,7 +2715,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ScheduleFullUpdate()
         {
-//            m_log.DebugFormat("[SCENE OBJECT PART]: Scheduling full update for {0} {1}", Name, LocalId);
+            if (IsAttachment)
+                m_log.DebugFormat("[SOP]: Scheduling full update for {0} {1}", Name, LocalId);
             
             if (m_parentGroup != null)
             {
@@ -2826,6 +2829,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void SendFullUpdate(IClientAPI remoteClient, uint clientFlags)
         {
+            if (IsAttachment)
+                m_log.DebugFormat(
+                    "[SCENE OBJECT PART]: Sending part full update to {0} for {1} {2}", remoteClient.Name, Name, LocalId);
+            
             m_parentGroup.SendPartFullUpdate(remoteClient, this, clientFlags);
         }
 
@@ -2834,6 +2841,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendFullUpdateToAllClients()
         {
+            if (IsAttachment)
+                m_log.DebugFormat(
+                    "[SCENE OBJECT PART]: Sending full update for {0} {1} for all clients", Name, LocalId);
+            
             ScenePresence[] avatars = m_parentGroup.Scene.GetScenePresences();
             for (int i = 0; i < avatars.Length; i++)
             {
@@ -2845,6 +2856,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendFullUpdateToAllClientsExcept(UUID agentID)
         {
+            if (IsAttachment)
+                m_log.DebugFormat(
+                    "[SCENE OBJECT PART]: Sending full update for {0} {1} to all clients except {2}", Name, LocalId, agentID);
+            
             ScenePresence[] avatars = m_parentGroup.Scene.GetScenePresences();
             for (int i = 0; i < avatars.Length; i++)
             {
@@ -2953,6 +2968,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_updateFlag == 2) // is a new prim, just created/reloaded or has major changes
                 {
+                    if (IsAttachment)
+                        m_log.DebugFormat("[SOP]: Sending scheduled full update for {0} {1}", Name, LocalId);
+                    
                     AddFullUpdateToAllAvatars();
                     m_updateFlag = 0; //Same here
                 }

@@ -15,16 +15,12 @@
     ;
     InventoryServerURI = "http://myinventoryserver.com:8003"
 
+
 [GridService]
     ;
     ; change this to your grid-wide grid server
     ;
     GridServerURI = "http://mygridserver.com:8003"
-[Groups]
-    ;
-    ; change this to your grid-wide groups server
-    ;
-    GroupsServerURI = "http://mygridserver.com:82/Grid/"
 
 
 [Modules]

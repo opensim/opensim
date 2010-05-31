@@ -131,8 +131,8 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
             {
                 // Start http server
                 // Attach xmlrpc handlers
-                m_log.Info("[REMOTE_DATA]: " +
-                           "Starting XMLRPC Server on port " + m_remoteDataPort + " for llRemoteData commands.");
+                m_log.Info("[XML RPC MODULE]: " +
+                           "Starting up XMLRPC Server on port " + m_remoteDataPort + " for llRemoteData commands.");
                 BaseHttpServer httpServer = new BaseHttpServer((uint) m_remoteDataPort);
                 httpServer.AddXmlRPCHandler("llRemoteData", XmlRpcRemoteData);
                 httpServer.Start();
@@ -192,7 +192,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
             // This should no longer happen, but the check is reasonable anyway
             if (null == m_openChannels)
             {
-                m_log.Warn("[RemoteDataReply] Attempt to open channel before initialization is complete");
+                m_log.Warn("[XML RPC MODULE]: Attempt to open channel before initialization is complete");
                 return newChannel;
             }
 
@@ -279,7 +279,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
             }
             else
             {
-                m_log.Warn("[RemoteDataReply]: Channel or message_id not found");
+                m_log.Warn("[XML RPC MODULE]: Channel or message_id not found");
             }
         }
 
@@ -340,7 +340,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
                 }
                 else
                 {
-                    m_log.Error("UNABLE TO REMOVE COMPLETED REQUEST");
+                    m_log.Error("[XML RPC MODULE]: UNABLE TO REMOVE COMPLETED REQUEST");
                 }
             }
         }

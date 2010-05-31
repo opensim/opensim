@@ -582,8 +582,21 @@ namespace OpenSim.Data.MSSQL
         /// <param name="appearance">the appearence</param>
         override public void UpdateUserAppearance(UUID user, AvatarAppearance appearance)
         {
-            string sql = @"DELETE FROM avatarappearance WHERE owner=@owner; 
-                        INSERT INTO avatarappearance 
+            string sql = @"DELETE FROM avatarappearance WHERE owner=@owner";
+            using (AutoClosingSqlCommand cmd = database.Query(sql))
+            {
+                cmd.Parameters.Add(database.CreateParameter("@owner", appearance.Owner));
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[USER DB] Error deleting old user appearance, error: {0}", e.Message);
+                }
+            }
+
+            sql=@"INSERT INTO avatarappearance 
                            (owner, serial, visual_params, texture, avatar_height, 
                             body_item, body_asset, skin_item, skin_asset, hair_item, 
                             hair_asset, eyes_item, eyes_asset, shirt_item, shirt_asset, 
