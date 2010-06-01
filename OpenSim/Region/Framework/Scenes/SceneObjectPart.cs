@@ -388,6 +388,7 @@ namespace OpenSim.Region.Framework.Scenes
             // the prim into an agent inventory (Linden client reports that the "Object not found for drop" in its log
 
             _flags = 0;
+            CreateSelected = true;
 
             TrimPermissions();
             //m_undo = new UndoStack<UndoState>(ParentGroup.GetSceneMaxUndo());
@@ -417,7 +418,7 @@ namespace OpenSim.Region.Framework.Scenes
         private PrimFlags _flags = 0;
         private DateTime m_expires;
         private DateTime m_rezzed;
-        private bool m_createSelected = true;
+        private bool m_createSelected = false;
 
         public UUID CreatorID 
         {
