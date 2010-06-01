@@ -801,7 +801,7 @@ namespace OpenSim.Region.Framework.Scenes
             maxZ = -256f;
             minX = 256f;
             minY = 256f;
-            minZ = 256f;
+            minZ = 8192f;
 
             lockPartsForRead(true);
             {

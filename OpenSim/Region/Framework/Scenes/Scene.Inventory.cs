@@ -1637,11 +1637,14 @@ namespace OpenSim.Region.Framework.Scenes
                                     null,
                                     remoteClient.AgentId,
                                     deleteGroups))
-                    foreach (SceneObjectGroup g in deleteGroups)
                     {
-                        AddReturn(g.OwnerID, g.Name, g.AbsolutePosition, "parcel owner return");
-                        DeleteSceneObject(g, false);
-                        return;
+                        permissionToTake = true;
+                        permissionToDelete = true;
+
+                        foreach (SceneObjectGroup g in deleteGroups)
+                        {
+                            AddReturn(g.OwnerID, g.Name, g.AbsolutePosition, "parcel owner return");
+                        }
                     }
                 }
                 else // Auto return passes through here with null agent
