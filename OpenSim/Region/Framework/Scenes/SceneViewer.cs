@@ -67,14 +67,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendPrimUpdates()
         {
-            lock(m_pendingObjects)
+            if (m_pendingObjects == null)
             {
-                if (m_pendingObjects == null)
+                if (!m_presence.IsChildAgent || (m_presence.Scene.m_seeIntoRegionFromNeighbor))
                 {
-                    if (!m_presence.IsChildAgent || (m_presence.Scene.m_seeIntoRegionFromNeighbor))
-                    {
-                        m_pendingObjects = new Queue<SceneObjectGroup>();
+                    m_pendingObjects = new Queue<SceneObjectGroup>();
 
+                    lock(m_pendingObjects)
+                    {
                         foreach (EntityBase e in m_presence.Scene.Entities)
                         {
                             if (e != null && e is SceneObjectGroup)
@@ -82,7 +82,10 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
+            }
 
+            lock(m_pendingObjects)
+            {
                 while (m_pendingObjects != null && m_pendingObjects.Count > 0)
                 {
                     SceneObjectGroup g = m_pendingObjects.Dequeue();
