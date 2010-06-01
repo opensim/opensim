@@ -189,6 +189,20 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         /// <param name="objectGroup"></param>
         /// <param name="remoteClient"> </param>
         public virtual UUID DeleteToInventory(DeRezAction action, UUID folderID,
+                List<SceneObjectGroup> objectGroups, IClientAPI remoteClient)
+        {
+            // HACK: This is only working for lists containing a single item!
+            // It's just a hack to make this WIP compile and run. Nothing
+            // currently calls this with multiple items.
+            UUID ret = UUID.Zero; 
+
+            foreach (SceneObjectGroup g in objectGroups)
+                ret = DeleteToInventory(action, folderID, g, remoteClient);
+
+            return ret;
+        }
+
+        public virtual UUID DeleteToInventory(DeRezAction action, UUID folderID,
                 SceneObjectGroup objectGroup, IClientAPI remoteClient)
         {
             UUID assetID = UUID.Zero;
