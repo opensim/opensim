@@ -41,6 +41,7 @@ using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using LSL_Key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 
@@ -677,6 +678,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void osCauseHealing(string avatar, double healing)
         {
             m_OSSL_Functions.osCauseHealing(avatar, healing);
+        }
+        public LSL_List osGetPrimitiveParams(LSL_Key prim, LSL_List rules)
+        {
+            return m_OSSL_Functions.osGetPrimitiveParams(prim, rules);
+        }
+        public void osSetPrimitiveParams(LSL_Key prim, LSL_List rules)
+        {
+            m_OSSL_Functions.osSetPrimitiveParams(prim, rules);
         }
     }
 }

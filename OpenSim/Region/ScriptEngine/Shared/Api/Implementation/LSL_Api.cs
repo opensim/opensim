@@ -10261,6 +10261,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(100);
             return tid.ToString();
         }
+
+        public void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules)
+        {
+            SceneObjectPart obj = World.GetSceneObjectPart(new UUID(prim));
+            if (obj == null)
+                return;
+
+            SetPrimParams(obj, rules);
+        }
+
+        public LSL_List GetLinkPrimitiveParamsEx(LSL_Key prim, LSL_List rules)
+        {
+            SceneObjectPart obj = World.GetSceneObjectPart(new UUID(prim));
+            if (obj == null)
+                return new LSL_List();
+
+            return GetLinkPrimitiveParams(obj, rules);
+        }
     }
 
     public class NotecardCache

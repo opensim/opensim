@@ -2190,5 +2190,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
         }
+
+        public LSL_List osGetPrimitiveParams(LSL_Key prim, LSL_List rules)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osGetPrimitiveParams");
+            m_host.AddScriptLPS(1);
+            
+            return m_LSL_Api.GetLinkPrimitiveParamsEx(prim, rules);
+        }
+
+        public void osSetPrimitiveParams(LSL_Key prim, LSL_List rules)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osGetPrimitiveParams");
+            m_host.AddScriptLPS(1);
+            
+            m_LSL_Api.SetPrimitiveParamsEx(prim, rules);
+        }
     }
 }
