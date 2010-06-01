@@ -40,7 +40,7 @@ namespace OpenSim.Region.Framework.Scenes
     {
         public DeRezAction action;
         public IClientAPI remoteClient;
-        public SceneObjectGroup objectGroup;
+        public List<SceneObjectGroup> objectGroups;
         public UUID folderID;
         public bool permissionToDelete;
     }
@@ -75,7 +75,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Delete the given object from the scene
         /// </summary>
         public void DeleteToInventory(DeRezAction action, UUID folderID,
-                SceneObjectGroup objectGroup, IClientAPI remoteClient, 
+                List<SceneObjectGroup> objectGroups, IClientAPI remoteClient, 
                 bool permissionToDelete)
         {
             if (Enabled)
@@ -87,7 +87,7 @@ namespace OpenSim.Region.Framework.Scenes
                 DeleteToInventoryHolder dtis = new DeleteToInventoryHolder();
                 dtis.action = action;
                 dtis.folderID = folderID;
-                dtis.objectGroup = objectGroup;
+                dtis.objectGroups = objectGroups;
                 dtis.remoteClient = remoteClient;
                 dtis.permissionToDelete = permissionToDelete;
 
@@ -103,7 +103,10 @@ namespace OpenSim.Region.Framework.Scenes
             // This is not ideal since the object will still be available for manipulation when it should be, but it's
             // better than losing the object for now.
             if (permissionToDelete)
-                objectGroup.DeleteGroup(false);
+            {
+                foreach (SceneObjectGroup g in objectGroups)
+                    g.DeleteGroup(false);
+            }
         }
         
         private void InventoryRunDeleteTimer(object sender, ElapsedEventArgs e)
@@ -140,9 +143,12 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
                             if (invAccess != null)
-                                invAccess.DeleteToInventory(x.action, x.folderID, x.objectGroup, x.remoteClient);
+                                invAccess.DeleteToInventory(x.action, x.folderID, x.objectGroups, x.remoteClient);
                             if (x.permissionToDelete)
-                                m_scene.DeleteSceneObject(x.objectGroup, false);
+                            {
+                                foreach (SceneObjectGroup g in x.objectGroups)
+                                    m_scene.DeleteSceneObject(g, false);
+                            }
                         }
                         catch (Exception e)
                         {
