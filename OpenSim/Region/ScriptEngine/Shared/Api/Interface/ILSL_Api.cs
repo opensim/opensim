@@ -395,5 +395,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Vector llWind(LSL_Vector offset);
         LSL_String llXorBase64Strings(string str1, string str2);
         LSL_String llXorBase64StringsCorrect(string str1, string str2);
+
+        void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
+        LSL_List GetLinkPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
     }
 }
