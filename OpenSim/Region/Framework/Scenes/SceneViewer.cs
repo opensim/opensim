@@ -67,105 +67,108 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendPrimUpdates()
         {
-            if (m_pendingObjects == null)
+            lock(m_pendingObjects)
             {
-                if (!m_presence.IsChildAgent || (m_presence.Scene.m_seeIntoRegionFromNeighbor))
+                if (m_pendingObjects == null)
                 {
-                    m_pendingObjects = new Queue<SceneObjectGroup>();
-
-                    foreach (EntityBase e in m_presence.Scene.Entities)
+                    if (!m_presence.IsChildAgent || (m_presence.Scene.m_seeIntoRegionFromNeighbor))
                     {
-                        if (e is SceneObjectGroup)
-                            m_pendingObjects.Enqueue((SceneObjectGroup)e);
+                        m_pendingObjects = new Queue<SceneObjectGroup>();
+
+                        foreach (EntityBase e in m_presence.Scene.Entities)
+                        {
+                            if (e != null && e is SceneObjectGroup)
+                                m_pendingObjects.Enqueue((SceneObjectGroup)e);
+                        }
                     }
                 }
-            }
 
-            while (m_pendingObjects != null && m_pendingObjects.Count > 0)
-            {
-                SceneObjectGroup g = m_pendingObjects.Dequeue();
-                 // Yes, this can really happen
-                 if (g == null)
-                    continue;
-
-                // This is where we should check for draw distance
-                // do culling and stuff. Problem with that is that until
-                // we recheck in movement, that won't work right.
-                // So it's not implemented now.
-                //
-
-                // Don't even queue if we have sent this one
-                //
-                if (!m_updateTimes.ContainsKey(g.UUID))
-                    g.ScheduleFullUpdateToAvatar(m_presence);
-            }
-
-            while (m_partsUpdateQueue.Count > 0)
-            {
-                SceneObjectPart part = m_partsUpdateQueue.Dequeue();
-                
-                if (part.ParentGroup == null || part.ParentGroup.IsDeleted)
-                    continue;
-                
-                if (m_updateTimes.ContainsKey(part.UUID))
+                while (m_pendingObjects != null && m_pendingObjects.Count > 0)
                 {
-                    ScenePartUpdate update = m_updateTimes[part.UUID];
+                    SceneObjectGroup g = m_pendingObjects.Dequeue();
+                     // Yes, this can really happen
+                     if (g == null)
+                        continue;
 
-                    // We deal with the possibility that two updates occur at
-                    // the same unix time at the update point itself.
+                    // This is where we should check for draw distance
+                    // do culling and stuff. Problem with that is that until
+                    // we recheck in movement, that won't work right.
+                    // So it's not implemented now.
+                    //
 
-                    if ((update.LastFullUpdateTime < part.TimeStampFull) ||
-                            part.IsAttachment)
+                    // Don't even queue if we have sent this one
+                    //
+                    if (!m_updateTimes.ContainsKey(g.UUID))
+                        g.ScheduleFullUpdateToAvatar(m_presence);
+                }
+
+                while (m_partsUpdateQueue.Count > 0)
+                {
+                    SceneObjectPart part = m_partsUpdateQueue.Dequeue();
+                    
+                    if (part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                        continue;
+                    
+                    if (m_updateTimes.ContainsKey(part.UUID))
                     {
-//                            m_log.DebugFormat(
-//                                "[SCENE PRESENCE]: Fully   updating prim {0}, {1} - part timestamp {2}",
-//                                part.Name, part.UUID, part.TimeStampFull);
+                        ScenePartUpdate update = m_updateTimes[part.UUID];
+
+                        // We deal with the possibility that two updates occur at
+                        // the same unix time at the update point itself.
+
+                        if ((update.LastFullUpdateTime < part.TimeStampFull) ||
+                                part.IsAttachment)
+                        {
+    //                            m_log.DebugFormat(
+    //                                "[SCENE PRESENCE]: Fully   updating prim {0}, {1} - part timestamp {2}",
+    //                                part.Name, part.UUID, part.TimeStampFull);
+
+                            part.SendFullUpdate(m_presence.ControllingClient,
+                                   m_presence.GenerateClientFlags(part.UUID));
+
+                            // We'll update to the part's timestamp rather than
+                            // the current time to avoid the race condition
+                            // whereby the next tick occurs while we are doing
+                            // this update. If this happened, then subsequent
+                            // updates which occurred on the same tick or the
+                            // next tick of the last update would be ignored.
+
+                            update.LastFullUpdateTime = part.TimeStampFull;
+
+                        }
+                        else if (update.LastTerseUpdateTime <= part.TimeStampTerse)
+                        {
+    //                            m_log.DebugFormat(
+    //                                "[SCENE PRESENCE]: Tersely updating prim {0}, {1} - part timestamp {2}",
+    //                                part.Name, part.UUID, part.TimeStampTerse);
+
+                            part.SendTerseUpdateToClient(m_presence.ControllingClient);
+
+                            update.LastTerseUpdateTime = part.TimeStampTerse;
+                        }
+                    }
+                    else
+                    {
+                        //never been sent to client before so do full update
+                        ScenePartUpdate update = new ScenePartUpdate();
+                        update.FullID = part.UUID;
+                        update.LastFullUpdateTime = part.TimeStampFull;
+                        m_updateTimes.Add(part.UUID, update);
+
+                        // Attachment handling
+                        //
+                        if (part.ParentGroup.RootPart.Shape.PCode == 9 && part.ParentGroup.RootPart.Shape.State != 0)
+                        {
+                            if (part != part.ParentGroup.RootPart)
+                                continue;
+
+                            part.ParentGroup.SendFullUpdateToClient(m_presence.ControllingClient);
+                            continue;
+                        }
 
                         part.SendFullUpdate(m_presence.ControllingClient,
-                               m_presence.GenerateClientFlags(part.UUID));
-
-                        // We'll update to the part's timestamp rather than
-                        // the current time to avoid the race condition
-                        // whereby the next tick occurs while we are doing
-                        // this update. If this happened, then subsequent
-                        // updates which occurred on the same tick or the
-                        // next tick of the last update would be ignored.
-
-                        update.LastFullUpdateTime = part.TimeStampFull;
-
+                                m_presence.GenerateClientFlags(part.UUID));
                     }
-                    else if (update.LastTerseUpdateTime <= part.TimeStampTerse)
-                    {
-//                            m_log.DebugFormat(
-//                                "[SCENE PRESENCE]: Tersely updating prim {0}, {1} - part timestamp {2}",
-//                                part.Name, part.UUID, part.TimeStampTerse);
-
-                        part.SendTerseUpdateToClient(m_presence.ControllingClient);
-
-                        update.LastTerseUpdateTime = part.TimeStampTerse;
-                    }
-                }
-                else
-                {
-                    //never been sent to client before so do full update
-                    ScenePartUpdate update = new ScenePartUpdate();
-                    update.FullID = part.UUID;
-                    update.LastFullUpdateTime = part.TimeStampFull;
-                    m_updateTimes.Add(part.UUID, update);
-
-                    // Attachment handling
-                    //
-                    if (part.ParentGroup.RootPart.Shape.PCode == 9 && part.ParentGroup.RootPart.Shape.State != 0)
-                    {
-                        if (part != part.ParentGroup.RootPart)
-                            continue;
-
-                        part.ParentGroup.SendFullUpdateToClient(m_presence.ControllingClient);
-                        continue;
-                    }
-
-                    part.SendFullUpdate(m_presence.ControllingClient,
-                            m_presence.GenerateClientFlags(part.UUID));
                 }
             }
         }
