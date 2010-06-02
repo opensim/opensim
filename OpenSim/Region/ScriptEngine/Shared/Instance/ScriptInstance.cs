@@ -536,6 +536,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             if (!m_InSelfDelete)
                 result.Abort();
 
+            result.Wait(TimeSpan.FromSeconds(10));
             lock (m_EventQueue)
             {
                 m_CurrentResult = null;
