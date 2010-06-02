@@ -277,7 +277,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     // Clear the event queue and abort the instance thread
                     //
                     instance.ClearQueue();
-                    instance.Stop(0);
+                    bool stopped = instance.Stop(0);
 
                     // Release events, timer, etc
                     //
@@ -287,7 +287,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     // Must be done explicitly because they have infinite
                     // lifetime
                     //
-                    m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
+                    if (stopped)
+                        m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
                     if (m_DomainScripts[instance.AppDomain].Count == 0)
                     {
                         m_DomainScripts.Remove(instance.AppDomain);
@@ -804,7 +805,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 m_Scripts.Remove(itemID);
 
                 instance.ClearQueue();
-                instance.Stop(0);
+                bool stopped = instance.Stop(0);
 
 //                bool objectRemoved = false;
 
@@ -829,7 +830,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 instance.RemoveState();
                 instance.DestroyScriptInstance();
 
-                m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
+                if (stopped)
+                    m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
                 if (m_DomainScripts[instance.AppDomain].Count == 0)
                 {
                     m_DomainScripts.Remove(instance.AppDomain);
