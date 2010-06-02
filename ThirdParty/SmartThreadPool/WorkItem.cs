@@ -1027,7 +1027,10 @@ namespace Amib.Threading.Internal
             lock (this)
             {
                 if(currentThread != null)
+                {
                     currentThread.Abort();
+                    currentThread.Join();
+                }
             }
         }
     }
