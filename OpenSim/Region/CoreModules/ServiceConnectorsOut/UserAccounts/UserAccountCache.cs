@@ -44,10 +44,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
         public UserAccountCache()
         {
-            // Warning: the size values are a bit fuzzy. What matters
-            // most for this cache is the count value (128 entries).
             m_UUIDCache = new ExpiringCache<UUID, UserAccount>();
-            m_NameCache = new ExpiringCache<string, UUID>(); // this one is unbound
+            m_NameCache = new ExpiringCache<string, UUID>(); 
         }
 
         public void Cache(UUID userID, UserAccount account)
