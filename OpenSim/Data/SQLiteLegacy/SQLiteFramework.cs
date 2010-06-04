@@ -31,21 +31,19 @@ using System.Collections.Generic;
 using System.Data;
 using OpenMetaverse;
 using OpenSim.Framework;
-using Mono.Data.Sqlite;
+using Mono.Data.SqliteClient;
 
-namespace OpenSim.Data.SQLite
+namespace OpenSim.Data.SQLiteLegacy
 {
     /// <summary>
     /// A database interface class to a user profile storage system
     /// </summary>
     public class SQLiteFramework
     {
-        protected SqliteConnection m_Connection;
+        protected Object m_lockObject = new Object();
 
         protected SQLiteFramework(string connectionString)
         {
-            m_Connection = new SqliteConnection(connectionString);
-            m_Connection.Open();
         }
 
         //////////////////////////////////////////////////////////////
@@ -53,33 +51,37 @@ namespace OpenSim.Data.SQLite
         // All non queries are funneled through one connection
         // to increase performance a little
         //
-        protected int ExecuteNonQuery(SqliteCommand cmd)
+        protected int ExecuteNonQuery(SqliteCommand cmd, SqliteConnection connection)
         {
-            lock (m_Connection)
+            lock (connection)
             {
-                cmd.Connection = m_Connection;
+                SqliteConnection newConnection =
+                        (SqliteConnection)((ICloneable)connection).Clone();
+                newConnection.Open();
+
+                cmd.Connection = newConnection;
+                //Console.WriteLine("XXX " + cmd.CommandText);
 
                 return cmd.ExecuteNonQuery();
             }
         }
-        
-        protected IDataReader ExecuteReader(SqliteCommand cmd)
-        {
-            lock (m_Connection)
-            {
-                //SqliteConnection newConnection =
-                //        (SqliteConnection)((ICloneable)connection).Clone();
-                //newConnection.Open();
 
-                //cmd.Connection = newConnection;
-                cmd.Connection = m_Connection;
+        protected IDataReader ExecuteReader(SqliteCommand cmd, SqliteConnection connection)
+        {
+            lock (connection)
+            {
+                SqliteConnection newConnection =
+                        (SqliteConnection)((ICloneable)connection).Clone();
+                newConnection.Open();
+
+                cmd.Connection = newConnection;
                 //Console.WriteLine("XXX " + cmd.CommandText);
 
                 return cmd.ExecuteReader();
             }
         }
 
-        protected void CloseReaderCommand(SqliteCommand cmd)
+        protected void CloseCommand(SqliteCommand cmd)
         {
             cmd.Connection.Close();
             cmd.Connection.Dispose();

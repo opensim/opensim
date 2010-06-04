@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using log4net;
-using Mono.Data.SqliteClient;
+using Mono.Data.Sqlite;
 using OpenMetaverse;
 using OpenSim.Framework;
 
@@ -115,15 +115,19 @@ namespace OpenSim.Data.SQLite
 
                 setupUserCommands(da, conn);
                 da.Fill(ds.Tables["users"]);
+                CreateDataSetMapping(da, "users");
 
                 setupAgentCommands(dua, conn);
                 dua.Fill(ds.Tables["useragents"]);
+                CreateDataSetMapping(dua, "useragents");
 
                 setupUserFriendsCommands(daf, conn);
                 daf.Fill(ds.Tables["userfriends"]);
+                CreateDataSetMapping(daf, "userfriends");
 
                 setupAvatarAppearanceCommands(daa, conn);
                 daa.Fill(ds.Tables["avatarappearance"]);
+                CreateDataSetMapping(daa, "avatarappearance");
             }
 
             return;
@@ -706,15 +710,10 @@ namespace OpenSim.Data.SQLite
                     aa.SkirtItem        = new UUID((String)row["SkirtItem"]);
                     aa.SkirtAsset       = new UUID((String)row["SkirtAsset"]);
 
-                    // Ewe Loon
-                    //  Used Base64String because for some reason it wont accept using Byte[] (which works in Region date)
-
-                    String str = (String)row["Texture"];
-                    byte[] texture = Convert.FromBase64String(str);
+                    byte[] texture = (byte[])row["Texture"];
                     aa.Texture = new Primitive.TextureEntry(texture, 0, texture.Length);
 
-                    str = (String)row["VisualParams"];
-                    byte[] VisualParams = Convert.FromBase64String(str);
+                    byte[] VisualParams = (byte[])row["VisualParams"];
                     aa.VisualParams = VisualParams;
 
                     aa.Serial = Convert.ToInt32(row["Serial"]);
@@ -793,6 +792,15 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
+        protected void CreateDataSetMapping(IDataAdapter da, string tableName)
+        {       
+            ITableMapping dbMapping = da.TableMappings.Add(tableName, tableName);
+            foreach (DataColumn col in ds.Tables[tableName].Columns)
+            {       
+                dbMapping.ColumnMappings.Add(col.ColumnName, col.ColumnName);
+            }       
+        }
+        
         /// <summary>
         /// Create the "users" table
         /// </summary>
@@ -924,9 +932,8 @@ namespace OpenSim.Data.SQLite
             SQLiteUtil.createCol(aa, "SkirtItem", typeof(String));
             SQLiteUtil.createCol(aa, "SkirtAsset", typeof(String));
 
-            //  Used Base64String because for some reason it wont accept using Byte[] (which works in Region date)
-            SQLiteUtil.createCol(aa, "Texture", typeof (String));
-            SQLiteUtil.createCol(aa, "VisualParams", typeof (String));
+            SQLiteUtil.createCol(aa, "Texture", typeof (Byte[]));
+            SQLiteUtil.createCol(aa, "VisualParams", typeof (Byte[]));
 
             SQLiteUtil.createCol(aa, "Serial", typeof(Int32));
             SQLiteUtil.createCol(aa, "AvatarHeight", typeof(Double));
@@ -1090,8 +1097,8 @@ namespace OpenSim.Data.SQLite
             row["SkirtAsset"] = appearance.SkirtAsset.ToString();
 
             //  Used Base64String because for some reason it wont accept using Byte[] (which works in Region date)
-            row["Texture"] = Convert.ToBase64String(appearance.Texture.GetBytes());
-            row["VisualParams"] = Convert.ToBase64String(appearance.VisualParams);
+            row["Texture"] = appearance.Texture.GetBytes();
+            row["VisualParams"] = appearance.VisualParams;
 
             row["Serial"] = appearance.Serial;
             row["AvatarHeight"] = appearance.AvatarHeight;

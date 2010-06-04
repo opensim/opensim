@@ -30,12 +30,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using log4net;
-using Mono.Data.Sqlite;
+using Mono.Data.SqliteClient;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 
-namespace OpenSim.Data.SQLite
+namespace OpenSim.Data.SQLiteLegacy
 {
     public class SQLiteGenericTableHandler<T> : SQLiteFramework where T: class, new()
     {
@@ -48,29 +48,33 @@ namespace OpenSim.Data.SQLite
         protected string m_Realm;
         protected FieldInfo m_DataField = null;
 
+        protected static SqliteConnection m_Connection;
+        private static bool m_initialized;
+
         public SQLiteGenericTableHandler(string connectionString,
                 string realm, string storeName) : base(connectionString)
         {
             m_Realm = realm;
-            if (storeName != String.Empty)
+
+            if (!m_initialized)
             {
                 m_Connection = new SqliteConnection(connectionString);
-                //Console.WriteLine(string.Format("OPENING CONNECTION FOR {0} USING {1}", storeName, connectionString));
                 m_Connection.Open();
 
                 if (storeName != String.Empty)
                 {
                     Assembly assem = GetType().Assembly;
-                    //SqliteConnection newConnection =
-                    //        (SqliteConnection)((ICloneable)m_Connection).Clone();
-                    //newConnection.Open();
+                    SqliteConnection newConnection =
+                            (SqliteConnection)((ICloneable)m_Connection).Clone();
+                    newConnection.Open();
 
-                    //Migration m = new Migration(newConnection, assem, storeName);
-                    Migration m = new Migration(m_Connection, assem, storeName);
+                    Migration m = new Migration(newConnection, assem, storeName);
                     m.Update();
-                    //newConnection.Close();
-                    //newConnection.Dispose();
+                    newConnection.Close();
+                    newConnection.Dispose();
                 }
+
+                m_initialized = true;
             }
 
             Type t = typeof(T);
@@ -138,7 +142,7 @@ namespace OpenSim.Data.SQLite
 
         protected T[] DoQuery(SqliteCommand cmd)
         {
-            IDataReader reader = ExecuteReader(cmd);
+            IDataReader reader = ExecuteReader(cmd, m_Connection);
             if (reader == null)
                 return new T[0];
 
@@ -193,7 +197,7 @@ namespace OpenSim.Data.SQLite
                 result.Add(row);
             }
 
-            //CloseCommand(cmd);
+            CloseCommand(cmd);
 
             return result.ToArray();
         }
@@ -242,7 +246,7 @@ namespace OpenSim.Data.SQLite
 
             cmd.CommandText = query;
 
-            if (ExecuteNonQuery(cmd) > 0)
+            if (ExecuteNonQuery(cmd, m_Connection) > 0)
                 return true;
 
             return false;
@@ -255,7 +259,7 @@ namespace OpenSim.Data.SQLite
             cmd.CommandText = String.Format("delete from {0} where `{1}` = :{1}", m_Realm, field);
             cmd.Parameters.Add(new SqliteParameter(field, val));
 
-            if (ExecuteNonQuery(cmd) > 0)
+            if (ExecuteNonQuery(cmd, m_Connection) > 0)
                 return true;
 
             return false;

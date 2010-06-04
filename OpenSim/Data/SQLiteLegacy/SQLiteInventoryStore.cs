@@ -30,11 +30,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using log4net;
-using Mono.Data.Sqlite;
+using Mono.Data.SqliteClient;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-namespace OpenSim.Data.SQLite
+namespace OpenSim.Data.SQLiteLegacy
 {
     /// <summary>
     /// An Inventory Interface to the SQLite database
@@ -46,10 +46,12 @@ namespace OpenSim.Data.SQLite
         private const string invItemsSelect = "select * from inventoryitems";
         private const string invFoldersSelect = "select * from inventoryfolders";
 
-        private SqliteConnection conn;
-        private DataSet ds;
-        private SqliteDataAdapter invItemsDa;
-        private SqliteDataAdapter invFoldersDa;
+        private static SqliteConnection conn;
+        private static DataSet ds;
+        private static SqliteDataAdapter invItemsDa;
+        private static SqliteDataAdapter invFoldersDa;
+
+        private static bool m_Initialized = false;
 
         public void Initialise()
         {
@@ -67,41 +69,44 @@ namespace OpenSim.Data.SQLite
         /// <param name="dbconnect">connect string</param>
         public void Initialise(string dbconnect)
         {
-            if (dbconnect == string.Empty)
+            if (!m_Initialized)
             {
-                dbconnect = "URI=file:inventoryStore.db,version=3";
+                m_Initialized = true;
+
+                if (dbconnect == string.Empty)
+                {
+                    dbconnect = "URI=file:inventoryStore.db,version=3";
+                }
+                m_log.Info("[INVENTORY DB]: Sqlite - connecting: " + dbconnect);
+                conn = new SqliteConnection(dbconnect);
+
+                conn.Open();
+
+                Assembly assem = GetType().Assembly;
+                Migration m = new Migration(conn, assem, "InventoryStore");
+                m.Update();
+
+                SqliteCommand itemsSelectCmd = new SqliteCommand(invItemsSelect, conn);
+                invItemsDa = new SqliteDataAdapter(itemsSelectCmd);
+                //            SqliteCommandBuilder primCb = new SqliteCommandBuilder(primDa);
+
+                SqliteCommand foldersSelectCmd = new SqliteCommand(invFoldersSelect, conn);
+                invFoldersDa = new SqliteDataAdapter(foldersSelectCmd);
+
+                ds = new DataSet();
+
+                ds.Tables.Add(createInventoryFoldersTable());
+                invFoldersDa.Fill(ds.Tables["inventoryfolders"]);
+                setupFoldersCommands(invFoldersDa, conn);
+                m_log.Info("[INVENTORY DB]: Populated Inventory Folders Definitions");
+
+                ds.Tables.Add(createInventoryItemsTable());
+                invItemsDa.Fill(ds.Tables["inventoryitems"]);
+                setupItemsCommands(invItemsDa, conn);
+                m_log.Info("[INVENTORY DB]: Populated Inventory Items Definitions");
+
+                ds.AcceptChanges();
             }
-            m_log.Info("[INVENTORY DB]: Sqlite - connecting: " + dbconnect);
-            conn = new SqliteConnection(dbconnect);
-
-            conn.Open();
-
-            Assembly assem = GetType().Assembly;
-            Migration m = new Migration(conn, assem, "InventoryStore");
-            m.Update();
-
-            SqliteCommand itemsSelectCmd = new SqliteCommand(invItemsSelect, conn);
-            invItemsDa = new SqliteDataAdapter(itemsSelectCmd);
-            //            SqliteCommandBuilder primCb = new SqliteCommandBuilder(primDa);
-
-            SqliteCommand foldersSelectCmd = new SqliteCommand(invFoldersSelect, conn);
-            invFoldersDa = new SqliteDataAdapter(foldersSelectCmd);
-
-            ds = new DataSet();
-            
-            ds.Tables.Add(createInventoryFoldersTable());
-            invFoldersDa.Fill(ds.Tables["inventoryfolders"]);
-            setupFoldersCommands(invFoldersDa, conn);
-            CreateDataSetMapping(invFoldersDa, "inventoryfolders");
-            m_log.Info("[INVENTORY DB]: Populated Inventory Folders Definitions");
-
-            ds.Tables.Add(createInventoryItemsTable());
-            invItemsDa.Fill(ds.Tables["inventoryitems"]);
-            setupItemsCommands(invItemsDa, conn);
-            CreateDataSetMapping(invItemsDa, "inventoryitems");
-            m_log.Info("[INVENTORY DB]: Populated Inventory Items Definitions");
-
-            ds.AcceptChanges();
         }
 
         /// <summary>
@@ -722,15 +727,6 @@ namespace OpenSim.Data.SQLite
          *  Data Table definitions
          *
          **********************************************************************/
-
-        protected void CreateDataSetMapping(IDataAdapter da, string tableName)
-        {       
-            ITableMapping dbMapping = da.TableMappings.Add(tableName, tableName);
-            foreach (DataColumn col in ds.Tables[tableName].Columns)
-            {       
-                dbMapping.ColumnMappings.Add(col.ColumnName, col.ColumnName);
-            }       
-        }
 
         /// <summary>
         /// Create the "inventoryitems" table

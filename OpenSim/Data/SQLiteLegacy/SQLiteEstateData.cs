@@ -30,12 +30,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using log4net;
-using Mono.Data.Sqlite;
+using Mono.Data.SqliteClient;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 
-namespace OpenSim.Data.SQLite
+namespace OpenSim.Data.SQLiteLegacy
 {
     public class SQLiteEstateStore : IEstateDataStore
     {
@@ -62,8 +62,8 @@ namespace OpenSim.Data.SQLite
             Migration m = new Migration(m_connection, assem, "EstateStore");
             m.Update();
 
-            //m_connection.Close();
-           // m_connection.Open();
+            m_connection.Close();
+            m_connection.Open();
 
             Type t = typeof(EstateSettings);
             m_Fields = t.GetFields(BindingFlags.NonPublic |
@@ -82,15 +82,20 @@ namespace OpenSim.Data.SQLite
 
         public EstateSettings LoadEstateSettings(UUID regionID)
         {
-            EstateSettings es = new EstateSettings();
-            es.OnSave += StoreEstateSettings;
-
             string sql = "select estate_settings."+String.Join(",estate_settings.", FieldList)+" from estate_map left join estate_settings on estate_map.EstateID = estate_settings.EstateID where estate_settings.EstateID is not null and RegionID = :RegionID";
 
             SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
 
             cmd.CommandText = sql;
-            cmd.Parameters.AddWithValue(":RegionID", regionID.ToString());
+            cmd.Parameters.Add(":RegionID", regionID.ToString());
+
+            return DoLoad(cmd, regionID);
+        }
+
+        private EstateSettings DoLoad(SqliteCommand cmd, UUID regionID)
+        {
+            EstateSettings es = new EstateSettings();
+            es.OnSave += StoreEstateSettings;
 
             IDataReader r = cmd.ExecuteReader();
 
@@ -130,7 +135,7 @@ namespace OpenSim.Data.SQLite
 
                 names.Remove("EstateID");
 
-                sql = "insert into estate_settings ("+String.Join(",", names.ToArray())+") values ( :"+String.Join(", :", names.ToArray())+")";
+                string sql = "insert into estate_settings ("+String.Join(",", names.ToArray())+") values ( :"+String.Join(", :", names.ToArray())+")";
 
                 cmd.CommandText = sql;
                 cmd.Parameters.Clear();
@@ -140,13 +145,13 @@ namespace OpenSim.Data.SQLite
                     if (m_FieldMap[name].GetValue(es) is bool)
                     {
                         if ((bool)m_FieldMap[name].GetValue(es))
-                            cmd.Parameters.AddWithValue(":"+name, "1");
+                            cmd.Parameters.Add(":"+name, "1");
                         else
-                            cmd.Parameters.AddWithValue(":"+name, "0");
+                            cmd.Parameters.Add(":"+name, "0");
                     }
                     else
                     {
-                        cmd.Parameters.AddWithValue(":"+name, m_FieldMap[name].GetValue(es).ToString());
+                        cmd.Parameters.Add(":"+name, m_FieldMap[name].GetValue(es).ToString());
                     }
                 }
 
@@ -164,24 +169,10 @@ namespace OpenSim.Data.SQLite
                 r.Close();
 
                 cmd.CommandText = "insert into estate_map values (:RegionID, :EstateID)";
-                cmd.Parameters.AddWithValue(":RegionID", regionID.ToString());
-                cmd.Parameters.AddWithValue(":EstateID", es.EstateID.ToString());
+                cmd.Parameters.Add(":RegionID", regionID.ToString());
+                cmd.Parameters.Add(":EstateID", es.EstateID.ToString());
 
                 // This will throw on dupe key
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                }
-
-                // Munge and transfer the ban list
-                //
-                cmd.Parameters.Clear();
-                cmd.CommandText = "insert into estateban select "+es.EstateID.ToString()+", bannedUUID, bannedIp, bannedIpHostMask, '' from regionban where regionban.regionUUID = :UUID";
-                cmd.Parameters.AddWithValue(":UUID", regionID.ToString());
-
                 try
                 {
                     cmd.ExecuteNonQuery();
@@ -222,13 +213,13 @@ namespace OpenSim.Data.SQLite
                 if (m_FieldMap[name].GetValue(es) is bool)
                 {
                     if ((bool)m_FieldMap[name].GetValue(es))
-                        cmd.Parameters.AddWithValue(":"+name, "1");
+                        cmd.Parameters.Add(":"+name, "1");
                     else
-                        cmd.Parameters.AddWithValue(":"+name, "0");
+                        cmd.Parameters.Add(":"+name, "0");
                 }
                 else
                 {
-                    cmd.Parameters.AddWithValue(":"+name, m_FieldMap[name].GetValue(es).ToString());
+                    cmd.Parameters.Add(":"+name, m_FieldMap[name].GetValue(es).ToString());
                 }
             }
 
@@ -247,7 +238,7 @@ namespace OpenSim.Data.SQLite
             SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
 
             cmd.CommandText = "select bannedUUID from estateban where EstateID = :EstateID";
-            cmd.Parameters.AddWithValue(":EstateID", es.EstateID);
+            cmd.Parameters.Add(":EstateID", es.EstateID);
 
             IDataReader r = cmd.ExecuteReader();
 
@@ -271,7 +262,7 @@ namespace OpenSim.Data.SQLite
             SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
 
             cmd.CommandText = "delete from estateban where EstateID = :EstateID";
-            cmd.Parameters.AddWithValue(":EstateID", es.EstateID.ToString());
+            cmd.Parameters.Add(":EstateID", es.EstateID.ToString());
 
             cmd.ExecuteNonQuery();
 
@@ -281,8 +272,8 @@ namespace OpenSim.Data.SQLite
 
             foreach (EstateBan b in es.EstateBans)
             {
-                cmd.Parameters.AddWithValue(":EstateID", es.EstateID.ToString());
-                cmd.Parameters.AddWithValue(":bannedUUID", b.BannedUserID.ToString());
+                cmd.Parameters.Add(":EstateID", es.EstateID.ToString());
+                cmd.Parameters.Add(":bannedUUID", b.BannedUserID.ToString());
 
                 cmd.ExecuteNonQuery();
                 cmd.Parameters.Clear();
@@ -294,7 +285,7 @@ namespace OpenSim.Data.SQLite
             SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
 
             cmd.CommandText = "delete from "+table+" where EstateID = :EstateID";
-            cmd.Parameters.AddWithValue(":EstateID", EstateID.ToString());
+            cmd.Parameters.Add(":EstateID", EstateID.ToString());
 
             cmd.ExecuteNonQuery();
 
@@ -304,8 +295,8 @@ namespace OpenSim.Data.SQLite
 
             foreach (UUID uuid in data)
             {
-                cmd.Parameters.AddWithValue(":EstateID", EstateID.ToString());
-                cmd.Parameters.AddWithValue(":uuid", uuid.ToString());
+                cmd.Parameters.Add(":EstateID", EstateID.ToString());
+                cmd.Parameters.Add(":uuid", uuid.ToString());
 
                 cmd.ExecuteNonQuery();
                 cmd.Parameters.Clear();
@@ -319,7 +310,7 @@ namespace OpenSim.Data.SQLite
             SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
 
             cmd.CommandText = "select uuid from "+table+" where EstateID = :EstateID";
-            cmd.Parameters.AddWithValue(":EstateID", EstateID);
+            cmd.Parameters.Add(":EstateID", EstateID);
 
             IDataReader r = cmd.ExecuteReader();
 
@@ -335,6 +326,64 @@ namespace OpenSim.Data.SQLite
             r.Close();
 
             return uuids.ToArray();
+        }
+
+        public EstateSettings LoadEstateSettings(int estateID)
+        {
+            string sql = "select estate_settings."+String.Join(",estate_settings.", FieldList)+" from estate_settings where estate_settings.EstateID :EstateID";
+
+            SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
+
+            cmd.CommandText = sql;
+            cmd.Parameters.Add(":EstateID", estateID.ToString());
+
+            return DoLoad(cmd, UUID.Zero);
+        }
+
+        public List<int> GetEstates(string search)
+        {
+            List<int> result = new List<int>();
+
+            string sql = "select EstateID from estate_settings where estate_settings.EstateName :EstateName";
+
+            SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
+
+            cmd.CommandText = sql;
+            cmd.Parameters.Add(":EstateName", search);
+
+            IDataReader r = cmd.ExecuteReader();
+
+            while (r.Read())
+            {
+                result.Add(Convert.ToInt32(r["EstateID"]));
+            }
+            r.Close();
+
+            return result;
+        }
+
+        public bool LinkRegion(UUID regionID, int estateID)
+        {
+            SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
+
+            cmd.CommandText = "insert into estate_map values (:RegionID, :EstateID)";
+            cmd.Parameters.Add(":RegionID", regionID.ToString());
+            cmd.Parameters.Add(":EstateID", estateID.ToString());
+
+            if (cmd.ExecuteNonQuery() == 0)
+                return false;
+
+            return true;
+        }
+
+        public List<UUID> GetRegions(int estateID)
+        {
+            return new List<UUID>();
+        }
+
+        public bool DeleteEstate(int estateID)
+        {
+            return false;
         }
     }
 }
