@@ -84,7 +84,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
 
-            Scene scene = SceneSetupHelpers.SetupScene("Inventory, useraccounts");
+            Scene scene = SceneSetupHelpers.SetupScene("Inventory");
             SceneSetupHelpers.SetupSceneModules(scene, archiverModule);
 
             // Create user

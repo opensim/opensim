@@ -191,7 +191,7 @@ namespace OpenSim.Tests.Common.Setup
                 if (realServices.Contains("grid"))
                     StartGridService(testScene, true);
                 
-                StartUserAccountService(testScene, realServices.Contains("useraccounts"));
+                StartUserAccountService(testScene);
             }
             // If not, make sure the shared module gets references to this new scene
             else
@@ -311,24 +311,18 @@ namespace OpenSim.Tests.Common.Setup
         }
 
         /// <summary>
-        /// Start a user account service, whether real or mock
+        /// Start a user account service
         /// </summary>
         /// <param name="testScene"></param>
-        /// <param name="real">Starts a real service if true, a mock service if not</param>
-        private static void StartUserAccountService(Scene testScene, bool real)
+        private static void StartUserAccountService(Scene testScene)
         {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("UserAccountService");
             config.Configs["Modules"].Set("UserAccountServices", "LocalUserAccountServicesConnector");
             config.Configs["UserAccountService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
-            
-            if (real)
-                config.Configs["UserAccountService"].Set(
-                    "LocalServiceModule", "OpenSim.Services.UserAccountService.dll:UserAccountService");
-            else
-                config.Configs["UserAccountService"].Set(
-                    "LocalServiceModule", "OpenSim.Tests.Common.dll:MockUserAccountService");
+            config.Configs["UserAccountService"].Set(
+                "LocalServiceModule", "OpenSim.Services.UserAccountService.dll:UserAccountService");
             
             if (m_userAccountService == null)
             {
@@ -336,8 +330,7 @@ namespace OpenSim.Tests.Common.Setup
                 userAccountService.Initialise(config);
                 m_userAccountService = userAccountService;
             }
-            //else
-            //    config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:TestGridService");
+			
             m_userAccountService.AddRegion(testScene);
             m_userAccountService.RegionLoaded(testScene);
             testScene.AddRegionModule(m_userAccountService.Name, m_userAccountService);
