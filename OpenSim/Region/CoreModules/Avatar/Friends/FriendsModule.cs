@@ -111,10 +111,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected IGridService GridService
         {
-            get
-            {
-                return m_Scenes[0].GridService;
-            }
+            get { return m_Scenes[0].GridService; }
+        }
+
+        public IUserAccountService UserAccountService
+        {
+            get { return m_Scenes[0].UserAccountService; }
         }
 
         public IScene Scene
@@ -220,33 +222,37 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             client.OnLogout += OnLogout;
 
-            if (m_Friends.ContainsKey(client.AgentId))
+            lock (m_Friends)
             {
-                m_Friends[client.AgentId].Refcount++;
-                return;
+                if (m_Friends.ContainsKey(client.AgentId))
+                {
+                    m_Friends[client.AgentId].Refcount++;
+                    return;
+                }
+
+                UserFriendData newFriends = new UserFriendData();
+
+                newFriends.PrincipalID = client.AgentId;
+                newFriends.Friends = m_FriendsService.GetFriends(client.AgentId);
+                newFriends.Refcount = 1;
+                newFriends.RegionID = UUID.Zero;
+
+                m_Friends.Add(client.AgentId, newFriends);
             }
-
-            UserFriendData newFriends = new UserFriendData();
-
-            newFriends.PrincipalID = client.AgentId;
-            newFriends.Friends = m_FriendsService.GetFriends(client.AgentId);
-            newFriends.Refcount = 1;
-            newFriends.RegionID = UUID.Zero;
-
-            m_Friends.Add(client.AgentId, newFriends);
             
             //StatusChange(client.AgentId, true);
         }
 
         private void OnClientClosed(UUID agentID, Scene scene)
         {
-            if (m_Friends.ContainsKey(agentID))
-            {
-                if (m_Friends[agentID].Refcount == 1)
-                    m_Friends.Remove(agentID);
-                else
-                    m_Friends[agentID].Refcount--;
-            }
+            lock (m_Friends)
+                if (m_Friends.ContainsKey(agentID))
+                {
+                    if (m_Friends[agentID].Refcount == 1)
+                        m_Friends.Remove(agentID);
+                    else
+                        m_Friends[agentID].Refcount--;
+                }
         }
 
         private void OnLogout(IClientAPI client)
@@ -518,12 +524,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         private void OnApproveFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
         {
+            m_log.DebugFormat("[FRIENDS]: {0} accepted friendship from {1}", agentID, friendID);
+            
             FriendsService.StoreFriend(agentID, friendID.ToString(), 1);
             FriendsService.StoreFriend(friendID, agentID.ToString(), 1);
             // update the local cache
             m_Friends[agentID].Friends = FriendsService.GetFriends(agentID);
 
-            m_log.DebugFormat("[FRIENDS]: {0} accepted friendship from {1}", agentID, friendID);
 
             //
             // Notify the friend
@@ -572,7 +579,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 if (friendSession != null)
                 {
                     GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-                    m_FriendsSimConnector.FriendshipDenied(region, agentID, client.Name, friendID);
+                    if (region != null)
+                        m_FriendsSimConnector.FriendshipDenied(region, agentID, client.Name, friendID);
+                    else
+                        m_log.WarnFormat("[FRIENDS]: Could not find region {0} in locating {1}", friendSession.RegionID, friendID);
                 }
             }
         }

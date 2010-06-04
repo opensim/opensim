@@ -55,7 +55,7 @@ namespace OpenSim.Services.PresenceService
                 UUID secureSessionID)
         {
             //PresenceData[] d = m_Database.Get("UserID", userID);
-            m_Database.Get("UserID", userID);
+            //m_Database.Get("UserID", userID);
 
             PresenceData data = new PresenceData();
 

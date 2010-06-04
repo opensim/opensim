@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Server.Base;
 using OpenSim.Framework.Servers.HttpServer;
 using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
+using OpenSim.Services.Interfaces;
 
 using OpenMetaverse;
 using log4net;
@@ -61,7 +62,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             sr.Close();
             body = body.Trim();
 
-            m_log.DebugFormat("[XXX]: query String: {0}", body);
+            //m_log.DebugFormat("[XXX]: query String: {0}", body);
 
             try
             {
@@ -115,9 +116,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (!UUID.TryParse(request["ToID"].ToString(), out toID))
                 return FailureResult();
 
-            GridInstantMessage im = new GridInstantMessage(m_FriendsModule.Scene, fromID, "", toID, 
+            UserAccount account = m_FriendsModule.UserAccountService.GetUserAccount(m_FriendsModule.Scene.RegionInfo.ScopeID, fromID);
+            string name = (account == null) ? "Unknown" : account.FirstName + " " + account.LastName;
+
+            GridInstantMessage im = new GridInstantMessage(m_FriendsModule.Scene, fromID, name, toID, 
                 (byte)InstantMessageDialog.FriendshipOffered, message, false, Vector3.Zero);
-            
+
+            // !! HACK
+            im.imSessionID = im.fromAgentID;
+
             if (m_FriendsModule.LocalFriendshipOffered(toID, im))
                 return SuccessResult();
 

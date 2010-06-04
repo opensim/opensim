@@ -196,7 +196,7 @@ namespace OpenSim.Services.Connectors
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             sendData["PRINCIPALID"] = PrincipalID.ToString();
-            sendData["FRIENDS"] = Friend;
+            sendData["FRIEND"] = Friend;
             sendData["METHOD"] = "deletefriend";
 
             string reqString = ServerUtils.BuildQueryString(sendData);
