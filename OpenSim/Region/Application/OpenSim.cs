@@ -427,7 +427,7 @@ namespace OpenSim
                     if (alert != null)
                         presence.ControllingClient.Kick(alert);
                     else
-                        presence.ControllingClient.Kick("\nThe OpenSim manager kicked you out.\n");
+                        presence.ControllingClient.Kick("\nYou have been logged out by an administrator.\n");
 
                     // ...and close on our side
                     presence.Scene.IncomingCloseAgent(presence.UUID);
