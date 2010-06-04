@@ -139,10 +139,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     }
                     else if (filePath.StartsWith(ArchiveConstants.INVENTORY_PATH))
                     {
+                        filePath = filePath.Substring(ArchiveConstants.INVENTORY_PATH.Length);
+                        
+                        // Trim off the file portion if we aren't already dealing with a directory path
+                        if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY != entryType)
+                            filePath = filePath.Remove(filePath.LastIndexOf("/") + 1);
+                        
                         InventoryFolderBase foundFolder 
                             = ReplicateArchivePathToUserInventory(
-                                filePath, TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType, 
-                                rootDestinationFolder, foldersCreated, nodesLoaded);
+                                filePath, rootDestinationFolder, foldersCreated, nodesLoaded);
     
                         if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY != entryType)
                         {
@@ -184,7 +189,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Replicate the inventory paths in the archive to the user's inventory as necessary.
         /// </summary>
         /// <param name="archivePath">The item archive path to replicate</param>
-        /// <param name="isDir">Is the path we're dealing with a directory?</param>
         /// <param name="rootDestinationFolder">The root folder for the inventory load</param>
         /// <param name="foldersCreated">
         /// The folders created so far.  This method will add more folders if necessary
@@ -196,17 +200,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <returns>The last user inventory folder created or found for the archive path</returns>
         public InventoryFolderBase ReplicateArchivePathToUserInventory(
             string archivePath, 
-            bool isDir, 
             InventoryFolderBase rootDestFolder, 
             Dictionary <string, InventoryFolderBase> foldersCreated,
             List<InventoryNodeBase> nodesLoaded)
         {
-            archivePath = archivePath.Substring(ArchiveConstants.INVENTORY_PATH.Length);
-
-            // Remove the file portion if we aren't already dealing with a directory path
-            if (!isDir)
-                archivePath = archivePath.Remove(archivePath.LastIndexOf("/") + 1);
-
             string originalArchivePath = archivePath;
 
 //            m_log.DebugFormat(
