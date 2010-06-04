@@ -364,76 +364,69 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         ///
         /// This may possibly one day get overtaken by the as yet incomplete temporary profiles feature 
         /// (as tested in the a later commented out test)
-        /// REFACTORING PROBLEM. Needs rewrite.
-//        [Test]
-//        public void TestLoadIarV0_1AbsentUsers()
-//        {
-//            TestHelper.InMethod();
+        /// This test is currently disabled 
+        [Test]
+        public void TestLoadIarV0_1AbsentUsers()
+        {
+            TestHelper.InMethod();            
+            //log4net.Config.XmlConfigurator.Configure();
             
-//            //log4net.Config.XmlConfigurator.Configure();
+            string userFirstName = "Charlie";
+            string userLastName = "Chan";
+            UUID userUuid = UUID.Parse("00000000-0000-0000-0000-000000000999");
+            string userItemCreatorFirstName = "Bat";
+            string userItemCreatorLastName = "Man";
+            //UUID userItemCreatorUuid = UUID.Parse("00000000-0000-0000-0000-000000008888");
             
-//            string userFirstName = "Charlie";
-//            string userLastName = "Chan";
-//            UUID userUuid = UUID.Parse("00000000-0000-0000-0000-000000000999");
-//            string userItemCreatorFirstName = "Bat";
-//            string userItemCreatorLastName = "Man";
-//            //UUID userItemCreatorUuid = UUID.Parse("00000000-0000-0000-0000-000000008888");
-            
-//            string itemName = "b.lsl";
-//            string archiveItemName = InventoryArchiveWriteRequest.CreateArchiveItemName(itemName, UUID.Random());
+            string itemName = "b.lsl";
+            string archiveItemName = InventoryArchiveWriteRequest.CreateArchiveItemName(itemName, UUID.Random());
 
-//            MemoryStream archiveWriteStream = new MemoryStream();
-//            TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
+            MemoryStream archiveWriteStream = new MemoryStream();
+            TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
 
-//            InventoryItemBase item1 = new InventoryItemBase();
-//            item1.Name = itemName;
-//            item1.AssetID = UUID.Random();
-//            item1.GroupID = UUID.Random();
-//            item1.CreatorId = OspResolver.MakeOspa(userItemCreatorFirstName, userItemCreatorLastName);
-//            //item1.CreatorId = userUuid.ToString();
-//            //item1.CreatorId = "00000000-0000-0000-0000-000000000444";
-//            item1.Owner = UUID.Zero;
+            InventoryItemBase item1 = new InventoryItemBase();
+            item1.Name = itemName;
+            item1.AssetID = UUID.Random();
+            item1.GroupID = UUID.Random();
+            item1.CreatorId = OspResolver.MakeOspa(userItemCreatorFirstName, userItemCreatorLastName);
+            //item1.CreatorId = userUuid.ToString();
+            //item1.CreatorId = "00000000-0000-0000-0000-000000000444";
+            item1.Owner = UUID.Zero;
             
-//            string item1FileName 
-//                = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, archiveItemName);
-//            tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1));
-//            tar.Close();
+            string item1FileName 
+                = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, archiveItemName);
+            tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1));
+            tar.Close();
 
-//            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
-//            SerialiserModule serialiserModule = new SerialiserModule();
-//            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
+            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
+            SerialiserModule serialiserModule = new SerialiserModule();
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
             
-//            // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
-//            Scene scene = SceneSetupHelpers.SetupScene("inventory");
-//            IUserAdminService userAdminService = scene.CommsManager.UserAdminService;
+            // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
+            Scene scene = SceneSetupHelpers.SetupScene("inventory");
             
-//            SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
-//            userAdminService.AddUser(
-//                userFirstName, userLastName, "meowfood", String.Empty, 1000, 1000, userUuid);
+            SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
+			UserProfileTestUtils.CreateUserWithInventory(scene, userFirstName, userLastName, userUuid, "meowfood");
             
-//            archiverModule.DearchiveInventory(userFirstName, userLastName, "/", "meowfood", archiveReadStream);
+            archiverModule.DearchiveInventory(userFirstName, userLastName, "/", "meowfood", archiveReadStream);
 
-//            CachedUserInfo userInfo 
-//                = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
-
-//            InventoryItemBase foundItem1
-//                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, itemName);
+            InventoryItemBase foundItem1
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userUuid, itemName);
             
-//            Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");
-////            Assert.That(
-////                foundItem1.CreatorId, Is.EqualTo(userUuid), 
-////                "Loaded item non-uuid creator doesn't match that of the loading user");
+            Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");
 //            Assert.That(
-//                foundItem1.CreatorIdAsUuid, Is.EqualTo(userUuid), 
-//                "Loaded item uuid creator doesn't match that of the loading user");
-//        }
+//                foundItem1.CreatorId, Is.EqualTo(userUuid), 
+//                "Loaded item non-uuid creator doesn't match that of the loading user");
+            Assert.That(
+                foundItem1.CreatorIdAsUuid, Is.EqualTo(userUuid), 
+                "Loaded item uuid creator doesn't match that of the loading user");
+        }
 
         /// <summary>
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
         /// no account exists with the creator name
         /// </summary>
         /// Disabled since temporary profiles have not yet been implemented.
-        /// REFACTORING PROBLEM. Needs rewrite.
         /// 
         //[Test]
         //public void TestLoadIarV0_1TempProfiles()
