@@ -93,7 +93,7 @@ namespace OpenSim.Data.SQLite
 
                 ds = new DataSet("Region");
 
-                m_log.Info("[REGION DB]: Sqlite - connecting: " + connectionString);
+                m_log.Info("[SQLITE REGION DB]: Sqlite - connecting: " + connectionString);
                 m_conn = new SqliteConnection(m_connectionString);
                 m_conn.Open();
 
@@ -156,7 +156,7 @@ namespace OpenSim.Data.SQLite
                     }
                     catch (Exception)
                     {
-                        m_log.Info("[REGION DB]: Caught fill error on prims table");
+                        m_log.Info("[SQLITE REGION DB]: Caught fill error on prims table");
                     }
 
                     try
@@ -165,16 +165,25 @@ namespace OpenSim.Data.SQLite
                     }
                     catch (Exception)
                     {
-                        m_log.Info("[REGION DB]: Caught fill error on primshapes table");
+                        m_log.Info("[SQLITE REGION DB]: Caught fill error on primshapes table");
                     }
 
+                    try
+                    {
+                        itemsDa.Fill(ds.Tables["primitems"]);
+                    }
+                    catch (Exception)
+                    {
+                        m_log.Info("[SQLITE REGION DB]: Caught fill error on primitems table");
+                    }
+					
                     try
                     {
                         terrainDa.Fill(ds.Tables["terrain"]);
                     }
                     catch (Exception)
                     {
-                        m_log.Info("[REGION DB]: Caught fill error on terrain table");
+                        m_log.Info("[SQLITE REGION DB]: Caught fill error on terrain table");
                     }
 
                     try
@@ -183,7 +192,7 @@ namespace OpenSim.Data.SQLite
                     }
                     catch (Exception)
                     {
-                        m_log.Info("[REGION DB]: Caught fill error on land table");
+                        m_log.Info("[SQLITE REGION DB]: Caught fill error on land table");
                     }
 
                     try
@@ -192,7 +201,7 @@ namespace OpenSim.Data.SQLite
                     }
                     catch (Exception)
                     {
-                        m_log.Info("[REGION DB]: Caught fill error on landaccesslist table");
+                        m_log.Info("[SQLITE REGION DB]: Caught fill error on landaccesslist table");
                     }
 
                     try
@@ -201,7 +210,7 @@ namespace OpenSim.Data.SQLite
                     }
                     catch (Exception)
                     {
-                        m_log.Info("[REGION DB]: Caught fill error on regionsettings table");
+                        m_log.Info("[SQLITE REGION DB]: Caught fill error on regionsettings table");
                     }
 
                     // We have to create a data set mapping for every table, otherwise the IDataAdaptor.Update() will not populate rows with values!
@@ -425,7 +434,7 @@ namespace OpenSim.Data.SQLite
             lock (ds)
             {
                 DataRow[] primsForRegion = prims.Select(byRegion);
-                m_log.Info("[REGION DB]: Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
+//                m_log.Info("[SQLITE REGION DB]: Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
                 
                 // First, create all groups 
                 foreach (DataRow primRow in primsForRegion)
@@ -447,8 +456,8 @@ namespace OpenSim.Data.SQLite
                             }
                             else
                             {
-                                m_log.Info(
-                                    "[REGION DB]: No shape found for prim in storage, so setting default box shape");
+                                m_log.Warn(
+                                    "[SQLITE REGION DB]: No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
                             
@@ -460,11 +469,11 @@ namespace OpenSim.Data.SQLite
                     }
                     catch (Exception e)
                     {
-                        m_log.Error("[REGION DB]: Failed create prim object in new group, exception and data follows");
-                        m_log.Info("[REGION DB]: " + e.ToString());
+                        m_log.Error("[SQLITE REGION DB]: Failed create prim object in new group, exception and data follows");
+                        m_log.Error("[SQLITE REGION DB]: ", e);
                         foreach (DataColumn col in prims.Columns)
                         {
-                            m_log.Info("[REGION DB]: Col: " + col.ColumnName + " => " + primRow[col]);
+                            m_log.Error("[SQLITE REGION DB]: Col: " + col.ColumnName + " => " + primRow[col]);
                         }
                     }
                 }
@@ -489,7 +498,7 @@ namespace OpenSim.Data.SQLite
                             else
                             {
                                 m_log.Warn(
-                                    "[REGION DB]: No shape found for prim in storage, so setting default box shape");
+                                    "[SQLITE REGION DB]: No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
                             
@@ -499,11 +508,11 @@ namespace OpenSim.Data.SQLite
                     }
                     catch (Exception e)
                     {
-                        m_log.Error("[REGION DB]: Failed create prim object in group, exception and data follows");
-                        m_log.Info("[REGION DB]: " + e.ToString());
+                        m_log.Error("[SQLITE REGION DB]: Failed create prim object in group, exception and data follows");
+                        m_log.Error("[SQLITE REGION DB]: ", e);
                         foreach (DataColumn col in prims.Columns)
                         {
-                            m_log.Info("[REGION DB]: Col: " + col.ColumnName + " => " + primRow[col]);
+                            m_log.Error("[SQLITE REGION DB]: Col: " + col.ColumnName + " => " + primRow[col]);
                         }
                     }
                 }
@@ -516,20 +525,23 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="prim">the prim</param>
         private void LoadItems(SceneObjectPart prim)
-        {
-            //m_log.DebugFormat("[DATASTORE]: Loading inventory for {0}, {1}", prim.Name, prim.UUID);
-    
+        {                			
+//			m_log.DebugFormat("[SQLITE REGION DB]: Loading inventory for {0} {1}", prim.Name, prim.UUID);
+			
             DataTable dbItems = ds.Tables["primitems"];
-            String sql = String.Format("primID = '{0}'", prim.UUID.ToString());
+            String sql = String.Format("primID = '{0}'", prim.UUID.ToString());			
             DataRow[] dbItemRows = dbItems.Select(sql);
             IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
 
+//			m_log.DebugFormat(
+//			    "[SQLITE REGION DB]: Found {0} items for {1} {2}", dbItemRows.Length, prim.Name, prim.UUID);
+			
             foreach (DataRow row in dbItemRows)
             {
                 TaskInventoryItem item = buildItem(row);
                 inventory.Add(item);
 
-                //m_log.DebugFormat("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID);
+//                m_log.DebugFormat("[SQLITE REGION DB]: Restored item {0} {1}", item.Name, item.ItemID);
             }
 
             prim.Inventory.RestoreInventoryItems(inventory);
@@ -565,7 +577,7 @@ namespace OpenSim.Data.SQLite
 
                 // the following is an work around for .NET.  The perf
                 // issues associated with it aren't as bad as you think.
-                m_log.Info("[REGION DB]: Storing terrain revision r" + revision.ToString());
+                m_log.Debug("[SQLITE REGION DB]: Storing terrain revision r" + revision.ToString());
                 String sql = "insert into terrain(RegionUUID, Revision, Heightfield)" +
                              " values(:RegionUUID, :Revision, :Heightfield)";
 
@@ -621,11 +633,11 @@ namespace OpenSim.Data.SQLite
                         }
                         else
                         {
-                            m_log.Info("[REGION DB]: No terrain found for region");
+                            m_log.Warn("[SQLITE REGION DB]: No terrain found for region");
                             return null;
                         }
 
-                        m_log.Info("[REGION DB]: Loaded terrain revision r" + rev.ToString());
+                        m_log.Debug("[SQLITE REGION DB]: Loaded terrain revision r" + rev.ToString());
                     }
                 }
                 return terret;
@@ -1407,7 +1419,7 @@ namespace OpenSim.Data.SQLite
             }
             catch (InvalidCastException)
             {
-                m_log.ErrorFormat("[PARCEL]: unable to get parcel telehub settings for {1}", newData.Name);
+                m_log.ErrorFormat("[SQLITE REGION DB]: unable to get parcel telehub settings for {1}", newData.Name);
                 newData.UserLocation = Vector3.Zero;
                 newData.UserLookAt = Vector3.Zero;
             }
@@ -1914,7 +1926,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="items"></param>
         public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
         {
-            //m_log.InfoFormat("[REGION DB]: Entered StorePrimInventory with prim ID {0}", primID);
+//            m_log.DebugFormat("[SQLITE REGION DB]: Entered StorePrimInventory with prim ID {0}", primID);
 
             DataTable dbItems = ds.Tables["primitems"];
 
