@@ -279,7 +279,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         public void TestIarV0_1WithEscapedChars()
         {
             TestHelper.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+            log4net.Config.XmlConfigurator.Configure();
 
             string itemName = "You & you are a mean/man/";
             string humanEscapedItemName = @"You & you are a mean\/man\/";
