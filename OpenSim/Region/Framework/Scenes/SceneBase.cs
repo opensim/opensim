@@ -267,7 +267,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (Exception e)
             {
-                m_log.Error("[SCENE]: SceneBase.cs: Close() - Failed with exception " + e.ToString());
+                m_log.Error(string.Format("[SCENE]: SceneBase.cs: Close() - Failed with exception ", e));
             }
         }
 
@@ -376,7 +376,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="mod"></param>
         public void RegisterModuleInterface<M>(M mod)
         {
-            m_log.DebugFormat("[SCENE BASE]: Registering interface {0}", typeof(M));
+//            m_log.DebugFormat("[SCENE BASE]: Registering interface {0}", typeof(M));
             
             List<Object> l = null;
             if (!ModuleInterfaces.TryGetValue(typeof(M), out l))
