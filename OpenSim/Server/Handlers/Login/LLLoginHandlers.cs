@@ -83,7 +83,7 @@ namespace OpenSim.Server.Handlers.Login
                         clientVersion = requestData["version"].ToString();
                     // We should do something interesting with the client version...
 
-                    m_log.InfoFormat("[LOGIN]: XMLRPC Login Requested for {0} {1}, starting in {2}, using {3}", first, last, startLocation, clientVersion);
+                    //m_log.InfoFormat("[LOGIN]: XMLRPC Login Requested for {0} {1}, starting in {2}, using {3}", first, last, startLocation, clientVersion);
 
                     LoginResponse reply = null;
                     reply = m_LocalService.Login(first, last, passwd, startLocation, scopeID, clientVersion, remoteClient);

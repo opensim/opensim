@@ -74,6 +74,9 @@ namespace OpenSim.Services.Connectors.Friends
 
         public bool FriendshipDenied(GridRegion region, UUID userID, string userName, UUID friendID)
         {
+            if (region == null)
+                return false;
+
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
             //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
@@ -131,7 +134,11 @@ namespace OpenSim.Services.Connectors.Friends
         private bool Call(GridRegion region, Dictionary<string, object> sendData)
         {
             string reqString = ServerUtils.BuildQueryString(sendData);
-            // m_log.DebugFormat("[FRIENDS CONNECTOR]: queryString = {0}", reqString);
+            //m_log.DebugFormat("[FRIENDS CONNECTOR]: queryString = {0}", reqString);
+            if (region == null)
+                return false;
+
+            m_log.DebugFormat("[FRIENDS CONNECTOR]: region: {0}", region.ExternalHostName + ":" + region.HttpPort);
             try
             {
                 string url = "http://" + region.ExternalHostName + ":" + region.HttpPort;

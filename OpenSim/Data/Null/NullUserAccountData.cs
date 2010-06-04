@@ -88,7 +88,7 @@ namespace OpenSim.Data.Null
 
             m_DataByUUID[data.PrincipalID] = data;
             m_DataByName[data.FirstName + " " + data.LastName] = data;
-            if (data.Data.ContainsKey("Email") && data.Data["Email"] != string.Empty)
+            if (data.Data.ContainsKey("Email") && data.Data["Email"] != null && data.Data["Email"] != string.Empty)
                 m_DataByEmail[data.Data["Email"]] = data;
 
             return true;

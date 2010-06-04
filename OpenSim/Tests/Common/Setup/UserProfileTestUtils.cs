@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Scenes;
@@ -124,7 +125,9 @@ namespace OpenSim.Tests.Common.Setup
         public static UserAccount CreateUserWithInventory(
             Scene scene, string firstName, string lastName, UUID userId, string pw)
         {
-            UserAccount ua = new UserAccount(userId) { FirstName = firstName, LastName = lastName };
+            UserAccount ua 
+                = new UserAccount(userId) 
+                    { FirstName = firstName, LastName = lastName, ServiceURLs = new Dictionary<string, object>() };
             scene.UserAccountService.StoreUserAccount(ua);
             scene.InventoryService.CreateUserInventory(ua.PrincipalID);
             scene.AuthenticationService.SetPassword(ua.PrincipalID, pw);

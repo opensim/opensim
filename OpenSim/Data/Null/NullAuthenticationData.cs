@@ -76,6 +76,5 @@ namespace OpenSim.Data.Null
 
             return false;
         }
-
     }
 }

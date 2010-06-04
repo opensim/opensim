@@ -797,7 +797,6 @@
       <Reference name="OpenSim.Region.Physics.Manager"/>
 
       <!-- For scripting in funny languages by default -->
-      <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="Nini.dll" />
@@ -1436,7 +1435,6 @@
       <Reference name="GlynnTucker.Cache.dll"/>
 
       <!-- For scripting in funny languages by default -->
-      <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="Nini.dll" />
@@ -1519,7 +1517,6 @@
       <Reference name="Mono.Addins.dll" />
 
       <!-- For scripting in funny languages by default -->
-      <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="Nini.dll" />
@@ -2447,7 +2444,6 @@
 
       <ReferencePath>../../../../../bin/</ReferencePath>
       <Reference name="System"/>
-      <Reference name="Microsoft.JScript"/>
       <Reference name="OpenSim.Framework" />
       <Reference name="OpenSim.Region.Framework" />
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
@@ -2584,7 +2580,6 @@
       <Reference name="Mono.Addins"/>
 
       <!-- For scripting in funny languages by default -->
-      <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="Nini.dll" />
@@ -2999,7 +2994,6 @@
       <Reference name="nunit.framework.dll"/>
 
       <!-- For scripting in funny languages by default -->
-      <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="Nini.dll" />
@@ -3063,7 +3057,6 @@
       <Reference name="nunit.framework.dll"/>
 
       <!-- For scripting in funny languages by default -->
-      <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="Nini.dll" />

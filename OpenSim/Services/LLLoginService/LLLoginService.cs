@@ -209,6 +209,8 @@ namespace OpenSim.Services.LLLoginService
             bool success = false;
             UUID session = UUID.Random();
 
+            m_log.InfoFormat("[LLOGIN SERVICE]: Login request for {0} {1} from {2} with user agent {3} starting in {4}", 
+                firstName, lastName, clientIP.Address.ToString(), clientVersion, startLocation);
             try
             {
                 //

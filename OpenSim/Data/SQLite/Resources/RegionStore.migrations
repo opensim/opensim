@@ -1,4 +1,4 @@
-﻿:VERSION 1
+:VERSION 1
 
 BEGIN TRANSACTION;
 
@@ -219,59 +219,6 @@ COMMIT;
 
 BEGIN TRANSACTION;
 
-CREATE TABLE estate_groups (
-  EstateID int(10) NOT NULL,
-  uuid char(36) NOT NULL
-);
-
-CREATE TABLE estate_managers (
-  EstateID int(10) NOT NULL,
-  uuid char(36) NOT NULL
-);
-
-CREATE TABLE estate_map (
-  RegionID char(36) NOT NULL default '00000000-0000-0000-0000-000000000000',
-  EstateID int(11) NOT NULL
-);
-
-CREATE TABLE estate_settings (
-  EstateID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  EstateName varchar(64) default NULL,
-  AbuseEmailToEstateOwner tinyint(4) NOT NULL,
-  DenyAnonymous tinyint(4) NOT NULL,
-  ResetHomeOnTeleport tinyint(4) NOT NULL,
-  FixedSun tinyint(4) NOT NULL,
-  DenyTransacted tinyint(4) NOT NULL,
-  BlockDwell tinyint(4) NOT NULL,
-  DenyIdentified tinyint(4) NOT NULL,
-  AllowVoice tinyint(4) NOT NULL,
-  UseGlobalTime tinyint(4) NOT NULL,
-  PricePerMeter int(11) NOT NULL,
-  TaxFree tinyint(4) NOT NULL,
-  AllowDirectTeleport tinyint(4) NOT NULL,
-  RedirectGridX int(11) NOT NULL,
-  RedirectGridY int(11) NOT NULL,
-  ParentEstateID int(10) NOT NULL,
-  SunPosition double NOT NULL,
-  EstateSkipScripts tinyint(4) NOT NULL,
-  BillableFactor float NOT NULL,
-  PublicAccess tinyint(4) NOT NULL
-);
-insert into estate_settings (EstateID,EstateName,AbuseEmailToEstateOwner,DenyAnonymous,ResetHomeOnTeleport,FixedSun,DenyTransacted,BlockDwell,DenyIdentified,AllowVoice,UseGlobalTime,PricePerMeter,TaxFree,AllowDirectTeleport,RedirectGridX,RedirectGridY,ParentEstateID,SunPosition,PublicAccess,EstateSkipScripts,BillableFactor) values ( 99, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '');
-delete from estate_settings;
-CREATE TABLE estate_users (
-  EstateID int(10) NOT NULL,
-  uuid char(36) NOT NULL
-);
-
-CREATE TABLE estateban (
-  EstateID int(10) NOT NULL,
-  bannedUUID varchar(36) NOT NULL,
-  bannedIp varchar(16) NOT NULL,
-  bannedIpHostMask varchar(16) NOT NULL,
-  bannedNameMask varchar(64) default NULL
-);
-
 drop table regionsettings;
 CREATE TABLE regionsettings (
   regionUUID char(36) NOT NULL,
@@ -307,7 +254,7 @@ CREATE TABLE regionsettings (
   fixed_sun int(11) NOT NULL,
   sun_position float NOT NULL,
   covenant char(36) default NULL,
-  Sandbox tinyint(4) NOT NULL,
+  sandbox tinyint(4) NOT NULL,
   PRIMARY KEY  (regionUUID)
 );
 
