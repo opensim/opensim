@@ -88,7 +88,7 @@ namespace OpenSim.Services.AuthenticationService
             m_Database = LoadPlugin<IAuthenticationData>(dllName,
                     new Object[] {connString, realm});
             if (m_Database == null)
-                throw new Exception("Could not find a storage interface in the given module");
+                throw new Exception(string.Format("Could not find a storage interface in module {0}", dllName));
         }
 
         public bool Verify(UUID principalID, string token, int lifetime)

@@ -390,7 +390,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <returns></returns>
         protected UserAccount GetUserInfo(string firstName, string lastName, string pass)
         {
-            UserAccount account = m_aScene.UserAccountService.GetUserAccount(m_aScene.RegionInfo.ScopeID, firstName, lastName);
+            UserAccount account 
+                = m_aScene.UserAccountService.GetUserAccount(m_aScene.RegionInfo.ScopeID, firstName, lastName);
+            
             if (null == account)
             {
                 m_log.ErrorFormat(

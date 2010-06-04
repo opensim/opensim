@@ -260,7 +260,7 @@ namespace OpenSim.Tests.Common.Setup
                     "LocalServiceModule", "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService");
             else
                 config.Configs["AuthenticationService"].Set(
-                    "LocalServiceModule", "OpenSim.Tests.Common.dll:MockuthenticationService");
+                    "LocalServiceModule", "OpenSim.Tests.Common.dll:MockAuthenticationService");
             config.Configs["AuthenticationService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
             service.Initialise(config);
             service.AddRegion(testScene);

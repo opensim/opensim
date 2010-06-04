@@ -97,6 +97,10 @@ namespace OpenSim.Services.UserAccountService
         public UserAccount GetUserAccount(UUID scopeID, string firstName,
                 string lastName)
         {
+//			m_log.DebugFormat(
+//			    "[USER ACCOUNT SERVICE]: Retrieving account by username for {0} {1}, scope {2}", 
+//			    firstName, lastName, scopeID);
+			
             UserAccountData[] d;
 
             if (scopeID != UUID.Zero)
@@ -231,6 +235,10 @@ namespace OpenSim.Services.UserAccountService
 
         public bool StoreUserAccount(UserAccount data)
         {
+//			m_log.DebugFormat(
+//			    "[USER ACCOUNT SERVICE]: Storing user account for {0} {1} {2}, scope {3}", 
+//			    data.FirstName, data.LastName, data.PrincipalID, data.ScopeID);
+			
             UserAccountData d = new UserAccountData();
 
             d.FirstName = data.FirstName;

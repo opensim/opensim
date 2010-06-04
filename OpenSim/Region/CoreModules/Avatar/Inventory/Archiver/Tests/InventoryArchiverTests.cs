@@ -76,7 +76,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         // Commenting for now! The mock inventory service needs more beef, at least for
         // GetFolderForType
         // REFACTORING PROBLEM. This needs to be rewritten.
-        //[Test]
+        [Test]
         public void TestSaveIarV0_1()
         {
             TestHelper.InMethod();
@@ -84,7 +84,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
 
-            Scene scene = SceneSetupHelpers.SetupScene("Inventory");
+            Scene scene = SceneSetupHelpers.SetupScene("Inventory, useraccounts");
             SceneSetupHelpers.SetupSceneModules(scene, archiverModule);
 
             // Create user
