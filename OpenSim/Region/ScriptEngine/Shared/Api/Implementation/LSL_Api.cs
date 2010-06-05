@@ -7112,13 +7112,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             shapeBlock.PathScaleX = 100;
             shapeBlock.PathScaleY = 150;
 
-            if (type != (int)ScriptBaseClass.PRIM_SCULPT_TYPE_CYLINDER &&
-                type != (int)ScriptBaseClass.PRIM_SCULPT_TYPE_PLANE &&
-                type != (int)ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE &&
-                type != (int)ScriptBaseClass.PRIM_SCULPT_TYPE_TORUS)
+            if ((type & (int)ScriptBaseClass.PRIM_SCULPT_TYPE_CYLINDER) == 0 &&
+                (type & (int)ScriptBaseClass.PRIM_SCULPT_TYPE_PLANE) == 0 &&
+                (type & (int)ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE) == 0 &&
+                (type & (int)ScriptBaseClass.PRIM_SCULPT_TYPE_TORUS) == 0)
             {
                 // default
-                type = (int)ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE;
+                type = type | (int)ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE;
             }
 
             // retain pathcurve
