@@ -206,9 +206,7 @@ namespace OpenSim.Services.Connectors
                     if ((replyData != null) && replyData.ContainsKey("result") && (replyData["result"] != null))
                     {
                         if (replyData["result"] is Dictionary<string, object>)
-                        {
                             guinfo = new GridUserInfo((Dictionary<string, object>)replyData["result"]);
-                        }
                     }
 
                     return guinfo;

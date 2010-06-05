@@ -65,7 +65,7 @@ namespace OpenSim.Services.Interfaces
                 Vector3.TryParse(kvp["HomeLookAt"].ToString(), out HomeLookAt);
 
             if (kvp.ContainsKey("LastRegionID"))
-                UUID.TryParse(kvp["LastRegionID"].ToString(), out HomeRegionID);
+                UUID.TryParse(kvp["LastRegionID"].ToString(), out LastRegionID);
             if (kvp.ContainsKey("LastPosition"))
                 Vector3.TryParse(kvp["LastPosition"].ToString(), out LastPosition);
             if (kvp.ContainsKey("LastLookAt"))
