@@ -268,7 +268,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             if (m_Friends.ContainsKey(agentID))
             {
-                if (m_Friends[agentID].RegionID == UUID.Zero && m_Friends[agentID].Friends == null)
+                if (m_Friends[agentID].RegionID == UUID.Zero)
                 {
                     m_Friends[agentID].Friends =
                             m_FriendsService.GetFriends(agentID);

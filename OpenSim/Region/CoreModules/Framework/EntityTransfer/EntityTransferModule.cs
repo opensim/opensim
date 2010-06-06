@@ -410,6 +410,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                                                 teleportFlags, capsPath);
                 }
 
+                // Let's set this to true tentatively. This does not trigger OnChildAgent
+                sp.IsChildAgent = true;
+
                 // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
                 // trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation
                 // that the client contacted the destination before we send the attachments and close things here.
@@ -417,6 +420,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     // Client never contacted destination. Let's restore everything back
                     sp.ControllingClient.SendTeleportFailed("Problems connecting to destination.");
+
+                    // Fail. Reset it back
+                    sp.IsChildAgent = false;
 
                     ResetFromTransit(sp.UUID);
 
@@ -436,7 +442,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 KillEntity(sp.Scene, sp.LocalId);
 
+                // Now let's make it officially a child agent
                 sp.MakeChildAgent();
+
                 // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 
                 if (NeedsClosing(oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
@@ -538,6 +546,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     client.SendTeleportFailed("Your home region could not be found.");
                     return;
                 }
+                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: User's home region is {0} {1} ({2}-{3})", 
+                    regionInfo.RegionName, regionInfo.RegionID, regionInfo.RegionLocX / Constants.RegionSize, regionInfo.RegionLocY / Constants.RegionSize);
+
                 // a little eekie that this goes back to Scene and with a forced cast, will fix that at some point...
                 ((Scene)(client.Scene)).RequestTeleportLocation(
                     client, regionInfo.RegionHandle, uinfo.HomePosition, uinfo.HomeLookAt,

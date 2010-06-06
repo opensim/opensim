@@ -4039,7 +4039,9 @@ namespace OpenSim.Region.Framework.Scenes
                 // bordercross if position is outside of region
 
                 if (!result)
+                {
                     regionHandle = m_regInfo.RegionHandle;
+                }
                 else
                 {
                     // not in this region, undo the shift!
