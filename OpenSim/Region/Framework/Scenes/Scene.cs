@@ -2467,6 +2467,8 @@ namespace OpenSim.Region.Framework.Scenes
             
             newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, 1);
 
+            newObject.ResumeScripts();
+
             // Do this as late as possible so that listeners have full access to the incoming object
             EventManager.TriggerOnIncomingSceneObject(newObject);
             
