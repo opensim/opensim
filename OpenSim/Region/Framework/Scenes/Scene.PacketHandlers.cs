@@ -124,7 +124,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (((SceneObjectGroup)ent).LocalId == primLocalID)
                     {
-                        m_log.DebugFormat("[SCENE]: Received full update request for {0} from {1}", primLocalID, remoteClient.Name);
+//                        m_log.DebugFormat("[SCENE]: Received full update request for {0} from {1}", primLocalID, remoteClient.Name);
                         ((SceneObjectGroup)ent).SendFullUpdateToClient(remoteClient);
                         return;
                     }

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -63,8 +63,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="part"></param>
         public void QueuePartForUpdate(SceneObjectPart part)
         {
-            if (part.IsAttachment)
-                m_log.DebugFormat("[SCENE VIEWER]: Queueing part {0} {1} for update", part.Name, part.LocalId);
+//            if (part.IsAttachment)
+//                m_log.DebugFormat("[SCENE VIEWER]: Queueing part {0} {1} for update", part.Name, part.LocalId);
             
             lock (m_partsUpdateQueue)
             {

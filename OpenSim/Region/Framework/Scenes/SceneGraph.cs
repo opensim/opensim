@@ -636,13 +636,13 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal bool AttachObject(
             IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, Vector3 attachPos, bool silent)
         {
-            Console.WriteLine("HERE A");
+//            Console.WriteLine("HERE A");
             SceneObjectGroup group = GetGroupByPrim(objectLocalID);
             if (group != null)
             {
                 if (m_parentScene.Permissions.CanTakeObject(group.UUID, remoteClient.AgentId))
                 {
-                    Console.WriteLine("HERE -1");
+//                    Console.WriteLine("HERE -1");
                     // If the attachment point isn't the same as the one previously used
                     // set it's offset position = 0 so that it appears on the attachment point
                     // and not in a weird location somewhere unknown.
@@ -681,12 +681,12 @@ namespace OpenSim.Region.Framework.Scenes
                         itemId = group.GetFromItemID();
                     }
 
-                    Console.WriteLine("HERE 0");
+//                    Console.WriteLine("HERE 0");
                     m_parentScene.AttachObject(remoteClient, AttachmentPt, itemId, group);
 
-                    Console.WriteLine("HERE 1");
+//                    Console.WriteLine("HERE 1");
                     group.AttachToAgent(remoteClient.AgentId, AttachmentPt, attachPos, silent);
-                    Console.WriteLine("HERE 2");
+//                    Console.WriteLine("HERE 2");
                     // In case it is later dropped again, don't let
                     // it get cleaned up
                     //

@@ -2449,8 +2449,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            m_log.DebugFormat("[SCENE INVENTORY]: {0} {1} IsAttachment={2}", att.Name, att.LocalId, att.IsAttachment);
-            Console.WriteLine("HERE X");
+//            m_log.DebugFormat("[SCENE INVENTORY]: {0} {1} IsAttachment={2}", att.Name, att.LocalId, att.IsAttachment);
+//            Console.WriteLine("HERE X");
             ScenePresence presence;
             if (TryGetAvatar(remoteClient.AgentId, out presence))
             {
@@ -2458,12 +2458,12 @@ namespace OpenSim.Region.Framework.Scenes
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
                 item = InventoryService.GetItem(item);
                 presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
-                Console.WriteLine("HERE Y");
+//                Console.WriteLine("HERE Y");
 
                 if (m_AvatarFactory != null)
                     m_AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
 
-                Console.WriteLine("HERE Z");
+//                Console.WriteLine("HERE Z");
             }
         }
 

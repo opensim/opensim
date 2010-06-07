@@ -2487,7 +2487,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public bool IncomingCreateObject(ISceneObject sog)
         {
-            m_log.Debug(" >>> IncomingCreateObject(sog) <<< " + ((SceneObjectGroup)sog).AbsolutePosition + " deleted? " + ((SceneObjectGroup)sog).IsDeleted);
+//            m_log.Debug(" >>> IncomingCreateObject(sog) <<< " + ((SceneObjectGroup)sog).AbsolutePosition + " deleted? " + ((SceneObjectGroup)sog).IsDeleted);
             SceneObjectGroup newObject;
             try
             {
@@ -2559,7 +2559,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (sceneObject.IsAttachmentCheckFull()) // Attachment
             {
-                m_log.DebugFormat("[SCENE]: Adding attachment {0} {1}", sceneObject.Name, sceneObject.LocalId);
+//                m_log.DebugFormat("[SCENE]: Adding attachment {0} {1}", sceneObject.Name, sceneObject.LocalId);
                 
                 sceneObject.RootPart.AddFlag(PrimFlags.TemporaryOnRez);
                 sceneObject.RootPart.AddFlag(PrimFlags.Phantom);
@@ -2572,7 +2572,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // Fix up attachment Parent Local ID
                 ScenePresence sp = GetScenePresence(sceneObject.OwnerID);
 
-                Console.WriteLine("AAAA");
+//                Console.WriteLine("AAAA");
 
                 //uint parentLocalID = 0;
                 if (sp != null)
@@ -2605,11 +2605,11 @@ namespace OpenSim.Region.Framework.Scenes
                     RootPrim.AddFlag(PrimFlags.TemporaryOnRez);
                 }
 
-                Console.WriteLine("BBBB");
+//                Console.WriteLine("BBBB");
             }
             else
             {
-                m_log.DebugFormat("[SCENE]: Adding ordinary object {0} {1}", sceneObject.Name, sceneObject.LocalId);
+//                m_log.DebugFormat("[SCENE]: Adding ordinary object {0} {1}", sceneObject.Name, sceneObject.LocalId);
                 
                 AddRestoredSceneObject(sceneObject, true, false);
 
