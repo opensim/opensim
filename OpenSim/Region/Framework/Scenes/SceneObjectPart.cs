@@ -2950,12 +2950,6 @@ namespace OpenSim.Region.Framework.Scenes
                 lPos, Velocity, Acceleration, RotationOffset, AngularVelocity, clientFlags, m_uuid, _ownerID,
                 m_text, color, _parentID, m_particleSystem, m_clickAction, (byte)m_material, m_TextureAnimation, IsAttachment,
                 AttachmentPoint,FromItemID, Sound, SoundGain, SoundFlags, SoundRadius, priority));
-			
-//			if (IsRoot && IsAttachment)
-//			{
-//				ScenePresence sp = ParentGroup.Scene.GetScenePresence(remoteClient.AgentId);
-//				remoteClient.ReprioritizeUpdates(StateUpdateTypes.PrimitiveFull, sp.UpdatePriority);
-//			}
         }
 
         /// <summary>
