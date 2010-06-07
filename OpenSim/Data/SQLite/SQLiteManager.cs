@@ -28,9 +28,9 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SQLite;
 using System.Reflection;
 using log4net;
+using Mono.Data.Sqlite;
 using OpenMetaverse;
 
 namespace OpenSim.Data.SQLite
@@ -66,7 +66,7 @@ namespace OpenSim.Data.SQLite
                     connectionString = "URI=file:GridServerSqlite.db;";
                 }
 
-                dbcon = new SQLiteConnection(connectionString);
+                dbcon = new SqliteConnection(connectionString);
 
                 dbcon.Open();
             }
@@ -93,11 +93,11 @@ namespace OpenSim.Data.SQLite
         /// <returns>A SQLite DB Command</returns>
         public IDbCommand Query(string sql, Dictionary<string, string> parameters)
         {
-            SQLiteCommand dbcommand = (SQLiteCommand) dbcon.CreateCommand();
+            SqliteCommand dbcommand = (SqliteCommand) dbcon.CreateCommand();
             dbcommand.CommandText = sql;
             foreach (KeyValuePair<string, string> param in parameters)
             {
-                SQLiteParameter paramx = new SQLiteParameter(param.Key, param.Value);
+                SqliteParameter paramx = new SqliteParameter(param.Key, param.Value);
                 dbcommand.Parameters.Add(paramx);
             }
 

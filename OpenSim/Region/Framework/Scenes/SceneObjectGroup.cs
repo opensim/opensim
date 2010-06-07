@@ -1651,10 +1651,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendFullUpdateToClient(IClientAPI remoteClient)
         {
-            if (IsAttachment)
-                m_log.DebugFormat(
-                    "[SOG]: Sending full update to client {0} for {1} {2}", remoteClient.Name, Name, LocalId);
-            
             SendPartFullUpdate(remoteClient, RootPart, m_scene.Permissions.GenerateClientFlags(remoteClient.AgentId, RootPart.UUID));
 
             lockPartsForRead(true);
@@ -1677,9 +1673,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="part"></param>
         internal void SendPartFullUpdate(IClientAPI remoteClient, SceneObjectPart part, uint clientFlags)
         {
-            if (IsAttachment)
-                m_log.DebugFormat(
-                    "[SOG]: Sending part full update to {0} for {1} {2}", remoteClient.Name, part.Name, part.LocalId);
+//            m_log.DebugFormat(
+//                "[SOG]: Sending part full update to {0} for {1} {2}", remoteClient.Name, part.Name, part.LocalId);
             
             if (m_rootPart.UUID == part.UUID)
             {
@@ -2191,8 +2186,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ScheduleFullUpdateToAvatar(ScenePresence presence)
         {
-            if (IsAttachment)
-                m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1} just to avatar {2}", Name, UUID, presence.Name);
+//            m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1} just to avatar {2}", Name, UUID, presence.Name);
             
             RootPart.AddFullUpdateToAvatar(presence);
 
@@ -2228,8 +2222,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ScheduleGroupForFullUpdate()
         {
-            if (IsAttachment)
-                m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, UUID);
+//            m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, UUID);
             
             checkAtTargets();
             RootPart.ScheduleFullUpdate();

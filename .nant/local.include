@@ -7,8 +7,8 @@
 <property name="distbindir" value="distbin" />
 <target name="distbin">
   <copy file="bin/OpenSim.ini.example" tofile="bin/OpenSim.ini"/>
+  <copy file="bin/config-include/StandaloneCommon.ini.example" tofile="bin/config-include/StandaloneCommon.ini"/>
   <delete dir="${distbindir}"/>
-  <!-- <copy file="*" todir="${distbindir}"/> -->
   <copy todir="${distbindir}">
     <fileset>
       <include name="**"/>

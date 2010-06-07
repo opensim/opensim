@@ -1410,9 +1410,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // now we have a child agent in this region. Request all interesting data about other (root) agents
                 agent.SendInitialFullUpdateToAllClients();
 
-                Console.WriteLine("SCS 1");
                 agent.CrossAttachmentsIntoNewRegion(neighbourHandle, true);
-                Console.WriteLine("SCS 2");                
 
                 //                    m_scene.SendKillObject(m_localId);
 

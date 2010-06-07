@@ -542,7 +542,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 m_CurrentResult = null;
             }
 
-            return true;
+            return false;
         }
 
         [DebuggerNonUserCode] //Prevents the debugger from farting in this function
@@ -998,7 +998,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         public string GetXMLState()
         {
             bool run = Running;
-            Stop(100);
+            bool stopped = Stop(100);
             Running = run;
 
             // We should not be doing this, but since we are about to
@@ -1009,6 +1009,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             // Force an update of the in-memory plugin data
             //
+            if (!stopped)
+                return String.Empty;
+
             PluginData = AsyncCommandManager.GetSerializationData(m_Engine, m_ItemID);
 
             return ScriptSerializer.Serialize(this);

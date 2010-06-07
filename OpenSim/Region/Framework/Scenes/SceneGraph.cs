@@ -216,15 +216,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// If true, we won't persist this object until it changes
         /// If false, we'll persist this object immediately
         /// </param>
-        /// <param name="sendClientUpdate">
-        /// If true, we send updates to the client to tell it about this object
-        /// If false, we leave it up to the caller to do this
-        /// </param>
         /// <returns>
         /// true if the object was added, false if an object with the same uuid was already in the scene
         /// </returns>
         protected internal bool AddRestoredSceneObject(
-            SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted, bool sendClientUpdates)
+            SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted)
         {
         	// KF: Check for out-of-region, move inside and make static.
 			Vector3 npos = new Vector3(sceneObject.RootPart.GroupPosition.X,
@@ -256,29 +252,8 @@ namespace OpenSim.Region.Framework.Scenes
                 sceneObject.HasGroupChanged = true;
             }
 
-            return AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
+            return AddSceneObject(sceneObject, attachToBackup, true);
         }
-        
-//        /// <summary>
-//        /// Add an object into the scene that has come from storage
-//        /// </summary>
-//        /// <param name="sceneObject"></param>
-//        /// <param name="attachToBackup">
-//        /// If true, changes to the object will be reflected in its persisted data
-//        /// If false, the persisted data will not be changed even if the object in the scene is changed
-//        /// </param>
-//        /// <param name="alreadyPersisted">
-//        /// If true, we won't persist this object until it changes
-//        /// If false, we'll persist this object immediately
-//        /// </param>
-//        /// <returns>
-//        /// true if the object was added, false if an object with the same uuid was already in the scene
-//        /// </returns>
-//        protected internal bool AddRestoredSceneObject(
-//            SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted)
-//        {
-//            AddRestoredSceneObject(sceneObject, attachToBackup, alreadyPersisted, true);
-//        }
 
         /// <summary>
         /// Add a newly created object to the scene.  This will both update the scene, and send information about the
@@ -672,13 +647,11 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal bool AttachObject(
             IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, Vector3 attachPos, bool silent)
         {
-            Console.WriteLine("HERE A");
             SceneObjectGroup group = GetGroupByPrim(objectLocalID);
             if (group != null)
             {
                 if (m_parentScene.Permissions.CanTakeObject(group.UUID, remoteClient.AgentId))
                 {
-                    Console.WriteLine("HERE -1");
                     // If the attachment point isn't the same as the one previously used
                     // set it's offset position = 0 so that it appears on the attachment point
                     // and not in a weird location somewhere unknown.
@@ -717,12 +690,9 @@ namespace OpenSim.Region.Framework.Scenes
                         itemId = group.GetFromItemID();
                     }
 
-                    Console.WriteLine("HERE 0");
                     m_parentScene.AttachObject(remoteClient, AttachmentPt, itemId, group);
 
-                    Console.WriteLine("HERE 1");
                     group.AttachToAgent(remoteClient.AgentId, AttachmentPt, attachPos, silent);
-                    Console.WriteLine("HERE 2");
                     // In case it is later dropped again, don't let
                     // it get cleaned up
                     //
