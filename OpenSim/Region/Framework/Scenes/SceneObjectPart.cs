@@ -2929,10 +2929,33 @@ namespace OpenSim.Region.Framework.Scenes
                 //isattachment = ParentGroup.RootPart.IsAttachment;
 
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
-            remoteClient.SendPrimitiveToClient(new SendPrimitiveData(m_regionHandle, m_parentGroup.GetTimeDilation(), LocalId, m_shape,
-                                               lPos, Velocity, Acceleration, RotationOffset, AngularVelocity, clientFlags, m_uuid, _ownerID,
-                                               m_text, color, _parentID, m_particleSystem, m_clickAction, (byte)m_material, m_TextureAnimation, IsAttachment,
-                                               AttachmentPoint,FromItemID, Sound, SoundGain, SoundFlags, SoundRadius, ParentGroup.GetUpdatePriority(remoteClient)));
+
+            double priority = ParentGroup.GetUpdatePriority(remoteClient);
+            if (IsRoot && IsAttachment)
+            {
+                if (double.MinValue == priority)
+                {
+                    m_log.WarnFormat(
+                        "[SOP]: Couldn't raise update priority of root part for attachment {0} {1} because priority is already highest value",
+                        Name, LocalId);
+                }
+                else
+                {
+                    priority = double.MinValue;
+                }
+            }
+
+            remoteClient.SendPrimitiveToClient(
+			    new SendPrimitiveData(m_regionHandle, m_parentGroup.GetTimeDilation(), LocalId, m_shape,
+                lPos, Velocity, Acceleration, RotationOffset, AngularVelocity, clientFlags, m_uuid, _ownerID,
+                m_text, color, _parentID, m_particleSystem, m_clickAction, (byte)m_material, m_TextureAnimation, IsAttachment,
+                AttachmentPoint,FromItemID, Sound, SoundGain, SoundFlags, SoundRadius, priority));
+			
+//			if (IsRoot && IsAttachment)
+//			{
+//				ScenePresence sp = ParentGroup.Scene.GetScenePresence(remoteClient.AgentId);
+//				remoteClient.ReprioritizeUpdates(StateUpdateTypes.PrimitiveFull, sp.UpdatePriority);
+//			}
         }
 
         /// <summary>

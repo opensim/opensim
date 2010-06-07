@@ -365,6 +365,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </value>
         protected HashSet<uint> m_killRecord;
         
+//      protected HashSet<uint> m_attachmentsQueued;
+//      protected HashSet<uint> m_attachmentsSent;
+        
         private int m_moneyBalance;
         private int m_animationSequenceNumber = 1;
         private bool m_SendLogoutPacketWhenClosing = true;
@@ -456,6 +459,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_primFullUpdates = new PriorityQueue<double, ObjectUpdatePacket.ObjectDataBlock>(m_scene.Entities.Count);
             m_fullUpdateDataBlocksBuilder = new List<ObjectUpdatePacket.ObjectDataBlock>();
             m_killRecord = new HashSet<uint>();
+//          m_attachmentsQueued = new HashSet<uint>();
+//          m_attachmentsSent = new HashSet<uint>();
 
             m_assetService = m_scene.RequestModuleInterface<IAssetService>();
             m_hyperAssets = m_scene.RequestModuleInterface<IHyperAssetService>();
@@ -3401,6 +3406,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             objupdate.ObjectData[0] = CreateAvatarUpdateBlock(data);
 
             OutPacket(objupdate, ThrottleOutPacketType.Task);
+            
+            // We need to record the avatar local id since the root prim of an attachment points to this.
+//          m_attachmentsSent.Add(data.AvatarLocalID);
         }
 
         /// <summary>
@@ -3523,6 +3531,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             ObjectUpdatePacket.ObjectDataBlock objectData = CreatePrimUpdateBlock(data);
+            
+//          if (data.attachment)
+//              m_attachmentsQueued.Add(data.localID);
 
             lock (m_primFullUpdates.SyncRoot)
                 m_primFullUpdates.Enqueue(data.priority, objectData, data.localID);
@@ -3549,15 +3560,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     ObjectUpdatePacket.ObjectDataBlock block = m_primFullUpdates.Dequeue();
 
                     if (!m_killRecord.Contains(block.ID))
-                    {
+                    {                                                
+//                      if (m_attachmentsQueued.Contains(block.ID))
+//                      {
+//                          string text = Util.FieldToString(block.Text);
+//                          if (text.IndexOf("\n") >= 0)
+//                              text = text.Remove(text.IndexOf("\n"));
+//                            
+//                          if (m_attachmentsSent.Contains(block.ParentID))
+//                          {
+//                              m_log.DebugFormat(
+//                                  "[CLIENT]: Sending full info about attached prim {0} text {1}",
+//                                  block.ID, text);
+//                                
+//                                m_fullUpdateDataBlocksBuilder.Add(block);
+//                                
+//                                m_attachmentsSent.Add(block.ID);
+//                            }
+//                            else
+//                            {
+//                                m_log.DebugFormat(
+//                                    "[CLIENT]: Requeueing full update of prim {0} text {1} since we haven't sent its parent {2} yet", 
+//                                    block.ID, text, block.ParentID);
+//                                
+//                                lock (m_primFullUpdates.SyncRoot)
+//                                    m_primFullUpdates.Enqueue(double.MaxValue, block, block.ID);                                
+//                            }
+//                        }
+//                        else
+//                        {
                         m_fullUpdateDataBlocksBuilder.Add(block);
-                        
-//                    string text = Util.FieldToString(outPacket.ObjectData[i].Text);
-//                    if (text.IndexOf("\n") >= 0)
-//                        text = text.Remove(text.IndexOf("\n"));
-//                    m_log.DebugFormat(
-//                        "[CLIENT]: Sending full info about prim {0} text {1} to client {2}", 
-//                        outPacket.ObjectData[i].ID, text, Name);
+//                        }
                     }
 //                    else
 //                    {
@@ -4506,6 +4539,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(SendPrimitiveData data)
         {
+//          if (data.attachment)
+//                m_log.DebugFormat(
+//                    "[LLCLIENTVIEW]: Creating prim update block for {0}, parent {1}, priority {2}", 
+//                    data.localID, data.parentID, data.priority); 
+                                  
             byte[] objectData = new byte[60];
             data.pos.ToBytes(objectData, 0);
             data.vel.ToBytes(objectData, 12);
