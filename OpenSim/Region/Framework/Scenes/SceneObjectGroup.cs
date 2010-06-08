@@ -1519,7 +1519,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
 //            if (IsAttachment)
 //                m_log.DebugFormat(
-//                    "[SOG]: Sending part full update to {0} for {1} {2}", remoteClient.Name, part.Name, part.LocalId);
+//                    "[SOG]: Sending part full update to {0} for {1} {2}", remoteClient.Name, part.Name, part.LocalId);           
             
             if (m_rootPart.UUID == part.UUID)
             {
@@ -2033,7 +2033,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void ScheduleGroupForFullUpdate()
         {
 //            if (IsAttachment)
-//                m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, UUID);
+//                m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, LocalId);
             
             checkAtTargets();
             RootPart.ScheduleFullUpdate();
@@ -2072,7 +2072,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (IsDeleted)
                 return;
 
-//            m_log.DebugFormat("[SOG]: Sending immediate full group update for {0} {1}", Name, UUID);            
+//            m_log.DebugFormat("[SOG]: Sending immediate full group update for {0} {1}", Name, LocalId);            
             
             RootPart.SendFullUpdateToAllClients();
 

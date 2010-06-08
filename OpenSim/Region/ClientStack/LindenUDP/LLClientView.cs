@@ -3517,8 +3517,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //            if (text.IndexOf("\n") >= 0)
 //                text = text.Remove(text.IndexOf("\n"));
 //            m_log.DebugFormat(
-//                "[CLIENT]: Placing request to send full info about prim {0} text {1} to client {2}", 
-//                data.localID, text, Name);
+//                "[CLIENT]: Queueing send full info about prim {0}, attachment {1}, text {2} to client {3}", 
+//                data.localID, data.attachment, text, Name);
             
             if (data.priority == double.NaN)
             {

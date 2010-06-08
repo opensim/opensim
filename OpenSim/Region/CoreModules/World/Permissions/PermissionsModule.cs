@@ -411,18 +411,23 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         // with the powers requested (powers = 0 for no powers check)
         protected bool IsGroupMember(UUID groupID, UUID userID, ulong powers)
         {
-            if (null == m_groupsModule)
-                return false;
-
-            GroupMembershipData gmd = m_groupsModule.GetMembershipData(groupID, userID);
-
-            if (gmd != null)
+            //DateTime t1 = DateTime.Now;
+            bool result = false;
+            
+            if (null != m_groupsModule)
             {
-                if (((gmd.GroupPowers != 0) && powers == 0) || (gmd.GroupPowers & powers) == powers)
-                    return true;
+                GroupMembershipData gmd = m_groupsModule.GetMembershipData(groupID, userID);
+    
+                if (gmd != null)
+                {
+                    if (((gmd.GroupPowers != 0) && powers == 0) || (gmd.GroupPowers & powers) == powers)
+                        result = true;
+                }
             }
+            
+            //m_log.DebugFormat("[PERMISSIONS]: Group member check took {0}", (DateTime.Now - t1).TotalMilliseconds);
 
-            return false;
+            return result;
         }
             
         /// <summary>
