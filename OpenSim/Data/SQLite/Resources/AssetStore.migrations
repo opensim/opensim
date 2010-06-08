@@ -55,7 +55,7 @@ CREATE TABLE assets(
 	Local,
 	Temporary,
 	asset_flags INTEGER NOT NULL DEFAULT 0,
-	CreatorID varchar(36) default '',
+	CreatorID varchar(128) default '',
 	Data);
 	
 INSERT INTO assets(UUID,Name,Description,Type,Local,Temporary,Data) 
@@ -63,4 +63,5 @@ SELECT UUID,Name,Description,Type,Local,Temporary,Data FROM assets_backup;
 DROP TABLE assets_backup;
 
 COMMIT;
+
 
