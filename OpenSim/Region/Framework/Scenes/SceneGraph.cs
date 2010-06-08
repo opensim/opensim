@@ -227,11 +227,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// If true, we won't persist this object until it changes
         /// If false, we'll persist this object immediately
         /// </param>
+        /// <param name="sendClientUpdates">
+        /// If true, we send updates to the client to tell it about this object
+        /// If false, we leave it up to the caller to do this
+        /// </param>
         /// <returns>
         /// true if the object was added, false if an object with the same uuid was already in the scene
         /// </returns>
         protected internal bool AddRestoredSceneObject(
-            SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted)
+            SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted, bool sendClientUpdates)
         {
         	// KF: Check for out-of-region, move inside and make static.
 			Vector3 npos = new Vector3(sceneObject.RootPart.GroupPosition.X,
@@ -263,9 +267,9 @@ namespace OpenSim.Region.Framework.Scenes
                 sceneObject.HasGroupChanged = true;
             }
 
-            return AddSceneObject(sceneObject, attachToBackup, true);
+            return AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
         }
-
+                
         /// <summary>
         /// Add a newly created object to the scene.  This will both update the scene, and send information about the
         /// new object to all clients interested in the scene.

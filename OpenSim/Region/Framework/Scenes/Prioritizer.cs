@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using log4net;
 using Nini.Config;
@@ -32,6 +32,15 @@ namespace OpenSim.Region.Framework.Scenes
     public class Prioritizer
     {
         private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
+        /// <summary>
+        /// This is added to the priority of all child prims, to make sure that the root prim update is sent to the
+        /// viewer before child prim updates.  
+        /// The adjustment is added to child prims and subtracted from root prims, so the gap ends up
+        /// being double.  We do it both ways so that there is a still a priority delta even if the priority is already
+        /// double.MinValue or double.MaxValue.
+        /// </summary>
+        private double m_childPrimAdjustmentFactor = 0.05;
 
         private Scene m_scene;
 
@@ -42,21 +51,50 @@ namespace OpenSim.Region.Framework.Scenes
 
         public double GetUpdatePriority(IClientAPI client, ISceneEntity entity)
         {
+            double priority = 0;
+            
             switch (m_scene.UpdatePrioritizationScheme)
             {
                 case UpdatePrioritizationSchemes.Time:
-                    return GetPriorityByTime();
+                    priority = GetPriorityByTime();
+                    break;
                 case UpdatePrioritizationSchemes.Distance:
-                    return GetPriorityByDistance(client, entity);
+                    priority = GetPriorityByDistance(client, entity);
+                    break;
                 case UpdatePrioritizationSchemes.SimpleAngularDistance:
-                    return GetPriorityByDistance(client, entity); // TODO: Reimplement SimpleAngularDistance
+                    priority = GetPriorityByDistance(client, entity); // TODO: Reimplement SimpleAngularDistance
+                    break;
                 case UpdatePrioritizationSchemes.FrontBack:
-                    return GetPriorityByFrontBack(client, entity);
+                    priority = GetPriorityByFrontBack(client, entity);
+                    break;
                 case UpdatePrioritizationSchemes.BestAvatarResponsiveness:
-                    return GetPriorityByBestAvatarResponsiveness(client, entity);
+                    priority = GetPriorityByBestAvatarResponsiveness(client, entity);
+                    break;
                 default:
                     throw new InvalidOperationException("UpdatePrioritizationScheme not defined.");
+                    break;
             }
+            
+            // Adjust priority so that root prims are sent to the viewer first.  This is especially important for 
+            // attachments acting as huds, since current viewers fail to display hud child prims if their updates
+            // arrive before the root one.
+            if (entity is SceneObjectPart)
+            {
+                SceneObjectPart sop = ((SceneObjectPart)entity);
+                
+                if (sop.IsRoot)
+                {
+                    if (priority >= double.MinValue + m_childPrimAdjustmentFactor)
+                        priority -= m_childPrimAdjustmentFactor;
+                }
+                else
+                {
+                    if (priority <= double.MaxValue - m_childPrimAdjustmentFactor)
+                        priority += m_childPrimAdjustmentFactor;
+                }
+            }
+            
+            return priority;
         }
 
         private double GetPriorityByTime()
