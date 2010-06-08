@@ -723,3 +723,9 @@ BEGIN;
 ALTER TABLE regionsettings ADD map_tile_ID CHAR(36) NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';
 COMMIT;
 
+:VERSION 34         #---------------------
+
+BEGIN;
+ALTER TABLE `regionwindlight`  CHANGE COLUMN `cloud_scroll_x` `cloud_scroll_x` FLOAT(4,2) NOT NULL DEFAULT '0.20' AFTER `cloud_detail_density`,  CHANGE COLUMN `cloud_scroll_y` `cloud_scroll_y` FLOAT(4,2) NOT NULL DEFAULT '0.01' AFTER `cloud_scroll_x_lock`;
+COMMIT;
+
