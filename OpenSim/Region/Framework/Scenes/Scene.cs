@@ -348,6 +348,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_update_backup = 200;
         private int m_update_terrain = 50;
         private int m_update_land = 1;
+        private int m_update_coarse_locations = 50;
 
         private int frameMS;
         private int physicsMS2;
@@ -1416,6 +1417,18 @@ namespace OpenSim.Region.Framework.Scenes
                     // Presence updates and queued object updates for each presence are sent to clients
                     if (m_frame % m_update_presences == 0)
                         m_sceneGraph.UpdatePresences();
+
+                    if (m_frame % m_update_coarse_locations == 0)
+                    {
+                        List<Vector3> coarseLocations;
+                        List<UUID> avatarUUIDs;
+                        SceneGraph.GetCoarseLocations(out coarseLocations, out avatarUUIDs, 60);
+                        // Send coarse locations to clients 
+                        ForEachScenePresence(delegate(ScenePresence presence)
+                        {
+                            presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
+                        });
+                    }
 
                     int tmpPhysicsMS2 = Util.EnvironmentTickCount();
                     if ((m_frame % m_update_physics == 0) && m_physics_enabled)
@@ -3301,9 +3314,6 @@ namespace OpenSim.Region.Framework.Scenes
                         catch (NullReferenceException) { }
                     });
 
-                ForEachScenePresence(
-                    delegate(ScenePresence presence) { presence.CoarseLocationChange(); });
-
                 IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
                 if (agentTransactions != null)
                 {
@@ -3353,14 +3363,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Inform all other ScenePresences on this Scene that someone else has changed position on the minimap.
-        /// </summary>
-        public void NotifyMyCoarseLocationChange()
-        {
-            ForEachScenePresence(delegate(ScenePresence presence) { presence.CoarseLocationChange(); });
         }
 
         #endregion

@@ -65,7 +65,7 @@ namespace OpenSim.Region.Framework.Scenes
         public ScriptControlled eventControls;
     }
 
-    public delegate void SendCourseLocationsMethod(UUID scene, ScenePresence presence);
+    public delegate void SendCourseLocationsMethod(UUID scene, ScenePresence presence, List<Vector3> coarseLocations, List<UUID> avatarUUIDs);
 
     public class ScenePresence : EntityBase, ISceneEntity
     {
@@ -173,8 +173,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public string JID = String.Empty;
 
-        // Agent moves with a PID controller causing a force to be exerted.
-        private bool m_newCoarseLocations = true;
         private float m_health = 100f;
 
         // Default AV Height
@@ -2296,12 +2294,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             SendPrimUpdates();
 
-            if (m_newCoarseLocations)
-            {
-                SendCoarseLocations();
-                m_newCoarseLocations = false;
-            }
-
             if (m_isChildAgent == false)
             {
 //                PhysicsActor actor = m_physicsActor;
@@ -2375,12 +2367,12 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
         }
 
-        public void SendCoarseLocations()
+        public void SendCoarseLocations(List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
         {
             SendCourseLocationsMethod d = m_sendCourseLocationsMethod;
             if (d != null)
             {
-                d.Invoke(m_scene.RegionInfo.originRegionID, this);
+                d.Invoke(m_scene.RegionInfo.originRegionID, this, coarseLocations, avatarUUIDs);
             }
         }
 
@@ -2390,48 +2382,11 @@ namespace OpenSim.Region.Framework.Scenes
                 m_sendCourseLocationsMethod = d;
         }
 
-        public void SendCoarseLocationsDefault(UUID sceneId, ScenePresence p)
+        public void SendCoarseLocationsDefault(UUID sceneId, ScenePresence p, List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
         {
             m_perfMonMS = Util.EnvironmentTickCount();
-
-            List<Vector3> CoarseLocations = new List<Vector3>();
-            List<UUID> AvatarUUIDs = new List<UUID>();
-            m_scene.ForEachScenePresence(delegate(ScenePresence sp)
-            {
-                if (sp.IsChildAgent)
-                    return;
-
-                if (sp.ParentID != 0)
-                {
-                    // sitting avatar
-                    SceneObjectPart sop = m_scene.GetSceneObjectPart(sp.ParentID);
-                    if (sop != null)
-                    {
-                        CoarseLocations.Add(sop.AbsolutePosition + sp.m_pos);
-                        AvatarUUIDs.Add(sp.UUID);
-                    }
-                    else
-                    {
-                        // we can't find the parent..  ! arg!
-                        CoarseLocations.Add(sp.m_pos);
-                        AvatarUUIDs.Add(sp.UUID);
-                    }
-                }
-                else
-                {
-                    CoarseLocations.Add(sp.m_pos);
-                    AvatarUUIDs.Add(sp.UUID);
-                }
-            });
-
-            m_controllingClient.SendCoarseLocationUpdate(AvatarUUIDs, CoarseLocations);
-
+            m_controllingClient.SendCoarseLocationUpdate(avatarUUIDs, coarseLocations);
             m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
-        }
-
-        public void CoarseLocationChange()
-        {
-            m_newCoarseLocations = true;
         }
 
         /// <summary>
@@ -2668,7 +2623,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 posLastSignificantMove = AbsolutePosition;
                 m_scene.EventManager.TriggerSignificantClientMovement(m_controllingClient);
-                m_scene.NotifyMyCoarseLocationChange();
             }
 
             // Minimum Draw distance is 64 meters, the Radius of the draw distance sphere is 32m
