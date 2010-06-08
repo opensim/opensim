@@ -2066,8 +2066,34 @@ namespace OpenSim.Region.Framework.Scenes
             sceneObject.ScheduleGroupForFullUpdate();
 
             return sceneObject;
+        }    
+        
+        /// <summary>
+        /// Add an object into the scene that has come from storage
+        /// </summary>
+        ///
+        /// <param name="sceneObject"></param>
+        /// <param name="attachToBackup">
+        /// If true, changes to the object will be reflected in its persisted data
+        /// If false, the persisted data will not be changed even if the object in the scene is changed
+        /// </param>
+        /// <param name="alreadyPersisted">
+        /// If true, we won't persist this object until it changes
+        /// If false, we'll persist this object immediately
+        /// </param>
+        /// <param name="sendClientUpdates">
+        /// If true, we send updates to the client to tell it about this object
+        /// If false, we leave it up to the caller to do this
+        /// </param>
+        /// <returns>
+        /// true if the object was added, false if an object with the same uuid was already in the scene
+        /// </returns>
+        public bool AddRestoredSceneObject(
+            SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted, bool sendClientUpdates)
+        {
+            return m_sceneGraph.AddRestoredSceneObject(sceneObject, attachToBackup, alreadyPersisted, sendClientUpdates);
         }
-
+        
         /// <summary>
         /// Add an object into the scene that has come from storage
         /// </summary>
@@ -2087,7 +2113,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool AddRestoredSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted)
         {
-            return m_sceneGraph.AddRestoredSceneObject(sceneObject, attachToBackup, alreadyPersisted);
+            return AddRestoredSceneObject(sceneObject, attachToBackup, alreadyPersisted, true);
         }
 
         /// <summary>
@@ -2527,7 +2553,10 @@ namespace OpenSim.Region.Framework.Scenes
                 sceneObject.RootPart.AddFlag(PrimFlags.TemporaryOnRez);
                 sceneObject.RootPart.AddFlag(PrimFlags.Phantom);
 
-                AddRestoredSceneObject(sceneObject, false, false);
+                      
+                // Don't sent a full update here because this will cause full updates to be sent twice for 
+                // attachments on region crossings, resulting in viewer glitches.                
+                AddRestoredSceneObject(sceneObject, false, false, false);
 
                 // Handle attachment special case
                 SceneObjectPart RootPrim = sceneObject.RootPart;
@@ -2554,12 +2583,13 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.DebugFormat(
                         "[ATTACHMENT]: Attach to avatar {0} at position {1}", sp.UUID, grp.AbsolutePosition);
 
+                    RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
+                    
                     if (AttachmentsModule != null)
                         AttachmentsModule.AttachObject(
                             sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition, false);
-                    
-                    RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
-                    grp.SendGroupFullUpdate();
+
+                    //grp.SendGroupFullUpdate();
                 }
                 else
                 {

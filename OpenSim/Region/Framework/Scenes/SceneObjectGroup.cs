@@ -2012,7 +2012,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ScheduleGroupForFullUpdate()
         {
-//            m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, UUID);
+            if (IsAttachment)
+                m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, LocalId);
             
             checkAtTargets();
             RootPart.ScheduleFullUpdate();
