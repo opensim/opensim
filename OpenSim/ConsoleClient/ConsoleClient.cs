@@ -29,6 +29,7 @@ using Nini.Config;
 using log4net;
 using System.Reflection;
 using System;
+using System.IO;
 using System.Xml;
 using System.Collections.Generic;
 using OpenSim.Server.Base;
@@ -73,9 +74,18 @@ namespace OpenSim.ConsoleClient
 
             Requester.MakeRequest("http://"+m_Host+":"+m_Port.ToString()+"/StartSession/", String.Format("USER={0}&PASS={1}", m_User, m_Pass), LoginReply);
 
-            int res = m_Server.Run();
+            string pidFile = serverConfig.GetString("PIDFile", String.Empty);
 
-            Environment.Exit(res);
+            while (m_Server.Running)
+            {
+                System.Threading.Thread.Sleep(500);
+                // MainConsole.Instance.Prompt();
+            }
+
+            if (pidFile != String.Empty)
+                File.Delete(pidFile);
+
+            Environment.Exit(0);
 
             return 0;
         }
@@ -83,13 +93,14 @@ namespace OpenSim.ConsoleClient
         private static void SendCommand(string module, string[] cmd)
         {
             string sendCmd = "";
+            string[] cmdlist = new string[cmd.Length - 1];
+
+            sendCmd = cmd[0];
+
             if (cmd.Length > 1)
             {
-                sendCmd = cmd[0];
-
-                Array.Copy(cmd, 1, cmd, 0, cmd.Length-1);
-                Array.Resize(ref cmd, cmd.Length-1);
-                sendCmd += "\"" + String.Join("\" \"", cmd) + "\"";
+                Array.Copy(cmd, 1, cmdlist, 0, cmd.Length - 1);
+                sendCmd += " \"" + String.Join("\" \"", cmdlist) + "\"";
             }
 
             Requester.MakeRequest("http://"+m_Host+":"+m_Port.ToString()+"/SessionCommand/", String.Format("ID={0}&COMMAND={1}", m_SessionID, sendCmd), CommandReply);
@@ -183,16 +194,27 @@ namespace OpenSim.ConsoleClient
             while (lines.Count > 100)
                 lines.RemoveAt(0);
 
+            string prompt = String.Empty;
+
             foreach (string l in lines)
             {
                 string[] parts = l.Split(new char[] {':'}, 3);
                 if (parts.Length != 3)
                     continue;
                 
-                MainConsole.Instance.Output(parts[2].Trim(), parts[1]);
+                if (parts[2].StartsWith("+++") || parts[2].StartsWith("-++"))
+                    prompt = parts[2];
+                else
+                    MainConsole.Instance.Output(parts[2].Trim(), parts[1]);
             }
 
+
             Requester.MakeRequest(requestUrl, requestData, ReadResponses);
+
+            if (prompt.StartsWith("+++"))
+                MainConsole.Instance.ReadLine(prompt.Substring(3), true, true);
+            else if (prompt.StartsWith("-++"))
+                SendCommand(String.Empty, new string[] { MainConsole.Instance.ReadLine(prompt.Substring(3), false, true) });
         }
 
         public static void CommandReply(string requestUrl, string requestData, string replyData)

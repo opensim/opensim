@@ -236,6 +236,11 @@ namespace OpenSim.Server.Base
             Initialise();
         }
 
+        public bool Running
+        {
+            get { return m_Running; }
+        }
+
         public virtual int Run()
         {
             while (m_Running)
