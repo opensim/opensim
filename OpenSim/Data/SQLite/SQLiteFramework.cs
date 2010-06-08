@@ -31,7 +31,7 @@ using System.Collections.Generic;
 using System.Data;
 using OpenMetaverse;
 using OpenSim.Framework;
-using Mono.Data.SqliteClient;
+using Mono.Data.Sqlite;
 
 namespace OpenSim.Data.SQLite
 {
@@ -65,12 +65,18 @@ namespace OpenSim.Data.SQLite
         
         protected IDataReader ExecuteReader(SqliteCommand cmd)
         {
-            SqliteConnection newConnection =
-                    (SqliteConnection)((ICloneable)m_Connection).Clone();
-            newConnection.Open();
+            lock (m_Connection)
+            {
+                //SqliteConnection newConnection =
+                //        (SqliteConnection)((ICloneable)connection).Clone();
+                //newConnection.Open();
 
-            cmd.Connection = newConnection;
-            return cmd.ExecuteReader();
+                //cmd.Connection = newConnection;
+                cmd.Connection = m_Connection;
+                //Console.WriteLine("XXX " + cmd.CommandText);
+
+                return cmd.ExecuteReader();
+            }
         }
 
         protected void CloseReaderCommand(SqliteCommand cmd)

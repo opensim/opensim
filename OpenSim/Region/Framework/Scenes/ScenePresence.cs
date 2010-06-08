@@ -3873,6 +3873,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private double UpdatePriority(UpdatePriorityData data)
         {
+//          m_log.DebugFormat("[SCENE PRESENCE]: Reprioritizing updates to client {0} for {1}", Name, data.localID);
+			
             EntityBase entity;
             SceneObjectGroup group;
 
