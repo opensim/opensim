@@ -331,6 +331,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </value>
         protected HashSet<uint> m_killRecord;
         
+//        protected HashSet<uint> m_attachmentsSent;        
+        
         private int m_moneyBalance;
         private int m_animationSequenceNumber = 1;
         private bool m_SendLogoutPacketWhenClosing = true;
@@ -427,6 +429,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_entityUpdates = new PriorityQueue(m_scene.Entities.Count);
             m_fullUpdateDataBlocksBuilder = new List<ObjectUpdatePacket.ObjectDataBlock>();
             m_killRecord = new HashSet<uint>();
+//            m_attachmentsSent = new HashSet<uint>();            
 
             m_assetService = m_scene.RequestModuleInterface<IAssetService>();
             m_hyperAssets = m_scene.RequestModuleInterface<IHyperAssetService>();
@@ -3411,6 +3414,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             objupdate.ObjectData[0] = CreateAvatarUpdateBlock(presence);
 
             OutPacket(objupdate, ThrottleOutPacketType.Task);
+            
+            // We need to record the avatar local id since the root prim of an attachment points to this.
+//            m_attachmentsSent.Add(avatar.LocalId);            
         }
 
         public void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations)
@@ -3466,7 +3472,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             double priority = m_prioritizer.GetUpdatePriority(this, entity);
 
             lock (m_entityUpdates.SyncRoot)
-                m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags), entity.LocalId);
+                m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags), entity.LocalId);                  
         }
 
         private void ProcessEntityUpdates(int maxUpdates)
@@ -3542,9 +3548,42 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (!canUseImproved && !canUseCompressed)
                     {
                         if (update.Entity is ScenePresence)
+                        {
                             objectUpdateBlocks.Value.Add(CreateAvatarUpdateBlock((ScenePresence)update.Entity));
+                        }
                         else
-                            objectUpdateBlocks.Value.Add(CreatePrimUpdateBlock((SceneObjectPart)update.Entity, this.m_agentId));
+                        {
+//                            if (update.Entity is SceneObjectPart && ((SceneObjectPart)update.Entity).IsAttachment)
+//                            {
+//                                SceneObjectPart sop = (SceneObjectPart)update.Entity;
+//                                string text = sop.Text;
+//                                if (text.IndexOf("\n") >= 0)
+//                                    text = text.Remove(text.IndexOf("\n"));
+//                                
+//                                if (m_attachmentsSent.Contains(sop.ParentID))
+//                                {
+////                                    m_log.DebugFormat(
+////                                        "[CLIENT]: Sending full info about attached prim {0} text {1}",
+////                                        sop.LocalId, text);
+//                                    
+//                                    objectUpdateBlocks.Value.Add(CreatePrimUpdateBlock(sop, this.m_agentId));
+//                                    
+//                                    m_attachmentsSent.Add(sop.LocalId);
+//                                }
+//                                else
+//                                {
+//                                    m_log.DebugFormat(
+//                                        "[CLIENT]: Requeueing full update of prim {0} text {1} since we haven't sent its parent {2} yet", 
+//                                        sop.LocalId, text, sop.ParentID);
+//                                    
+//                                    m_entityUpdates.Enqueue(double.MaxValue, update, sop.LocalId);                  
+//                                }
+//                            }
+//                            else
+//                            {                            
+                                objectUpdateBlocks.Value.Add(CreatePrimUpdateBlock((SceneObjectPart)update.Entity, this.m_agentId));
+//                            }
+                        }
                     }
                     else if (!canUseImproved)
                     {
