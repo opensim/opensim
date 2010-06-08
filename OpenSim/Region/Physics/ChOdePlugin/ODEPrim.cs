@@ -64,11 +64,16 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Vector3 m_taintVelocity;
         private Vector3 m_taintTorque;
         private Quaternion m_taintrot;
-        private Vector3 m_angularEnable = Vector3.One;				// Current setting
-        private Vector3 m_taintAngularLock = Vector3.One;			// Request from LSL
-        
-        
+        private Vector3 m_rotateEnable = Vector3.One;				// Current setting
+        private Vector3 m_rotateEnableRequest = Vector3.One;			// Request from LSL
+        private bool m_rotateEnableUpdate = false;
+        private Vector3 m_lockX;
+        private Vector3 m_lockY;
+        private Vector3 m_lockZ;
         private IntPtr Amotor = IntPtr.Zero;
+        private IntPtr AmotorX = IntPtr.Zero;
+        private IntPtr AmotorY = IntPtr.Zero;
+        private IntPtr AmotorZ = IntPtr.Zero;
 
         private Vector3 m_PIDTarget;
         private float m_PIDTau;
@@ -729,7 +734,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override float Buoyancy
         {
             get { return m_buoyancy; }
-            set { m_buoyancy = value; }
+//            set { m_buoyancy = value; }
+  set { 
+    m_buoyancy = value; 
+            
+    Console.WriteLine("m_buoyancy={0}", m_buoyancy);       
+  }
         }
 
         public override void link(PhysicsActor obj)
@@ -744,14 +754,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void LockAngularMotion(Vector3 axis)
         {
-            // reverse the zero/non zero values for ODE.
+            // This is actually ROTATION ENABLE, not a lock.
+            // default is <1,1,1> which is all enabled. 
+            // The lock value is updated inside Move(), no point in using the taint system.
+            // OS 'm_taintAngularLock' etc change to m_rotateEnable.
             if (axis.IsFinite())
             {
                 axis.X = (axis.X > 0) ? 1f : 0f;
                 axis.Y = (axis.Y > 0) ? 1f : 0f;
                 axis.Z = (axis.Z > 0) ? 1f : 0f;
                 m_log.DebugFormat("[axislock]: <{0},{1},{2}>", axis.X, axis.Y, axis.Z);
-                m_taintAngularLock = axis;
+                m_rotateEnableRequest = axis;
+                m_rotateEnableUpdate = true;
             }
             else
             {
@@ -1391,10 +1405,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (m_taintCollidesWater != m_collidesWater)
                     changefloatonwater(timestep);
-                    
-                if (!m_angularEnable.ApproxEquals(m_taintAngularLock,0f))
+/* obsolete                    
+                if (!m_angularLock.ApproxEquals(m_taintAngularLock,0f))
                     changeAngularLock(timestep);
- 
+ */
             }
             else
             {
@@ -1402,15 +1416,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-
+/* obsolete
         private void changeAngularLock(float timestep) 
         {
             if (_parent == null)
             {
-                m_angularEnable = m_taintAngularLock;
+                m_angularLock = m_taintAngularLock;
+                m_angularLockSet = true;
             }
         }
-
+ */
         private void changelink(float timestep)
         {
             // If the newly set parent is not null
@@ -2991,7 +3006,7 @@ Console.WriteLine(" JointCreateFixed");
 			if (fence == 1) border_limit = 0.5f;		// bounce point
 
             frcount++;					// used to limit debug comment output
-            if (frcount > 10)
+            if (frcount > 50)
                 frcount = 0;
                 
             if(revcount > 0) revcount--;
@@ -3200,8 +3215,91 @@ Console.WriteLine(" JointCreateFixed");
                 }
                 m_lastposition = l_position;
              
-				/// End UpdatePositionAndVelocity insert         
-            
+				/// End UpdatePositionAndVelocity insert     
+				
+				
+                // Rotation lock  =====================================
+                if(m_rotateEnableUpdate)
+                {   
+                    // Snapshot current angles, set up Amotor(s)
+                    m_rotateEnableUpdate = false;
+                    m_rotateEnable = m_rotateEnableRequest;
+Console.WriteLine("RotEnable {0} = {1}",m_primName,  m_rotateEnable);
+
+                    if (Amotor != IntPtr.Zero)
+                    {
+                        d.JointDestroy(Amotor);
+                        Amotor = IntPtr.Zero;
+Console.WriteLine("Old Amotor Destroyed");                        
+                    }
+                    
+                    if (!m_rotateEnable.ApproxEquals(Vector3.One, 0.003f))
+                    {   // not all are enabled
+                        d.Quaternion r = d.BodyGetQuaternion(Body);
+                        Quaternion locrot = new Quaternion(r.X, r.Y, r.Z, r.W);
+                        // extract the axes vectors
+                        Vector3 vX = new Vector3(1f,0f,0f);
+                        Vector3 vY = new Vector3(0f,1f,0f);
+                        Vector3 vZ = new Vector3(0f,0f,1f);
+                        vX = vX * locrot;    
+                        vY = vY * locrot;
+                        vZ = vZ * locrot;
+                        // snapshot the current angle vectors
+                        m_lockX = vX;
+                        m_lockY = vY;
+                        m_lockZ = vZ;
+             //           m_lockRot = locrot;
+                        Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
+                        d.JointAttach(Amotor, Body, IntPtr.Zero);
+                        d.JointSetAMotorMode(Amotor, 0);  // User mode??
+Console.WriteLine("New Amotor Created for {0}", m_primName);                   
+                    
+                        float axisnum = 3;  // how many to lock
+                        axisnum = (axisnum - (m_rotateEnable.X + m_rotateEnable.Y + m_rotateEnable.Z));
+                        d.JointSetAMotorNumAxes(Amotor,(int)axisnum);
+Console.WriteLine("AxisNum={0}",(int)axisnum);                       
+
+                        int i = 0;
+
+                        if (m_rotateEnable.X == 0)
+                        {
+                            d.JointSetAMotorAxis(Amotor, i, 0, m_lockX.X, m_lockX.Y, m_lockX.Z);
+Console.WriteLine("AxisX {0} set to {1}", i,  m_lockX);                           
+                            i++;
+                        }
+
+                        if (m_rotateEnable.Y == 0)
+                        {
+                            d.JointSetAMotorAxis(Amotor, i, 0, m_lockY.X, m_lockY.Y, m_lockY.Z);
+Console.WriteLine("AxisY {0} set to {1}", i,  m_lockY);                           
+                            i++;
+                        }
+
+                        if (m_rotateEnable.Z == 0)
+                        {
+                            d.JointSetAMotorAxis(Amotor, i, 0, m_lockZ.X, m_lockZ.Y, m_lockZ.Z);
+Console.WriteLine("AxisZ {0} set to {1}", i,  m_lockZ);                           
+                            i++;
+                        }
+
+                        // These lowstops and high stops are effectively (no wiggle room)
+                        d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, 0f);
+                        d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, 0f);
+                        d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, 0f);
+                        d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0f);
+                        d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0f);
+                        d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0f);
+                        d.JointSetAMotorParam(Amotor, (int) dParam.Vel, 0f);
+                        d.JointSetAMotorParam(Amotor, (int) dParam.Vel3, 0f);
+                        d.JointSetAMotorParam(Amotor, (int) dParam.Vel2, 0f);
+                        d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM, 0f);
+                        d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM3, 0f);
+                        d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM2, 0f);
+                    } // else none are locked
+                } // end Rotation Update  
+                
+                
+                // VEHICLE processing ==========================================            
             	if (m_type != Vehicle.TYPE_NONE)
             	{
             		// get body attitude
@@ -3420,7 +3518,7 @@ Console.WriteLine(" JointCreateFixed");
 //if(frcount == 0) Console.WriteLine("V3 = {0}", angObjectVel);        	
 			
 	
-					// Rotation Axis Disables:
+		/*			// Rotation Axis Disables:
 				    if (!m_angularEnable.ApproxEquals(Vector3.One, 0.003f))
 			        {
 		                if (m_angularEnable.X == 0)
@@ -3430,7 +3528,7 @@ Console.WriteLine(" JointCreateFixed");
 			            if (m_angularEnable.Z == 0)
 			            	angObjectVel.Z = 0f;
 			        }        
-			        
+			*/        
 					angObjectVel = angObjectVel * rotq; // ================ Converts to WORLD rotation
 					
 		            // Vertical attractor section
@@ -3500,35 +3598,58 @@ Console.WriteLine(" JointCreateFixed");
             	}  // end VEHICLES
             	else
             	{
+            		// Dyamics (NON-'VEHICLES') are dealt with here ================================================================	                
+            		
             		if(!d.BodyIsEnabled (Body))  d.BodyEnable (Body); // KF add 161009
-            		// NON-'VEHICLES' are dealt with here
-					/// Dynamics Angular Lock ========================================================================
-	                if (d.BodyIsEnabled(Body) && !m_angularEnable.ApproxEquals(Vector3.One, 0.003f))
-	                {
-	                    d.Vector3 avel2 = d.BodyGetAngularVel(Body);
-	                    if (m_angularEnable.X == 0)
-	                        avel2.X = 0;
-	                    if (m_angularEnable.Y == 0)
-	                        avel2.Y = 0;
-	                    if (m_angularEnable.Z == 0)
-	                        avel2.Z = 0;
-	                    d.BodySetAngularVel(Body, avel2.X, avel2.Y, avel2.Z);
-	                }
-
-
-					/// Dynamics Buoyancy ===============================================================================	                
+            		
+					/// Dynamics Buoyancy
 	                //KF: m_buoyancy is set by llSetBuoyancy() and is for non-vehicle.
 	                // m_buoyancy: (unlimited value) <0=Falls fast; 0=1g; 1=0g; >1 = floats up 
 	                // NB Prims in ODE are no subject to global gravity
+	                // This should only affect gravity operations 
+	                
 	                float m_mass = CalculateMass();
+	                // calculate z-force due togravity on object.
 	                fz = _parent_scene.gravityz * (1.0f - m_buoyancy) * m_mass; // force = acceleration * mass
 
-	                if (m_usePID)
+	                if ((m_usePID) && (m_PIDTau > 0.0f))  // Dynamics  llMoveToTarget.
 	                {
-//if(frcount == 0) Console.WriteLine("PID " +  m_primName);           	
-                    	// KF - this is for object MoveToTarget.
-                    	
-	                    //if (!d.BodyIsEnabled(Body))
+	                    fz = 0;     // llMoveToTarget ignores gravity.
+	                                // it also ignores mass of object, and any physical resting on it.
+	                                // Vector3 m_PIDTarget is where we are going
+                                    // float m_PIDTau is time to get there
+                        fx = 0;
+                        fy = 0;                                    
+	                    d.Vector3 pos = d.BodyGetPosition(Body);
+	                    Vector3 error = new Vector3(
+	                            (m_PIDTarget.X - pos.X),
+	                            (m_PIDTarget.Y - pos.Y),
+	                            (m_PIDTarget.Z - pos.Z));
+	                    if (error.ApproxEquals(Vector3.Zero,0.01f))
+	                    {   // Very close, Jump there and quit move
+	                        d.BodySetPosition(Body, m_PIDTarget.X, m_PIDTarget.Y, m_PIDTarget.Z);
+	                        _target_velocity = Vector3.Zero;
+                            d.BodySetLinearVel(Body, _target_velocity.X, _target_velocity.Y, _target_velocity.Z);
+	                    }
+	                    else 
+	                    {
+    	                    float scale =  50.0f * timestep / m_PIDTau;
+     	                    if ((error.ApproxEquals(Vector3.Zero,0.5f)) && (_target_velocity != Vector3.Zero))
+     	                    {
+	                            // Nearby, quit update of velocity
+	                        }
+	                        else
+	                        {  // Far, calc damped velocity
+	                            _target_velocity = error * scale;
+	                        }
+                            d.BodySetLinearVel(Body, _target_velocity.X, _target_velocity.Y, _target_velocity.Z);	                            
+                        }
+	                } // end PID MoveToTarget
+	                
+    /* Original OS implementation: Does not work correctly as another phys object resting on THIS object purturbs its position.
+       This is incorrect behavior. llMoveToTarget must move the Body no matter what phys object is resting on it.	                
+       
+                    	//if (!d.BodyIsEnabled(Body))
 	                    //d.BodySetForce(Body, 0f, 0f, 0f);
 
 	                    //  no lock; for now it's only called from within Simulate()
@@ -3559,6 +3680,7 @@ Console.WriteLine(" JointCreateFixed");
 	                            (m_PIDTarget.Z - pos.Z) * ((PID_G - m_PIDTau) * timestep)
 	                            );
 
+if(frcount == 0) Console.WriteLine("PID {0}  b={1}  fz={2}  vel={3}", m_primName, m_buoyancy, fz, _target_velocity);           	
 	                    //  if velocity is zero, use position control; otherwise, velocity control
 
 	                    if (_target_velocity.ApproxEquals(Vector3.Zero,0.1f))
@@ -3591,9 +3713,11 @@ Console.WriteLine(" JointCreateFixed");
 	                        fz = fz + ((_target_velocity.Z - vel.Z) * (PID_D) * m_mass);
 	                    }
 	                }		// end if (m_usePID)
-	                
+ End of old PID  system */
+ 
+ 	                
 	                /// Dynamics Hover ===================================================================================
-	                // Hover PID Controller needs to be mutually exlusive to MoveTo PID controller
+	                // Hover PID Controller can only run if the PIDcontroller is not in use.
 	                if (m_useHoverPID && !m_usePID)
 	                {
 //Console.WriteLine("Hover " +  m_primName);           	
@@ -3709,14 +3833,14 @@ Console.WriteLine(" JointCreateFixed");
     //	                    d.BodyAddRelTorque(Body, rotforce.X, rotforce.Y, rotforce.Z);
     	                    RLAservo = timestep / m_APIDStrength * scaler;
     	                    rotforce = rotforce * RLAservo * diff_angle ;
-    	                    
+    	             /*       
 		                    if (m_angularEnable.X == 0)
 		                        rotforce.X = 0;
 		                    if (m_angularEnable.Y == 0)
 		                        rotforce.Y = 0;
 		                    if (m_angularEnable.Z == 0)
 		                        rotforce.Z = 0;
-    	                    
+    	               */     
 							d.BodySetAngularVel (Body,  rotforce.X, rotforce.Y, rotforce.Z);
 //Console.WriteLine("axis= " + diff_axis + "    angle= " + diff_angle + "servo= " + RLAservo);							
 						}
@@ -3763,11 +3887,12 @@ Console.WriteLine(" JointCreateFixed");
     	                    fy = nmin;
     	                d.BodyAddForce(Body, fx, fy, fz);
 //Console.WriteLine("AddForce " + fx + "," + fy + "," + fz);    	                
-    	            }
-				}		
-            }
-            else
-            {	// is not physical, or is not a body or is selected
+    	            }  // end apply forces
+				} // end Dynamics
+				
+/* obsolete?				
+                else
+                {	// is not physical, or is not a body or is selected
                      // from old UpdatePositionAndVelocity, ... Not a body..   so Make sure the client isn't interpolating
                     _velocity.X = 0;
                     _velocity.Y = 0;
@@ -3781,8 +3906,11 @@ Console.WriteLine(" JointCreateFixed");
                     m_rotationalVelocity.Y = 0;
                     m_rotationalVelocity.Z = 0;
                     _zeroFlag = true;
-               return;
-			}   
-        }  // end Move()
+                   return;
+	    		}   
+ */	    		
+            } // end root prims
+            
+       }  // end Move()
 	} // end class
 }
