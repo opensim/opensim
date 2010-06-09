@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
@@ -71,30 +72,37 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, bool silent)
         {
             m_log.Debug("[ATTACHMENTS MODULE]: Invoking AttachObject");
-            
-            // If we can't take it, we can't attach it!
-            SceneObjectPart part = m_scene.GetSceneObjectPart(objectLocalID);
-            if (part == null)
-                return;
 
-            if (!m_scene.Permissions.CanTakeObject(part.UUID, remoteClient.AgentId))
-                return;
-
-            // Calls attach with a Zero position
-            if (AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero, false))
+            try
             {
-                m_scene.EventManager.TriggerOnAttach(objectLocalID, part.ParentGroup.GetFromItemID(), remoteClient.AgentId);
-    
-                // Save avatar attachment information
-                ScenePresence presence;
-                if (m_scene.AvatarFactory != null && m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
+                // If we can't take it, we can't attach it!
+                SceneObjectPart part = m_scene.GetSceneObjectPart(objectLocalID);
+                if (part == null)
+                    return;
+
+                if (!m_scene.Permissions.CanTakeObject(part.UUID, remoteClient.AgentId))
+                    return;
+
+                // Calls attach with a Zero position
+                if (AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero, false))
                 {
-                    m_log.Info(
-                        "[ATTACHMENTS MODULE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId 
-                            + ", AttachmentPoint: " + AttachmentPt);
-                    
-                    m_scene.AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+                    m_scene.EventManager.TriggerOnAttach(objectLocalID, part.ParentGroup.GetFromItemID(), remoteClient.AgentId);
+
+                    // Save avatar attachment information
+                    ScenePresence presence;
+                    if (m_scene.AvatarFactory != null && m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
+                    {
+                        m_log.Info(
+                            "[ATTACHMENTS MODULE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId
+                                + ", AttachmentPoint: " + AttachmentPt);
+
+                        m_scene.AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[ATTACHMENTS MODULE]: exception upon Attach Object {0}", e);
             }
         }
         
@@ -379,7 +387,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 uuids.Add(inventoryID);
                 m_scene.InventoryService.DeleteItems(remoteClient.AgentId, uuids);
                 remoteClient.SendRemoveInventoryItem(inventoryID);
-        }
+            }
 
             m_scene.EventManager.TriggerOnAttach(part.ParentGroup.LocalId, itemID, UUID.Zero);
         }
