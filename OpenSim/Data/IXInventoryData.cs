@@ -51,7 +51,7 @@ namespace OpenSim.Data
         public int inventoryNextPermissions;
         public int inventoryCurrentPermissions;
         public int invType;
-        public UUID creatorID;
+        public string creatorID;
         public int inventoryBasePermissions;
         public int inventoryEveryOnePermissions;
         public int salePrice;

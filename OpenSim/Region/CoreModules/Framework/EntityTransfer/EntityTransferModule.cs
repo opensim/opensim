@@ -865,9 +865,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 CrossAttachmentsIntoNewRegion(neighbourRegion, agent, true);
 
-                //                    m_scene.SendKillObject(m_localId);
-
-                agent.Scene.NotifyMyCoarseLocationChange();
                 // the user may change their profile information in other region,
                 // so the userinfo in UserProfileCache is not reliable any more, delete it
                 // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!

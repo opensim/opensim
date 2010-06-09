@@ -206,6 +206,43 @@ namespace OpenSim.Region.Framework.Scenes
             });
         }
 
+        public void GetCoarseLocations(out List<Vector3> coarseLocations, out List<UUID> avatarUUIDs, uint maxLocations)
+        {
+            coarseLocations = new List<Vector3>();
+            avatarUUIDs = new List<UUID>();
+
+            List<ScenePresence> presences = GetScenePresences();
+            for (int i = 0; i < Math.Min(presences.Count, maxLocations); ++i)
+            {
+                ScenePresence sp = presences[i];
+                // If this presence is a child agent, we don't want its coarse locations
+                if (sp.IsChildAgent)
+                    return;
+
+                if (sp.ParentID != 0)
+                {
+                    // sitting avatar
+                    SceneObjectPart sop = m_parentScene.GetSceneObjectPart(sp.ParentID);
+                    if (sop != null)
+                    {
+                        coarseLocations.Add(sop.AbsolutePosition + sp.AbsolutePosition);
+                        avatarUUIDs.Add(sp.UUID);
+                    }
+                    else
+                    {
+                        // we can't find the parent..  ! arg!
+                        coarseLocations.Add(sp.AbsolutePosition);
+                        avatarUUIDs.Add(sp.UUID);
+                    }
+                }
+                else
+                {
+                    coarseLocations.Add(sp.AbsolutePosition);
+                    avatarUUIDs.Add(sp.UUID);
+                }
+            }
+        }
+
         #endregion
 
         #region Entity Methods

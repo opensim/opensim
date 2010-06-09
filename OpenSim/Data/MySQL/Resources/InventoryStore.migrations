@@ -91,3 +91,11 @@ update inventoryitems set creatorID = '00000000-0000-0000-0000-000000000000' whe
 alter table inventoryitems modify column creatorID varchar(36) not NULL default '00000000-0000-0000-0000-000000000000';
 
 COMMIT;
+
+:VERSION 5		# ------------
+
+BEGIN;
+
+alter table inventoryitems modify column creatorID varchar(128) not NULL default '00000000-0000-0000-0000-000000000000';
+
+COMMIT;
