@@ -210,7 +210,10 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         PhysicsActor physActor = ((SceneObjectPart)entity).ParentGroup.RootPart.PhysActor;
                         if (physActor == null || !physActor.IsPhysical)
-                            priority+=100;
+                            priority += 100;
+
+                        if (((SceneObjectPart)entity).ParentGroup.RootPart.IsAttachment)
+                            priority = 1.0;
                     }
                     return priority;
                 }
