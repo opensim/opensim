@@ -375,16 +375,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 }
                 part.ParentGroup.DetachToGround();
 
-                // If the item is no-copy we need to delete it from inventory
-                InventoryItemBase item = m_scene.InventoryService.GetItem(new InventoryItemBase(itemID));
-                if (item != null && (item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                {
-                    List<UUID> uuids = new List<UUID>();
-                    uuids.Add(inventoryID);
-                    m_scene.InventoryService.DeleteItems(remoteClient.AgentId, uuids);
-                    remoteClient.SendRemoveInventoryItem(inventoryID);
-                }
-            }
+                List<UUID> uuids = new List<UUID>();
+                uuids.Add(inventoryID);
+                m_scene.InventoryService.DeleteItems(remoteClient.AgentId, uuids);
+                remoteClient.SendRemoveInventoryItem(inventoryID);
+        }
 
             m_scene.EventManager.TriggerOnAttach(part.ParentGroup.LocalId, itemID, UUID.Zero);
         }
