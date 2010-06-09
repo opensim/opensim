@@ -1755,7 +1755,11 @@ namespace OpenSim.Region.Framework.Scenes
                 item.AssetType = asset.Type;
                 item.InvType = (int)InventoryType.Object;
 
-                item.Folder = UUID.Zero; // Objects folder!
+                InventoryFolderBase folder = InventoryService.GetFolderForType(remoteClient.AgentId, AssetType.Object);
+                if (folder != null)
+                    item.Folder = folder.ID;
+                else // oopsies
+                    item.Folder = UUID.Zero;
 
                 if ((remoteClient.AgentId != grp.RootPart.OwnerID) && Permissions.PropagatePermissions())
                 {

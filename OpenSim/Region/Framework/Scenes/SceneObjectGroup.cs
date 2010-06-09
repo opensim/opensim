@@ -1206,6 +1206,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             detachedpos = avatar.AbsolutePosition;
+            RootPart.FromItemID = UUID.Zero;
 
             AbsolutePosition = detachedpos;
             m_rootPart.AttachedAvatar = UUID.Zero;
