@@ -719,6 +719,7 @@ COMMIT;
 
 :VERSION 32
 
+BEGIN;
 CREATE TABLE `regionwindlight` (
   `region_id` varchar(36) NOT NULL DEFAULT '000000-0000-0000-0000-000000000000',
   `water_color_r` float(9,6) unsigned NOT NULL DEFAULT '4.000000',
