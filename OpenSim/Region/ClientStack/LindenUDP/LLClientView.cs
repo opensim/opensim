@@ -3426,7 +3426,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             CoarseLocationUpdatePacket loc = (CoarseLocationUpdatePacket)PacketPool.Instance.GetPacket(PacketType.CoarseLocationUpdate);
             loc.Header.Reliable = false;
 
-            // Each packet can only hold around 62 avatar positions and the client clears the mini-map each time
+            // Each packet can only hold around 60 avatar positions and the client clears the mini-map each time
             // a CoarseLocationUpdate packet is received. Oh well.
             int total = Math.Min(CoarseLocations.Count, 60);
 

@@ -125,6 +125,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         private ScriptCompileQueue m_CompileQueue = new ScriptCompileQueue();
         IWorkItemResult m_CurrentCompile = null;
+        private Dictionary<UUID, int> m_CompileDict = new Dictionary<UUID, int>();
 
         private void lockScriptsForRead(bool locked)
         {
@@ -560,6 +561,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             else
             {
                 m_CompileQueue.Enqueue(parms);
+                lock (m_CompileDict)
+                {
+                    m_CompileDict[itemID] = 0;
+                }
 
                 if (m_CurrentCompile == null)
                 {
@@ -621,6 +626,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             int startParam = (int)p[3];
             bool postOnRez = (bool)p[4];
             StateSource stateSource = (StateSource)p[5];
+
+            lock(m_CompileDict)
+            {
+                if (!m_CompileDict.ContainsKey(itemID))
+                    return false;
+                m_CompileDict.Remove(itemID);
+            }
 
             // Get the asset ID of the script, so we can check if we
             // already have it.
@@ -868,6 +880,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void OnRemoveScript(uint localID, UUID itemID)
         {
+            // If it's not yet been compiled, make sure we don't try
+            lock (m_CompileDict)
+            {
+                if (m_CompileDict.ContainsKey(itemID))
+                    m_CompileDict.Remove(itemID);
+            }
+
             lockScriptsForRead(true);
             // Do we even have it?
             if (!m_Scripts.ContainsKey(itemID))

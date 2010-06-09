@@ -95,6 +95,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     try
                     {
                         asset1.ID = url + "/" + asset.ID;
+                        UUID temp = UUID.Zero;
+                        // TODO: if the creator is local, stick this grid's URL in front
+                        //if (UUID.TryParse(asset.Metadata.CreatorID, out temp))
+                        //    asset1.Metadata.CreatorID = ??? + "/" + asset.Metadata.CreatorID;
                     }
                     catch
                     {

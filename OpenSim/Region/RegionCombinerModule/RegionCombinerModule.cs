@@ -614,7 +614,9 @@ namespace OpenSim.Region.RegionCombinerModule
             presence.SetSendCourseLocationMethod(SendCourseLocationUpdates);
         }
 
-        private void SendCourseLocationUpdates(UUID sceneId, ScenePresence presence)
+        // This delegate was refactored for non-combined regions.
+        // This combined region version will not use the pre-compiled lists of locations and ids
+        private void SendCourseLocationUpdates(UUID sceneId, ScenePresence presence, List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
         {
             RegionConnections connectiondata = null; 
             lock (m_regions)
