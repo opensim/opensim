@@ -203,7 +203,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Update item with new asset
             item.AssetID = asset.FullID;
             if (group.UpdateInventoryItem(item))
-                remoteClient.SendAgentAlertMessage("Notecard saved", false);                        
+                remoteClient.SendAgentAlertMessage("Script saved", false);                        
             
             part.GetProperties(remoteClient);
 

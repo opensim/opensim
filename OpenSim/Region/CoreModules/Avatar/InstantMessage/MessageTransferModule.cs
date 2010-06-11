@@ -268,6 +268,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
                     fromAgentName = (string)requestData["from_agent_name"];
                     message = (string)requestData["message"];
+                    if (message == null)
+                        message = string.Empty;
 
                     // Bytes don't transfer well over XMLRPC, so, we Base64 Encode them.
                     string requestData1 = (string)requestData["dialog"];
