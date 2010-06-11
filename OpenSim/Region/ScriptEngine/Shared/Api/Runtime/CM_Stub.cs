@@ -58,19 +58,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_CM_Functions = (ICM_Api)api;
         }
 
+        public LSL_List lsGetWindlightScene(LSL_List rules)
+        {
+            return m_CM_Functions.lsGetWindlightScene(rules);
+        }
+
+        public int lsSetWindlightScene(LSL_List rules)
+        {
+            return m_CM_Functions.lsSetWindlightScene(rules);
+        }
+
+        public int lsSetWindlightSceneTargeted(LSL_List rules, key target)
+        {
+            return m_CM_Functions.lsSetWindlightSceneTargeted(rules, target);
+        }
+
         public LSL_List cmGetWindlightScene(LSL_List rules)
         {
-            return m_CM_Functions.cmGetWindlightScene(rules);
+            return m_CM_Functions.lsGetWindlightScene(rules);
         }
 
         public int cmSetWindlightScene(LSL_List rules)
         {
-            return m_CM_Functions.cmSetWindlightScene(rules);
+            return m_CM_Functions.lsSetWindlightScene(rules);
         }
 
         public int cmSetWindlightSceneTargeted(LSL_List rules, key target)
         {
-            return m_CM_Functions.cmSetWindlightSceneTargeted(rules, target);
+            return m_CM_Functions.lsSetWindlightSceneTargeted(rules, target);
         }
     }
 }
