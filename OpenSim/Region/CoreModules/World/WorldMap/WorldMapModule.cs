@@ -1002,33 +1002,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         public void RegenerateMaptile(byte[] data)
         {
-            // Overwrites the local Asset cache with new maptile data
-            // Assets are single write, this causes the asset server to ignore this update,
-            // but the local asset cache does not
-
-            // this is on purpose!  The net result of this is the region always has the most up to date
-            // map tile while protecting the (grid) asset database from bloat caused by a new asset each
-            // time a mapimage is generated!
-
             UUID lastMapRegionUUID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
-
-            int lastMapRefresh = 0;
-            int twoDays = 172800;
-//            int RefreshSeconds = twoDays;
-
-            try
-            {
-                lastMapRefresh = Convert.ToInt32(m_scene.RegionInfo.lastMapRefresh);
-            }
-            catch (ArgumentException)
-            {
-            }
-            catch (FormatException)
-            {
-            }
-            catch (OverflowException)
-            {
-            }
 
             m_log.Debug("[MAPTILE]: STORING MAPTILE IMAGE");
 
@@ -1036,7 +1010,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             AssetBase asset = new AssetBase(
                 m_scene.RegionInfo.RegionSettings.TerrainImageID,
-                "terrainImage_" + m_scene.RegionInfo.RegionID.ToString() + "_" + lastMapRefresh.ToString(),
+                "terrainImage_" + m_scene.RegionInfo.RegionID.ToString(),
                 (sbyte)AssetType.Texture,
                 m_scene.RegionInfo.RegionID.ToString());
             asset.Data = data;
