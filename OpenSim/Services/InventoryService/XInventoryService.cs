@@ -368,11 +368,6 @@ namespace OpenSim.Services.InventoryService
 
             return ConvertToOpenSim(items[0]);
         }
-        
-        public virtual InventoryFolderBase GetFolder(UUID folderId, UUID userId) 
-        { 
-            return GetFolder(new InventoryFolderBase(folderId, userId));
-        }
 
         public virtual InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
