@@ -3457,11 +3457,27 @@ namespace OpenSim.Region.Framework.Scenes
                 agent.AgentID, agent.circuitcode, teleportFlags);
 
             reason = String.Empty;
-            if (!VerifyUserPresence(agent, out reason))
+            try
+            {
+                if (!VerifyUserPresence(agent, out reason))
+                    return false;
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[CONNECTION BEGIN]: Exception verifying presence {0}", e.Message);
                 return false;
+            }
 
-            if (!AuthorizeUser(agent, out reason))
+            try
+            {
+                if (!AuthorizeUser(agent, out reason))
+                    return false;
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[CONNECTION BEGIN]: Exception authorizing user {0}", e.Message);
                 return false;
+            }
 
             m_log.InfoFormat(
                 "[CONNECTION BEGIN]: Region {0} authenticated and authorized incoming {1} agent {2} {3} {4} (circuit code {5})",
@@ -3665,14 +3681,19 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
+            if (m_regInfo.EstateSettings != null)
             {
-                m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
-                                 agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
-                reason = String.Format("Denied access to region {0}: You have been banned from that region.",
-                                       RegionInfo.RegionName);
-                return false;
+                if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
+                {
+                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
+                                     agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
+                    reason = String.Format("Denied access to region {0}: You have been banned from that region.",
+                                           RegionInfo.RegionName);
+                    return false;
+                }
             }
+            else
+                m_log.ErrorFormat("[CONNECTION BEGIN]: Estate Settings is null!");
 
             IGroupsModule groupsModule =
                     RequestModuleInterface<IGroupsModule>();
@@ -3684,21 +3705,31 @@ namespace OpenSim.Region.Framework.Scenes
                 GroupMembershipData[] GroupMembership =
                         groupsModule.GetMembershipData(agent.AgentID);
 
-                for (int i = 0; i < GroupMembership.Length; i++)
-                    agentGroups.Add(GroupMembership[i].GroupID);
+                if (GroupMembership != null)
+                {
+                    for (int i = 0; i < GroupMembership.Length; i++)
+                        agentGroups.Add(GroupMembership[i].GroupID);
+                }
+                else
+                    m_log.ErrorFormat("[CONNECTION BEGIN]: GroupMembership is null!");
             }
 
             bool groupAccess = false;
             UUID[] estateGroups = m_regInfo.EstateSettings.EstateGroups;
 
-            foreach (UUID group in estateGroups)
+            if (estateGroups != null)
             {
-                if (agentGroups.Contains(group))
+                foreach (UUID group in estateGroups)
                 {
-                    groupAccess = true;
-                    break;
+                    if (agentGroups.Contains(group))
+                    {
+                        groupAccess = true;
+                        break;
+                    }
                 }
             }
+            else
+                m_log.ErrorFormat("[CONNECTION BEGIN]: EstateGroups is null!");
 
             if (!m_regInfo.EstateSettings.PublicAccess &&
                 !m_regInfo.EstateSettings.HasAccess(agent.AgentID) &&
