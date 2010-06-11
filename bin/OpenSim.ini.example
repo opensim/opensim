@@ -939,8 +939,8 @@
     ; Allow the use of os* functions (some are dangerous)
     AllowOSFunctions = false
     
-    ; Allow the user of Careminster functions
-    AllowCareminsterFunctions = false
+    ; Allow the user of LightShare functions
+    AllowLightShareFunctions = false
 
     ; Threat level to allow, one of None, VeryLow, Low, Moderate, High, VeryHigh, Severe
     OSFunctionThreatLevel = VeryLow
