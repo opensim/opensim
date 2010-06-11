@@ -414,6 +414,16 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             //DateTime t1 = DateTime.Now;
             bool result = false;
             
+            ScenePresence sp = m_scene.GetScenePresence(userID);
+            if (sp != null)
+            {
+                IClientAPI client = sp.ControllingClient;
+                
+                result = ((groupID == client.ActiveGroupId) && (client.ActiveGroupPowers != 0) &&
+                    ((powers == 0) || ((client.ActiveGroupPowers & powers) == powers)));
+            }
+                
+            /*
             if (null != m_groupsModule)
             {
                 GroupMembershipData gmd = m_groupsModule.GetMembershipData(groupID, userID);
@@ -424,6 +434,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                         result = true;
                 }
             }
+            */
             
             //m_log.DebugFormat("[PERMISSIONS]: Group member check took {0}", (DateTime.Now - t1).TotalMilliseconds);
 
