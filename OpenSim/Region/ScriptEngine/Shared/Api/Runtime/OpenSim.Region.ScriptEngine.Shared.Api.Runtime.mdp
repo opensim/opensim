@@ -18,10 +18,10 @@
   </DeploymentInformation>
   <Contents>
     <File name="./CM_Constants.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
+    <File name="./CM_Stub.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./Executor.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./LSL_Constants.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./LSL_Stub.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
-    <File name="./LS_Stub.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./MOD_Stub.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./OSSL_Stub.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./ScriptBase.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
