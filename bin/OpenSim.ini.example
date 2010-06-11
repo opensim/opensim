@@ -1291,11 +1291,10 @@
     Enabled = false
 
     ; This is the current groups stub in Region.CoreModules.Avatar.Groups.  All the other settings below only really
-    ; apply to the Flotsam/SimianGrid GroupsModule
+    ; apply to the Flotsam GroupsModule
     Module  = Default
 
     ; This module can use a PHP XmlRpc server from the Flotsam project at http://code.google.com/p/flotsam/
-    ; or from the SimianGrid project at http://code.google.com/p/openmetaverse
     ;Module  = GroupsModule
 
     ; Enable Group Notices
@@ -1308,13 +1307,7 @@
     ;MessagingModule = GroupsMessagingModule
     ;MessagingEnabled = true 
 
-    ; Service connectors to the Groups Service.  Select one depending on whether you're using a Flotsam XmlRpc backend or a SimianGrid backend
-  
-    ; SimianGrid Service for Groups
-    ;ServicesConnectorModule = SimianGroupsServicesConnector
-    ;GroupsServerURI = http://mygridserver.com:82/Grid/
-
-    ; Flotsam XmlRpc Service for Groups
+    ; Flotsam XmlRpc Service for Groups.  Uncomment these settings and change accordingly if you are using this backend groups service
     ;ServicesConnectorModule = XmlRpcGroupsServicesConnector
     ;GroupsServerURI        = http://yourxmlrpcserver.com/xmlrpc.php
 
@@ -1410,4 +1403,4 @@
     ; to use to send XMLRPC requests to that script
 
     ;XmlRpcRouterModule = "XmlRpcRouterModule"
-    ;XmlRpcPort = 20800
+    oXmlRpcPort = 20800
