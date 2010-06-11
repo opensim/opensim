@@ -687,5 +687,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osSetPrimitiveParams(prim, rules);
         }
+
+        public LSL_List osGetAvatarList()
+        {
+            return m_OSSL_Functions.osGetAvatarList();
+        }
     }
 }
