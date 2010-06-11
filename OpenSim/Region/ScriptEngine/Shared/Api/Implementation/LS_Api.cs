@@ -54,13 +54,13 @@ using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
     [Serializable]
-    public class CM_Api : MarshalByRefObject, ICM_Api, IScriptApi
+    public class LS_Api : MarshalByRefObject, ILS_Api, IScriptApi
     {
         internal IScriptEngine m_ScriptEngine;
         internal SceneObjectPart m_host;
         internal uint m_localID;
         internal UUID m_itemID;
-        internal bool m_CMFunctionsEnabled = false;
+        internal bool m_LSFunctionsEnabled = false;
         internal IScriptModuleComms m_comms = null;
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
@@ -71,11 +71,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_itemID = itemID;
 
             if (m_ScriptEngine.Config.GetBoolean("AllowLightShareFunctions", false))
-                m_CMFunctionsEnabled = true;
+                m_LSFunctionsEnabled = true;
 
             m_comms = m_ScriptEngine.World.RequestModuleInterface<IScriptModuleComms>();
             if (m_comms == null)
-                m_CMFunctionsEnabled = false;
+                m_LSFunctionsEnabled = false;
         }
 
         public override Object InitializeLifetimeService()
@@ -100,7 +100,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //Dumps an error message on the debug console.
         //
 
-        internal void CMShoutError(string message)
+        internal void LSShoutError(string message)
         {
             if (message.Length > 1023)
                 message = message.Substring(0, 1023);
@@ -118,9 +118,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns>List of windlight parameters</returns>
         public LSL_List lsGetWindlightScene(LSL_List rules)
         {
-            if (!m_CMFunctionsEnabled)
+            if (!m_LSFunctionsEnabled)
             {
-                CMShoutError("LightShare functions are not enabled.");
+                LSShoutError("LightShare functions are not enabled.");
                 return new LSL_List();
             }
             m_host.AddScriptLPS(1);
@@ -442,14 +442,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns>success: true or false</returns>
         public int lsSetWindlightScene(LSL_List rules)
         {
-            if (!m_CMFunctionsEnabled)
+            if (!m_LSFunctionsEnabled)
             {
-                CMShoutError("LightShare functions are not enabled.");
+                LSShoutError("LightShare functions are not enabled.");
                 return 0;
             }
             if (!World.RegionInfo.EstateSettings.IsEstateManager(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
             {
-                CMShoutError("lsSetWindlightScene can only be used by estate managers or owners.");
+                LSShoutError("lsSetWindlightScene can only be used by estate managers or owners.");
                 return 0;
             }
             int success = 0;
@@ -462,7 +462,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                CMShoutError("Windlight module is disabled");
+                LSShoutError("Windlight module is disabled");
                 return 0;
             }
             return success;
@@ -474,14 +474,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <returns>success: true or false</returns>
         public int lsSetWindlightSceneTargeted(LSL_List rules, LSL_Key target)
         {
-            if (!m_CMFunctionsEnabled)
+            if (!m_LSFunctionsEnabled)
             {
-                CMShoutError("LightShare functions are not enabled.");
+                LSShoutError("LightShare functions are not enabled.");
                 return 0;
             }
             if (!World.RegionInfo.EstateSettings.IsEstateManager(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
             {
-                CMShoutError("lsSetWindlightSceneTargeted can only be used by estate managers or owners.");
+                LSShoutError("lsSetWindlightSceneTargeted can only be used by estate managers or owners.");
                 return 0;
             }
             int success = 0;
@@ -494,7 +494,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                CMShoutError("Windlight module is disabled");
+                LSShoutError("Windlight module is disabled");
                 return 0;
             }
             return success;
