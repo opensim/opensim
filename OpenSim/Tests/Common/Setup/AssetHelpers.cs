@@ -36,25 +36,29 @@ namespace OpenSim.Tests.Common
     public class AssetHelpers
     {
         /// <summary>
-        /// Create an asset from the given data
+        /// Create a notecard asset with a random uuid and dummy text.
         /// </summary>
-        public static AssetBase CreateAsset(UUID assetUuid, AssetType assetType, byte[] data, UUID creatorID)
+        /// <param name="creatorId">/param>
+        /// <returns></returns>
+        public static AssetBase CreateAsset(UUID creatorId)
         {
-            AssetBase asset = new AssetBase(assetUuid, assetUuid.ToString(), (sbyte)assetType, creatorID.ToString());
-            asset.Data = data;
-            return asset;
-        }
-
-        /// <summary>
-        /// Create an asset from the given data
-        /// </summary>
-        public static AssetBase CreateAsset(UUID assetUuid, AssetType assetType, string data, UUID creatorID)
-        {
-            return CreateAsset(assetUuid, assetType, Encoding.ASCII.GetBytes(data), creatorID);
+            return CreateAsset(UUID.Random(), AssetType.Notecard, "hello", creatorId);
         }
         
         /// <summary>
-        /// Create an asset from the given scene object
+        /// Create and store a notecard asset with a random uuid and dummy text.
+        /// </summary>
+        /// <param name="creatorId">/param>
+        /// <returns></returns>
+        public static AssetBase CreateAsset(Scene scene, UUID creatorId)
+        {
+            AssetBase asset = CreateAsset(UUID.Random(), AssetType.Notecard, "hello", creatorId);
+            scene.AssetService.Store(asset);
+            return asset;           
+        }        
+                
+        /// <summary>
+        /// Create an asset from the given scene object.
         /// </summary>
         /// <param name="assetUuid"></param>
         /// <param name="sog"></param>
@@ -66,6 +70,24 @@ namespace OpenSim.Tests.Common
                 AssetType.Object, 
                 Encoding.ASCII.GetBytes(SceneObjectSerializer.ToXml2Format(sog)), 
                 sog.OwnerID);
+        }
+            
+        /// <summary>
+        /// Create an asset from the given data.
+        /// </summary>
+        public static AssetBase CreateAsset(UUID assetUuid, AssetType assetType, string data, UUID creatorID)
+        {
+            return CreateAsset(assetUuid, assetType, Encoding.ASCII.GetBytes(data), creatorID);
+        }
+        
+        /// <summary>
+        /// Create an asset from the given data.
+        /// </summary>
+        public static AssetBase CreateAsset(UUID assetUuid, AssetType assetType, byte[] data, UUID creatorID)
+        {
+            AssetBase asset = new AssetBase(assetUuid, assetUuid.ToString(), (sbyte)assetType, creatorID.ToString());
+            asset.Data = data;
+            return asset;
         }
     }
 }
