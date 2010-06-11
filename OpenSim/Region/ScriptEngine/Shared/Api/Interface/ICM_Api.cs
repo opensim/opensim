@@ -41,8 +41,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
     public interface ICM_Api
     {
         // Windlight Functions
-        LSL_List cmGetWindlightScene(LSL_List rules);
-        int cmSetWindlightScene(LSL_List rules);
-        int cmSetWindlightSceneTargeted(LSL_List rules, key target);
+        LSL_List lsGetWindlightScene(LSL_List rules);
+        int lsSetWindlightScene(LSL_List rules);
+        int lsSetWindlightSceneTargeted(LSL_List rules, key target);
     }
 }

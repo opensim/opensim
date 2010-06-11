@@ -70,7 +70,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_localID = localID;
             m_itemID = itemID;
 
-            if (m_ScriptEngine.Config.GetBoolean("AllowCareminsterFunctions", false))
+            if (m_ScriptEngine.Config.GetBoolean("AllowLightShareFunctions", false))
                 m_CMFunctionsEnabled = true;
 
             m_comms = m_ScriptEngine.World.RequestModuleInterface<IScriptModuleComms>();
@@ -116,11 +116,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// Get the current Windlight scene
         /// </summary>
         /// <returns>List of windlight parameters</returns>
-        public LSL_List cmGetWindlightScene(LSL_List rules)
+        public LSL_List lsGetWindlightScene(LSL_List rules)
         {
             if (!m_CMFunctionsEnabled)
             {
-                CMShoutError("Careminster functions are not enabled.");
+                CMShoutError("LightShare functions are not enabled.");
                 return new LSL_List();
             }
             m_host.AddScriptLPS(1);
@@ -440,16 +440,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         /// <param name="rules"></param>
         /// <returns>success: true or false</returns>
-        public int cmSetWindlightScene(LSL_List rules)
+        public int lsSetWindlightScene(LSL_List rules)
         {
             if (!m_CMFunctionsEnabled)
             {
-                CMShoutError("Careminster functions are not enabled.");
+                CMShoutError("LightShare functions are not enabled.");
                 return 0;
             }
             if (!World.RegionInfo.EstateSettings.IsEstateManager(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
             {
-                CMShoutError("cmSetWindlightScene can only be used by estate managers or owners.");
+                CMShoutError("lsSetWindlightScene can only be used by estate managers or owners.");
                 return 0;
             }
             int success = 0;
@@ -472,16 +472,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// </summary>
         /// <param name="rules"></param>
         /// <returns>success: true or false</returns>
-        public int cmSetWindlightSceneTargeted(LSL_List rules, LSL_Key target)
+        public int lsSetWindlightSceneTargeted(LSL_List rules, LSL_Key target)
         {
             if (!m_CMFunctionsEnabled)
             {
-                CMShoutError("Careminster functions are not enabled.");
+                CMShoutError("LightShare functions are not enabled.");
                 return 0;
             }
             if (!World.RegionInfo.EstateSettings.IsEstateManager(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
             {
-                CMShoutError("cmSetWindlightSceneTargeted can only be used by estate managers or owners.");
+                CMShoutError("lsSetWindlightSceneTargeted can only be used by estate managers or owners.");
                 return 0;
             }
             int success = 0;
