@@ -113,31 +113,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         /// <summary>
-        /// Like osGetAgents but returns enough info for a radar
-        /// </summary>
-        /// <returns>Strided list of the UUID, position and name of each avatar in the region</returns>
-        public LSL_List cmGetAvatarList()
-        {
-            LSL_List result = new LSL_List();
-            World.ForEachScenePresence(delegate (ScenePresence avatar)
-            {
-                if (avatar != null && avatar.UUID != m_host.OwnerID)
-                {
-                    if (avatar.IsChildAgent == false)
-                    {
-                        if (avatar.PhysicsActor != null && avatar.PhysicsActor.Position != null)
-                        {
-                            result.Add(avatar.UUID);
-                            result.Add(avatar.PhysicsActor.Position);
-                            result.Add(avatar.Name);
-                        }
-                    }
-                }
-            });
-            return result;
-        }
-
-        /// <summary>
         /// Get the current Windlight scene
         /// </summary>
         /// <returns>List of windlight parameters</returns>

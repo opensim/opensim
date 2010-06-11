@@ -44,6 +44,5 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_List cmGetWindlightScene(LSL_List rules);
         int cmSetWindlightScene(LSL_List rules);
         int cmSetWindlightSceneTargeted(LSL_List rules, key target);
-        LSL_List cmGetAvatarList();
     }
 }
