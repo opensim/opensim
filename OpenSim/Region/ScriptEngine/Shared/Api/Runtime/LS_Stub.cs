@@ -48,29 +48,44 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
     public partial class ScriptBaseClass : MarshalByRefObject
     {
-        public ICM_Api m_CM_Functions;
+        public ILS_Api m_LS_Functions;
 
-        public void ApiTypeCM(IScriptApi api)
+        public void ApiTypeLS(IScriptApi api)
         {
-            if (!(api is ICM_Api))
+            if (!(api is ILS_Api))
                 return;
 
-            m_CM_Functions = (ICM_Api)api;
+            m_LS_Functions = (ILS_Api)api;
+        }
+
+        public LSL_List lsGetWindlightScene(LSL_List rules)
+        {
+            return m_LS_Functions.lsGetWindlightScene(rules);
+        }
+
+        public int lsSetWindlightScene(LSL_List rules)
+        {
+            return m_LS_Functions.lsSetWindlightScene(rules);
+        }
+
+        public int lsSetWindlightSceneTargeted(LSL_List rules, key target)
+        {
+            return m_LS_Functions.lsSetWindlightSceneTargeted(rules, target);
         }
 
         public LSL_List cmGetWindlightScene(LSL_List rules)
         {
-            return m_CM_Functions.cmGetWindlightScene(rules);
+            return m_LS_Functions.lsGetWindlightScene(rules);
         }
 
         public int cmSetWindlightScene(LSL_List rules)
         {
-            return m_CM_Functions.cmSetWindlightScene(rules);
+            return m_LS_Functions.lsSetWindlightScene(rules);
         }
 
         public int cmSetWindlightSceneTargeted(LSL_List rules, key target)
         {
-            return m_CM_Functions.cmSetWindlightSceneTargeted(rules, target);
+            return m_LS_Functions.lsSetWindlightSceneTargeted(rules, target);
         }
     }
 }

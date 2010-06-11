@@ -38,11 +38,11 @@ using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 {
-    public interface ICM_Api
+    public interface ILS_Api
     {
         // Windlight Functions
-        LSL_List cmGetWindlightScene(LSL_List rules);
-        int cmSetWindlightScene(LSL_List rules);
-        int cmSetWindlightSceneTargeted(LSL_List rules, key target);
+        LSL_List lsGetWindlightScene(LSL_List rules);
+        int lsSetWindlightScene(LSL_List rules);
+        int lsSetWindlightSceneTargeted(LSL_List rules, key target);
     }
 }
