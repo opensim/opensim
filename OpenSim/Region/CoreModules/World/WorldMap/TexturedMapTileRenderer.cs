@@ -136,6 +136,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private static readonly UUID defaultTerrainTexture4 = new UUID("53a2f406-4895-1d13-d541-d2e3b86bc19c");
         private static readonly Color defaultColor4 = Color.FromArgb(200, 200, 200);
 
+        private static readonly Color WATER_COLOR = Color.FromArgb(29, 71, 95);
+
         #endregion
 
 
@@ -406,8 +408,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                         heightvalue = 100f - (heightvalue * 100f) / 19f;  // 0 - 19 => 100 - 0
 
-                        Color water = Color.FromArgb((int)heightvalue, (int)heightvalue, 255);
-                        mapbmp.SetPixel(x, yr, water);
+                        mapbmp.SetPixel(x, yr, WATER_COLOR);
                     }
                 }
             }
