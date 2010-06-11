@@ -220,8 +220,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             client.OnGrantUserRights += OnGrantUserRights;
 
-            client.OnLogout += OnLogout;
-
             lock (m_Friends)
             {
                 if (m_Friends.ContainsKey(client.AgentId))
@@ -240,34 +238,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 m_Friends.Add(client.AgentId, newFriends);
             }
             
-            //StatusChange(client.AgentId, true);
         }
 
         private void OnClientClosed(UUID agentID, Scene scene)
         {
             ScenePresence sp = scene.GetScenePresence(agentID);
+            if (sp != null && !sp.IsChildAgent)
+                // do this for root agents closing out
+                StatusChange(agentID, false);
+
             lock (m_Friends)
                 if (m_Friends.ContainsKey(agentID))
                 {
                     if (m_Friends[agentID].Refcount == 1)
-                    {
-                        if (sp != null && sp.IsChildAgent)
-                        // we do this only for child agents
-                        // Root agents' closing = logout; that's
-                        // processed with OnLogout
-                        {
-                            m_Friends.Remove(agentID);
-                        }
-                    }
+                        m_Friends.Remove(agentID);
                     else
                         m_Friends[agentID].Refcount--;
                 }
-        }
-
-        private void OnLogout(IClientAPI client)
-        {
-            StatusChange(client.AgentId, false);
-            m_Friends.Remove(client.AgentId);
         }
 
         private void OnMakeRootAgent(ScenePresence sp)
@@ -457,12 +444,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     if (((fi.MyFlags & 1) != 0) && (fi.TheirFlags != -1))
                         friendList.Add(fi);
                 }
-                foreach (FriendInfo fi in friendList)
+
+                Util.FireAndForget(delegate
                 {
-                    //m_log.DebugFormat("[FRIENDS]: Notifying {0}", fi.PrincipalID);
-                    // Notify about this user status
-                    StatusNotify(fi, agentID, online);
-                }
+                    foreach (FriendInfo fi in friendList)
+                    {
+                        //m_log.DebugFormat("[FRIENDS]: Notifying {0}", fi.PrincipalID);
+                        // Notify about this user status
+                        StatusNotify(fi, agentID, online);
+                    }
+                });
             }
             else
                 m_log.WarnFormat("[FRIENDS]: {0} not found in cache", agentID);
