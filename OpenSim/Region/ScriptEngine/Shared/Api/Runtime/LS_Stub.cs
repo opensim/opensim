@@ -25,24 +25,52 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Runtime.Remoting.Lifetime;
+using System.Threading;
+using System.Reflection;
 using System.Collections;
+using System.Collections.Generic;
+using OpenSim.Framework;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Interfaces;
-
-using key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
-using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
+using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
+using integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
+using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
+using key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
-using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
+using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 
-namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
+namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
-    public interface ICM_Api
+    public partial class ScriptBaseClass : MarshalByRefObject
     {
-        // Windlight Functions
-        LSL_List cmGetWindlightScene(LSL_List rules);
-        int cmSetWindlightScene(LSL_List rules);
-        int cmSetWindlightSceneTargeted(LSL_List rules, key target);
+        public ILS_Api m_LS_Functions;
+
+        public void ApiTypeLS(IScriptApi api)
+        {
+            if (!(api is ILS_Api))
+                return;
+
+            m_LS_Functions = (ILS_Api)api;
+        }
+
+        public LSL_List lsGetWindlightScene(LSL_List rules)
+        {
+            return m_LS_Functions.lsGetWindlightScene(rules);
+        }
+
+        public int lsSetWindlightScene(LSL_List rules)
+        {
+            return m_LS_Functions.lsSetWindlightScene(rules);
+        }
+
+        public int lsSetWindlightSceneTargeted(LSL_List rules, key target)
+        {
+            return m_LS_Functions.lsSetWindlightSceneTargeted(rules, target);
+        }
     }
 }

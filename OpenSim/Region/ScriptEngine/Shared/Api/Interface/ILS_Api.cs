@@ -25,52 +25,24 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Runtime.Remoting.Lifetime;
-using System.Threading;
-using System.Reflection;
 using System.Collections;
-using System.Collections.Generic;
-using OpenSim.Framework;
-using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Interfaces;
-using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
-using integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
-using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
-using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
+
 using key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
+using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
-using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
+using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 
-namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
+namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 {
-    public partial class ScriptBaseClass : MarshalByRefObject
+    public interface ILS_Api
     {
-        public ICM_Api m_CM_Functions;
-
-        public void ApiTypeCM(IScriptApi api)
-        {
-            if (!(api is ICM_Api))
-                return;
-
-            m_CM_Functions = (ICM_Api)api;
-        }
-
-        public LSL_List cmGetWindlightScene(LSL_List rules)
-        {
-            return m_CM_Functions.cmGetWindlightScene(rules);
-        }
-
-        public int cmSetWindlightScene(LSL_List rules)
-        {
-            return m_CM_Functions.cmSetWindlightScene(rules);
-        }
-
-        public int cmSetWindlightSceneTargeted(LSL_List rules, key target)
-        {
-            return m_CM_Functions.cmSetWindlightSceneTargeted(rules, target);
-        }
+        // Windlight Functions
+        LSL_List lsGetWindlightScene(LSL_List rules);
+        int lsSetWindlightScene(LSL_List rules);
+        int lsSetWindlightSceneTargeted(LSL_List rules, key target);
     }
 }
