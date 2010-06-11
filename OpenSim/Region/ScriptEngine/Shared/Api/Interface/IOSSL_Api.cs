@@ -176,6 +176,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osCauseDamage(string avatar, double damage);
         LSL_List osGetPrimitiveParams(LSL_Key prim, LSL_List rules);
         void osSetPrimitiveParams(LSL_Key prim, LSL_List rules);
+        LSL_List osGetAvatarList();
 
     }
 }
