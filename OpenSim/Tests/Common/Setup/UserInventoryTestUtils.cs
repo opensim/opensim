@@ -28,6 +28,7 @@
 using System;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Tests.Common
@@ -39,6 +40,23 @@ namespace OpenSim.Tests.Common
     {
         public static readonly string PATH_DELIMITER = "/";
 
+        public static InventoryItemBase CreateInventoryItem(
+            Scene scene, string itemName, UUID itemId, string folderPath, UUID userId)
+        {            
+            InventoryItemBase item = new InventoryItemBase();
+            item.Name = itemName;
+            item.AssetID = AssetHelpers.CreateAsset(scene, userId).FullID;
+            item.ID = itemId;
+            
+            // Really quite bad since the objs folder could be moved in the future and confuse the tests
+            InventoryFolderBase objsFolder = scene.InventoryService.GetFolderForType(userId, AssetType.Object);
+            
+            item.Folder = objsFolder.ID;
+            scene.AddInventoryItem(userId, item);            
+            
+            return item;
+        }
+        
         /// <summary>
         /// Create inventory folders starting from the user's root folder.
         /// </summary>

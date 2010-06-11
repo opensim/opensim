@@ -37,6 +37,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 {
     public class ShadedMapTileRenderer : IMapTileTerrainRenderer
     {
+        private static readonly Color WATER_COLOR = Color.FromArgb(29, 71, 95);
+
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -221,8 +223,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                         try
                         {
-                            Color water = Color.FromArgb((int)heightvalue, (int)heightvalue, 255);
-                            mapbmp.SetPixel(x, yr, water);
+                            mapbmp.SetPixel(x, yr, WATER_COLOR);
                         }
                         catch (ArgumentException)
                         {

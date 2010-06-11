@@ -70,10 +70,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         #region IMapImageGenerator Members
 
-        public byte[] WriteJpeg2000Image(string gradientmap)
+        public Bitmap CreateMapTile(string gradientmap)
         {
-            byte[] imageData = null;
-
             bool drawPrimVolume = true;
             bool textureTerrain = false;
 
@@ -98,32 +96,36 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
             terrainRenderer.Initialise(m_scene, m_config);
 
-            using (Bitmap mapbmp = new Bitmap((int)Constants.RegionSize, (int)Constants.RegionSize))
+            Bitmap mapbmp = new Bitmap((int)Constants.RegionSize, (int)Constants.RegionSize, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            //long t = System.Environment.TickCount;
+            //for (int i = 0; i < 10; ++i) {
+            terrainRenderer.TerrainToBitmap(mapbmp);
+            //}
+            //t = System.Environment.TickCount - t;
+            //m_log.InfoFormat("[MAPTILE] generation of 10 maptiles needed {0} ms", t);
+
+
+            if (drawPrimVolume)
             {
-                //long t = System.Environment.TickCount;
-                //for (int i = 0; i < 10; ++i) {
-                terrainRenderer.TerrainToBitmap(mapbmp);
-                //}
-                //t = System.Environment.TickCount - t;
-                //m_log.InfoFormat("[MAPTILE] generation of 10 maptiles needed {0} ms", t);
-
-
-                if (drawPrimVolume)
-                {
-                    DrawObjectVolume(m_scene, mapbmp);
-                }
-
-                try
-                {
-                    imageData = OpenJPEG.EncodeFromImage(mapbmp, true);
-                }
-                catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
-                {
-                    m_log.Error("Failed generating terrain map: " + e);
-                }
+                DrawObjectVolume(m_scene, mapbmp);
             }
 
-            return imageData;
+            return mapbmp;
+        }
+
+        public byte[] WriteJpeg2000Image(string gradientmap)
+        {
+            try
+            {
+                using (Bitmap mapbmp = CreateMapTile(gradientmap))
+                    return OpenJPEG.EncodeFromImage(mapbmp, true);
+            }
+            catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
+            {
+                m_log.Error("Failed generating terrain map: " + e);
+            }
+
+            return null;
         }
 
         #endregion

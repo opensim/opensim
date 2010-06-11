@@ -219,40 +219,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             CreateFoldersForPath(destFolder, archivePathSectionToCreate, resolvedFolders, loadedNodes);
             
             return destFolder;
-            
-            /*
-            string[] rawFolders = filePath.Split(new char[] { '/' });
-
-            // Find the folders that do exist along the path given
-            int i = 0;
-            bool noFolder = false;
-            InventoryFolderImpl foundFolder = rootDestinationFolder;
-            while (!noFolder && i < rawFolders.Length)
-            {
-                InventoryFolderImpl folder = foundFolder.FindFolderByPath(rawFolders[i]);
-                if (null != folder)
-                {
-                    m_log.DebugFormat("[INVENTORY ARCHIVER]: Found folder {0}", folder.Name);
-                    foundFolder = folder;
-                    i++;
-                }
-                else
-                {
-                    noFolder = true;
-                }
-            }
-
-            // Create any folders that did not previously exist
-            while (i < rawFolders.Length)
-            {
-                m_log.DebugFormat("[INVENTORY ARCHIVER]: Creating folder {0}", rawFolders[i]);
-
-                UUID newFolderId = UUID.Random();
-                m_userInfo.CreateFolder(
-                    rawFolders[i++], newFolderId, (ushort)AssetType.Folder, foundFolder.ID);
-                foundFolder = foundFolder.GetChildFolder(newFolderId);
-            }
-            */
         }
 
         /// <summary>
