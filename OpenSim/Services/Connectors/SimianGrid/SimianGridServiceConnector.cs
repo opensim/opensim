@@ -63,7 +63,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         #region ISharedRegionModule
 
         public Type ReplaceableInterface { get { return null; } }
-        public void RegionLoaded(Scene scene) { UploadMapTile(scene); }
+        public void RegionLoaded(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { UploadMapTile(scene); } }
         public void PostInitialise() { }
         public void Close() { }
 
