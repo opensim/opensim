@@ -250,7 +250,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         }
 
 
-        public  bool DeleteItems(UUID ownerID, List<UUID> itemIDs)
+        public bool DeleteItems(UUID ownerID, List<UUID> itemIDs)
         {
             if (itemIDs == null)
                 return false;
@@ -260,7 +260,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.DeleteItems(ownerID, itemIDs);
         }
 
-        public  InventoryItemBase GetItem(InventoryItemBase item)
+        public InventoryItemBase GetItem(InventoryItemBase item)
         {
             m_log.DebugFormat("[XINVENTORY CONNECTOR]: GetItem {0}", item.ID);
             if (item == null)
@@ -271,7 +271,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.GetItem(item);
         }
 
-        public  InventoryFolderBase GetFolder(InventoryFolderBase folder)
+        public InventoryFolderBase GetFolder(UUID folderId, UUID userId) 
+        { 
+            return GetFolder(new InventoryFolderBase(folderId, userId));            
+        }
+        
+        public InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
             m_log.DebugFormat("[XINVENTORY CONNECTOR]: GetFolder {0}", folder.ID);
             if (folder == null)
@@ -280,17 +285,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.GetFolder(folder);
         }
 
-        public  bool HasInventoryForUser(UUID userID)
+        public bool HasInventoryForUser(UUID userID)
         {
             return false;
         }
 
-        public  List<InventoryItemBase> GetActiveGestures(UUID userId)
+        public List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
             return new List<InventoryItemBase>();
         }
 
-        public  int GetAssetPermissions(UUID userID, UUID assetID)
+        public int GetAssetPermissions(UUID userID, UUID assetID)
         {
             return m_RemoteConnector.GetAssetPermissions(userID, assetID);
         }

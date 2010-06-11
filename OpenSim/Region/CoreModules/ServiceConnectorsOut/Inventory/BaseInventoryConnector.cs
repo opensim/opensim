@@ -205,6 +205,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public abstract InventoryItemBase GetItem(InventoryItemBase item);
 
+        public abstract InventoryFolderBase GetFolder(UUID folderId, UUID userId);
+        
         public abstract InventoryFolderBase GetFolder(InventoryFolderBase folder);
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -229,12 +229,14 @@ namespace OpenSim.Region.CoreModules.Framework.Library
         /// <returns></returns>
         public InventoryItemBase GetItem(InventoryItemBase item) { return null; }
 
+        public InventoryFolderBase GetFolder(UUID folderId, UUID userId) { return null; }
+        
         /// <summary>
         /// Get a folder, given by its UUID
         /// </summary>
         /// <param name="folder"></param>
         /// <returns></returns>
-        public InventoryFolderBase GetFolder(InventoryFolderBase folder) { return null; }
+        public InventoryFolderBase GetFolder(InventoryFolderBase folder) { return null; }                
 
         /// <summary>
         /// Does the given user have an inventory structure?

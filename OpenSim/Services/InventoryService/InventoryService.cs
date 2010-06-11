@@ -439,15 +439,20 @@ namespace OpenSim.Services.InventoryService
             m_log.DebugFormat("[INVENTORY SERVICE]: GetItem failed to find item {0}", item.ID);
             return null;
         }
-
-        public virtual InventoryFolderBase GetFolder(InventoryFolderBase folder)
-        {
-            InventoryFolderBase result = m_Database.getInventoryFolder(folder.ID);
+        
+        public virtual InventoryFolderBase GetFolder(UUID folderId, UUID userId) 
+        { 
+            InventoryFolderBase result = m_Database.getInventoryFolder(folderId);
             if (result != null)
                 return result;
 
-            m_log.DebugFormat("[INVENTORY SERVICE]: GetFolder failed to find folder {0}", folder.ID);
-            return null;
+            m_log.DebugFormat("[INVENTORY SERVICE]: GetFolder failed to find folder {0}", folderId);
+            return null; 
+        }
+
+        public virtual InventoryFolderBase GetFolder(InventoryFolderBase folder)
+        {
+            return GetFolder(folder.ID, folder.Owner);
         }
 
         public virtual bool DeleteFolders(UUID ownerID, List<UUID> folderIDs)

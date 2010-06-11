@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -313,6 +313,11 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: Item " + item.ID + " owned by " + item.Owner + " not found");
             return null;
+        }
+        
+        public InventoryFolderBase GetFolder(UUID folderId, UUID userId) 
+        { 
+            return GetFolder(new InventoryFolderBase(folderId, userId));
         }
 
         /// <summary>

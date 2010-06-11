@@ -170,6 +170,14 @@ namespace OpenSim.Services.Interfaces
         InventoryItemBase GetItem(InventoryItemBase item);
 
         /// <summary>
+        /// Get a folder.
+        /// </summary>
+        /// <param name="folderId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        InventoryFolderBase GetFolder(UUID folderId, UUID userId);
+        
+        /// <summary>
         /// Get a folder, given by its UUID
         /// </summary>
         /// <param name="folder"></param>

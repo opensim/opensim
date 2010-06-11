@@ -307,6 +307,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.QueryItem(item.Owner.ToString(), item, sessionID);
         }
 
+        public override InventoryFolderBase GetFolder(UUID folderId, UUID userId) 
+        { 
+            return GetFolder(new InventoryFolderBase(folderId, userId)); 
+        }
+        
         public override InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
             if (folder == null)
