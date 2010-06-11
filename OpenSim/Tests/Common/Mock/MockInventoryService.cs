@@ -162,11 +162,6 @@ namespace OpenSim.Tests.Common.Mock
         {
             return null;
         }
-        
-        public InventoryFolderBase GetFolder(UUID folderId, UUID userId) 
-        { 
-            return null; 
-        }
 
         public InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {

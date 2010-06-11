@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -470,7 +470,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.DeleteItems(ownerID, itemIDs);
         }
 
-        public InventoryItemBase GetItem(InventoryItemBase item)
+        public  InventoryItemBase GetItem(InventoryItemBase item)
         {
             if (item == null)
                 return null;
@@ -486,12 +486,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.GetItem(item);
         }
 
-        public InventoryFolderBase GetFolder(UUID folderId, UUID userId) 
-        { 
-            return GetFolder(new InventoryFolderBase(folderId, userId));
-        }        
-        
-        public InventoryFolderBase GetFolder(InventoryFolderBase folder)
+        public  InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return null;
@@ -508,12 +503,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return connector.GetFolder(folder);
         }
 
-        public bool HasInventoryForUser(UUID userID)
+        public  bool HasInventoryForUser(UUID userID)
         {
             return false;
         }
 
-        public List<InventoryItemBase> GetActiveGestures(UUID userId)
+        public  List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
             return new List<InventoryItemBase>();
         }

@@ -575,9 +575,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                     itemArchivePath, scene.InventoryService.GetRootFolder(ua1.PrincipalID), 
                     new Dictionary<string, InventoryFolderBase>(), new List<InventoryNodeBase>());
 
-            InventoryFolderBase folder1Post = scene.InventoryService.GetFolder(folder1.ID, ua1.PrincipalID);
+            InventoryFolderBase folder1Post 
+                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, ua1.PrincipalID, folder1ExistingName);
             Assert.That(folder1Post.ID, Is.EqualTo(folder1.ID));
-            
             /*
             InventoryFolderBase folder2 
                 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1Post, "b");

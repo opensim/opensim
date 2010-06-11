@@ -171,11 +171,6 @@ namespace OpenSim.Services.Connectors
         {
             return null;
         }
-        
-        public InventoryFolderBase GetFolder(UUID folderId, UUID userId) 
-        { 
-            return null; 
-        }
 
         public InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
