@@ -11873,5 +11873,45 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             dialog.Buttons = buttons;
             OutPacket(dialog, ThrottleOutPacketType.Task);
         }
+
+        public void StopFlying(ISceneEntity p)
+        {
+            ScenePresence presence = p as ScenePresence;
+            // It turns out to get the agent to stop flying, you have to feed it stop flying velocities
+            // There's no explicit message to send the client to tell it to stop flying..   it relies on the 
+            // velocity, collision plane and avatar height
+
+            // Add 1/6 the avatar's height to it's position so it doesn't shoot into the air
+            // when the avatar stands up
+
+            Vector3 pos = presence.AbsolutePosition;
+
+            if (presence.Appearance.AvatarHeight != 127.0f)
+                pos += new Vector3(0f, 0f, (presence.Appearance.AvatarHeight / 6f));
+            else
+                pos += new Vector3(0f, 0f, (1.56f / 6f));
+
+            presence.AbsolutePosition = pos;
+
+            ImprovedTerseObjectUpdatePacket.ObjectDataBlock block =
+                    CreateImprovedTerseBlock(p, false);
+
+            const float TIME_DILATION = 1.0f;
+            ushort timeDilation = Utils.FloatToUInt16(TIME_DILATION, 0.0f, 1.0f);
+
+
+            ImprovedTerseObjectUpdatePacket packet = new ImprovedTerseObjectUpdatePacket();
+            packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
+            packet.RegionData.TimeDilation = timeDilation;
+            packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
+
+            packet.ObjectData[0] = block;
+
+            OutPacket(packet, ThrottleOutPacketType.Task, true);
+
+            //ControllingClient.SendAvatarTerseUpdate(new SendAvatarTerseData(m_rootRegionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId,
+            //        AbsolutePosition, Velocity, Vector3.Zero, m_bodyRot, new Vector4(0,0,1,AbsolutePosition.Z - 0.5f), m_uuid, null, GetUpdatePriority(ControllingClient)));
+
+        }
     }
 }
