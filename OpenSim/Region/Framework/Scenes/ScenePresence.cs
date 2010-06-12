@@ -1015,25 +1015,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StopFlying()
         {
-            // It turns out to get the agent to stop flying, you have to feed it stop flying velocities
-            // There's no explicit message to send the client to tell it to stop flying..   it relies on the 
-            // velocity, collision plane and avatar height
-
-            // Add 1/6 the avatar's height to it's position so it doesn't shoot into the air
-            // when the avatar stands up
-
-            if (m_avHeight != 127.0f)
-            {
-                AbsolutePosition = AbsolutePosition + new Vector3(0f, 0f, (m_avHeight / 6f));
-            }
-            else
-            {
-                AbsolutePosition = AbsolutePosition + new Vector3(0f, 0f, (1.56f / 6f));
-            }
-
-            ControllingClient.SendPrimUpdate(this, PrimUpdateFlags.Position);
-            //ControllingClient.SendAvatarTerseUpdate(new SendAvatarTerseData(m_rootRegionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId,
-            //        AbsolutePosition, Velocity, Vector3.Zero, m_bodyRot, new Vector4(0,0,1,AbsolutePosition.Z - 0.5f), m_uuid, null, GetUpdatePriority(ControllingClient)));
+            ControllingClient.StopFlying(this);
         }
 
         public void AddNeighbourRegion(ulong regionHandle, string cap)

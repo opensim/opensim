@@ -1308,5 +1308,7 @@ namespace OpenSim.Framework
         
         void SendChangeUserRights(UUID agentID, UUID friendID, int rights);
         void SendTextBoxRequest(string message, int chatChannel, string objectname, string ownerFirstName, string ownerLastName, UUID objectId);
+
+        void StopFlying(ISceneEntity presence);
     }
 }

@@ -1199,6 +1199,10 @@ namespace OpenSim.Client.Sirikata.ClientStack
         {
         }
 
+        public void StopFlying(ISceneEntity presence)
+        {
+        }
+
         #endregion
     }
 }
