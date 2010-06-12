@@ -2511,7 +2511,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Do this as late as possible so that listeners have full access to the incoming object
             EventManager.TriggerOnIncomingSceneObject(newObject);
 
-            TriggerEventsOnScriptedAttachments(newObject);
+            TriggerChangedTeleport(newObject);
             
             return true;
         }
@@ -2623,7 +2623,7 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
-        private void TriggerEventsOnScriptedAttachments(SceneObjectGroup sog)
+        private void TriggerChangedTeleport(SceneObjectGroup sog)
         {
             ScenePresence sp = GetScenePresence(sog.OwnerID);
 
