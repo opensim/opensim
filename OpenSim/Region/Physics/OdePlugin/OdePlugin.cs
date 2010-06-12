@@ -1771,7 +1771,18 @@ namespace OpenSim.Region.Physics.OdePlugin
             IMesh mesh = null;
 
             if (needsMeshing(pbs))
-                mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
+            {
+                try
+                {
+                    mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
+                }
+                catch(Exception e)
+                {
+                    m_log.ErrorFormat("[PHYSICS]: Exception while meshing prim {0}.");
+                    m_log.Debug(e.ToString());
+                    mesh = null;
+                }
+            }
 
             result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical);
 
