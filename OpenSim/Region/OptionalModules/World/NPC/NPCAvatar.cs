@@ -1171,5 +1171,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public void SendTextBoxRequest(string message, int chatChannel, string objectname, string ownerFirstName, string ownerLastName, UUID objectId)
         {
         }
+        
+        public void StopFlying(ISceneEntity presence)
+        {
+        }
     }
 }

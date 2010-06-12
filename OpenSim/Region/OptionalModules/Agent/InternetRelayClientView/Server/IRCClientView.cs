@@ -1689,5 +1689,9 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public void SendTextBoxRequest(string message, int chatChannel, string objectname, string ownerFirstName, string ownerLastName, UUID objectId)
         {
         }
+
+        public void StopFlying(ISceneEntity presence)
+        {
+        }
     }
 }

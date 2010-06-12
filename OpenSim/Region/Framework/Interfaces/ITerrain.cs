@@ -73,6 +73,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
     public interface IMapImageGenerator
     {
+        System.Drawing.Bitmap CreateMapTile(string gradientmap);
         byte[] WriteJpeg2000Image(string gradientmap);
     }
 }

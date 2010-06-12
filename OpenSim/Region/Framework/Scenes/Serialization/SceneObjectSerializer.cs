@@ -221,7 +221,16 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     sr = new StringReader(parts[i].OuterXml);
                     reader = new XmlTextReader(sr);
                     SceneObjectPart part = SceneObjectPart.FromXml(reader);
+
+                    int originalLinkNum = part.LinkNum;
+
                     sceneObject.AddPart(part);
+
+                    // SceneObjectGroup.AddPart() tries to be smart and automatically set the LinkNum.
+                    // We override that here
+                    if (originalLinkNum != 0)
+                        part.LinkNum = originalLinkNum;
+
                     part.StoreUndoState();
                     reader.Close();
                     sr.Close();
