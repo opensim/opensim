@@ -2699,6 +2699,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // objects rezzed with this method are die_at_edge by default.
                     new_group.RootPart.SetDieAtEdge(true);
 
+                    new_group.ResumeScripts();
+
                     m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
                             "object_rez", new Object[] {
                             new LSL_String(
