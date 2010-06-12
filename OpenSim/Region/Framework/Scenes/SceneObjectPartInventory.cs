@@ -555,7 +555,7 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (TaskInventoryItem item in items)
                 {
                     m_items.Add(item.ItemID, item);
-                    m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
+//                    m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
                 }
             }
 
