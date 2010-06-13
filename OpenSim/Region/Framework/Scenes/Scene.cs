@@ -2480,7 +2480,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 
         /// <summary>
-        /// Called when objects or attachments cross the border between regions.
+        /// Called when objects or attachments cross the border, or teleport, between regions.
         /// </summary>
         /// <param name="sog"></param>
         /// <returns></returns>
@@ -2510,6 +2510,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Do this as late as possible so that listeners have full access to the incoming object
             EventManager.TriggerOnIncomingSceneObject(newObject);
+
+            TriggerChangedTeleport(newObject);
             
             return true;
         }
@@ -2577,22 +2579,13 @@ namespace OpenSim.Region.Framework.Scenes
                 // Fix up attachment Parent Local ID
                 ScenePresence sp = GetScenePresence(sceneObject.OwnerID);
 
-                //uint parentLocalID = 0;
                 if (sp != null)
                 {
-                    //parentLocalID = sp.LocalId;
-
-                    //sceneObject.RootPart.IsAttachment = true;
-                    //sceneObject.RootPart.SetParentLocalId(parentLocalID);
 
                     SceneObjectGroup grp = sceneObject;
 
-                    //RootPrim.SetParentLocalId(parentLocalID);
-
                     m_log.DebugFormat(
                         "[ATTACHMENT]: Received attachment {0}, inworld asset id {1}", grp.GetFromItemID(), grp.UUID);
-
-                    //grp.SetFromAssetID(grp.RootPart.LastOwnerID);
                     m_log.DebugFormat(
                         "[ATTACHMENT]: Attach to avatar {0} at position {1}", sp.UUID, grp.AbsolutePosition);
 
@@ -2602,7 +2595,6 @@ namespace OpenSim.Region.Framework.Scenes
                         AttachmentsModule.AttachObject(
                             sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition, false);
 
-                    //grp.SendGroupFullUpdate();
                 }
                 else
                 {
@@ -2630,6 +2622,27 @@ namespace OpenSim.Region.Framework.Scenes
 
             return true;
         }
+
+        private void TriggerChangedTeleport(SceneObjectGroup sog)
+        {
+            ScenePresence sp = GetScenePresence(sog.OwnerID);
+
+            if (sp != null)
+            {
+                AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(sp.UUID);
+
+                if (aCircuit != null && (aCircuit.teleportFlags != (uint)TeleportFlags.Default))
+                {
+                    // This will get your attention
+                    //m_log.Error("[XXX] Triggering ");
+
+                    // Trigger CHANGED_TELEPORT
+                    sp.Scene.EventManager.TriggerOnScriptChangedEvent(sog.LocalId, (uint)Changed.TELEPORT);
+                }
+
+            }
+        }
+
         #endregion
 
         #region Add/Remove Avatar Methods
@@ -3437,6 +3450,8 @@ namespace OpenSim.Region.Framework.Scenes
         public bool NewUserConnection(AgentCircuitData agent, uint teleportFlags, out string reason)
         {
             TeleportFlags tp = (TeleportFlags)teleportFlags;
+            reason = String.Empty;
+
             //Teleport flags:
             //
             // TeleportFlags.ViaGodlikeLure - Border Crossing
@@ -3444,52 +3459,34 @@ namespace OpenSim.Region.Framework.Scenes
             // TeleportFlags.TeleportFlags.ViaLure - Teleport request sent by another user
             // TeleportFlags.ViaLandmark | TeleportFlags.ViaLocation | TeleportFlags.ViaLandmark | TeleportFlags.Default - Regular Teleport
 
-
-            if (LoginsDisabled)
-            {
-                reason = "Logins Disabled";
-                return false;
-            }
             // Don't disable this log message - it's too helpful
             m_log.InfoFormat(
                 "[CONNECTION BEGIN]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, teleportflags {6})",
                 RegionInfo.RegionName, (agent.child ? "child" : "root"), agent.firstname, agent.lastname,
                 agent.AgentID, agent.circuitcode, teleportFlags);
 
-            reason = String.Empty;
-            try
+            if (LoginsDisabled)
             {
-                if (!VerifyUserPresence(agent, out reason))
-                    return false;
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[CONNECTION BEGIN]: Exception verifying presence {0}", e.Message);
+                reason = "Logins Disabled";
                 return false;
             }
 
-            try
-            {
-                if (!AuthorizeUser(agent, out reason))
-                    return false;
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[CONNECTION BEGIN]: Exception authorizing user {0}", e.Message);
-                return false;
-            }
+            ScenePresence sp = GetScenePresence(agent.AgentID);
 
-            m_log.InfoFormat(
-                "[CONNECTION BEGIN]: Region {0} authenticated and authorized incoming {1} agent {2} {3} {4} (circuit code {5})",
-                RegionInfo.RegionName, (agent.child ? "child" : "root"), agent.firstname, agent.lastname,
-                agent.AgentID, agent.circuitcode);
-
-            CapsModule.NewUserConnection(agent);
+            if (sp != null && !sp.IsChildAgent)
+            {
+                // We have a zombie from a crashed session. 
+                // Or the same user is trying to be root twice here, won't work.
+                // Kill it.
+                m_log.DebugFormat("[SCENE]: Zombie scene presence detected for {0} in {1}", agent.AgentID, RegionInfo.RegionName);
+                sp.ControllingClient.Close();
+                sp = null;
+            }
 
             ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
 
-            //On login or border crossing test land permisions
-            if (tp != TeleportFlags.Default)
+            //On login test land permisions
+            if (tp == TeleportFlags.ViaLogin)
             {
                 if (land != null && !TestLandRestrictions(agent, land, out reason))
                 {
@@ -3497,8 +3494,40 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            ScenePresence sp = GetScenePresence(agent.AgentID);
-            if (sp != null)
+            if (sp == null) // We don't have an [child] agent here already
+            {
+
+                try
+                {
+                    if (!VerifyUserPresence(agent, out reason))
+                        return false;
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[CONNECTION BEGIN]: Exception verifying presence {0}", e.Message);
+                    return false;
+                }
+
+                try
+                {
+                    if (!AuthorizeUser(agent, out reason))
+                        return false;
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[CONNECTION BEGIN]: Exception authorizing user {0}", e.Message);
+                    return false;
+                }
+
+                m_log.InfoFormat(
+                    "[CONNECTION BEGIN]: Region {0} authenticated and authorized incoming {1} agent {2} {3} {4} (circuit code {5})",
+                    RegionInfo.RegionName, (agent.child ? "child" : "root"), agent.firstname, agent.lastname,
+                    agent.AgentID, agent.circuitcode);
+
+                CapsModule.NewUserConnection(agent);
+                CapsModule.AddCapsHandler(agent.AgentID);
+            }
+            else
             {
                 if (sp.IsChildAgent)
                 {
@@ -3507,22 +3536,18 @@ namespace OpenSim.Region.Framework.Scenes
                         agent.AgentID, RegionInfo.RegionName);
 
                     sp.AdjustKnownSeeds();
-
-                    return true;
-                }
-                else
-                {
-                    // We have a zombie from a crashed session. Kill it.
-                    m_log.DebugFormat("[SCENE]: Zombie scene presence detected for {0} in {1}", agent.AgentID, RegionInfo.RegionName);
-                    sp.ControllingClient.Close();
+                    CapsModule.NewUserConnection(agent);
                 }
             }
 
-            CapsModule.AddCapsHandler(agent.AgentID);
 
-            if (!agent.child)
+            // In all cases, add or update the circuit data with the new agent circuit data and teleport flags
+            agent.teleportFlags = teleportFlags;
+            m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
+
+            if (tp == TeleportFlags.ViaLogin) 
             {
-                if (TestBorderCross(agent.startpos,Cardinals.E))
+                if (TestBorderCross(agent.startpos, Cardinals.E))
                 {
                     Border crossedBorder = GetCrossedBorder(agent.startpos, Cardinals.E);
                     agent.startpos.X = crossedBorder.BorderLine.Z - 1;
@@ -3586,9 +3611,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-
-            agent.teleportFlags = teleportFlags;
-            m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
 
             return true;
         }
@@ -3880,6 +3902,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_log.DebugFormat(
                 "[SCENE]: Incoming child agent update for {0} in {1}", cAgentData.AgentID, RegionInfo.RegionName);
+
+            // XPTO: if this agent is not allowed here as root, always return false
 
             // We have to wait until the viewer contacts this region after receiving EAC.
             // That calls AddNewClient, which finally creates the ScenePresence

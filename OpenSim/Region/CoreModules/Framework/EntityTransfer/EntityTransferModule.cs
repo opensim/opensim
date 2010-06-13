@@ -180,6 +180,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                     sp.ControllingClient.SendLocalTeleport(position, lookAt, teleportFlags);
                     sp.Teleport(position);
+
+                    foreach (SceneObjectGroup grp in sp.Attachments)
+                        sp.Scene.EventManager.TriggerOnScriptChangedEvent(grp.LocalId, (uint)Changed.TELEPORT);
                 }
                 else // Another region possibly in another simulator
                 {
@@ -393,7 +396,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 agent.Position = position;
                 SetCallbackURL(agent, sp.Scene.RegionInfo);
 
-                UpdateAgent(reg, finalDestination, agent);
+                if (!UpdateAgent(reg, finalDestination, agent))
+                {
+                    // Region doesn't take it
+                    Fail(sp, finalDestination);
+                    return;
+                }
 
                 m_log.DebugFormat(
                     "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, sp.UUID);
@@ -418,21 +426,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // that the client contacted the destination before we send the attachments and close things here.
                 if (!WaitForCallback(sp.UUID))
                 {
-                    // Client never contacted destination. Let's restore everything back
-                    sp.ControllingClient.SendTeleportFailed("Problems connecting to destination.");
-
-                    // Fail. Reset it back
-                    sp.IsChildAgent = false;
-
-                    ResetFromTransit(sp.UUID);
-
-                    // Yikes! We should just have a ref to scene here.
-                    //sp.Scene.InformClientOfNeighbours(sp);
-                    EnableChildAgents(sp);
-
-                    // Finally, kill the agent we just created at the destination.
-                    m_aScene.SimulationService.CloseAgent(finalDestination, sp.UUID);
-
+                    Fail(sp, finalDestination);
                     return;
                 }
 
@@ -472,6 +466,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
         }
 
+        private void Fail(ScenePresence sp, GridRegion finalDestination)
+        {
+            // Client never contacted destination. Let's restore everything back
+            sp.ControllingClient.SendTeleportFailed("Problems connecting to destination.");
+
+            // Fail. Reset it back
+            sp.IsChildAgent = false;
+
+            ResetFromTransit(sp.UUID);
+
+            EnableChildAgents(sp);
+
+            // Finally, kill the agent we just created at the destination.
+            m_aScene.SimulationService.CloseAgent(finalDestination, sp.UUID);
+
+        }
 
         protected virtual bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason)
         {
@@ -810,7 +820,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 cAgent.CallbackURI = "http://" + m_scene.RegionInfo.ExternalHostName + ":" + m_scene.RegionInfo.HttpPort +
                     "/agent/" + agent.UUID.ToString() + "/" + m_scene.RegionInfo.RegionID.ToString() + "/release/";
 
-                m_scene.SimulationService.UpdateAgent(neighbourRegion, cAgent);
+                if (!m_scene.SimulationService.UpdateAgent(neighbourRegion, cAgent))
+                {
+                    // region doesn't take it
+                    ResetFromTransit(agent.UUID);
+                    return agent;
+                }
 
                 // Next, let's close the child agent connections that are too far away.
                 agent.CloseChildAgents(neighbourx, neighboury);
@@ -1120,7 +1135,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             string reason = String.Empty;
 
 
-            bool regionAccepted = m_scene.SimulationService.CreateAgent(reg, a, 0, out reason); // m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, a, 0, out reason);
+            bool regionAccepted = m_scene.SimulationService.CreateAgent(reg, a, (uint)TeleportFlags.Default, out reason); 
 
             if (regionAccepted && newAgent)
             {
