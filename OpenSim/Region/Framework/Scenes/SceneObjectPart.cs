@@ -4732,7 +4732,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Update sitting avatar chat position
 
-            p.AbsolutePosition = GroupPosition;
+            p.AbsolutePosition = GroupPosition + OffsetPosition + m_sitTargetPosition;
         }
     }
 }

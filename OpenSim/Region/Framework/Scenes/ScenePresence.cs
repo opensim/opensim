@@ -466,6 +466,13 @@ namespace OpenSim.Region.Framework.Scenes
                 if ((actor != null) && (m_parentID == 0))   // KF Do NOT update m_pos here if Av is sitting!
                     m_pos = actor.Position;
 
+                // If we're sitting, we need to update our position
+                if (m_parentID == 0)
+                {
+                    SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
+                    m_parentPosition = part.AbsolutePosition;
+                }
+
                 return m_parentPosition + m_pos;
             }
             set
