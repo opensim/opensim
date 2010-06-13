@@ -470,7 +470,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_parentID == 0)
                 {
                     SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
-                    m_parentPosition = part.AbsolutePosition;
+                    if (part != null)
+                        m_parentPosition = part.AbsolutePosition;
                 }
 
                 return m_parentPosition + m_pos;
