@@ -999,8 +999,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     string lastname = (string) requestData["user_lastname"];
                     string passwd = (string) requestData["user_password"];
 
-                    regX = Convert.ToUInt32((Int32) requestData["start_region_x"]);
-                    regY = Convert.ToUInt32((Int32) requestData["start_region_y"]);
+                    uint regX = Convert.ToUInt32((Int32) requestData["start_region_x"]);
+                    uint regY = Convert.ToUInt32((Int32) requestData["start_region_y"]);
 
                     string email = ""; // empty string for email
                     if (requestData.Contains("user_email"))
