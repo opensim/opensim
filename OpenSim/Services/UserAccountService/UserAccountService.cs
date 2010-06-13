@@ -357,7 +357,7 @@ namespace OpenSim.Services.UserAccountService
         /// <param name="lastName"></param>
         /// <param name="password"></param>
         /// <param name="email"></param>
-        public void CreateUser(string firstName, string lastName, string password, string email)
+        private void CreateUser(string firstName, string lastName, string password, string email)
         {
             UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
             if (null == account)
@@ -374,12 +374,14 @@ namespace OpenSim.Services.UserAccountService
 
                 if (StoreUserAccount(account))
                 {
-                    bool success = false;
+                    bool success;
                     if (m_AuthenticationService != null)
+                    {
                         success = m_AuthenticationService.SetPassword(account.PrincipalID, password);
-                    if (!success)
-                        m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set password for account {0} {1}.",
-                           firstName, lastName);
+                        if (!success)
+                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set password for account {0} {1}.",
+                                firstName, lastName);
+                    }
 
                     GridRegion home = null;
                     if (m_GridService != null)
@@ -399,18 +401,22 @@ namespace OpenSim.Services.UserAccountService
                            firstName, lastName);
 
                     if (m_InventoryService != null)
+                    {
                         success = m_InventoryService.CreateUserInventory(account.PrincipalID);
-                    if (!success)
-                        m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to create inventory for account {0} {1}.",
-                           firstName, lastName);
+                        if (!success)
+                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to create inventory for account {0} {1}.",
+                                firstName, lastName);
+                    }
 
                     m_log.InfoFormat("[USER ACCOUNT SERVICE]: Account {0} {1} created successfully", firstName, lastName);
+                } else {
+                    m_log.ErrorFormat("[USER ACCOUNT SERVICE]: Account creation failed for account {0} {1}", firstName, lastName);
                 }
             }
             else
             {
                 m_log.ErrorFormat("[USER ACCOUNT SERVICE]: A user with the name {0} {1} already exists!", firstName, lastName);
             }
-        }        
+        }
     }
 }
