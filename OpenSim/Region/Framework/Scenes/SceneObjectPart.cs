@@ -4720,19 +4720,5 @@ namespace OpenSim.Region.Framework.Scenes
                 Inventory.UpdateInventoryItem(item);
             }
         }
-
-        public void UpdateSitter()
-        {
-            if (m_sitTargetAvatar != UUID.Zero)
-                return;
-
-            ScenePresence p = m_parentGroup.Scene.GetScenePresence(m_sitTargetAvatar);
-            if (p == null)
-                return;
-
-            // Update sitting avatar chat position
-
-            p.AbsolutePosition = AbsolutePosition;
-        }
     }
 }

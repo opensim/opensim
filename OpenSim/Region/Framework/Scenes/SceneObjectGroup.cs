@@ -2174,7 +2174,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_rootPart.UpdateFlag = 1;
                     lastPhysGroupPos = AbsolutePosition;
-                    UpdateSitters();
                 }
 
                 if (UsePhysics && !GroupRotation.ApproxEquals(lastPhysGroupRot, 0.1f))
@@ -3830,14 +3829,6 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (SceneObjectPart part in Children.Values)
             {
                 part.TriggerScriptChangedEvent(val);
-            }
-        }
-        
-        private void UpdateSitters()
-        {
-            foreach (SceneObjectPart part in Children.Values)
-            {
-                part.UpdateSitter();
             }
         }
         
