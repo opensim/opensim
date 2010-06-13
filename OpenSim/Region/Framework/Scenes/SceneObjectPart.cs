@@ -4723,7 +4723,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void UpdateSitter()
         {
-            if (m_sitTargetAvatar == UUID.Zero)
+            if (m_sitTargetAvatar != UUID.Zero)
                 return;
 
             ScenePresence p = m_parentGroup.Scene.GetScenePresence(m_sitTargetAvatar);
