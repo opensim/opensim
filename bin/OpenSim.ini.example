@@ -126,7 +126,7 @@
     ; -->>> There are multiple connection strings defined in several places. Check it carefully!
     ;
     ; storage_plugin="OpenSim.Data.MySQL.dll"
-    ; storage_connection_string="Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;";
+    ; storage_connection_string="Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;Old Guids=true;";
     ; If you want to use a different database/server for estate data, then
     ; uncomment and change this connect string. Defaults to the above if not set
     ; estate_connection_string="Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;";
