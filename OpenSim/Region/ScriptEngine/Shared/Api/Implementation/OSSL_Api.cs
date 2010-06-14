@@ -2218,12 +2218,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     if (avatar.IsChildAgent == false)
                     {
-                        if (avatar.PhysicsActor != null && avatar.PhysicsActor.Position != null)
-                        {
-                            result.Add(avatar.UUID);
-                            result.Add(avatar.PhysicsActor.Position);
-                            result.Add(avatar.Name);
-                        }
+                        result.Add(avatar.UUID);
+                        result.Add(avatar.AbsolutePosition);
+                        result.Add(avatar.Name);
                     }
                 }
             });
