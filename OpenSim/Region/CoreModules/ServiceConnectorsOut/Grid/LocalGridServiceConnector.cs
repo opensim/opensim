@@ -181,22 +181,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public List<GridRegion> GetNeighbours(UUID scopeID, UUID regionID)
         {
-            if (m_LocalCache.ContainsKey(regionID))
-            {
-                List<GridRegion> neighbours = m_LocalCache[regionID].GetNeighbours();
-                if (neighbours.Count == 0)
-                    // try the DB
-                    neighbours = m_GridService.GetNeighbours(scopeID, regionID);
-                return neighbours;
-            }
-            else
-            {
-                m_log.WarnFormat("[LOCAL GRID CONNECTOR]: GetNeighbours: Requested region {0} is not on this sim", regionID);
-                return new List<GridRegion>();
-            }
-
-            // Don't go to the DB
-            //return m_GridService.GetNeighbours(scopeID, regionID);
+            return m_GridService.GetNeighbours(scopeID, regionID); 
         }
 
         public GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)

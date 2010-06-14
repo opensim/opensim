@@ -210,9 +210,6 @@ namespace OpenSim.Services.Connectors
                         GridRegion rinfo = new GridRegion((Dictionary<string, object>)r);
                         rinfos.Add(rinfo);
                     }
-                    else
-                        m_log.DebugFormat("[GRID CONNECTOR]: GetNeighbours {0}, {1} received invalid response type {2}",
-                            scopeID, regionID, r.GetType());
                 }
             }
             else
@@ -299,9 +296,9 @@ namespace OpenSim.Services.Connectors
                 {
                     if (replyData["result"] is Dictionary<string, object>)
                         rinfo = new GridRegion((Dictionary<string, object>)replyData["result"]);
-                    else
-                        m_log.DebugFormat("[GRID CONNECTOR]: GetRegionByPosition {0}, {1}-{2} received no region",
-                            scopeID, x, y);
+                    //else
+                    //    m_log.DebugFormat("[GRID CONNECTOR]: GetRegionByPosition {0}, {1}-{2} received no region",
+                    //        scopeID, x, y);
                 }
                 else
                     m_log.DebugFormat("[GRID CONNECTOR]: GetRegionByPosition {0}, {1}-{2} received null response",

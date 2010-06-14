@@ -3128,6 +3128,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (cAgent.Attachments != null)
                 {
+                    m_appearance.ClearAttachments();
                     foreach (AttachmentData att in cAgent.Attachments)
                     {
                         m_appearance.SetAttachment(att.AttachPoint, att.ItemID, att.AssetID);
