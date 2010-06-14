@@ -55,6 +55,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
 
             m_scene.AddCommand(
                 this, "alert general", "alert general <message>", "Send an alert to everyone", HandleAlertConsoleCommand);
+
+            m_scene.AddCommand(
+                this, "alert dialog", "alert dialog <message>", "Send a dialog alert to everyone", HandleAlertConsoleCommand);
+
+
         }
         
         public void PostInitialise() {}
@@ -180,6 +185,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
                 m_log.InfoFormat(
                     "[DIALOG]: Sending general alert in region {0} with message {1}", m_scene.RegionInfo.RegionName, message);
                 SendGeneralAlert(message);
+            }
+            else if (cmdparams[1] == "dialog")
+            {
+                string message = CombineParams(cmdparams, 2);
+
+                m_log.InfoFormat(
+                    "[DIALOG]: Sending dialog alert in region {0} with message {1}", m_scene.RegionInfo.RegionName, message);
+                SendNotificationToUsersInRegion(UUID.Zero, "System", message);
             }
             else
             {
