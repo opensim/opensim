@@ -483,7 +483,7 @@ namespace OpenSim.Services.Connectors.Simulation
             }
             catch (WebException ex)
             {
-                m_log.InfoFormat("[REMOTE SIMULATION CONNECTOR]: exception on reply of agent delete {0}", ex.Message);
+                m_log.InfoFormat("[REMOTE SIMULATION CONNECTOR]: exception on reply of agent delete from {0}: {1}", destination.RegionName, ex.Message);
                 return false;
             }
             finally

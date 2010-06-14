@@ -1116,6 +1116,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     string firstname = (string) requestData["user_firstname"];
                     string lastname = (string) requestData["user_lastname"];
                     string passwd = (string) requestData["user_password"];
+
                     uint regX = Convert.ToUInt32((Int32) requestData["start_region_x"]);
                     uint regY = Convert.ToUInt32((Int32) requestData["start_region_y"]);
 
@@ -1123,28 +1124,25 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     if (requestData.Contains("user_email"))
                         email = (string)requestData["user_email"];
 
-                    UUID scopeID = m_app.SceneManager.CurrentOrFirstScene.RegionInfo.ScopeID;
+                    Scene scene = m_app.SceneManager.CurrentOrFirstScene;
+                    UUID scopeID = scene.RegionInfo.ScopeID;
 
-                    UserAccount account = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.GetUserAccount(scopeID, firstname, lastname);
+                    UserAccount account = CreateUser(scopeID, firstname, lastname, passwd, email);
 
-                    if (null != account)
-                        throw new Exception(String.Format("Account {0} {1} already exists", firstname, lastname));
-
-                    account = new UserAccount(scopeID, firstname, lastname, email);
-
-                    bool success = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.StoreUserAccount(account);
-
-                    if (!success)
+                    if (null == account)
                         throw new Exception(String.Format("failed to create new user {0} {1}",
                                                           firstname, lastname));
 
-                    // Store the password
-                    m_app.SceneManager.CurrentOrFirstScene.AuthenticationService.SetPassword(account.PrincipalID, passwd);
+                    // Set home position
 
-                    GridRegion home = m_app.SceneManager.CurrentOrFirstScene.GridService.GetRegionByPosition(scopeID, 
+                    GridRegion home = scene.GridService.GetRegionByPosition(scopeID, 
                         (int)(regX * Constants.RegionSize), (int)(regY * Constants.RegionSize));
-                    if (home == null)
+                    if (null == home) {
                         m_log.WarnFormat("[RADMIN]: Unable to set home region for newly created user account {0} {1}", firstname, lastname);
+                    } else {
+                        scene.GridUserService.SetHome(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
+                        m_log.DebugFormat("[RADMIN]: Set home region {0} for updated user account {1} {2}", home.RegionID, firstname, lastname);
+                    }
 
                     // Establish the avatar's initial appearance
 
@@ -1287,9 +1285,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// <item><term>start_region_y</term>
         ///       <description>avatar's start region coordinates, Y
         ///                    value (changeable)</description></item>
-        /// <item><term>about_real_world</term>
+        /// <item><term>about_real_world (not implemented yet)</term>
         ///       <description>"about" text of avatar owner (changeable)</description></item>
-        /// <item><term>about_virtual_world</term>
+        /// <item><term>about_virtual_world (not implemented yet)</term>
         ///       <description>"about" text of avatar (changeable)</description></item>
         /// </list>
         ///
@@ -1300,6 +1298,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>true or false</description></item>
         /// <item><term>error</term>
         ///       <description>error message if success is false</description></item>
+        /// <item><term>avatar_uuid</term>
+        ///       <description>UUID of the updated avatar
+        ///                    account; UUID.Zero if failed.
+        ///       </description></item>
         /// </list>
         /// </remarks>
 
@@ -1307,31 +1309,34 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: UpdateUserAccount: new request");
             m_log.Warn("[RADMIN]: This method needs update for 0.7");
+
+            FailIfRemoteAdminDisabled("UpdateUserAccount");
+
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            //lock (rslock)
-            //{
-            //    try
-            //    {
-            //        Hashtable requestData = (Hashtable) request.Params[0];
+            lock (rslock)
+            {
+                try
+                {
+                    Hashtable requestData = (Hashtable) request.Params[0];
 
-            //        // check completeness
-            //        checkStringParameters(request, new string[] {
-            //                "password", "user_firstname",
-            //                "user_lastname"});
+                    // check completeness
+                    checkStringParameters(request, new string[] {
+                            "password", "user_firstname",
+                            "user_lastname"});
 
-            //        // check password
-            //        if (!String.IsNullOrEmpty(m_requiredPassword) &&
-            //            (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
+                    // check password
+                    if (!String.IsNullOrEmpty(m_requiredPassword) &&
+                        (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
 
-            //        // do the job
-            //        string firstname = (string) requestData["user_firstname"];
-            //        string lastname = (string) requestData["user_lastname"];
+                    // do the job
+                    string firstname = (string) requestData["user_firstname"];
+                    string lastname = (string) requestData["user_lastname"];
 
-            //        string passwd = String.Empty;
-            //        uint? regX = null;
-            //        uint? regY = null;
+                    string passwd = String.Empty;
+                    uint? regX = null;
+                    uint? regY = null;
             //        uint? ulaX = null;
             //        uint? ulaY = null;
             //        uint? ulaZ = null;
@@ -1341,11 +1346,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             //        string aboutFirstLive = String.Empty;
             //        string aboutAvatar = String.Empty;
 
-            //        if (requestData.ContainsKey("user_password")) passwd = (string) requestData["user_password"];
-            //        if (requestData.ContainsKey("start_region_x"))
-            //            regX = Convert.ToUInt32((Int32) requestData["start_region_x"]);
-            //        if (requestData.ContainsKey("start_region_y"))
-            //            regY = Convert.ToUInt32((Int32) requestData["start_region_y"]);
+                    if (requestData.ContainsKey("user_password")) passwd = (string) requestData["user_password"];
+                    if (requestData.ContainsKey("start_region_x"))
+                        regX = Convert.ToUInt32((Int32) requestData["start_region_x"]);
+                    if (requestData.ContainsKey("start_region_y"))
+                        regY = Convert.ToUInt32((Int32) requestData["start_region_y"]);
 
             //        if (requestData.ContainsKey("start_lookat_x"))
             //            ulaX = Convert.ToUInt32((Int32) requestData["start_lookat_x"]);
@@ -1365,21 +1370,18 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             //        if (requestData.ContainsKey("about_virtual_world"))
             //            aboutAvatar = (string)requestData["about_virtual_world"];
 
-            //        UserProfileData userProfile
-            //            = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
+                    Scene scene = m_app.SceneManager.CurrentOrFirstScene;
+                    UUID scopeID = scene.RegionInfo.ScopeID;
+                    UserAccount account = scene.UserAccountService.GetUserAccount(scopeID, firstname, lastname);
 
-            //        if (null == userProfile)
-            //            throw new Exception(String.Format("avatar {0} {1} does not exist", firstname, lastname));
+                    if (null == account)
+                        throw new Exception(String.Format("avatar {0} {1} does not exist", firstname, lastname));
 
-            //        if (!String.IsNullOrEmpty(passwd))
-            //        {
-            //            m_log.DebugFormat("[RADMIN]: UpdateUserAccount: updating password for avatar {0} {1}", firstname, lastname);
-            //            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(passwd) + ":" + String.Empty);
-            //            userProfile.PasswordHash = md5PasswdHash;
-            //        }
-
-            //        if (null != regX) userProfile.HomeRegionX = (uint) regX;
-            //        if (null != regY) userProfile.HomeRegionY = (uint) regY;
+                    if (!String.IsNullOrEmpty(passwd))
+                    {
+                        m_log.DebugFormat("[RADMIN]: UpdateUserAccount: updating password for avatar {0} {1}", firstname, lastname);
+                        ChangeUserPassword(firstname, lastname, passwd);
+                    }
 
             //        if (null != usaX) userProfile.HomeLocationX = (uint) usaX;
             //        if (null != usaY) userProfile.HomeLocationY = (uint) usaY;
@@ -1392,35 +1394,48 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             //        if (String.Empty != aboutFirstLive) userProfile.FirstLifeAboutText = aboutFirstLive;
             //        if (String.Empty != aboutAvatar) userProfile.AboutText = aboutAvatar;
 
-            //        // User has been created. Now establish gender and appearance.
+                    // Set home position
 
-            //        updateUserAppearance(responseData, requestData, userProfile.ID);
+                    if ((null != regX) && (null != regY))
+                    {
+                        GridRegion home = scene.GridService.GetRegionByPosition(scopeID, 
+                            (int)(regX * Constants.RegionSize), (int)(regY * Constants.RegionSize));
+                        if (null == home) {
+                            m_log.WarnFormat("[RADMIN]: Unable to set home region for updated user account {0} {1}", firstname, lastname);
+                        } else {
+                            scene.GridUserService.SetHome(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
+                            m_log.DebugFormat("[RADMIN]: Set home region {0} for updated user account {1} {2}", home.RegionID, firstname, lastname);
+                        }
+                    }
 
-            //        if (!m_app.CommunicationsManager.UserService.UpdateUserProfile(userProfile))
-            //            throw new Exception("did not manage to update user profile");
+                    // User has been created. Now establish gender and appearance.
 
-            //        responseData["success"] = true;
+                    updateUserAppearance(responseData, requestData, account.PrincipalID);
 
-            //        response.Value = responseData;
+                    responseData["success"] = true;
+                    responseData["avatar_uuid"] = account.PrincipalID.ToString();
 
-            //        m_log.InfoFormat("[RADMIN]: UpdateUserAccount: account for user {0} {1} updated, UUID {2}",
-            //                         firstname, lastname,
-            //                         userProfile.ID);
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        m_log.ErrorFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.Message);
-            //        m_log.DebugFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.ToString());
+                    response.Value = responseData;
 
-            //        responseData["success"] = false;
-            //        responseData["error"] = e.Message;
+                    m_log.InfoFormat("[RADMIN]: UpdateUserAccount: account for user {0} {1} updated, UUID {2}",
+                                     firstname, lastname,
+                                     account.PrincipalID);
+                }
+                catch (Exception e)
+                {
 
-            //        response.Value = responseData;
-            //    }
-            //}
+                    m_log.ErrorFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.Message);
+                    m_log.DebugFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.ToString());
 
-            m_log.Info("[RADMIN]: UpdateUserAccount: request complete");
-            return response;
+                    responseData["success"] = false;
+                    responseData["avatar_uuid"] = UUID.Zero.ToString();
+                    responseData["error"] = e.Message;
+
+                    response.Value = responseData;
+                }
+                m_log.Info("[RADMIN]: UpdateUserAccount: request complete");
+                return response;
+            }
         }
 
         /// <summary>
@@ -1434,73 +1449,74 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         private void updateUserAppearance(Hashtable responseData, Hashtable requestData, UUID userid)
         {
             m_log.DebugFormat("[RADMIN] updateUserAppearance");
-            m_log.Warn("[RADMIN]: This method needs update for 0.7");
 
-            //string dmale   = m_config.GetString("default_male", "Default Male");
-            //string dfemale = m_config.GetString("default_female", "Default Female");
-            //string dneut   = m_config.GetString("default_female", "Default Default");
+            string dmale   = m_config.GetString("default_male", "Default Male");
+            string dfemale = m_config.GetString("default_female", "Default Female");
+            string dneut   = m_config.GetString("default_female", "Default Default");
             string model   = String.Empty;
 
-            //// Has a gender preference been supplied?
+            // Has a gender preference been supplied?
 
-            //if (requestData.Contains("gender"))
-            //{
-            //    switch ((string)requestData["gender"])
-            //    {
-            //        case "m" :
-            //            model = dmale;
-            //            break;
-            //        case "f" :
-            //            model = dfemale;
-            //            break;
-            //        case "n" :
-            //        default :
-            //            model = dneut;
-            //            break;
-            //    }
-            //}
+            if (requestData.Contains("gender"))
+            {
+                switch ((string)requestData["gender"])
+                {
+                    case "m" :
+                    case "male" :
+                        model = dmale;
+                        break;
+                    case "f" :
+                    case "female" :
+                        model = dfemale;
+                        break;
+                    case "n" :
+                    case "neutral" :
+                    default :
+                        model = dneut;
+                        break;
+                }
+            }
 
-            //// Has an explicit model been specified?
+            // Has an explicit model been specified?
 
-            //if (requestData.Contains("model"))
-            //{
-            //    model = (string)requestData["model"];
-            //}
+            if (requestData.Contains("model") && (String.IsNullOrEmpty((string)requestData["gender"])))
+            {
+                model = (string)requestData["model"];
+            }
 
-            //// No appearance attributes were set
+            // No appearance attributes were set
 
-            //if (model == String.Empty)
-            //{
-            //    m_log.DebugFormat("[RADMIN] Appearance update not requested");
-            //    return;
-            //}
+            if (String.IsNullOrEmpty(model))
+            {
+                m_log.DebugFormat("[RADMIN] Appearance update not requested");
+                return;
+            }
 
-            //m_log.DebugFormat("[RADMIN] Setting appearance for avatar {0}, using model {1}", userid, model);
+            m_log.DebugFormat("[RADMIN] Setting appearance for avatar {0}, using model <{1}>", userid, model);
 
-            //string[] nomens = model.Split();
-            //if (nomens.Length != 2)
-            //{
-            //    m_log.WarnFormat("[RADMIN] User appearance not set for {0}. Invalid model name : <{1}>", userid, model);
-            //    // nomens = dmodel.Split();
-            //    return;
-            //}
+            string[] nomens = model.Split();
+            if (nomens.Length != 2)
+            {
+                m_log.WarnFormat("[RADMIN] User appearance not set for {0}. Invalid model name : <{1}>", userid, model);
+                // nomens = dmodel.Split();
+                return;
+            }
 
-            //UserProfileData mprof = m_app.CommunicationsManager.UserService.GetUserProfile(nomens[0], nomens[1]);
+            Scene scene = m_app.SceneManager.CurrentOrFirstScene;
+            UUID scopeID = scene.RegionInfo.ScopeID;
+            UserAccount mprof = scene.UserAccountService.GetUserAccount(scopeID, nomens[0], nomens[1]);
 
-            //// Is this the first time one of the default models has been used? Create it if that is the case
-            //// otherwise default to male.
+            if (mprof == null)
+            {
+                m_log.WarnFormat("[RADMIN] Requested model ({0}) not found. Appearance unchanged", model);
+                return;
+            }
 
-            //if (mprof == null)
-            //{
-            //    m_log.WarnFormat("[RADMIN] Requested model ({0}) not found. Appearance unchanged", model);
-            //    return;
-            //}
+            // Set current user's appearance. This bit is easy. The appearance structure is populated with
+            // actual asset ids, however to complete the magic we need to populate the inventory with the
+            // assets in question.
 
-            //// Set current user's appearance. This bit is easy. The appearance structure is populated with
-            //// actual asset ids, however to complete the magic we need to populate the inventory with the
-            //// assets in question.
-
-            //establishAppearance(userid, mprof.ID);
+            establishAppearance(userid, mprof.PrincipalID);
 
             m_log.DebugFormat("[RADMIN] Finished setting appearance for avatar {0}, using model {1}",
                               userid, model);
@@ -1515,116 +1531,312 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         private void establishAppearance(UUID dest, UUID srca)
         {
             m_log.DebugFormat("[RADMIN] Initializing inventory for {0} from {1}", dest, srca);
+            Scene scene = m_app.SceneManager.CurrentOrFirstScene;
             AvatarAppearance ava = null;
-            AvatarData avatar = m_app.SceneManager.CurrentOrFirstScene.AvatarService.GetAvatar(srca);
+            AvatarData avatar = scene.AvatarService.GetAvatar(srca);
             if (avatar != null)
                 ava = avatar.ToAvatarAppearance(srca);
 
             // If the model has no associated appearance we're done.
-
-            // if (ava == null)
-            // {
-            //     return new AvatarAppearance();
-            // }
-
             if (ava == null)
                 return;
 
-            UICallback sic  = new UICallback();
-            UICallback dic  = new UICallback();
-            IInventoryService iserv = m_app.SceneManager.CurrentOrFirstScene.InventoryService;
+            // Simple appearance copy or copy Clothing and Bodyparts folders?
+            bool copyFolders = m_config.GetBoolean("copy_folders", false);
 
+            if (!copyFolders)
+            {
+                // Simple copy of wearables and appearance update
+                try
+                {
+                    copyWearablesAndAttachments(dest, srca, ava);
+
+                    AvatarData adata = new AvatarData(ava);
+                    scene.AvatarService.SetAvatar(dest, adata);
+                }
+                catch (Exception e)
+                {
+                    m_log.WarnFormat("[RADMIN] Error transferring appearance for {0} : {1}",
+                                      dest, e.Message);
+                }
+
+                return;
+            }
+
+            // Copy Clothing and Bodypart folders and appearance update
             try
             {
                 Dictionary<UUID,UUID> imap = new Dictionary<UUID,UUID>();
+                copyInventoryFolders(dest, srca, AssetType.Clothing, imap, ava);
+                copyInventoryFolders(dest, srca, AssetType.Bodypart, imap, ava);
 
-                iserv.GetUserInventory(dest, dic.callback);
-                iserv.GetUserInventory(srca, sic.callback);
+                AvatarWearable[] wearables = ava.Wearables;
 
-                dic.GetInventory();
-                sic.GetInventory();
-
-                if (sic.OK && dic.OK)
+                for (int i=0; i<wearables.Length; i++)
                 {
-                    InventoryFolderImpl efolder;
-                    InventoryFolderImpl srcf = sic.root.FindFolderForType(5);
-                    InventoryFolderImpl dstf = dic.root.FindFolderForType(5);
-
-                    if (srcf == null || dstf == null)
-                        throw new Exception("Cannot locate clothing folder(s)");
-
-                    foreach (InventoryFolderImpl folder in sic.folders)
+                    if (imap.ContainsKey(wearables[i].ItemID))
                     {
-                        if (folder.ParentID == srcf.ID)
-                        {
-                            efolder          = new InventoryFolderImpl();
-                            efolder.ID       = UUID.Random();
-                            efolder.Name     = folder.Name;
-                            efolder.Type     = folder.Type;
-                            efolder.Version  = folder.Version;
-                            efolder.Owner    = dest;
-                            dstf.AddChildFolder(efolder);
-                            iserv.AddFolder(efolder);
-                            m_log.DebugFormat("[RADMIN] Added outfile folder {0} to folder {1}", efolder.ID, srcf.ID);
-                            foreach (InventoryItemBase item in sic.items)
-                            {
-                               if (item.Folder == folder.ID)
-                                {
-                                    InventoryItemBase dsti = new InventoryItemBase();
-                                    dsti.ID = UUID.Random();
-                                    dsti.Name = item.Name;
-                                    dsti.Description = item.Description;
-                                    dsti.InvType = item.InvType;
-                                    dsti.AssetType = item.AssetType;
-                                    dsti.Flags = item.Flags;
-                                    dsti.AssetID = item.AssetID;
-                                    dsti.Folder = efolder.ID;
-                                    dsti.Owner = dest;
-                                    dsti.BasePermissions = item.BasePermissions;
-                                    dsti.NextPermissions = item.NextPermissions;
-                                    dsti.CurrentPermissions = item.CurrentPermissions;
-                                    dsti.GroupPermissions = item.GroupPermissions;
-                                    dsti.EveryOnePermissions = item.EveryOnePermissions;
-                                    iserv.AddItem(dsti);
-                                    imap.Add(item.ID, dsti.ID);
-                                    m_log.DebugFormat("[RADMIN] Added item {0} to folder {1}", dsti.ID, efolder.ID);
-                                }
-                            }
-                        }
+                        AvatarWearable dw = new AvatarWearable();
+                        dw.AssetID = wearables[i].AssetID;
+                        dw.ItemID  = imap[wearables[i].ItemID];
+                        ava.SetWearable(i, dw);
                     }
-
-                    // Update appearance tables
-                    AvatarWearable[] wearables = ava.Wearables;
-                    for (int i=0; i<wearables.Length; i++)
-                    {
-                        if (imap.ContainsKey(wearables[i].ItemID))
-                        {
-                            AvatarWearable dw = new AvatarWearable();
-                            dw.AssetID = wearables[i].AssetID;
-                            dw.ItemID  = imap[wearables[i].ItemID];
-                            ava.SetWearable(i, dw);
-                        }
-                    }
-                }
-                else
-                {
-                    throw new Exception("Unable to load both inventories");
                 }
 
                 AvatarData adata = new AvatarData(ava);
-                m_app.SceneManager.CurrentOrFirstScene.AvatarService.SetAvatar(dest, adata);
+                scene.AvatarService.SetAvatar(dest, adata);
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[RADMIN] Error transferring inventory for {0} : {1}",
-                                 dest, e.Message);
-                return;
+               m_log.WarnFormat("[RADMIN] Error transferring appearance for {0} : {1}",
+                                  dest, e.Message);
             }
 
             return;
         }
 
-        ///<summary>
+        /// <summary>
+        /// This method is called by establishAppearance to do a copy all inventory items
+        /// worn or attached to the Clothing inventory folder of the receiving avatar.
+        /// In parallel the avatar wearables and attachments are updated.
+        /// </summary>
+
+        private void copyWearablesAndAttachments(UUID dest, UUID srca, AvatarAppearance ava)
+        {
+            IInventoryService iserv = m_app.SceneManager.CurrentOrFirstScene.InventoryService;
+
+            // Get Clothing folder of receiver
+            InventoryFolderBase dstf = iserv.GetFolderForType(dest, AssetType.Clothing);
+
+            if (dstf == null)
+                throw new Exception("Cannot locate folder(s)");
+
+            // Missing destination folder? This should *never* be the case
+            if (dstf.Type != (short)AssetType.Clothing)
+            {
+                dstf = new InventoryFolderBase();
+                dstf.ID       = UUID.Random();
+                dstf.Name     = "Clothing";
+                dstf.Owner    = dest;
+                dstf.Type     = (short)AssetType.Clothing;
+                dstf.ParentID = iserv.GetRootFolder(dest).ID;
+                dstf.Version  = 1;
+                iserv.AddFolder(dstf);     // store base record
+                m_log.ErrorFormat("[RADMIN] Created folder for destination {0}", srca);
+            }
+
+            // Wearables
+            AvatarWearable[] wearables = ava.Wearables;
+            AvatarWearable wearable;
+
+            for (int i=0; i<wearables.Length; i++)
+            {
+                wearable = wearables[i];
+                if (wearable.ItemID != UUID.Zero)
+                {
+                    // Get inventory item and copy it
+                    InventoryItemBase item = new InventoryItemBase(wearable.ItemID, srca);
+                    item = iserv.GetItem(item);
+
+                    if (item != null)
+                    {
+                        InventoryItemBase dsti = new InventoryItemBase(UUID.Random(), dest);
+                        dsti.Name = item.Name;
+                        dsti.Description = item.Description;
+                        dsti.InvType = item.InvType;
+                        dsti.CreatorId = item.CreatorId;
+                        dsti.CreatorIdAsUuid = item.CreatorIdAsUuid;
+                        dsti.NextPermissions = item.NextPermissions;
+                        dsti.CurrentPermissions = item.CurrentPermissions;
+                        dsti.BasePermissions = item.BasePermissions;
+                        dsti.EveryOnePermissions = item.EveryOnePermissions;
+                        dsti.GroupPermissions = item.GroupPermissions;
+                        dsti.AssetType = item.AssetType;
+                        dsti.AssetID = item.AssetID;
+                        dsti.GroupID = item.GroupID;
+                        dsti.GroupOwned = item.GroupOwned;
+                        dsti.SalePrice = item.SalePrice;
+                        dsti.SaleType = item.SaleType;
+                        dsti.Flags = item.Flags;
+                        dsti.CreationDate = item.CreationDate;
+                        dsti.Folder = dstf.ID;
+
+                        iserv.AddItem(dsti);
+                        m_log.DebugFormat("[RADMIN] Added item {0} to folder {1}", dsti.ID, dstf.ID);
+
+                        // Wear item
+                        AvatarWearable dw = new AvatarWearable();
+                        dw.AssetID = wearable.AssetID;
+                        dw.ItemID  = dsti.ID;
+                        ava.SetWearable(i, dw);
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("[RADMIN] Error transferring {0} to folder {1}", wearable.ItemID, dstf.ID);
+                    }
+                }
+            }
+
+            // Attachments
+            Dictionary<int, UUID[]> attachments = ava.GetAttachmentDictionary();
+
+            foreach (KeyValuePair<int, UUID[]> kvp in attachments)
+            {
+                int attachpoint = kvp.Key;
+                UUID itemID = kvp.Value[0];
+
+                if (itemID != UUID.Zero)
+                {
+                    // Get inventory item and copy it
+                    InventoryItemBase item = new InventoryItemBase(itemID, srca);
+                    item = iserv.GetItem(item);
+
+                    if (item != null)
+                    {
+                        InventoryItemBase dsti = new InventoryItemBase(UUID.Random(), dest);
+                        dsti.Name = item.Name;
+                        dsti.Description = item.Description;
+                        dsti.InvType = item.InvType;
+                        dsti.CreatorId = item.CreatorId;
+                        dsti.CreatorIdAsUuid = item.CreatorIdAsUuid;
+                        dsti.NextPermissions = item.NextPermissions;
+                        dsti.CurrentPermissions = item.CurrentPermissions;
+                        dsti.BasePermissions = item.BasePermissions;
+                        dsti.EveryOnePermissions = item.EveryOnePermissions;
+                        dsti.GroupPermissions = item.GroupPermissions;
+                        dsti.AssetType = item.AssetType;
+                        dsti.AssetID = item.AssetID;
+                        dsti.GroupID = item.GroupID;
+                        dsti.GroupOwned = item.GroupOwned;
+                        dsti.SalePrice = item.SalePrice;
+                        dsti.SaleType = item.SaleType;
+                        dsti.Flags = item.Flags;
+                        dsti.CreationDate = item.CreationDate;
+                        dsti.Folder = dstf.ID;
+
+                        iserv.AddItem(dsti);
+                        m_log.DebugFormat("[RADMIN] Added item {0} to folder {1}", dsti.ID, dstf.ID);
+
+                        // Attach item
+                        ava.SetAttachment(attachpoint, dsti.ID, dsti.AssetID);
+                        m_log.DebugFormat("[RADMIN] Attached {0}", dsti.ID);
+                    }
+                    else
+                    {
+                        m_log.WarnFormat("[RADMIN] Error transferring {0} to folder {1}", itemID, dstf.ID);
+                    }
+                }
+            }
+
+
+        }
+
+        /// <summary>
+        /// This method is called by establishAppearance to copy inventory folders to make
+        /// copies of Clothing and Bodyparts inventory folders and attaches worn attachments
+        /// </summary>
+
+        private void copyInventoryFolders(UUID dest, UUID srca, AssetType assettype, Dictionary<UUID,UUID> imap,
+                                          AvatarAppearance ava)
+        {
+            IInventoryService iserv = m_app.SceneManager.CurrentOrFirstScene.InventoryService;
+
+            InventoryFolderBase srcf = iserv.GetFolderForType(srca, assettype);
+            InventoryFolderBase dstf = iserv.GetFolderForType(dest, assettype);
+
+            if (srcf == null || dstf == null)
+                throw new Exception("Cannot locate folder(s)");
+
+            // Missing source folder? This should *never* be the case
+            if (srcf.Type != (short)assettype)
+            {
+                srcf = new InventoryFolderBase();
+                srcf.ID       = UUID.Random();
+                if (assettype == AssetType.Clothing) {
+                    srcf.Name     = "Clothing";
+                } else {
+                    srcf.Name     = "Body Parts";
+                }
+                srcf.Owner    = srca;
+                srcf.Type     = (short)assettype;
+                srcf.ParentID = iserv.GetRootFolder(srca).ID;
+                srcf.Version  = 1;
+                iserv.AddFolder(srcf);     // store base record
+                m_log.ErrorFormat("[RADMIN] Created folder for source {0}", srca);
+            }
+
+            // Missing destination folder? This should *never* be the case
+            if (dstf.Type != (short)assettype)
+            {
+                dstf = new InventoryFolderBase();
+                dstf.ID       = UUID.Random();
+                dstf.Name     = assettype.ToString();
+                dstf.Owner    = dest;
+                dstf.Type     = (short)assettype;
+                dstf.ParentID = iserv.GetRootFolder(dest).ID;
+                dstf.Version  = 1;
+                iserv.AddFolder(dstf);     // store base record
+                m_log.ErrorFormat("[RADMIN] Created folder for destination {0}", srca);
+            }
+
+            InventoryFolderBase efolder;
+            List<InventoryFolderBase> folders = iserv.GetFolderContent(srca, srcf.ID).Folders;
+
+            foreach (InventoryFolderBase folder in folders)
+            {
+
+                efolder = new InventoryFolderBase();
+                efolder.ID = UUID.Random();
+                efolder.Name = folder.Name;
+                efolder.Owner = dest;
+                efolder.Type = folder.Type;
+                efolder.Version = folder.Version;
+                efolder.ParentID = dstf.ID;
+                iserv.AddFolder(efolder);
+
+                m_log.DebugFormat("[RADMIN] Added folder {0} to folder {1}", efolder.ID, srcf.ID);
+
+                List<InventoryItemBase> items = iserv.GetFolderContent(srca, folder.ID).Items;
+
+                foreach (InventoryItemBase item in items)
+                {
+                    InventoryItemBase dsti = new InventoryItemBase(UUID.Random(), dest);
+                    dsti.Name = item.Name;
+                    dsti.Description = item.Description;
+                    dsti.InvType = item.InvType;
+                    dsti.CreatorId = item.CreatorId;
+                    dsti.CreatorIdAsUuid = item.CreatorIdAsUuid;
+                    dsti.NextPermissions = item.NextPermissions;
+                    dsti.CurrentPermissions = item.CurrentPermissions;
+                    dsti.BasePermissions = item.BasePermissions;
+                    dsti.EveryOnePermissions = item.EveryOnePermissions;
+                    dsti.GroupPermissions = item.GroupPermissions;
+                    dsti.AssetType = item.AssetType;
+                    dsti.AssetID = item.AssetID;
+                    dsti.GroupID = item.GroupID;
+                    dsti.GroupOwned = item.GroupOwned;
+                    dsti.SalePrice = item.SalePrice;
+                    dsti.SaleType = item.SaleType;
+                    dsti.Flags = item.Flags;
+                    dsti.CreationDate = item.CreationDate;
+                    dsti.Folder = efolder.ID;
+
+                    iserv.AddItem(dsti);
+                    imap.Add(item.ID, dsti.ID);
+                    m_log.DebugFormat("[RADMIN] Added item {0} to folder {1}", dsti.ID, efolder.ID);
+
+                    // Attach item, if original is attached
+                    int attachpoint = ava.GetAttachpoint(item.ID);
+                    if (attachpoint != 0)
+                    {
+                        ava.SetAttachment(attachpoint, dsti.ID, dsti.AssetID);
+                        m_log.DebugFormat("[RADMIN] Attached {0}", dsti.ID);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// This method is called if a given model avatar name can not be found. If the external
         /// file has already been loaded once, then control returns immediately. If not, then it
         /// looks for a default appearance file. This file contains XML definitions of zero or more named
@@ -1675,9 +1887,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     bool include = false;
                     bool select  = false;
 
-                    UICallback uic;
-                    IInventoryService iserv = m_app.SceneManager.CurrentOrFirstScene.InventoryService;
-                    IAssetService     aserv = m_app.SceneManager.CurrentOrFirstScene.AssetService;
+                    Scene scene = m_app.SceneManager.CurrentOrFirstScene;
+                    IInventoryService iserv = scene.InventoryService;
+                    IAssetService     aserv = scene.AssetService;
 
                     doc.LoadXml(File.ReadAllText(dafn));
 
@@ -1714,28 +1926,30 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                             passwd = GetStringAttribute(avatar,"password",passwd);
 
                             string[] nomens = name.Split();
-                            UUID scopeID = m_app.SceneManager.CurrentOrFirstScene.RegionInfo.ScopeID;
-                            UserAccount account = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.GetUserAccount(scopeID, nomens[0], nomens[1]);
+                            UUID scopeID = scene.RegionInfo.ScopeID;
+                            UserAccount account = scene.UserAccountService.GetUserAccount(scopeID, nomens[0], nomens[1]);
                             if (null == account)
                             {
-                                account = new UserAccount(scopeID, nomens[0], nomens[1], email);
-                                bool success = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.StoreUserAccount(account);
-                                if (!success)
+                                account = CreateUser(scopeID, nomens[0], nomens[1], passwd, email);
+                                if (null == account)
                                 {
                                     m_log.ErrorFormat("[RADMIN] Avatar {0} {1} was not created", nomens[0], nomens[1]);
                                     return false;
                                 }
-                                // !!! REFACTORING PROBLEM: need to set the password
+                            }
 
-                                GridRegion home = m_app.SceneManager.CurrentOrFirstScene.GridService.GetRegionByPosition(scopeID, 
-                                    (int)(regX * Constants.RegionSize), (int)(regY * Constants.RegionSize));
-                                if (home != null)
-                                    m_app.SceneManager.CurrentOrFirstScene.GridUserService.SetHome(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
+                            // Set home position
+
+                            GridRegion home = scene.GridService.GetRegionByPosition(scopeID, 
+                                (int)(regX * Constants.RegionSize), (int)(regY * Constants.RegionSize));
+                            if (null == home) {
+                                m_log.WarnFormat("[RADMIN]: Unable to set home region for newly created user account {0} {1}", nomens[0], nomens[1]);
+                            } else {
+                                scene.GridUserService.SetHome(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
+                                m_log.DebugFormat("[RADMIN]: Set home region {0} for updated user account {1} {2}", home.RegionID, nomens[0], nomens[1]);
                             }
-                            else
-                            {
-                                ID = account.PrincipalID;
-                            }
+
+                            ID = account.PrincipalID;
 
                             m_log.DebugFormat("[RADMIN] User {0}[{1}] created or retrieved", name, ID);
                             include = true;
@@ -1753,46 +1967,36 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                         if (include)
                         {
-                            uic = new UICallback();
-                            // Request the inventory
-                            iserv.GetUserInventory(ID, uic.callback);
-
-                            // While the inventory is being fetched, setup for appearance processing
-                            AvatarData adata = m_app.SceneManager.CurrentOrFirstScene.AvatarService.GetAvatar(ID);
+                            // Setup for appearance processing
+                            AvatarData adata = scene.AvatarService.GetAvatar(ID);
                             if (adata != null)
                                 mava = adata.ToAvatarAppearance(ID);
                             else
                                 mava = new AvatarAppearance();
 
+                            AvatarWearable[] wearables = mava.Wearables;
+                            for (int i=0; i<wearables.Length; i++)
                             {
-                                AvatarWearable[] wearables = mava.Wearables;
-                                for (int i=0; i<wearables.Length; i++)
-                                {
-                                    wearables[i] = new AvatarWearable();
-                                }
+                                wearables[i] = new AvatarWearable();
                             }
 
-                            // Wait for the inventory to arrive
-                            uic.GetInventory();
-
-                            // We can only get dresssed if an inventory is forthcoming
-                            if (uic.OK)
                             try
                             {
-                                m_log.DebugFormat("[RADMIN] {0} folders, {1} items in inventory",
-                                   uic.folders.Count, uic.items.Count);
+                                // m_log.DebugFormat("[RADMIN] {0} folders, {1} items in inventory",
+                                //   uic.folders.Count, uic.items.Count);
 
-                                InventoryFolderImpl cfolder = uic.root.FindFolderForType(5);
+                                InventoryFolderBase cfolder = iserv.GetFolderForType(ID, AssetType.Clothing);
 
                                 // This should *never* be the case
-                                if (cfolder == null)
+                                if (cfolder == null || cfolder.Type != (short)AssetType.Clothing)
                                 {
-                                    cfolder = new InventoryFolderImpl();
+                                    cfolder = new InventoryFolderBase();
+                                    cfolder.ID       = UUID.Random();
                                     cfolder.Name     = "Clothing";
-                                    cfolder.Type     = 5;
-                                    cfolder.Version  = 1;
                                     cfolder.Owner    = ID;
-                                    uic.root.AddChildFolder(cfolder); // make connection
+                                    cfolder.Type     = (short)AssetType.Clothing;
+                                    cfolder.ParentID = iserv.GetRootFolder(ID).ID;
+                                    cfolder.Version  = 1;
                                     iserv.AddFolder(cfolder);     // store base record
                                     m_log.ErrorFormat("[RADMIN] Created clothing folder for {0}/{1}", name, ID);
                                 }
@@ -1801,7 +2005,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                 // default appearance XMl file.
 
                                 XmlNodeList outfits = avatar.GetElementsByTagName("Ensemble");
-                                InventoryFolderImpl efolder;
+                                InventoryFolderBase efolder;
                                 string oname;
                                 UUID assetid;
 
@@ -1812,13 +2016,16 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                                     oname   = GetStringAttribute(outfit,"name","");
                                     select  = (GetStringAttribute(outfit,"default","no") == "yes");
-                                    efolder = null;
 
                                     // If the folder already exists, re-use it. The defaults may
                                     // change over time. Augment only.
-                                    foreach (InventoryFolderImpl folder in uic.folders)
+
+                                    List<InventoryFolderBase> folders = iserv.GetFolderContent(ID, cfolder.ID).Folders;
+                                    efolder = null;
+
+                                    foreach (InventoryFolderBase folder in folders)
                                     {
-                                    if (folder.Name == oname && folder.ParentID == cfolder.ID)
+                                    if (folder.Name == oname)
                                         {
                                             efolder = folder;
                                             break;
@@ -1829,14 +2036,14 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                     if (efolder == null)
                                     {
                                         m_log.DebugFormat("[RADMIN] Creating outfit folder {0} for {1}", oname, name);
-                                        efolder          = new InventoryFolderImpl();
+                                        efolder          = new InventoryFolderBase();
                                         efolder.ID       = UUID.Random();
                                         efolder.Name     = oname;
-                                        efolder.Type     = 5;
-                                        efolder.Version  = 1;
                                         efolder.Owner    = ID;
-                                        cfolder.AddChildFolder(efolder); // make connection
-                                        iserv.AddFolder(efolder);        // store base record
+                                        efolder.Type     = (short)AssetType.Clothing;
+                                        efolder.Version  = 1;
+                                        efolder.ParentID = cfolder.ID;
+                                        iserv.AddFolder(efolder);
                                         m_log.DebugFormat("[RADMIN] Adding outfile folder {0} to folder {1}", efolder.ID, cfolder.ID);
                                     }
 
@@ -1863,26 +2070,55 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                                         InventoryItemBase iitem = null;
 
-                                        if ((iitem = efolder.FindAsset(assetid)) == null)
+                                        // Check if asset is in inventory already
+                                        iitem = null;
+                                        List<InventoryItemBase> iitems = iserv.GetFolderContent(ID, efolder.ID).Items;
+
+                                        foreach (InventoryItemBase litem in iitems)
                                         {
-                                            iitem = new InventoryItemBase();
-                                            iitem.ID = UUID.Random();
+                                            if (litem.AssetID == assetid)
+                                            {
+                                                iitem = litem;
+                                                break;
+                                            }
+                                        }
+
+                                        // Create inventory item
+                                        if (iitem == null)
+                                        {
+                                            iitem = new InventoryItemBase(UUID.Random(), ID);
                                             iitem.Name = GetStringAttribute(item,"name","");
                                             iitem.Description = GetStringAttribute(item,"desc","");
                                             iitem.InvType = GetIntegerAttribute(item,"invtype",-1);
-                                            iitem.AssetType = GetIntegerAttribute(item,"assettype",-1);
-                                            iitem.Flags = GetUnsignedAttribute(item,"flags",0);
-                                            iitem.AssetID = assetid; // associated asset
-                                            iitem.Folder = efolder.ID; // Parent folder
-                                            iitem.Owner = ID; // Agent ID
-                                            iitem.BasePermissions = GetUnsignedAttribute(perms,"base",0x7fffffff);
+                                            iitem.CreatorId = GetStringAttribute(item,"creatorid","");
+                                            iitem.CreatorIdAsUuid = (UUID)GetStringAttribute(item,"creatoruuid","");
                                             iitem.NextPermissions = GetUnsignedAttribute(perms,"next",0x7fffffff);
                                             iitem.CurrentPermissions = GetUnsignedAttribute(perms,"current",0x7fffffff);
-                                            iitem.GroupPermissions = GetUnsignedAttribute(perms,"group",0x7fffffff);
+                                            iitem.BasePermissions = GetUnsignedAttribute(perms,"base",0x7fffffff);
                                             iitem.EveryOnePermissions = GetUnsignedAttribute(perms,"everyone",0x7fffffff);
-                                            m_log.DebugFormat("[RADMIN] Adding item {0} to folder {1}", iitem.ID, efolder.ID);
+                                            iitem.GroupPermissions = GetUnsignedAttribute(perms,"group",0x7fffffff);
+                                            iitem.AssetType = GetIntegerAttribute(item,"assettype",-1);
+                                            iitem.AssetID = assetid; // associated asset
+                                            iitem.GroupID = (UUID)GetStringAttribute(item,"groupid","");
+                                            iitem.GroupOwned = (GetStringAttribute(item,"groupowned","false") == "true");
+                                            iitem.SalePrice = GetIntegerAttribute(item,"saleprice",0);
+                                            iitem.SaleType = (byte)GetIntegerAttribute(item,"saletype",0);
+                                            iitem.Flags = GetUnsignedAttribute(item,"flags",0);
+                                            iitem.CreationDate = GetIntegerAttribute(item,"creationdate",Util.UnixTimeSinceEpoch());
+                                            iitem.Folder = efolder.ID; // Parent folder
+
                                             iserv.AddItem(iitem);
+                                            m_log.DebugFormat("[RADMIN] Added item {0} to folder {1}", iitem.ID, efolder.ID);
                                         }
+
+                                        // Attach item, if attachpoint is specified
+                                        int attachpoint = GetIntegerAttribute(item,"attachpoint",0);
+                                        if (attachpoint != 0)
+                                        {
+                                            mava.SetAttachment(attachpoint, iitem.ID, iitem.AssetID);
+                                            m_log.DebugFormat("[RADMIN] Attached {0}", iitem.ID);
+                                        }
+
                                         // Record whether or not the item is to be initially worn
                                         try
                                         {
@@ -1892,24 +2128,21 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                                 mava.Wearables[iitem.Flags].AssetID = iitem.AssetID;
                                             }
                                         }
-                                        catch {}
+                                        catch (Exception e)
+                                        {
+                                            m_log.WarnFormat("[RADMIN] Error wearing item {0} : {1}", iitem.ID, e.Message);
+                                        }
                                     } // foreach item in outfit
                                     m_log.DebugFormat("[RADMIN] Outfit {0} load completed", oname);
                                 } // foreach outfit
                                 m_log.DebugFormat("[RADMIN] Inventory update complete for {0}", name);
                                 AvatarData adata2 = new AvatarData(mava);
-                                m_app.SceneManager.CurrentOrFirstScene.AvatarService.SetAvatar(ID, adata2);
+                                scene.AvatarService.SetAvatar(ID, adata2);
                             }
                             catch (Exception e)
                             {
                                 m_log.WarnFormat("[RADMIN] Inventory processing incomplete for user {0} : {1}",
                                     name, e.Message);
-                            }
-                            else
-                            {
-                                m_log.WarnFormat("[RADMIN] Unable to retrieve inventory for {0}[{1}]",
-                                    name, ID);
-                                // continue to next avatar
                             }
                         } // End of include
                     }
@@ -2778,81 +3011,115 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         public void Dispose()
         {
         }
-    }
 
-    class UICallback
-    {
-        private  Object uilock = new Object();
-        internal InventoryFolderImpl root = null;
-        internal List<InventoryFolderImpl> folders;
-        internal List<InventoryItemBase> items;
-        internal bool OK = false;
-
-        public void callback(ICollection<InventoryFolderImpl> p_folders, ICollection<InventoryItemBase> p_items)
+        /// <summary>
+        /// Create a user
+        /// </summary>
+        /// <param name="scopeID"></param>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="password"></param>
+        /// <param name="email"></param>
+        private UserAccount CreateUser(UUID scopeID, string firstName, string lastName, string password, string email)
         {
-            lock (uilock)
-            {
-                folders = (List<InventoryFolderImpl>) p_folders;
-                items   = (List<InventoryItemBase>)   p_items;
-                OK   = true;
-                System.Threading.Monitor.Pulse(uilock);
-            }
-        }
+            Scene scene = m_app.SceneManager.CurrentOrFirstScene;
+            IUserAccountService m_UserAccountService = scene.UserAccountService;
+            IGridService m_GridService = scene.GridService;
+            IAuthenticationService m_AuthenticationService = scene.AuthenticationService;
+            IGridUserService m_GridUserService = scene.GridUserService;
+            IInventoryService m_InventoryService = scene.InventoryService;
 
-        public void GetInventory()
-        {
-            Dictionary<UUID, InventoryFolderImpl> fmap = new Dictionary<UUID, InventoryFolderImpl>();
-
-            if (OK == false)
+            UserAccount account = m_UserAccountService.GetUserAccount(scopeID, firstName, lastName);
+            if (null == account)
             {
-                lock (uilock)
+                account = new UserAccount(scopeID, firstName, lastName, email);
+                if (account.ServiceURLs == null || (account.ServiceURLs != null && account.ServiceURLs.Count == 0))
                 {
-                    if (OK == false)
-                        System.Threading.Monitor.Wait(uilock);
+                    account.ServiceURLs = new Dictionary<string, object>();
+                    account.ServiceURLs["HomeURI"] = string.Empty;
+                    account.ServiceURLs["GatekeeperURI"] = string.Empty;
+                    account.ServiceURLs["InventoryServerURI"] = string.Empty;
+                    account.ServiceURLs["AssetServerURI"] = string.Empty;
                 }
-            }
 
-            // Got the inventory OK. So now merge the content of the default appearance
-            // file with whatever we already have in-world. For convenience we initialize
-            // the inventory hierarchy.
-
-            // Find root and build an index
-
-            foreach (InventoryFolderImpl folder in folders)
-            {
-                if (folder.ParentID == UUID.Zero)
+                if (m_UserAccountService.StoreUserAccount(account))
                 {
-                    if (root == null)
+                    bool success;
+                    if (m_AuthenticationService != null)
                     {
-                        root = folder;
+                        success = m_AuthenticationService.SetPassword(account.PrincipalID, password);
+                        if (!success)
+                            m_log.WarnFormat("[RADMIN]: Unable to set password for account {0} {1}.",
+                                firstName, lastName);
+                    }
+
+                    GridRegion home = null;
+                    if (m_GridService != null)
+                    {
+                        List<GridRegion> defaultRegions = m_GridService.GetDefaultRegions(UUID.Zero);
+                        if (defaultRegions != null && defaultRegions.Count >= 1)
+                            home = defaultRegions[0];
+
+                        if (m_GridUserService != null && home != null)
+                            m_GridUserService.SetHome(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
+                        else
+                            m_log.WarnFormat("[RADMIN]: Unable to set home for account {0} {1}.",
+                               firstName, lastName);
                     }
                     else
+                        m_log.WarnFormat("[RADMIN]: Unable to retrieve home region for account {0} {1}.",
+                           firstName, lastName);
+
+                    if (m_InventoryService != null)
                     {
-                        throw new Exception("Multiple root folders found");
+                        success = m_InventoryService.CreateUserInventory(account.PrincipalID);
+                        if (!success)
+                            m_log.WarnFormat("[RADMIN]: Unable to create inventory for account {0} {1}.",
+                                firstName, lastName);
                     }
-                }
-                fmap.Add(folder.ID, folder);
-            }
 
-            // Hard to continue if the root folder is not there
-            if (root == null)
-            {
-                throw new Exception("Root folder not found");
-            }
-
-            // Construct the folder hierarchy
-            foreach (InventoryFolderImpl folder in folders)
-            {
-                if (folder.ID != root.ID)
-                {
-                    fmap[folder.ParentID].AddChildFolder(folder);
+                    m_log.InfoFormat("[RADMIN]: Account {0} {1} created successfully", firstName, lastName);
+                    return account;
+                 } else {
+                    m_log.ErrorFormat("[RADMIN]: Account creation failed for account {0} {1}", firstName, lastName);
                 }
             }
-
-            // Find a home for every pre-existing item
-            foreach (InventoryItemBase item in items)
+            else
             {
-                 fmap[item.Folder].Items.Add(item.ID, item);
+                m_log.ErrorFormat("[RADMIN]: A user with the name {0} {1} already exists!", firstName, lastName);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Change password
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="password"></param>
+        private bool ChangeUserPassword(string firstName, string lastName, string password)
+        {
+	    Scene scene = m_app.SceneManager.CurrentOrFirstScene;
+            IUserAccountService m_UserAccountService = scene.UserAccountService;
+            IAuthenticationService m_AuthenticationService = scene.AuthenticationService;
+
+            UserAccount account = m_UserAccountService.GetUserAccount(UUID.Zero, firstName, lastName);
+            if (null != account)
+            {
+                bool success = false;
+                if (m_AuthenticationService != null)
+                    success = m_AuthenticationService.SetPassword(account.PrincipalID, password);
+                if (!success) {
+                    m_log.WarnFormat("[RADMIN]: Unable to set password for account {0} {1}.",
+                       firstName, lastName);
+                    return false;
+                }
+                return true;
+            }
+            else
+            {
+                m_log.ErrorFormat("[RADMIN]: No such user");
+                return false;
             }
         }
     }
