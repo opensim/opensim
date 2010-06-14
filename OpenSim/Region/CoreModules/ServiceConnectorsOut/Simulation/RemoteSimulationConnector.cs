@@ -181,7 +181,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
             {
-                //m_regionClient.SendUserInformation(regInfo, aCircuit);
                 return m_remoteConnector.CreateAgent(destination, aCircuit, teleportFlags, out reason);
             }
             return false;

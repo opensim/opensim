@@ -352,7 +352,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 // Save avatar attachment information
                 if (m_scene.AvatarFactory != null)
                 {
-                    m_log.Debug("[ATTACHMENTS MODULE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId + ", ItemID: " + itemID);
+                    m_log.Debug("[ATTACHMENTS MODULE]: Dettaching from UserID: " + remoteClient.AgentId + ", ItemID: " + itemID);
                     m_scene.AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
                 }
             }

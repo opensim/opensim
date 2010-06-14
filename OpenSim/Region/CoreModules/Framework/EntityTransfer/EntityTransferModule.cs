@@ -922,12 +922,40 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// </summary>
         public void EnableChildAgent(ScenePresence sp, GridRegion region)
         {
+            m_log.DebugFormat("[ENTITY TRANSFER]: Enabling child agent in new neighour {0}", region.RegionName);
+
+            AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
             AgentCircuitData agent = sp.ControllingClient.RequestClientInfo();
             agent.BaseFolder = UUID.Zero;
             agent.InventoryFolder = UUID.Zero;
             agent.startpos = new Vector3(128, 128, 70);
             agent.child = true;
             agent.Appearance = sp.Appearance;
+            agent.CapsPath = CapsUtil.GetRandomCapsObjectPath();
+
+            agent.ChildrenCapSeeds = new Dictionary<ulong, string>(sp.Scene.CapsModule.GetChildrenSeeds(sp.UUID));
+            m_log.DebugFormat("[XXX] Seeds 1 {0}", agent.ChildrenCapSeeds.Count);
+
+            if (!agent.ChildrenCapSeeds.ContainsKey(sp.Scene.RegionInfo.RegionHandle))
+                agent.ChildrenCapSeeds.Add(sp.Scene.RegionInfo.RegionHandle, sp.ControllingClient.RequestClientInfo().CapsPath);
+            m_log.DebugFormat("[XXX] Seeds 2 {0}", agent.ChildrenCapSeeds.Count);
+
+            sp.AddNeighbourRegion(region.RegionHandle, agent.CapsPath);
+            foreach (ulong h in agent.ChildrenCapSeeds.Keys)
+                m_log.DebugFormat("[XXX] --> {0}", h);
+            m_log.DebugFormat("[XXX] Adding {0}", region.RegionHandle);
+            agent.ChildrenCapSeeds.Add(region.RegionHandle, agent.CapsPath);
+
+            if (sp.Scene.CapsModule != null)
+            {
+                sp.Scene.CapsModule.SetChildrenSeed(sp.UUID, agent.ChildrenCapSeeds);
+            }
+
+            if (currentAgentCircuit != null)
+            {
+                agent.ServiceURLs = currentAgentCircuit.ServiceURLs;
+                agent.Viewer = currentAgentCircuit.Viewer;
+            }
 
             InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
             d.BeginInvoke(sp, agent, region, region.ExternalEndPoint, true,
