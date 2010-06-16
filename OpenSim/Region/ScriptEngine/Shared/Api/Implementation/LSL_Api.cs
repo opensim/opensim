@@ -9470,8 +9470,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, 0);
-            if (detectedParams == null) return; // only works on the first detected avatar
-
+            if (detectedParams == null)
+            {
+                if (m_host.IsAttachment == true)
+                {
+                    detectedParams = new DetectParams();
+                    detectedParams.Key = m_host.OwnerID;
+                }
+                else
+                {
+                    return;
+                }
+            }
+           
             ScenePresence avatar = World.GetScenePresence(detectedParams.Key);
             if (avatar != null)
             {
@@ -9479,6 +9490,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                                                    new Vector3((float)pos.x, (float)pos.y, (float)pos.z),
                                                                    new Vector3((float)lookAt.x, (float)lookAt.y, (float)lookAt.z));
             }
+            
             ScriptSleep(1000);
         }
 
