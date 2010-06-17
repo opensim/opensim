@@ -114,10 +114,9 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     {
                         if (identity["Type"].AsString() == "md5hash")
                         {
-                            string credential = identity["Credential"].AsString();
-
-                            if (password == credential || "$1$" + password == credential || "$1$" + Utils.MD5String(password) == credential || Utils.MD5String(password) == credential)
-                                return Authorize(principalID);
+                            string authorizeResult;
+                            if (CheckPassword(principalID, password, identity["Credential"].AsString(), out authorizeResult))
+                                return authorizeResult;
 
                             md5hashFound = true;
                             break;
@@ -125,9 +124,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     }
                 }
 
-                if (md5hashFound)
-                    m_log.Warn("[SIMIAN AUTH CONNECTOR]: Authentication failed for " + principalID + " using md5hash $1$" + Utils.MD5String(password));
-                else
+                if (!md5hashFound)
                     m_log.Warn("[SIMIAN AUTH CONNECTOR]: Authentication failed for " + principalID + ", no md5hash identity found");
             }
             else
@@ -225,6 +222,48 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     response["Message"].AsString());
             }
 
+            return false;
+        }
+
+        private bool CheckPassword(UUID userID, string password, string simianGridCredential, out string authorizeResult)
+        {
+            if (simianGridCredential.Contains(":"))
+            {
+                // Salted version
+                int idx = simianGridCredential.IndexOf(':');
+                string finalhash = simianGridCredential.Substring(0, idx);
+                string salt = simianGridCredential.Substring(idx + 1);
+
+                if (finalhash == Utils.MD5String(password + ":" + salt))
+                {
+                    authorizeResult = Authorize(userID);
+                    return true;
+                }
+                else
+                {
+                    m_log.Warn("[SIMIAN AUTH CONNECTOR]: Authentication failed for " + userID +
+                        " using md5hash " + Utils.MD5String(password) + ":" + salt);
+                }
+            }
+            else
+            {
+                // Unsalted version
+                if (password == simianGridCredential ||
+                    "$1$" + password == simianGridCredential ||
+                    "$1$" + Utils.MD5String(password) == simianGridCredential ||
+                    Utils.MD5String(password) == simianGridCredential)
+                {
+                    authorizeResult = Authorize(userID);
+                    return true;
+                }
+                else
+                {
+                    m_log.Warn("[SIMIAN AUTH CONNECTOR]: Authentication failed for " + userID +
+                        " using md5hash $1$" + Utils.MD5String(password));
+                }
+            }
+
+            authorizeResult = null;
             return false;
         }
 

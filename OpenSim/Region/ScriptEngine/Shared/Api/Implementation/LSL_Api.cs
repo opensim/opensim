@@ -502,25 +502,33 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return remainder;
         }
 
-        // Old implementation of llRot2Euler, now normalized
-
-        public LSL_Vector llRot2Euler(LSL_Rotation r)
+        public LSL_Vector llRot2Euler(LSL_Rotation q1)
         {
             m_host.AddScriptLPS(1);
-            //This implementation is from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions. ckrinke
-            LSL_Rotation t = new LSL_Rotation(r.x * r.x, r.y * r.y, r.z * r.z, r.s * r.s);
-            double m = (t.x + t.y + t.z + t.s);
-            if (m == 0) return new LSL_Vector();
-            double n = 2 * (r.y * r.s + r.x * r.z);
-            double p = m * m - n * n;
-            if (p > 0)
-                return new LSL_Vector(NormalizeAngle(Math.Atan2(2.0 * (r.x * r.s - r.y * r.z), (-t.x - t.y + t.z + t.s))),
-                                             NormalizeAngle(Math.Atan2(n, Math.Sqrt(p))),
-                                             NormalizeAngle(Math.Atan2(2.0 * (r.z * r.s - r.x * r.y), (t.x - t.y - t.z + t.s))));
-            else if (n > 0)
-                return new LSL_Vector(0.0, Math.PI * 0.5, NormalizeAngle(Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z)));
-            else
-                return new LSL_Vector(0.0, -Math.PI * 0.5, NormalizeAngle(Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z)));
+            LSL_Vector eul = new LSL_Vector();
+
+            double sqw = q1.s*q1.s;
+            double sqx = q1.x*q1.x;
+            double sqy = q1.z*q1.z;
+            double sqz = q1.y*q1.y;
+	        double unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
+	        double test = q1.x*q1.z + q1.y*q1.s;
+	        if (test > 0.4999*unit) { // singularity at north pole
+		        eul.z = 2 * Math.Atan2(q1.x,q1.s);
+		        eul.y = Math.PI/2;
+		        eul.x = 0;
+		        return eul;
+	        }
+	        if (test < -0.4999*unit) { // singularity at south pole
+		        eul.z = -2 * Math.Atan2(q1.x,q1.s);
+		        eul.y = -Math.PI/2;
+		        eul.x = 0;
+		        return eul;
+	        }
+            eul.z = Math.Atan2(2*q1.z*q1.s-2*q1.x*q1.y , sqx - sqy - sqz + sqw);
+	        eul.y = Math.Asin(2*test/unit);
+	        eul.x = Math.Atan2(2*q1.x*q1.s-2*q1.z*q1.y , -sqx + sqy - sqz + sqw);
+            return eul;
         }
 
         /* From wiki:
@@ -3065,9 +3073,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (m_host.ParentGroup.RootPart.AttachmentPoint == 0)
-                return;
-
             TaskInventoryItem item;
 
             m_host.TaskInventory.LockItemsForRead(true);
@@ -3093,11 +3098,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
 
+                /*
                 IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
                 if (attachmentsModule != null)
+                {
                     attachmentsModule.AttachObject(
-                        presence.ControllingClient, grp.LocalId, 
+                        presence.ControllingClient, grp.LocalId,
                         (uint)attachment, Quaternion.Identity, Vector3.Zero, false);
+                }
+                */
+                grp.AttachToAgent(m_host.OwnerID, (uint)attachment, Vector3.Zero, false);
             }
         }
 
@@ -9470,8 +9480,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, 0);
-            if (detectedParams == null) return; // only works on the first detected avatar
-
+            if (detectedParams == null)
+            {
+                if (m_host.IsAttachment == true)
+                {
+                    detectedParams = new DetectParams();
+                    detectedParams.Key = m_host.OwnerID;
+                }
+                else
+                {
+                    return;
+                }
+            }
+           
             ScenePresence avatar = World.GetScenePresence(detectedParams.Key);
             if (avatar != null)
             {
@@ -9479,6 +9500,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                                                    new Vector3((float)pos.x, (float)pos.y, (float)pos.z),
                                                                    new Vector3((float)lookAt.x, (float)lookAt.y, (float)lookAt.z));
             }
+            
             ScriptSleep(1000);
         }
 

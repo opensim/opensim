@@ -153,12 +153,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return false;
         }
 
-        // Let's override GetNeighbours completely -- never go to the grid server
-        // Neighbours are/should be cached locally
-        // For retrieval from the DB, caller should call GetRegionByPosition
         public override List<GridRegion> GetNeighbours(UUID scopeID, UUID regionID)
         {
-            return m_LocalGridService.GetNeighbours(scopeID, regionID);
+            return base.GetNeighbours(scopeID, regionID);
         }
 
         public override GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)

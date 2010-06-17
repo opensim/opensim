@@ -3390,6 +3390,7 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
             {
                 if (cAgent.Attachments != null)
                 {
+                    m_appearance.ClearAttachments();
                     foreach (AttachmentData att in cAgent.Attachments)
                     {
                         m_appearance.SetAttachment(att.AttachPoint, att.ItemID, att.AssetID);
