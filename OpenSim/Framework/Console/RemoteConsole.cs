@@ -44,6 +44,7 @@ namespace OpenSim.Framework.Console
     {
         public int last;
         public long lastLineSeen;
+        public bool newConnection = true;
     }
 
     // A console that uses REST interfaces
@@ -423,6 +424,12 @@ namespace OpenSim.Framework.Console
             xmldoc.AppendChild(xmlnode);
             XmlElement rootElement = xmldoc.CreateElement("", "ConsoleSession",
                     "");
+
+            if (c.newConnection)
+            {
+                c.newConnection = false;
+                Output("+++" + DefaultPrompt);
+            }
 
             lock (m_Scrollback)
             {
