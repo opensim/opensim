@@ -1967,14 +1967,24 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public Vector3 GetNewRezLocation(Vector3 RayStart, Vector3 RayEnd, UUID RayTargetID, Quaternion rot, byte bypassRayCast, byte RayEndIsIntersection, bool frontFacesOnly, Vector3 scale, bool FaceCenter)
         {
+        
+            float wheight = (float)RegionInfo.RegionSettings.WaterHeight;
+            Vector3 wpos = Vector3.Zero;
+            // Check for water surface intersection from above
+            if ( (RayStart.Z > wheight) && (RayEnd.Z < wheight) )
+            {
+                float ratio = (RayStart.Z - wheight) / (RayStart.Z - RayEnd.Z);
+                wpos.X = RayStart.X - (ratio * (RayStart.X - RayEnd.X));
+                wpos.Y = RayStart.Y - (ratio * (RayStart.Y - RayEnd.Y));
+                wpos.Z = wheight;
+            }                
+        
             Vector3 pos = Vector3.Zero;
             if (RayEndIsIntersection == (byte)1)
             {
                 pos = RayEnd;
-                return pos;
             }
-
-            if (RayTargetID != UUID.Zero)
+            else if (RayTargetID != UUID.Zero)
             {
                 SceneObjectPart target = GetSceneObjectPart(RayTargetID);
 
@@ -1996,7 +2006,7 @@ namespace OpenSim.Region.Framework.Scenes
                     EntityIntersection ei = target.TestIntersectionOBB(NewRay, Quaternion.Identity, frontFacesOnly, FaceCenter);
 
                     // Un-comment out the following line to Get Raytrace results printed to the console.
-                   // m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
+                    // m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
                     float ScaleOffset = 0.5f;
 
                     // If we hit something
@@ -2019,13 +2029,10 @@ namespace OpenSim.Region.Framework.Scenes
                         //pos.Z -= 0.25F; 
                        
                     }
-
-                    return pos;
                 }
                 else
                 {
                     // We don't have a target here, so we're going to raytrace all the objects in the scene.
-
                     EntityIntersection ei = m_sceneGraph.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection), true, false);
 
                     // Un-comment the following line to print the raytrace results to the console.
@@ -2034,13 +2041,12 @@ namespace OpenSim.Region.Framework.Scenes
                     if (ei.HitTF)
                     {
                         pos = new Vector3(ei.ipoint.X, ei.ipoint.Y, ei.ipoint.Z);
-                    } else
+                    } 
+                    else
                     {
                         // fall back to our stupid functionality
                         pos = RayEnd;
                     }
-
-                    return pos;
                 }
             }
             else
@@ -2051,8 +2057,12 @@ namespace OpenSim.Region.Framework.Scenes
                 //increase height so its above the ground.
                 //should be getting the normal of the ground at the rez point and using that?
                 pos.Z += scale.Z / 2f;
-                return pos;
+//                return pos;
             }
+            
+            // check against posible water intercept
+            if (wpos.Z > pos.Z) pos = wpos;
+            return pos;
         }
 
 
