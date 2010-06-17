@@ -3065,9 +3065,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (m_host.ParentGroup.RootPart.AttachmentPoint == 0)
-                return;
-
             TaskInventoryItem item;
 
             m_host.TaskInventory.LockItemsForRead(true);
@@ -3093,11 +3090,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
 
+                /*
                 IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
                 if (attachmentsModule != null)
+                {
                     attachmentsModule.AttachObject(
-                        presence.ControllingClient, grp.LocalId, 
+                        presence.ControllingClient, grp.LocalId,
                         (uint)attachment, Quaternion.Identity, Vector3.Zero, false);
+                }
+                */
+                grp.AttachToAgent(m_host.OwnerID, (uint)attachment, Vector3.Zero, false);
             }
         }
 
@@ -9470,8 +9472,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             DetectParams detectedParams = m_ScriptEngine.GetDetectParams(m_itemID, 0);
-            if (detectedParams == null) return; // only works on the first detected avatar
-
+            if (detectedParams == null)
+            {
+                if (m_host.IsAttachment == true)
+                {
+                    detectedParams = new DetectParams();
+                    detectedParams.Key = m_host.OwnerID;
+                }
+                else
+                {
+                    return;
+                }
+            }
+           
             ScenePresence avatar = World.GetScenePresence(detectedParams.Key);
             if (avatar != null)
             {
@@ -9479,6 +9492,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                                                    new Vector3((float)pos.x, (float)pos.y, (float)pos.z),
                                                                    new Vector3((float)lookAt.x, (float)lookAt.y, (float)lookAt.z));
             }
+            
             ScriptSleep(1000);
         }
 
