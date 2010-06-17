@@ -75,6 +75,7 @@ namespace OpenSim.Data.MySQL
                     {
                         throw new Exception(sql);
                     };
+                    scr.CommandTimeout = 0;
                     scr.Execute();
                 }
             }
