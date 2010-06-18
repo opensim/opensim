@@ -1,7 +1,7 @@
 ;; Configurations for enabling HG1.5
 ;; 
 ;; Run
-;; $ OpenSim.Server.exe -inifile OpenSim.Server.HG.ini
+;; $ Robust.exe -inifile Robust.HG.ini
 
 ;; HG1.5 handlers are: OpenSim.Server.Handlers.dll:GatekeeperService
 ;;                     OpenSim.Server.Handlers.dll:UserAgentService
