@@ -55,8 +55,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         ///
         /// This method does not handle paths that contain multiple delimitors
         ///
-        /// FIXME: We do not yet handle situations where folders have the same name.  We could handle this by some
-        /// XPath like expression
+        /// FIXME: We have no way of distinguishing folders with the same path
         ///
         /// FIXME: Delimitors which occur in names themselves are not currently escapable.
         ///
@@ -70,14 +69,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// The path to the required folder.
         /// It this is empty or consists only of the PATH_DELIMTER then this folder itself is returned.
         /// </param>
-        /// <returns>null if the folder is not found</returns>
-        public static InventoryFolderBase FindFolderByPath(
+        /// <returns>An empty list if the folder is not found, otherwise a list of all folders that match the name</returns>
+        public static List<InventoryFolderBase> FindFolderByPath(
             IInventoryService inventoryService, UUID userId, string path)
         {
             InventoryFolderBase rootFolder = inventoryService.GetRootFolder(userId);
 
             if (null == rootFolder)
-                return null;
+                return new List<InventoryFolderBase>();
 
             return FindFolderByPath(inventoryService, rootFolder, path);
         }
@@ -88,8 +87,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         ///
         /// This method does not handle paths that contain multiple delimitors
         ///
-        /// FIXME: We do not yet handle situations where folders have the same name.  We could handle this by some
-        /// XPath like expression
+        /// FIXME: We have no way of distinguishing folders with the same path.
         ///
         /// FIXME: Delimitors which occur in names themselves are not currently escapable.
         ///
@@ -103,17 +101,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// The path to the required folder.
         /// It this is empty or consists only of the PATH_DELIMTER then this folder itself is returned.
         /// </param>
-        /// <returns>null if the folder is not found</returns>
-        public static InventoryFolderBase FindFolderByPath(
+        /// <returns>An empty list if the folder is not found, otherwise a list of all folders that match the name</returns>
+        public static List<InventoryFolderBase> FindFolderByPath(
             IInventoryService inventoryService, InventoryFolderBase startFolder, string path)
         {
+            List<InventoryFolderBase> foundFolders = new List<InventoryFolderBase>();
+            
             if (path == string.Empty)
-                return startFolder;
+            {
+                foundFolders.Add(startFolder);
+                return foundFolders;
+            }
 
             path = path.Trim();
 
             if (path == PATH_DELIMITER.ToString())
-                return startFolder;
+            {
+                foundFolders.Add(startFolder);
+                return foundFolders;
+            }
 
             string[] components = SplitEscapedPath(path);
             components[0] = UnescapePath(components[0]);
@@ -127,14 +133,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 if (folder.Name == components[0])
                 {
                     if (components.Length > 1)
-                        return FindFolderByPath(inventoryService, folder, components[1]);
+                        foundFolders.AddRange(FindFolderByPath(inventoryService, folder, components[1]));
                     else
-                        return folder;
+                        foundFolders.Add(folder);
                 }
             }
 
-            // We didn't find a folder with the right name
-            return null;
+            return foundFolders;
         }
 
         /// <summary>
