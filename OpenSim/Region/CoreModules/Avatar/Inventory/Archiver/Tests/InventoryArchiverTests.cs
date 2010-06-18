@@ -117,7 +117,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             InventoryFolderBase objsFolder 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects");
+                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
             scene.AddInventoryItem(userId, item1);
 
@@ -327,7 +327,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             InventoryFolderBase objsFolder 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects");
+                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
             scene.AddInventoryItem(userId, item1);
 
@@ -535,9 +535,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                     foldersCreated, nodesLoaded);
 
             InventoryFolderBase folder1 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, ua1.PrincipalID, "a");
+                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, ua1.PrincipalID, "a")[0];
             Assert.That(folder1, Is.Not.Null, "Could not find folder a");
-            InventoryFolderBase folder2 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1, "b");
+            InventoryFolderBase folder2 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1, "b")[0];
             Assert.That(folder2, Is.Not.Null, "Could not find folder b");
         }
         
@@ -576,7 +576,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                     new Dictionary<string, InventoryFolderBase>(), new List<InventoryNodeBase>());
 
             InventoryFolderBase folder1Post 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, ua1.PrincipalID, folder1ExistingName);
+                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, ua1.PrincipalID, folder1ExistingName)[0];
             Assert.That(folder1Post.ID, Is.EqualTo(folder1.ID));
             /*
             InventoryFolderBase folder2 

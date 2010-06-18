@@ -100,18 +100,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             
             List<InventoryNodeBase> loadedNodes = new List<InventoryNodeBase>();
            
-            InventoryFolderBase rootDestinationFolder 
+            List<InventoryFolderBase> folderCandidates
                 = InventoryArchiveUtils.FindFolderByPath(
                     m_scene.InventoryService, m_userInfo.PrincipalID, m_invPath);
 
-            if (null == rootDestinationFolder)
+            if (folderCandidates.Count == 0)
             {
                 // Possibly provide an option later on to automatically create this folder if it does not exist
                 m_log.ErrorFormat("[INVENTORY ARCHIVER]: Inventory path {0} does not exist", m_invPath);
 
                 return loadedNodes;
             }
-
+            
+            InventoryFolderBase rootDestinationFolder = folderCandidates[0];
             archive = new TarArchiveReader(m_loadStream);
 
             // In order to load identically named folders, we need to keep track of the folders that we have already
@@ -246,6 +247,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             ref string archivePath,             
             Dictionary <string, InventoryFolderBase> resolvedFolders)
         {
+            m_log.DebugFormat("[INVENTORY ARCHIVER]: Resolving destination folder {0}", archivePath);
+            
             string originalArchivePath = archivePath;
 
             InventoryFolderBase destFolder = null;
@@ -256,8 +259,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     if (resolvedFolders.ContainsKey(archivePath))
                     {
-//                        m_log.DebugFormat(
-//                            "[INVENTORY ARCHIVER]: Found previously created folder from archive path {0}", archivePath);
+                        m_log.DebugFormat(
+                            "[INVENTORY ARCHIVER]: Found previously created folder from archive path {0}", archivePath);
                         destFolder = resolvedFolders[archivePath];
                     }
                     else

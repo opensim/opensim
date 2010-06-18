@@ -249,9 +249,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             else
             {
                 m_invPath = m_invPath.Remove(m_invPath.LastIndexOf(InventoryFolderImpl.PATH_DELIMITER));
-                inventoryFolder 
+                List<InventoryFolderBase> candidateFolders 
                     = InventoryArchiveUtils.FindFolderByPath(m_scene.InventoryService, rootFolder, m_invPath);
-                //inventoryFolder = m_userInfo.RootFolder.FindFolderByPath(m_invPath);
+                if (candidateFolders.Count > 0)
+                    inventoryFolder = candidateFolders[0];
             }
 
             // The path may point to an item instead
