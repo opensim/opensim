@@ -117,7 +117,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             InventoryFolderBase objsFolder 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects");
+                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
             scene.AddInventoryItem(userId, item1);
 
@@ -327,7 +327,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             InventoryFolderBase objsFolder 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects");
+                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
             scene.AddInventoryItem(userId, item1);
 
@@ -508,7 +508,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         public void TestNewIarPath()
         {
             TestHelper.InMethod();
-            //log4net.Config.XmlConfigurator.Configure();
+//            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneSetupHelpers.SetupScene("inventory");
             UserAccount ua1 = UserProfileTestUtils.CreateUserWithInventory(scene);
@@ -516,33 +516,60 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Dictionary <string, InventoryFolderBase> foldersCreated = new Dictionary<string, InventoryFolderBase>();
             List<InventoryNodeBase> nodesLoaded = new List<InventoryNodeBase>();
             
-            string folder1Name = "a";
-            string folder2Name = "b";
-            string itemName = "c.lsl";
+            string folder1Name = "1";
+            string folder2aName = "2a";
+            string folder2bName = "2b";
             
             string folder1ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder1Name, UUID.Random());
-            string folder2ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder2Name, UUID.Random());
-            string itemArchiveName = InventoryArchiveWriteRequest.CreateArchiveItemName(itemName, UUID.Random());
+            string folder2aArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder2aName, UUID.Random());
+            string folder2bArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder2bName, UUID.Random());
             
-            string itemArchivePath
-                = string.Format(
-                    "{0}{1}{2}{3}", 
-                    ArchiveConstants.INVENTORY_PATH, folder1ArchiveName, folder2ArchiveName, itemArchiveName);
+            string iarPath1 = string.Join("", new string[] { folder1ArchiveName, folder2aArchiveName });            
+            string iarPath2 = string.Join("", new string[] { folder1ArchiveName, folder2bArchiveName });  
 
-            new InventoryArchiveReadRequest(scene, ua1, null, (Stream)null)
-                .ReplicateArchivePathToUserInventory(
-                    itemArchivePath, scene.InventoryService.GetRootFolder(ua1.PrincipalID), 
-                    foldersCreated, nodesLoaded);
-
-            InventoryFolderBase folder1 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, ua1.PrincipalID, "a");
-            Assert.That(folder1, Is.Not.Null, "Could not find folder a");
-            InventoryFolderBase folder2 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1, "b");
-            Assert.That(folder2, Is.Not.Null, "Could not find folder b");
+            {
+                // Test replication of path1
+                new InventoryArchiveReadRequest(scene, ua1, null, (Stream)null)
+                    .ReplicateArchivePathToUserInventory(
+                        iarPath1, scene.InventoryService.GetRootFolder(ua1.PrincipalID), 
+                        foldersCreated, nodesLoaded);
+    
+                List<InventoryFolderBase> folder1Candidates
+                    = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, ua1.PrincipalID, folder1Name);
+                Assert.That(folder1Candidates.Count, Is.EqualTo(1));
+                
+                InventoryFolderBase folder1 = folder1Candidates[0];            
+                List<InventoryFolderBase> folder2aCandidates 
+                    = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1, folder2aName);
+                Assert.That(folder2aCandidates.Count, Is.EqualTo(1));
+            }
+            
+            {
+                // Test replication of path2
+                new InventoryArchiveReadRequest(scene, ua1, null, (Stream)null)
+                    .ReplicateArchivePathToUserInventory(
+                        iarPath2, scene.InventoryService.GetRootFolder(ua1.PrincipalID), 
+                        foldersCreated, nodesLoaded);
+    
+                List<InventoryFolderBase> folder1Candidates
+                    = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, ua1.PrincipalID, folder1Name);
+                Assert.That(folder1Candidates.Count, Is.EqualTo(1));
+                
+                InventoryFolderBase folder1 = folder1Candidates[0]; 
+                
+                List<InventoryFolderBase> folder2aCandidates 
+                    = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1, folder2aName);
+                Assert.That(folder2aCandidates.Count, Is.EqualTo(1));           
+                
+                List<InventoryFolderBase> folder2bCandidates 
+                    = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1, folder2bName);
+                Assert.That(folder2bCandidates.Count, Is.EqualTo(1));                           
+            }
         }
         
         /// <summary>
-        /// Test replication of a partly existing archive path to the user's inventory.
+        /// Test replication of a partly existing archive path to the user's inventory.  This should create
+        /// a duplicate path without the merge option.
         /// </summary>
         [Test]
         public void TestPartExistingIarPath()
@@ -555,7 +582,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             string folder1ExistingName = "a";
             string folder2Name = "b";
-            string itemName = "c.lsl";
             
             InventoryFolderBase folder1 
                 = UserInventoryTestUtils.CreateInventoryFolder(
@@ -563,28 +589,33 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             string folder1ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder1ExistingName, UUID.Random());
             string folder2ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder2Name, UUID.Random());
-            string itemArchiveName = InventoryArchiveWriteRequest.CreateArchiveItemName(itemName, UUID.Random());
             
-            string itemArchivePath
-                = string.Format(
-                    "{0}{1}{2}{3}", 
-                    ArchiveConstants.INVENTORY_PATH, folder1ArchiveName, folder2ArchiveName, itemArchiveName);
-
+            string itemArchivePath = string.Join("", new string[] { folder1ArchiveName, folder2ArchiveName });
+            
             new InventoryArchiveReadRequest(scene, ua1, null, (Stream)null)
                 .ReplicateArchivePathToUserInventory(
                     itemArchivePath, scene.InventoryService.GetRootFolder(ua1.PrincipalID), 
                     new Dictionary<string, InventoryFolderBase>(), new List<InventoryNodeBase>());
 
-            InventoryFolderBase folder1Post 
+            List<InventoryFolderBase> folder1PostCandidates 
                 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, ua1.PrincipalID, folder1ExistingName);
-            Assert.That(folder1Post.ID, Is.EqualTo(folder1.ID));
-            /*
-            InventoryFolderBase folder2 
+            Assert.That(folder1PostCandidates.Count, Is.EqualTo(2));
+            
+            // FIXME: Temporarily, we're going to do something messy to make sure we pick up the created folder.
+            InventoryFolderBase folder1Post = null;
+            foreach (InventoryFolderBase folder in folder1PostCandidates)
+            {
+                if (folder.ID != folder1.ID)
+                {
+                    folder1Post = folder;
+                    break;
+                }
+            }
+//            Assert.That(folder1Post.ID, Is.EqualTo(folder1.ID));
+
+            List<InventoryFolderBase> folder2PostCandidates 
                 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1Post, "b");
-            Assert.That(folder2, Is.Not.Null);
-            InventoryItemBase item = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, folder2, itemName);
-            Assert.That(item, Is.Not.Null);
-            */
+            Assert.That(folder2PostCandidates.Count, Is.EqualTo(1));
         }       
     }
 }
