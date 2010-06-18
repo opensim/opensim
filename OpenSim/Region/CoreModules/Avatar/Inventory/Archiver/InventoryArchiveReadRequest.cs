@@ -246,9 +246,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             InventoryFolderBase rootDestFolder,                                                             
             ref string archivePath,             
             Dictionary <string, InventoryFolderBase> resolvedFolders)
-        {
-            m_log.DebugFormat("[INVENTORY ARCHIVER]: Resolving destination folder {0}", archivePath);
-            
+        {                       
             string originalArchivePath = archivePath;
 
             InventoryFolderBase destFolder = null;
@@ -257,6 +255,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 while (null == destFolder && archivePath.Length > 0)
                 {
+                    m_log.DebugFormat("[INVENTORY ARCHIVER]: Trying to resolve destination folder {0}", archivePath);
+                    
                     if (resolvedFolders.ContainsKey(archivePath))
                     {
                         m_log.DebugFormat(
