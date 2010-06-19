@@ -1498,6 +1498,10 @@ namespace OpenSim.Region.Framework.Scenes
                         DoPhysicsPropertyUpdate(RigidBody, true);
                         PhysActor.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
                     }
+                    else
+                    {
+                        m_log.DebugFormat("[SPEW]: physics actor is null for {0} with parent {1}", UUID, this.ParentGroup.UUID);
+                    }
                 }
             }
         }
