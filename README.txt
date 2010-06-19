@@ -77,7 +77,7 @@ Once you are presented with a prompt that looks like:
 You have successfully started OpenSim.
 
 If you want to create another user account to login rather than the estate
-account, then type "craete user" on the OpenSim console and follow the prompts.
+account, then type "create user" on the OpenSim console and follow the prompts.
 
 Helpful resources:
  * http://opensimulator.org/wiki/Configuration
