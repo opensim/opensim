@@ -110,8 +110,8 @@ namespace OpenSim.Region.Framework.Scenes
         private long m_minPersistTime = 0;
         private Random m_rand;
         private bool m_suspendUpdates;
-
-        private System.Threading.ReaderWriterLockSlim m_partsLock = new System.Threading.ReaderWriterLockSlim();
+        private System.Threading.ReaderWriterLockSlim m_partsLock = new System.Threading.ReaderWriterLockSlim();        
+        private List<ScenePresence> m_linkedAvatars = new List<ScenePresence>();
 
         public bool areUpdatesSuspended
         {
@@ -1113,6 +1113,47 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 writer.WriteEndElement(); // End of GroupScriptStates
             }
+        }
+
+        /// <summary>
+        /// Add the avatar to this linkset (avatar is sat).
+        /// </summary>
+        /// <param name="agentID"></param>
+        public void AddAvatar(UUID agentID)
+        {
+            ScenePresence presence;
+            if (m_scene.TryGetScenePresence(agentID, out presence))
+            {
+                if (!m_linkedAvatars.Contains(presence))
+                {
+                    m_linkedAvatars.Add(presence);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete the avatar from this linkset (avatar is unsat).
+        /// </summary>
+        /// <param name="agentID"></param>
+        public void DeleteAvatar(UUID agentID)
+        {
+            ScenePresence presence;
+            if (m_scene.TryGetScenePresence(agentID, out presence))
+            {
+                if (m_linkedAvatars.Contains(presence))
+                {
+                    m_linkedAvatars.Remove(presence);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the list of linked presences (avatars sat on this group)
+        /// </summary>
+        /// <param name="agentID"></param>
+        public List<ScenePresence> GetLinkedAvatars()
+        {
+            return m_linkedAvatars;
         }
 
         /// <summary>
@@ -2972,6 +3013,17 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 part.UpdateExtraParam(type, inUse, data);
             }
+        }
+
+
+
+        /// <summary>
+        /// Gets the number of parts
+        /// </summary>
+        /// <returns></returns>
+        public int GetPartCount()
+        {
+            return Children.Count;
         }
 
         /// <summary>

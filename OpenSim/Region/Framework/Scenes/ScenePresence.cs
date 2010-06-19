@@ -219,6 +219,7 @@ namespace OpenSim.Region.Framework.Scenes
         //PauPaw:Proper PID Controler for autopilot************
         private bool m_moveToPositionInProgress;
         private Vector3 m_moveToPositionTarget;
+        private Quaternion m_offsetRotation = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 
         private bool m_followCamAuto;
 
@@ -537,10 +538,39 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public Quaternion OffsetRotation
+        {
+            get { return m_offsetRotation; }
+            set { m_offsetRotation = value; }
+        }
+
         public Quaternion Rotation
         {
-            get { return m_bodyRot; }
-            set { m_bodyRot = value; }
+            get {
+                if (m_parentID != 0)
+                {
+                    if (m_offsetRotation != null)
+                    {
+                        return m_offsetRotation;
+                    }
+                    else
+                    {
+                        return new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
+                    }
+                    
+                }
+                else
+                {
+                    return m_bodyRot;
+                }
+            }
+            set { 
+                m_bodyRot = value;
+                if (m_parentID != 0)
+                {
+                    m_offsetRotation = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
+                }
+            }
         }
 
         public Quaternion PreviousRotation
@@ -1795,6 +1825,7 @@ namespace OpenSim.Region.Framework.Scenes
                     Vector3 avWorldStandUp = avStandUp + part.GetWorldPosition() + (m_pos * partRot);			// + av sit offset!
                     AbsolutePosition = avWorldStandUp;                	 //KF: Fix stand up.
                     part.IsOccupied = false;
+                    part.ParentGroup.DeleteAvatar(ControllingClient.AgentId);
                 }
                 else
                 {
@@ -1804,6 +1835,7 @@ namespace OpenSim.Region.Framework.Scenes
                 
 		        m_parentPosition = Vector3.Zero;
 				m_parentID = 0;
+                m_offsetRotation = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
                 SendFullUpdateToAllClients();
                 m_requestedSitTargetID = 0;
 
@@ -1904,6 +1936,7 @@ namespace OpenSim.Region.Framework.Scenes
     	            part.SetAvatarOnSitTarget(UUID);		// set that Av will be on it
     	            offset = new Vector3(avSitOffSet.X, avSitOffSet.Y, avSitOffSet.Z);	// change ofset to the scripted one
     	            sitOrientation = avSitOrientation;		// Change rotatione to the scripted one
+                    OffsetRotation = avSitOrientation;
     	            autopilot = false;						// Jump direct to scripted llSitPos()
     	        }
     	       	else
@@ -2311,6 +2344,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_bodyRot = sitTargetOrient;
                         m_parentPosition = part.AbsolutePosition;
 	    	            part.IsOccupied = true;
+                        part.ParentGroup.AddAvatar(agentID);
 Console.WriteLine("Scripted Sit ofset {0}", m_pos);	    	                                
                     }
                     else
@@ -2341,6 +2375,7 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
     	            	
                         m_parentPosition = part.AbsolutePosition;
     	                part.IsOccupied = true;
+                        part.ParentGroup.AddAvatar(agentID);
                         m_pos = new Vector3(0f, 0f, 0.05f) + 					// corrections to get Sit Animation
                         		(new Vector3(0.0f, 0f, 0.61f) * partIRot) + 	// located on center
                         		(new Vector3(0.34f, 0f, 0.0f) * m_bodyRot) +

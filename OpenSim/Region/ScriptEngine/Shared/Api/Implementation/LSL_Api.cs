@@ -219,6 +219,57 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public List<ScenePresence> GetLinkAvatars(int linkType)
+        {
+            List<ScenePresence> ret = new List<ScenePresence>();
+            if (m_host == null || m_host.ParentGroup == null || m_host.ParentGroup.IsDeleted)
+                return ret;
+            
+            List<ScenePresence> avs = m_host.ParentGroup.GetLinkedAvatars();
+
+            switch (linkType)
+            {
+                case ScriptBaseClass.LINK_SET:
+                    return avs;
+
+                case ScriptBaseClass.LINK_ROOT:
+                    return ret;
+
+                case ScriptBaseClass.LINK_ALL_OTHERS:
+                    return avs;
+
+                case ScriptBaseClass.LINK_ALL_CHILDREN:
+                    return avs;
+
+                case ScriptBaseClass.LINK_THIS:
+                    return ret;
+
+                default:
+                    if (linkType < 0)
+                        return ret;
+
+                    int partCount = m_host.ParentGroup.GetPartCount();
+
+                    if (linkType <= partCount)
+                    {
+                        return ret;
+                    }
+                    else
+                    {
+                        linkType = linkType - partCount;
+                        if (linkType > avs.Count)
+                        {
+                            return ret;
+                        }
+                        else
+                        {
+                            ret.Add(avs[linkType-1]);
+                            return ret;
+                        }
+                    }
+            }
+        }
+
         public List<SceneObjectPart> GetLinkParts(int linkType)
         {
             List<SceneObjectPart> ret = new List<SceneObjectPart>();
@@ -7152,6 +7203,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
              m_host.AddScriptLPS(1);
 
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
+            List<ScenePresence> avatars = GetLinkAvatars(linknumber);
             if (parts.Count>0)
             {
                 try
@@ -7165,11 +7217,56 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     parts[0].ParentGroup.areUpdatesSuspended = false;
                 }
             }
+            if (avatars.Count > 0)
+            {
+                foreach (ScenePresence avatar in avatars)
+                    SetPrimParams(avatar, rules);
+            }
         }
 
         public void llSetLinkPrimitiveParamsFast(int linknumber, LSL_List rules)
         {
             llSetLinkPrimitiveParams(linknumber, rules);
+        }
+
+        protected void SetPrimParams(ScenePresence av, LSL_List rules)
+        {
+            //This is a special version of SetPrimParams to deal with avatars which are sat on the linkset.
+            //We only support PRIM_POSITION and PRIM_ROTATION
+
+            int idx = 0;
+
+            while (idx < rules.Length)
+            {
+                int code = rules.GetLSLIntegerItem(idx++);
+
+                int remain = rules.Length - idx;
+
+                
+
+                switch (code)
+                {
+                    case (int)ScriptBaseClass.PRIM_POSITION:
+                        if (remain < 1)
+                            return;
+                        LSL_Vector v;
+                        v = rules.GetVector3Item(idx++);
+                        av.OffsetPosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
+                        av.SendFullUpdateToAllClients();
+
+                        break;
+
+                    case (int)ScriptBaseClass.PRIM_ROTATION:
+                        if (remain < 1)
+                            return;
+                        LSL_Rotation r;
+                        r = rules.GetQuaternionItem(idx++);
+                        av.OffsetRotation = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
+                        av.SendFullUpdateToAllClients();
+                        break;
+                }
+            }
+
         }
 
         protected void SetPrimParams(SceneObjectPart part, LSL_List rules)
