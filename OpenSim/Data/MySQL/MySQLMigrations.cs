@@ -66,6 +66,12 @@ namespace OpenSim.Data.MySQL
                 return;
             }
 
+            MySqlConnection c = (MySqlConnection)conn;
+
+            Type tc = c.GetType();
+            MethodInfo miSetCommandTimeout = tc.GetMethod("SetCommandTimeout", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo miClearCommandTimeout = tc.GetMethod("ClearCommandTimeout", BindingFlags.NonPublic | BindingFlags.Instance);
+            miSetCommandTimeout.Invoke(c, new Object[] { 2147483 });  // INT_MAX / 1000;
             MySqlScript scr = new MySqlScript((MySqlConnection)conn);
             {
                 foreach (string sql in script)
@@ -78,6 +84,7 @@ namespace OpenSim.Data.MySQL
                     scr.Execute();
                 }
             }
+            miClearCommandTimeout.Invoke(c, new Object[] { });
         }
     }
 }
