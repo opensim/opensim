@@ -3235,6 +3235,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="flags"></param>
         public virtual void SetHomeRezPoint(IClientAPI remoteClient, ulong regionHandle, Vector3 position, Vector3 lookAt, uint flags)
         {
+            //Add half the avatar's height so that the user doesn't fall through prims
+            ScenePresence presence;
+            if (TryGetScenePresence(remoteClient.AgentId, out presence))
+            {
+                if (presence.Appearance != null)
+                {
+                    position.Z = position.Z + (presence.Appearance.AvatarHeight / 2);
+                }
+            }
+
             if (GridUserService != null && GridUserService.SetHome(remoteClient.AgentId.ToString(), RegionInfo.RegionID, position, lookAt))
                 // FUBAR ALERT: this needs to be "Home position set." so the viewer saves a home-screenshot.
                 m_dialogModule.SendAlertToUser(remoteClient, "Home position set.");
