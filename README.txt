@@ -82,7 +82,6 @@ account, then type "create user" on the OpenSim console and follow the prompts.
 Helpful resources:
  * http://opensimulator.org/wiki/Configuration
  * http://opensimulator.org/wiki/Configuring_Regions
- * http://opensimulator.org/wiki/Mysql-config
 
 ==================================
 === Connecting to your OpenSim ===
