@@ -83,19 +83,19 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override string ToString()
             {
-                string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000}>", x, y, z);
+                string s=String.Format("<{0:0.000000}, {1:0.000000}, {2:0.000000}>", x, y, z);
                 return s;
             }
 
             public static explicit operator LSLString(Vector3 vec)
             {
-                string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000}>", vec.x, vec.y, vec.z);
+                string s=String.Format("<{0:0.000000}, {1:0.000000}, {2:0.000000}>", vec.x, vec.y, vec.z);
                 return new LSLString(s);
             }
 
             public static explicit operator string(Vector3 vec)
             {
-                string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000}>", vec.x, vec.y, vec.z);
+                string s=String.Format("<{0:0.000000}, {1:0.000000}, {2:0.000000}>", vec.x, vec.y, vec.z);
                 return s;
             }
 
@@ -337,19 +337,19 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override string ToString()
             {
-                string st=String.Format(Culture.FormatProvider, "<{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}>", x, y, z, s);
+                string st=String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", x, y, z, s);
                 return st;
             }
 
             public static explicit operator string(Quaternion r)
             {
-                string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}>", r.x, r.y, r.z, r.s);
+                string s=String.Format("<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", r.x, r.y, r.z, r.s);
                 return s;
             }
 
             public static explicit operator LSLString(Quaternion r)
             {
-                string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}>", r.x, r.y, r.z, r.s);
+                string s=String.Format("<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", r.x, r.y, r.z, r.s);
                 return new LSLString(s);
             }
 
