@@ -1822,7 +1822,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //CW: If the part isn't null then we can set the current position 
                 if (part != null)
                 {
-                    Vector3 avWorldStandUp = avStandUp + part.GetWorldPosition() + (m_pos * partRot);			// + av sit offset!
+                    Vector3 avWorldStandUp = avStandUp + part.GetWorldPosition() + ((m_pos - part.OffsetPosition) * partRot);			// + av sit offset!
                     AbsolutePosition = avWorldStandUp;                	 //KF: Fix stand up.
                     part.IsOccupied = false;
                     part.ParentGroup.DeleteAvatar(ControllingClient.AgentId);
