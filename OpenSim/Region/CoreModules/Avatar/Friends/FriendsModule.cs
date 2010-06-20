@@ -504,7 +504,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 UUID principalID = new UUID(im.fromAgentID);
                 UUID friendID = new UUID(im.toAgentID);
 
-                m_log.DebugFormat("[FRIENDS]: {0} offered friendship to {1}", principalID, friendID);
+                m_log.DebugFormat("[FRIENDS]: {0} ({1}) offered friendship to {2}", principalID, im.fromAgentName, friendID);
 
                 // This user wants to be friends with the other user.
                 // Let's add the relation backwards, in case the other is not online
@@ -522,6 +522,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             im.imSessionID = im.fromAgentID;
 
             // Try the local sim
+            UserAccount account = UserAccountService.GetUserAccount(Scene.RegionInfo.ScopeID, agentID);
+            im.fromAgentName = (account == null) ? "Unknown" : account.FirstName + " " + account.LastName;
+            
             if (LocalFriendshipOffered(friendID, im))
                 return;
 

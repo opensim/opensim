@@ -4232,22 +4232,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID uuid = (UUID)id;
 
             UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, uuid);
+            if (account == null)
+                return UUID.Zero.ToString();
+
 
             PresenceInfo pinfo = null;
             PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
             if (pinfos != null && pinfos.Length > 0)
                 pinfo = pinfos[0];
 
-            if (pinfo == null)
-                return UUID.Zero.ToString();
-
             string reply = String.Empty;
 
             switch (data)
             {
             case 1: // DATA_ONLINE (0|1)
-                // TODO: implement fetching of this information
-                if (pinfo != null)
+                if (pinfo != null && pinfo.RegionID != UUID.Zero)
                     reply = "1";
                 else 
                     reply = "0";

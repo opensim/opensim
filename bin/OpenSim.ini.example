@@ -80,14 +80,16 @@
     PhysicalPrimMax = 10 ; (I think this was moved to the Regions.ini!)
     ClampPrimSize = false
 
-    ; Region crossing
+    ; Allow scripts to cross region boundaries.  These are recompiled on the new region.
     AllowScriptCrossing = false
+
+    ; Allow compiled script binary code to cross region boundaries.
     ; If you set this to "true", any region that can teleport to you can
     ; inject ARBITRARY BINARY CODE into your system. Use at your own risk.
     ; YOU HAVE BEEN WARNED!!!
     TrustBinaries = false
 
-    ; Combine all contiguous regions into one large region
+    ; Combine all contiguous regions into one large megaregion
     ; Order your regions from South to North, West to East in your regions.ini and then set this to true
     ; Warning!  Don't use this with regions that have existing content!, This will likely break them
     CombineContiguousRegions = false
