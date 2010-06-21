@@ -79,7 +79,7 @@ namespace OpenSim.Data.MySQL
                 return false;
 
             if (regionID == UUID.Zero)
-                return;
+                return false;
 
             MySqlCommand cmd = new MySqlCommand();
 
