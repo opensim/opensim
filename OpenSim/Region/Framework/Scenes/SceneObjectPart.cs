@@ -711,6 +711,12 @@ namespace OpenSim.Region.Framework.Scenes
                         // Tell the physics engines that this prim changed.
                         m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
+
+                    List<ScenePresence> avs = ParentGroup.GetLinkedAvatars();
+                    foreach (ScenePresence av in avs)
+                    {
+                        av.SendFullUpdateToAllClients();
+                    }
                 }
             }
         }

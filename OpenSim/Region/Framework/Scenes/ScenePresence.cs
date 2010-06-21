@@ -1766,7 +1766,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_parentID != 0)
             {
-                SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
+                SceneObjectPart part = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
                 if (part != null)
                 {
                     part.TaskInventory.LockItemsForRead(true);
@@ -1822,7 +1822,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //CW: If the part isn't null then we can set the current position 
                 if (part != null)
                 {
-                    Vector3 avWorldStandUp = avStandUp + part.GetWorldPosition() + (m_pos * partRot);			// + av sit offset!
+                    Vector3 avWorldStandUp = avStandUp + part.GetWorldPosition() + ((m_pos - part.OffsetPosition) * partRot);			// + av sit offset!
                     AbsolutePosition = avWorldStandUp;                	 //KF: Fix stand up.
                     part.IsOccupied = false;
                     part.ParentGroup.DeleteAvatar(ControllingClient.AgentId);
@@ -2028,7 +2028,9 @@ namespace OpenSim.Region.Framework.Scenes
 //Console.WriteLine("Camera At   ={0}", cameraAtOffset);
 //Console.WriteLine("Camera Eye  ={0}", cameraEyeOffset);
 
-            ControllingClient.SendSitResponse(part.UUID, offsetr, sitOrientation, autopilot, cameraAtOffset, cameraEyeOffset, forceMouselook);
+            //NOTE: SendSitResponse should be relative to the GROUP *NOT* THE PRIM if we're sitting on a child
+            ControllingClient.SendSitResponse(part.ParentGroup.UUID, offsetr + part.OffsetPosition, sitOrientation, autopilot, cameraAtOffset, cameraEyeOffset, forceMouselook);
+            
             m_requestedSitTargetUUID = part.UUID;		//KF: Correct autopilot target
             // This calls HandleAgentSit twice, once from here, and the client calls
             // HandleAgentSit itself after it gets to the location
@@ -2398,7 +2400,17 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
                     return;
                 }
             }
-            m_parentID = m_requestedSitTargetID;
+
+            //We want our offsets to reference the root prim, not the child we may have sat on
+            if (!part.IsRoot)
+            {
+                m_parentID = part.ParentGroup.RootPart.LocalId;
+                m_pos += part.OffsetPosition;
+            }
+            else
+            {
+                m_parentID = m_requestedSitTargetID;
+            }
 
             Velocity = Vector3.Zero;
             RemoveFromPhysicalScene();
