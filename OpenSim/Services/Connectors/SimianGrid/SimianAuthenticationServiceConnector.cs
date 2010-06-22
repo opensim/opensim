@@ -198,6 +198,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 if (!String.IsNullOrEmpty(identifier))
                 {
                     // Add/update the md5hash identity
+                    // TODO: Support salts when AddIdentity does
+                    // TODO: Create an a1hash too for WebDAV logins
                     requestArgs = new NameValueCollection
                     {
                         { "RequestMethod", "AddIdentity" },
