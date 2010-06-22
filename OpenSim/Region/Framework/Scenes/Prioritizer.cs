@@ -52,6 +52,9 @@ namespace OpenSim.Region.Framework.Scenes
         public double GetUpdatePriority(IClientAPI client, ISceneEntity entity)
         {
             double priority = 0;
+
+            if (entity == null)
+                return 100000;
             
             switch (m_scene.UpdatePrioritizationScheme)
             {
