@@ -6893,6 +6893,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (cut.y - cut.x < 0.05f)
             {
                 cut.x = cut.y - 0.05f;
+                if (cut.x < 0.0f)
+                {
+                    cut.x = 0.0f;
+                    cut.y = 0.05f;
+                }
             }
             shapeBlock.ProfileBegin = (ushort)(50000 * cut.x);
             shapeBlock.ProfileEnd = (ushort)(50000 * (1 - cut.y));
@@ -7097,9 +7102,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 profilecut.y = 1f;
             }
-            if (profilecut.y - cut.x < 0.05f)
+            if (profilecut.y - profilecut.x < 0.05f)
             {
-                profilecut.x = cut.y - 0.05f;
+                profilecut.x = profilecut.y - 0.05f;
+                if (profilecut.x < 0.0f)
+                {
+                    profilecut.x = 0.0f;
+                    profilecut.y = 0.05f;
+                }
             }
             shapeBlock.ProfileBegin = (ushort)(50000 * profilecut.x);
             shapeBlock.ProfileEnd = (ushort)(50000 * (1 - profilecut.y));
