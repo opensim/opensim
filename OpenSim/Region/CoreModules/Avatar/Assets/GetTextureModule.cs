@@ -131,6 +131,12 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
 
                     if (texture != null)
                     {
+                        if (texture.Type != (sbyte)AssetType.Texture)
+                        {
+                            httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
+                            httpResponse.Send();
+                            return null;
+                        }
                         SendTexture(httpRequest, httpResponse, texture);
                     }
                     else
@@ -147,6 +153,12 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
 
                     if (texture != null)
                     {
+                        if (texture.Type != (sbyte)AssetType.Texture)
+                        {
+                            httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
+                            httpResponse.Send();
+                            return null;
+                        }
                         SendTexture(httpRequest, httpResponse, texture);
                     }
                     else

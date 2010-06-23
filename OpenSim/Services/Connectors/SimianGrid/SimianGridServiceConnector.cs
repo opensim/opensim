@@ -59,18 +59,35 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_serverUrl = String.Empty;
+        private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
 
         #region ISharedRegionModule
 
         public Type ReplaceableInterface { get { return null; } }
-        public void RegionLoaded(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { UploadMapTile(scene); } }
+        public void RegionLoaded(Scene scene) { }
         public void PostInitialise() { }
         public void Close() { }
 
         public SimianGridServiceConnector() { }
         public string Name { get { return "SimianGridServiceConnector"; } }
-        public void AddRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.RegisterModuleInterface<IGridService>(this); } }
-        public void RemoveRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.UnregisterModuleInterface<IGridService>(this); } }
+        public void AddRegion(Scene scene)
+        {
+            // Every shared region module has to maintain an indepedent list of
+            // currently running regions
+            lock (m_scenes)
+                m_scenes[scene.RegionInfo.RegionID] = scene;
+
+            if (!String.IsNullOrEmpty(m_serverUrl))
+                scene.RegisterModuleInterface<IGridService>(this);
+        }
+        public void RemoveRegion(Scene scene)
+        {
+            lock (m_scenes)
+                m_scenes.Remove(scene.RegionInfo.RegionID);
+
+            if (!String.IsNullOrEmpty(m_serverUrl))
+                scene.UnregisterModuleInterface<IGridService>(this);
+        }
 
         #endregion ISharedRegionModule
 
@@ -105,6 +122,13 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public string RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
+            // Generate and upload our map tile in PNG format to the SimianGrid AddMapTile service
+            Scene scene;
+            if (m_scenes.TryGetValue(regionInfo.RegionID, out scene))
+                UploadMapTile(scene);
+            else
+                m_log.Warn("Registering region " + regionInfo.RegionName + " (" + regionInfo.RegionID + ") that we are not tracking");
+
             Vector3d minPosition = new Vector3d(regionInfo.RegionLocX, regionInfo.RegionLocY, 0.0);
             Vector3d maxPosition = minPosition + new Vector3d(Constants.RegionSize, Constants.RegionSize, 4096.0);
 
@@ -430,7 +454,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             if (!String.IsNullOrEmpty(errorMessage))
             {
                 m_log.WarnFormat("[SIMIAN GRID CONNECTOR]: Failed to store {0} byte PNG map tile for {1}: {2}",
-                    pngData.Length, scene.RegionInfo.RegionName, errorMessage);
+                    pngData.Length, scene.RegionInfo.RegionName, errorMessage.Replace('\n', ' '));
             }
         }
 
