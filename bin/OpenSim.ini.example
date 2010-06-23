@@ -597,20 +597,18 @@
     ; Set this to a nonzero value to have remote admin use a different port
     port = 0
 
+    ; This password is required to make any XMLRPC call (should be set as the "password" parameter)
     access_password = unknown
 
     ; set this variable to true if you want the create_region XmlRpc
     ; call to unconditionally enable voice on all parcels for a newly
     ; created region [default: false]
-
     create_region_enable_voice = false
 
     ; set this variable to false if you want the create_region XmlRpc
     ; call to create all regions as private per default (can be
     ; overridden in the XmlRpc call) [default: true]
-
     create_region_public = false
-
 
     ; the create_region XmlRpc call uses region_file_template to generate
     ; the file name of newly create regions (if they are created
@@ -620,7 +618,6 @@
     ;     {2} - region UUID
     ;     {3} - region port
     ;     {4} - region name with " ", ":", "/" mapped to  "_"
-
     region_file_template = "{0}x{1}-{2}.xml"
 
     ; we can limit the number of regions that XmlRpcCreateRegion will
@@ -635,6 +632,18 @@
     ; if this parameter is not specified but enabled = true, all methods will be available
     enabled_methods = all
 
+    ; specify the default appearance for an avatar created through the remote admin interface
+    ; This will only take effect is the file specified by the default_appearance setting below exists
+    ;default_male = Default Male
+    ;default_female = Default Female
+
+    ; update appearance copies inventory items and wearables of default avatars. if this value is false
+    ; (default), just worn assets are copied to the Clothes folder; if true, all Clothes and Bodyparts
+    ; subfolders are copied. the receiver will wear the same items the default avatar did wear.
+    ;copy_folders = false
+
+    ; path to default appearance XML file that specifies the look of the default avatars
+    ;default_appearance = default_appearance.xml 
 
 [RestPlugins]
     ; Change this to true to enable REST Plugins. This must be true if you wish to use
