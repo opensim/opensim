@@ -168,7 +168,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelGodForceOwner += ClientOnParcelGodForceOwner;
             client.OnParcelReclaim += ClientOnParcelReclaim;
             client.OnParcelInfoRequest += ClientOnParcelInfoRequest;
-            client.OnParcelDwellRequest += ClientOnParcelDwellRequest;
+//            client.OnParcelDwellRequest += ClientOnParcelDwellRequest;
             client.OnParcelDeedToGroup += ClientOnParcelDeedToGroup;
             client.OnPreAgentUpdate += ClientOnPreAgentUpdate;
 
