@@ -3266,12 +3266,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 msg.message = message.Substring(0, 1024);
             else
                 msg.message = message;
-            msg.dialog = (byte)19; // messgage from script ??? // dialog;
+            msg.dialog = (byte)19; // MessageFromObject
             msg.fromGroup = false;// fromGroup;
             msg.offline = (byte)0; //offline;
-            msg.ParentEstateID = 0; //ParentEstateID;
-            msg.Position = Vector3.Zero;// new Vector3(m_host.AbsolutePosition);
-            msg.RegionID = World.RegionInfo.RegionID.Guid;//RegionID.Guid;
+            msg.ParentEstateID = World.RegionInfo.EstateSettings.EstateID;
+            msg.Position = new Vector3(m_host.AbsolutePosition);
+            msg.RegionID = World.RegionInfo.RegionID.Guid;
             msg.binaryBucket = Util.StringToBytes256(m_host.OwnerID.ToString());
 
             if (m_TransferModule != null)
