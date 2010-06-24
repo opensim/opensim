@@ -408,8 +408,6 @@ namespace OpenSim
                 scene.SnmpService.BootInfo("ScriptEngine started", scene);
             }
 
-=======
->>>>>>> master:OpenSim/Region/Application/OpenSimBase.cs
             m_sceneManager.Add(scene);
 
             if (m_autoCreateClientStack)
