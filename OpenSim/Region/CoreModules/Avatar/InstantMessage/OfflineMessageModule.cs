@@ -204,6 +204,13 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             if ((im.offline != 0)
                 && (!im.fromGroup || (im.fromGroup && m_ForwardOfflineGroupMessages)))
             {
+                // It's not delivered. Make sure the scope id is saved
+                // We don't need the imSessionID here anymore, overwrite it
+                Scene scene = FindScene(new UUID(im.fromAgentID));
+                if (scene == null)
+                    scene = m_SceneList[0];
+                im.imSessionID = new Guid(scene.RegionInfo.ScopeID.ToString());
+
                 bool success = SynchronousRestObjectPoster.BeginPostObject<GridInstantMessage, bool>(
                         "POST", m_RestURL+"/SaveMessage/", im);
 
