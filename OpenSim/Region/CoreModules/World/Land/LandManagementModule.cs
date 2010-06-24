@@ -656,7 +656,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             int x;
             int y;
 
-            if (x_float > Constants.RegionSize || x_float <= 0 || y_float > Constants.RegionSize || y_float <= 0)
+            if (x_float > Constants.RegionSize || x_float < 0 || y_float > Constants.RegionSize || y_float < 0)
                 return null;
             
             try
