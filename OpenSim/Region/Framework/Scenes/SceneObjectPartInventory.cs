@@ -31,6 +31,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Collections;
 using System.Reflection;
+using System.Threading;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
@@ -208,6 +209,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if ((int)InventoryType.LSL == item.InvType)
                 {
                     CreateScriptInstance(item, startParam, postOnRez, engine, stateSource);
+                    Thread.Sleep(10); // workaround for Mono cpu utilization > 100% bug
                 }
             }
         }
@@ -268,7 +270,7 @@ namespace OpenSim.Region.Framework.Scenes
             // m_log.InfoFormat(
             //     "[PRIM INVENTORY]: " +
             //     "Starting script {0}, {1} in prim {2}, {3}",
-            //     item.Name, item.ItemID, Name, UUID);
+            //     item.Name, item.ItemID, m_part.Name, m_part.UUID);
 
             if (!m_part.ParentGroup.Scene.Permissions.CanRunScript(item.ItemID, m_part.UUID, item.OwnerID))
             {
@@ -308,6 +310,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
+<<<<<<< HEAD:OpenSim/Region/Framework/Scenes/SceneObjectPartInventory.cs
                     if (m_part.ParentGroup.m_savedScriptState != null)
                         RestoreSavedScriptState(item.OldItemID, item.ItemID);
 
@@ -324,6 +327,22 @@ namespace OpenSim.Region.Framework.Scenes
                     StoreScriptErrors(item.ItemID, null);
                     m_part.ParentGroup.AddActiveScriptCount(1);
                     m_part.ScheduleFullUpdate();
+=======
+                    lock (m_items)
+                    {
+                        if (m_part.ParentGroup.m_savedScriptState != null)
+                            RestoreSavedScriptState(item.OldItemID, item.ItemID);
+
+                        m_items[item.ItemID].PermsMask = 0;
+                        m_items[item.ItemID].PermsGranter = UUID.Zero;
+
+                        string script = Utils.BytesToString(asset.Data);
+                        m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
+                            m_part.LocalId, item.ItemID, script, startParam, postOnRez, engine, stateSource);
+                        m_part.ParentGroup.AddActiveScriptCount(1);
+                        m_part.ScheduleFullUpdate();
+                    }
+>>>>>>> master:OpenSim/Region/Framework/Scenes/SceneObjectPartInventory.cs
                 }
             }
         }

@@ -396,18 +396,20 @@ namespace OpenSim
                 scene.SnmpService.BootInfo("Grid Registration done", scene);
             }
 
+            scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
+            scene.EventManager.TriggerParcelPrimCountUpdate();
+
             // We need to do this after we've initialized the
             // scripting engines.
             scene.CreateScriptInstances();
-
-            scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
-            scene.EventManager.TriggerParcelPrimCountUpdate();
 
             if (scene.SnmpService != null)
             {
                 scene.SnmpService.BootInfo("ScriptEngine started", scene);
             }
 
+=======
+>>>>>>> master:OpenSim/Region/Application/OpenSimBase.cs
             m_sceneManager.Add(scene);
 
             if (m_autoCreateClientStack)
