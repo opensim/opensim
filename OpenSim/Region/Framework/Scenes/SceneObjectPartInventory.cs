@@ -310,7 +310,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-<<<<<<< HEAD:OpenSim/Region/Framework/Scenes/SceneObjectPartInventory.cs
                     if (m_part.ParentGroup.m_savedScriptState != null)
                         RestoreSavedScriptState(item.OldItemID, item.ItemID);
 
@@ -327,22 +326,6 @@ namespace OpenSim.Region.Framework.Scenes
                     StoreScriptErrors(item.ItemID, null);
                     m_part.ParentGroup.AddActiveScriptCount(1);
                     m_part.ScheduleFullUpdate();
-=======
-                    lock (m_items)
-                    {
-                        if (m_part.ParentGroup.m_savedScriptState != null)
-                            RestoreSavedScriptState(item.OldItemID, item.ItemID);
-
-                        m_items[item.ItemID].PermsMask = 0;
-                        m_items[item.ItemID].PermsGranter = UUID.Zero;
-
-                        string script = Utils.BytesToString(asset.Data);
-                        m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
-                            m_part.LocalId, item.ItemID, script, startParam, postOnRez, engine, stateSource);
-                        m_part.ParentGroup.AddActiveScriptCount(1);
-                        m_part.ScheduleFullUpdate();
-                    }
->>>>>>> master:OpenSim/Region/Framework/Scenes/SceneObjectPartInventory.cs
                 }
             }
         }
