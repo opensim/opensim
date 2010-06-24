@@ -156,6 +156,12 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
             }
 
+            if (dialog == (byte)InstantMessageDialog.MessageFromAgent ||
+                dialog == (byte)InstantMessageDialog.MessageFromObject)
+            {
+                im.offline = 1;
+            }
+
             if (m_TransferModule != null)
             {
                 m_TransferModule.SendInstantMessage(im,
