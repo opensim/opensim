@@ -201,6 +201,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void UndeliveredMessage(GridInstantMessage im)
         {
+            if (im.dialog == 19)
+                im.offline = 1; // We want them pushed out to the server
             if ((im.offline != 0)
                 && (!im.fromGroup || (im.fromGroup && m_ForwardOfflineGroupMessages)))
             {

@@ -3272,7 +3272,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             msg.ParentEstateID = 0; //ParentEstateID;
             msg.Position = Vector3.Zero;// new Vector3(m_host.AbsolutePosition);
             msg.RegionID = World.RegionInfo.RegionID.Guid;//RegionID.Guid;
-            msg.binaryBucket = new byte[0];// binaryBucket;
+            msg.binaryBucket = Util.StringToBytes256(m_host.OwnerID.ToString());
 
             if (m_TransferModule != null)
             {
