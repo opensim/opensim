@@ -884,7 +884,7 @@
     PriceParcelRent = 1
 
 [Git]
-Enabled = 1
+Enabled = true
 RepoPath = "/git"
 
 [SVN]
