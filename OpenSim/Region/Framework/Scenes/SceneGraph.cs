@@ -47,6 +47,8 @@ namespace OpenSim.Region.Framework.Scenes
 
     public delegate void DetachFromBackupDelegate(SceneObjectGroup sog);
 
+    public delegate void ChangedBackupDelegate(SceneObjectGroup sog);
+
     public delegate void ObjectCreateDelegate(EntityBase obj);
 
     public delegate void ObjectDeleteDelegate(EntityBase obj);
@@ -67,6 +69,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event ObjectDuplicateDelegate OnObjectDuplicate;
         public event AttachToBackupDelegate OnAttachToBackup;
         public event DetachFromBackupDelegate OnDetachFromBackup;
+        public event ChangedBackupDelegate OnChangeBackup;
         public event ObjectCreateDelegate OnObjectCreate;
         public event ObjectDeleteDelegate OnObjectRemove;
 
@@ -481,6 +484,14 @@ namespace OpenSim.Region.Framework.Scenes
             if (OnDetachFromBackup != null)
             {
                 OnDetachFromBackup(obj);
+            }
+        }
+
+        public void FireChangeBackup(SceneObjectGroup obj)
+        {
+            if (OnChangeBackup != null)
+            {
+                OnChangeBackup(obj);
             }
         }
 

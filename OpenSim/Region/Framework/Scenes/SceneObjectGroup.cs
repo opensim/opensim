@@ -200,6 +200,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (value)
                 {
+                    if (m_isBackedUp)
+                    {
+                        m_scene.SceneGraph.FireChangeBackup(this);
+                    }
                     timeLastChanged = DateTime.Now.Ticks;
                     if (!m_hasGroupChanged)
                         timeFirstChanged = DateTime.Now.Ticks;
