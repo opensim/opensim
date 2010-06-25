@@ -885,7 +885,7 @@
 
 [Git]
 Enabled = true
-RepoPath = "/git"
+RepoPath = "git"
 
 [SVN]
     Enabled = false
