@@ -114,7 +114,7 @@ namespace OpenSim.Framework
             }
             catch (Exception ex)
             {
-                m_log.Warn("GET from URL " + url + " failed: " + ex.Message);
+                m_log.Warn(httpVerb + " on URL " + url + " failed: " + ex.Message);
                 errorMessage = ex.Message;
             }
 
