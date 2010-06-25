@@ -1576,19 +1576,19 @@ Console.WriteLine(" JointCreateFixed");
 //Console.WriteLine("Move " +  m_primName);
                     if (!d.BodyIsEnabled (Body))  d.BodyEnable (Body); // KF add 161009
                     // NON-'VEHICLES' are dealt with here
-                    if (d.BodyIsEnabled(Body) && !m_angularlock.ApproxEquals(Vector3.Zero, 0.003f))
-                    {
-                        d.Vector3 avel2 = d.BodyGetAngularVel(Body);
-                        /*
-                        if (m_angularlock.X == 1)
-                            avel2.X = 0;
-                        if (m_angularlock.Y == 1)
-                            avel2.Y = 0;
-                        if (m_angularlock.Z == 1)
-                            avel2.Z = 0;
-                        d.BodySetAngularVel(Body, avel2.X, avel2.Y, avel2.Z);
-                         */
-                    }
+//                    if (d.BodyIsEnabled(Body) && !m_angularlock.ApproxEquals(Vector3.Zero, 0.003f))
+//                    {
+//                        d.Vector3 avel2 = d.BodyGetAngularVel(Body);
+//                        /*
+//                        if (m_angularlock.X == 1)
+//                            avel2.X = 0;
+//                        if (m_angularlock.Y == 1)
+//                            avel2.Y = 0;
+//                        if (m_angularlock.Z == 1)
+//                            avel2.Z = 0;
+//                        d.BodySetAngularVel(Body, avel2.X, avel2.Y, avel2.Z);
+//                         */
+//                    }
                     //float PID_P = 900.0f;
 
                     float m_mass = CalculateMass();
