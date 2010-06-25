@@ -43,6 +43,10 @@ namespace OpenSim.Region.Framework.Scenes
 
     public delegate void ObjectDuplicateDelegate(EntityBase original, EntityBase clone);
 
+    public delegate void AttachToBackupDelegate(SceneObjectGroup sog);
+
+    public delegate void DetachFromBackupDelegate(SceneObjectGroup sog);
+
     public delegate void ObjectCreateDelegate(EntityBase obj);
 
     public delegate void ObjectDeleteDelegate(EntityBase obj);
@@ -61,6 +65,8 @@ namespace OpenSim.Region.Framework.Scenes
         private PhysicsCrash handlerPhysicsCrash = null;
 
         public event ObjectDuplicateDelegate OnObjectDuplicate;
+        public event AttachToBackupDelegate OnAttachToBackup;
+        public event DetachFromBackupDelegate OnDetachFromBackup;
         public event ObjectCreateDelegate OnObjectCreate;
         public event ObjectDeleteDelegate OnObjectRemove;
 
@@ -388,10 +394,14 @@ namespace OpenSim.Region.Framework.Scenes
                 m_numPrim += sceneObject.Children.Count;
 
                 if (attachToBackup)
+                {
                     sceneObject.AttachToBackup();
+                }
 
                 if (OnObjectCreate != null)
+                {
                     OnObjectCreate(sceneObject);
+                }
                 
                 lock (m_dictionary_lock)
                 {
@@ -455,6 +465,22 @@ namespace OpenSim.Region.Framework.Scenes
             lock (m_updateList)
             {
                 m_updateList[obj.UUID] = obj;
+            }
+        }
+
+        public void FireAttachToBackup(SceneObjectGroup obj)
+        {
+            if (OnAttachToBackup != null)
+            {
+                OnAttachToBackup(obj);
+            }
+        }
+
+        public void FireDetachFromBackup(SceneObjectGroup obj)
+        {
+            if (OnDetachFromBackup != null)
+            {
+                OnDetachFromBackup(obj);
             }
         }
 

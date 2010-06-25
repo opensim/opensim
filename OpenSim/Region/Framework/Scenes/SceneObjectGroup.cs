@@ -658,6 +658,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public virtual void AttachToBackup()
         {
+            m_scene.SceneGraph.FireAttachToBackup(this);
+
             if (InSceneBackup)
             {
                 //m_log.DebugFormat(
@@ -2703,6 +2705,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="objectGroup"></param>
         public virtual void DetachFromBackup()
         {
+            m_scene.SceneGraph.FireDetachFromBackup(this);
+
             if (m_isBackedUp)
                 m_scene.EventManager.OnBackup -= ProcessBackup;
             
