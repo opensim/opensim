@@ -29,13 +29,14 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Xml;
 using System.IO;
+using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework.Console;
-
 
 namespace OpenSim.Framework
 {
@@ -96,10 +97,9 @@ namespace OpenSim.Framework
 
     [Serializable]
     public class SimpleRegionInfo
-    {
-        // private static readonly log4net.ILog m_log
-        //     = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
+    {    
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         /// <summary>
         /// The port by which http communication occurs with the region (most noticeably, CAPS communication)
         /// </summary>
@@ -327,8 +327,7 @@ namespace OpenSim.Framework
 
     public class RegionInfo
     {
-        // private static readonly log4net.ILog m_log
-        //     = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public bool commFailTF = false;
         public ConfigurationMember configMember;
@@ -772,9 +771,16 @@ namespace OpenSim.Framework
             }
 
             if (externalName == "SYSTEMIP")
+            {
                 m_externalHostName = Util.GetLocalHost().ToString();
+                m_log.InfoFormat(
+                    "[REGIONINFO]: Resolving SYSTEMIP to {0} for external hostname of region {1}", 
+                    m_externalHostName, name);
+            }
             else
+            {
                 m_externalHostName = externalName;
+            }
 
             m_regionType = config.GetString("RegionType", String.Empty);
 
