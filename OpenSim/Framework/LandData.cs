@@ -62,7 +62,7 @@ namespace OpenSim.Framework
 
         private uint _flags = (uint) ParcelFlags.AllowFly | (uint) ParcelFlags.AllowLandmark |
                                 (uint) ParcelFlags.AllowAPrimitiveEntry |
-                                (uint) ParcelFlags.AllowDeedToGroup | (uint) ParcelFlags.AllowTerraform |
+                                (uint) ParcelFlags.AllowDeedToGroup |
                                 (uint) ParcelFlags.CreateObjects | (uint) ParcelFlags.AllowOtherScripts |
                                 (uint) ParcelFlags.SoundLocal;
 
