@@ -659,7 +659,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!Entities.Remove(agentID))
             {
                 m_log.WarnFormat(
-                    "[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene Entities list",
+                    "[SCENE]: Tried to remove non-existent scene presence with agent ID {0} from scene Entities list",
                     agentID);
             }
 
@@ -668,12 +668,13 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Dictionary<UUID, ScenePresence> newmap = new Dictionary<UUID, ScenePresence>(m_scenePresenceMap);
                 List<ScenePresence> newlist = new List<ScenePresence>(m_scenePresenceArray);
-
-                // Remember the old presene reference from the dictionary
-                ScenePresence oldref = newmap[agentID];
+                
                 // Remove the presence reference from the dictionary
-                if (newmap.Remove(agentID))
+                if (newmap.ContainsKey(agentID))
                 {
+                    ScenePresence oldref = newmap[agentID];
+                    newmap.Remove(agentID);
+
                     // Find the index in the list where the old ref was stored and remove the reference
                     newlist.RemoveAt(newlist.IndexOf(oldref));
                     // Swap out the dictionary and list with new references
@@ -682,7 +683,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    m_log.WarnFormat("[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
+                    m_log.WarnFormat("[SCENE]: Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
                 }
             }
             finally

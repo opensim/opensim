@@ -371,18 +371,33 @@ namespace OpenSim.Services.Connectors.SimianGrid
         /// <returns></returns>
         public bool Delete(string id)
         {
+            string errorMessage = String.Empty;
+            string url = m_serverUrl + id;
+
             if (m_cache != null)
                 m_cache.Expire(id);
 
-            string url = m_serverUrl + id;
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
+                request.Method = "DELETE";
 
-            OSDMap response = WebUtil.ServiceRequest(url, "DELETE");
-            if (response["Success"].AsBoolean())
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                {
+                    if (response.StatusCode != HttpStatusCode.NoContent)
+                    {
+                        m_log.Warn("[SIMIAN ASSET CONNECTOR]: Unexpected response when deleting asset " + url + ": " +
+                            response.StatusCode + " (" + response.StatusDescription + ")");
+                    }
+                }
+
                 return true;
-            else
-                m_log.Warn("[SIMIAN ASSET CONNECTOR]: Failed to delete asset " + id + " from the asset service");
-
-            return false;
+            }
+            catch (Exception ex)
+            {
+                m_log.Warn("[SIMIAN ASSET CONNECTOR]: Failed to delete asset " + id + " from the asset service: " + ex.Message);
+                return false;
+            }
         }
 
         #endregion IAssetService
