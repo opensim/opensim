@@ -883,6 +883,9 @@
     PriceObjectScaleFactor = 10
     PriceParcelRent = 1
 
+[Git]
+Enabled = true
+RepoPath = "git"
 
 [SVN]
     Enabled = false
