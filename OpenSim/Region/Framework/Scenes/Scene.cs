@@ -2191,6 +2191,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void DeleteAllSceneObjects(bool exceptNoCopy)
         {
+            List<SceneObjectGroup> toReturn = new List<SceneObjectGroup>();
             lock (Entities)
             {
                 ICollection<EntityBase> entities = new List<EntityBase>(Entities);
@@ -2208,11 +2209,15 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                             else
                             {
-                                DeRezObject(null, sog.RootPart.LocalId, sog.RootPart.GroupID, DeRezAction.Return, UUID.Zero);
+                                toReturn.Add((SceneObjectGroup)e);   
                             }
                         }
                     }
                 }
+            }
+            if (toReturn.Count > 0)
+            {
+                returnObjects(toReturn.ToArray(), UUID.Zero);
             }
         }
 
