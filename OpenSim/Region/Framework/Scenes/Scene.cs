@@ -1770,6 +1770,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void StoreWindlightProfile(RegionLightShareData wl)
         {
             m_regInfo.WindlightSettings = wl;
+            wl.Save();
             m_storageManager.DataStore.StoreRegionWindlightSettings(wl);
             m_eventManager.TriggerOnSaveNewWindlightProfile();
         }
