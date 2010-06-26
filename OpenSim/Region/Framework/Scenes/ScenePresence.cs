@@ -4151,7 +4151,14 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
             {
                 m_log.DebugFormat("[ATTACHMENT]: Loading attachment data from attachment service");
                 stateData = attServ.Get(ControllingClient.AgentId.ToString());
-                doc.LoadXml(stateData);
+                if (stateData != String.Empty)
+                {
+                    try
+                    {
+                        doc.LoadXml(stateData);
+                    }
+                    catch { }
+                }
             }
 
             Dictionary<UUID, string> itemData = new Dictionary<UUID, string>();
