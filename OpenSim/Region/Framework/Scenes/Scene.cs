@@ -2206,6 +2206,10 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 DeleteSceneObject((SceneObjectGroup)e, false);
                             }
+                            else
+                            {
+                                DeRezObject(null, sog.RootPart.LocalId, sog.RootPart.GroupID, DeRezAction.Return, UUID.Zero);
+                            }
                         }
                     }
                 }
