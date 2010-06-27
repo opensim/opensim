@@ -400,7 +400,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Permissions.PropagatePermissions() && recipient != senderId)
                 {
                     // First, make sore base is limited to the next perms
-                    itemCopy.BasePermissions = item.BasePermissions & item.NextPermissions;
+                    itemCopy.BasePermissions = item.BasePermissions & (item.NextPermissions | (uint)PermissionMask.Move);
                     // By default, current equals base
                     itemCopy.CurrentPermissions = itemCopy.BasePermissions;
 
@@ -916,7 +916,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if ((part.OwnerID != destAgent) && Permissions.PropagatePermissions())
             {
-                agentItem.BasePermissions = taskItem.BasePermissions & taskItem.NextPermissions;
+                agentItem.BasePermissions = taskItem.BasePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
                 if (taskItem.InvType == (int)InventoryType.Object)
                     agentItem.CurrentPermissions = agentItem.BasePermissions & ((taskItem.CurrentPermissions & 7) << 13);
                     agentItem.CurrentPermissions = agentItem.BasePermissions ;
@@ -1111,7 +1111,7 @@ namespace OpenSim.Region.Framework.Scenes
                     destTaskItem.EveryonePermissions = srcTaskItem.EveryonePermissions &
                             srcTaskItem.NextPermissions;
                     destTaskItem.BasePermissions = srcTaskItem.BasePermissions &
-                            srcTaskItem.NextPermissions;
+                            (srcTaskItem.NextPermissions | (uint)PermissionMask.Move);
                     destTaskItem.CurrentPermissions |= 8; // Slam!
                 }
             }
