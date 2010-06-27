@@ -67,7 +67,6 @@ namespace OpenSim.Data
     /// really want is the assembly of your database class.
     ///
     /// </summary>
-
     public class Migration
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -173,8 +172,6 @@ namespace OpenSim.Data
             ExecuteScript(_conn, script);
         }
 
-
-
         public void Update()
         {
             InitMigrationsTable();
@@ -186,8 +183,8 @@ namespace OpenSim.Data
                 return;
 
             // to prevent people from killing long migrations.
-            m_log.InfoFormat("[MIGRATIONS] Upgrading {0} to latest revision {1}.", _type, migrations.Keys[migrations.Count - 1]);
-            m_log.Info("[MIGRATIONS] NOTE: this may take a while, don't interupt this process!");
+            m_log.InfoFormat("[MIGRATIONS]: Upgrading {0} to latest revision {1}.", _type, migrations.Keys[migrations.Count - 1]);
+            m_log.Info("[MIGRATIONS]: NOTE - this may take a while, don't interrupt this process!");
 
             foreach (KeyValuePair<int, string[]> kvp in migrations)
             {
@@ -206,7 +203,7 @@ namespace OpenSim.Data
                 }
                 catch (Exception e)
                 {
-                    m_log.DebugFormat("[MIGRATIONS] Cmd was {0}", e.Message.Replace("\n", " "));
+                    m_log.DebugFormat("[MIGRATIONS]: Cmd was {0}", e.Message.Replace("\n", " "));
                     m_log.Debug("[MIGRATIONS]: An error has occurred in the migration. This may mean you could see errors trying to run OpenSim. If you see database related errors, you will need to fix the issue manually. Continuing.");
                     ExecuteScript("ROLLBACK;");
                 }
