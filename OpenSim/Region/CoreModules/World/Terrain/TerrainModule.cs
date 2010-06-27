@@ -93,6 +93,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             get { return m_commander; }
         }
 
+        public bool HasChanged
+        {
+            get
+            {
+                return m_tainted;
+            }
+        }
+
         #endregion
 
         #region INonSharedRegionModule Members
