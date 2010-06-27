@@ -402,7 +402,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // First, make sore base is limited to the next perms
                     itemCopy.BasePermissions = item.BasePermissions & (item.NextPermissions | (uint)PermissionMask.Move);
                     // By default, current equals base
-                    itemCopy.CurrentPermissions = itemCopy.BasePermissions;
+                    itemCopy.CurrentPermissions = itemCopy.BasePermissions & item.CurrentPermissions;
 
                     // If this is an object, replace current perms
                     // with folded perms
@@ -413,7 +413,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     // Ensure there is no escalation
-                    itemCopy.CurrentPermissions &= item.NextPermissions;
+                    itemCopy.CurrentPermissions &= (item.NextPermissions | (uint)PermissionMask.Move);
 
                     // Need slam bit on xfer
                     itemCopy.CurrentPermissions |= 8;
@@ -918,12 +918,13 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 agentItem.BasePermissions = taskItem.BasePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
                 if (taskItem.InvType == (int)InventoryType.Object)
-                    agentItem.CurrentPermissions = agentItem.BasePermissions & ((taskItem.CurrentPermissions & 7) << 13);
-                    agentItem.CurrentPermissions = agentItem.BasePermissions ;
+                    agentItem.CurrentPermissions = agentItem.BasePermissions & (((taskItem.CurrentPermissions & 7) << 13) | (taskItem.CurrentPermissions & (uint)PermissionMask.Move));
+                else
+                    agentItem.CurrentPermissions = agentItem.BasePermissions & taskItem.CurrentPermissions;
 
                 agentItem.CurrentPermissions |= 8;
                 agentItem.NextPermissions = taskItem.NextPermissions;
-                agentItem.EveryOnePermissions = taskItem.EveryonePermissions & taskItem.NextPermissions;
+                agentItem.EveryOnePermissions = taskItem.EveryonePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
                 agentItem.GroupPermissions = taskItem.GroupPermissions & taskItem.NextPermissions;
             }
             else
@@ -1105,11 +1106,11 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Permissions.PropagatePermissions())
                 {
                     destTaskItem.CurrentPermissions = srcTaskItem.CurrentPermissions &
-                            srcTaskItem.NextPermissions;
+                            (srcTaskItem.NextPermissions | (uint)PermissionMask.Move);
                     destTaskItem.GroupPermissions = srcTaskItem.GroupPermissions &
-                            srcTaskItem.NextPermissions;
+                            (srcTaskItem.NextPermissions | (uint)PermissionMask.Move);
                     destTaskItem.EveryonePermissions = srcTaskItem.EveryonePermissions &
-                            srcTaskItem.NextPermissions;
+                            (srcTaskItem.NextPermissions | (uint)PermissionMask.Move);
                     destTaskItem.BasePermissions = srcTaskItem.BasePermissions &
                             (srcTaskItem.NextPermissions | (uint)PermissionMask.Move);
                     destTaskItem.CurrentPermissions |= 8; // Slam!
