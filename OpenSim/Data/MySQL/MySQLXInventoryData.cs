@@ -64,14 +64,22 @@ namespace OpenSim.Data.MySQL
 
         public bool StoreFolder(XInventoryFolder folder)
         {
+            if (folder.folderName.Length > 64)
+                folder.folderName = folder.folderName.Substring(0, 64);
+
             return m_Folders.Store(folder);
         }
 
         public bool StoreItem(XInventoryItem item)
         {
+            if (item.inventoryName.Length > 64)
+                item.inventoryName = item.inventoryName.Substring(0, 64);
+            if (item.inventoryDescription.Length > 128)
+                item.inventoryDescription = item.inventoryDescription.Substring(0, 128);
+
             return m_Items.Store(item);
         }
-
+        
         public bool DeleteFolders(string field, string val)
         {
             return m_Folders.Delete(field, val);
