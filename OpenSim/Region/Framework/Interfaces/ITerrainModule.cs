@@ -42,7 +42,8 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Use this if you change terrain data outside of the terrain module (e.g. in osTerrainSetHeight)
         /// </summary>
         void TaintTerrain();
-        
+
+        bool HasChanged();
         /// <summary>
         /// Load a terrain from a stream.
         /// </summary>
