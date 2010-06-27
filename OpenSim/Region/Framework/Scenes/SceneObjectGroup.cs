@@ -1472,7 +1472,7 @@ namespace OpenSim.Region.Framework.Scenes
                             "[SCENE]: Storing {0}, {1} in {2}",
                             Name, UUID, m_scene.RegionInfo.RegionName);
 
-                        SceneObjectGroup backup_group = Copy(OwnerID, GroupID, false);
+                        SceneObjectGroup backup_group = Copy(false);
                         backup_group.RootPart.Velocity = RootPart.Velocity;
                         backup_group.RootPart.Acceleration = RootPart.Acceleration;
                         backup_group.RootPart.AngularVelocity = RootPart.AngularVelocity;
@@ -1528,7 +1528,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Duplicates this object, including operations such as physics set up and attaching to the backup event.
         /// </summary>
         /// <returns></returns>
-        public SceneObjectGroup Copy(UUID cAgentID, UUID cGroupID, bool userExposed)
+        public SceneObjectGroup Copy(bool userExposed)
         {
             SceneObjectGroup dupe = (SceneObjectGroup)MemberwiseClone();
             dupe.m_isBackedUp = false;
@@ -3581,7 +3581,7 @@ namespace OpenSim.Region.Framework.Scenes
         
         public virtual ISceneObject CloneForNewScene()
         {
-            SceneObjectGroup sog = Copy(this.OwnerID, this.GroupID, false);
+            SceneObjectGroup sog = Copy(false);
             sog.m_isDeleted = false;
             return sog;
         }
