@@ -36,9 +36,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\bin\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="OpenSim.Server, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Robust, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\bin\OpenSim.Server.exe</HintPath>
+      <HintPath>..\..\..\bin\Robust.exe</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
