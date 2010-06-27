@@ -371,7 +371,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         /// <returns></returns>
         public bool Delete(string id)
         {
-            string errorMessage = String.Empty;
+            //string errorMessage = String.Empty;
             string url = m_serverUrl + id;
 
             if (m_cache != null)
