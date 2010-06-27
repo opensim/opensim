@@ -1851,6 +1851,28 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectGroup copy = original.Copy(AgentID, GroupID, true);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;
 
+                    if (copy.OwnerID != AgentID)
+                    {
+                        copy.SetOwnerId(AgentID);
+                        copy.SetRootPartOwner(copy.RootPart, AgentID, GroupID);
+
+                        List<SceneObjectPart> partList =
+                            new List<SceneObjectPart>(copy.Children.Values);
+
+                        if (m_parentScene.Permissions.PropagatePermissions())
+                        {
+                            foreach (SceneObjectPart child in partList)
+                            {
+                                child.Inventory.ChangeInventoryOwner(AgentID);
+                                child.TriggerScriptChangedEvent(Changed.OWNER);
+                                child.ApplyNextOwnerPermissions();
+                            }
+                        }
+
+                        copy.RootPart.ObjectSaleType = 0;
+                        copy.RootPart.SalePrice = 10;
+                    }
+
                     Entities.Add(copy);
 
                     // Since we copy from a source group that is in selected
