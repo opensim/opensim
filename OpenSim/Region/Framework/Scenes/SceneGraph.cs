@@ -1851,7 +1851,7 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectGroup copy = original.Copy(AgentID, GroupID, true);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;
 
-                    if (copy.OwnerID != AgentID)
+                    if (original.OwnerID != AgentID)
                     {
                         copy.SetOwnerId(AgentID);
                         copy.SetRootPartOwner(copy.RootPart, AgentID, GroupID);

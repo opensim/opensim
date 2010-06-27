@@ -1781,7 +1781,9 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.AbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
 
             if (!userExposed)
+            {
                 dupe.RootPart.IsAttachment = previousAttachmentStatus;
+            }
 
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
             dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
@@ -1806,16 +1808,6 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.RootPart.DoPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
             }
 
-            // Now we've made a copy that replaces this one, we need to
-            // switch the owner to the person who did the copying
-            // Second Life copies an object and duplicates the first one in it's place
-            // So, we have to make a copy of this one, set it in it's place then set the owner on this one
-            if (userExposed)
-            {
-                SetRootPartOwner(m_rootPart, cAgentID, cGroupID);
-                m_rootPart.ScheduleFullUpdate();
-            }
-            
             List<SceneObjectPart> partList;
 
             lockPartsForRead(true);
@@ -1837,12 +1829,6 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectPart newPart = dupe.CopyPart(part, OwnerID, GroupID, userExposed);
 
                     newPart.LinkNum = part.LinkNum;
-
-                    if (userExposed)
-                    {
-                        SetPartOwner(newPart, cAgentID, cGroupID);
-                        newPart.ScheduleFullUpdate();
-                    }
                 }
             }
 
