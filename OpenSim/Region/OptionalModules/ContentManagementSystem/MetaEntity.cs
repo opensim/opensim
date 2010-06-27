@@ -80,7 +80,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         /// </summary>
         public MetaEntity(SceneObjectGroup orig, bool physics)
         {
-            m_Entity = orig.Copy(orig.RootPart.OwnerID, orig.RootPart.GroupID, false);
+            m_Entity = orig.Copy(false);
             Initialize(physics);
         }
 
