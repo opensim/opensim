@@ -1303,18 +1303,31 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void EventManagerOnIncomingLandDataFromStorage(List<LandData> data)
         {
-            for (int i = 0; i < data.Count; i++)
+            lock (m_landList)
             {
-                IncomingLandObjectFromStorage(data[i]);
+                //Remove all the land objects in the sim and then process our new data
+                foreach (int n in m_landList.Keys)
+                {
+                    m_scene.EventManager.TriggerLandObjectRemoved(m_landList[n].LandData.GlobalID);
+                }
+                m_landIDList.Initialize();
+                m_landList.Clear();
+
+                for (int i = 0; i < data.Count; i++)
+                {
+                    IncomingLandObjectFromStorage(data[i]);
+                }
             }
         }
 
         public void IncomingLandObjectFromStorage(LandData data)
         {
+
             ILandObject new_land = new LandObject(data.OwnerID, data.IsGroupOwned, m_scene);
             new_land.LandData = data.Copy();
             new_land.SetLandBitmapFromByteArray();
             AddLandObject(new_land);
+            new_land.SendLandUpdateToAvatarsOverMe();
         }
 
         public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient)
