@@ -6316,8 +6316,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (handlerObjectDuplicate != null)
                 {
                     handlerObjectDuplicate(dupe.ObjectData[i].ObjectLocalID, dupe.SharedData.Offset,
-                                           dupe.SharedData.DuplicateFlags, AgentandGroupData.AgentID,
-                                           AgentandGroupData.GroupID);
+                                           dupe.SharedData.DuplicateFlags, AgentId,
+                                           m_activeGroupID);
                 }
             }
 
@@ -6907,7 +6907,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (handlerObjectDuplicateOnRay != null)
                 {
                     handlerObjectDuplicateOnRay(dupeOnRay.ObjectData[i].ObjectLocalID, dupeOnRay.AgentData.DuplicateFlags,
-                                                dupeOnRay.AgentData.AgentID, dupeOnRay.AgentData.GroupID, dupeOnRay.AgentData.RayTargetID, dupeOnRay.AgentData.RayEnd,
+                                                AgentId, m_activeGroupID, dupeOnRay.AgentData.RayTargetID, dupeOnRay.AgentData.RayEnd,
                                                 dupeOnRay.AgentData.RayStart, dupeOnRay.AgentData.BypassRaycast, dupeOnRay.AgentData.RayEndIsIntersection,
                                                 dupeOnRay.AgentData.CopyCenters, dupeOnRay.AgentData.CopyRotates);
                 }
