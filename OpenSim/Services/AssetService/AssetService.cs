@@ -144,7 +144,10 @@ namespace OpenSim.Services.AssetService
         public string Store(AssetBase asset)
         {
             //m_log.DebugFormat("[ASSET SERVICE]: Store asset {0} {1}", asset.Name, asset.ID);
-            m_Database.StoreAsset(asset);
+            if (!m_Database.StoreAsset(asset))
+            {
+                return UUID.Zero.ToString();
+            }
 
             return asset.ID;
         }
