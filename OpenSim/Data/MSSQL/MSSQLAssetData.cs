@@ -143,7 +143,7 @@ namespace OpenSim.Data.MSSQL
         /// Create asset in m_database
         /// </summary>
         /// <param name="asset">the asset</param>
-        override public void StoreAsset(AssetBase asset)
+        override public bool StoreAsset(AssetBase asset)
         {
            
             string sql =
@@ -192,10 +192,12 @@ namespace OpenSim.Data.MSSQL
                 try
                 {
                     command.ExecuteNonQuery();
+                    return true;
                 }
                 catch(Exception e)
                 {
                     m_log.Error("[ASSET DB]: Error storing item :" + e.Message);
+                    return false;
                 }
             }
         }

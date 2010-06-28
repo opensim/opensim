@@ -38,7 +38,7 @@ namespace OpenSim.Data
     {
         public abstract AssetBase GetAsset(UUID uuid);
         
-        public abstract void StoreAsset(AssetBase asset);
+        public abstract bool StoreAsset(AssetBase asset);
         public abstract bool ExistsAsset(UUID uuid);
 
         public abstract List<AssetMetadata> FetchAssetMetadataSet(int start, int count);
