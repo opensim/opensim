@@ -1574,13 +1574,25 @@ namespace OpenSim.Region.Framework.Scenes
                 // for when deleting the object from it
                 ForceSceneObjectBackup(grp);
 
-                if (!Permissions.CanTakeCopyObject(grp.UUID, remoteClient.AgentId))
-                    permissionToTakeCopy = false;
-                if (!Permissions.CanTakeObject(grp.UUID, remoteClient.AgentId))
-                    permissionToTake = false;
+                if (remoteClient == null)
+                {
+                    // Autoreturn has a null client. Nothing else does. So
+                    // allow only returns
+                    if (action != DeRezAction.Return)
+                        return;
 
-                if (!Permissions.CanDeleteObject(grp.UUID, remoteClient.AgentId))
-                    permissionToDelete = false;
+                    permissionToTakeCopy = false;
+                }
+                else
+                {
+                    if (!Permissions.CanTakeCopyObject(grp.UUID, remoteClient.AgentId))
+                        permissionToTakeCopy = false;
+                    if (!Permissions.CanTakeObject(grp.UUID, remoteClient.AgentId))
+                        permissionToTake = false;
+
+                    if (!Permissions.CanDeleteObject(grp.UUID, remoteClient.AgentId))
+                        permissionToDelete = false;
+                }
 
             }
 
