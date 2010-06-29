@@ -73,7 +73,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         public ContentManagementEntity(SceneObjectGroup Unchanged, bool physics)
             : base(Unchanged, false)
         {
-            m_UnchangedEntity = Unchanged.Copy(Unchanged.RootPart.OwnerID, Unchanged.RootPart.GroupID, false);
+            m_UnchangedEntity = Unchanged.Copy(false);
         }
 
         public ContentManagementEntity(string objectXML, Scene scene,  bool physics)

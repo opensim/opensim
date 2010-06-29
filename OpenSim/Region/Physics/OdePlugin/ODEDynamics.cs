@@ -675,7 +675,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_dir.Z = vel_now.Z;        // Preserve the accumulated falling velocity
 
             d.Vector3 pos = d.BodyGetPosition(Body);
-            Vector3 accel = new Vector3(-(m_dir.X - m_lastLinearVelocityVector.X / 0.1f), -(m_dir.Y - m_lastLinearVelocityVector.Y / 0.1f), m_dir.Z - m_lastLinearVelocityVector.Z / 0.1f);
+//            Vector3 accel = new Vector3(-(m_dir.X - m_lastLinearVelocityVector.X / 0.1f), -(m_dir.Y - m_lastLinearVelocityVector.Y / 0.1f), m_dir.Z - m_lastLinearVelocityVector.Z / 0.1f);
             Vector3 posChange = new Vector3();
             posChange.X = pos.X - m_lastPositionVector.X;
             posChange.Y = pos.Y - m_lastPositionVector.Y;

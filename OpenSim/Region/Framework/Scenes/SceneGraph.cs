@@ -1747,8 +1747,30 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_parentScene.Permissions.CanDuplicateObject(original.Children.Count, original.UUID, AgentID, original.AbsolutePosition))
                 {
-                    SceneObjectGroup copy = original.Copy(AgentID, GroupID, true);
+                    SceneObjectGroup copy = original.Copy(true);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;
+
+                    if (original.OwnerID != AgentID)
+                    {
+                        copy.SetOwnerId(AgentID);
+                        copy.SetRootPartOwner(copy.RootPart, AgentID, GroupID);
+
+                        List<SceneObjectPart> partList =
+                            new List<SceneObjectPart>(copy.Children.Values);
+
+                        if (m_parentScene.Permissions.PropagatePermissions())
+                        {
+                            foreach (SceneObjectPart child in partList)
+                            {
+                                child.Inventory.ChangeInventoryOwner(AgentID);
+                                child.TriggerScriptChangedEvent(Changed.OWNER);
+                                child.ApplyNextOwnerPermissions();
+                            }
+                        }
+
+                        copy.RootPart.ObjectSaleType = 0;
+                        copy.RootPart.SalePrice = 10;
+                    }
 
                     Entities.Add(copy);
 

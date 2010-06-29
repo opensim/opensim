@@ -255,7 +255,11 @@ namespace OpenSim.Services.GridService
                 {
                     m_log.WarnFormat("[HYPERGRID LINKER]: Remote Gatekeeper at {0} provided malformed ExternalName {1}", regInfo.ExternalHostName, externalName);
                 }
-                regInfo.RegionName = regInfo.ExternalHostName + ":" + regInfo.HttpPort + ":" + regInfo.RegionName;
+                string name = regInfo.RegionName;
+                regInfo.RegionName = regInfo.ExternalHostName + ":" + regInfo.HttpPort;
+                if (name != string.Empty)
+                    regInfo.RegionName += ":" + name;
+
                 // Try get the map image
                 //regInfo.TerrainImage = m_GatekeeperConnector.GetMapImage(regionID, imageURL);
                 // I need a texture that works for this... the one I tried doesn't seem to be working

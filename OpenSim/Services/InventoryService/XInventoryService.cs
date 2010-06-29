@@ -200,7 +200,14 @@ namespace OpenSim.Services.InventoryService
             if (folders.Length == 0)
                 return null;
 
-            return ConvertToOpenSim(folders[0]);
+            XInventoryFolder root = null;
+            foreach (XInventoryFolder folder in folders)
+                if (folder.folderName == "My Inventory")
+                    root = folder;
+            if (folders == null) // oops
+                root = folders[0];
+
+            return ConvertToOpenSim(root);
         }
 
         public virtual InventoryFolderBase GetFolderForType(UUID principalID, AssetType type)
