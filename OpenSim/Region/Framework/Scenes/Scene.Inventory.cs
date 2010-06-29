@@ -1285,7 +1285,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     if (part.Inventory.UpdateInventoryItem(itemInfo))
                     {
-                        remoteClient.SendAgentAlertMessage("Notecard saved", false);                        
+                        // remoteClient.SendAgentAlertMessage("Notecard saved", false);                        
                         part.GetProperties(remoteClient);
                     }
                 }
