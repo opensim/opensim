@@ -358,7 +358,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID ownerID, PrimitiveBaseShape shape, Vector3 groupPosition, 
             Quaternion rotationOffset, Vector3 offsetPosition)
         {
-            m_name = "Primitive";
+            m_name = "Object";
 
             Rezzed = DateTime.UtcNow;
             _creationDate = (int)Utils.DateTimeToUnixTime(Rezzed);
@@ -1625,7 +1625,7 @@ namespace OpenSim.Region.Framework.Scenes
             PrimitiveBaseShape shape = PrimitiveBaseShape.Create();
             part.Shape = shape;
 
-            part.Name = "Primitive";
+            part.Name = "Object";
             part._ownerID = UUID.Random();
 
             return part;
