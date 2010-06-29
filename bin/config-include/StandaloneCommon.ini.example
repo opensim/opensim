@@ -17,7 +17,7 @@
     ; Uncomment these lines if you want to use mysql storage 
     ; Change the connection string to your db details
     ;StorageProvider = "OpenSim.Data.MySQL.dll"
-    ;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;Old Guids=true;"
+    ;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;"
 
 [AssetService]
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
