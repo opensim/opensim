@@ -134,8 +134,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             
             foreach (KeyValuePair<UUID, AssetType> kvp in m_uuids)
             {
-                if (kvp.Key != UUID.Zero)
-                    m_assetService.Get(kvp.Key.ToString(), kvp.Value, PreAssetRequestCallback);
+                m_assetService.Get(kvp.Key.ToString(), kvp.Value, PreAssetRequestCallback);
             }
 
             m_requestCallbackTimer.Enabled = true;
@@ -270,7 +269,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[ARCHIVER]: AssetRequestCallback failed with {0}{1}", e.Message, e.StackTrace);
+                m_log.ErrorFormat("[ARCHIVER]: AssetRequestCallback failed with {0}", e);
             }
         }
 
@@ -286,8 +285,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             catch (Exception e)
             {
                 m_log.ErrorFormat(
-                    "[ARCHIVER]: Terminating archive creation since asset requester callback failed with {0}{1}", 
-                    e.Message, e.StackTrace);
+                    "[ARCHIVER]: Terminating archive creation since asset requster callback failed with {0}", e);
             }
         }
     }
