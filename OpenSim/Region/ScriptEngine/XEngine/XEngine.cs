@@ -1274,9 +1274,23 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             string xml = instance.GetXMLState();
 
             XmlDocument sdoc = new XmlDocument();
-            sdoc.LoadXml(xml);
-            XmlNodeList rootL = sdoc.GetElementsByTagName("ScriptState");
-            XmlNode rootNode = rootL[0];
+            bool loadedState = true;
+            try
+            {
+                sdoc.LoadXml(xml);
+            }
+            catch (System.Xml.XmlException e)
+            {
+                loadedState = false;
+            }
+
+            XmlNodeList rootL = null;
+            XmlNode rootNode = null;
+            if (loadedState)
+            {
+                rootL = sdoc.GetElementsByTagName("ScriptState");
+                rootNode = rootL[0];
+            }
 
             // Create <State UUID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
             XmlDocument doc = new XmlDocument();
@@ -1292,8 +1306,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             stateData.Attributes.Append(engineName);
             doc.AppendChild(stateData);
 
+            XmlNode xmlstate = null;
+
             // Add <ScriptState>...</ScriptState>
-            XmlNode xmlstate = doc.ImportNode(rootNode, true);
+            if (loadedState)
+            {
+                xmlstate = doc.ImportNode(rootNode, true);
+            }
+            else
+            {
+                xmlstate = doc.CreateElement("", "ScriptState", "");
+            }
+
             stateData.AppendChild(xmlstate);
 
             string assemName = instance.GetAssemblyName();
