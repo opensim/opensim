@@ -217,7 +217,7 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (IScriptModule e in engines)
             {
                 if (e != null)
-                {                    
+                {
                     ArrayList errors = e.GetScriptErrors(itemID);
                     foreach (Object line in errors)
                         ret.Add(line);
@@ -359,26 +359,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                     m_part.ParentGroup.m_savedScriptState[oldID] = newDoc.OuterXml;
                 }
-                
                 foreach (IScriptModule e in engines)
                 {
                     if (e != null)
                     {
-                        // Stop an exception in setting saved state from propogating since this is not fatal.
-                        try
-                        {
-                            if (e.SetXMLState(newID, m_part.ParentGroup.m_savedScriptState[oldID]))
-                                break;
-                        }
-                        catch (Exception ex)
-                        {
-                            m_log.WarnFormat(
-                                "[PRIM INVENTORY]: Could not set script state for old key {0}, new key {1} in prim {2} {3}.  Exception {4}{5}", 
-                                oldID, newID, m_part.Name, m_part.UUID, ex.Message, ex.StackTrace);
-                        }                        
+                        if (e.SetXMLState(newID, m_part.ParentGroup.m_savedScriptState[oldID]))
+                            break;
                     }
                 }
-                
                 m_part.ParentGroup.m_savedScriptState.Remove(oldID);
             }
         }
@@ -1040,23 +1028,12 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             if (e != null)
                             {
-                                // Stop any exception from the script engine from propogating since setting state
-                                // isn't essential.
-                                try
+                                string n = e.GetXMLState(item.ItemID);
+                                if (n != String.Empty)
                                 {
-                                    string n = e.GetXMLState(item.ItemID);
-                                    if (n != String.Empty)
-                                    {
-                                        if (!ret.ContainsKey(item.ItemID))
-                                            ret[item.ItemID] = n;
-                                        break;
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    m_log.WarnFormat(
-                                        "[PRIM INVENTORY]: Could not retrieve script state for item {0} {1} in prim {2} {3}.  Exception {4}{5}", 
-                                        item.Name, item.ItemID, m_part.Name, m_part.UUID, ex.Message, ex.StackTrace);
+                                    if (!ret.ContainsKey(item.ItemID))
+                                        ret[item.ItemID] = n;
+                                    break;
                                 }
                             }
                         }
