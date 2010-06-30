@@ -283,6 +283,10 @@ namespace OpenSim.Server.Handlers.Simulation
             if (m_SimulationService == null)
             {
                 m_log.Debug("[AGENT HANDLER]: Agent GET called. Harmless but useless.");
+                responsedata["content_type"] = "application/json";
+                responsedata["int_response_code"] = HttpStatusCode.NotImplemented;
+                responsedata["str_response_string"] = string.Empty;
+
                 return;
             }
 
