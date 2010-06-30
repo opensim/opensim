@@ -839,7 +839,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (!(pos.Y < 0))
                         emergencyPos.Y = pos.Y;
                     if (!(pos.Z < 0))
-                        emergencyPos.X = pos.X;
+                        emergencyPos.Z = pos.Z;
                 }
                 if (pos.Y < 0)
                 {
@@ -857,7 +857,7 @@ namespace OpenSim.Region.Framework.Scenes
                         emergencyPos.Y = pos.Y;
                     //Leave as 128
                 }
-
+                
                 m_log.WarnFormat(
                     "[SCENE PRESENCE]: MakeRootAgent() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
                     pos, Name, UUID, emergencyPos);
