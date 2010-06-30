@@ -156,6 +156,10 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
             }
 
+            // Force timestamp to server time to avoid "Saved on" headers
+            // being generated for online users
+            im.timestamp = (uint)Util.UnixTimeSinceEpoch();
+
             if (dialog == (byte)InstantMessageDialog.MessageFromAgent ||
                 dialog == (byte)InstantMessageDialog.MessageFromObject)
             {
