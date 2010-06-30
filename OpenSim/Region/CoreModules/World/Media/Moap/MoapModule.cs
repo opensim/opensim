@@ -26,31 +26,79 @@
  */
 
 using System;
+using System.Collections;
+using System.Collections.Specialized;
 using System.Reflection;
-using Nini.Config;
+using System.IO;
+using System.Web;
 using log4net;
+using Mono.Addins;
+using Nini.Config;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
+using OpenSim.Framework.Servers;
+using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using Mono.Addins;
-using OpenMetaverse;
+using OpenSim.Services.Interfaces;
+using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.CoreModules.Media.Moap
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MoapModule")]
     public class MoapModule : INonSharedRegionModule
     {    
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         public string Name { get { return "MoapModule"; } }                
         public Type ReplaceableInterface { get { return null; } }        
         
+        protected Scene m_scene;
+        
         public void Initialise(IConfigSource config) {}
 
-        public void AddRegion(Scene scene) { Console.WriteLine("YEAH I'M HERE, BABY!"); }
+        public void AddRegion(Scene scene) 
+        { 
+            m_scene = scene;
+        }
 
         public void RemoveRegion(Scene scene) {}
 
-        public void RegionLoaded(Scene scene) {}        
+        public void RegionLoaded(Scene scene) 
+        {
+            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
+        }
         
         public void Close() {}        
+        
+        public void RegisterCaps(UUID agentID, Caps caps)
+        {
+            m_log.DebugFormat(
+                "[MOAP]: Registering ObjectMedia and ObjectMediaNavigate capabilities for agent {0}", agentID);
+            
+            caps.RegisterHandler(
+                "ObjectMedia", new RestStreamHandler("GET", "/CAPS/" + UUID.Random(), OnObjectMediaRequest));
+            caps.RegisterHandler(
+                "ObjectMediaNavigate", new RestStreamHandler("GET", "/CAPS/" + UUID.Random(), OnObjectMediaNavigateRequest));
+        }        
+        
+        protected string OnObjectMediaRequest(
+            string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        {            
+            m_log.DebugFormat("[MOAP]: Got ObjectMedia request for {0}", path);
+            //NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
+            
+            return string.Empty;
+        }
+        
+        protected string OnObjectMediaNavigateRequest(
+            string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        {            
+            m_log.DebugFormat("[MOAP]: Got ObjectMediaNavigate request for {0}", path);
+            //NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
+            
+            return string.Empty;
+        }        
     }
 }
