@@ -128,8 +128,20 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         protected string HandleObjectMediaRequestGet(
             string path, Hashtable osdParams, OSHttpRequest httpRequest, OSHttpResponse httpResponse)        
         {
-            // Yeah, only for cubes right now.  I know it's dumb.
-            int faces = 6;
+            UUID primId = (UUID)osdParams["object_id"];
+            
+            SceneObjectPart part = m_scene.GetSceneObjectPart(primId);
+            
+            if (null == part)
+            {
+                m_log.WarnFormat(
+                    "[MOAP]: Received a GET ObjectMediaRequest for prim {0} but this doesn't exist in the scene", 
+                    primId);
+                return string.Empty;
+            }
+                        
+            int faces = part.GetNumberOfSides();
+            m_log.DebugFormat("[MOAP]: Faces [{0}] for [{1}]", faces, primId);
             
             MediaEntry[] media = new MediaEntry[faces];
             for (int i = 0; i < faces; i++)
