@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Timers;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -48,7 +49,9 @@ namespace OpenSim.Services.Connectors
 
         private string m_ServerURI = String.Empty;
         private IImprovedAssetCache m_Cache = null;
-
+        private int m_retryCounter;
+        private Dictionary<int, List<AssetBase>> m_retryQueue = new Dictionary<int, List<AssetBase>>();
+        private Timer m_retryTimer;
         public AssetServicesConnector()
         {
         }
@@ -85,6 +88,55 @@ namespace OpenSim.Services.Connectors
             MainConsole.Instance.Commands.AddCommand("asset", false, "dump asset",
                                           "dump asset <id> <file>",
                                           "dump one cached asset", HandleDumpAsset);
+
+            m_retryTimer = new Timer();
+            m_retryTimer.Elapsed += new ElapsedEventHandler(retryCheck);
+            m_retryTimer.Interval = 60000;
+        }
+
+        protected void retryCheck(object source, ElapsedEventArgs e)
+        {
+            m_retryCounter++;
+            if (m_retryCounter > 60) m_retryCounter -= 60;
+            List<int> keys = new List<int>();
+            foreach (int a in m_retryQueue.Keys)
+            {
+                keys.Add(a);
+            }
+            foreach (int a in keys)
+            {
+                //We exponentially fall back on frequency until we reach one attempt per hour
+                //The net result is that we end up in the queue for roughly 24 hours..
+                //24 hours worth of assets could be a lot, so the hope is that the region admin
+                //will have gotten the asset connector back online quickly!
+
+                int timefactor = a ^ 2; 
+                if (timefactor > 60)
+                {
+                    timefactor = 60;
+                }
+
+                //First, find out if we care about this timefactor
+                if (timefactor % a == 0)
+                {
+                    //Yes, we do!   
+                    List<AssetBase> retrylist = m_retryQueue[a];
+                    m_retryQueue.Remove(a);
+
+                    foreach(AssetBase ass in retrylist)
+                    {
+                        Store(ass); //Store my ass. This function will put it back in the dictionary if it fails
+                    }
+                }
+            }
+
+            if (m_retryQueue.Count == 0)
+            {
+                //It might only be one tick per minute, but I have
+                //repented and abandoned my wasteful ways
+                m_retryCounter = 0;
+                m_retryTimer.Stop();
+            }
         }
 
         protected void SetCache(IImprovedAssetCache cache)
@@ -222,20 +274,45 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[ASSET CONNECTOR]: Unable to send asset {0} to asset server. Reason: {1}", asset.ID, e.Message);
+                newID = UUID.Zero.ToString();
             }
 
-            if (newID != String.Empty)
+            if (newID == UUID.Zero.ToString())
             {
-                // Placing this here, so that this work with old asset servers that don't send any reply back
-                // SynchronousRestObjectRequester returns somethins that is not an empty string
-                if (newID != null)
-                    asset.ID = newID;
-
-                if (m_Cache != null)
-                    m_Cache.Cache(asset);
+                //The asset upload failed, put it in a queue for later
+                asset.UploadAttempts++;
+                if (asset.UploadAttempts > 30)
+                {
+                    //By this stage we've been in the queue for a good few hours;
+                    //We're going to drop the asset.
+                    m_log.ErrorFormat("[Assets] Dropping asset {0} - Upload has been in the queue for too long.", asset.ID.ToString());
+                }
+                else
+                {
+                    if (!m_retryQueue.ContainsKey(asset.UploadAttempts))
+                    {
+                        m_retryQueue.Add(asset.UploadAttempts, new List<AssetBase>());
+                    }
+                    List<AssetBase> m_queue = m_retryQueue[asset.UploadAttempts];
+                    m_queue.Add(asset);
+                    m_log.WarnFormat("[Assets] Upload failed: {0} - Requeuing asset for another run.", asset.ID.ToString());
+                    m_retryTimer.Start();
+                }
             }
-            return newID;
+            else
+            {
+                if (newID != String.Empty)
+                {
+                    // Placing this here, so that this work with old asset servers that don't send any reply back
+                    // SynchronousRestObjectRequester returns somethins that is not an empty string
+                    if (newID != null)
+                        asset.ID = newID;
+
+                    if (m_Cache != null)
+                        m_Cache.Cache(asset);
+                }
+            }
+            return asset.ID;
         }
 
         public bool UpdateContent(string id, byte[] data)

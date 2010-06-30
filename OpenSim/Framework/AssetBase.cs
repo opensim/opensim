@@ -60,6 +60,8 @@ namespace OpenSim.Framework
         /// </summary>
         private AssetMetadata m_metadata;
 
+        private int m_uploadAttempts;
+
         // This is needed for .NET serialization!!!
         // Do NOT "Optimize" away!
         public AssetBase()
@@ -195,6 +197,12 @@ namespace OpenSim.Framework
         {
             get { return m_metadata.Type; }
             set { m_metadata.Type = value; }
+        }
+
+        public int UploadAttempts
+        {
+            get { return m_uploadAttempts; }
+            set { m_uploadAttempts = value; }
         }
 
         /// <summary>
