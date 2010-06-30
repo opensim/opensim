@@ -35,8 +35,10 @@ using log4net;
 using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.Messages.Linden;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
+using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
@@ -77,28 +79,109 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             m_log.DebugFormat(
                 "[MOAP]: Registering ObjectMedia and ObjectMediaNavigate capabilities for agent {0}", agentID);
             
+            // We do receive a post to ObjectMedia when a new avatar enters the region - though admittedly this is the
+            // avatar that set the texture in the first place.
+            // Even though we're registering for POST we're going to get GETS and UPDATES too
             caps.RegisterHandler(
-                "ObjectMedia", new RestStreamHandler("GET", "/CAPS/" + UUID.Random(), OnObjectMediaRequest));
+                "ObjectMedia", new RestStreamHandler("POST", "/CAPS/" + UUID.Random(), HandleObjectMediaRequest));
+            
+            // We do get these posts when the url has been changed.
+            // Even though we're registering for POST we're going to get GETS and UPDATES too
             caps.RegisterHandler(
-                "ObjectMediaNavigate", new RestStreamHandler("GET", "/CAPS/" + UUID.Random(), OnObjectMediaNavigateRequest));
+                "ObjectMediaNavigate", new RestStreamHandler("POST", "/CAPS/" + UUID.Random(), HandleObjectMediaNavigateRequest));
         }        
         
-        protected string OnObjectMediaRequest(
+        /// <summary>
+        /// Sets or gets per face media textures.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        /// <param name="httpRequest"></param>
+        /// <param name="httpResponse"></param>
+        /// <returns></returns>
+        protected string HandleObjectMediaRequest(
             string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {            
-            m_log.DebugFormat("[MOAP]: Got ObjectMedia request for {0}", path);
+            m_log.DebugFormat("[MOAP]: Got ObjectMedia raw request [{0}]", request);
+            
+            Hashtable osdParams = new Hashtable();
+            osdParams = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));            
+            
+            foreach (Object key in osdParams.Keys)
+                m_log.DebugFormat("[MOAP]: Param {0}={1}", key, osdParams[key]);
+            
+            string verb = (string)osdParams["verb"];
+            
+            if ("GET" == verb)
+                return HandleObjectMediaRequestGet(path, osdParams, httpRequest, httpResponse);
+                                    
             //NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
+            
+            // TODO: Persist in memory
+            // TODO: Tell other agents in the region about the change via the ObjectMediaResponse (?) message
+            // TODO: Persist in database             
             
             return string.Empty;
         }
         
-        protected string OnObjectMediaNavigateRequest(
+        protected string HandleObjectMediaRequestGet(
+            string path, Hashtable osdParams, OSHttpRequest httpRequest, OSHttpResponse httpResponse)        
+        {
+            // Yeah, only for cubes right now.  I know it's dumb.
+            int faces = 6;
+            
+            MediaEntry[] media = new MediaEntry[faces];
+            for (int i = 0; i < faces; i++)
+            {
+                MediaEntry me = new MediaEntry();                
+                me.HomeURL = "google.com";
+                me.CurrentURL = "google.com";
+                me.AutoScale = true;
+                //me.Height = 300;
+                //me.Width = 240;
+                media[i] = me;
+            }
+            
+            ObjectMediaResponse resp = new ObjectMediaResponse();
+            
+            resp.PrimID = (UUID)osdParams["object_id"];
+            resp.FaceMedia = media;
+            
+            // I know this has to end with the last avatar to edit and the version code shouldn't always be 16.  Just trying
+            // to minimally satisfy for now to get something working
+            resp.Version = "x-mv:0000000016/" + UUID.Random();
+           
+            //string rawResp = resp.Serialize().ToString();
+            string rawResp = OSDParser.SerializeLLSDXmlString(resp.Serialize());
+            
+            m_log.DebugFormat("[MOAP]: Got HandleObjectMediaRequestGet raw response is [{0}]", rawResp);
+            
+            return rawResp;
+        }
+        
+        /// <summary>
+        /// Received from the viewer if a user has changed the url of a media texture.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        /// <param name="httpRequest">/param>
+        /// <param name="httpResponse">/param>
+        /// <returns></returns>
+        protected string HandleObjectMediaNavigateRequest(
             string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {            
             m_log.DebugFormat("[MOAP]: Got ObjectMediaNavigate request for {0}", path);
             //NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
             
+            // TODO: Persist in memory
+            // TODO: Tell other agents in the region about the change via the ObjectMediaResponse (?) message
+            // TODO: Persist in database            
+            
             return string.Empty;
-        }        
+        }   
+        
+        
     }
 }
