@@ -488,6 +488,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             if (stateSource == (int)StateSource.ScriptedRez)
             {
+                lock (m_CompileDict)
+                {
+                    m_CompileDict[itemID] = 0;
+                }
+
                 DoOnRezScript(parms);
             }
             else
