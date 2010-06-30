@@ -277,7 +277,7 @@ namespace OpenSim.Server.Handlers.Simulation
             //responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp); ??? instead
         }
 
-        // subclasses cab override this
+        // subclasses can override this
         protected virtual bool UpdateAgent(GridRegion destination, AgentData agent)
         {
             return m_SimulationService.UpdateAgent(destination, agent);
@@ -285,6 +285,16 @@ namespace OpenSim.Server.Handlers.Simulation
 
         protected virtual void DoAgentGet(Hashtable request, Hashtable responsedata, UUID id, UUID regionID)
         {
+            if (m_SimulationService == null)
+            {
+                m_log.Debug("[AGENT HANDLER]: Agent GET called. Harmless but useless.");
+                responsedata["content_type"] = "application/json";
+                responsedata["int_response_code"] = HttpStatusCode.NotImplemented;
+                responsedata["str_response_string"] = string.Empty;
+
+                return;
+            }
+
             GridRegion destination = new GridRegion();
             destination.RegionID = regionID;
 

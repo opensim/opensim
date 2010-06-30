@@ -131,6 +131,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             return ret;
         }
 
+        // DO NOT OVERRIDE THIS METHOD
         public virtual UUID DeleteToInventory(DeRezAction action, UUID folderID,
                 SceneObjectGroup objectGroup, IClientAPI remoteClient)
         {

@@ -198,6 +198,10 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; CHANGE THIS
     ExternalName = "http://127.0.0.1:8002"
 
+	; Does this grid allow incoming links to any region in it? 
+	; If false, HG TPs happen only to the  Default regions specified in [GridService] section
+	AllowTeleportsToAnyRegion = true
+
 [UserAgentService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:UserAgentService"
     ;; for the service

@@ -44,6 +44,8 @@ namespace OpenSim.Server.Handlers.Asset
 {
     public class XInventoryInConnector : ServiceConnector
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private IInventoryService m_InventoryService;
         private string m_ConfigName = "InventoryService";
 
@@ -52,6 +54,8 @@ namespace OpenSim.Server.Handlers.Asset
         {
             if (configName != String.Empty)
                 m_ConfigName = configName;
+
+            m_log.DebugFormat("[XInventoryInConnector]: Starting with config name {0}", m_ConfigName);
 
             IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
