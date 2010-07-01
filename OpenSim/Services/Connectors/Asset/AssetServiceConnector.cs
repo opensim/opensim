@@ -307,7 +307,7 @@ namespace OpenSim.Services.Connectors
             {
                 if (asset.UploadAttempts > 0)
                 {
-                    m_log.InfoFormat("[Assets] Upload of {0} succeeded after {1} failed attempts", asset.ID.ToString(), asset.UploadAttempts.ToString()));
+                    m_log.InfoFormat("[Assets] Upload of {0} succeeded after {1} failed attempts", asset.ID.ToString(), asset.UploadAttempts.ToString());
                 }
                 if (newID != String.Empty)
                 {
