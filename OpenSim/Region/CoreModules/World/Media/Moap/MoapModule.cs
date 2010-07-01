@@ -91,7 +91,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             // avatar that set the texture in the first place.
             // Even though we're registering for POST we're going to get GETS and UPDATES too
             caps.RegisterHandler(
-                "ObjectMedia", new RestStreamHandler("POST", "/CAPS/" + UUID.Random(), HandleObjectMediaRequest));
+                "ObjectMedia", new RestStreamHandler("POST", "/CAPS/" + UUID.Random(), HandleObjectMediaMessage));
             
             // We do get these posts when the url has been changed.
             // Even though we're registering for POST we're going to get GETS and UPDATES too
@@ -108,7 +108,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         /// <param name="httpRequest"></param>
         /// <param name="httpResponse"></param>
         /// <returns></returns>
-        protected string HandleObjectMediaRequest(
+        protected string HandleObjectMediaMessage(
             string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {            
             m_log.DebugFormat("[MOAP]: Got ObjectMedia raw request [{0}]", request);
@@ -167,10 +167,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             
             resp.PrimID = primId;
             resp.FaceMedia = part.Shape.Media.ToArray();
-            
-            // I know this has to end with the last avatar to edit and the version code shouldn't always be 16.  Just trying
-            // to minimally satisfy for now to get something working
-            resp.Version = "x-mv:0000000016/" + UUID.Random();
+            resp.Version = part.MediaUrl;
            
             string rawResp = OSDParser.SerializeLLSDXmlString(resp.Serialize());
             
@@ -196,6 +193,27 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             m_log.DebugFormat("[MOAP]: Received {0} media entries for prim {1}", omu.FaceMedia.Length, primId);
             
             part.Shape.Media = new List<MediaEntry>(omu.FaceMedia);
+            
+            if (null == part.MediaUrl)
+            {
+                // TODO: We can't set the last changer until we start tracking which cap we give to which agent id
+                part.MediaUrl = "x-mv:0000000000/" + UUID.Zero;
+            }
+            else
+            {
+                string rawVersion = part.MediaUrl.Substring(5, 10);
+                int version = int.Parse(rawVersion);
+                part.MediaUrl = string.Format("x-mv:{0:10D}/{1}", version, UUID.Zero);
+            }
+            
+            m_log.DebugFormat("[MOAP]: Storing media url [{0}] in prim {1} {2}", part.MediaUrl, part.Name, part.UUID);
+            
+            // I know this has to end with the last avatar to edit and the version code shouldn't always be 16.  Just trying
+            // to minimally satisfy for now to get something working
+            //resp.Version = "x-mv:0000000016/" + UUID.Random();
+            
+            // TODO: schedule full object update for all other avatars.  This will trigger them to send an 
+            // ObjectMediaRequest once they see that the MediaUrl is different.
             
             return string.Empty;
         }
