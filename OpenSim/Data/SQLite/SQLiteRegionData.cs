@@ -34,6 +34,7 @@ using System.Reflection;
 using log4net;
 using Mono.Data.Sqlite;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -974,6 +975,8 @@ namespace OpenSim.Data.SQLite
             createCol(prims, "CollisionSoundVolume", typeof(Double));
 
             createCol(prims, "VolumeDetect", typeof(Int16));
+            
+            createCol(prims, "MediaURL", typeof(String));
 
             // Add in contraints
             prims.PrimaryKey = new DataColumn[] {prims.Columns["UUID"]};
@@ -1021,6 +1024,7 @@ namespace OpenSim.Data.SQLite
             // way to specify this as a blob atm
             createCol(shapes, "Texture", typeof (Byte[]));
             createCol(shapes, "ExtraParams", typeof (Byte[]));
+            createCol(shapes, "Media", typeof(String));
 
             shapes.PrimaryKey = new DataColumn[] {shapes.Columns["UUID"]};
 
@@ -1339,6 +1343,12 @@ namespace OpenSim.Data.SQLite
 
             if (Convert.ToInt16(row["VolumeDetect"]) != 0)
                 prim.VolumeDetectActive = true;
+            
+            if (!(row["MediaURL"] is System.DBNull))
+            {
+                m_log.DebugFormat("[SQLITE]: MediaUrl type [{0}]", row["MediaURL"].GetType());
+                prim.MediaUrl = (string)row["MediaURL"];
+            }
 
             return prim;
         }
@@ -1614,7 +1624,6 @@ namespace OpenSim.Data.SQLite
             row["PayButton3"] = prim.PayPrice[3];
             row["PayButton4"] = prim.PayPrice[4];
 
-
             row["TextureAnimation"] = Convert.ToBase64String(prim.TextureAnimation);
             row["ParticleSystem"] = Convert.ToBase64String(prim.ParticleSystem);
 
@@ -1674,7 +1683,8 @@ namespace OpenSim.Data.SQLite
                 row["VolumeDetect"] = 1;
             else
                 row["VolumeDetect"] = 0;
-
+            
+            row["MediaURL"] = prim.MediaUrl;
         }
 
         /// <summary>
@@ -1849,6 +1859,19 @@ namespace OpenSim.Data.SQLite
             s.TextureEntry = textureEntry;
 
             s.ExtraParams = (byte[]) row["ExtraParams"];
+            
+            if (!(row["Media"] is System.DBNull))
+            {
+                string rawMeArray = (string)row["Media"];
+                OSDArray osdMeArray = (OSDArray)OSDParser.DeserializeLLSDXml(rawMeArray);
+                
+                List<MediaEntry> mediaEntries = new List<MediaEntry>();
+                foreach (OSD osdMe in osdMeArray)
+                    mediaEntries.Add(MediaEntry.FromOSD(osdMe));
+                
+                s.Media = mediaEntries;
+            }
+                        
             return s;
         }
 
@@ -1892,17 +1915,22 @@ namespace OpenSim.Data.SQLite
 
             row["Texture"] = s.TextureEntry;
             row["ExtraParams"] = s.ExtraParams;
+            
+            OSDArray meArray = new OSDArray();
+            foreach (MediaEntry me in s.Media)
+                meArray.Add(me.GetOSD());
+            
+            row["Media"] = OSDParser.SerializeLLSDXmlString(meArray);
         }
 
         /// <summary>
-        ///
+        /// Persistently store a prim.
         /// </summary>
         /// <param name="prim"></param>
         /// <param name="sceneGroupID"></param>
         /// <param name="regionUUID"></param>
         private void addPrim(SceneObjectPart prim, UUID sceneGroupID, UUID regionUUID)
         {
-
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
 
