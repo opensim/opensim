@@ -970,13 +970,18 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_updateFlag; }
             set { m_updateFlag = value; }
         }
+        
+        /// <summary>
+        /// Used for media on a prim
+        /// </summary>
+        public string MediaUrl { get; set; }
 
         [XmlIgnore]
         public bool CreateSelected
         {
             get { return m_createSelected; }
             set { m_createSelected = value; }
-        }
+        }                
 
         #endregion
 
