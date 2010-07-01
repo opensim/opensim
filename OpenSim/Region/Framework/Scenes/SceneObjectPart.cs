@@ -320,6 +320,11 @@ namespace OpenSim.Region.Framework.Scenes
         protected Vector3 m_lastAcceleration;
         protected Vector3 m_lastAngularVelocity;
         protected int m_lastTerseSent;
+        
+        /// <summary>
+        /// Stores media texture data
+        /// </summary>
+        protected string m_mediaUrl;
 
         // TODO: Those have to be changed into persistent properties at some later point,
         // or sit-camera on vehicles will break on sim-crossing.
@@ -965,6 +970,7 @@ namespace OpenSim.Region.Framework.Scenes
                 TriggerScriptChangedEvent(Changed.SCALE);
             }
         }
+        
         public byte UpdateFlag
         {
             get { return m_updateFlag; }
@@ -974,7 +980,21 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Used for media on a prim
         /// </summary>
-        public string MediaUrl { get; set; }
+        public string MediaUrl 
+        { 
+            get
+            {
+                return m_mediaUrl; 
+            }
+            
+            set               
+            {   
+                m_mediaUrl = value;
+                
+                if (ParentGroup != null)
+                    ParentGroup.HasGroupChanged = true;        
+            }
+        }
 
         [XmlIgnore]
         public bool CreateSelected
