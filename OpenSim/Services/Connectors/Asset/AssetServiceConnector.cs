@@ -271,6 +271,10 @@ namespace OpenSim.Services.Connectors
             {
                 newID = SynchronousRestObjectRequester.
                         MakeRequest<AssetBase, string>("POST", uri, asset);
+                if (newID == null)
+                {
+                    newID = UUID.Zero.ToString();
+                }
             }
             catch (Exception e)
             {
