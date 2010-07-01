@@ -155,7 +155,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 
                 m_UrlMap[url] = urlData;
                 
-                string uri = "/lslhttp/" + urlcode.ToString() + "/";
+                string uri = "/lslhttp/" + urlcode.ToString();
                
                 m_HttpServer.AddPollServiceHTTPHandler(uri,HandleHttpPoll,
                         new PollServiceEventArgs(HttpRequestHandler,HasEvents, GetEvents, NoEvents,
