@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Reflection;
 using System.IO;
@@ -115,6 +116,8 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             
             if ("GET" == verb)
                 return HandleObjectMediaRequestGet(path, osdParams, httpRequest, httpResponse);
+            if ("UPDATE" == verb)
+                return HandleObjectMediaRequestUpdate(path, osdParams, httpRequest, httpResponse);
                                     
             //NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
             
@@ -140,6 +143,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 return string.Empty;
             }
                         
+            /*
             int faces = part.GetNumberOfSides();
             m_log.DebugFormat("[MOAP]: Faces [{0}] for [{1}]", faces, primId);
             
@@ -154,22 +158,75 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 //me.Width = 240;
                 media[i] = me;
             }
+            */
+            
+            if (null == part.Shape.Media)
+                return string.Empty;
             
             ObjectMediaResponse resp = new ObjectMediaResponse();
             
-            resp.PrimID = (UUID)osdParams["object_id"];
-            resp.FaceMedia = media;
+            resp.PrimID = primId;
+            resp.FaceMedia = part.Shape.Media.ToArray();
             
             // I know this has to end with the last avatar to edit and the version code shouldn't always be 16.  Just trying
             // to minimally satisfy for now to get something working
             resp.Version = "x-mv:0000000016/" + UUID.Random();
            
-            //string rawResp = resp.Serialize().ToString();
             string rawResp = OSDParser.SerializeLLSDXmlString(resp.Serialize());
             
             m_log.DebugFormat("[MOAP]: Got HandleObjectMediaRequestGet raw response is [{0}]", rawResp);
             
             return rawResp;
+        }
+        
+        protected string HandleObjectMediaRequestUpdate(
+            string path, Hashtable osdParams, OSHttpRequest httpRequest, OSHttpResponse httpResponse)        
+        {
+            UUID primId = (UUID)osdParams["object_id"];
+            
+            SceneObjectPart part = m_scene.GetSceneObjectPart(primId);
+            
+            if (null == part)
+            {
+                m_log.WarnFormat(
+                    "[MOAP]: Received am UPDATE ObjectMediaRequest for prim {0} but this doesn't exist in the scene", 
+                    primId);
+                return string.Empty;
+            }            
+            
+            List<MediaEntry> cookedMediaEntries = new List<MediaEntry>();
+            
+            ArrayList rawMediaEntries = (ArrayList)osdParams["object_media_data"];
+            foreach (Object obj in rawMediaEntries)
+            {
+                Hashtable rawMe = (Hashtable)obj;
+                
+                // TODO: Yeah, I know this is silly.  Very soon use existing better code in libomv to do this.
+                MediaEntry cookedMe = new MediaEntry();
+                cookedMe.EnableAlterntiveImage = (bool)rawMe["alt_image_enable"];
+                cookedMe.AutoLoop = (bool)rawMe["auto_loop"];
+                cookedMe.AutoPlay = (bool)rawMe["auto_play"];
+                cookedMe.AutoScale = (bool)rawMe["auto_scale"];
+                cookedMe.AutoZoom = (bool)rawMe["auto_zoom"];
+                cookedMe.InteractOnFirstClick = (bool)rawMe["first_click_interact"];
+                cookedMe.Controls = (MediaControls)rawMe["controls"];
+                cookedMe.HomeURL = (string)rawMe["home_url"];
+                cookedMe.CurrentURL = (string)rawMe["current_url"];
+                cookedMe.Height = (int)rawMe["height_pixels"];
+                cookedMe.Width = (int)rawMe["width_pixels"];
+                cookedMe.ControlPermissions = (MediaPermission)Enum.Parse(typeof(MediaPermission), rawMe["perms_control"].ToString());
+                cookedMe.InteractPermissions = (MediaPermission)Enum.Parse(typeof(MediaPermission), rawMe["perms_interact"].ToString());
+                cookedMe.EnableWhiteList = (bool)rawMe["whitelist_enable"];
+                //cookedMe.WhiteList = (string[])rawMe["whitelist"];
+                
+                cookedMediaEntries.Add(cookedMe);
+            }
+            
+            m_log.DebugFormat("[MOAP]: Received {0} media entries for prim {1}", cookedMediaEntries.Count, primId);
+            
+            part.Shape.Media = cookedMediaEntries;
+            
+            return string.Empty;
         }
         
         /// <summary>

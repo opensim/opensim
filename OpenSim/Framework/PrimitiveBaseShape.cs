@@ -26,12 +26,14 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Reflection;
 using System.Xml.Serialization;
 using log4net;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework
 {
@@ -170,6 +172,11 @@ namespace OpenSim.Framework
                 }
             }
         }
+        
+        /// <summary>
+        /// Entries to store media textures on each face
+        /// </summary>
+        public List<MediaEntry> Media { get; set; }
 
         public PrimitiveBaseShape()
         {
