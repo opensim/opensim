@@ -1592,16 +1592,32 @@ namespace OpenSim.Region.Framework.Scenes
                 // So that we know the database is upto date,
                 // for when deleting the object from it
                 ForceSceneObjectBackup(grp);
-                if (remoteClient != null)
+
+                if (remoteClient == null)
                 {
-                    if (!Permissions.CanTakeCopyObject(grp.UUID, remoteClient.AgentId))
+                    // Autoreturn has a null client. Nothing else does. So
+                    // allow only returns
+                    if (action != DeRezAction.Return)
+                        return;
+
+                    permissionToTakeCopy = false;
+                }
+                else
+                {
+                    if (action == DeRezAction.TakeCopy)
+                    {
+                        if (!Permissions.CanTakeCopyObject(grp.UUID, remoteClient.AgentId))
+                            permissionToTakeCopy = false;
+                    }
+                    else
+                    {
                         permissionToTakeCopy = false;
+                    }
                     if (!Permissions.CanTakeObject(grp.UUID, remoteClient.AgentId))
                         permissionToTake = false;
 
                     if (!Permissions.CanDeleteObject(grp.UUID, remoteClient.AgentId))
                         permissionToDelete = false;
-
                 }
             }
 

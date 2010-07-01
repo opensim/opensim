@@ -9829,19 +9829,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llXorBase64StringsCorrect(string str1, string str2)
         {
             m_host.AddScriptLPS(1);
-            string ret = String.Empty;
-            string src1 = llBase64ToString(str1);
-            string src2 = llBase64ToString(str2);
-            int c = 0;
-            for (int i = 0; i < src1.Length; i++)
-            {
-                ret += (char) (src1[i] ^ src2[c]);
 
-                c++;
-                if (c >= src2.Length)
-                    c = 0;
+            if (str1 == String.Empty)
+                return String.Empty;
+            if (str2 == String.Empty)
+                return str1;
+
+            byte[] data1 = Convert.FromBase64String(str1);
+            byte[] data2 = Convert.FromBase64String(str2);
+
+            byte[] d2 = new Byte[data1.Length];
+            int pos = 0;
+            
+            if (data1.Length <= data2.Length)
+            {
+                Array.Copy(data2, 0, d2, 0, data1.Length);
             }
-            return llStringToBase64(ret);
+            else
+            {
+                while (pos < data1.Length)
+                {
+                    int len = data1.Length - pos;
+                    if (len > data2.Length)
+                        len = data2.Length;
+
+                    Array.Copy(data2, 0, d2, pos, len);
+                    pos += len;
+                }
+            }
+
+            for (pos = 0 ; pos < data1.Length ; pos++ )
+                data1[pos] ^= d2[pos];
+
+            return Convert.ToBase64String(data1);
         }
 
         public LSL_String llHTTPRequest(string url, LSL_List parameters, string body)

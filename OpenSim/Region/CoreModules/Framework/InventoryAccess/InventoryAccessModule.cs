@@ -286,23 +286,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     // Deleting someone else's item
                     //
-
-
                     if (remoteClient == null ||
                         objectGroup.OwnerID != remoteClient.AgentId)
                     {
-                        // Folder skeleton may not be loaded and we
-                        // have to wait for the inventory to find
-                        // the destination folder
-                        //
+
                         folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.LostAndFoundFolder);
                     }
                     else
                     {
-                        // Assume inventory skeleton was loaded during login
-                        // and all folders can be found
-                        //
-                        folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.TrashFolder);
+                         folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.TrashFolder);
                     }
                 }
                 else if (action == DeRezAction.Return)
@@ -332,7 +324,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 if (folder == null) // None of the above
                 {
-                    //folder = userInfo.RootFolder.FindFolder(folderID);
                     folder = new InventoryFolderBase(folderID);
 
                     if (folder == null) // Nowhere to put it
