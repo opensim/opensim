@@ -1604,8 +1604,15 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    if (!Permissions.CanTakeCopyObject(grp.UUID, remoteClient.AgentId))
+                    if (action == DeRezAction.TakeCopy)
+                    {
+                        if (!Permissions.CanTakeCopyObject(grp.UUID, remoteClient.AgentId))
+                            permissionToTakeCopy = false;
+                    }
+                    else
+                    {
                         permissionToTakeCopy = false;
+                    }
                     if (!Permissions.CanTakeObject(grp.UUID, remoteClient.AgentId))
                         permissionToTake = false;
 
