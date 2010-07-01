@@ -96,7 +96,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             // We do get these posts when the url has been changed.
             // Even though we're registering for POST we're going to get GETS and UPDATES too
             caps.RegisterHandler(
-                "ObjectMediaNavigate", new RestStreamHandler("POST", "/CAPS/" + UUID.Random(), HandleObjectMediaNavigateRequest));
+                "ObjectMediaNavigate", new RestStreamHandler("POST", "/CAPS/" + UUID.Random(), HandleObjectMediaNavigateMessage));
         }        
         
         /// <summary>
@@ -128,6 +128,11 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                     omm.Request.GetType()));
         }
         
+        /// <summary>
+        /// Handle a request for media textures
+        /// </summary>
+        /// <param name="omr"></param>
+        /// <returns></returns>
         protected string HandleObjectMediaRequest(ObjectMediaRequest omr)       
         {            
             //UUID primId = (UUID)osdParams["object_id"];
@@ -138,8 +143,8 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             if (null == part)
             {
                 m_log.WarnFormat(
-                    "[MOAP]: Received a GET ObjectMediaRequest for prim {0} but this doesn't exist in the scene", 
-                    primId);
+                    "[MOAP]: Received a GET ObjectMediaRequest for prim {0} but this doesn't exist in region {1}", 
+                    primId, m_scene.RegionInfo.RegionName);
                 return string.Empty;
             }
                         
@@ -176,6 +181,11 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             return rawResp;
         }
         
+        /// <summary>
+        /// Handle an update of media textures.
+        /// </summary>
+        /// <param name="omu">/param>
+        /// <returns></returns>
         protected string HandleObjectMediaUpdate(ObjectMediaUpdate omu)      
         {
             UUID primId = omu.PrimID;
@@ -185,8 +195,8 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             if (null == part)
             {
                 m_log.WarnFormat(
-                    "[MOAP]: Received am UPDATE ObjectMediaRequest for prim {0} but this doesn't exist in the scene", 
-                    primId);
+                    "[MOAP]: Received an UPDATE ObjectMediaRequest for prim {0} but this doesn't exist in region {1}", 
+                    primId, m_scene.RegionInfo.RegionName);
                 return string.Empty;
             }            
             
@@ -203,7 +213,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             {
                 string rawVersion = part.MediaUrl.Substring(5, 10);
                 int version = int.Parse(rawVersion);
-                part.MediaUrl = string.Format("x-mv:{0:10D}/{1}", version, UUID.Zero);
+                part.MediaUrl = string.Format("x-mv:{0:D10}/{1}", ++version, UUID.Zero);
             }
             
             m_log.DebugFormat("[MOAP]: Storing media url [{0}] in prim {1} {2}", part.MediaUrl, part.Name, part.UUID);
@@ -223,19 +233,50 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         /// <param name="httpRequest">/param>
         /// <param name="httpResponse">/param>
         /// <returns></returns>
-        protected string HandleObjectMediaNavigateRequest(
+        protected string HandleObjectMediaNavigateMessage(
             string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {            
-            m_log.DebugFormat("[MOAP]: Got ObjectMediaNavigate request for {0}", path);
-            //NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
+            m_log.DebugFormat("[MOAP]: Got ObjectMediaNavigate request [{0}]", request);
             
-            // TODO: Persist in memory
-            // TODO: Tell other agents in the region about the change via the ObjectMediaResponse (?) message
+            OSDMap osd = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+            ObjectMediaNavigateMessage omn = new ObjectMediaNavigateMessage();
+            omn.Deserialize(osd);           
+            
+            UUID primId = omn.PrimID;
+            
+            SceneObjectPart part = m_scene.GetSceneObjectPart(primId);
+            
+            if (null == part)
+            {
+                m_log.WarnFormat(
+                    "[MOAP]: Received an ObjectMediaNavigateMessage for prim {0} but this doesn't exist in region {1}", 
+                    primId, m_scene.RegionInfo.RegionName);
+                return string.Empty;
+            }  
+            
+            m_log.DebugFormat(
+                "[MOAP]: Updating media entry for face {0} on prim {1} {2} to {3}", 
+                omn.Face, part.Name, part.UUID, omn.URL);
+            
+            MediaEntry me = part.Shape.Media[omn.Face];
+            me.CurrentURL = omn.URL;
+            
+            string oldMediaUrl = part.MediaUrl;
+            
+            // TODO: refactor into common method
+            string rawVersion = oldMediaUrl.Substring(5, 10);
+            int version = int.Parse(rawVersion);
+            part.MediaUrl = string.Format("x-mv:{0:D10}/{1}", ++version, UUID.Zero);            
+            
+            m_log.DebugFormat(
+                "[MOAP]: Updating media url in prim {0} {1} from [{2}] to [{3}]", 
+                part.Name, part.UUID, oldMediaUrl, part.MediaUrl);
+            
+            part.ScheduleFullUpdate();
+            
             // TODO: Persist in database            
             
             return string.Empty;
-        }   
-        
-        
+        }                   
     }
 }
