@@ -208,12 +208,8 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             
             m_log.DebugFormat("[MOAP]: Storing media url [{0}] in prim {1} {2}", part.MediaUrl, part.Name, part.UUID);
             
-            // I know this has to end with the last avatar to edit and the version code shouldn't always be 16.  Just trying
-            // to minimally satisfy for now to get something working
-            //resp.Version = "x-mv:0000000016/" + UUID.Random();
-            
-            // TODO: schedule full object update for all other avatars.  This will trigger them to send an 
-            // ObjectMediaRequest once they see that the MediaUrl is different.
+            // Arguably we don't need to send a full update to the avatar that just changed the texture.
+            part.ScheduleFullUpdate();
             
             return string.Empty;
         }
