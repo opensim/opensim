@@ -46,6 +46,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
+using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
 namespace OpenSim.Region.CoreModules.Media.Moap
 {
@@ -59,7 +60,10 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         
         protected Scene m_scene;
         
-        public void Initialise(IConfigSource config) {}
+        public void Initialise(IConfigSource config) 
+        {
+            // TODO: Add config switches to enable/disable this module
+        }
 
         public void AddRegion(Scene scene) 
         { 
@@ -73,7 +77,10 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
         }
         
-        public void Close() {}        
+        public void Close() 
+        {
+            m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
+        }        
         
         public void RegisterCaps(UUID agentID, Caps caps)
         {
@@ -105,33 +112,26 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {            
             m_log.DebugFormat("[MOAP]: Got ObjectMedia raw request [{0}]", request);
+         
+            OSDMap osd = (OSDMap)OSDParser.DeserializeLLSDXml(request);
+            ObjectMediaMessage omm = new ObjectMediaMessage();
+            omm.Deserialize(osd);
             
-            Hashtable osdParams = new Hashtable();
-            osdParams = (Hashtable)LLSD.LLSDDeserialize(Utils.StringToBytes(request));            
-            
-            foreach (Object key in osdParams.Keys)
-                m_log.DebugFormat("[MOAP]: Param {0}={1}", key, osdParams[key]);
-            
-            string verb = (string)osdParams["verb"];
-            
-            if ("GET" == verb)
-                return HandleObjectMediaRequestGet(path, osdParams, httpRequest, httpResponse);
-            if ("UPDATE" == verb)
-                return HandleObjectMediaRequestUpdate(path, osdParams, httpRequest, httpResponse);
-                                    
-            //NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
-            
-            // TODO: Persist in memory
-            // TODO: Tell other agents in the region about the change via the ObjectMediaResponse (?) message
-            // TODO: Persist in database             
-            
-            return string.Empty;
+            if (omm.Request is ObjectMediaRequest)
+                return HandleObjectMediaRequest(omm.Request as ObjectMediaRequest);
+            else if (omm.Request is ObjectMediaUpdate)
+                return HandleObjectMediaUpdate(omm.Request as ObjectMediaUpdate);               
+
+            throw new Exception(
+                string.Format(
+                    "[MOAP]: ObjectMediaMessage has unrecognized ObjectMediaBlock of {0}", 
+                    omm.Request.GetType()));
         }
         
-        protected string HandleObjectMediaRequestGet(
-            string path, Hashtable osdParams, OSHttpRequest httpRequest, OSHttpResponse httpResponse)        
-        {
-            UUID primId = (UUID)osdParams["object_id"];
+        protected string HandleObjectMediaRequest(ObjectMediaRequest omr)       
+        {            
+            //UUID primId = (UUID)osdParams["object_id"];
+            UUID primId = omr.PrimID;
             
             SceneObjectPart part = m_scene.GetSceneObjectPart(primId);
             
@@ -179,10 +179,9 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             return rawResp;
         }
         
-        protected string HandleObjectMediaRequestUpdate(
-            string path, Hashtable osdParams, OSHttpRequest httpRequest, OSHttpResponse httpResponse)        
+        protected string HandleObjectMediaUpdate(ObjectMediaUpdate omu)      
         {
-            UUID primId = (UUID)osdParams["object_id"];
+            UUID primId = omu.PrimID;
             
             SceneObjectPart part = m_scene.GetSceneObjectPart(primId);
             
@@ -194,37 +193,9 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 return string.Empty;
             }            
             
-            List<MediaEntry> cookedMediaEntries = new List<MediaEntry>();
+            m_log.DebugFormat("[MOAP]: Received {0} media entries for prim {1}", omu.FaceMedia.Length, primId);
             
-            ArrayList rawMediaEntries = (ArrayList)osdParams["object_media_data"];
-            foreach (Object obj in rawMediaEntries)
-            {
-                Hashtable rawMe = (Hashtable)obj;
-                
-                // TODO: Yeah, I know this is silly.  Very soon use existing better code in libomv to do this.
-                MediaEntry cookedMe = new MediaEntry();
-                cookedMe.EnableAlterntiveImage = (bool)rawMe["alt_image_enable"];
-                cookedMe.AutoLoop = (bool)rawMe["auto_loop"];
-                cookedMe.AutoPlay = (bool)rawMe["auto_play"];
-                cookedMe.AutoScale = (bool)rawMe["auto_scale"];
-                cookedMe.AutoZoom = (bool)rawMe["auto_zoom"];
-                cookedMe.InteractOnFirstClick = (bool)rawMe["first_click_interact"];
-                cookedMe.Controls = (MediaControls)rawMe["controls"];
-                cookedMe.HomeURL = (string)rawMe["home_url"];
-                cookedMe.CurrentURL = (string)rawMe["current_url"];
-                cookedMe.Height = (int)rawMe["height_pixels"];
-                cookedMe.Width = (int)rawMe["width_pixels"];
-                cookedMe.ControlPermissions = (MediaPermission)Enum.Parse(typeof(MediaPermission), rawMe["perms_control"].ToString());
-                cookedMe.InteractPermissions = (MediaPermission)Enum.Parse(typeof(MediaPermission), rawMe["perms_interact"].ToString());
-                cookedMe.EnableWhiteList = (bool)rawMe["whitelist_enable"];
-                //cookedMe.WhiteList = (string[])rawMe["whitelist"];
-                
-                cookedMediaEntries.Add(cookedMe);
-            }
-            
-            m_log.DebugFormat("[MOAP]: Received {0} media entries for prim {1}", cookedMediaEntries.Count, primId);
-            
-            part.Shape.Media = cookedMediaEntries;
+            part.Shape.Media = new List<MediaEntry>(omu.FaceMedia);
             
             return string.Empty;
         }
