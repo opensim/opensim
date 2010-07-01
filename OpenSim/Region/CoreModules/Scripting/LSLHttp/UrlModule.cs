@@ -142,7 +142,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
                     return urlcode;
                 }
-                string url = "http://" + m_ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + "/lslhttp/" + urlcode.ToString() + "/";
+                string url = "http://" + m_ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + "/lslhttp/" + urlcode.ToString();
 
                 UrlData urlData = new UrlData();
                 urlData.hostID = host.UUID;
@@ -155,7 +155,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 
                 m_UrlMap[url] = urlData;
                 
-                string uri = "/lslhttp/" + urlcode.ToString() + "/";
+                string uri = "/lslhttp/" + urlcode.ToString();
                
                 m_HttpServer.AddPollServiceHTTPHandler(uri,HandleHttpPoll,
                         new PollServiceEventArgs(HttpRequestHandler,HasEvents, GetEvents, NoEvents,
