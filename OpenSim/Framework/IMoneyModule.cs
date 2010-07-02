@@ -35,35 +35,15 @@ namespace OpenSim.Framework
         bool ObjectGiveMoney(UUID objectID, UUID fromID, UUID toID,
                 int amount);
 
-        int GetBalance(IClientAPI client);
-        void ApplyUploadCharge(UUID agentID);
-        bool UploadCovered(IClientAPI client);
-        void ApplyGroupCreationCharge(UUID agentID);
-        bool GroupCreationCovered(IClientAPI client);
+        int GetBalance(UUID agentID);
+        bool UploadCovered(IClientAPI client, int amount);
         bool AmountCovered(IClientAPI client, int amount);
         void ApplyCharge(UUID agentID, int amount, string text);
+        void ApplyUploadCharge(UUID agentID, int amount, string text);
 
-        EconomyData GetEconomyData();
+        int UploadCharge { get; }
+        int GroupCreationCharge { get; }
 
         event ObjectPaid OnObjectPaid;
-    }
-
-    public struct EconomyData
-    {
-        public int ObjectCapacity;
-        public int ObjectCount;
-        public int PriceEnergyUnit;
-        public int PriceGroupCreate;
-        public int PriceObjectClaim;
-        public float PriceObjectRent;
-        public float PriceObjectScaleFactor;
-        public int PriceParcelClaim;
-        public float PriceParcelClaimFactor;
-        public int PriceParcelRent;
-        public int PricePublicObjectDecay;
-        public int PricePublicObjectDelete;
-        public int PriceRentLight;
-        public int PriceUpload;
-        public int TeleportMinPrice;
     }
 }
