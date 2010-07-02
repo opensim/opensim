@@ -43,27 +43,6 @@ namespace OpenSim.Framework
         bool AmountCovered(IClientAPI client, int amount);
         void ApplyCharge(UUID agentID, int amount, string text);
 
-        EconomyData GetEconomyData();
-
         event ObjectPaid OnObjectPaid;
-    }
-
-    public struct EconomyData
-    {
-        public int ObjectCapacity;
-        public int ObjectCount;
-        public int PriceEnergyUnit;
-        public int PriceGroupCreate;
-        public int PriceObjectClaim;
-        public float PriceObjectRent;
-        public float PriceObjectScaleFactor;
-        public int PriceParcelClaim;
-        public float PriceParcelClaimFactor;
-        public int PriceParcelRent;
-        public int PricePublicObjectDecay;
-        public int PricePublicObjectDelete;
-        public int PriceRentLight;
-        public int PriceUpload;
-        public int TeleportMinPrice;
     }
 }
