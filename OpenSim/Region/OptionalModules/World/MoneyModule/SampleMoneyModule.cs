@@ -268,27 +268,6 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         }
 
-        public EconomyData GetEconomyData()
-        {
-            EconomyData edata = new EconomyData();
-            edata.ObjectCapacity = ObjectCapacity;
-            edata.ObjectCount = ObjectCount;
-            edata.PriceEnergyUnit = PriceEnergyUnit;
-            edata.PriceGroupCreate = PriceGroupCreate;
-            edata.PriceObjectClaim = PriceObjectClaim;
-            edata.PriceObjectRent = PriceObjectRent;
-            edata.PriceObjectScaleFactor = PriceObjectScaleFactor;
-            edata.PriceParcelClaim = PriceParcelClaim;
-            edata.PriceParcelClaimFactor = PriceParcelClaimFactor;
-            edata.PriceParcelRent = PriceParcelRent;
-            edata.PricePublicObjectDecay = PricePublicObjectDecay;
-            edata.PricePublicObjectDelete = PricePublicObjectDelete;
-            edata.PriceRentLight = PriceRentLight;
-            edata.PriceUpload = PriceUpload;
-            edata.TeleportMinPrice = TeleportMinPrice;
-            return edata;
-        }
-
         private void GetClientFunds(IClientAPI client)
         {
             CheckExistAndRefreshFunds(client.AgentId);
