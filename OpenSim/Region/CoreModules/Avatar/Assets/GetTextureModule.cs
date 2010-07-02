@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -190,7 +190,7 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
                     end = Utils.Clamp(end, 1, texture.Data.Length);
                     start = Utils.Clamp(start, 0, end - 1);
 
-                    m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
+                    //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
 
                     if (end - start < texture.Data.Length)
                         response.StatusCode = (int)System.Net.HttpStatusCode.PartialContent;
