@@ -4950,7 +4950,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case ',':
                         if (parens == 0)
                         {
-                            result.Add(src.Substring(start,length).Trim());
+                            result.Add(new LSL_String(src.Substring(start,length).Trim()));
                             start += length+1;
                             length = 0;
                         }
