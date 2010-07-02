@@ -814,7 +814,7 @@ namespace OpenSim.Framework.Capabilities
 
                     if (mm != null)
                     {
-                        if (!mm.UploadCovered(client))
+                        if (!mm.UploadCovered(client, mm.UploadCharge))
                         {
                             if (client != null)
                                 client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
