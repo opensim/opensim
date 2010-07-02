@@ -73,7 +73,7 @@ namespace OpenSim.Region.Framework.Scenes
             IMoneyModule money=RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
-                money.ApplyUploadCharge(agentID);
+                money.ApplyUploadCharge(agentID, money.UploadCharge, "Asset upload");
             }
 
             AddInventoryItem(agentID, item);
