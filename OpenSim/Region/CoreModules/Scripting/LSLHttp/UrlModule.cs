@@ -142,7 +142,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
                     return urlcode;
                 }
-                string url = "http://" + m_ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + "/lslhttp/" + urlcode.ToString() + "/";
+                string url = "http://" + m_ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + "/lslhttp/" + urlcode.ToString();
 
                 UrlData urlData = new UrlData();
                 urlData.hostID = host.UUID;
@@ -152,10 +152,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 urlData.urlcode = urlcode;
                 urlData.requests = new Dictionary<UUID, RequestData>();
 
-                
                 m_UrlMap[url] = urlData;
                 
-                string uri = "/lslhttp/" + urlcode.ToString() + "/";
+                string uri = "/lslhttp/" + urlcode.ToString();
                
                 m_HttpServer.AddPollServiceHTTPHandler(uri,HandleHttpPoll,
                         new PollServiceEventArgs(HttpRequestHandler,HasEvents, GetEvents, NoEvents,
@@ -386,6 +385,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
             return response;
         }
+
         public void HttpRequestHandler(UUID requestID, Hashtable request)
         {
             lock (request)
@@ -400,8 +400,8 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
                     int pos1 = uri.IndexOf("/");// /lslhttp
                     int pos2 = uri.IndexOf("/", pos1 + 1);// /lslhttp/
-                    int pos3 = uri.IndexOf("/", pos2 + 1);// /lslhttp/<UUID>/
-                    string uri_tmp = uri.Substring(0, pos3 + 1);
+                    int pos3 = pos2 + 37; // /lslhttp/urlcode
+                    string uri_tmp = uri.Substring(0, pos3);
                     //HTTP server code doesn't provide us with QueryStrings
                     string pathInfo;
                     string queryString;
