@@ -11511,12 +11511,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 //            m_log.DebugFormat("[CLIENT]: {0} requesting asset {1}", Name, requestID);
 
-            if (!m_assetService.Get(requestID.ToString(), transferRequest, AssetReceived))
-            {
-                //We need to send a TransferAbort here, so the client doesn't wait forever for the asset,
-                //which causes it to not request any more for a while. Which is bad.
-                SendTransferAbort(transferRequest);
-            }
+
+            //Note, the bool returned from the below function is useless since it is always false.
+            m_assetService.Get(requestID.ToString(), transferRequest, AssetReceived);
+
         }
 
         /// <summary>
@@ -11565,8 +11563,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
 
                 //m_log.DebugFormat("[ASSET CACHE]: Asset transfer request for asset which is {0} already known to be missing.  Dropping", requestID);
-
-                // FIXME: We never tell the client about assets which do not exist when requested by this transfer mechanism, which can't be right.
+                
+                //We need to send a TransferAbort here, so the client doesn't wait forever for the asset,
+                //which causes it to not request any more for a while. Which is bad.
+                SendTransferAbort(transferRequest);
                 return;
             }
 
