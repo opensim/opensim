@@ -108,6 +108,16 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         public event ObjectPaid OnObjectPaid;
 
+        public int UploadCharge
+        {
+            get { return 0; }
+        }
+
+        public int GroupCreationCharge
+        {
+            get { return 0; }
+        }
+
         /// <summary>
         /// Startup
         /// </summary>
@@ -188,15 +198,10 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         // Please do not refactor these to be just one method
         // Existing implementations need the distinction
         //
-        public void ApplyUploadCharge(UUID agentID)
-        {
-        }
-
-        public void ApplyGroupCreationCharge(UUID agentID)
-        {
-        }
-
         public void ApplyCharge(UUID agentID, int amount, string text)
+        {
+        }
+        public void ApplyUploadCharge(UUID agentID, int amount, string text)
         {
         }
 
@@ -266,27 +271,6 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                 m_sellEnabled = startupConfig.GetBoolean("SellEnabled", false);
             }
 
-        }
-
-        public EconomyData GetEconomyData()
-        {
-            EconomyData edata = new EconomyData();
-            edata.ObjectCapacity = ObjectCapacity;
-            edata.ObjectCount = ObjectCount;
-            edata.PriceEnergyUnit = PriceEnergyUnit;
-            edata.PriceGroupCreate = PriceGroupCreate;
-            edata.PriceObjectClaim = PriceObjectClaim;
-            edata.PriceObjectRent = PriceObjectRent;
-            edata.PriceObjectScaleFactor = PriceObjectScaleFactor;
-            edata.PriceParcelClaim = PriceParcelClaim;
-            edata.PriceParcelClaimFactor = PriceParcelClaimFactor;
-            edata.PriceParcelRent = PriceParcelRent;
-            edata.PricePublicObjectDecay = PricePublicObjectDecay;
-            edata.PricePublicObjectDelete = PricePublicObjectDelete;
-            edata.PriceRentLight = PriceRentLight;
-            edata.PriceUpload = PriceUpload;
-            edata.TeleportMinPrice = TeleportMinPrice;
-            return edata;
         }
 
         private void GetClientFunds(IClientAPI client)
@@ -790,7 +774,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             //m_log.Info("[FRIEND]: " + avatar.Name + " status:" + (!avatar.IsChildAgent).ToString());
         }
 
-        public int GetBalance(IClientAPI client)
+        public int GetBalance(UUID agentID)
         {
             return 0;
         }
@@ -798,16 +782,10 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         // Please do not refactor these to be just one method
         // Existing implementations need the distinction
         //
-        public bool UploadCovered(IClientAPI client)
+        public bool UploadCovered(IClientAPI client, int amount)
         {
-            return AmountCovered(client, PriceUpload);
+            return true;
         }
-
-        public bool GroupCreationCovered(IClientAPI client)
-        {
-            return AmountCovered(client, PriceGroupCreate);
-        }
-
         public bool AmountCovered(IClientAPI client, int amount)
         {
             return true;
