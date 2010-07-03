@@ -3504,8 +3504,11 @@ namespace OpenSim.Region.Framework.Scenes
             m_parentGroup.ScheduleGroupForTerseUpdate();
             //m_parentGroup.ScheduleGroupForFullUpdate();
         }
-
         public void StoreUndoState()
+        {
+            StoreUndoState(false);
+        }
+        public void StoreUndoState(bool group)
         {
             if (!Undoing)
             {
@@ -3528,7 +3531,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (m_parentGroup.GetSceneMaxUndo() > 0)
                             {
                                 UndoState nUndo = new UndoState(this);
-
+                                nUndo.GroupChange = group;
                                 m_undo.Push(nUndo);
                             }
 
@@ -4010,6 +4013,15 @@ namespace OpenSim.Region.Framework.Scenes
                         nUndo = new UndoState(this);
                     }
                     UndoState goback = m_undo.Pop();
+                    m_log.Debug("Got goback");
+                    if (goback == null)
+                    {
+                        m_log.Debug("it's null");
+                    }
+                    else
+                    {
+                        m_log.Debug(goback.GroupPosition.ToString());
+                    }
                     if (goback != null)
                     {
                         goback.PlaybackState(this);

@@ -35,6 +35,10 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 Position = Vector3.Zero;
         public Vector3 Scale = Vector3.Zero;
         public Quaternion Rotation = Quaternion.Identity;
+        public bool GroupChange = false;
+        public Vector3 GroupPosition = Vector3.Zero;
+        public Quaternion GroupRotation = Quaternion.Identity;
+        public Vector3 GroupScale = Vector3.Zero;
 
         public UndoState(SceneObjectPart part)
         {
@@ -42,12 +46,24 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (part.ParentID == 0)
                 {
-                    Position = part.ParentGroup.AbsolutePosition;
+                    GroupScale = part.Shape.Scale;
+
+                    //FUBAR WARNING: Do NOT get the group's absoluteposition here 
+                    //or you'll experience a loop and/or a stack issue
+                    GroupPosition = part.ParentGroup.RootPart.AbsolutePosition;
+                    GroupRotation = part.ParentGroup.Rotation;
+                    Position = part.ParentGroup.RootPart.AbsolutePosition;
                     Rotation = part.RotationOffset;
                     Scale = part.Shape.Scale;
                 }
                 else
                 {
+                    GroupScale = part.Shape.Scale;
+
+                    //FUBAR WARNING: Do NOT get the group's absoluteposition here 
+                    //or you'll experience a loop and/or a stack issue
+                    GroupPosition = part.ParentGroup.RootPart.AbsolutePosition;
+                    GroupRotation = part.ParentGroup.Rotation;
                     Position = part.OffsetPosition;
                     Rotation = part.RotationOffset;
                     Scale = part.Shape.Scale;
@@ -61,14 +77,14 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (part.ParentID == 0)
                 {
-                    if (Position == part.ParentGroup.AbsolutePosition && Rotation == part.ParentGroup.Rotation)
+                    if (Position == part.ParentGroup.RootPart.AbsolutePosition && Rotation == part.ParentGroup.Rotation && GroupPosition == part.ParentGroup.RootPart.AbsolutePosition && part.ParentGroup.Rotation == GroupRotation && part.Shape.Scale == GroupScale)
                         return true;
                     else
                         return false;
                 }
                 else
                 {
-                    if (Position == part.OffsetPosition && Rotation == part.RotationOffset && Scale == part.Shape.Scale)
+                    if (Position == part.OffsetPosition && Rotation == part.RotationOffset && Scale == part.Shape.Scale && GroupPosition == part.ParentGroup.RootPart.AbsolutePosition && part.ParentGroup.Rotation == GroupRotation && part.Shape.Scale == GroupScale)
                         return true;
                     else
                         return false;
@@ -84,10 +100,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 part.Undoing = true;
 
-                if (part.ParentID == 0)
+                if (part.ParentID == 0 && GroupChange == false)
                 {
                     if (Position != Vector3.Zero)
-                        part.ParentGroup.AbsolutePosition = Position;
+                    part.ParentGroup.AbsolutePosition = Position;
                     part.RotationOffset = Rotation;
                     if (Scale != Vector3.Zero)
                         part.Resize(Scale);
@@ -95,11 +111,30 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    if (Position != Vector3.Zero)
-                        part.OffsetPosition = Position;
-                    part.UpdateRotation(Rotation);
-                    if (Scale != Vector3.Zero)
-                        part.Resize(Scale); part.ScheduleTerseUpdate();
+                    if (GroupChange)
+                    {
+                        if (Position != Vector3.Zero)
+                        {
+                            //Calculate the scale...
+                            Vector3 gs = part.Shape.Scale;
+                            float scale = GroupScale.Z / gs.Z;
+
+                            //Scale first since it can affect our position
+                            part.ParentGroup.GroupResize(gs * scale, part.LocalId);
+                            part.ParentGroup.AbsolutePosition = GroupPosition;
+                            part.ParentGroup.Rotation = GroupRotation;
+                           
+                        }
+                    }
+                    else
+                    {
+                        if (Position != Vector3.Zero) //We can use this for all the updates since all are set
+                        {
+                            part.OffsetPosition = Position;
+                            part.UpdateRotation(Rotation);
+                            part.Resize(Scale); part.ScheduleTerseUpdate();
+                        }
+                    }
                 }
                 part.Undoing = false;
 
