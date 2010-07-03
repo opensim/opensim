@@ -57,6 +57,21 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// the request.  You'll want to make sure you deal with this as they're not uncommon</exception>
         public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj)
         {
+            return MakeRequest<TRequest, TResponse>(verb, requestUrl, obj, 100);
+        }
+        /// <summary>
+        /// Perform a synchronous REST request.
+        /// </summary>
+        /// <param name="verb"></param>
+        /// <param name="requestUrl"></param>
+        /// <param name="obj"> </param>
+        /// <param name="timeout"> </param>
+        /// <returns></returns>
+        ///
+        /// <exception cref="System.Net.WebException">Thrown if we encounter a network issue while posting
+        /// the request.  You'll want to make sure you deal with this as they're not uncommon</exception>
+        public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj, int pTimeout)
+        {
             Type type = typeof (TRequest);
             TResponse deserial = default(TResponse);
 
@@ -81,7 +96,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 int length = (int) buffer.Length;
                 request.ContentLength = length;
-
+                request.Timeout = pTimeout * 1000;
                 Stream requestStream = null;
                 try
                 {
