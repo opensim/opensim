@@ -192,6 +192,17 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     // Needed for proper state management for stored group
                     // invitations
                     //
+
+                    im.offline = 1;
+
+                    // Reconstruct imSessionID
+                    if (im.dialog == (byte)InstantMessageDialog.MessageFromAgent)
+                    {
+                        UUID fromAgentID = new UUID(im.fromAgentID);
+                        UUID sessionID = fromAgentID ^ client.AgentId;
+                        im.imSessionID = new Guid(sessionID.ToString());
+                    }
+
                     Scene s = FindScene(client.AgentId);
                     if (s != null)
                         s.EventManager.TriggerIncomingInstantMessage(im);
@@ -201,35 +212,37 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void UndeliveredMessage(GridInstantMessage im)
         {
-            if (im.dialog == 19)
-                im.offline = 1; // We want them pushed out to the server
-            if ((im.offline != 0)
-                && (!im.fromGroup || (im.fromGroup && m_ForwardOfflineGroupMessages)))
+            if (im.dialog != (byte)InstantMessageDialog.MessageFromObject &&
+                im.dialog != (byte)InstantMessageDialog.MessageFromAgent &&
+                im.dialog != (byte)InstantMessageDialog.GroupNotice &&
+                im.dialog != (byte)InstantMessageDialog.InventoryOffered)
             {
-                // It's not delivered. Make sure the scope id is saved
-                // We don't need the imSessionID here anymore, overwrite it
-                Scene scene = FindScene(new UUID(im.fromAgentID));
-                if (scene == null)
-                    scene = m_SceneList[0];
-                im.imSessionID = new Guid(scene.RegionInfo.ScopeID.ToString());
+                return;
+            }
 
-                bool success = SynchronousRestObjectPoster.BeginPostObject<GridInstantMessage, bool>(
-                        "POST", m_RestURL+"/SaveMessage/", im);
+            // It's not delivered. Make sure the scope id is saved
+            // We don't need the imSessionID here anymore, overwrite it
+            Scene scene = FindScene(new UUID(im.fromAgentID));
+            if (scene == null)
+                scene = m_SceneList[0];
+            im.imSessionID = new Guid(scene.RegionInfo.ScopeID.ToString());
 
-                if (im.dialog == (byte)InstantMessageDialog.MessageFromAgent)
-                {
-                    IClientAPI client = FindClient(new UUID(im.fromAgentID));
-                    if (client == null)
-                        return;
+            bool success = SynchronousRestObjectPoster.BeginPostObject<GridInstantMessage, bool>(
+                    "POST", m_RestURL+"/SaveMessage/", im);
 
-                    client.SendInstantMessage(new GridInstantMessage(
-                            null, new UUID(im.toAgentID),
-                            "System", new UUID(im.fromAgentID),
-                            (byte)InstantMessageDialog.MessageFromAgent,
-                            "User is not logged in. "+
-                            (success ? "Message saved." : "Message not saved"),
-                            false, new Vector3()));
-                }
+            if (im.dialog == (byte)InstantMessageDialog.MessageFromAgent)
+            {
+                IClientAPI client = FindClient(new UUID(im.fromAgentID));
+                if (client == null)
+                    return;
+
+                client.SendInstantMessage(new GridInstantMessage(
+                        null, new UUID(im.toAgentID),
+                        "System", new UUID(im.fromAgentID),
+                        (byte)InstantMessageDialog.MessageFromAgent,
+                        "User is not logged in. "+
+                        (success ? "Message saved." : "Message not saved"),
+                        false, new Vector3()));
             }
         }
     }
