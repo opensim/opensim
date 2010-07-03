@@ -658,7 +658,7 @@ namespace OpenSim.Services.LLLoginService
             Hashtable TempHash;
             foreach (InventoryFolderBase InvFolder in folders)
             {
-                if (InvFolder.ParentID == UUID.Zero)
+                if (InvFolder.ParentID == UUID.Zero && InvFolder.Name == "My Inventory")
                 {
                     rootID = InvFolder.ID;
                 }
