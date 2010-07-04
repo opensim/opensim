@@ -151,8 +151,8 @@ namespace OpenSim.Services.Connectors
             AssetBase asset = null;
             if (m_Cache != null)
                 asset = m_Cache.Get(id);
-
-            if (asset == null)
+            
+            if (asset == null || asset.Data == null || asset.Data.Length == 0)
             {
                 asset = SynchronousRestObjectRequester.
                         MakeRequest<int, AssetBase>("GET", uri, 0);
@@ -229,7 +229,7 @@ namespace OpenSim.Services.Connectors
             if (m_Cache != null)
                 asset = m_Cache.Get(id);
 
-            if (asset == null)
+            if (asset == null || asset.Data == null || asset.Data.Length == 0)
             {
                 bool result = false;
 
