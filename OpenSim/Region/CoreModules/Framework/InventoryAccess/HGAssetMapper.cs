@@ -157,6 +157,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 Dictionary<UUID, AssetType> ids = new Dictionary<UUID, AssetType>();
                 HGUuidGatherer uuidGatherer = new HGUuidGatherer(this, m_scene.AssetService, userAssetURL);
                 uuidGatherer.GatherAssetUuids(asset.FullID, (AssetType)asset.Type, ids);
+                if (ids.ContainsKey(assetID))
+                    ids.Remove(assetID);
                 foreach (UUID uuid in ids.Keys)
                     FetchAsset(userAssetURL, uuid);
 

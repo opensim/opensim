@@ -379,6 +379,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 // Try the user's inventory, but only if it's different from the regions'
                 string userAssets = HyperAssets.GetUserAssetServer(AgentID);
+
                 if ((userAssets != string.Empty) && (userAssets != HyperAssets.GetSimAssetServer()))
                 {
                     m_log.DebugFormat("[J2KIMAGE]: texture {0} not found in local asset storage. Trying user's storage.", id);
