@@ -44,6 +44,8 @@ namespace OpenSim.Region.Framework.Interfaces
                                     bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment);
         void TransferInventoryAssets(InventoryItemBase item, UUID sender, UUID receiver);
         bool GetAgentInventoryItem(IClientAPI remoteClient, UUID itemID, UUID requestID);
-        //bool GetTextureFromAgentInventory(UUID agentID, UUID assetID);
+
+        // Must be here because of textures in user's inventory
+        bool IsForeignUser(UUID userID, out string assetServerURL);
     }
 }

@@ -683,6 +683,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             return true;
         }
 
+
+        public virtual bool IsForeignUser(UUID userID, out string assetServerURL)
+        {
+            assetServerURL = string.Empty;
+            return false;
+        }
+
         #endregion
 
         #region Misc
