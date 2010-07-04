@@ -7196,59 +7196,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     else // Agent
                     {
-                        IInventoryService invService = m_scene.RequestModuleInterface<IInventoryService>();
-                        InventoryItemBase assetRequestItem = new InventoryItemBase(itemID, AgentId);
-                        assetRequestItem = invService.GetItem(assetRequestItem);
-                        if (assetRequestItem == null)
+                        IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
+                        if (invAccess != null)
                         {
-                            ILibraryService lib = m_scene.RequestModuleInterface<ILibraryService>();
-                            if (lib != null)
-                                assetRequestItem = lib.LibraryRootFolder.FindItem(itemID);
-                            if (assetRequestItem == null)
-                                return true;
-                        }
+                            if (!invAccess.GetAgentInventoryItem(this, itemID, requestID))
+                                return false;
 
-                        // At this point, we need to apply perms
-                        // only to notecards and scripts. All
-                        // other asset types are always available
-                        //
-                        if (assetRequestItem.AssetType == (int)AssetType.LSLText)
-                        {
-                            if (!((Scene)m_scene).Permissions.CanViewScript(itemID, UUID.Zero, AgentId))
-                            {
-                                SendAgentAlertMessage("Insufficient permissions to view script", false);
-                                return true;
-                            }
                         }
-                        else if (assetRequestItem.AssetType == (int)AssetType.Notecard)
-                        {
-                            if (!((Scene)m_scene).Permissions.CanViewNotecard(itemID, UUID.Zero, AgentId))
-                            {
-                                SendAgentAlertMessage("Insufficient permissions to view notecard", false);
-                                return true;
-                            }
-                        }
+                        else
+                            return false;
 
-                        if (assetRequestItem.AssetID != requestID)
-                        {
-                            m_log.WarnFormat(
-                                "[CLIENT]: {0} requested asset {1} from item {2} but this does not match item's asset {3}", 
-                                Name, requestID, itemID, assetRequestItem.AssetID);                            
-                            return true;
-                        }
                     }
                 }
             }
 
-            //m_assetCache.AddAssetRequest(this, transfer);
-
             MakeAssetRequest(transfer, taskID);
 
-            /* RequestAsset = OnRequestAsset;
-                 if (RequestAsset != null)
-                 {
-                     RequestAsset(this, transfer);
-                 }*/
             return true;
         }
 
@@ -11459,15 +11422,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else if (transferRequest.TransferInfo.SourceType == (int)SourceType.SimInventoryItem)
             {
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
-                //m_log.Debug("[XXX] inventory asset request " + requestID);
-                //if (taskID == UUID.Zero) // Agent
-                //    if (m_scene is HGScene)
-                //    {
-                //        m_log.Debug("[XXX] hg asset request " + requestID);
-                //        // We may need to fetch the asset from the user's asset server into the local asset server
-                //        HGAssetMapper mapper = ((HGScene)m_scene).AssetMapper;
-                //        mapper.Get(requestID, AgentId);
-                //    }
             }
 
 //            m_log.DebugFormat("[CLIENT]: {0} requesting asset {1}", Name, requestID);
@@ -11488,42 +11442,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             UUID requestID = UUID.Zero;
             byte source = (byte)SourceType.Asset;
             
-            if ((transferRequest.TransferInfo.SourceType == (int)SourceType.Asset) 
-                || (transferRequest.TransferInfo.SourceType == 2222))
+            if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset) 
             {
                 requestID = new UUID(transferRequest.TransferInfo.Params, 0);
             }
-            else if ((transferRequest.TransferInfo.SourceType == (int)SourceType.SimInventoryItem) 
-                 || (transferRequest.TransferInfo.SourceType == 3333))
+            else if (transferRequest.TransferInfo.SourceType == (int)SourceType.SimInventoryItem) 
             {
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
                 source = (byte)SourceType.SimInventoryItem;
                 //m_log.Debug("asset request " + requestID);
-            }
-
-            if (null == asset)
-            {
-                if ((m_hyperAssets != null) && (transferRequest.TransferInfo.SourceType < 2000))
-                {
-                    // Try the user's inventory, but only if it's different from the regions'
-                    string userAssets = m_hyperAssets.GetUserAssetServer(AgentId);
-                    if ((userAssets != string.Empty) && (userAssets != m_hyperAssets.GetSimAssetServer()))
-                    {
-                        m_log.DebugFormat("[CLIENT]: asset {0} not found in local asset storage. Trying user's storage.", id);
-                        if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset)
-                            transferRequest.TransferInfo.SourceType = 2222; // marker
-                        else if (transferRequest.TransferInfo.SourceType == (int)SourceType.SimInventoryItem)
-                            transferRequest.TransferInfo.SourceType = 3333; // marker
-
-                        m_assetService.Get(userAssets + "/" + id, transferRequest, AssetReceived);
-                        return;
-                    }
-                }
-
-                //m_log.DebugFormat("[ASSET CACHE]: Asset transfer request for asset which is {0} already known to be missing.  Dropping", requestID);
-
-                // FIXME: We never tell the client about assets which do not exist when requested by this transfer mechanism, which can't be right.
-                return;
             }
 
             // Scripts cannot be retrieved by direct request

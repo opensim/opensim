@@ -639,6 +639,50 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
         }
 
+        public virtual bool GetAgentInventoryItem(IClientAPI remoteClient, UUID itemID, UUID requestID)
+        {
+            InventoryItemBase assetRequestItem = GetItem(remoteClient.AgentId, itemID);
+            if (assetRequestItem == null)
+            {
+                ILibraryService lib = m_Scene.RequestModuleInterface<ILibraryService>();
+                if (lib != null)
+                    assetRequestItem = lib.LibraryRootFolder.FindItem(itemID);
+                if (assetRequestItem == null)
+                    return false;
+            }
+
+            // At this point, we need to apply perms
+            // only to notecards and scripts. All
+            // other asset types are always available
+            //
+            if (assetRequestItem.AssetType == (int)AssetType.LSLText)
+            {
+                if (!m_Scene.Permissions.CanViewScript(itemID, UUID.Zero, remoteClient.AgentId))
+                {
+                    remoteClient.SendAgentAlertMessage("Insufficient permissions to view script", false);
+                    return false;
+                }
+            }
+            else if (assetRequestItem.AssetType == (int)AssetType.Notecard)
+            {
+                if (!m_Scene.Permissions.CanViewNotecard(itemID, UUID.Zero, remoteClient.AgentId))
+                {
+                    remoteClient.SendAgentAlertMessage("Insufficient permissions to view notecard", false);
+                    return false;
+                }
+            }
+
+            if (assetRequestItem.AssetID != requestID)
+            {
+                m_log.WarnFormat(
+                    "[CLIENT]: {0} requested asset {1} from item {2} but this does not match item's asset {3}",
+                    Name, requestID, itemID, assetRequestItem.AssetID);
+                return false;
+            }
+
+            return true;
+        }
+
         #endregion
 
         #region Misc
@@ -659,6 +703,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             asset.Data = (data == null) ? new byte[1] : data;
 
             return asset;
+        }
+
+        protected virtual InventoryItemBase GetItem(UUID agentID, UUID itemID)
+        {
+            IInventoryService invService = m_Scene.RequestModuleInterface<IInventoryService>();
+            InventoryItemBase assetRequestItem = new InventoryItemBase(itemID, agentID);
+            assetRequestItem = invService.GetItem(assetRequestItem);
+            return assetRequestItem;
         }
 
         #endregion
