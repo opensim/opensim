@@ -3252,7 +3252,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             msg.imSessionID = new Guid(friendTransactionID.ToString()); // This is the item we're mucking with here
 //            m_log.Debug("[Scripting IM]: From:" + msg.fromAgentID.ToString() + " To: " + msg.toAgentID.ToString() + " Session:" + msg.imSessionID.ToString() + " Message:" + message);
 //            m_log.Debug("[Scripting IM]: Filling Session: " + msg.imSessionID.ToString());
-            msg.timestamp = (uint)Util.UnixTimeSinceEpoch();// timestamp;
+            DateTime dt = DateTime.UtcNow;
+
+            // Ticks from UtcNow, but make it look like local. Evil, huh?
+            dt = DateTime.SpecifyKind(dt, DateTimeKind.Local);
+
+            try
+            {
+                // Convert that to the PST timezone
+                TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
+                dt = TimeZoneInfo.ConvertTime(dt, timeZoneInfo);
+            }
+            catch
+            {
+                // No logging here, as it could be VERY spammy
+            }
+
+            // And make it look local again to fool the unix time util
+            dt = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+
+            msg.timestamp = (uint)Util.ToUnixTime(dt);
+
             //if (client != null)
             //{
                 msg.fromAgentName = m_host.Name;//client.FirstName + " " + client.LastName;// fromAgentName;

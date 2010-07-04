@@ -3730,8 +3730,11 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
                 {
                     CollidingMessage.Colliders = colliding;
 
-                    foreach (SceneObjectGroup att in Attachments)
-                        Scene.EventManager.TriggerScriptColliding(att.LocalId, CollidingMessage);
+                    lock (m_attachments)
+                    {
+                        foreach (SceneObjectGroup att in m_attachments)
+                            Scene.EventManager.TriggerScriptColliding(att.LocalId, CollidingMessage);
+                    }
                 }
             }
 
