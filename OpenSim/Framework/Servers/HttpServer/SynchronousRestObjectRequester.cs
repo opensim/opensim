@@ -77,6 +77,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
+            request.Timeout = pTimeout * 1000;
 
             if ((verb == "POST") || (verb == "PUT"))
             {
@@ -96,7 +97,6 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 int length = (int) buffer.Length;
                 request.ContentLength = length;
-                request.Timeout = pTimeout * 1000;
                 Stream requestStream = null;
                 try
                 {
