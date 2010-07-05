@@ -172,8 +172,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (part.ParentID == 0 && GroupChange == false)
                 {
                     if (Position != Vector3.Zero)
-                        part.ParentGroup.AbsolutePosition = Position;
-                    part.RotationOffset = Rotation;
+
+                    part.ParentGroup.UpdateSinglePosition(Position, part.LocalId);
+                    part.ParentGroup.UpdateSingleRotation(Rotation, part.LocalId);
                     if (Scale != Vector3.Zero)
                         part.Resize(Scale);
                     part.ParentGroup.ScheduleGroupForTerseUpdate();

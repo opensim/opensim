@@ -3506,8 +3506,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
         public void StoreUndoState(UndoType type)
         {
-
-
             if (!Undoing && (m_parentGroup == null || m_parentGroup.RootPart == null || !m_parentGroup.RootPart.Undoing))
             {
                 if (!IgnoreUndoUpdate)

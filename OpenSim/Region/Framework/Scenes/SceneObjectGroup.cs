@@ -3386,10 +3386,27 @@ namespace OpenSim.Region.Framework.Scenes
             }
             lockPartsForRead(false);
 
-            AbsolutePosition = newPos;
+            //We have to set undoing here because otherwise an undo state will be saved
+            if (!m_rootPart.Undoing)
+            {
+                m_rootPart.Undoing = true;
+                AbsolutePosition = newPos;
+                m_rootPart.Undoing = false;
+            }
+            else
+            {
+                AbsolutePosition = newPos;
+            }
 
             HasGroupChanged = true;
-            ScheduleGroupForTerseUpdate();
+            if (m_rootPart.Undoing)
+            {
+                ScheduleGroupForFullUpdate();
+            }
+            else
+            {
+                ScheduleGroupForTerseUpdate();
+            }
         }
 
         public void OffsetForNewRegion(Vector3 offset)
@@ -3488,7 +3505,16 @@ namespace OpenSim.Region.Framework.Scenes
                 if (part.UUID == m_rootPart.UUID)
                 {
                     UpdateRootRotation(rot);
-                    AbsolutePosition = pos;
+                    if (!m_rootPart.Undoing)
+                    {
+                        m_rootPart.Undoing = true;
+                        AbsolutePosition = pos;
+                        m_rootPart.Undoing = false;
+                    }
+                    else
+                    {
+                        AbsolutePosition = pos;
+                    }
                 }
                 else
                 {
@@ -3511,6 +3537,12 @@ namespace OpenSim.Region.Framework.Scenes
             Quaternion oldParentRot = m_rootPart.RotationOffset;
 
             m_rootPart.StoreUndoState(UndoType.STATE_PRIM_ROTATION);
+            bool cancelUndo = false;
+            if (!m_rootPart.Undoing)
+            {
+                m_rootPart.Undoing = true;
+                cancelUndo = true;
+            }
             m_rootPart.UpdateRotation(rot);
             if (m_rootPart.PhysActor != null)
             {
@@ -3534,18 +3566,13 @@ namespace OpenSim.Region.Framework.Scenes
                     newRot *= Quaternion.Inverse(axRot);
                     prim.RotationOffset = newRot;
                     prim.ScheduleTerseUpdate();
+                    prim.IgnoreUndoUpdate = false;
                 }
             }
-
-            foreach (SceneObjectPart childpart in Children.Values)
+            if (cancelUndo == true)
             {
-                if (childpart != m_rootPart)
-                {
-                    childpart.IgnoreUndoUpdate = false;
-                    childpart.StoreUndoState(UndoType.STATE_PRIM_ROTATION);
-                }
+                m_rootPart.Undoing = false;
             }
-
             lockPartsForRead(false);
 
             m_rootPart.ScheduleTerseUpdate();
