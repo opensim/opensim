@@ -123,7 +123,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool Compare(UndoState undo)
         {
             if (undo == null || Position == null) return false;
-            if (undo.Position == Position && undo.Rotation == Rotation  && undo.Scale == Scale && undo.GroupPosition == GroupPosition && undo.GroupScale == GroupScale && undo.GroupRotation == GroupRotation)
+            if (undo.Position == Position && undo.Rotation == Rotation && undo.Scale == Scale && undo.GroupPosition == GroupPosition && undo.GroupScale == GroupScale && undo.GroupRotation == GroupRotation)
             {
                 return true;
             }
@@ -155,7 +155,7 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
-        public void PlaybackState(SceneObjectPart part)
+        private void RestoreState(SceneObjectPart part)
         {
             bool GroupChange = false;
             if ((Type & UndoType.STATE_GROUP_POSITION) != 0
@@ -172,7 +172,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (part.ParentID == 0 && GroupChange == false)
                 {
                     if (Position != Vector3.Zero)
-                    part.ParentGroup.AbsolutePosition = Position;
+                        part.ParentGroup.AbsolutePosition = Position;
                     part.RotationOffset = Rotation;
                     if (Scale != Vector3.Zero)
                         part.Resize(Scale);
@@ -193,7 +193,7 @@ namespace OpenSim.Region.Framework.Scenes
                             part.ParentGroup.GroupResize(gs * scale, part.LocalId);
                             part.ParentGroup.AbsolutePosition = GroupPosition;
                             part.ParentGroup.UpdateGroupRotationR(GroupRotation);
-                           
+
                         }
                         part.ParentGroup.RootPart.Undoing = false;
                     }
@@ -211,35 +211,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             }
         }
+        public void PlaybackState(SceneObjectPart part)
+        {
+            RestoreState(part);
+        }
         public void PlayfwdState(SceneObjectPart part)
         {
-            if (part != null)
-            {
-                part.Undoing = true;
-
-                if (part.ParentID == 0)
-                {
-                    if (Position != Vector3.Zero)
-                        part.ParentGroup.AbsolutePosition = Position;
-                    if (Rotation != Quaternion.Identity)
-                        part.UpdateRotation(Rotation);
-                    if (Scale != Vector3.Zero)
-                        part.Resize(Scale);
-                    part.ParentGroup.ScheduleGroupForTerseUpdate();
-                }
-                else
-                {
-                    if (Position != Vector3.Zero)
-                        part.OffsetPosition = Position;
-                    if (Rotation != Quaternion.Identity)
-                        part.UpdateRotation(Rotation);
-                    if (Scale != Vector3.Zero)
-                        part.Resize(Scale);
-                    part.ScheduleTerseUpdate();
-                }
-                part.Undoing = false;
-
-            }
+            RestoreState(part);
         }
     }
     public class LandUndoState
@@ -267,3 +245,4 @@ namespace OpenSim.Region.Framework.Scenes
         }
     }
 }
+
