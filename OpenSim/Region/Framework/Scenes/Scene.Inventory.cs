@@ -1597,7 +1597,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // Handle god perms
-            if (Permissions.IsGod(remoteClient.AgentId))
+            if ((remoteClient != null) && Permissions.IsGod(remoteClient.AgentId))
             {
                 permissionToTake = true;
                 permissionToTakeCopy = true;
