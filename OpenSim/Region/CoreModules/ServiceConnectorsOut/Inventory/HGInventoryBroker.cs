@@ -202,9 +202,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     }
                 }
             }
-
-            // else put a null; it means that the methods should forward to local grid's inventory
-            m_InventoryURLs.Add(userID, null);
         }
 
         private void DropInventoryServiceURL(UUID userID)
@@ -223,10 +220,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (m_InventoryURLs.ContainsKey(userID))
                 return m_InventoryURLs[userID];
 
-            else
-                CacheInventoryServiceURL(userID);
+            CacheInventoryServiceURL(userID);
 
-            return m_InventoryURLs[userID];
+            if (m_InventoryURLs.ContainsKey(userID))
+                return m_InventoryURLs[userID];
+
+            return null; //it means that the methods should forward to local grid's inventory
+ 
         }
         #endregion
 

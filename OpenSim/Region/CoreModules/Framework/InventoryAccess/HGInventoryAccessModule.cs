@@ -131,7 +131,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             return ret;
         }
 
-        // DO NOT OVERRIDE THIS METHOD
+        // DO NOT OVERRIDE THE BASE METHOD
         public virtual UUID DeleteToInventory(DeRezAction action, UUID folderID,
                 SceneObjectGroup objectGroup, IClientAPI remoteClient)
         {
@@ -139,7 +139,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             if (!assetID.Equals(UUID.Zero))
             {
-                UploadInventoryItem(remoteClient.AgentId, assetID, "", 0);
+                if (remoteClient != null)
+                    UploadInventoryItem(remoteClient.AgentId, assetID, "", 0);
             }
             else
                 m_log.Debug("[HGScene]: Scene.Inventory did not create asset");
