@@ -68,7 +68,7 @@ namespace OpenSim.Region.Framework.Scenes
                     //FUBAR WARNING: Do NOT get the group's absoluteposition here 
                     //or you'll experience a loop and/or a stack issue
                     GroupPosition = part.ParentGroup.RootPart.AbsolutePosition;
-                    GroupRotation = part.ParentGroup.Rotation;
+                    GroupRotation = part.ParentGroup.GroupRotation;
                     Position = part.ParentGroup.RootPart.AbsolutePosition;
                     Rotation = part.RotationOffset;
                     Scale = part.Shape.Scale;
@@ -98,7 +98,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             if ((Type & UndoType.STATE_GROUP_SCALE) == 0 || ((last.Type & UndoType.STATE_GROUP_SCALE) >= (Type & UndoType.STATE_GROUP_SCALE)))
             {
-                Console.WriteLine("Setting groupscale to " + last.GroupScale.ToString());
                 GroupScale = last.GroupScale;
                 Scale = last.Scale;
             }
@@ -184,7 +183,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (GroupChange)
                     {
                         part.ParentGroup.RootPart.Undoing = true;
-                        if (Position != Vector3.Zero)
+                        if (GroupPosition != Vector3.Zero)
                         {
                             //Calculate the scale...
                             Vector3 gs = part.Shape.Scale;
@@ -193,7 +192,7 @@ namespace OpenSim.Region.Framework.Scenes
                             //Scale first since it can affect our position
                             part.ParentGroup.GroupResize(gs * scale, part.LocalId);
                             part.ParentGroup.AbsolutePosition = GroupPosition;
-                            part.ParentGroup.Rotation = GroupRotation;
+                            part.ParentGroup.UpdateGroupRotationR(GroupRotation);
                            
                         }
                         part.ParentGroup.RootPart.Undoing = false;
