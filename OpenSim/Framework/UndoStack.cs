@@ -88,7 +88,14 @@ namespace OpenSim.Framework
 
         public T Peek()
         {
-            return m_undolist[m_undolist.Count - 1];
+            if (m_undolist.Count > 0)
+            {
+                return m_undolist[m_undolist.Count - 1];
+            }
+            else
+            {
+                return default(T);
+            }
         }
 
         public void Clear()

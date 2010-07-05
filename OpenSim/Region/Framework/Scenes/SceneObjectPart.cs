@@ -697,7 +697,7 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_offsetPosition; }
             set
             {
-                StoreUndoState();
+                StoreUndoState(UndoType.STATE_PRIM_POSITION);
                 m_offsetPosition = value;
 
                 if (ParentGroup != null && !ParentGroup.IsDeleted)
@@ -759,7 +759,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             set
             {
-                StoreUndoState();
+                StoreUndoState(UndoType.STATE_PRIM_ROTATION);
                 m_rotationOffset = value;
 
                 PhysicsActor actor = PhysActor;
@@ -958,7 +958,7 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_shape.Scale; }
             set
             {
-                StoreUndoState();
+                StoreUndoState(UndoType.STATE_PRIM_SCALE);
                 if (m_shape != null)
                 {
                     m_shape.Scale = value;
@@ -1522,7 +1522,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_redo.Clear();
             }
-            StoreUndoState();
+            StoreUndoState(UndoType.STATE_ALL);
         }
 
         public byte ConvertScriptUintToByte(uint indata)
@@ -2721,7 +2721,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="scale"></param>
         public void Resize(Vector3 scale)
         {
-            StoreUndoState();
+            StoreUndoState(UndoType.STATE_PRIM_SCALE);
             m_shape.Scale = scale;
 
             ParentGroup.HasGroupChanged = true;
@@ -3504,13 +3504,11 @@ namespace OpenSim.Region.Framework.Scenes
             m_parentGroup.ScheduleGroupForTerseUpdate();
             //m_parentGroup.ScheduleGroupForFullUpdate();
         }
-        public void StoreUndoState()
+        public void StoreUndoState(UndoType type)
         {
-            StoreUndoState(false);
-        }
-        public void StoreUndoState(bool group)
-        {
-            if (!Undoing)
+
+
+            if (!Undoing && (m_parentGroup == null || m_parentGroup.RootPart == null || !m_parentGroup.RootPart.Undoing))
             {
                 if (!IgnoreUndoUpdate)
                 {
@@ -3521,17 +3519,25 @@ namespace OpenSim.Region.Framework.Scenes
                             if (m_undo.Count > 0)
                             {
                                 UndoState last = m_undo.Peek();
-                                if (last != null)
-                                {
-                                    if (last.Compare(this))
-                                        return;
-                                }
+                                
                             }
 
                             if (m_parentGroup.GetSceneMaxUndo() > 0)
                             {
-                                UndoState nUndo = new UndoState(this);
-                                nUndo.GroupChange = group;
+                                UndoState lastUndo = m_undo.Peek();
+
+                                UndoState nUndo = new UndoState(this, type);
+
+                                if (lastUndo != null)
+                                {
+                                    TimeSpan ts = DateTime.Now.Subtract(lastUndo.LastUpdated);
+                                    if (ts.TotalMilliseconds < 500)
+                                    {
+                                        //Delete the last entry since it was less than 500 milliseconds ago
+                                        nUndo.Merge(lastUndo);
+                                        m_undo.Pop();
+                                    }
+                                }
                                 m_undo.Push(nUndo);
                             }
 
@@ -4008,20 +4014,13 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_undo.Count > 0)
                 {
                     UndoState nUndo = null;
+                    UndoState goback = m_undo.Pop();
                     if (m_parentGroup.GetSceneMaxUndo() > 0)
                     {
-                        nUndo = new UndoState(this);
+                        nUndo = new UndoState(this, goback.Type);
                     }
-                    UndoState goback = m_undo.Pop();
-                    m_log.Debug("Got goback");
-                    if (goback == null)
-                    {
-                        m_log.Debug("it's null");
-                    }
-                    else
-                    {
-                        m_log.Debug(goback.GroupPosition.ToString());
-                    }
+
+                    
                     if (goback != null)
                     {
                         goback.PlaybackState(this);
@@ -4036,13 +4035,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_redo)
             {
+                UndoState gofwd = m_redo.Pop();
                 if (m_parentGroup.GetSceneMaxUndo() > 0)
                 {
-                    UndoState nUndo = new UndoState(this);
+                    UndoState nUndo = new UndoState(this, gofwd.Type);
 
                     m_undo.Push(nUndo);
                 }
-                UndoState gofwd = m_redo.Pop();
                 if (gofwd != null)
                     gofwd.PlayfwdState(this);
             }
