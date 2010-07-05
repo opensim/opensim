@@ -3492,11 +3492,11 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
+                    part.StoreUndoState(UndoType.STATE_PRIM_ROTATION);
                     part.IgnoreUndoUpdate = true;
                     part.UpdateRotation(rot);
                     part.OffsetPosition = pos;
                     part.IgnoreUndoUpdate = false;
-                    part.StoreUndoState(UndoType.STATE_PRIM_ROTATION);
                 }
             }
         }
