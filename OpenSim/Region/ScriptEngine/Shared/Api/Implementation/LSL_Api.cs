@@ -5877,74 +5877,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_List llParseString2List(string str, LSL_List separators, LSL_List in_spacers)
         {
-            m_host.AddScriptLPS(1);
-            LSL_List ret = new LSL_List();
-            LSL_List spacers = new LSL_List();
-            if (in_spacers.Length > 0 && separators.Length > 0)
-            {
-                for (int i = 0; i < in_spacers.Length; i++)
-                {
-                    object s = in_spacers.Data[i];
-                    for (int j = 0; j < separators.Length; j++)
-                    {
-                        if (separators.Data[j].ToString() == s.ToString())
-                        {
-                            s = null;
-                            break;
-                        }
-                    }
-                    if (s != null)
-                    {
-                        spacers.Add(s);
-                    }
-                }
-            }
-            object[] delimiters = new object[separators.Length + spacers.Length];
-            separators.Data.CopyTo(delimiters, 0);
-            spacers.Data.CopyTo(delimiters, separators.Length);
-            bool dfound = false;
-            do
-            {
-                dfound = false;
-                int cindex = -1;
-                string cdeli = "";
-                for (int i = 0; i < delimiters.Length; i++)
-                {
-                    int index = str.IndexOf(delimiters[i].ToString());
-                    bool found = index != -1;
-                    if (found && String.Empty != delimiters[i].ToString())
-                    {
-                        if ((cindex > index) || (cindex == -1))
-                        {
-                            cindex = index;
-                            cdeli = delimiters[i].ToString();
-                        }
-                        dfound = dfound || found;
-                    }
-                }
-                if (cindex != -1)
-                {
-                    if (cindex > 0)
-                    {
-                        ret.Add(new LSL_String(str.Substring(0, cindex)));
-                    }
-                    // Cannot use spacers.Contains() because spacers may be either type String or LSLString
-                    for (int j = 0; j < spacers.Length; j++)
-                    {
-                        if (spacers.Data[j].ToString() == cdeli)
-                        {
-                            ret.Add(new LSL_String(cdeli));
-                            break;
-                        }
-                    }
-                    str = str.Substring(cindex + cdeli.Length);
-                }
-            } while (dfound);
-            if (str != "")
-            {
-                ret.Add(new LSL_String(str));
-            }
-            return ret;
+            return ParseString2List(str, separators, in_spacers, false);
         }
 
         public LSL_Integer llOverMyLand(string id)
@@ -8616,8 +8549,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //  The function returns an ordered list
         //  representing the tokens found in the supplied
         //  sources string. If two successive tokenizers
-        //  are encountered, then a NULL entry is added
-        //  to the list.
+        //  are encountered, then a null-string entry is
+        //  added to the list.
         //
         //  It is a precondition that the source and
         //  toekizer lisst are non-null. If they are null,
@@ -8625,7 +8558,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //  while their lengths are being determined.
         //
         //  A small amount of working memoryis required
-        //  of approximately 8*#tokenizers.
+        //  of approximately 8*#tokenizers + 8*srcstrlen.
         //
         //  There are many ways in which this function
         //  can be implemented, this implementation is
@@ -8641,109 +8574,109 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //  and eliminates redundant tokenizers as soon
         //  as is possible.
         //
-        //  The implementation tries to avoid any copying
-        //  of arrays or other objects.
+        //  The implementation tries to minimize temporary
+        //  garbage generation.
         //  </remarks>
 
         public LSL_List llParseStringKeepNulls(string src, LSL_List separators, LSL_List spacers)
+        {
+            return ParseString2List(src, separators, spacers, true);
+        }
+
+        private LSL_List ParseString2List(string src, LSL_List separators, LSL_List spacers, bool keepNulls)
         {
             int          srclen    = src.Length;
             int          seplen    = separators.Length;
             object[]     separray  = separators.Data;
             int          spclen    = spacers.Length;
             object[]     spcarray  = spacers.Data;
+            int          dellen    = 0;
+            string[]     delarray  = new string[seplen+spclen];
 
             int          outlen    = 0;
-            LSL_String[] outarray  = new LSL_String[srclen*2+1];
+            string[]     outarray  = new string[srclen*2+1];
 
-            int          i, j, lastUsed;
+            int          i, j;
+            string       d;
 
             m_host.AddScriptLPS(1);
 
             /*
-             * Point to beginning of current non-delimeter string.
+             * Convert separator and spacer lists to C# strings.
+             * Also filter out null strings so we don't hang.
              */
-            lastUsed = 0;
+            for (i = 0; i < seplen; i ++) {
+                d = separray[i].ToString();
+                if (d.Length > 0) {
+                    delarray[dellen++] = d;
+                }
+            }
+            seplen = dellen;
+
+            for (i = 0; i < spclen; i ++) {
+                d = spcarray[i].ToString();
+                if (d.Length > 0) {
+                    delarray[dellen++] = d;
+                }
+            }
 
             /*
              * Scan through source string from beginning to end.
              */
-            for (i = 0; i < srclen;) {
+            for (i = 0;;) {
 
                 /*
-                 * See if rest of string (starting at i) matches any separator.
+                 * Find earliest delimeter in src starting at i (if any).
                  */
-                string rest = src.Substring(i);
-                for (j = 0; j < seplen; j ++) {
-                    string sep = separray[j].ToString();
-                    if ((sep.Length > 0) && rest.StartsWith(sep)) {
-
-                        /*
-                         * Separator matched, output string from end of last delimeter to beginning of this one.
-                         */
-                        outarray[outlen++] = new LSL_String(src.Substring(lastUsed,i-lastUsed));
-
-                        /*
-                         * Remove separator from input string.
-                         */
-                        i += sep.Length;
-
-                        /*
-                         * Next non-delimeter starts where this separator left off.
-                         */
-                        lastUsed = i;
-                        goto nextsrc;
+                int    earliestDel = -1;
+                int    earliestSrc = srclen;
+                string earliestStr = null;
+                for (j = 0; j < dellen; j ++) {
+                    d = delarray[j];
+                    if (d != null) {
+                        int index = src.IndexOf(d, i);
+                        if (index < 0) {
+                            delarray[j] = null;     // delim nowhere in src, don't check it anymore
+                        } else if (index < earliestSrc) {
+                            earliestSrc = index;    // where delimeter starts in source string
+                            earliestDel = j;        // where delimeter is in delarray[]
+                            earliestStr = d;        // the delimeter string from delarray[]
+                            if (index == i) break;  // can't do any better than found at beg of string
+                        }
                     }
                 }
 
                 /*
-                 * See if rest of string (starting at i) matches any spacer.
+                 * Output source string starting at i through start of earliest delimeter.
                  */
-                for (j = 0; j < spclen; j ++) {
-                    string spc = spcarray[j].ToString();
-                    if ((spc.Length > 0) && rest.StartsWith(spc)) {
-
-                        /*
-                         * Spacer matched, output string from end of last delimeter to beginning of this one.
-                         * Then output the spacer itself.
-                         */
-                        outarray[outlen++] = new LSL_String(src.Substring(lastUsed,i-lastUsed));
-                        outarray[outlen++] = new LSL_String(spc);
-
-                        /*
-                         * Remove spacer from input string.
-                         */
-                        i += spc.Length;
-
-                        /*
-                         * Next non-delimeter starts where this spacer left off.
-                         */
-                        lastUsed = i;
-                        goto nextsrc;
-                    }
+                if (keepNulls || (earliestSrc > i)) {
+                    outarray[outlen++] = src.Substring(i, earliestSrc - i);
                 }
 
                 /*
-                 * Didn't match any separator or spacer, skip over it and it
-                 * becomes part of the non-delimeter string starting with
-                 * lastUsed.
+                 * If no delimeter found at or after i, we're done scanning.
                  */
-                i ++;
-            nextsrc:;
+                if (earliestDel < 0) break;
+
+                /*
+                 * If delimeter was a spacer, output the spacer.
+                 */
+                if (earliestDel >= seplen) {
+                    outarray[outlen++] = earliestStr;
+                }
+
+                /*
+                 * Look at rest of src string following delimeter.
+                 */
+                i = earliestSrc + earliestStr.Length;
             }
-
-            /*
-             * Output last non-delimeter (including a possible null string if
-             * delimeter ran to end of source string).
-             */
-            outarray[outlen++] = new LSL_String(src.Substring(lastUsed));
 
             /*
              * Make up an exact-sized output array suitable for an LSL_List object.
              */
             object[] outlist = new object[outlen];
             for (i = 0; i < outlen; i ++) {
-                outlist[i] = outarray[i];
+                outlist[i] = new LSL_String(outarray[i]);
             }
             return new LSL_List(outlist);
         }
