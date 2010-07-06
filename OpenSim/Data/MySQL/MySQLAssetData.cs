@@ -153,7 +153,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="asset">Asset UUID to create</param>
         /// <remarks>On failure : Throw an exception and attempt to reconnect to database</remarks>
-        override public void StoreAsset(AssetBase asset)
+        override public bool StoreAsset(AssetBase asset)
         {
             lock (m_dbLock)
             {
@@ -201,12 +201,14 @@ namespace OpenSim.Data.MySQL
                             cmd.Parameters.AddWithValue("?data", asset.Data);
                             cmd.ExecuteNonQuery();
                             cmd.Dispose();
+                            return true;
                         }
                     }
                     catch (Exception e)
                     {
                         m_log.ErrorFormat("[ASSET DB]: MySQL failure creating asset {0} with name \"{1}\". Error: {2}",
                             asset.FullID, asset.Name, e.Message);
+                        return false;
                     }
                 }
             }

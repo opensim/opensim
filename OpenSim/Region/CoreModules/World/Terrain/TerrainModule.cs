@@ -544,6 +544,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 m_scene.PhysicsScene.SetTerrain(m_channel.GetFloatsSerialised());
                 m_scene.SaveTerrain();
 
+                m_scene.EventManager.TriggerTerrainUpdate();
+
                 // Clients who look at the map will never see changes after they looked at the map, so i've commented this out.
                 //m_scene.CreateTerrainTexture(true);
             }

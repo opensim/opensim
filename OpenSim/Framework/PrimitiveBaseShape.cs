@@ -1196,7 +1196,7 @@ namespace OpenSim.Framework
             prim.Textures = this.Textures;
 
             prim.Properties = new Primitive.ObjectProperties();
-            prim.Properties.Name = "Primitive";
+            prim.Properties.Name = "Object";
             prim.Properties.Description = "";
             prim.Properties.CreatorID = UUID.Zero;
             prim.Properties.GroupID = UUID.Zero;

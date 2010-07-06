@@ -230,6 +230,12 @@ namespace OpenSim.Server.Base
                     "shutdown",
                     "Quit the application", HandleQuit);
 
+            // Register a command to read other commands from a file
+            MainConsole.Instance.Commands.AddCommand("base", false, "command-script",
+                                          "command-script <script>",
+                                          "Run a command script from file", HandleScript);
+
+
             // Allow derived classes to perform initialization that
             // needs to be done after the console has opened
             //
@@ -258,6 +264,41 @@ namespace OpenSim.Server.Base
             m_Running = false;
             m_log.Info("[CONSOLE] Quitting");
         }
+
+        protected virtual void HandleScript(string module, string[] parms)
+        {
+            if (parms.Length != 2)
+            {
+                return;
+            }
+            RunCommandScript(parms[1]);
+        }
+
+        /// <summary>
+        /// Run an optional startup list of commands
+        /// </summary>
+        /// <param name="fileName"></param>
+        private void RunCommandScript(string fileName)
+        {
+            if (File.Exists(fileName))
+            {
+                m_log.Info("[COMMANDFILE]: Running " + fileName);
+
+                using (StreamReader readFile = File.OpenText(fileName))
+                {
+                    string currentCommand;
+                    while ((currentCommand = readFile.ReadLine()) != null)
+                    {
+                        if (currentCommand != String.Empty)
+                        {
+                            m_log.Info("[COMMANDFILE]: Running '" + currentCommand + "'");
+                            MainConsole.Instance.RunCommand(currentCommand);
+                        }
+                    }
+                }
+            }
+        }
+
 
         protected virtual void ReadConfig()
         {

@@ -105,7 +105,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     sceneObject.AddPart(part);
                     part.LinkNum = linkNum;
                     part.TrimPermissions();
-                    part.StoreUndoState();
+                    part.StoreUndoState(UndoType.STATE_ALL);
                     reader.Close();
                     sr.Close();
                 }
@@ -231,7 +231,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     if (originalLinkNum != 0)
                         part.LinkNum = originalLinkNum;
 
-                    part.StoreUndoState();
+                    part.StoreUndoState(UndoType.STATE_ALL);
                     reader.Close();
                     sr.Close();
                 }

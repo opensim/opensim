@@ -134,6 +134,9 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     WelcomeMessage = "Welcome, Avatar!"
     AllowRemoteSetLoginLevel = "false"
 
+    ; For snowglobe's web map
+    ; MapTileURL = "";
+
 
 [GridInfoService]
     ; These settings are used to return information on a get_grid_info call.

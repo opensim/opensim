@@ -3252,7 +3252,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             msg.imSessionID = new Guid(friendTransactionID.ToString()); // This is the item we're mucking with here
 //            m_log.Debug("[Scripting IM]: From:" + msg.fromAgentID.ToString() + " To: " + msg.toAgentID.ToString() + " Session:" + msg.imSessionID.ToString() + " Message:" + message);
 //            m_log.Debug("[Scripting IM]: Filling Session: " + msg.imSessionID.ToString());
-            msg.timestamp = (uint)Util.UnixTimeSinceEpoch();// timestamp;
+            DateTime dt = DateTime.UtcNow;
+
+            // Ticks from UtcNow, but make it look like local. Evil, huh?
+            dt = DateTime.SpecifyKind(dt, DateTimeKind.Local);
+
+            try
+            {
+                // Convert that to the PST timezone
+                TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
+                dt = TimeZoneInfo.ConvertTime(dt, timeZoneInfo);
+            }
+            catch
+            {
+                // No logging here, as it could be VERY spammy
+            }
+
+            // And make it look local again to fool the unix time util
+            dt = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+
+            msg.timestamp = (uint)Util.ToUnixTime(dt);
+
             //if (client != null)
             //{
                 msg.fromAgentName = m_host.Name;//client.FirstName + " " + client.LastName;// fromAgentName;
@@ -5247,7 +5267,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case ',':
                         if (parens == 0)
                         {
-                            result.Add(src.Substring(start,length).Trim());
+                            result.Add(new LSL_String(src.Substring(start,length).Trim()));
                             start += length+1;
                             length = 0;
                         }
@@ -9369,7 +9389,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (aList.Data[i] != null)
                 {
-                    switch ((ParcelMediaCommandEnum) aList.Data[i])
+                    switch ((ParcelMediaCommandEnum) Convert.ToInt32(aList.Data[i].ToString()))
                     {
                         case ParcelMediaCommandEnum.Url:
                             list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaURL));
@@ -9804,19 +9824,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llXorBase64StringsCorrect(string str1, string str2)
         {
             m_host.AddScriptLPS(1);
-            string ret = String.Empty;
-            string src1 = llBase64ToString(str1);
-            string src2 = llBase64ToString(str2);
-            int c = 0;
-            for (int i = 0; i < src1.Length; i++)
-            {
-                ret += (char) (src1[i] ^ src2[c]);
 
-                c++;
-                if (c >= src2.Length)
-                    c = 0;
+            if (str1 == String.Empty)
+                return String.Empty;
+            if (str2 == String.Empty)
+                return str1;
+
+            byte[] data1 = Convert.FromBase64String(str1);
+            byte[] data2 = Convert.FromBase64String(str2);
+
+            byte[] d2 = new Byte[data1.Length];
+            int pos = 0;
+            
+            if (data1.Length <= data2.Length)
+            {
+                Array.Copy(data2, 0, d2, 0, data1.Length);
             }
-            return llStringToBase64(ret);
+            else
+            {
+                while (pos < data1.Length)
+                {
+                    int len = data1.Length - pos;
+                    if (len > data2.Length)
+                        len = data2.Length;
+
+                    Array.Copy(data2, 0, d2, pos, len);
+                    pos += len;
+                }
+            }
+
+            for (pos = 0 ; pos < data1.Length ; pos++ )
+                data1[pos] ^= d2[pos];
+
+            return Convert.ToBase64String(data1);
         }
 
         public LSL_String llHTTPRequest(string url, LSL_List parameters, string body)

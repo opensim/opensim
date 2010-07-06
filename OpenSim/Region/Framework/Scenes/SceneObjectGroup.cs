@@ -349,7 +349,21 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual Quaternion Rotation
         {
             get { return m_rotation; }
-            set { m_rotation = value; }
+            set {
+                lockPartsForRead(true);
+                try
+                {
+                    foreach(SceneObjectPart p in m_parts.Values)
+                    {
+                        p.StoreUndoState(UndoType.STATE_GROUP_ROTATION);
+                    }
+                }
+                finally
+                {
+                    lockPartsForRead(false);
+                }
+                m_rotation = value; 
+            }
         }
 
         public Quaternion GroupRotation
@@ -431,7 +445,10 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 lockPartsForRead(true);
-
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    part.IgnoreUndoUpdate = true;
+                }
                 if (RootPart.GetStatusSandbox())
                 {
                     if (Util.GetDistanceTo(RootPart.StatusSandboxPos, value) > 10)
@@ -443,12 +460,12 @@ namespace OpenSim.Region.Framework.Scenes
                         return;
                     }
                 }
-
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
+                    part.IgnoreUndoUpdate = false;
+                    part.StoreUndoState(UndoType.STATE_GROUP_POSITION);
                     part.GroupPosition = val;
                 }
-
                 lockPartsForRead(false);
 
                 //if (m_rootPart.PhysActor != null)
@@ -724,7 +741,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    
                     Vector3 partscale = part.Scale;
                     Vector3 partoffset = part.OffsetPosition;
 
@@ -1471,7 +1487,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void OnGrabPart(SceneObjectPart part, Vector3 offsetPos, IClientAPI remoteClient)
         {
-            part.StoreUndoState();
+            part.StoreUndoState(UndoType.STATE_PRIM_ALL);
             part.OnGrab(offsetPos, remoteClient);
         }
 
@@ -1700,7 +1716,7 @@ namespace OpenSim.Region.Framework.Scenes
                             "[SCENE]: Storing {0}, {1} in {2}",
                             Name, UUID, m_scene.RegionInfo.RegionName);
 
-                        SceneObjectGroup backup_group = Copy(OwnerID, GroupID, false);
+                        SceneObjectGroup backup_group = Copy(false);
                         backup_group.RootPart.Velocity = RootPart.Velocity;
                         backup_group.RootPart.Acceleration = RootPart.Acceleration;
                         backup_group.RootPart.AngularVelocity = RootPart.AngularVelocity;
@@ -1758,7 +1774,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Duplicates this object, including operations such as physics set up and attaching to the backup event.
         /// </summary>
         /// <returns></returns>
-        public SceneObjectGroup Copy(UUID cAgentID, UUID cGroupID, bool userExposed)
+        public SceneObjectGroup Copy(bool userExposed)
         {
             SceneObjectGroup dupe = (SceneObjectGroup)MemberwiseClone();
             dupe.m_isBackedUp = false;
@@ -1781,7 +1797,9 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.AbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
 
             if (!userExposed)
+            {
                 dupe.RootPart.IsAttachment = previousAttachmentStatus;
+            }
 
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
             dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
@@ -1806,16 +1824,6 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.RootPart.DoPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
             }
 
-            // Now we've made a copy that replaces this one, we need to
-            // switch the owner to the person who did the copying
-            // Second Life copies an object and duplicates the first one in it's place
-            // So, we have to make a copy of this one, set it in it's place then set the owner on this one
-            if (userExposed)
-            {
-                SetRootPartOwner(m_rootPart, cAgentID, cGroupID);
-                m_rootPart.ScheduleFullUpdate();
-            }
-            
             List<SceneObjectPart> partList;
 
             lockPartsForRead(true);
@@ -1837,12 +1845,6 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectPart newPart = dupe.CopyPart(part, OwnerID, GroupID, userExposed);
 
                     newPart.LinkNum = part.LinkNum;
-
-                    if (userExposed)
-                    {
-                        SetPartOwner(newPart, cAgentID, cGroupID);
-                        newPart.ScheduleFullUpdate();
-                    }
                 }
             }
 
@@ -3146,7 +3148,6 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
-                part.IgnoreUndoUpdate = true;
                 if (scale.X > m_scene.m_maxNonphys)
                     scale.X = m_scene.m_maxNonphys;
                 if (scale.Y > m_scene.m_maxNonphys)
@@ -3232,8 +3233,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     y *= a;
                                     z *= a;
                                 }
-                                obPart.IgnoreUndoUpdate = false;
-                                obPart.StoreUndoState();
+                                
                             }
                         }
                     }
@@ -3243,16 +3243,24 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 prevScale = part.Scale;
                 prevScale.X *= x;
                 prevScale.Y *= y;
-                prevScale.Z *= z;
+                prevScale.Z *= z;;
+
+                part.IgnoreUndoUpdate = false;
+                part.StoreUndoState(UndoType.STATE_GROUP_SCALE);
+                part.IgnoreUndoUpdate = true;
                 part.Resize(prevScale);
+                part.IgnoreUndoUpdate = false;
 
                 lockPartsForRead(true);
                 {
                     foreach (SceneObjectPart obPart in m_parts.Values)
                     {
-                        obPart.IgnoreUndoUpdate = true;
                         if (obPart.UUID != m_rootPart.UUID)
                         {
+                            obPart.IgnoreUndoUpdate = false;
+                            obPart.StoreUndoState(UndoType.STATE_GROUP_SCALE);
+                            obPart.IgnoreUndoUpdate = true;
+
                             Vector3 currentpos = new Vector3(obPart.OffsetPosition);
                             currentpos.X *= x;
                             currentpos.Y *= y;
@@ -3265,7 +3273,6 @@ namespace OpenSim.Region.Framework.Scenes
                             obPart.UpdateOffSet(currentpos);
                         }
                         obPart.IgnoreUndoUpdate = false;
-                        obPart.StoreUndoState();
                     }
                 }
                 lockPartsForRead(false);
@@ -3277,7 +3284,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 part.IgnoreUndoUpdate = false;
-                part.StoreUndoState();
                 HasGroupChanged = true;
                 ScheduleGroupForTerseUpdate();
             }
@@ -3293,14 +3299,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="pos"></param>
         public void UpdateGroupPosition(Vector3 pos)
         {
-            foreach (SceneObjectPart part in Children.Values)
-            {
-                part.StoreUndoState();
-            }
             if (m_scene.EventManager.TriggerGroupMove(UUID, pos))
             {
                 if (IsAttachment)
                 {
+                    m_rootPart.StoreUndoState(UndoType.STATE_GROUP_POSITION);
                     m_rootPart.AttachedPos = pos;
                 }
                 if (RootPart.GetStatusSandbox())
@@ -3333,7 +3336,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetChildPart(localID);
             foreach (SceneObjectPart parts in Children.Values)
             {
-                parts.StoreUndoState();
+                parts.StoreUndoState(UndoType.STATE_PRIM_POSITION);
             }
             if (part != null)
             {
@@ -3358,7 +3361,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             foreach (SceneObjectPart part in Children.Values)
             {
-                part.StoreUndoState();
+                part.StoreUndoState(UndoType.STATE_PRIM_POSITION);
             }
             Vector3 newPos = new Vector3(pos.X, pos.Y, pos.Z);
             Vector3 oldPos =
@@ -3383,10 +3386,27 @@ namespace OpenSim.Region.Framework.Scenes
             }
             lockPartsForRead(false);
 
-            AbsolutePosition = newPos;
+            //We have to set undoing here because otherwise an undo state will be saved
+            if (!m_rootPart.Undoing)
+            {
+                m_rootPart.Undoing = true;
+                AbsolutePosition = newPos;
+                m_rootPart.Undoing = false;
+            }
+            else
+            {
+                AbsolutePosition = newPos;
+            }
 
             HasGroupChanged = true;
-            ScheduleGroupForTerseUpdate();
+            if (m_rootPart.Undoing)
+            {
+                ScheduleGroupForFullUpdate();
+            }
+            else
+            {
+                ScheduleGroupForTerseUpdate();
+            }
         }
 
         public void OffsetForNewRegion(Vector3 offset)
@@ -3406,7 +3426,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             foreach (SceneObjectPart parts in Children.Values)
             {
-                parts.StoreUndoState();
+                parts.StoreUndoState(UndoType.STATE_GROUP_ROTATION);
             }
             m_rootPart.UpdateRotation(rot);
 
@@ -3430,7 +3450,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             foreach (SceneObjectPart parts in Children.Values)
             {
-                parts.StoreUndoState();
+                parts.StoreUndoState(UndoType.STATE_GROUP_ROTATION);
             }
             m_rootPart.UpdateRotation(rot);
 
@@ -3457,7 +3477,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetChildPart(localID);
             foreach (SceneObjectPart parts in Children.Values)
             {
-                parts.StoreUndoState();
+                parts.StoreUndoState(UndoType.STATE_PRIM_ROTATION);
             }
             if (part != null)
             {
@@ -3485,15 +3505,24 @@ namespace OpenSim.Region.Framework.Scenes
                 if (part.UUID == m_rootPart.UUID)
                 {
                     UpdateRootRotation(rot);
-                    AbsolutePosition = pos;
+                    if (!m_rootPart.Undoing)
+                    {
+                        m_rootPart.Undoing = true;
+                        AbsolutePosition = pos;
+                        m_rootPart.Undoing = false;
+                    }
+                    else
+                    {
+                        AbsolutePosition = pos;
+                    }
                 }
                 else
                 {
+                    part.StoreUndoState(UndoType.STATE_PRIM_ROTATION);
                     part.IgnoreUndoUpdate = true;
                     part.UpdateRotation(rot);
                     part.OffsetPosition = pos;
                     part.IgnoreUndoUpdate = false;
-                    part.StoreUndoState();
                 }
             }
         }
@@ -3507,7 +3536,13 @@ namespace OpenSim.Region.Framework.Scenes
             Quaternion axRot = rot;
             Quaternion oldParentRot = m_rootPart.RotationOffset;
 
-            m_rootPart.StoreUndoState();
+            m_rootPart.StoreUndoState(UndoType.STATE_PRIM_ROTATION);
+            bool cancelUndo = false;
+            if (!m_rootPart.Undoing)
+            {
+                m_rootPart.Undoing = true;
+                cancelUndo = true;
+            }
             m_rootPart.UpdateRotation(rot);
             if (m_rootPart.PhysActor != null)
             {
@@ -3531,18 +3566,13 @@ namespace OpenSim.Region.Framework.Scenes
                     newRot *= Quaternion.Inverse(axRot);
                     prim.RotationOffset = newRot;
                     prim.ScheduleTerseUpdate();
+                    prim.IgnoreUndoUpdate = false;
                 }
             }
-
-            foreach (SceneObjectPart childpart in Children.Values)
+            if (cancelUndo == true)
             {
-                if (childpart != m_rootPart)
-                {
-                    childpart.IgnoreUndoUpdate = false;
-                    childpart.StoreUndoState();
-                }
+                m_rootPart.Undoing = false;
             }
-
             lockPartsForRead(false);
 
             m_rootPart.ScheduleTerseUpdate();
@@ -3911,7 +3941,7 @@ namespace OpenSim.Region.Framework.Scenes
         
         public virtual ISceneObject CloneForNewScene()
         {
-            SceneObjectGroup sog = Copy(this.OwnerID, this.GroupID, false);
+            SceneObjectGroup sog = Copy(false);
             sog.m_isDeleted = false;
             return sog;
         }

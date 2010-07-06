@@ -1770,6 +1770,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void StoreWindlightProfile(RegionLightShareData wl)
         {
             m_regInfo.WindlightSettings = wl;
+            wl.Save();
             m_storageManager.DataStore.StoreRegionWindlightSettings(wl);
             m_eventManager.TriggerOnSaveNewWindlightProfile();
         }
@@ -2183,6 +2184,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void DeleteAllSceneObjects()
         {
+            DeleteAllSceneObjects(false);
+        }
+
+        /// <summary>
+        /// Delete every object from the scene.  This does not include attachments worn by avatars.
+        /// </summary>
+        public void DeleteAllSceneObjects(bool exceptNoCopy)
+        {
+            List<SceneObjectGroup> toReturn = new List<SceneObjectGroup>();
             lock (Entities)
             {
                 ICollection<EntityBase> entities = new List<EntityBase>(Entities);
@@ -2192,10 +2202,23 @@ namespace OpenSim.Region.Framework.Scenes
                     if (e is SceneObjectGroup)
                     {
                         SceneObjectGroup sog = (SceneObjectGroup)e;
-                        if (!sog.IsAttachment)
-                            DeleteSceneObject((SceneObjectGroup)e, false);
+                        if (sog != null && !sog.IsAttachment)
+                        {
+                            if (!exceptNoCopy || ((sog.GetEffectivePermissions() & (uint)PermissionMask.Copy) != 0))
+                            {
+                                DeleteSceneObject((SceneObjectGroup)e, false);
+                            }
+                            else
+                            {
+                                toReturn.Add((SceneObjectGroup)e);   
+                            }
+                        }
                     }
                 }
+            }
+            if (toReturn.Count > 0)
+            {
+                returnObjects(toReturn.ToArray(), UUID.Zero);
             }
         }
 

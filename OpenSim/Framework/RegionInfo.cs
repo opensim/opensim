@@ -40,6 +40,7 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework
 {
+    [Serializable]
     public class RegionLightShareData : ICloneable
     {
         public UUID regionID = UUID.Zero;

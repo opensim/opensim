@@ -73,7 +73,7 @@ namespace OpenSim.Region.Framework.Scenes
             IMoneyModule money=RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
-                money.ApplyUploadCharge(agentID);
+                money.ApplyUploadCharge(agentID, money.UploadCharge, "Asset upload");
             }
 
             AddInventoryItem(agentID, item);
@@ -400,9 +400,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Permissions.PropagatePermissions() && recipient != senderId)
                 {
                     // First, make sore base is limited to the next perms
-                    itemCopy.BasePermissions = item.BasePermissions & item.NextPermissions;
+                    itemCopy.BasePermissions = item.BasePermissions & (item.NextPermissions | (uint)PermissionMask.Move);
                     // By default, current equals base
-                    itemCopy.CurrentPermissions = itemCopy.BasePermissions;
+                    itemCopy.CurrentPermissions = itemCopy.BasePermissions & item.CurrentPermissions;
 
                     // If this is an object, replace current perms
                     // with folded perms
@@ -413,7 +413,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     // Ensure there is no escalation
-                    itemCopy.CurrentPermissions &= item.NextPermissions;
+                    itemCopy.CurrentPermissions &= (item.NextPermissions | (uint)PermissionMask.Move);
 
                     // Need slam bit on xfer
                     itemCopy.CurrentPermissions |= 8;
@@ -916,14 +916,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             if ((part.OwnerID != destAgent) && Permissions.PropagatePermissions())
             {
-                agentItem.BasePermissions = taskItem.BasePermissions & taskItem.NextPermissions;
+                agentItem.BasePermissions = taskItem.BasePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
                 if (taskItem.InvType == (int)InventoryType.Object)
-                    agentItem.CurrentPermissions = agentItem.BasePermissions & ((taskItem.CurrentPermissions & 7) << 13);
-                    agentItem.CurrentPermissions = agentItem.BasePermissions ;
+                    agentItem.CurrentPermissions = agentItem.BasePermissions & (((taskItem.CurrentPermissions & 7) << 13) | (taskItem.CurrentPermissions & (uint)PermissionMask.Move));
+                else
+                    agentItem.CurrentPermissions = agentItem.BasePermissions & taskItem.CurrentPermissions;
 
                 agentItem.CurrentPermissions |= 8;
                 agentItem.NextPermissions = taskItem.NextPermissions;
-                agentItem.EveryOnePermissions = taskItem.EveryonePermissions & taskItem.NextPermissions;
+                agentItem.EveryOnePermissions = taskItem.EveryonePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
                 agentItem.GroupPermissions = taskItem.GroupPermissions & taskItem.NextPermissions;
             }
             else
@@ -1105,13 +1106,13 @@ namespace OpenSim.Region.Framework.Scenes
                 if (Permissions.PropagatePermissions())
                 {
                     destTaskItem.CurrentPermissions = srcTaskItem.CurrentPermissions &
-                            srcTaskItem.NextPermissions;
+                            (srcTaskItem.NextPermissions | (uint)PermissionMask.Move);
                     destTaskItem.GroupPermissions = srcTaskItem.GroupPermissions &
-                            srcTaskItem.NextPermissions;
+                            (srcTaskItem.NextPermissions | (uint)PermissionMask.Move);
                     destTaskItem.EveryonePermissions = srcTaskItem.EveryonePermissions &
-                            srcTaskItem.NextPermissions;
+                            (srcTaskItem.NextPermissions | (uint)PermissionMask.Move);
                     destTaskItem.BasePermissions = srcTaskItem.BasePermissions &
-                            srcTaskItem.NextPermissions;
+                            (srcTaskItem.NextPermissions | (uint)PermissionMask.Move);
                     destTaskItem.CurrentPermissions |= 8; // Slam!
                 }
             }
@@ -1284,7 +1285,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     if (part.Inventory.UpdateInventoryItem(itemInfo))
                     {
-                        remoteClient.SendAgentAlertMessage("Notecard saved", false);                        
+                        // remoteClient.SendAgentAlertMessage("Notecard saved", false);                        
                         part.GetProperties(remoteClient);
                     }
                 }
@@ -1377,7 +1378,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
 
                 AssetBase asset = CreateAsset(itemBase.Name, itemBase.Description, (sbyte)itemBase.AssetType,
-                    Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}"),
+                    Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n\n    touch_start(integer num)\n    {\n    }\n}"),
                     remoteClient.AgentId);
                 AssetService.Store(asset);
 
@@ -1592,18 +1593,36 @@ namespace OpenSim.Region.Framework.Scenes
                 // for when deleting the object from it
                 ForceSceneObjectBackup(grp);
 
-                if (!Permissions.CanTakeCopyObject(grp.UUID, remoteClient.AgentId))
+                if (remoteClient == null)
+                {
+                    // Autoreturn has a null client. Nothing else does. So
+                    // allow only returns
+                    if (action != DeRezAction.Return)
+                        return;
+
                     permissionToTakeCopy = false;
-                if (!Permissions.CanTakeObject(grp.UUID, remoteClient.AgentId))
-                    permissionToTake = false;
+                }
+                else
+                {
+                    if (action == DeRezAction.TakeCopy)
+                    {
+                        if (!Permissions.CanTakeCopyObject(grp.UUID, remoteClient.AgentId))
+                            permissionToTakeCopy = false;
+                    }
+                    else
+                    {
+                        permissionToTakeCopy = false;
+                    }
+                    if (!Permissions.CanTakeObject(grp.UUID, remoteClient.AgentId))
+                        permissionToTake = false;
 
-                if (!Permissions.CanDeleteObject(grp.UUID, remoteClient.AgentId))
-                    permissionToDelete = false;
-
+                    if (!Permissions.CanDeleteObject(grp.UUID, remoteClient.AgentId))
+                        permissionToDelete = false;
+                }
             }
 
             // Handle god perms
-            if (Permissions.IsGod(remoteClient.AgentId))
+            if (remoteClient != null && Permissions.IsGod(remoteClient.AgentId))
             {
                 permissionToTake = true;
                 permissionToTakeCopy = true;
@@ -1614,7 +1633,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (action == DeRezAction.SaveToExistingUserInventoryItem)
                 permissionToDelete = false;
 
-            // if we want to take a copy,, we also don't want to delete
+            // if we want to take a copy, we also don't want to delete
             // Note: after this point, the permissionToTakeCopy flag
             // becomes irrelevant. It already includes the permissionToTake
             // permission and after excluding no copy items here, we can
@@ -1625,6 +1644,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!permissionToTakeCopy)
                     return;
 
+                permissionToTake = true;
                 // Don't delete
                 permissionToDelete = false;
             }

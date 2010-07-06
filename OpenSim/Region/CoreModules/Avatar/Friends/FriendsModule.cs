@@ -769,7 +769,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     bool canEditObjectsChanged = ((rights ^ userFlags) & (int)FriendRights.CanModifyObjects) != 0;
                     if (canEditObjectsChanged)
                         friendClient.SendChangeUserRights(userID, friendID, rights);
+
                 }
+
+                // update local cache
+                //m_Friends[friendID].Friends = m_FriendsService.GetFriends(friendID);
+                foreach (FriendInfo finfo in m_Friends[friendID].Friends)
+                    if (finfo.Friend == userID.ToString())
+                        finfo.TheirFlags = rights;
 
                 return true;
             }

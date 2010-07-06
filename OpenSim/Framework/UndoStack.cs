@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 
 namespace OpenSim.Framework
 {
@@ -36,33 +37,30 @@ namespace OpenSim.Framework
     [Serializable]
     public class UndoStack<T>
     {
-        private int m_new = 1;
-        private int m_old = 0;
-        private T[] m_Undos;
+        private List<T> m_undolist;
+        private int m_max;
 
         public UndoStack(int capacity)
         {
-            m_Undos = new T[capacity + 1];
+            m_undolist = new List<T>();
+            m_max = capacity;
         }
 
         public bool IsFull
         {
-            get { return m_new == m_old; }
+            get { return m_undolist.Count >= m_max; }
         }
 
         public int Capacity
         {
-            get { return m_Undos.Length - 1; }
+            get { return m_max; }
         }
 
         public int Count
         {
             get
             {
-                int count = m_new - m_old - 1;
-                if (count < 0)
-                    count += m_Undos.Length;
-                return count;
+                return m_undolist.Count;
             }
         }
 
@@ -70,45 +68,39 @@ namespace OpenSim.Framework
         {
             if (IsFull)
             {
-                m_old++;
-                if (m_old >= m_Undos.Length)
-                    m_old -= m_Undos.Length;
+                m_undolist.RemoveAt(0);
             }
-            if (++m_new >= m_Undos.Length)
-                m_new -= m_Undos.Length;
-            m_Undos[m_new] = item;
+            m_undolist.Add(item);
         }
 
         public T Pop()
         {
-            if (Count > 0)
+            if (m_undolist.Count > 0)
             {
-                T deleted = m_Undos[m_new];
-                m_Undos[m_new--] = default(T);
-                if (m_new < 0)
-                    m_new += m_Undos.Length;
-                return deleted;
+                int ind = m_undolist.Count - 1;
+                T item = m_undolist[ind];
+                m_undolist.RemoveAt(ind);
+                return item;
             }
             else
-                throw new InvalidOperationException("Cannot pop from emtpy stack");
+                throw new InvalidOperationException("Cannot pop from empty stack");
         }
 
         public T Peek()
         {
-            return m_Undos[m_new];
+            if (m_undolist.Count > 0)
+            {
+                return m_undolist[m_undolist.Count - 1];
+            }
+            else
+            {
+                return default(T);
+            }
         }
 
         public void Clear()
         {
-            if (Count > 0)
-            {
-                for (int i = 0; i < m_Undos.Length; i++)
-                {
-                    m_Undos[i] = default(T);
-                }
-                m_new = 1;
-                m_old = 0;
-            }
+            m_undolist.Clear();
         }
     }
 }

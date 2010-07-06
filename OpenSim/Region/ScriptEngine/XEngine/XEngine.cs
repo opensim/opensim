@@ -556,6 +556,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             if (stateSource == (int)StateSource.ScriptedRez)
             {
+                lock (m_CompileDict)
+                {
+                    m_CompileDict[itemID] = 0;
+                }
+
                 DoOnRezScript(parms);
             }
             else
@@ -835,8 +840,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                               item.Name, startParam, postOnRez,
                                               stateSource, m_MaxScriptQueue);
 
-                m_log.DebugFormat("[XEngine] Loaded script {0}.{1}, script UUID {2}, prim UUID {3} @ {4}",
-                        part.ParentGroup.RootPart.Name, item.Name, assetID, part.UUID, part.ParentGroup.RootPart.AbsolutePosition.ToString());
+                m_log.DebugFormat(
+                        "[XEngine] Loaded script {0}.{1}, script UUID {2}, prim UUID {3} @ {4}.{5}",
+                        part.ParentGroup.RootPart.Name, item.Name, assetID, part.UUID, 
+                        part.ParentGroup.RootPart.AbsolutePosition, part.ParentGroup.Scene.RegionInfo.RegionName);
 
                 if (presence != null)
                 {
@@ -1356,9 +1363,23 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             string xml = instance.GetXMLState();
 
             XmlDocument sdoc = new XmlDocument();
-            sdoc.LoadXml(xml);
-            XmlNodeList rootL = sdoc.GetElementsByTagName("ScriptState");
-            XmlNode rootNode = rootL[0];
+            bool loadedState = true;
+            try
+            {
+                sdoc.LoadXml(xml);
+            }
+            catch (System.Xml.XmlException e)
+            {
+                loadedState = false;
+            }
+
+            XmlNodeList rootL = null;
+            XmlNode rootNode = null;
+            if (loadedState)
+            {
+                rootL = sdoc.GetElementsByTagName("ScriptState");
+                rootNode = rootL[0];
+            }
 
             // Create <State UUID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
             XmlDocument doc = new XmlDocument();
@@ -1374,8 +1395,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             stateData.Attributes.Append(engineName);
             doc.AppendChild(stateData);
 
+            XmlNode xmlstate = null;
+
             // Add <ScriptState>...</ScriptState>
-            XmlNode xmlstate = doc.ImportNode(rootNode, true);
+            if (loadedState)
+            {
+                xmlstate = doc.ImportNode(rootNode, true);
+            }
+            else
+            {
+                xmlstate = doc.CreateElement("", "ScriptState", "");
+            }
+
             stateData.AppendChild(xmlstate);
 
             string assemName = instance.GetAssemblyName();

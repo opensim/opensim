@@ -27,48 +27,125 @@
 
 using OpenMetaverse;
 using OpenSim.Region.Framework.Interfaces;
+using System;
 
 namespace OpenSim.Region.Framework.Scenes
 {
+    [Flags]
+    public enum UndoType
+    {
+        STATE_PRIM_POSITION = 1,
+        STATE_PRIM_ROTATION = 2,
+        STATE_PRIM_SCALE = 4,
+        STATE_PRIM_ALL = 7,
+        STATE_GROUP_POSITION = 8,
+        STATE_GROUP_ROTATION = 16,
+        STATE_GROUP_SCALE = 32,
+        STATE_GROUP_ALL = 56,
+        STATE_ALL = 63       
+    }
+
     public class UndoState
     {
         public Vector3 Position = Vector3.Zero;
         public Vector3 Scale = Vector3.Zero;
         public Quaternion Rotation = Quaternion.Identity;
+        public Vector3 GroupPosition = Vector3.Zero;
+        public Quaternion GroupRotation = Quaternion.Identity;
+        public Vector3 GroupScale = Vector3.Zero;
+        public DateTime LastUpdated = DateTime.Now;
+        public UndoType Type;
 
-        public UndoState(SceneObjectPart part)
+        public UndoState(SceneObjectPart part, UndoType type)
         {
+            Type = type;
             if (part != null)
             {
                 if (part.ParentID == 0)
                 {
-                    Position = part.ParentGroup.AbsolutePosition;
+                    GroupScale = part.ParentGroup.RootPart.Shape.Scale;
+
+                    //FUBAR WARNING: Do NOT get the group's absoluteposition here 
+                    //or you'll experience a loop and/or a stack issue
+                    GroupPosition = part.ParentGroup.RootPart.AbsolutePosition;
+                    GroupRotation = part.ParentGroup.GroupRotation;
+                    Position = part.ParentGroup.RootPart.AbsolutePosition;
                     Rotation = part.RotationOffset;
                     Scale = part.Shape.Scale;
+                    LastUpdated = DateTime.Now;
                 }
                 else
                 {
+                    GroupScale = part.Shape.Scale;
+
+                    //FUBAR WARNING: Do NOT get the group's absoluteposition here 
+                    //or you'll experience a loop and/or a stack issue
+                    GroupPosition = part.ParentGroup.RootPart.AbsolutePosition;
+                    GroupRotation = part.ParentGroup.Rotation;
                     Position = part.OffsetPosition;
                     Rotation = part.RotationOffset;
                     Scale = part.Shape.Scale;
+                    LastUpdated = DateTime.Now;
                 }
             }
         }
-
+        public void Merge(UndoState last)
+        {
+            if ((Type & UndoType.STATE_GROUP_POSITION) == 0 || ((last.Type & UndoType.STATE_GROUP_POSITION) >= (Type & UndoType.STATE_GROUP_POSITION)))
+            {
+                GroupPosition = last.GroupPosition;
+                Position = last.Position;
+            }
+            if ((Type & UndoType.STATE_GROUP_SCALE) == 0 || ((last.Type & UndoType.STATE_GROUP_SCALE) >= (Type & UndoType.STATE_GROUP_SCALE)))
+            {
+                GroupScale = last.GroupScale;
+                Scale = last.Scale;
+            }
+            if ((Type & UndoType.STATE_GROUP_ROTATION) == 0 || ((last.Type & UndoType.STATE_GROUP_ROTATION) >= (Type & UndoType.STATE_GROUP_ROTATION)))
+            {
+                GroupRotation = last.GroupRotation;
+                Rotation = last.Rotation;
+            }
+            if ((Type & UndoType.STATE_PRIM_POSITION) == 0 || ((last.Type & UndoType.STATE_PRIM_POSITION) >= (Type & UndoType.STATE_PRIM_POSITION)))
+            {
+                Position = last.Position;
+            }
+            if ((Type & UndoType.STATE_PRIM_SCALE) == 0 || ((last.Type & UndoType.STATE_PRIM_SCALE) >= (Type & UndoType.STATE_PRIM_SCALE)))
+            {
+                Scale = last.Scale;
+            }
+            if ((Type & UndoType.STATE_PRIM_ROTATION) == 0 || ((last.Type & UndoType.STATE_PRIM_ROTATION) >= (Type & UndoType.STATE_PRIM_ROTATION)))
+            {
+                Rotation = last.Rotation;
+            }
+            Type = Type | last.Type;
+        }
+        public bool Compare(UndoState undo)
+        {
+            if (undo == null || Position == null) return false;
+            if (undo.Position == Position && undo.Rotation == Rotation && undo.Scale == Scale && undo.GroupPosition == GroupPosition && undo.GroupScale == GroupScale && undo.GroupRotation == GroupRotation)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
         public bool Compare(SceneObjectPart part)
         {
             if (part != null)
             {
                 if (part.ParentID == 0)
                 {
-                    if (Position == part.ParentGroup.AbsolutePosition && Rotation == part.ParentGroup.Rotation)
+                    if (Position == part.ParentGroup.RootPart.AbsolutePosition && Rotation == part.ParentGroup.Rotation && GroupPosition == part.ParentGroup.RootPart.AbsolutePosition && part.ParentGroup.Rotation == GroupRotation && part.Shape.Scale == GroupScale)
                         return true;
                     else
                         return false;
                 }
                 else
                 {
-                    if (Position == part.OffsetPosition && Rotation == part.RotationOffset && Scale == part.Shape.Scale)
+                    if (Position == part.OffsetPosition && Rotation == part.RotationOffset && Scale == part.Shape.Scale && GroupPosition == part.ParentGroup.RootPart.AbsolutePosition && part.ParentGroup.Rotation == GroupRotation && part.Shape.Scale == GroupScale)
                         return true;
                     else
                         return false;
@@ -78,62 +155,70 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
-        public void PlaybackState(SceneObjectPart part)
+        private void RestoreState(SceneObjectPart part)
         {
+            bool GroupChange = false;
+            if ((Type & UndoType.STATE_GROUP_POSITION) != 0
+                || (Type & UndoType.STATE_GROUP_ROTATION) != 0
+                || (Type & UndoType.STATE_GROUP_SCALE) != 0)
+            {
+                GroupChange = true;
+            }
+
             if (part != null)
             {
                 part.Undoing = true;
 
-                if (part.ParentID == 0)
+                if (part.ParentID == 0 && GroupChange == false)
                 {
                     if (Position != Vector3.Zero)
-                        part.ParentGroup.AbsolutePosition = Position;
-                    part.RotationOffset = Rotation;
+
+                    part.ParentGroup.UpdateSinglePosition(Position, part.LocalId);
+                    part.ParentGroup.UpdateSingleRotation(Rotation, part.LocalId);
                     if (Scale != Vector3.Zero)
                         part.Resize(Scale);
                     part.ParentGroup.ScheduleGroupForTerseUpdate();
                 }
                 else
                 {
-                    if (Position != Vector3.Zero)
-                        part.OffsetPosition = Position;
-                    part.UpdateRotation(Rotation);
-                    if (Scale != Vector3.Zero)
-                        part.Resize(Scale); part.ScheduleTerseUpdate();
+                    if (GroupChange)
+                    {
+                        part.ParentGroup.RootPart.Undoing = true;
+                        if (GroupPosition != Vector3.Zero)
+                        {
+                            //Calculate the scale...
+                            Vector3 gs = part.Shape.Scale;
+                            float scale = GroupScale.Z / gs.Z;
+
+                            //Scale first since it can affect our position
+                            part.ParentGroup.GroupResize(gs * scale, part.LocalId);
+                            part.ParentGroup.AbsolutePosition = GroupPosition;
+                            part.ParentGroup.UpdateGroupRotationR(GroupRotation);
+
+                        }
+                        part.ParentGroup.RootPart.Undoing = false;
+                    }
+                    else
+                    {
+                        if (Position != Vector3.Zero) //We can use this for all the updates since all are set
+                        {
+                            part.OffsetPosition = Position;
+                            part.UpdateRotation(Rotation);
+                            part.Resize(Scale); part.ScheduleTerseUpdate();
+                        }
+                    }
                 }
                 part.Undoing = false;
 
             }
         }
+        public void PlaybackState(SceneObjectPart part)
+        {
+            RestoreState(part);
+        }
         public void PlayfwdState(SceneObjectPart part)
         {
-            if (part != null)
-            {
-                part.Undoing = true;
-
-                if (part.ParentID == 0)
-                {
-                    if (Position != Vector3.Zero)
-                        part.ParentGroup.AbsolutePosition = Position;
-                    if (Rotation != Quaternion.Identity)
-                        part.UpdateRotation(Rotation);
-                    if (Scale != Vector3.Zero)
-                        part.Resize(Scale);
-                    part.ParentGroup.ScheduleGroupForTerseUpdate();
-                }
-                else
-                {
-                    if (Position != Vector3.Zero)
-                        part.OffsetPosition = Position;
-                    if (Rotation != Quaternion.Identity)
-                        part.UpdateRotation(Rotation);
-                    if (Scale != Vector3.Zero)
-                        part.Resize(Scale);
-                    part.ScheduleTerseUpdate();
-                }
-                part.Undoing = false;
-
-            }
+            RestoreState(part);
         }
     }
     public class LandUndoState
@@ -161,3 +246,4 @@ namespace OpenSim.Region.Framework.Scenes
         }
     }
 }
+

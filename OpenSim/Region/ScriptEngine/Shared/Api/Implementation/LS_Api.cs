@@ -73,6 +73,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_ScriptEngine.Config.GetBoolean("AllowLightShareFunctions", false))
                 m_LSFunctionsEnabled = true;
 
+            if (m_ScriptEngine.Config.GetBoolean("AllowCareminsterFunctions", false))
+                m_LSFunctionsEnabled = true;
+            
             m_comms = m_ScriptEngine.World.RequestModuleInterface<IScriptModuleComms>();
             if (m_comms == null)
                 m_LSFunctionsEnabled = false;

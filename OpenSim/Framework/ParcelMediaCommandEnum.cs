@@ -27,7 +27,7 @@
 
 namespace OpenSim.Framework
 {
-    public enum ParcelMediaCommandEnum
+    public enum ParcelMediaCommandEnum : int
     {
         Stop = 0,
         Pause = 1,

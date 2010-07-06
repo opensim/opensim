@@ -2208,6 +2208,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(sound, ThrottleOutPacketType.Task);
         }
 
+        public void SendTransferAbort(TransferRequestPacket transferRequest)
+        {
+            TransferAbortPacket abort = (TransferAbortPacket)PacketPool.Instance.GetPacket(PacketType.TransferAbort);
+            abort.TransferInfo.TransferID = transferRequest.TransferInfo.TransferID;
+            abort.TransferInfo.ChannelType = transferRequest.TransferInfo.ChannelType;
+            m_log.Debug("[Assets] Aborting transfer; asset request failed");
+            OutPacket(abort, ThrottleOutPacketType.Task);
+        }
+
         public void SendTriggeredSound(UUID soundID, UUID ownerID, UUID objectID, UUID parentID, ulong handle, Vector3 position, float gain)
         {
             SoundTriggerPacket sound = (SoundTriggerPacket)PacketPool.Instance.GetPacket(PacketType.SoundTrigger);
@@ -6307,8 +6316,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (handlerObjectDuplicate != null)
                 {
                     handlerObjectDuplicate(dupe.ObjectData[i].ObjectLocalID, dupe.SharedData.Offset,
-                                           dupe.SharedData.DuplicateFlags, AgentandGroupData.AgentID,
-                                           AgentandGroupData.GroupID);
+                                           dupe.SharedData.DuplicateFlags, AgentId,
+                                           m_activeGroupID);
                 }
             }
 
@@ -6898,7 +6907,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (handlerObjectDuplicateOnRay != null)
                 {
                     handlerObjectDuplicateOnRay(dupeOnRay.ObjectData[i].ObjectLocalID, dupeOnRay.AgentData.DuplicateFlags,
-                                                dupeOnRay.AgentData.AgentID, dupeOnRay.AgentData.GroupID, dupeOnRay.AgentData.RayTargetID, dupeOnRay.AgentData.RayEnd,
+                                                AgentId, m_activeGroupID, dupeOnRay.AgentData.RayTargetID, dupeOnRay.AgentData.RayEnd,
                                                 dupeOnRay.AgentData.RayStart, dupeOnRay.AgentData.BypassRaycast, dupeOnRay.AgentData.RayEndIsIntersection,
                                                 dupeOnRay.AgentData.CopyCenters, dupeOnRay.AgentData.CopyRotates);
                 }
@@ -11502,7 +11511,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 //            m_log.DebugFormat("[CLIENT]: {0} requesting asset {1}", Name, requestID);
 
+
+            //Note, the bool returned from the below function is useless since it is always false.
             m_assetService.Get(requestID.ToString(), transferRequest, AssetReceived);
+
         }
 
         /// <summary>
@@ -11551,8 +11563,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
 
                 //m_log.DebugFormat("[ASSET CACHE]: Asset transfer request for asset which is {0} already known to be missing.  Dropping", requestID);
-
-                // FIXME: We never tell the client about assets which do not exist when requested by this transfer mechanism, which can't be right.
+                
+                //We need to send a TransferAbort here, so the client doesn't wait forever for the asset,
+                //which causes it to not request any more for a while. Which is bad.
+                SendTransferAbort(transferRequest);
                 return;
             }
 

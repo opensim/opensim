@@ -805,7 +805,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     imgstream = new MemoryStream();
 
                     // non-async because we know we have the asset immediately.
-                    AssetBase mapasset = m_scene.AssetService.Get(m_scene.RegionInfo.lastMapUUID.ToString());
+                    AssetBase mapasset = m_scene.AssetService.Get(m_scene.RegionInfo.RegionSettings.TerrainImageID.ToString());
 
                     // Decode image to System.Drawing.Image
                     if (OpenJPEG.DecodeToImage(mapasset.Data, out managedImage, out image))

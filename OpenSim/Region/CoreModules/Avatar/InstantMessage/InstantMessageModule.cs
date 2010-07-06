@@ -156,11 +156,30 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
             }
 
-            if (dialog == (byte)InstantMessageDialog.MessageFromAgent ||
-                dialog == (byte)InstantMessageDialog.MessageFromObject)
+            DateTime dt = DateTime.UtcNow;
+
+            // Ticks from UtcNow, but make it look like local. Evil, huh?
+            dt = DateTime.SpecifyKind(dt, DateTimeKind.Local);
+
+            try
             {
-                im.offline = 1;
+                // Convert that to the PST timezone
+                TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
+                dt = TimeZoneInfo.ConvertTime(dt, timeZoneInfo);
             }
+            catch
+            {
+                m_log.Info("[OFFLINE MESSAGING]: No PST timezone found on this machine. Saving with local timestamp.");
+            }
+
+            // And make it look local again to fool the unix time util
+            dt = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+
+            im.timestamp = (uint)Util.ToUnixTime(dt);
+
+            // If client is null, this message comes from storage and IS offline
+            if (client != null)
+                im.offline = 0;
 
             if (m_TransferModule != null)
             {
