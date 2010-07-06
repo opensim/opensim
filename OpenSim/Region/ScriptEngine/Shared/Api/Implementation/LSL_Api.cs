@@ -562,23 +562,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             double sqx = q1.x*q1.x;
             double sqy = q1.z*q1.z;
             double sqz = q1.y*q1.y;
-	        double unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
-	        double test = q1.x*q1.z + q1.y*q1.s;
-	        if (test > 0.4999*unit) { // singularity at north pole
-		        eul.z = 2 * Math.Atan2(q1.x,q1.s);
-		        eul.y = Math.PI/2;
-		        eul.x = 0;
-		        return eul;
-	        }
-	        if (test < -0.4999*unit) { // singularity at south pole
-		        eul.z = -2 * Math.Atan2(q1.x,q1.s);
-		        eul.y = -Math.PI/2;
-		        eul.x = 0;
-		        return eul;
-	        }
+            double unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
+            double test = q1.x*q1.z + q1.y*q1.s;
+            if (test > 0.4999*unit) { // singularity at north pole
+                eul.z = 2 * Math.Atan2(q1.x,q1.s);
+                eul.y = Math.PI/2;
+                eul.x = 0;
+                return eul;
+            }
+            if (test < -0.4999*unit) { // singularity at south pole
+                eul.z = -2 * Math.Atan2(q1.x,q1.s);
+                eul.y = -Math.PI/2;
+                eul.x = 0;
+                return eul;
+            }
             eul.z = Math.Atan2(2*q1.z*q1.s-2*q1.x*q1.y , sqx - sqy - sqz + sqw);
-	        eul.y = Math.Asin(2*test/unit);
-	        eul.x = Math.Atan2(2*q1.x*q1.s-2*q1.z*q1.y , -sqx + sqy - sqz + sqw);
+            eul.y = Math.Asin(2*test/unit);
+            eul.x = Math.Atan2(2*q1.x*q1.s-2*q1.z*q1.y , -sqx + sqy - sqz + sqw);
             return eul;
         }
 
@@ -804,53 +804,53 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             // This method mimics the 180 errors found in SL
             // See www.euclideanspace.com... angleBetween
-			LSL_Vector vec_a = a;
-			LSL_Vector vec_b = b;
-			
-			// Eliminate zero length
-			LSL_Float vec_a_mag = LSL_Vector.Mag(vec_a);
-			LSL_Float vec_b_mag = LSL_Vector.Mag(vec_b);
-			if (vec_a_mag < 0.00001 ||
-			    vec_b_mag < 0.00001)
-			{
-   				return new LSL_Rotation(0.0f, 0.0f, 0.0f, 1.0f);
-			}
-			
-			// Normalize
-			vec_a = llVecNorm(vec_a);
-			vec_b = llVecNorm(vec_b);
+            LSL_Vector vec_a = a;
+            LSL_Vector vec_b = b;
+            
+            // Eliminate zero length
+            LSL_Float vec_a_mag = LSL_Vector.Mag(vec_a);
+            LSL_Float vec_b_mag = LSL_Vector.Mag(vec_b);
+            if (vec_a_mag < 0.00001 ||
+                vec_b_mag < 0.00001)
+            {
+                return new LSL_Rotation(0.0f, 0.0f, 0.0f, 1.0f);
+            }
+            
+            // Normalize
+            vec_a = llVecNorm(vec_a);
+            vec_b = llVecNorm(vec_b);
 
-			// Calculate axis and rotation angle
-			LSL_Vector axis = vec_a % vec_b;
-			LSL_Float cos_theta  = vec_a * vec_b;
- 	
-			// Check if parallel
-			if (cos_theta > 0.99999)
-			{
-				return new LSL_Rotation(0.0f, 0.0f, 0.0f, 1.0f);
-			}
-			
-			// Check if anti-parallel
-			else if (cos_theta < -0.99999)
-			{
-				LSL_Vector orthog_axis = new LSL_Vector(1.0, 0.0, 0.0) - (vec_a.x / (vec_a * vec_a) * vec_a);
-				if (LSL_Vector.Mag(orthog_axis)  < 0.000001)  orthog_axis = new LSL_Vector(0.0, 0.0, 1.0);
- 	            return new LSL_Rotation((float)orthog_axis.x, (float)orthog_axis.y, (float)orthog_axis.z, 0.0);
-			}
-			else // other rotation
-			{
-				LSL_Float theta = (LSL_Float)Math.Acos(cos_theta) * 0.5f;
-				axis = llVecNorm(axis);
-	            double x, y, z, s, t;
-	            s = Math.Cos(theta);
-	            t = Math.Sin(theta);
-	            x = axis.x * t;
-	            y = axis.y * t;
-	            z = axis.z * t;
-	            return new LSL_Rotation(x,y,z,s);
-	        }
+            // Calculate axis and rotation angle
+            LSL_Vector axis = vec_a % vec_b;
+            LSL_Float cos_theta  = vec_a * vec_b;
+    
+            // Check if parallel
+            if (cos_theta > 0.99999)
+            {
+                return new LSL_Rotation(0.0f, 0.0f, 0.0f, 1.0f);
+            }
+            
+            // Check if anti-parallel
+            else if (cos_theta < -0.99999)
+            {
+                LSL_Vector orthog_axis = new LSL_Vector(1.0, 0.0, 0.0) - (vec_a.x / (vec_a * vec_a) * vec_a);
+                if (LSL_Vector.Mag(orthog_axis)  < 0.000001)  orthog_axis = new LSL_Vector(0.0, 0.0, 1.0);
+                return new LSL_Rotation((float)orthog_axis.x, (float)orthog_axis.y, (float)orthog_axis.z, 0.0);
+            }
+            else // other rotation
+            {
+                LSL_Float theta = (LSL_Float)Math.Acos(cos_theta) * 0.5f;
+                axis = llVecNorm(axis);
+                double x, y, z, s, t;
+                s = Math.Cos(theta);
+                t = Math.Sin(theta);
+                x = axis.x * t;
+                y = axis.y * t;
+                z = axis.z * t;
+                return new LSL_Rotation(x,y,z,s);
+            }
         }
-				
+                
         public void llWhisper(int channelID, string text)
         {
             m_host.AddScriptLPS(1);
@@ -8627,130 +8627,105 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_List llParseStringKeepNulls(string src, LSL_List separators, LSL_List spacers)
         {
-            int         beginning = 0;
-            int         srclen    = src.Length;
-            int         seplen    = separators.Length;
-            object[]    separray  = separators.Data;
-            int         spclen    = spacers.Length;
-            object[]    spcarray  = spacers.Data;
-            int         mlen      = seplen+spclen;
+            int          srclen    = src.Length;
+            int          seplen    = separators.Length;
+            object[]     separray  = separators.Data;
+            int          spclen    = spacers.Length;
+            object[]     spcarray  = spacers.Data;
 
-            int[]       offset    = new int[mlen+1];
-            bool[]      active    = new bool[mlen];
+            int          outlen    = 0;
+            LSL_String[] outarray  = new LSL_String[srclen*2+1];
 
-            int         best;
-            int         j;
-
-            //    Initial capacity reduces resize cost
-
-            LSL_List tokens = new LSL_List();
+            int          i, j, lastUsed;
 
             m_host.AddScriptLPS(1);
 
-            //    All entries are initially valid
+            /*
+             * Point to beginning of current non-delimeter string.
+             */
+            lastUsed = 0;
 
-            for (int i = 0; i < mlen; i++)
-                active[i] = true;
+            /*
+             * Scan through source string from beginning to end.
+             */
+            for (i = 0; i < srclen;) {
 
-            offset[mlen] = srclen;
+                /*
+                 * See if rest of string (starting at i) matches any separator.
+                 */
+                string rest = src.Substring(i);
+                for (j = 0; j < seplen; j ++) {
+                    string sep = separray[j].ToString();
+                    if ((sep.Length > 0) && rest.StartsWith(sep)) {
 
-            while (beginning < srclen)
-            {
+                        /*
+                         * Separator matched, output string from end of last delimeter to beginning of this one.
+                         */
+                        outarray[outlen++] = new LSL_String(src.Substring(lastUsed,i-lastUsed));
 
-                best = mlen;    // as bad as it gets
+                        /*
+                         * Remove separator from input string.
+                         */
+                        i += sep.Length;
 
-                //    Scan for separators
-
-                for (j = 0; j < seplen; j++)
-                {
-                    if (active[j])
-                    {
-                        // scan all of the markers
-                        if ((offset[j] = src.IndexOf(separray[j].ToString(), beginning)) == -1)
-                        {
-                            // not present at all
-                            active[j] = false;
-                        }
-                        else
-                        {
-                            // present and correct
-                            if (offset[j] < offset[best])
-                            {
-                                // closest so far
-                                best = j;
-                                if (offset[best] == beginning)
-                                    break;
-                            }
-                        }
+                        /*
+                         * Next non-delimeter starts where this separator left off.
+                         */
+                        lastUsed = i;
+                        goto nextsrc;
                     }
                 }
 
-                //    Scan for spacers
+                /*
+                 * See if rest of string (starting at i) matches any spacer.
+                 */
+                for (j = 0; j < spclen; j ++) {
+                    string spc = spcarray[j].ToString();
+                    if ((spc.Length > 0) && rest.StartsWith(spc)) {
 
-                if (offset[best] != beginning)
-                {
-                    for (j = seplen; (j < mlen) && (offset[best] > beginning); j++)
-                    {
-                        if (active[j])
-                        {
-                            // scan all of the markers
-                            if ((offset[j] = src.IndexOf(spcarray[j-seplen].ToString(), beginning)) == -1)
-                            {
-                                // not present at all
-                                active[j] = false;
-                            }
-                            else
-                            {
-                                // present and correct
-                                if (offset[j] < offset[best])
-                                {
-                                    // closest so far
-                                    best = j;
-                                }
-                            }
-                        }
+                        /*
+                         * Spacer matched, output string from end of last delimeter to beginning of this one.
+                         * Then output the spacer itself.
+                         */
+                        outarray[outlen++] = new LSL_String(src.Substring(lastUsed,i-lastUsed));
+                        outarray[outlen++] = new LSL_String(spc);
+
+                        /*
+                         * Remove spacer from input string.
+                         */
+                        i += spc.Length;
+
+                        /*
+                         * Next non-delimeter starts where this spacer left off.
+                         */
+                        lastUsed = i;
+                        goto nextsrc;
                     }
                 }
 
-                //    This is the normal exit from the scanning loop
-
-                if (best == mlen)
-                {
-                    // no markers were found on this pass
-                    // so we're pretty much done
-                    tokens.Add(new LSL_String(src.Substring(beginning, srclen - beginning)));
-                    break;
-                }
-
-                //    Otherwise we just add the newly delimited token
-                //    and recalculate where the search should continue.
-
-                tokens.Add(new LSL_String(src.Substring(beginning,offset[best]-beginning)));
-
-                if (best < seplen)
-                {
-                    beginning = offset[best] + (separray[best].ToString()).Length;
-                }
-                else
-                {
-                    beginning = offset[best] + (spcarray[best - seplen].ToString()).Length;
-                    tokens.Add(new LSL_String(spcarray[best - seplen].ToString()));
-                }
+                /*
+                 * Didn't match any separator or spacer, skip over it and it
+                 * becomes part of the non-delimeter string starting with
+                 * lastUsed.
+                 */
+                i ++;
+            nextsrc:;
             }
 
-            //    This an awkward an not very intuitive boundary case. If the
-            //    last substring is a tokenizer, then there is an implied trailing
-            //    null list entry. Hopefully the single comparison will not be too
-            //    arduous. Alternatively the 'break' could be replced with a return
-            //    but that's shabby programming.
+            /*
+             * Output last non-delimeter (including a possible null string if
+             * delimeter ran to end of source string).
+             */
+            outarray[outlen++] = new LSL_String(src.Substring(lastUsed));
 
-            if (beginning == srclen)
-            {
-                if (srclen != 0)
-                    tokens.Add(new LSL_String(""));
+            /*
+             * Make up an exact-sized output array suitable for an LSL_List object.
+             */
+            object[] outlist = new object[outlen];
+            for (i = 0; i < outlen; i ++) {
+                outlist[i] = outarray[i];
             }
-
-            return tokens;
+            return new LSL_List(outlist);
         }
 
         public LSL_Integer llGetObjectPermMask(int mask)
