@@ -258,14 +258,14 @@ namespace OpenSim.Region.DataSnapshot
 
         private String GetRegionCategory(Scene scene)
         {
+            if (scene.RegionInfo.RegionSettings.Maturity == 0)
+                return "PG";
+
             if (scene.RegionInfo.RegionSettings.Maturity == 1)
                 return "Mature";
 
             if (scene.RegionInfo.RegionSettings.Maturity == 2)
                 return "Adult";
-
-            if (scene.RegionInfo.RegionSettings.Maturity == 0)
-                return "PG";
 
             return "Unknown";
         }
