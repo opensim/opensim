@@ -328,7 +328,7 @@ namespace OpenSim.Data.SQLiteLegacy
 
         public EstateSettings LoadEstateSettings(int estateID)
         {
-            string sql = "select estate_settings."+String.Join(",estate_settings.", FieldList)+" from estate_settings where estate_settings.EstateID :EstateID";
+            string sql = "select estate_settings."+String.Join(",estate_settings.", FieldList)+" from estate_settings where estate_settings.EstateID = :EstateID";
 
             SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
 
@@ -342,7 +342,7 @@ namespace OpenSim.Data.SQLiteLegacy
         {
             List<int> result = new List<int>();
 
-            string sql = "select EstateID from estate_settings where estate_settings.EstateName :EstateName";
+            string sql = "select EstateID from estate_settings where estate_settings.EstateName = :EstateName";
 
             SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
 
