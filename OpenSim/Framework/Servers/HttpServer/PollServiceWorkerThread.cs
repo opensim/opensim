@@ -73,7 +73,18 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
                     {
-                        StreamReader str = new StreamReader(req.Request.Body);
+                        StreamReader str;
+                        try
+                        {
+                            str = new StreamReader(req.Request.Body);
+                        }
+                        catch (System.ArgumentException)
+                        {
+                            // Stream was not readable means a child agent
+                            // was closed due to logout, leaving the
+                            // Event Queue request orphaned.
+                            continue;
+                        }
 
                         Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id, str.ReadToEnd());
                         m_server.DoHTTPGruntWork(responsedata,

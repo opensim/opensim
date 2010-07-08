@@ -278,7 +278,11 @@ namespace OpenSim.Services.GridService
 
                 foreach (RegionData rdata in rdatas)
                     if (rdata.RegionID != regionID)
-                        rinfos.Add(RegionData2RegionInfo(rdata));
+                    {
+                        int flags = Convert.ToInt32(rdata.Data["flags"]);
+                        if ((flags & (int)Data.RegionFlags.Hyperlink) == 0) // no hyperlinks as neighbours
+                            rinfos.Add(RegionData2RegionInfo(rdata));
+                    }
 
             }
             m_log.DebugFormat("[GRID SERVICE]: region {0} has {1} neighours", region.RegionName, rinfos.Count);

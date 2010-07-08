@@ -262,7 +262,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public static Vector3 Norm(Vector3 vector)
             {
                 double mag = Mag(vector);
-                return new Vector3(vector.x / mag, vector.y / mag, vector.z / mag);
+                if (mag > 0.0)
+                {
+                    double invMag = 1.0 / mag;
+                    return vector * invMag;
+                }
+                return new Vector3(0, 0, 0);
             }
 
             #endregion

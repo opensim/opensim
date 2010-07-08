@@ -41,7 +41,7 @@ using OpenMetaverse;
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 {
     public class HGAssetBroker :
-            ISharedRegionModule, IAssetService, IHyperAssetService
+            ISharedRegionModule, IAssetService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -150,7 +150,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             m_aScene = scene;
 
             scene.RegisterModuleInterface<IAssetService>(this);
-            scene.RegisterModuleInterface<IHyperAssetService>(this);
         }
 
         public void RemoveRegion(Scene scene)

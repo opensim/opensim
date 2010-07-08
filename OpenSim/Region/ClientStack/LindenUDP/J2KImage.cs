@@ -55,7 +55,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public IJ2KDecoder J2KDecoder;
         public IAssetService AssetService;
         public UUID AgentID;
-        public IHyperAssetService HyperAssets;
+        public IInventoryAccessModule InventoryAccessModule;
         public OpenJPEG.J2KLayerInfo[] Layers;
         public bool IsDecoded;
         public bool HasAsset;
@@ -378,14 +378,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             UUID assetID = UUID.Zero;
             if (asset != null)
                 assetID = asset.FullID;
-            else if ((HyperAssets != null) && (sender != HyperAssets))
+            else if ((InventoryAccessModule != null) && (sender != InventoryAccessModule))
             {
-                // Try the user's inventory, but only if it's different from the regions'
-                string userAssets = HyperAssets.GetUserAssetServer(AgentID);
-                if ((userAssets != string.Empty) && (userAssets != HyperAssets.GetSimAssetServer()))
+                // Unfortunately we need this here, there's no other way.
+                // This is due to the fact that textures opened directly from the agent's inventory
+                // don't have any distinguishing feature. As such, in order to serve those when the
+                // foreign user is visiting, we need to try again after the first fail to the local
+                // asset service.
+                string assetServerURL = string.Empty;
+                if (InventoryAccessModule.IsForeignUser(AgentID, out assetServerURL))
                 {
                     m_log.DebugFormat("[J2KIMAGE]: texture {0} not found in local asset storage. Trying user's storage.", id);
-                    AssetService.Get(userAssets + "/" + id, HyperAssets, AssetReceived);
+                    AssetService.Get(assetServerURL + "/" + id, InventoryAccessModule, AssetReceived);
                     return;
                 }
             }

@@ -258,21 +258,16 @@ namespace OpenSim.Region.DataSnapshot
 
         private String GetRegionCategory(Scene scene)
         {
-            //Boolean choice between:
-            //  "PG" - Mormontown
-            //  "Mature" - Sodom and Gomorrah
-            if (scene.RegionInfo.RegionSettings.Maturity == 1)
-            {
-                return "Mature";
-            }
-            else if (scene.RegionInfo.RegionSettings.Maturity == 0)
-            {
+            if (scene.RegionInfo.RegionSettings.Maturity == 0)
                 return "PG";
-            }
-            else
-            {
-                return "Unknown";
-            }
+
+            if (scene.RegionInfo.RegionSettings.Maturity == 1)
+                return "Mature";
+
+            if (scene.RegionInfo.RegionSettings.Maturity == 2)
+                return "Adult";
+
+            return "Unknown";
         }
 
         private XmlNode GetGridSnapshotData(XmlDocument factory)

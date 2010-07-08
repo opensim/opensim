@@ -519,12 +519,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llVecNorm(LSL_Vector v)
         {
             m_host.AddScriptLPS(1);
-            double mag = LSL_Vector.Mag(v);
-            LSL_Vector nor = new LSL_Vector();
-            nor.x = v.x / mag;
-            nor.y = v.y / mag;
-            nor.z = v.z / mag;
-            return nor;
+            return LSL_Vector.Norm(v);
         }
 
         public LSL_Float llVecDist(LSL_Vector a, LSL_Vector b)
