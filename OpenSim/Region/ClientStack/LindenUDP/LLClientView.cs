@@ -11496,33 +11496,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //m_log.Debug("asset request " + requestID);
             }
 
-            if (null == asset)
-            {
-                if ((m_hyperAssets != null) && (transferRequest.TransferInfo.SourceType < 2000))
-                {
-                    // Try the user's inventory, but only if it's different from the regions'
-                    string userAssets = m_hyperAssets.GetUserAssetServer(AgentId);
-                    if ((userAssets != string.Empty) && (userAssets != m_hyperAssets.GetSimAssetServer()))
-                    {
-                        m_log.DebugFormat("[CLIENT]: asset {0} not found in local asset storage. Trying user's storage.", id);
-                        if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset)
-                            transferRequest.TransferInfo.SourceType = 2222; // marker
-                        else if (transferRequest.TransferInfo.SourceType == (int)SourceType.SimInventoryItem)
-                            transferRequest.TransferInfo.SourceType = 3333; // marker
-
-                        m_assetService.Get(userAssets + "/" + id, transferRequest, AssetReceived);
-                        return;
-                    }
-                }
-
-                //m_log.DebugFormat("[ASSET CACHE]: Asset transfer request for asset which is {0} already known to be missing.  Dropping", requestID);
-                
-                //We need to send a TransferAbort here, so the client doesn't wait forever for the asset,
-                //which causes it to not request any more for a while. Which is bad.
-                SendTransferAbort(transferRequest);
-                return;
-            }
-
             // Scripts cannot be retrieved by direct request
             if (transferRequest.TransferInfo.SourceType == (int)SourceType.Asset && asset.Type == 10)
                 return;
