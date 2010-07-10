@@ -180,6 +180,9 @@ namespace OpenSim.Region.Framework.Scenes
         public UUID FromItemID;
 
         [XmlIgnore]
+        public UUID FromFolderID;
+
+        [XmlIgnore]
         public int STATUS_ROTATE_X;
 
         [XmlIgnore]

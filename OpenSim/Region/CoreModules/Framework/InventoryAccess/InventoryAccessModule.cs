@@ -322,6 +322,18 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     }
                 }
 
+                // Override and put into where it came from, if it came
+                // from anywhere in inventory
+                //
+                if (action == DeRezAction.Take || action == DeRezAction.TakeCopy)
+                {
+                    if (objectGroup.RootPart.FromFolderID != UUID.Zero)
+                    {
+                        InventoryFolderBase f = new InventoryFolderBase(objectGroup.RootPart.FromFolderID, userID);
+                        folder = m_Scene.InventoryService.GetFolder(f);
+                    }
+                }
+
                 if (folder == null) // None of the above
                 {
                     folder = new InventoryFolderBase(folderID);
@@ -484,6 +496,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     string xmlData = Utils.BytesToString(rezAsset.Data);
                     SceneObjectGroup group
                         = SceneObjectSerializer.FromOriginalXmlFormat(itemId, xmlData);
+
+                    group.RootPart.FromFolderID = item.Folder;
 
                     if (!m_Scene.Permissions.CanRezObject(
                         group.Children.Count, remoteClient.AgentId, pos)
