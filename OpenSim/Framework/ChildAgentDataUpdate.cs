@@ -265,6 +265,46 @@ namespace OpenSim.Framework
         }
     }
 
+    public class ControllerData
+    {
+        public UUID ItemID;
+        public uint IgnoreControls;
+        public uint EventControls;
+
+        public ControllerData(UUID item, uint ignore, uint ev)
+        {
+            ItemID = item;
+            IgnoreControls = ignore;
+            EventControls = ev;
+        }
+
+        public ControllerData(OSDMap args)
+        {
+            UnpackUpdateMessage(args);
+        }
+
+        public OSDMap PackUpdateMessage()
+        {
+            OSDMap controldata = new OSDMap();
+            controldata["item"] = OSD.FromUUID(ItemID);
+            controldata["ignore"] = OSD.FromInteger(IgnoreControls);
+            controldata["event"] = OSD.FromInteger(EventControls);
+
+            return controldata;
+        }
+
+
+        public void UnpackUpdateMessage(OSDMap args)
+        {
+            if (args["item"] != null)
+                ItemID = args["item"].AsUUID();
+            if (args["ignore"] != null)
+                IgnoreControls = (uint)args["ignore"].AsInteger();
+            if (args["event"] != null)
+                EventControls = (uint)args["event"].AsInteger();
+        }
+    }
+
     public class AgentData : IAgentData
     {
         private UUID m_id;
@@ -312,6 +352,9 @@ namespace OpenSim.Framework
         public byte[] VisualParams;
         public UUID[] Wearables;
         public AttachmentData[] Attachments;
+
+        // Scripted
+        public ControllerData[] Controllers;
 
         public string CallbackURI;
 
@@ -401,6 +444,14 @@ namespace OpenSim.Framework
                 foreach (AttachmentData att in Attachments)
                     attachs.Add(att.PackUpdateMessage());
                 args["attachments"] = attachs;
+            }
+
+            if ((Controllers != null) && (Controllers.Length > 0))
+            {
+                OSDArray controls = new OSDArray(Controllers.Length);
+                foreach (ControllerData ctl in Controllers)
+                    controls.Add(ctl.PackUpdateMessage());
+                args["controllers"] = controls;
             }
 
 
@@ -555,6 +606,20 @@ namespace OpenSim.Framework
                     if (o.Type == OSDType.Map)
                     {
                         Attachments[i++] = new AttachmentData((OSDMap)o);
+                    }
+                }
+            }
+
+            if ((args["controllers"] != null) && (args["controllers"]).Type == OSDType.Array)
+            {
+                OSDArray controls = (OSDArray)(args["controllers"]);
+                Controllers = new ControllerData[controls.Count];
+                int i = 0;
+                foreach (OSD o in controls)
+                {
+                    if (o.Type == OSDType.Map)
+                    {
+                        Controllers[i++] = new ControllerData((OSDMap)o);
                     }
                 }
             }
