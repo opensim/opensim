@@ -61,7 +61,6 @@ namespace OpenSim.Region.Framework.Scenes
     struct ScriptControllers
     {
         public UUID itemID;
-        public uint objID;
         public ScriptControlled ignoreControls;
         public ScriptControlled eventControls;
     }
@@ -3945,7 +3944,6 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
             obj.eventControls = ScriptControlled.CONTROL_ZERO;
 
             obj.itemID = Script_item_UUID;
-            obj.objID = Obj_localID;
             if (pass_on == 0 && accept == 0)
             {
                 IgnoredControls |= (ScriptControlled)controls;
@@ -4088,7 +4086,7 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
                         if (localHeld != ScriptControlled.CONTROL_ZERO || localChange != ScriptControlled.CONTROL_ZERO)
                         {
                             // only send if still pressed or just changed
-                            m_scene.EventManager.TriggerControlEvent(scriptControlData.objID, scriptUUID, UUID, (uint)localHeld, (uint)localChange);
+                            m_scene.EventManager.TriggerControlEvent(scriptUUID, UUID, (uint)localHeld, (uint)localChange);
                         }
                     }
                 }

@@ -356,9 +356,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         // timer: not handled here
         // listen: not handled here
 
-        public void control(uint localID, UUID itemID, UUID agentID, uint held, uint change)
+        public void control(UUID itemID, UUID agentID, uint held, uint change)
         {
-            myScriptEngine.PostObjectEvent(localID, new EventParams(
+            myScriptEngine.PostScriptEvent(itemID, new EventParams(
                     "control",new object[] {
                     new LSL_Types.LSLString(agentID.ToString()),
                     new LSL_Types.LSLInteger(held),

@@ -183,7 +183,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event ScriptChangedEvent OnScriptChangedEvent;
         public delegate void ScriptChangedEvent(uint localID, uint change);
 
-        public delegate void ScriptControlEvent(uint localID, UUID item, UUID avatarID, uint held, uint changed);
+        public delegate void ScriptControlEvent(UUID item, UUID avatarID, uint held, uint changed);
         public event ScriptControlEvent OnScriptControlEvent;
 
         public delegate void ScriptAtTargetEvent(uint localID, uint handle, Vector3 targetpos, Vector3 atpos);
@@ -1619,7 +1619,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        internal void TriggerControlEvent(uint p, UUID scriptUUID, UUID avatarID, uint held, uint _changed)
+        internal void TriggerControlEvent(UUID scriptUUID, UUID avatarID, uint held, uint _changed)
         {
             ScriptControlEvent handlerScriptControlEvent = OnScriptControlEvent;
             if (handlerScriptControlEvent != null)
@@ -1628,7 +1628,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        d(p, scriptUUID,  avatarID, held, _changed);
+                        d(scriptUUID,  avatarID, held, _changed);
                     }
                     catch (Exception e)
                     {
