@@ -99,7 +99,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 using (WebResponse resp = request.GetResponse())
                 {
-                    if (resp.ContentLength > 0)
+                    if (resp.ContentLength != 0)
                     {
                         Stream respStream = null;
                         try
