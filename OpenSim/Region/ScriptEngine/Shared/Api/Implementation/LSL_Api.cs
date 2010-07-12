@@ -7819,10 +7819,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (face < 0 || face > m_host.GetNumberOfSides() - 1)
                 return new LSL_List();
             
-            return GetLinkPrimMediaParams(face, rules);
+            return GetPrimMediaParams(face, rules);
         }
         
-        public LSL_List GetLinkPrimMediaParams(int face, LSL_List rules)
+        private LSL_List GetPrimMediaParams(int face, LSL_List rules)
         {
             IMoapModule module = m_ScriptEngine.World.RequestModuleInterface<IMoapModule>();
             if (null == module)
@@ -7930,7 +7930,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return SetPrimMediaParams(face, rules);            
         }
         
-        public LSL_Integer SetPrimMediaParams(int face, LSL_List rules)
+        private LSL_Integer SetPrimMediaParams(int face, LSL_List rules)
         {
             IMoapModule module = m_ScriptEngine.World.RequestModuleInterface<IMoapModule>();
             if (null == module)
