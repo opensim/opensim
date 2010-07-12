@@ -212,6 +212,13 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             }            
             
             m_log.DebugFormat("[MOAP]: Received {0} media entries for prim {1}", omu.FaceMedia.Length, primId);                        
+                       
+//            for (int i = 0; i < omu.FaceMedia.Length; i++)
+//            {
+//                MediaEntry me = omu.FaceMedia[i];
+//                string v = (null == me ? "null": OSDParser.SerializeLLSDXmlString(me.GetOSD()));
+//                m_log.DebugFormat("[MOAP]: Face {0} [{1}]", i, v);
+//            }
             
             part.Shape.Media = new List<MediaEntry>(omu.FaceMedia);
             

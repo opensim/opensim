@@ -1867,7 +1867,10 @@ namespace OpenSim.Data.SQLite
                 
                 List<MediaEntry> mediaEntries = new List<MediaEntry>();
                 foreach (OSD osdMe in osdMeArray)
-                    mediaEntries.Add(MediaEntry.FromOSD(osdMe));
+                {
+                    MediaEntry me = (osdMe is OSDMap ? MediaEntry.FromOSD(osdMe) : new MediaEntry());
+                    mediaEntries.Add(me);
+                }
                 
                 s.Media = mediaEntries;
             }
@@ -1918,7 +1921,10 @@ namespace OpenSim.Data.SQLite
             
             OSDArray meArray = new OSDArray();
             foreach (MediaEntry me in s.Media)
-                meArray.Add(me.GetOSD());
+            {
+                OSD osd = (null == me ? new OSD() : me.GetOSD());
+                meArray.Add(osd);
+            }
             
             row["Media"] = OSDParser.SerializeLLSDXmlString(meArray);
         }
