@@ -176,6 +176,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Entries to store media textures on each face
         /// </summary>
+        /// Do not change this value directly - always do it through an IMoapModule.
         public List<MediaEntry> Media { get; set; }
 
         public PrimitiveBaseShape()

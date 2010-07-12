@@ -102,16 +102,54 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         public MediaEntry GetMediaEntry(SceneObjectPart part, int face)
         {
             if (face < 0)
-                throw new ArgumentException("Face cannot be less than zero");
+                throw new ArgumentException("Face cannot be less than zero");                                 
             
-            List<MediaEntry> media = part.Shape.Media;           
-            
-            if (face > media.Count - 1)
+            int maxFaces = part.GetNumberOfSides() - 1;
+            if (face > maxFaces)
                 throw new ArgumentException(
-                    string.Format("Face argument was {0} but max is {1}", face, media.Count - 1));
+                    string.Format("Face argument was {0} but max is {1}", face, maxFaces));
             
-            // TODO: Really need a proper copy constructor down in libopenmetaverse
-            return MediaEntry.FromOSD(media[face].GetOSD());                        
+            List<MediaEntry> media = part.Shape.Media;
+            
+            if (null == media)
+            {
+                return null;
+            }
+            else
+            {            
+                // TODO: Really need a proper copy constructor down in libopenmetaverse
+                return MediaEntry.FromOSD(media[face].GetOSD());                        
+            }
+        }
+        
+        public void SetMediaEntry(SceneObjectPart part, int face, MediaEntry me)
+        {
+            if (face < 0)
+                throw new ArgumentException("Face cannot be less than zero");
+                               
+            int maxFaces = part.GetNumberOfSides() - 1;
+            if (face > maxFaces)
+                throw new ArgumentException(
+                    string.Format("Face argument was {0} but max is {1}", face, maxFaces));            
+            
+            if (null == part.Shape.Media)
+                part.Shape.Media = new List<MediaEntry>(maxFaces);
+                        
+            part.Shape.Media[face] = me;                                   
+            
+            if (null == part.MediaUrl)
+            {
+                // TODO: We can't set the last changer until we start tracking which cap we give to which agent id
+                part.MediaUrl = "x-mv:0000000000/" + UUID.Zero;
+            }
+            else
+            {
+                string rawVersion = part.MediaUrl.Substring(5, 10);
+                int version = int.Parse(rawVersion);
+                part.MediaUrl = string.Format("x-mv:{0:D10}/{1}", ++version, UUID.Zero);
+            }               
+            
+            part.ScheduleFullUpdate();
         }
         
         /// <summary>
@@ -140,7 +178,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             throw new Exception(
                 string.Format(
                     "[MOAP]: ObjectMediaMessage has unrecognized ObjectMediaBlock of {0}", 
-                    omm.Request.GetType()));
+                    omm.Request.GetType()));         
         }
         
         /// <summary>
@@ -233,7 +271,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             
             m_log.DebugFormat("[MOAP]: Storing media url [{0}] in prim {1} {2}", part.MediaUrl, part.Name, part.UUID);
             
-            // Arguably we don't need to send a full update to the avatar that just changed the texture.
+            // Arguably, we could avoid sending a full update to the avatar that just changed the texture.
             part.ScheduleFullUpdate();
             
             return string.Empty;
