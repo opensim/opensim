@@ -58,7 +58,8 @@ namespace OpenSim.Region.Framework.Scenes
         OWNER = 128,
         REGION_RESTART = 256,
         REGION = 512,
-        TELEPORT = 1024
+        TELEPORT = 1024,
+        MEDIA = 2048
     }
 
     // I don't really know where to put this except here.
