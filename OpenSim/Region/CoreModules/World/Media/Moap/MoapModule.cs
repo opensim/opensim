@@ -124,19 +124,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 part.Shape.Media = new List<MediaEntry>(part.GetNumberOfSides());
                         
             part.Shape.Media[face] = me;                                   
-            
-            if (null == part.MediaUrl)
-            {
-                // TODO: We can't set the last changer until we start tracking which cap we give to which agent id
-                part.MediaUrl = "x-mv:0000000000/" + UUID.Zero;
-            }
-            else
-            {
-                string rawVersion = part.MediaUrl.Substring(5, 10);
-                int version = int.Parse(rawVersion);
-                part.MediaUrl = string.Format("x-mv:{0:D10}/{1}", ++version, UUID.Zero);
-            }               
-            
+            UpdateMediaUrl(part);                      
             part.ScheduleFullUpdate();
         }
         
@@ -223,23 +211,11 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 return string.Empty;
             }            
             
-            m_log.DebugFormat("[MOAP]: Received {0} media entries for prim {1}", omu.FaceMedia.Length, primId);
+            m_log.DebugFormat("[MOAP]: Received {0} media entries for prim {1}", omu.FaceMedia.Length, primId);                        
             
             part.Shape.Media = new List<MediaEntry>(omu.FaceMedia);
             
-            if (null == part.MediaUrl)
-            {
-                // TODO: We can't set the last changer until we start tracking which cap we give to which agent id
-                part.MediaUrl = "x-mv:0000000000/" + UUID.Zero;
-            }
-            else
-            {
-                string rawVersion = part.MediaUrl.Substring(5, 10);
-                int version = int.Parse(rawVersion);
-                part.MediaUrl = string.Format("x-mv:{0:D10}/{1}", ++version, UUID.Zero);
-            }
-            
-            m_log.DebugFormat("[MOAP]: Storing media url [{0}] in prim {1} {2}", part.MediaUrl, part.Name, part.UUID);
+            UpdateMediaUrl(part);                        
             
             // Arguably, we could avoid sending a full update to the avatar that just changed the texture.
             part.ScheduleFullUpdate();
@@ -267,7 +243,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             
             UUID primId = omn.PrimID;
             
-            SceneObjectPart part = m_scene.GetSceneObjectPart(primId);
+            SceneObjectPart part = m_scene.GetSceneObjectPart(primId);            
             
             if (null == part)
             {
@@ -284,20 +260,9 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             MediaEntry me = part.Shape.Media[omn.Face];
             me.CurrentURL = omn.URL;
             
-            string oldMediaUrl = part.MediaUrl;
+            UpdateMediaUrl(part);
             
-            // TODO: refactor into common method
-            string rawVersion = oldMediaUrl.Substring(5, 10);
-            int version = int.Parse(rawVersion);
-            part.MediaUrl = string.Format("x-mv:{0:D10}/{1}", ++version, UUID.Zero);            
-            
-            m_log.DebugFormat(
-                "[MOAP]: Updating media url in prim {0} {1} from [{2}] to [{3}]", 
-                part.Name, part.UUID, oldMediaUrl, part.MediaUrl);
-            
-            part.ScheduleFullUpdate();
-            
-            // TODO: Persist in database            
+            part.ScheduleFullUpdate();      
             
             return string.Empty;
         }      
@@ -316,6 +281,27 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             if (face > maxFaces)
                 throw new ArgumentException(
                     string.Format("Face argument was {0} but max is {1}", face, maxFaces));             
+        }
+        
+        /// <summary>
+        /// Update the media url of the given part
+        /// </summary>
+        /// <param name="part"></param>
+        protected void UpdateMediaUrl(SceneObjectPart part)
+        {
+            if (null == part.MediaUrl)
+            {
+                // TODO: We can't set the last changer until we start tracking which cap we give to which agent id
+                part.MediaUrl = "x-mv:0000000000/" + UUID.Zero;
+            }
+            else
+            {
+                string rawVersion = part.MediaUrl.Substring(5, 10);
+                int version = int.Parse(rawVersion);
+                part.MediaUrl = string.Format("x-mv:{0:D10}/{1}", ++version, UUID.Zero);
+            }   
+            
+            m_log.DebugFormat("[MOAP]: Storing media url [{0}] in prim {1} {2}", part.MediaUrl, part.Name, part.UUID);            
         }
     }
 }
