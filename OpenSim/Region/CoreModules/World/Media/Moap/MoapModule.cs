@@ -129,6 +129,11 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             part.ScheduleFullUpdate();
         }
         
+        public void ClearMediaEntry(SceneObjectPart part, int face)
+        {
+            SetMediaEntry(part, face, null);
+        }
+        
         /// <summary>
         /// Sets or gets per face media textures.
         /// </summary>

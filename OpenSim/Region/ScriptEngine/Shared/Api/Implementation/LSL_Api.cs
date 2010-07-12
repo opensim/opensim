@@ -8023,6 +8023,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return ScriptBaseClass.LSL_STATUS_OK;
         }
         
+        public LSL_Integer llClearPrimMedia(LSL_Integer face)
+        {
+            m_host.AddScriptLPS(1);
+            ScriptSleep(1000);
+
+            // LSL Spec http://wiki.secondlife.com/wiki/LlClearPrimMedia says to fail silently if face is invalid
+            // Assuming silently fail means sending back LSL_STATUS_OK.  Ideally, need to check this.
+            // FIXME: Don't perform the media check directly
+            if (face < 0 || face > m_host.GetNumberOfSides() - 1)
+                return ScriptBaseClass.LSL_STATUS_OK;
+            
+            IMoapModule module = m_ScriptEngine.World.RequestModuleInterface<IMoapModule>();
+            if (null == module)
+                throw new Exception("Media on a prim functions not available");            
+            
+            module.ClearMediaEntry(m_host, face);
+            
+            return ScriptBaseClass.LSL_STATUS_OK;
+        }
+        
         //  <remarks>
         //  <para>
         //  The .NET definition of base 64 is:
