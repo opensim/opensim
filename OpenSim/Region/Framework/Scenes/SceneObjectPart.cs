@@ -978,8 +978,9 @@ namespace OpenSim.Region.Framework.Scenes
         }
         
         /// <summary>
-        /// Used for media on a prim
+        /// Used for media on a prim.
         /// </summary>
+        /// Do not change this value directly - always do it through an IMoapModule.
         public string MediaUrl 
         { 
             get

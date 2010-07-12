@@ -7816,7 +7816,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // LSL Spec http://wiki.secondlife.com/wiki/LlGetPrimMediaParams says to fail silently if face is invalid
             // TODO: Need to correctly handle case where a face has no media (which gives back an empty list).
             // Assuming silently fail means give back an empty list.  Ideally, need to check this.
-            if (face < 0 || face > m_host.Shape.Media.Count - 1)
+            if (face < 0 || face > m_host.GetNumberOfSides() - 1)
                 return new LSL_List();
             
             return GetLinkPrimMediaParams(face, rules);
@@ -7829,6 +7829,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 throw new Exception("Media on a prim functions not available");
             
             MediaEntry me = module.GetMediaEntry(m_host, face);
+            
+            // As per http://wiki.secondlife.com/wiki/LlGetPrimMediaParams
+            if (null == me)
+                return new LSL_List();
             
             LSL_List res = new LSL_List();
 
@@ -7910,6 +7914,113 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }            
             
             return res;
+        }
+        
+        public LSL_Integer llSetPrimMediaParams(int face, LSL_List rules)
+        {
+            m_host.AddScriptLPS(1);
+            ScriptSleep(1000);
+
+            // LSL Spec http://wiki.secondlife.com/wiki/LlSetPrimMediaParams says to fail silently if face is invalid
+            // Assuming silently fail means sending back LSL_STATUS_OK.  Ideally, need to check this.
+            // Don't perform the media check directly
+            if (face < 0 || face > m_host.GetNumberOfSides() - 1)
+                return ScriptBaseClass.LSL_STATUS_OK;
+            
+            return SetPrimMediaParams(face, rules);            
+        }
+        
+        public LSL_Integer SetPrimMediaParams(int face, LSL_List rules)
+        {
+            IMoapModule module = m_ScriptEngine.World.RequestModuleInterface<IMoapModule>();
+            if (null == module)
+                throw new Exception("Media on a prim functions not available");
+            
+            MediaEntry me = module.GetMediaEntry(m_host, face);
+            if (null == me)
+                me = new MediaEntry();
+            
+            int i = 0;
+            
+            while (i < rules.Length - 1)
+            {
+                int code = rules.GetLSLIntegerItem(i++);
+                
+                switch (code)
+                {
+                    case ScriptBaseClass.PRIM_MEDIA_ALT_IMAGE_ENABLE:
+                        me.EnableAlterntiveImage = (rules.GetLSLIntegerItem(i++) != 0 ? true : false);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_CONTROLS:
+                        int v = rules.GetLSLIntegerItem(i++);
+                        if (ScriptBaseClass.PRIM_MEDIA_CONTROLS_STANDARD == v)
+                            me.Controls = MediaControls.Standard;
+                        else
+                            me.Controls = MediaControls.Mini;
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_CURRENT_URL:
+                        me.CurrentURL = rules.GetLSLStringItem(i++);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_HOME_URL:
+                        me.HomeURL = rules.GetLSLStringItem(i++);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_LOOP:
+                        me.AutoLoop = (ScriptBaseClass.TRUE == rules.GetLSLIntegerItem(i++) ? true : false);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_PLAY:
+                        me.AutoPlay = (ScriptBaseClass.TRUE == rules.GetLSLIntegerItem(i++) ? true : false);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_SCALE:
+                        me.AutoScale = (ScriptBaseClass.TRUE == rules.GetLSLIntegerItem(i++) ? true : false);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_ZOOM:
+                        me.AutoZoom = (ScriptBaseClass.TRUE == rules.GetLSLIntegerItem(i++) ? true : false);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_FIRST_CLICK_INTERACT:
+                        me.InteractOnFirstClick = (ScriptBaseClass.TRUE == rules.GetLSLIntegerItem(i++) ? true : false);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_WIDTH_PIXELS:
+                        me.Width = (int)rules.GetLSLIntegerItem(i++);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_HEIGHT_PIXELS:
+                        me.Height = (int)rules.GetLSLIntegerItem(i++);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_WHITELIST_ENABLE:
+                        me.EnableWhiteList = (ScriptBaseClass.TRUE == rules.GetLSLIntegerItem(i++) ? true : false);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_WHITELIST:
+                        string[] rawWhiteListUrls = rules.GetLSLStringItem(i++).ToString().Split(new char[] { ',' });
+                        List<string> whiteListUrls = new List<string>();
+                        Array.ForEach(
+                            rawWhiteListUrls, delegate(string rawUrl) { whiteListUrls.Add(rawUrl.Trim()); });
+                        me.WhiteList = whiteListUrls.ToArray();
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_PERMS_INTERACT:
+                        me.InteractPermissions = (MediaPermission)(byte)(int)rules.GetLSLIntegerItem(i++);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_PERMS_CONTROL:
+                        me.ControlPermissions = (MediaPermission)(byte)(int)rules.GetLSLIntegerItem(i++);
+                        break;
+                }
+            }       
+                        
+            module.SetMediaEntry(m_host, face, me);
+            
+            return ScriptBaseClass.LSL_STATUS_OK;
         }
         
         //  <remarks>

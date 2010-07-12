@@ -518,7 +518,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public static readonly vector TOUCH_INVALID_TEXCOORD = new vector(-1.0, -1.0, 0.0);
         public static readonly vector TOUCH_INVALID_VECTOR = ZERO_VECTOR;
         
-        // constants for llGetPrimMediaParams
+        // constants for llGetPrimMediaParams/llSetPrimMediaParams
         public const int PRIM_MEDIA_ALT_IMAGE_ENABLE = 0;
         public const int PRIM_MEDIA_CONTROLS = 1;
         public const int PRIM_MEDIA_CURRENT_URL = 2;
@@ -542,6 +542,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_MEDIA_PERM_OWNER = 1;
         public const int PRIM_MEDIA_PERM_GROUP = 2;
         public const int PRIM_MEDIA_PERM_ANYONE = 4;
+        
+        // extra constants for llSetPrimMediaParams
+        public static readonly LSLInteger LSL_STATUS_OK = new LSLInteger(0);
+        public static readonly LSLInteger LSL_STATUS_MALFORMED_PARAMS = new LSLInteger(1000);
+        public static readonly LSLInteger LSL_STATUS_TYPE_MISMATCH = new LSLInteger(1001);
+        public static readonly LSLInteger LSL_STATUS_BOUNDS_ERROR = new LSLInteger(1002);
+        public static readonly LSLInteger LSL_STATUS_NOT_FOUND = new LSLInteger(1003);
+        public static readonly LSLInteger LSL_STATUS_NOT_SUPPORTED = new LSLInteger(1004);
+        public static readonly LSLInteger LSL_STATUS_INTERNAL_ERROR = new LSLInteger(1999);
+        public static readonly LSLInteger LSL_STATUS_WHITELIST_FAILED = new LSLInteger(2001);
 
         // Constants for default textures
         public const string TEXTURE_BLANK = "5748decc-f629-461c-9a36-a35a221fe21f";
