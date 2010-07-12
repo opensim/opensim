@@ -7808,6 +7808,110 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return res;
         }
 
+        public LSL_List llGetPrimMediaParams(int face, LSL_List rules)
+        {
+            m_host.AddScriptLPS(1);
+            ScriptSleep(1000);
+
+            // LSL Spec http://wiki.secondlife.com/wiki/LlGetPrimMediaParams says to fail silently if face is invalid
+            // TODO: Need to correctly handle case where a face has no media (which gives back an empty list).
+            // Assuming silently fail means give back an empty list.  Ideally, need to check this.
+            if (face < 0 || face > m_host.Shape.Media.Count - 1)
+                return new LSL_List();
+            
+            return GetLinkPrimMediaParams(face, rules);
+        }
+        
+        public LSL_List GetLinkPrimMediaParams(int face, LSL_List rules)
+        {
+            IMoapModule module = m_ScriptEngine.World.RequestModuleInterface<IMoapModule>();
+            if (null == module)
+                throw new Exception("Media on a prim functions not available");
+            
+            MediaEntry me = module.GetMediaEntry(m_host, face);
+            
+            LSL_List res = new LSL_List();
+
+            for (int i = 0; i < rules.Length; i++)
+            {
+                int code = (int)rules.GetLSLIntegerItem(i);
+                
+                switch (code)
+                {
+                    case ScriptBaseClass.PRIM_MEDIA_ALT_IMAGE_ENABLE:
+                        // Not implemented
+                        res.Add(new LSL_Integer(0));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_CONTROLS:
+                        if (me.Controls == MediaControls.Standard)
+                            res.Add(new LSL_Integer(ScriptBaseClass.PRIM_MEDIA_CONTROLS_STANDARD));
+                        else
+                            res.Add(new LSL_Integer(ScriptBaseClass.PRIM_MEDIA_CONTROLS_MINI));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_CURRENT_URL:
+                        res.Add(new LSL_String(me.CurrentURL));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_HOME_URL:
+                        res.Add(new LSL_String(me.HomeURL));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_LOOP:
+                        res.Add(me.AutoLoop ? ScriptBaseClass.TRUE : ScriptBaseClass.FALSE);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_PLAY:
+                        res.Add(me.AutoPlay ? ScriptBaseClass.TRUE : ScriptBaseClass.FALSE);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_SCALE:
+                        res.Add(me.AutoScale ? ScriptBaseClass.TRUE : ScriptBaseClass.FALSE);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_ZOOM:
+                        res.Add(me.AutoZoom ? ScriptBaseClass.TRUE : ScriptBaseClass.FALSE);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_FIRST_CLICK_INTERACT:
+                        res.Add(me.InteractOnFirstClick ? ScriptBaseClass.TRUE : ScriptBaseClass.FALSE);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_WIDTH_PIXELS:
+                        res.Add(new LSL_Integer(me.Width));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_HEIGHT_PIXELS:
+                        res.Add(new LSL_Integer(me.Height));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_WHITELIST_ENABLE:
+                        res.Add(me.EnableWhiteList ? ScriptBaseClass.TRUE : ScriptBaseClass.FALSE);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_WHITELIST:
+                        string[] urls = (string[])me.WhiteList.Clone();
+                    
+                        for (int j = 0; j < urls.Length; j++)
+                            urls[j] = Uri.EscapeDataString(urls[j]);
+                    
+                        res.Add(new LSL_String(string.Join(", ", urls)));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_PERMS_INTERACT:
+                        res.Add(new LSL_Integer((int)me.InteractPermissions));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_PERMS_CONTROL:
+                        res.Add(new LSL_Integer((int)me.ControlPermissions));
+                        break;
+                }
+            }            
+            
+            return res;
+        }
+        
         //  <remarks>
         //  <para>
         //  The .NET definition of base 64 is:

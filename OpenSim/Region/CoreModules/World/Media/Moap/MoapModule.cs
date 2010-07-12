@@ -51,7 +51,7 @@ using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 namespace OpenSim.Region.CoreModules.Media.Moap
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MoapModule")]
-    public class MoapModule : INonSharedRegionModule
+    public class MoapModule : INonSharedRegionModule, IMoapModule
     {    
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
@@ -97,7 +97,22 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             // Even though we're registering for POST we're going to get GETS and UPDATES too
             caps.RegisterHandler(
                 "ObjectMediaNavigate", new RestStreamHandler("POST", "/CAPS/" + UUID.Random(), HandleObjectMediaNavigateMessage));
-        }        
+        }      
+        
+        public MediaEntry GetMediaEntry(SceneObjectPart part, int face)
+        {
+            if (face < 0)
+                throw new ArgumentException("Face cannot be less than zero");
+            
+            List<MediaEntry> media = part.Shape.Media;           
+            
+            if (face > media.Count - 1)
+                throw new ArgumentException(
+                    string.Format("Face argument was {0} but max is {1}", face, media.Count - 1));
+            
+            // TODO: Really need a proper copy constructor down in libopenmetaverse
+            return MediaEntry.FromOSD(media[face].GetOSD());                        
+        }
         
         /// <summary>
         /// Sets or gets per face media textures.

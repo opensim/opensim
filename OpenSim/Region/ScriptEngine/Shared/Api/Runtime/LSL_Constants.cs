@@ -517,6 +517,31 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int TOUCH_INVALID_FACE = -1;
         public static readonly vector TOUCH_INVALID_TEXCOORD = new vector(-1.0, -1.0, 0.0);
         public static readonly vector TOUCH_INVALID_VECTOR = ZERO_VECTOR;
+        
+        // constants for llGetPrimMediaParams
+        public const int PRIM_MEDIA_ALT_IMAGE_ENABLE = 0;
+        public const int PRIM_MEDIA_CONTROLS = 1;
+        public const int PRIM_MEDIA_CURRENT_URL = 2;
+        public const int PRIM_MEDIA_HOME_URL = 3;
+        public const int PRIM_MEDIA_AUTO_LOOP = 4;
+        public const int PRIM_MEDIA_AUTO_PLAY = 5;
+        public const int PRIM_MEDIA_AUTO_SCALE = 6;
+        public const int PRIM_MEDIA_AUTO_ZOOM = 7;
+        public const int PRIM_MEDIA_FIRST_CLICK_INTERACT = 8;
+        public const int PRIM_MEDIA_WIDTH_PIXELS = 9;
+        public const int PRIM_MEDIA_HEIGHT_PIXELS = 10;
+        public const int PRIM_MEDIA_WHITELIST_ENABLE = 11;
+        public const int PRIM_MEDIA_WHITELIST = 12;
+        public const int PRIM_MEDIA_PERMS_INTERACT = 13;
+        public const int PRIM_MEDIA_PERMS_CONTROL = 14;
+        
+        public const int PRIM_MEDIA_CONTROLS_STANDARD = 0;
+        public const int PRIM_MEDIA_CONTROLS_MINI = 1;
+        
+        public const int PRIM_MEDIA_PERM_NONE = 0;
+        public const int PRIM_MEDIA_PERM_OWNER = 1;
+        public const int PRIM_MEDIA_PERM_GROUP = 2;
+        public const int PRIM_MEDIA_PERM_ANYONE = 4;
 
         // Constants for default textures
         public const string TEXTURE_BLANK = "5748decc-f629-461c-9a36-a35a221fe21f";
