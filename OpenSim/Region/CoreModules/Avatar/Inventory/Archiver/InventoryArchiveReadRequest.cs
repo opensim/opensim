@@ -261,7 +261,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     {
 //                        m_log.DebugFormat(
 //                            "[INVENTORY ARCHIVER]: Found previously created folder from archive path {0}", archivePath);
-//                        destFolder = resolvedFolders[archivePath];
+                        destFolder = resolvedFolders[archivePath];
                     }
                     else
                     {
