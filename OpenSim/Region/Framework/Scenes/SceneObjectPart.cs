@@ -882,7 +882,6 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 m_color = value;
-                TriggerScriptChangedEvent(Changed.COLOR);
 
                 /* ScheduleFullUpdate() need not be called b/c after
                  * setting the color, the text will be set, so then
