@@ -112,7 +112,8 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             else
             {            
                 // TODO: Really need a proper copy constructor down in libopenmetaverse
-                return MediaEntry.FromOSD(media[face].GetOSD());                        
+                MediaEntry me = media[face];                
+                return (null == me ? null : MediaEntry.FromOSD(me.GetOSD()));                        
             }
         }
         
