@@ -101,13 +101,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         
         public MediaEntry GetMediaEntry(SceneObjectPart part, int face)
         {
-            if (face < 0)
-                throw new ArgumentException("Face cannot be less than zero");                                 
-            
-            int maxFaces = part.GetNumberOfSides() - 1;
-            if (face > maxFaces)
-                throw new ArgumentException(
-                    string.Format("Face argument was {0} but max is {1}", face, maxFaces));
+            CheckFaceParam(part, face);
             
             List<MediaEntry> media = part.Shape.Media;
             
@@ -124,16 +118,10 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         
         public void SetMediaEntry(SceneObjectPart part, int face, MediaEntry me)
         {
-            if (face < 0)
-                throw new ArgumentException("Face cannot be less than zero");
-                               
-            int maxFaces = part.GetNumberOfSides() - 1;
-            if (face > maxFaces)
-                throw new ArgumentException(
-                    string.Format("Face argument was {0} but max is {1}", face, maxFaces));            
+            CheckFaceParam(part, face);          
             
             if (null == part.Shape.Media)
-                part.Shape.Media = new List<MediaEntry>(maxFaces);
+                part.Shape.Media = new List<MediaEntry>(part.GetNumberOfSides());
                         
             part.Shape.Media[face] = me;                                   
             
@@ -187,8 +175,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         /// <param name="omr"></param>
         /// <returns></returns>
         protected string HandleObjectMediaRequest(ObjectMediaRequest omr)       
-        {            
-            //UUID primId = (UUID)osdParams["object_id"];
+        {
             UUID primId = omr.PrimID;
             
             SceneObjectPart part = m_scene.GetSceneObjectPart(primId);
@@ -200,23 +187,6 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                     primId, m_scene.RegionInfo.RegionName);
                 return string.Empty;
             }
-                        
-            /*
-            int faces = part.GetNumberOfSides();
-            m_log.DebugFormat("[MOAP]: Faces [{0}] for [{1}]", faces, primId);
-            
-            MediaEntry[] media = new MediaEntry[faces];
-            for (int i = 0; i < faces; i++)
-            {
-                MediaEntry me = new MediaEntry();                
-                me.HomeURL = "google.com";
-                me.CurrentURL = "google.com";
-                me.AutoScale = true;
-                //me.Height = 300;
-                //me.Width = 240;
-                media[i] = me;
-            }
-            */
             
             if (null == part.Shape.Media)
                 return string.Empty;
@@ -330,6 +300,22 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             // TODO: Persist in database            
             
             return string.Empty;
-        }                   
+        }      
+        
+        /// <summary>
+        /// Check that the face number is valid for the given prim.
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="face"></param>
+        protected void CheckFaceParam(SceneObjectPart part, int face)
+        {
+            if (face < 0)
+                throw new ArgumentException("Face cannot be less than zero");
+                               
+            int maxFaces = part.GetNumberOfSides() - 1;
+            if (face > maxFaces)
+                throw new ArgumentException(
+                    string.Format("Face argument was {0} but max is {1}", face, maxFaces));             
+        }
     }
 }
