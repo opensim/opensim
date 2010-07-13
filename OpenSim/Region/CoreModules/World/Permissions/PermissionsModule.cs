@@ -164,6 +164,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         private Dictionary<string, bool> GrantYP = new Dictionary<string, bool>();
         private IFriendsModule m_friendsModule;
         private IGroupsModule m_groupsModule;
+        private IMoapModule m_moapModule;
 
         #endregion
 
@@ -248,6 +249,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnDeleteUserInventory += CanDeleteUserInventory; //NOT YET IMPLEMENTED
             
             m_scene.Permissions.OnTeleport += CanTeleport; //NOT YET IMPLEMENTED
+            
+            m_scene.Permissions.OnControlPrimMedia += CanControlPrimMedia;
 
             m_scene.AddCommand(this, "bypass permissions",
                     "bypass permissions <true / false>",
@@ -393,6 +396,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             if (m_groupsModule == null)
                 m_log.Warn("[PERMISSIONS]: Groups module not found, group permissions will not work");        
+            
+            m_moapModule = m_scene.RequestModuleInterface<IMoapModule>();
         }
 
         public void Close()
@@ -1892,6 +1897,42 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     break;
             }
             return(false);
+        }
+        
+        private bool CanControlPrimMedia(UUID agentID, UUID primID, int face)
+        {
+            if (null == m_moapModule)
+                return false;
+            
+            SceneObjectPart part = m_scene.GetSceneObjectPart(primID);
+            if (null == part)
+                return false;
+            
+            MediaEntry me = m_moapModule.GetMediaEntry(part, face);
+            
+            // If there is no existing media entry then it can be controlled (in this context, created).
+            if (null == me)
+                return true;
+            
+            if (IsAdministrator(agentID))
+                return true;            
+            
+            if ((me.ControlPermissions & MediaPermission.Anyone) == MediaPermission.Anyone)
+                return true;
+
+            if ((me.ControlPermissions & MediaPermission.Owner) == MediaPermission.Owner)
+            {
+                if (agentID == part.OwnerID)
+                    return true;
+            }           
+            
+            if ((me.ControlPermissions & MediaPermission.Group) == MediaPermission.Group)
+            {
+                if (IsGroupMember(part.GroupID, agentID, 0))
+                    return true;
+            }                 
+            
+            return false;
         }
     }
 }

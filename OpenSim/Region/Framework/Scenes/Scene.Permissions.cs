@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -81,6 +81,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool CopyUserInventoryHandler(UUID itemID, UUID userID);
     public delegate bool DeleteUserInventoryHandler(UUID itemID, UUID userID);
     public delegate bool TeleportHandler(UUID userID, Scene scene);
+    public delegate bool ControlPrimMediaHandler(UUID userID, UUID primID, int face);
     #endregion
 
     public class ScenePermissions
@@ -139,6 +140,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event CopyUserInventoryHandler OnCopyUserInventory;
         public event DeleteUserInventoryHandler OnDeleteUserInventory;
         public event TeleportHandler OnTeleport;
+        public event ControlPrimMediaHandler OnControlPrimMedia;
         #endregion
 
         #region Object Permission Checks
@@ -947,5 +949,20 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return true;
         }
+        
+        public bool CanControlPrimMedia(UUID userID, UUID primID, int face)
+        {
+            ControlPrimMediaHandler handler = OnControlPrimMedia;
+            if (handler != null)
+            {
+                Delegate[] list = handler.GetInvocationList();
+                foreach (ControlPrimMediaHandler h in list)
+                {
+                    if (h(userID, primID, face) == false)
+                        return false;
+                }
+            }
+            return true;
+        }      
     }
 }
