@@ -227,6 +227,14 @@ namespace OpenSim.Region.CoreModules.Media.Moap
 //                m_log.DebugFormat("[MOAP]: Face {0} [{1}]", i, v);
 //            }
             
+            if (omu.FaceMedia.Length > part.GetNumberOfSides())
+            {
+                m_log.WarnFormat(
+                    "[MOAP]: Received {0} media entries from client for prim {1} {2} but this prim has only {3} faces.  Dropping request.", 
+                    omu.FaceMedia.Length, part.Name, part.UUID, part.GetNumberOfSides());
+                return string.Empty;
+            }
+            
             part.Shape.Media = new List<MediaEntry>(omu.FaceMedia);
             
             UpdateMediaUrl(part);                        
