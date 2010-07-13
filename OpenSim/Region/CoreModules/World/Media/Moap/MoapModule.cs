@@ -245,12 +245,12 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             
             m_log.DebugFormat("[MOAP]: Received {0} media entries for prim {1}", omu.FaceMedia.Length, primId);                        
                        
-            for (int i = 0; i < omu.FaceMedia.Length; i++)
-            {
-                MediaEntry me = omu.FaceMedia[i];
-                string v = (null == me ? "null": OSDParser.SerializeLLSDXmlString(me.GetOSD()));
-                m_log.DebugFormat("[MOAP]: Face {0} [{1}]", i, v);
-            }
+//            for (int i = 0; i < omu.FaceMedia.Length; i++)
+//            {
+//                MediaEntry me = omu.FaceMedia[i];
+//                string v = (null == me ? "null": OSDParser.SerializeLLSDXmlString(me.GetOSD()));
+//                m_log.DebugFormat("[MOAP]: Face {0} [{1}]", i, v);
+//            }
             
             if (omu.FaceMedia.Length > part.GetNumberOfSides())
             {
@@ -321,6 +321,14 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                     primId, m_scene.RegionInfo.RegionName);
                 return string.Empty;
             }  
+            
+            UUID agentId = default(UUID);
+            
+            lock (m_omuCapUsers)
+                agentId = m_omuCapUsers[path];         
+            
+            if (!m_scene.Permissions.CanInteractWithPrimMedia(agentId, part.UUID, omn.Face))
+                return string.Empty;
             
             m_log.DebugFormat(
                 "[MOAP]: Updating media entry for face {0} on prim {1} {2} to {3}", 
