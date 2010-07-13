@@ -2206,6 +2206,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             if (prim.prim_geom != IntPtr.Zero)
                             {
+
+//string tPA;
+//geom_name_map.TryGetValue(prim.prim_geom, out tPA);
+//Console.WriteLine("**** Remove {0}", tPA);
+                    	        if(geom_name_map.ContainsKey(prim.prim_geom)) geom_name_map.Remove(prim.prim_geom);
+                    	        if(actor_name_map.ContainsKey(prim.prim_geom)) actor_name_map.Remove(prim.prim_geom);
                                 d.GeomDestroy(prim.prim_geom);
                                 prim.prim_geom = IntPtr.Zero;
                             }

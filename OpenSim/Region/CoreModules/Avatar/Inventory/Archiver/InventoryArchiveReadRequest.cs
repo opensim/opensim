@@ -212,9 +212,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         
             InventoryFolderBase destFolder = ResolveDestinationFolder(rootDestFolder, ref iarPathExisting, resolvedFolders);
             
-            m_log.DebugFormat(
-                "[INVENTORY ARCHIVER]: originalArchivePath [{0}], section already loaded [{1}]", 
-                iarPath, iarPathExisting);
+//            m_log.DebugFormat(
+//                "[INVENTORY ARCHIVER]: originalArchivePath [{0}], section already loaded [{1}]", 
+//                iarPath, iarPathExisting);
             
             string iarPathToCreate = iarPath.Substring(iarPathExisting.Length);
             CreateFoldersForPath(destFolder, iarPathExisting, iarPathToCreate, resolvedFolders, loadedNodes);
@@ -255,12 +255,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 while (null == destFolder && archivePath.Length > 0)
                 {
-                    m_log.DebugFormat("[INVENTORY ARCHIVER]: Trying to resolve destination folder {0}", archivePath);
+//                    m_log.DebugFormat("[INVENTORY ARCHIVER]: Trying to resolve destination folder {0}", archivePath);
                     
                     if (resolvedFolders.ContainsKey(archivePath))
                     {
-                        m_log.DebugFormat(
-                            "[INVENTORY ARCHIVER]: Found previously created folder from archive path {0}", archivePath);
+//                        m_log.DebugFormat(
+//                            "[INVENTORY ARCHIVER]: Found previously created folder from archive path {0}", archivePath);
                         destFolder = resolvedFolders[archivePath];
                     }
                     else
@@ -275,9 +275,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         }
                         else
                         {
-                            m_log.DebugFormat(
-                                "[INVENTORY ARCHIVER]: Found no previously created folder for archive path {0}",
-                                originalArchivePath);
+//                            m_log.DebugFormat(
+//                                "[INVENTORY ARCHIVER]: Found no previously created folder for archive path {0}",
+//                                originalArchivePath);
                             archivePath = string.Empty;
                             destFolder = rootDestFolder;
                         }
