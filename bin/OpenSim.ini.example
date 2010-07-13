@@ -1403,4 +1403,4 @@
     ; to use to send XMLRPC requests to that script
 
     ;XmlRpcRouterModule = "XmlRpcRouterModule"
-    oXmlRpcPort = 20800
+    ;XmlRpcPort = 20800
