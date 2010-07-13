@@ -4818,7 +4818,7 @@ namespace OpenSim.Region.Framework.Scenes
                                            part.NextOwnerMask;
                 item.GroupPermissions = part.GroupMask &
                                            part.NextOwnerMask;
-                item.CurrentPermissions |= 8; // Slam!
+                item.CurrentPermissions |= 16; // Slam!
                 item.CreationDate = Util.UnixTimeSinceEpoch();
 
                 if (InventoryService.AddItem(item))
