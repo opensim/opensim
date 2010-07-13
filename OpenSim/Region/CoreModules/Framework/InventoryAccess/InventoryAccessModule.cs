@@ -498,6 +498,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         = SceneObjectSerializer.FromOriginalXmlFormat(itemId, xmlData);
 
                     group.RootPart.FromFolderID = item.Folder;
+                    group.RootPart.CreateSelected = true
 
                     if (!m_Scene.Permissions.CanRezObject(
                         group.Children.Count, remoteClient.AgentId, pos)
