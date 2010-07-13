@@ -74,7 +74,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     /// </summary>
     public class LSL_Api : MarshalByRefObject, ILSL_Api, IScriptApi
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
         protected uint m_localID;
@@ -2136,6 +2136,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetLocalPos()
         {
             m_host.AddScriptLPS(1);
+           if (m_host.IsAttachment == true) {
+//m_log.DebugFormat("[localpos]:  {0})  {1}  {2}",m_host.OffsetPosition.X,m_host.OffsetPosition.Y,m_host.OffsetPosition.Z);
+                return new LSL_Vector(m_host.OffsetPosition.X,
+                                      m_host.OffsetPosition.Y,
+                                      m_host.OffsetPosition.Z);
+		}
+
             if (m_host.ParentID != 0)
             {
                 return new LSL_Vector(m_host.OffsetPosition.X,
