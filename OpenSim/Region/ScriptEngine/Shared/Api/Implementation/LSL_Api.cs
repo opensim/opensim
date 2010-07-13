@@ -2136,12 +2136,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetLocalPos()
         {
             m_host.AddScriptLPS(1);
-           if (m_host.IsAttachment == true) {
-//m_log.DebugFormat("[localpos]:  {0})  {1}  {2}",m_host.OffsetPosition.X,m_host.OffsetPosition.Y,m_host.OffsetPosition.Z);
-                return new LSL_Vector(m_host.OffsetPosition.X,
-                                      m_host.OffsetPosition.Y,
-                                      m_host.OffsetPosition.Z);
-		}
+            if (m_host.IsAttachment == true) {
+                if (m_host.IsRoot == true)
+                {
+                    return new LSL_Vector(m_host.AbsolutePosition.X,
+                                        m_host.AbsolutePosition.Y,
+                                        m_host.AbsolutePosition.Z);
+
+                }
+                else
+                {
+                    return new LSL_Vector(m_host.OffsetPosition.X,
+                                        m_host.OffsetPosition.Y,
+                                        m_host.OffsetPosition.Z);
+                }
+		    }
 
             if (m_host.ParentID != 0)
             {
