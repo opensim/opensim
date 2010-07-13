@@ -679,6 +679,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public virtual void AttachToBackup()
         {
+            if (IsAttachment) return;
             m_scene.SceneGraph.FireAttachToBackup(this);
 
             if (InSceneBackup)
