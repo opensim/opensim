@@ -64,14 +64,24 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         protected Scene m_scene;
         
         /// <summary>
-        /// Track the ObjectMedia capabilities given to users
+        /// Track the ObjectMedia capabilities given to users keyed by path
         /// </summary>
         protected Dictionary<string, UUID> m_omCapUsers = new Dictionary<string, UUID>();
         
         /// <summary>
-        /// Track the ObjectMediaUpdate capabilities given to users
+        /// Track the ObjectMedia capabilities given to users keyed by agent.  Lock m_omCapUsers to manipulate.
+        /// </summary>
+        protected Dictionary<UUID, string> m_omCapUrls = new Dictionary<UUID, string>();        
+        
+        /// <summary>
+        /// Track the ObjectMediaUpdate capabilities given to users keyed by path
         /// </summary>        
         protected Dictionary<string, UUID> m_omuCapUsers = new Dictionary<string, UUID>();
+        
+        /// <summary>
+        /// Track the ObjectMediaUpdate capabilities given to users keyed by agent.  Lock m_omuCapUsers to manipulate
+        /// </summary>        
+        protected Dictionary<UUID, string> m_omuCapUrls = new Dictionary<UUID, string>();      
         
         public void Initialise(IConfigSource config) 
         {
@@ -88,11 +98,13 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         public void RegionLoaded(Scene scene) 
         {
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
+            m_scene.EventManager.OnDeregisterCaps += DeregisterCaps;
         }
         
         public void Close() 
         {
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
+            m_scene.EventManager.OnDeregisterCaps -= DeregisterCaps;
         }        
         
         public void RegisterCaps(UUID agentID, Caps caps)
@@ -105,6 +117,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             lock (m_omCapUsers)
             {
                 m_omCapUsers[omCapUrl] = agentID;
+                m_omCapUrls[agentID] = omCapUrl;
                 
                 // Even though we're registering for POST we're going to get GETS and UPDATES too
                 caps.RegisterHandler(
@@ -116,12 +129,30 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             lock (m_omuCapUsers)
             {
                 m_omuCapUsers[omuCapUrl] = agentID;
+                m_omuCapUrls[agentID] = omuCapUrl;
                 
                 // Even though we're registering for POST we're going to get GETS and UPDATES too
                 caps.RegisterHandler(
                     "ObjectMediaNavigate", new RestStreamHandler("POST", omuCapUrl, HandleObjectMediaNavigateMessage));
             }
-        }      
+        }  
+        
+        public void DeregisterCaps(UUID agentID, Caps caps)
+        {
+            lock (m_omCapUsers)
+            {
+                string path = m_omCapUrls[agentID];
+                m_omCapUrls.Remove(agentID);
+                m_omCapUsers.Remove(path);
+            }
+            
+            lock (m_omuCapUsers)
+            {
+                string path = m_omuCapUrls[agentID];
+                m_omuCapUrls.Remove(agentID);
+                m_omuCapUsers.Remove(path);
+            }
+        }
         
         public MediaEntry GetMediaEntry(SceneObjectPart part, int face)
         {
