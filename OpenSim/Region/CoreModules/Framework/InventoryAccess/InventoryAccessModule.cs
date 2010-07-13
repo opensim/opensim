@@ -381,12 +381,27 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     if ((nextPerms & (uint)PermissionMask.Modify) == 0)
                         perms &= ~(uint)PermissionMask.Modify;
 
+                    // Make sure all bits but the ones we want are clear
+                    // on take.
+                    // This will be applied to the current perms, so
+                    // it will do what we want.
+                    objectGroup.RootPart.NextOwnerMask &=
+                            ((uint)PermissionMask.Copy | 
+                             (uint)PermissionMask.Transfer |
+                             (uint)PermissionMask.Modify);
+                    objectGroup.RootPart.NextOwnerMask |=
+                            (uint)PermissionMask.Move;
+
                     item.BasePermissions = perms & objectGroup.RootPart.NextOwnerMask;
                     item.CurrentPermissions = item.BasePermissions;
                     item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
                     item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
                     item.GroupPermissions = objectGroup.RootPart.GroupMask & objectGroup.RootPart.NextOwnerMask;
-                    item.CurrentPermissions |= 8; // Slam!
+                    
+                    // Magic number badness. Maybe this deserves an enum.
+                    // bit 4 (16) is the "Slam" bit, it means treat as passed
+                    // and apply next owner perms on rez
+                    item.CurrentPermissions |= 16; // Slam!
                 }
                 else
                 {
@@ -396,7 +411,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
                     item.GroupPermissions = objectGroup.RootPart.GroupMask;
 
-                    item.CurrentPermissions |= 8; // Slam!
+                    item.CurrentPermissions &=
+                            ((uint)PermissionMask.Copy |
+                             (uint)PermissionMask.Transfer |
+                             (uint)PermissionMask.Modify |
+                             (uint)PermissionMask.Move |
+                             7); // Preserve folded permissions
                 }
 
                 // TODO: add the new fields (Flags, Sale info, etc)
@@ -498,7 +518,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         = SceneObjectSerializer.FromOriginalXmlFormat(itemId, xmlData);
 
                     group.RootPart.FromFolderID = item.Folder;
-                    group.RootPart.CreateSelected = true
+
+                    // If it's rezzed in world, select it. Much easier to 
+                    // find small items.
+                    //
+                    if (!attachment)
+                        group.RootPart.CreateSelected = true;
 
                     if (!m_Scene.Permissions.CanRezObject(
                         group.Children.Count, remoteClient.AgentId, pos)
@@ -572,7 +597,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     List<SceneObjectPart> partList = new List<SceneObjectPart>(group.Children.Values);
 
                     group.SetGroup(remoteClient.ActiveGroupId, remoteClient);
-                    if (rootPart.OwnerID != item.Owner)
+                    if ((rootPart.OwnerID != item.Owner) || (item.CurrentPermissions & 16) != 0)
                     {
                         //Need to kill the for sale here
                         rootPart.ObjectSaleType = 0;
@@ -580,14 +605,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                         if (m_Scene.Permissions.PropagatePermissions())
                         {
-                            if ((item.CurrentPermissions & 8) != 0)
+                            foreach (SceneObjectPart part in partList)
                             {
-                                foreach (SceneObjectPart part in partList)
-                                {
-                                    part.EveryoneMask = item.EveryOnePermissions;
-                                    part.NextOwnerMask = item.NextPermissions;
-                                    part.GroupMask = 0; // DO NOT propagate here
-                                }
+                                part.EveryoneMask = item.EveryOnePermissions;
+                                part.NextOwnerMask = item.NextPermissions;
+                                part.GroupMask = 0; // DO NOT propagate here
                             }
                             
                             group.ApplyNextOwnerPermissions();
@@ -596,19 +618,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                     foreach (SceneObjectPart part in partList)
                     {
-                        if (part.OwnerID != item.Owner)
+                        if ((part.OwnerID != item.Owner) || (item.CurrentPermissions & 16) != 0)
                         {
                             part.LastOwnerID = part.OwnerID;
                             part.OwnerID = item.Owner;
                             part.Inventory.ChangeInventoryOwner(item.Owner);
-                        }
-                        else if (((item.CurrentPermissions & 8) != 0) && (!attachment)) // Slam!
-                        {
-                            part.EveryoneMask = item.EveryOnePermissions;
-                            part.NextOwnerMask = item.NextPermissions;
-
                             part.GroupMask = 0; // DO NOT propagate here
                         }
+                        part.EveryoneMask = item.EveryOnePermissions;
+                        part.NextOwnerMask = item.NextPermissions;
                     }
 
                     rootPart.TrimPermissions();

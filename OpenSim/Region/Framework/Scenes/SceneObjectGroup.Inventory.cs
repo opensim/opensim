@@ -172,13 +172,14 @@ namespace OpenSim.Region.Framework.Scenes
                     taskItem.GroupPermissions = item.GroupPermissions &
                             item.NextPermissions;
                     taskItem.NextPermissions = item.NextPermissions;
-                    taskItem.CurrentPermissions |= 8;
+                    // We're adding this to a prim we don't own. Force
+                    // owner change
+                    taskItem.CurrentPermissions |= 16; // Slam
                 } 
                 else 
                 {
                     taskItem.BasePermissions = item.BasePermissions;
                     taskItem.CurrentPermissions = item.CurrentPermissions;
-                    taskItem.CurrentPermissions |= 8;
                     taskItem.EveryonePermissions = item.EveryOnePermissions;
                     taskItem.GroupPermissions = item.GroupPermissions;
                     taskItem.NextPermissions = item.NextPermissions;
