@@ -1914,25 +1914,30 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (null == me)
                 return true;
             
+            return GenericPrimMediaPermission(part, agentID, me.ControlPermissions);
+        }
+        
+        private bool GenericPrimMediaPermission(SceneObjectPart part, UUID agentID, MediaPermission perms)
+        {
             if (IsAdministrator(agentID))
                 return true;            
             
-            if ((me.ControlPermissions & MediaPermission.Anyone) == MediaPermission.Anyone)
+            if ((perms & MediaPermission.Anyone) == MediaPermission.Anyone)
                 return true;
 
-            if ((me.ControlPermissions & MediaPermission.Owner) == MediaPermission.Owner)
+            if ((perms & MediaPermission.Owner) == MediaPermission.Owner)
             {
                 if (agentID == part.OwnerID)
                     return true;
             }           
             
-            if ((me.ControlPermissions & MediaPermission.Group) == MediaPermission.Group)
+            if ((perms & MediaPermission.Group) == MediaPermission.Group)
             {
                 if (IsGroupMember(part.GroupID, agentID, 0))
                     return true;
             }                 
             
-            return false;
+            return false;            
         }
     }
 }
