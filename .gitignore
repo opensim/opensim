@@ -1,5 +1,6 @@
 .project
 .settings
+.gitignore
 *.csproj
 *.csproj.user
 *.build
@@ -10,6 +11,7 @@
 *.pidb
 *.dll.build
 *.dll
+*.log
 *.VisualState.xml
 */*/obj
 */*/*/obj
@@ -23,6 +25,7 @@
 */*/*/*/*/bin
 */*/*/*/*/*/bin
 */*/*/*/*/*/*/bin
+addon-modules/
 bin/Debug/*.dll
 bin/*.dll.mdb
 bin/*.db

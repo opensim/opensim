@@ -565,7 +565,29 @@ namespace OpenSim.Region.Physics.OdePlugin
                 CAPSULE_RADIUS = 0.01f;
 
             }
+
+       	    if(Shell != IntPtr.Zero)
+            {
+                try
+                {
+                    d.GeomDestroy(Shell);
+                }
+                catch (System.AccessViolationException)
+                {
+                    m_log.Error("[PHYSICS]: PrimGeom dead");
+                }
+                // Remove any old entries
+//string tShell;
+//_parent_scene.geom_name_map.TryGetValue(Shell, out tShell);
+//Console.WriteLine("**** Remove {0}", tShell);
+                if(_parent_scene.geom_name_map.ContainsKey(Shell)) _parent_scene.geom_name_map.Remove(Shell);
+                if(_parent_scene.actor_name_map.ContainsKey(Shell)) _parent_scene.actor_name_map.Remove(Shell);
+            }
+
             Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
+            _parent_scene.geom_name_map[Shell] = m_name;
+            _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
+//Console.WriteLine("**** Create {2}    Dicts: actor={0}   name={1}", _parent_scene.actor_name_map.Count, _parent_scene.geom_name_map.Count, m_name);
 
             d.GeomSetCategoryBits(Shell, (int)m_collisionCategories);
             d.GeomSetCollideBits(Shell, (int)m_collisionFlags);
@@ -931,10 +953,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                     Body = IntPtr.Zero;
                 }
 
-                if (Shell != IntPtr.Zero)
+           	    if(Shell != IntPtr.Zero)
                 {
-                    d.GeomDestroy(Shell);
-                    _parent_scene.geom_name_map.Remove(Shell);
+                    try
+                    {
+                        d.GeomDestroy(Shell);
+                    }
+                    catch (System.AccessViolationException)
+                    {
+                        m_log.Error("[PHYSICS]: PrimGeom dead");
+                    }
+                    // Remove any old entries
+//string tShell;
+//_parent_scene.geom_name_map.TryGetValue(Shell, out tShell);
+//Console.WriteLine("**** Remove {0}", tShell);
+
+                    if(_parent_scene.geom_name_map.ContainsKey(Shell)) _parent_scene.geom_name_map.Remove(Shell);
+                    if(_parent_scene.actor_name_map.ContainsKey(Shell)) _parent_scene.actor_name_map.Remove(Shell);
                     Shell = IntPtr.Zero;
                 }
 
@@ -1097,11 +1132,24 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     Body = IntPtr.Zero;
                 }
-
-                if (Shell != IntPtr.Zero)
+    
+           	    if(Shell != IntPtr.Zero)
                 {
-                    d.GeomDestroy(Shell);
-                    _parent_scene.geom_name_map.Remove(Shell);
+                    try
+                    {
+                        d.GeomDestroy(Shell);
+                    }
+                    catch (System.AccessViolationException)
+                    {
+                        m_log.Error("[PHYSICS]: PrimGeom dead");
+                    }
+                    // Remove any old entries
+//string tShell;
+//_parent_scene.geom_name_map.TryGetValue(Shell, out tShell);
+//Console.WriteLine("**** Remove {0}", tShell);
+
+                    if(_parent_scene.geom_name_map.ContainsKey(Shell)) _parent_scene.geom_name_map.Remove(Shell);
+                    if(_parent_scene.actor_name_map.ContainsKey(Shell)) _parent_scene.actor_name_map.Remove(Shell);
                     Shell = IntPtr.Zero;
                 }
             }
@@ -1277,9 +1325,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                             + (Amotor!=IntPtr.Zero ? "Amotor ":""));
                     }
                     AvatarGeomAndBodyCreation(_position.X, _position.Y, _position.Z, m_tensor);
-                    
-                    _parent_scene.geom_name_map[Shell] = m_name;
-                    _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
                     _parent_scene.AddCharacter(this);
                 }
                 else
@@ -1299,17 +1344,28 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         //kill the body
                         d.BodyDestroy(Body);
-
                         Body = IntPtr.Zero;
                     }
 
-                    if (Shell != IntPtr.Zero)
+               	    if(Shell != IntPtr.Zero)
                     {
-                        d.GeomDestroy(Shell);
-                        _parent_scene.geom_name_map.Remove(Shell);
+                        try
+                        {
+                            d.GeomDestroy(Shell);
+                        }
+                        catch (System.AccessViolationException)
+                        {
+                            m_log.Error("[PHYSICS]: PrimGeom dead");
+                        }
+                        // Remove any old entries
+//string tShell;
+//_parent_scene.geom_name_map.TryGetValue(Shell, out tShell);
+//Console.WriteLine("**** Remove {0}", tShell);
+
+                        if(_parent_scene.geom_name_map.ContainsKey(Shell)) _parent_scene.geom_name_map.Remove(Shell);
+                        if(_parent_scene.actor_name_map.ContainsKey(Shell)) _parent_scene.actor_name_map.Remove(Shell);
                         Shell = IntPtr.Zero;
                     }
-
                 }
 
                 m_isPhysical = m_tainted_isPhysical;
@@ -1327,13 +1383,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     CAPSULE_LENGTH = m_tainted_CAPSULE_LENGTH;
                     //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
                     d.BodyDestroy(Body);
-                    d.GeomDestroy(Shell);
                     AvatarGeomAndBodyCreation(_position.X, _position.Y,
                                       _position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule) * 2), m_tensor);
                     Velocity = Vector3.Zero;
-
-                    _parent_scene.geom_name_map[Shell] = m_name;
-                    _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
                 }
                 else
                 {

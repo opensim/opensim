@@ -142,7 +142,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private OdeScene _parent_scene;
         public IntPtr m_targetSpace = IntPtr.Zero;
         public IntPtr prim_geom;
-        public IntPtr prev_geom;
+//        public IntPtr prev_geom;
         public IntPtr _triMeshData;
 
         private IntPtr _linkJointGroup = IntPtr.Zero;
@@ -274,7 +274,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
             prim_geom = IntPtr.Zero;
-            prev_geom = IntPtr.Zero;
+//            prev_geom = IntPtr.Zero;
 
             if (!pos.IsFinite())
             {
@@ -776,13 +776,26 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void SetGeom(IntPtr geom)
         {
-            prev_geom = prim_geom;
+    	    if(prim_geom != IntPtr.Zero)
+    	    {
+    	        // Remove any old entries
+//string tPA;
+//_parent_scene.geom_name_map.TryGetValue(prim_geom, out tPA);
+//Console.WriteLine("**** Remove {0}", tPA);
+    	        if(_parent_scene.geom_name_map.ContainsKey(prim_geom)) _parent_scene.geom_name_map.Remove(prim_geom);
+    	        if(_parent_scene.actor_name_map.ContainsKey(prim_geom)) _parent_scene.actor_name_map.Remove(prim_geom);
+                d.GeomDestroy(prim_geom);
+	        }
+
             prim_geom = geom;
 //Console.WriteLine("SetGeom to " + prim_geom + " for " + m_primName);     
             if (prim_geom != IntPtr.Zero)
             {
+                _parent_scene.geom_name_map[prim_geom] = this.m_primName;
+                _parent_scene.actor_name_map[prim_geom] = (PhysicsActor)this;
                 d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                 d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+//Console.WriteLine("**** Create {2}    Dicts: actor={0}   name={1}", _parent_scene.actor_name_map.Count, _parent_scene.geom_name_map.Count, this.m_primName);
             }
 
             if (childPrim)
@@ -1774,17 +1787,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void CreateGeom(IntPtr m_targetSpace, IMesh _mesh)
         {
 //Console.WriteLine("CreateGeom:");         
-            if (_mesh != null)
+            if (_mesh != null)					// Special - make mesh
             {
                 setMesh(_parent_scene, _mesh);
             }
-            else
+            else						// not a mesh
             {
-                if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1)
+                if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1)		// special profile??
                 {
-                    if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)
+                    if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)					// Equi-size
                     {
-                        if (((_size.X / 2f) > 0f))
+                        if (((_size.X / 2f) > 0f))									// Has size
                         {
                             _parent_scene.waitForSpaceUnlock(m_targetSpace);
                             try
@@ -1815,7 +1828,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                         }
                     }
-                    else
+                    else												// not equi-size
                     {
                         _parent_scene.waitForSpaceUnlock(m_targetSpace);
                         try
@@ -1832,7 +1845,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
 
-                else
+                else											// not special profile
                 {
                     _parent_scene.waitForSpaceUnlock(m_targetSpace);
                     try
@@ -1893,9 +1906,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     enableBody();
                 }
             }
-
-            _parent_scene.geom_name_map[prim_geom] = this.m_primName;
-            _parent_scene.actor_name_map[prim_geom] = (PhysicsActor)this;
 
             changeSelectedStatus(timestep);
 
@@ -2045,22 +2055,7 @@ Console.WriteLine(" JointCreateFixed");
                 {
                     if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
                     {
-                        
-
-                        if (prim_geom != IntPtr.Zero)
-                        {
-                            try
-                            {
-                                d.GeomDestroy(prim_geom);
-                                prim_geom = IntPtr.Zero;
-                                _mesh = null;
-                            }
-                            catch (System.AccessViolationException)
-                            {
-                                prim_geom = IntPtr.Zero;
-                                m_log.Error("[PHYSICS]: PrimGeom dead");
-                            }
-                        }
+                        _mesh = null;
 //Console.WriteLine("changePhysicsStatus for " + m_primName );
                         changeadd(2f);
                     }
@@ -2120,8 +2115,6 @@ Console.WriteLine(" JointCreateFixed");
                 _parent_scene.waitForSpaceUnlock(m_targetSpace);
                 d.SpaceRemove(m_targetSpace, prim_geom);
             }
-            d.GeomDestroy(prim_geom);
-            prim_geom = IntPtr.Zero;
             // we don't need to do space calculation because the client sends a position update also.
 
             // Construction of new prim
@@ -2223,16 +2216,8 @@ Console.WriteLine(" JointCreateFixed");
                     disableBody();
                 }
             }
-            try
-            {
-                d.GeomDestroy(prim_geom);
-            }
-            catch (System.AccessViolationException)
-            {
-                prim_geom = IntPtr.Zero;
-                m_log.Error("[PHYSICS]: PrimGeom dead");
-            }
-            prim_geom = IntPtr.Zero;
+
+
             // we don't need to do space calculation because the client sends a position update also.
             if (_size.X <= 0) _size.X = 0.01f;
             if (_size.Y <= 0) _size.Y = 0.01f;
