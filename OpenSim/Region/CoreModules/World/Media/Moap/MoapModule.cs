@@ -58,7 +58,20 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         public string Name { get { return "MoapModule"; } }                
         public Type ReplaceableInterface { get { return null; } }        
         
+        /// <summary>
+        /// The scene to which this module is attached
+        /// </summary>
         protected Scene m_scene;
+        
+        /// <summary>
+        /// Track the ObjectMedia capabilities given to users
+        /// </summary>
+        protected Dictionary<string, UUID> m_omCapUsers = new Dictionary<string, UUID>();
+        
+        /// <summary>
+        /// Track the ObjectMediaUpdate capabilities given to users
+        /// </summary>        
+        protected Dictionary<string, UUID> m_omuCapUsers = new Dictionary<string, UUID>();
         
         public void Initialise(IConfigSource config) 
         {
@@ -87,16 +100,27 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             m_log.DebugFormat(
                 "[MOAP]: Registering ObjectMedia and ObjectMediaNavigate capabilities for agent {0}", agentID);
             
-            // We do receive a post to ObjectMedia when a new avatar enters the region - though admittedly this is the
-            // avatar that set the texture in the first place.
-            // Even though we're registering for POST we're going to get GETS and UPDATES too
-            caps.RegisterHandler(
-                "ObjectMedia", new RestStreamHandler("POST", "/CAPS/" + UUID.Random(), HandleObjectMediaMessage));
+            string omCapUrl = "/CAPS/" + UUID.Random();
             
-            // We do get these posts when the url has been changed.
-            // Even though we're registering for POST we're going to get GETS and UPDATES too
-            caps.RegisterHandler(
-                "ObjectMediaNavigate", new RestStreamHandler("POST", "/CAPS/" + UUID.Random(), HandleObjectMediaNavigateMessage));
+            lock (m_omCapUsers)
+            {
+                m_omCapUsers[omCapUrl] = agentID;
+                
+                // Even though we're registering for POST we're going to get GETS and UPDATES too
+                caps.RegisterHandler(
+                    "ObjectMedia", new RestStreamHandler("POST", omCapUrl, HandleObjectMediaMessage));
+            }
+            
+            string omuCapUrl = "/CAPS/" + UUID.Random();
+            
+            lock (m_omuCapUsers)
+            {
+                m_omuCapUsers[omuCapUrl] = agentID;
+                
+                // Even though we're registering for POST we're going to get GETS and UPDATES too
+                caps.RegisterHandler(
+                    "ObjectMediaNavigate", new RestStreamHandler("POST", omuCapUrl, HandleObjectMediaNavigateMessage));
+            }
         }      
         
         public MediaEntry GetMediaEntry(SceneObjectPart part, int face)
@@ -147,7 +171,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         protected string HandleObjectMediaMessage(
             string request, string path, string param, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {            
-            m_log.DebugFormat("[MOAP]: Got ObjectMedia raw request [{0}]", request);
+            m_log.DebugFormat("[MOAP]: Got ObjectMedia path [{0}], raw request [{1}]", path, request);
          
             OSDMap osd = (OSDMap)OSDParser.DeserializeLLSDXml(request);
             ObjectMediaMessage omm = new ObjectMediaMessage();
@@ -156,7 +180,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             if (omm.Request is ObjectMediaRequest)
                 return HandleObjectMediaRequest(omm.Request as ObjectMediaRequest);
             else if (omm.Request is ObjectMediaUpdate)
-                return HandleObjectMediaUpdate(omm.Request as ObjectMediaUpdate);               
+                return HandleObjectMediaUpdate(path, omm.Request as ObjectMediaUpdate);               
 
             throw new Exception(
                 string.Format(
@@ -165,7 +189,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         }
         
         /// <summary>
-        /// Handle a request for media textures
+        /// Handle a fetch request for media textures
         /// </summary>
         /// <param name="omr"></param>
         /// <returns></returns>
@@ -202,9 +226,10 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         /// <summary>
         /// Handle an update of media textures.
         /// </summary>
+        /// <param name="path">Path on which this request was made</param>
         /// <param name="omu">/param>
         /// <returns></returns>
-        protected string HandleObjectMediaUpdate(ObjectMediaUpdate omu)      
+        protected string HandleObjectMediaUpdate(string path, ObjectMediaUpdate omu)      
         {
             UUID primId = omu.PrimID;
             
@@ -216,16 +241,16 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                     "[MOAP]: Received an UPDATE ObjectMediaRequest for prim {0} but this doesn't exist in region {1}", 
                     primId, m_scene.RegionInfo.RegionName);
                 return string.Empty;
-            }            
+            }                                    
             
             m_log.DebugFormat("[MOAP]: Received {0} media entries for prim {1}", omu.FaceMedia.Length, primId);                        
                        
-//            for (int i = 0; i < omu.FaceMedia.Length; i++)
-//            {
-//                MediaEntry me = omu.FaceMedia[i];
-//                string v = (null == me ? "null": OSDParser.SerializeLLSDXmlString(me.GetOSD()));
-//                m_log.DebugFormat("[MOAP]: Face {0} [{1}]", i, v);
-//            }
+            for (int i = 0; i < omu.FaceMedia.Length; i++)
+            {
+                MediaEntry me = omu.FaceMedia[i];
+                string v = (null == me ? "null": OSDParser.SerializeLLSDXmlString(me.GetOSD()));
+                m_log.DebugFormat("[MOAP]: Face {0} [{1}]", i, v);
+            }
             
             if (omu.FaceMedia.Length > part.GetNumberOfSides())
             {
@@ -235,7 +260,27 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 return string.Empty;
             }
             
-            part.Shape.Media = new List<MediaEntry>(omu.FaceMedia);
+            List<MediaEntry> media = part.Shape.Media;
+            
+            if (null == media)
+            {
+                part.Shape.Media = new List<MediaEntry>(omu.FaceMedia);
+            }
+            else
+            {
+                // We need to go through the media textures one at a time to make sure that we have permission 
+                // to change them                    
+                UUID agentId = default(UUID);
+                
+                lock (m_omCapUsers)
+                    agentId = m_omCapUsers[path];                
+                
+                for (int i = 0; i < media.Count; i++)
+                {
+                    if (m_scene.Permissions.CanControlPrimMedia(agentId, part.UUID, i))
+                        media[i] = omu.FaceMedia[i];
+                }
+            }
             
             UpdateMediaUrl(part);                        
             
