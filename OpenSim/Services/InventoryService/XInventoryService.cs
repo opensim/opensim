@@ -259,13 +259,15 @@ namespace OpenSim.Services.InventoryService
         
         public virtual List<InventoryItemBase> GetFolderItems(UUID principalID, UUID folderID)
         {
+//            m_log.DebugFormat("[XINVENTORY]: Fetch items for folder {0}", folderID);
+            
             // Since we probably don't get a valid principal here, either ...
             //
             List<InventoryItemBase> invItems = new List<InventoryItemBase>();
 
             XInventoryItem[] items = m_Database.GetItems(
-                    new string[] { "parentFolderID"},
-                    new string[] { UUID.Zero.ToString() });
+                    new string[] { "parentFolderID" },
+                    new string[] { folderID.ToString() });
 
             foreach (XInventoryItem i in items)
                 invItems.Add(ConvertToOpenSim(i));

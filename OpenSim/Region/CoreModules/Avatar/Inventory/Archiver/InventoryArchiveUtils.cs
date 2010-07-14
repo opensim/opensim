@@ -206,11 +206,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             if (components.Length == 1)
             {
-//                m_log.DebugFormat("FOUND SINGLE COMPONENT [{0}]", components[0]);
+//                m_log.DebugFormat(
+//                    "FOUND SINGLE COMPONENT [{0}].  Looking for this in [{1}] {2}", 
+//                    components[0], startFolder.Name, startFolder.ID);
                 
                 List<InventoryItemBase> items = inventoryService.GetFolderItems(startFolder.Owner, startFolder.ID);
+                
+//                m_log.DebugFormat("[INVENTORY ARCHIVE UTILS]: Found {0} items in FindItemByPath()", items.Count);
+                
                 foreach (InventoryItemBase item in items)
                 {
+//                    m_log.DebugFormat("[INVENTORY ARCHIVE UTILS]: Inspecting item {0} {1}", item.Name, item.ID);
+                    
                     if (item.Name == components[0])
                         return item;
                 }
