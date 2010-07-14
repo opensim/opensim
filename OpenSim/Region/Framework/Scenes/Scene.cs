@@ -2572,7 +2572,7 @@ namespace OpenSim.Region.Framework.Scenes
                     
                     if (AttachmentsModule != null)
                         AttachmentsModule.AttachObject(
-                            sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition, false);
+                            sp.ControllingClient, grp.LocalId, (uint)0, grp.AbsolutePosition, false);
 
                 }
                 else

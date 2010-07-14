@@ -69,7 +69,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             get { return false; }
         }
 
-        public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, bool silent)
+        public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, bool silent)
         {
             m_log.Debug("[ATTACHMENTS MODULE]: Invoking AttachObject");
 
@@ -84,7 +84,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     return;
 
                 // Calls attach with a Zero position
-                if (AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero, false))
+                if (AttachObject(remoteClient, objectLocalID, AttachmentPt, Vector3.Zero, false))
                 {
                     m_scene.EventManager.TriggerOnAttach(objectLocalID, part.ParentGroup.GetFromItemID(), remoteClient.AgentId);
 
@@ -107,7 +107,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         }
         
         public bool AttachObject(
-            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, Vector3 attachPos, bool silent)
+            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Vector3 attachPos, bool silent)
         {
             SceneObjectGroup group = m_scene.GetGroupByPrim(objectLocalID);
             if (group != null)
@@ -238,7 +238,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         tainted = true;
 
                     AttachObject(
-                        remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition, false);
+                        remoteClient, objatt.LocalId, AttachmentPt, objatt.AbsolutePosition, false);
                     //objatt.ScheduleGroupForFullUpdate();
                     
                     if (tainted)
