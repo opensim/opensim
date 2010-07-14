@@ -322,34 +322,41 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="cmdparams"></param>
         protected void HandleLoadInvConsoleCommand(string module, string[] cmdparams)
         {
-			m_log.Info("[INVENTORY ARCHIVER]: PLEASE NOTE THAT THIS FACILITY IS EXPERIMENTAL.  BUG REPORTS WELCOME.");			
-			
-			Dictionary<string, object> options = new Dictionary<string, object>();            
-            OptionSet optionSet = new OptionSet().Add("m|merge", delegate (string v) { options["merge"] = v != null; });
-            
-            List<string> mainParams = optionSet.Parse(cmdparams);
-			
-            if (mainParams.Count < 6)
-            {
-                m_log.Error(
-                    "[INVENTORY ARCHIVER]: usage is load iar <first name> <last name> <inventory path> <user password> [<load file path>]");
-                return;
-            }            
-
-            string firstName = mainParams[2];
-            string lastName = mainParams[3];
-            string invPath = mainParams[4];
-            string pass = mainParams[5];
-            string loadPath = (mainParams.Count > 6 ? mainParams[6] : DEFAULT_INV_BACKUP_FILENAME);
-
-            m_log.InfoFormat(
-                "[INVENTORY ARCHIVER]: Loading archive {0} to inventory path {1} for {2} {3}",
-                loadPath, invPath, firstName, lastName);
-            
-            if (DearchiveInventory(firstName, lastName, invPath, pass, loadPath, options))
+            try
+            {            
+    			m_log.Info("[INVENTORY ARCHIVER]: PLEASE NOTE THAT THIS FACILITY IS EXPERIMENTAL.  BUG REPORTS WELCOME.");			
+    			
+    			Dictionary<string, object> options = new Dictionary<string, object>();            
+                OptionSet optionSet = new OptionSet().Add("m|merge", delegate (string v) { options["merge"] = v != null; });
+                
+                List<string> mainParams = optionSet.Parse(cmdparams);
+    			
+                if (mainParams.Count < 6)
+                {
+                    m_log.Error(
+                        "[INVENTORY ARCHIVER]: usage is load iar <first name> <last name> <inventory path> <user password> [<load file path>]");
+                    return;
+                }            
+    
+                string firstName = mainParams[2];
+                string lastName = mainParams[3];
+                string invPath = mainParams[4];
+                string pass = mainParams[5];
+                string loadPath = (mainParams.Count > 6 ? mainParams[6] : DEFAULT_INV_BACKUP_FILENAME);
+    
                 m_log.InfoFormat(
-                    "[INVENTORY ARCHIVER]: Loaded archive {0} for {1} {2}",
-                    loadPath, firstName, lastName);				
+                    "[INVENTORY ARCHIVER]: Loading archive {0} to inventory path {1} for {2} {3}",
+                    loadPath, invPath, firstName, lastName);
+                
+                if (DearchiveInventory(firstName, lastName, invPath, pass, loadPath, options))
+                    m_log.InfoFormat(
+                        "[INVENTORY ARCHIVER]: Loaded archive {0} for {1} {2}",
+                        loadPath, firstName, lastName);	
+            }
+            catch (InventoryArchiverException e)
+            {
+                m_log.ErrorFormat("[INVENTORY ARCHIVER]: {0}", e.Message);
+            }                
         }
         
         /// <summary>
@@ -358,30 +365,38 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="cmdparams"></param>
         protected void HandleSaveInvConsoleCommand(string module, string[] cmdparams)
         {
-            if (cmdparams.Length < 6)
-            {
-                m_log.Error(
-                    "[INVENTORY ARCHIVER]: usage is save iar <first name> <last name> <inventory path> <user password> [<save file path>]");
-                return;
-            }
-
-            m_log.Info("[INVENTORY ARCHIVER]: PLEASE NOTE THAT THIS FACILITY IS EXPERIMENTAL.  BUG REPORTS WELCOME.");
-
-            string firstName = cmdparams[2];
-            string lastName = cmdparams[3];
-            string invPath = cmdparams[4];
-            string pass = cmdparams[5];
-            string savePath = (cmdparams.Length > 6 ? cmdparams[6] : DEFAULT_INV_BACKUP_FILENAME);
-
-            m_log.InfoFormat(
-                "[INVENTORY ARCHIVER]: Saving archive {0} using inventory path {1} for {2} {3}",
-                savePath, invPath, firstName, lastName);
-
             Guid id = Guid.NewGuid();
-            ArchiveInventory(id, firstName, lastName, invPath, pass, savePath, new Dictionary<string, object>());
-
+            
+            try
+            {
+                if (cmdparams.Length < 6)
+                {
+                    m_log.Error(
+                        "[INVENTORY ARCHIVER]: usage is save iar <first name> <last name> <inventory path> <user password> [<save file path>]");
+                    return;
+                }
+    
+                m_log.Info("[INVENTORY ARCHIVER]: PLEASE NOTE THAT THIS FACILITY IS EXPERIMENTAL.  BUG REPORTS WELCOME.");
+    
+                string firstName = cmdparams[2];
+                string lastName = cmdparams[3];
+                string invPath = cmdparams[4];
+                string pass = cmdparams[5];
+                string savePath = (cmdparams.Length > 6 ? cmdparams[6] : DEFAULT_INV_BACKUP_FILENAME);
+    
+                m_log.InfoFormat(
+                    "[INVENTORY ARCHIVER]: Saving archive {0} using inventory path {1} for {2} {3}",
+                    savePath, invPath, firstName, lastName);
+                    
+                ArchiveInventory(id, firstName, lastName, invPath, pass, savePath, new Dictionary<string, object>());                   
+            }
+            catch (InventoryArchiverException e)
+            {
+                m_log.ErrorFormat("[INVENTORY ARCHIVER]: {0}", e.Message);
+            }
+                
             lock (m_pendingConsoleSaves)
-                m_pendingConsoleSaves.Add(id);
+                m_pendingConsoleSaves.Add(id);            
         }
         
         private void SaveInvConsoleCommandCompleted(
