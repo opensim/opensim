@@ -91,6 +91,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         public void AddRegion(Scene scene) 
         { 
             m_scene = scene;
+            m_scene.RegisterModuleInterface<IMoapModule>(this);
         }
 
         public void RemoveRegion(Scene scene) {}
@@ -156,20 +157,28 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         
         public MediaEntry GetMediaEntry(SceneObjectPart part, int face)
         {
+            MediaEntry me = null;
+            
             CheckFaceParam(part, face);
             
             List<MediaEntry> media = part.Shape.Media;
             
             if (null == media)
             {
-                return null;
+                me = null;
             }
             else
-            {            
+            {                            
+                me = media[face];                
+                
                 // TODO: Really need a proper copy constructor down in libopenmetaverse
-                MediaEntry me = media[face];                
-                return (null == me ? null : MediaEntry.FromOSD(me.GetOSD()));                        
+                if (me != null)
+                    me = MediaEntry.FromOSD(me.GetOSD());
             }
+            
+//            m_log.DebugFormat("[MOAP]: GetMediaEntry for {0} face {1} found {2}", part.Name, face, me);
+            
+            return me;
         }
         
         public void SetMediaEntry(SceneObjectPart part, int face, MediaEntry me)
@@ -295,6 +304,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             
             if (null == media)
             {
+                m_log.DebugFormat("[MOAP]: Setting all new media list for {0}", part.Name);
                 part.Shape.Media = new List<MediaEntry>(omu.FaceMedia);
             }
             else
@@ -309,7 +319,10 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 for (int i = 0; i < media.Count; i++)
                 {
                     if (m_scene.Permissions.CanControlPrimMedia(agentId, part.UUID, i))
+                    {
                         media[i] = omu.FaceMedia[i];
+//                        m_log.DebugFormat("[MOAP]: Set media entry for face {0} on {1}", i, part.Name);
+                    }
                 }
             }
             
@@ -362,10 +375,31 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 return string.Empty;
             
             m_log.DebugFormat(
-                "[MOAP]: Updating media entry for face {0} on prim {1} {2} to {3}", 
+                "[MOAP]: Received request to update media entry for face {0} on prim {1} {2} to {3}", 
                 omn.Face, part.Name, part.UUID, omn.URL);
             
+            // If media has never been set for this prim, then just return.
+            if (null == part.Shape.Media)
+                return string.Empty;
+            
             MediaEntry me = part.Shape.Media[omn.Face];
+            
+            // Do the same if media has not been set up for a specific face
+            if (null == me)
+                return string.Empty;
+            
+            if (me.EnableWhiteList)
+            {                
+                if (!CheckUrlAgainstWhitelist(omn.URL, me.WhiteList))
+                {
+                    m_log.DebugFormat(
+                        "[MOAP]: Blocking change of face {0} on prim {1} {2} to {3} since it's not on the enabled whitelist", 
+                        omn.Face, part.Name, part.UUID, omn.URL);
+                    
+                    return string.Empty;
+                }
+            }            
+            
             me.CurrentURL = omn.URL;
             
             UpdateMediaUrl(part);
@@ -412,6 +446,33 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             }   
             
             m_log.DebugFormat("[MOAP]: Storing media url [{0}] in prim {1} {2}", part.MediaUrl, part.Name, part.UUID);            
+        }
+        
+        /// <summary>
+        /// Check the given url against the given whitelist.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="whitelist"></param>
+        /// <returns>true if the url matches an entry on the whitelist, false otherwise</returns>
+        protected bool CheckUrlAgainstWhitelist(string url, string[] whitelist)
+        {            
+            foreach (string rawWlUrl in whitelist)
+            {
+                string wlUrl = rawWlUrl;
+                
+                if (!wlUrl.StartsWith("http://"))
+                    wlUrl = "http://" + wlUrl;
+                
+                m_log.DebugFormat("[MOAP]: Checking whitelist URL {0}", wlUrl);
+
+                if (url.StartsWith(wlUrl))
+                {
+                    m_log.DebugFormat("[MOAP]: Whitelist url {0} matches requested url {1}", wlUrl, url);
+                    return true;
+                }
+            }        
+            
+            return false;
         }
     }
 }
