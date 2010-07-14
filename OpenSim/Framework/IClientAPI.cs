@@ -1019,7 +1019,6 @@ namespace OpenSim.Framework
 
         void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations);
 
-        void AttachObject(uint localID, Quaternion rotation, byte attachPoint, UUID ownerID);
         void SetChildAgentThrottle(byte[] throttle);
 
         void SendAvatarDataImmediate(ISceneEntity avatar);

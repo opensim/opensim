@@ -1064,11 +1064,6 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void AttachObject(uint localID, Quaternion rotation, byte attachPoint, UUID ownerID)
-        {
-            
-        }
-
         public void SendAvatarDataImmediate(ISceneEntity avatar)
         {
 
