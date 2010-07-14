@@ -432,10 +432,6 @@ namespace OpenSim.Region.Framework.Scenes
                                     (uint)PermissionMask.Move;
                     uint ownerPerms = item.CurrentPermissions;
 
-                    // Mask the base permissions. This is a conservative
-                    // approach altering only the three main perms
-                    basePerms &= nextPerms;
-
                     // If this is an object, root prim perms may be more
                     // permissive than folded perms. Use folded perms as
                     // a mask
@@ -451,16 +447,27 @@ namespace OpenSim.Region.Framework.Scenes
 
                         // Mask the owner perms to the folded perms
                         ownerPerms &= foldedPerms;
+                        basePerms &= foldedPerms;
 
                         // If the root was mod, let the mask reflect that
+                        // We also need to adjust the base here, because
+                        // we should be able to edit in-inventory perms
+                        // for the root prim, if it's mod.
                         if (isRootMod)
+                        {
                             ownerPerms |= (uint)PermissionMask.Modify;
+                            basePerms |= (uint)PermissionMask.Modify;
+                        }
                     }
 
                     // These will be applied to the root prim at next rez.
                     // The slam bit (bit 3) and folded permission (bits 0-2)
                     // are preserved due to the above mangling
                     ownerPerms &= nextPerms;
+
+                    // Mask the base permissions. This is a conservative
+                    // approach altering only the three main perms
+                    basePerms &= nextPerms;
 
                     // Assign to the actual item. Make sure the slam bit is
                     // set, if it wasn't set before.
