@@ -186,7 +186,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             CheckFaceParam(part, face);          
             
             if (null == part.Shape.Media)
-                part.Shape.Media = new List<MediaEntry>(part.GetNumberOfSides());
+                part.Shape.Media = new List<MediaEntry>(new MediaEntry[part.GetNumberOfSides()]);
                         
             part.Shape.Media[face] = me;                                   
             UpdateMediaUrl(part);                      
