@@ -276,7 +276,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (UUID.Zero == transactionID)
                 {
-          
                     item.Name = itemUpd.Name;
                     item.Description = itemUpd.Description;
                     item.NextPermissions = itemUpd.NextPermissions & item.BasePermissions;
@@ -450,18 +449,12 @@ namespace OpenSim.Region.Framework.Scenes
                                           (uint)PermissionMask.Modify) != 0 ?
                                           true : false;
 
-                        bool isRootCopy = (item.CurrentPermissions &
-                                          (uint)PermissionMask.Copy) != 0 ?
-                                          true : false;
-
                         // Mask the owner perms to the folded perms
                         ownerPerms &= foldedPerms;
 
                         // If the root was mod, let the mask reflect that
                         if (isRootMod)
                             ownerPerms |= (uint)PermissionMask.Modify;
-                        if (isRootCopy)
-                            ownerPerms |= (uint)PermissionMask.Copy;
                     }
 
                     // These will be applied to the root prim at next rez.
