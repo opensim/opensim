@@ -288,9 +288,6 @@
     ; if not defined - default machine name is being used
     ; (on Windows this mean NETBIOS name - useably only inside local network)
     ; ExternalHostNameForLSL=127.0.0.1
-    ; Uncomment below to enable llRemoteData/remote channels
-    ; remoteDataPort = 20800
-
 
     ; What is reported as the "X-Secondlife-Shard"
     ; Defaults to the user server url if not set
@@ -1319,12 +1316,3 @@ UseSafetyCommit = true
     ;XmlRpcRouterModule = "XmlRpcRouterModule"
     ;XmlRpcPort = 20800
 
-[Friends]
-    ; The port the friendslist interregion comms will listen on
-    ; Defaults to the simulator's TCP port
-    ;Port = 0
-
-    ; Uncomment one of the lines below. Use FriendsService for local
-    ; operation, Connectors for remote operation
-    ;Connector = "OpenSim.Services.FriendsService.dll"
-    Connector = "OpenSim.Services.Connectors.dll"

@@ -182,7 +182,13 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
                     if (part.Inventory.UpdateInventoryItem(item))
                     {
-                        remoteClient.SendAgentAlertMessage("Notecard saved", false);                        
+                        if ((InventoryType)item.InvType == InventoryType.Notecard)
+                            remoteClient.SendAgentAlertMessage("Notecard saved", false);
+                        else if ((InventoryType)item.InvType == InventoryType.LSL)
+                            remoteClient.SendAgentAlertMessage("Script saved", false);
+                        else
+                            remoteClient.SendAgentAlertMessage("Item saved", false);
+
                         part.GetProperties(remoteClient);
                     }
                 }
