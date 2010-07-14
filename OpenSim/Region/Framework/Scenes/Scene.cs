@@ -478,8 +478,6 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_sceneGraph.RestorePresences = value; }
         }
 
-        public int objectCapacity = 45000;
-
         #endregion
 
         #region BinaryStats
@@ -687,7 +685,7 @@ namespace OpenSim.Region.Framework.Scenes
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
 
-            StatsReporter.SetObjectCapacity(objectCapacity);
+            StatsReporter.SetObjectCapacity(RegionInfo.ObjectCapacity);
 
             // Old
             /*
@@ -4118,20 +4116,6 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region Other Methods
-
-        public void SetObjectCapacity(int objects)
-        {
-            // Region specific config overrides global
-            //
-            if (RegionInfo.ObjectCapacity != 0)
-                objects = RegionInfo.ObjectCapacity;
-
-            if (StatsReporter != null)
-            {
-                StatsReporter.SetObjectCapacity(objects);
-            }
-            objectCapacity = objects;
-        }
 
         #endregion
 

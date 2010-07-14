@@ -138,8 +138,6 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         public void AddRegion(Scene scene)
         {
             // Send ObjectCapacity to Scene..  Which sends it to the SimStatsReporter.
-            scene.SetObjectCapacity(ObjectCapacity);
-
             if (m_enabled)
             {
                 scene.RegisterModuleInterface<IMoneyModule>(this);
@@ -252,7 +250,6 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
             if (config == "Economy" && startupConfig != null)
             {
-                ObjectCapacity = startupConfig.GetInt("ObjectCapacity", 45000);
                 PriceEnergyUnit = startupConfig.GetInt("PriceEnergyUnit", 100);
                 PriceObjectClaim = startupConfig.GetInt("PriceObjectClaim", 10);
                 PricePublicObjectDecay = startupConfig.GetInt("PricePublicObjectDecay", 4);
@@ -701,7 +698,9 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
             if (user != null)
             {
-                user.SendEconomyData(EnergyEfficiency, ObjectCapacity, ObjectCount, PriceEnergyUnit, PriceGroupCreate,
+                Scene s = LocateSceneClientIn(user.AgentId);
+
+                user.SendEconomyData(EnergyEfficiency, s.RegionInfo.ObjectCapacity, ObjectCount, PriceEnergyUnit, PriceGroupCreate,
                                      PriceObjectClaim, PriceObjectRent, PriceObjectScaleFactor, PriceParcelClaim, PriceParcelClaimFactor,
                                      PriceParcelRent, PricePublicObjectDecay, PricePublicObjectDelete, PriceRentLight, PriceUpload,
                                      TeleportMinPrice, TeleportPriceExponent);
