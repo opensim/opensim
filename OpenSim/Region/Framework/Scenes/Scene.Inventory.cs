@@ -1343,7 +1343,13 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     if (part.Inventory.UpdateInventoryItem(itemInfo))
                     {
-                        remoteClient.SendAgentAlertMessage("Notecard saved", false);                        
+                        if ((InventoryType)itemInfo.InvType == InventoryType.Notecard) 
+                            remoteClient.SendAgentAlertMessage("Notecard saved", false);
+                        else if ((InventoryType)itemInfo.InvType == InventoryType.LSL)
+                            remoteClient.SendAgentAlertMessage("Script saved", false);
+                        else
+                            remoteClient.SendAgentAlertMessage("Item saved", false);
+
                         part.GetProperties(remoteClient);
                     }
                 }
