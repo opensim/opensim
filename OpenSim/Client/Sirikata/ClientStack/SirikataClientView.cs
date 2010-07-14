@@ -593,11 +593,6 @@ namespace OpenSim.Client.Sirikata.ClientStack
             throw new System.NotImplementedException();
         }
 
-        public void AttachObject(uint localID, Quaternion rotation, byte attachPoint, UUID ownerID)
-        {
-            throw new System.NotImplementedException();
-        }
-
         public void SetChildAgentThrottle(byte[] throttle)
         {
             throw new System.NotImplementedException();

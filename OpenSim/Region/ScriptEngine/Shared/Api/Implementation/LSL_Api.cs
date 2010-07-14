@@ -2940,9 +2940,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
                 if (attachmentsModule != null)
-                    attachmentsModule.AttachObject(
-                        presence.ControllingClient, grp.LocalId, 
-                        (uint)attachment, Quaternion.Identity, Vector3.Zero, false);
+                    attachmentsModule.AttachObject(presence.ControllingClient,
+                            grp, (uint)attachment, false);
             }
         }
 

@@ -3678,30 +3678,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion Primitive Packet/Data Sending Methods
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="localID"></param>
-        /// <param name="rotation"></param>
-        /// <param name="attachPoint"></param>
-        public void AttachObject(uint localID, Quaternion rotation, byte attachPoint, UUID ownerID)
-        {
-            if (attachPoint > 30 && ownerID != AgentId) // Someone else's HUD
-                return;
-
-            ObjectAttachPacket attach = (ObjectAttachPacket)PacketPool.Instance.GetPacket(PacketType.ObjectAttach);
-            // TODO: don't create new blocks if recycling an old packet
-            attach.AgentData.AgentID = AgentId;
-            attach.AgentData.SessionID = m_sessionId;
-            attach.AgentData.AttachmentPoint = attachPoint;
-            attach.ObjectData = new ObjectAttachPacket.ObjectDataBlock[1];
-            attach.ObjectData[0] = new ObjectAttachPacket.ObjectDataBlock();
-            attach.ObjectData[0].ObjectLocalID = localID;
-            attach.ObjectData[0].Rotation = rotation;
-            attach.Header.Zerocoded = true;
-            OutPacket(attach, ThrottleOutPacketType.Task);
-        }
-
         void HandleQueueEmpty(ThrottleOutPacketTypeFlags categories)
         {
             if ((categories & ThrottleOutPacketTypeFlags.Task) != 0)
