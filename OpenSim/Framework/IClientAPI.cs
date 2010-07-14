@@ -57,7 +57,7 @@ namespace OpenSim.Framework
                                                        RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects);
 
     public delegate void ObjectAttach(
-        IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, bool silent);
+        IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, bool silent);
 
     public delegate void ModifyTerrain(UUID user, 
         float height, float seconds, byte size, byte action, float north, float west, float south, float east,
@@ -1017,7 +1017,6 @@ namespace OpenSim.Framework
 
         void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations);
 
-        void AttachObject(uint localID, Quaternion rotation, byte attachPoint, UUID ownerID);
         void SetChildAgentThrottle(byte[] throttle);
 
         void SendAvatarDataImmediate(ISceneEntity avatar);
