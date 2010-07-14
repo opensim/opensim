@@ -1919,14 +1919,17 @@ namespace OpenSim.Data.SQLite
             row["Texture"] = s.TextureEntry;
             row["ExtraParams"] = s.ExtraParams;
             
-            OSDArray meArray = new OSDArray();
-            foreach (MediaEntry me in s.Media)
+            if (null != s.Media)
             {
-                OSD osd = (null == me ? new OSD() : me.GetOSD());
-                meArray.Add(osd);
+                OSDArray meArray = new OSDArray();
+                foreach (MediaEntry me in s.Media)
+                {
+                    OSD osd = (null == me ? new OSD() : me.GetOSD());
+                    meArray.Add(osd);
+                }
+                
+                row["Media"] = OSDParser.SerializeLLSDXmlString(meArray);
             }
-            
-            row["Media"] = OSDParser.SerializeLLSDXmlString(meArray);
         }
 
         /// <summary>
