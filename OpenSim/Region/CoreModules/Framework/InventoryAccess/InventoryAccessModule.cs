@@ -219,6 +219,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             Vector3 originalPosition = objectGroup.AbsolutePosition;
 
+            // Restore attachment data after trip through the sim
+            if (objectGroup.RootPart.AttachPoint > 0)
+                inventoryStoredPosition = objectGroup.RootPart.AttachOffset;
+            objectGroup.RootPart.Shape.State = objectGroup.RootPart.AttachPoint;
+
             objectGroup.AbsolutePosition = inventoryStoredPosition;
 
             string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(objectGroup);
@@ -516,6 +521,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     string xmlData = Utils.BytesToString(rezAsset.Data);
                     SceneObjectGroup group
                         = SceneObjectSerializer.FromOriginalXmlFormat(itemId, xmlData);
+                    Vector3 storedPosition = group.AbsolutePosition;
 
                     group.RootPart.FromFolderID = item.Folder;
 
@@ -635,6 +641,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     {
                         if (group.RootPart.Shape.PCode == (byte)PCode.Prim)
                         {
+                            // Save attachment data
+                            group.RootPart.AttachPoint = group.RootPart.Shape.State;
+                            group.RootPart.AttachOffset = storedPosition;
+
                             group.ClearPartAttachmentData();
                         }
                         
