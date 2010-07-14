@@ -146,7 +146,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
             {
                 // Normal Calculations
-                return (int)Math.Round(((float)LandData.Area / 65536.0f) * (float)m_scene.objectCapacity * (float)m_scene.RegionInfo.RegionSettings.ObjectBonus);
+                return (int)Math.Round(((float)LandData.Area / 65536.0f) * (float)m_scene.RegionInfo.ObjectCapacity * (float)m_scene.RegionInfo.RegionSettings.ObjectBonus);
             }
         }
         public int GetSimulatorMaxPrimCount(ILandObject thisObject)
@@ -158,7 +158,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
             {
                 //Normal Calculations
-                return m_scene.objectCapacity;
+                return m_scene.RegionInfo.ObjectCapacity;
             }
         }
         #endregion

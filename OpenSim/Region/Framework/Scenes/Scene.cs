@@ -478,8 +478,6 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_sceneGraph.RestorePresences = value; }
         }
 
-        public int objectCapacity = 45000;
-
         #endregion
 
         #region BinaryStats
@@ -687,7 +685,7 @@ namespace OpenSim.Region.Framework.Scenes
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
 
-            StatsReporter.SetObjectCapacity(objectCapacity);
+            StatsReporter.SetObjectCapacity(RegionInfo.ObjectCapacity);
 
             // Old
             /*
@@ -4119,20 +4117,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Other Methods
 
-        public void SetObjectCapacity(int objects)
-        {
-            // Region specific config overrides global
-            //
-            if (RegionInfo.ObjectCapacity != 0)
-                objects = RegionInfo.ObjectCapacity;
-
-            if (StatsReporter != null)
-            {
-                StatsReporter.SetObjectCapacity(objects);
-            }
-            objectCapacity = objects;
-        }
-
         #endregion
 
         public void HandleObjectPermissionsUpdate(IClientAPI controller, UUID agentID, UUID sessionID, byte field, uint localId, uint mask, byte set)
@@ -4731,7 +4715,7 @@ namespace OpenSim.Region.Framework.Scenes
                                            part.NextOwnerMask;
                 item.GroupPermissions = part.GroupMask &
                                            part.NextOwnerMask;
-                item.CurrentPermissions |= 8; // Slam!
+                item.CurrentPermissions |= 16; // Slam!
                 item.CreationDate = Util.UnixTimeSinceEpoch();
 
                 if (InventoryService.AddItem(item))
