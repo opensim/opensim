@@ -182,6 +182,14 @@ namespace OpenSim.Region.Framework.Scenes
         [XmlIgnore]
         public UUID FromFolderID;
 
+        // The following two are to hold the attachment data
+        // while an object is inworld
+        [XmlIgnore]
+        public byte AttachPoint = 0;
+
+        [XmlIgnore]
+        public Vector3 AttachOffset = Vector3.Zero;
+
         [XmlIgnore]
         public int STATUS_ROTATE_X;
 
