@@ -276,7 +276,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (UUID.Zero == transactionID)
                 {
-                    m_log.DebugFormat("[XXX] UUID.Zero = transactionID");
+          
                     item.Name = itemUpd.Name;
                     item.Description = itemUpd.Description;
                     item.NextPermissions = itemUpd.NextPermissions & item.BasePermissions;
@@ -303,7 +303,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    m_log.DebugFormat("[XXX] UUID.Zero != transactionID");
                     IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
                     if (agentTransactions != null)
                     {
@@ -388,7 +387,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (Permissions.PropagatePermissions() && recipient != senderId)
                 {
-                    m_log.Debug("[XXX] Permissions.PropagatePermissions()");
                     // Trying to do this right this time. This is evil. If
                     // you believe in Good, go elsewhere. Vampires and other
                     // evil creatores only beyond this point. You have been
