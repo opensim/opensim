@@ -73,7 +73,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
             client.OnGrabUpdate += delegate(UUID objectID, Vector3 offset, Vector3 grapPos,
                 IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs) { this.Stale = true; };
             client.OnObjectAttach += delegate(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt,
-                Quaternion rot, bool silent) { this.Stale = true; };
+                bool silent) { this.Stale = true; };
             client.OnObjectDuplicate += delegate(uint localID, Vector3 offset, uint dupeFlags, UUID AgentID,
                 UUID GroupID) { this.Stale = true; };
             client.OnObjectDuplicateOnRay += delegate(uint localID, uint dupeFlags, UUID AgentID, UUID GroupID,

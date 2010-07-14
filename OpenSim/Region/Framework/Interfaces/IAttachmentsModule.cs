@@ -45,7 +45,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="rot"></param>
         /// <param name="silent"></param>
         void AttachObject(
-            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, bool silent);
+            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, bool silent);
 
         /// <summary>
         /// Attach an object to an avatar.
@@ -58,7 +58,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="silent"></param>
         /// <returns>true if the object was successfully attached, false otherwise</returns>        
         bool AttachObject(
-            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, Vector3 attachPos, bool silent);
+            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Vector3 attachPos, bool silent);
 
         /// <summary>
         /// Rez an attachment from user inventory and change inventory status to match.
