@@ -627,10 +627,6 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public virtual void AttachObject(uint localID, Quaternion rotation, byte attachPoint, UUID ownerID)
-        {
-        }
-
         public virtual void SendDialog(string objectname, UUID objectID, string ownerFirstName, string ownerLastName, string msg, UUID textureID, int ch, string[] buttonlabels)
         {
         }

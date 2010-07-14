@@ -1035,11 +1035,6 @@ namespace OpenSim.Client.MXP.ClientStack
             // Minimap function, not used.
         }
 
-        public void AttachObject(uint localID, Quaternion rotation, byte attachPoint, UUID ownerID)
-        {
-            // Need to translate to MXP somehow
-        }
-
         public void SetChildAgentThrottle(byte[] throttle)
         {
             // Need to translate to MXP somehow
