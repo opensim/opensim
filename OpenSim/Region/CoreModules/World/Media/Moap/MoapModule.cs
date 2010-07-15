@@ -460,6 +460,10 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             {
                 string wlUrl = rawWlUrl;
                 
+                // Deal with a line-ending wildcard
+                if (wlUrl.EndsWith("*"))
+                    wlUrl = wlUrl.Remove(wlUrl.Length - 1);
+                
                 if (!wlUrl.StartsWith("http://"))
                     wlUrl = "http://" + wlUrl;
                 
@@ -467,7 +471,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
 
                 if (url.StartsWith(wlUrl))
                 {
-                    m_log.DebugFormat("[MOAP]: Whitelist url {0} matches requested url {1}", wlUrl, url);
+                    m_log.DebugFormat("[MOAP]: Whitelist URL {0} matches {1}", wlUrl, url);
                     return true;
                 }
             }        
