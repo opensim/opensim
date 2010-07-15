@@ -4137,6 +4137,13 @@ namespace OpenSim.Region.Framework.Scenes
                     case 16:
                         _nextOwnerMask = ApplyMask(_nextOwnerMask, set, mask) &
                                 baseMask;
+                        // Prevent the client from creating no mod, no copy
+                        // objects
+                        if ((_nextOwnerMask & (uint)PermissionMask.Copy) == 0)
+                            _nextOwnerMask |= (uint)PermissionMask.Transfer;
+
+                        _nextOwnerMask |= (uint)PermissionMask.Move;
+
                         break;
                 }
                 SendFullUpdateToAllClients();

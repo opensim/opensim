@@ -1339,16 +1339,45 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         agentTransactions.HandleTaskItemUpdateFromTransaction(
                             remoteClient, part, transactionID, currentItem);
-                    }
-                    if (part.Inventory.UpdateInventoryItem(itemInfo))
-                    {
+
                         if ((InventoryType)itemInfo.InvType == InventoryType.Notecard) 
                             remoteClient.SendAgentAlertMessage("Notecard saved", false);
                         else if ((InventoryType)itemInfo.InvType == InventoryType.LSL)
                             remoteClient.SendAgentAlertMessage("Script saved", false);
                         else
                             remoteClient.SendAgentAlertMessage("Item saved", false);
+                    }
 
+                    // Check if we're allowed to mess with permissions
+                    if (!Permissions.IsGod(remoteClient.AgentId)) // Not a god
+                    {
+                        if (remoteClient.AgentId != part.OwnerID) // Not owner
+                        {
+                            // Friends and group members can't change any perms
+                            itemInfo.BasePermissions = currentItem.BasePermissions;
+                            itemInfo.EveryonePermissions = currentItem.EveryonePermissions;
+                            itemInfo.GroupPermissions = currentItem.GroupPermissions;
+                            itemInfo.NextPermissions = currentItem.NextPermissions;
+                            itemInfo.CurrentPermissions = currentItem.CurrentPermissions;
+                        }
+                        else
+                        {
+                            // Owner can't change base, and can change other
+                            // only up to base
+                            // Base ALWAYS has move
+                            currentItem.BasePermissions |= (uint)PermissionMask.Move;
+                            itemInfo.BasePermissions = currentItem.BasePermissions;
+                            itemInfo.EveryonePermissions &= currentItem.BasePermissions;
+                            itemInfo.GroupPermissions &= currentItem.BasePermissions;
+                            itemInfo.CurrentPermissions &= currentItem.BasePermissions;
+                            itemInfo.NextPermissions &= currentItem.BasePermissions;
+                            // Next ALWAYS has move
+                            itemInfo.NextPermissions |= (uint)PermissionMask.Move;
+                        }
+
+                    }
+                    if (part.Inventory.UpdateInventoryItem(itemInfo))
+                    {
                         part.GetProperties(remoteClient);
                     }
                 }

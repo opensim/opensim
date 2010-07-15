@@ -600,12 +600,12 @@ namespace OpenSim.Region.Framework.Scenes
                     item.GroupID = m_part.GroupID;
                         
                 if (item.AssetID == UUID.Zero)
-                    item.AssetID = it.AssetID;
-
-                lock (m_items)
                 {
-                    m_items[item.ItemID] = item;
-                    m_inventorySerial++;
+                    item.AssetID = m_items[item.ItemID].AssetID;
+                }
+                else if ((InventoryType)item.Type == InventoryType.Notecard)
+                {
+                    ScenePresence presence = m_part.ParentGroup.Scene.GetScenePresence(item.OwnerID);
                 }
 
                 if (fireScriptEvents)
