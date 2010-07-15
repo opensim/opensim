@@ -4156,6 +4156,9 @@ namespace OpenSim.Region.Framework.Scenes
                         // objects
                         if ((_nextOwnerMask & (uint)PermissionMask.Copy) == 0)
                             _nextOwnerMask |= (uint)PermissionMask.Transfer;
+
+                        _nextOwnerMask |= (uint)PermissionMask.Move;
+
                         break;
                 }
                 SendFullUpdateToAllClients();
