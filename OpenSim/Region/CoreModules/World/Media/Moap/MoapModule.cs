@@ -451,11 +451,13 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         /// <summary>
         /// Check the given url against the given whitelist.
         /// </summary>
-        /// <param name="url"></param>
+        /// <param name="rawUrl"></param>
         /// <param name="whitelist"></param>
         /// <returns>true if the url matches an entry on the whitelist, false otherwise</returns>
-        protected bool CheckUrlAgainstWhitelist(string url, string[] whitelist)
+        protected bool CheckUrlAgainstWhitelist(string rawUrl, string[] whitelist)
         {            
+            Uri url = new Uri(rawUrl);
+            
             foreach (string rawWlUrl in whitelist)
             {
                 string wlUrl = rawWlUrl;
@@ -464,14 +466,13 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 if (wlUrl.EndsWith("*"))
                     wlUrl = wlUrl.Remove(wlUrl.Length - 1);
                 
-                if (!wlUrl.StartsWith("http://"))
-                    wlUrl = "http://" + wlUrl;
-                
                 m_log.DebugFormat("[MOAP]: Checking whitelist URL {0}", wlUrl);
+                
+                string urlToMatch = url.Authority + url.AbsolutePath;
 
-                if (url.StartsWith(wlUrl))
+                if (urlToMatch.StartsWith(wlUrl))
                 {
-                    m_log.DebugFormat("[MOAP]: Whitelist URL {0} matches {1}", wlUrl, url);
+                    m_log.DebugFormat("[MOAP]: Whitelist URL {0} matches {1}", wlUrl, urlToMatch);
                     return true;
                 }
             }        
