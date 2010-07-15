@@ -916,6 +916,9 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = part.ParentGroup;
             if (group != null)
             {
+                if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId))
+                    return;
+                
                 TaskInventoryItem item = group.GetInventoryItem(localID, itemID);
                 if (item == null)
                     return;
@@ -1055,9 +1058,21 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            // Only owner can copy
-            if (remoteClient.AgentId != taskItem.OwnerID)
-                return;
+            TaskInventoryItem item = part.Inventory.GetInventoryItem(itemId);
+            if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+            {
+                // If the item to be moved is no copy, we need to be able to
+                // edit the prim.
+                if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId))
+                    return;
+            }
+            else
+            {
+                // If the item is copiable, then we just need to have perms
+                // on it. The delete check is a pure rights check
+                if (!Permissions.CanDeleteObject(part.UUID, remoteClient.AgentId))
+                    return;
+            }
 
             MoveTaskInventoryItem(remoteClient, folderId, part, itemId);
         }
