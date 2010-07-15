@@ -458,22 +458,36 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         {            
             Uri url = new Uri(rawUrl);
             
-            foreach (string rawWlUrl in whitelist)
+            foreach (string origWlUrl in whitelist)
             {
-                string wlUrl = rawWlUrl;
+                string wlUrl = origWlUrl;
                 
                 // Deal with a line-ending wildcard
                 if (wlUrl.EndsWith("*"))
                     wlUrl = wlUrl.Remove(wlUrl.Length - 1);
                 
-                m_log.DebugFormat("[MOAP]: Checking whitelist URL {0}", wlUrl);
+                m_log.DebugFormat("[MOAP]: Checking whitelist URL pattern {0}", origWlUrl);
                 
-                string urlToMatch = url.Authority + url.AbsolutePath;
-
-                if (urlToMatch.StartsWith(wlUrl))
+                // Handle a line starting wildcard slightly differently since this can only match the domain, not the path
+                if (wlUrl.StartsWith("*"))
                 {
-                    m_log.DebugFormat("[MOAP]: Whitelist URL {0} matches {1}", wlUrl, urlToMatch);
-                    return true;
+                    wlUrl = wlUrl.Substring(1);
+                    
+                    if (url.Host.Contains(wlUrl))
+                    {
+                        m_log.DebugFormat("[MOAP]: Whitelist URL {0} matches {1}", origWlUrl, rawUrl);
+                        return true;                        
+                    }
+                }
+                else
+                {
+                    string urlToMatch = url.Authority + url.AbsolutePath;
+    
+                    if (urlToMatch.StartsWith(wlUrl))
+                    {
+                        m_log.DebugFormat("[MOAP]: Whitelist URL {0} matches {1}", origWlUrl, rawUrl);
+                        return true;
+                    }
                 }
             }        
             
