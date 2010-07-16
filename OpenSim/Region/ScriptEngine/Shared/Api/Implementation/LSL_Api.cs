@@ -465,22 +465,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         //Now we start getting into quaternions which means sin/cos, matrices and vectors. ckrinke
 
-        // Utility function for llRot2Euler
-
-        // normalize an angle between -PI and PI (-180 to +180 degrees)
-        protected double NormalizeAngle(double angle)
-        {
-            if (angle > -Math.PI && angle < Math.PI)
-                return angle;
-
-            int numPis = (int)(Math.PI / angle);
-            double remainder = angle - Math.PI * numPis;
-            if (numPis % 2 == 1)
-                return Math.PI - angle;
-            return remainder;
-        }
-
-        // Old implementation of llRot2Euler, now normalized
+        // Old implementation of llRot2Euler. Normalization not required as Atan2 function will
+        // only return values >= -PI (-180 degrees) and <= PI (180 degrees).
 
         public LSL_Vector llRot2Euler(LSL_Rotation r)
         {
@@ -492,13 +478,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             double n = 2 * (r.y * r.s + r.x * r.z);
             double p = m * m - n * n;
             if (p > 0)
-                return new LSL_Vector(NormalizeAngle(Math.Atan2(2.0 * (r.x * r.s - r.y * r.z), (-t.x - t.y + t.z + t.s))),
-                                             NormalizeAngle(Math.Atan2(n, Math.Sqrt(p))),
-                                             NormalizeAngle(Math.Atan2(2.0 * (r.z * r.s - r.x * r.y), (t.x - t.y - t.z + t.s))));
+                return new LSL_Vector(Math.Atan2(2.0 * (r.x * r.s - r.y * r.z), (-t.x - t.y + t.z + t.s)),
+                                             Math.Atan2(n, Math.Sqrt(p)),
+                                             Math.Atan2(2.0 * (r.z * r.s - r.x * r.y), (t.x - t.y - t.z + t.s)));
             else if (n > 0)
-                return new LSL_Vector(0.0, Math.PI * 0.5, NormalizeAngle(Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z)));
+                return new LSL_Vector(0.0, Math.PI * 0.5, Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z));
             else
-                return new LSL_Vector(0.0, -Math.PI * 0.5, NormalizeAngle(Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z)));
+                return new LSL_Vector(0.0, -Math.PI * 0.5, Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z));
         }
 
         /* From wiki:
