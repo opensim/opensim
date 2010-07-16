@@ -140,19 +140,33 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 group.SetAttachmentPoint((byte)AttachmentPt);
                 group.AbsolutePosition = attachPos;
 
-                // Saves and gets itemID
-                UUID itemId;
+                // Remove any previous attachments
+                ScenePresence sp = m_scene.GetScenePresence(remoteClient.AgentId);
+                UUID itemID = UUID.Zero;
+                if (sp != null)
+                {
+                    foreach(SceneObjectGroup grp in sp.Attachments)
+                    {
+                        if (grp.GetAttachmentPoint() == (byte)AttachmentPt)
+                        {
+                            itemID = grp.GetFromItemID();
+                            break;
+                        }
+                    }
+                    if (itemID != UUID.Zero)
+                        DetachSingleAttachmentToInv(itemID, remoteClient);
+                }
 
                 if (group.GetFromItemID() == UUID.Zero)
                 {
-                    m_scene.attachObjectAssetStore(remoteClient, group, remoteClient.AgentId, out itemId);
+                    m_scene.attachObjectAssetStore(remoteClient, group, remoteClient.AgentId, out itemID);
                 }
                 else
                 {
-                    itemId = group.GetFromItemID();
+                    itemID = group.GetFromItemID();
                 }
 
-                SetAttachmentInventoryStatus(remoteClient, AttachmentPt, itemId, group);
+                SetAttachmentInventoryStatus(remoteClient, AttachmentPt, itemID, group);
 
                 group.AttachToAgent(remoteClient.AgentId, AttachmentPt, attachPos, silent);
                 
