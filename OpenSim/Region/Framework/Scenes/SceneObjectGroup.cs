@@ -294,7 +294,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if ((m_scene.TestBorderCross(val - Vector3.UnitX, Cardinals.E) || m_scene.TestBorderCross(val + Vector3.UnitX, Cardinals.W)
                     || m_scene.TestBorderCross(val - Vector3.UnitY, Cardinals.N) || m_scene.TestBorderCross(val + Vector3.UnitY, Cardinals.S)) 
-                    && !IsAttachmentCheckFull())
+                    && !IsAttachmentCheckFull() && (!m_scene.LoadingPrims))
                 {
                     m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
                 }
