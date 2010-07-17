@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -164,9 +164,9 @@ namespace OpenSim.Framework.Communications.Clients
                     }
                 }
             }
-            catch (WebException ex)
+            catch (Exception ex)
             {
-                m_log.InfoFormat("[REST COMMS]: exception on reply of DoCreateChildAgentCall {0}", ex.Message);
+                m_log.DebugFormat("[REST COMMS]: exception on reply of DoCreateChildAgentCall {0}", ex.Message);
                 // ignore, really
             }
             finally
@@ -176,7 +176,6 @@ namespace OpenSim.Framework.Communications.Clients
             }
 
             return true;
-
         }
 
         public bool DoChildAgentUpdateCall(GridRegion region, IAgentData cAgentData)
