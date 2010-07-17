@@ -422,7 +422,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if (!scenePresence.IsChildAgent)
                         {
-                            m_log.ErrorFormat("Packet debug for {0} {1} set to {2}",
+                            m_log.DebugFormat("Packet debug for {0} {1} set to {2}",
                                               scenePresence.Firstname,
                                               scenePresence.Lastname,
                                               newDebug);

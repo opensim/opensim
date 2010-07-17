@@ -98,6 +98,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// </summary>
     public class LLClientView : IClientAPI, IClientCore, IClientIM, IClientChat, IClientIPEndpoint, IStatsCollector
     {
+        /// <value>
+        /// Debug packet level.  At the moment, only 255 does anything (prints out all in and out packets).
+        /// </value>
+        protected int m_debugPacketLevel = 0;
+        
         #region Events
 
         public event GenericMessage OnGenericMessage;
@@ -365,6 +370,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </value>
         protected HashSet<uint> m_killRecord;
         
+//      protected HashSet<uint> m_attachmentsQueued;
+//      protected HashSet<uint> m_attachmentsSent;
+        
         private int m_moneyBalance;
         private int m_animationSequenceNumber = 1;
         private bool m_SendLogoutPacketWhenClosing = true;
@@ -456,6 +464,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_primFullUpdates = new PriorityQueue<double, ObjectUpdatePacket.ObjectDataBlock>(m_scene.Entities.Count);
             m_fullUpdateDataBlocksBuilder = new List<ObjectUpdatePacket.ObjectDataBlock>();
             m_killRecord = new HashSet<uint>();
+//          m_attachmentsQueued = new HashSet<uint>();
+//          m_attachmentsSent = new HashSet<uint>();
 
             m_assetService = m_scene.RequestModuleInterface<IAssetService>();
             m_hyperAssets = m_scene.RequestModuleInterface<IHyperAssetService>();
@@ -485,6 +495,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SetDebugPacketLevel(int newDebug)
         {
+            m_debugPacketLevel = newDebug;
         }
 
         #region Client Methods
@@ -669,8 +680,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void ProcessSpecificPacketAsync(object state)
         {
             AsyncPacketProcess packetObject = (AsyncPacketProcess)state;
-            packetObject.result = packetObject.Method(packetObject.ClientView, packetObject.Pack);
-            
+            packetObject.result = packetObject.Method(packetObject.ClientView, packetObject.Pack);          
         }
 
         #endregion Packet Handling
@@ -3397,6 +3407,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             objupdate.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
             objupdate.ObjectData[0] = CreateAvatarUpdateBlock(data);
             OutPacket(objupdate, ThrottleOutPacketType.Task);
+            
+            // We need to record the avatar local id since the root prim of an attachment points to this.
+//          m_attachmentsSent.Add(data.AvatarLocalID);
         }
 
         /// <summary>
@@ -3499,8 +3512,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //            if (text.IndexOf("\n") >= 0)
 //                text = text.Remove(text.IndexOf("\n"));
 //            m_log.DebugFormat(
-//                "[CLIENT]: Placing request to send full info about prim {0} text {1} to client {2}", 
-//                data.localID, text, Name);
+//                "[CLIENT]: Queueing send full info about prim {0}, attachment {1}, text {2} to client {3}", 
+//                data.localID, data.attachment, text, Name);
             
             if (data.priority == double.NaN)
             {
@@ -3518,6 +3531,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
 
             ObjectUpdatePacket.ObjectDataBlock objectData = CreatePrimUpdateBlock(data);
+            
+//          if (data.attachment)
+//              m_attachmentsQueued.Add(data.localID);
 
             lock (m_primFullUpdates.SyncRoot)
                 m_primFullUpdates.Enqueue(data.priority, objectData, data.localID);
@@ -3544,15 +3560,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     ObjectUpdatePacket.ObjectDataBlock block = m_primFullUpdates.Dequeue();
 
                     if (!m_killRecord.Contains(block.ID))
-                    {
+                    {                                                
+//                      if (m_attachmentsQueued.Contains(block.ID))
+//                      {
+//                          string text = Util.FieldToString(block.Text);
+//                          if (text.IndexOf("\n") >= 0)
+//                              text = text.Remove(text.IndexOf("\n"));
+//                            
+//                          if (m_attachmentsSent.Contains(block.ParentID))
+//                          {
+//                              m_log.DebugFormat(
+//                                  "[CLIENT]: Sending full info about attached prim {0} text {1}",
+//                                  block.ID, text);
+//                                
+//                                m_fullUpdateDataBlocksBuilder.Add(block);
+//                                
+//                                m_attachmentsSent.Add(block.ID);
+//                            }
+//                            else
+//                            {
+//                                m_log.DebugFormat(
+//                                    "[CLIENT]: Requeueing full update of prim {0} text {1} since we haven't sent its parent {2} yet", 
+//                                    block.ID, text, block.ParentID);
+//                                
+//                                lock (m_primFullUpdates.SyncRoot)
+//                                    m_primFullUpdates.Enqueue(double.MaxValue, block, block.ID);                                
+//                            }
+//                        }
+//                        else
+//                        {
                         m_fullUpdateDataBlocksBuilder.Add(block);
-                        
-//                    string text = Util.FieldToString(outPacket.ObjectData[i].Text);
-//                    if (text.IndexOf("\n") >= 0)
-//                        text = text.Remove(text.IndexOf("\n"));
-//                    m_log.DebugFormat(
-//                        "[CLIENT]: Sending full info about prim {0} text {1} to client {2}", 
-//                        outPacket.ObjectData[i].ID, text, Name);
+//                        }
                     }
 //                    else
 //                    {
@@ -4504,6 +4542,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected ObjectUpdatePacket.ObjectDataBlock CreatePrimUpdateBlock(SendPrimitiveData data)
         {
+//          if (data.attachment)
+//                m_log.DebugFormat(
+//                    "[LLCLIENTVIEW]: Creating prim update block for {0}, parent {1}, priority {2}", 
+//                    data.localID, data.parentID, data.priority); 
+                                  
             byte[] objectData = new byte[60];
             data.pos.ToBytes(objectData, 0);
             data.vel.ToBytes(objectData, 12);
@@ -7053,32 +7096,89 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 taskID = new UUID(transfer.TransferInfo.Params, 48);
                 UUID itemID = new UUID(transfer.TransferInfo.Params, 64);
                 UUID requestID = new UUID(transfer.TransferInfo.Params, 80);
+
+//                m_log.DebugFormat(
+//                    "[CLIENT]: Got request for asset {0} from item {1} in prim {2} by {3}", 
+//                    requestID, itemID, taskID, Name);
+
                 if (!(((Scene)m_scene).Permissions.BypassPermissions()))
                 {
                     if (taskID != UUID.Zero) // Prim
                     {
                         SceneObjectPart part = ((Scene)m_scene).GetSceneObjectPart(taskID);
                         if (part == null)
+                        {
+                            m_log.WarnFormat(
+                                "[CLIENT]: {0} requested asset {1} from item {2} in prim {3} but prim does not exist", 
+                                Name, requestID, itemID, taskID);
                             return true;
+                        }
 
-                        if (part.OwnerID != AgentId)
+                        TaskInventoryItem tii = part.Inventory.GetInventoryItem(itemID);
+                        if (tii == null)
+                        {
+                            m_log.WarnFormat(
+                                "[CLIENT]: {0} requested asset {1} from item {2} in prim {3} but item does not exist", 
+                                Name, requestID, itemID, taskID);                            
                             return true;
-
-                        if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
-                            return true;
-
-                        TaskInventoryItem ti = part.Inventory.GetInventoryItem(itemID);
-                        if (ti == null)
-                            return true;
-
-                        if (ti.OwnerID != AgentId)
-                            return true;
-
-                        if ((ti.CurrentPermissions & ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer)) != ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer))
-                            return true;
-
-                        if (ti.AssetID != requestID)
-                            return true;
+                        }                        
+                        
+                        if (tii.Type == (int)AssetType.LSLText)
+                        {
+                            if (!((Scene)m_scene).Permissions.CanEditScript(itemID, taskID, AgentId))
+                                return true;
+                        }
+                        else if (tii.Type == (int)AssetType.Notecard)
+                        {
+                            if (!((Scene)m_scene).Permissions.CanEditNotecard(itemID, taskID, AgentId))
+                                return true;
+                        }
+                        else
+                        {
+                            // TODO: Change this code to allow items other than notecards and scripts to be successfully
+                            // shared with group.  In fact, all this permissions checking should move to an IPermissionsModule
+                            if (part.OwnerID != AgentId)
+                            {
+                                m_log.WarnFormat(
+                                    "[CLIENT]: {0} requested asset {1} from item {2} in prim {3} but the prim is owned by {4}",
+                                    Name, requestID, itemID, taskID, part.OwnerID);                            
+                                return true;
+                            }
+    
+                            if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                            {
+                                m_log.WarnFormat(
+                                    "[CLIENT]: {0} requested asset {1} from item {2} in prim {3} but modify permissions are not set", 
+                                    Name, requestID, itemID, taskID);                            
+                                return true;
+                            }
+    
+                            if (tii.OwnerID != AgentId)
+                            {
+                                m_log.WarnFormat(
+                                    "[CLIENT]: {0} requested asset {1} from item {2} in prim {3} but the item is owned by {4}", 
+                                    Name, requestID, itemID, taskID, tii.OwnerID);                            
+                                return true;
+                            }
+    
+                            if ((
+                                tii.CurrentPermissions & ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer)) 
+                                    != ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer))
+                            {
+                                m_log.WarnFormat(
+                                    "[CLIENT]: {0} requested asset {1} from item {2} in prim {3} but item permissions are not modify/copy/transfer", 
+                                    Name, requestID, itemID, taskID);                            
+                                return true;
+                            }
+    
+                            if (tii.AssetID != requestID)
+                            {
+                                m_log.WarnFormat(
+                                    "[CLIENT]: {0} requested asset {1} from item {2} in prim {3} but this does not match item's asset {4}", 
+                                    Name, requestID, itemID, taskID, tii.AssetID);                            
+                                return true;
+                            }
+                        }
                     }
                     else // Agent
                     {
@@ -7114,7 +7214,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
 
                         if (assetRequestItem.AssetID != requestID)
+                        {
+                            m_log.WarnFormat(
+                                "[CLIENT]: {0} requested asset {1} from item {2} but this does not match item's asset {3}", 
+                                Name, requestID, itemID, assetRequestItem.AssetID);                            
                             return true;
+                        }
                     }
                 }
             }
@@ -7661,12 +7766,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         newTaskItem.GroupPermissions = updatetask.InventoryData.GroupMask;
                         newTaskItem.EveryonePermissions = updatetask.InventoryData.EveryoneMask;
                         newTaskItem.NextPermissions = updatetask.InventoryData.NextOwnerMask;
+
+                        // Unused?  Clicking share with group sets GroupPermissions instead, so perhaps this is something
+                        // different
                         //newTaskItem.GroupOwned=updatetask.InventoryData.GroupOwned;
                         newTaskItem.Type = updatetask.InventoryData.Type;
                         newTaskItem.InvType = updatetask.InventoryData.InvType;
                         newTaskItem.Flags = updatetask.InventoryData.Flags;
                         //newTaskItem.SaleType=updatetask.InventoryData.SaleType;
-                        //newTaskItem.SalePrice=updatetask.InventoryData.SalePrice;;
+                        //newTaskItem.SalePrice=updatetask.InventoryData.SalePrice;
                         newTaskItem.Name = Util.FieldToString(updatetask.InventoryData.Name);
                         newTaskItem.Description = Util.FieldToString(updatetask.InventoryData.Description);
                         newTaskItem.CreationDate = (uint)updatetask.InventoryData.CreationDate;
@@ -7674,7 +7782,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                    newTaskItem, updatetask.UpdateData.LocalID);
                     }
                 }
-            }
+            }               
 
             return true;
         }
@@ -10977,7 +11085,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLUDPServer.LogPacketHeader(false, m_circuitCode, 0, packet.Type, (ushort)packet.Length);
             #endregion BinaryStats
 
-            m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, true);
+            OutPacket(packet, throttlePacketType, true);
         }
 
         /// <summary>
@@ -10990,6 +11098,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// handles splitting manually</param>
         protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType, bool doAutomaticSplitting)
         {
+            if (m_debugPacketLevel >= 255)
+                m_log.DebugFormat("[CLIENT]: Packet OUT {0}", packet.Type);
+            
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, doAutomaticSplitting);
         }
 
@@ -11061,10 +11172,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="Pack">OpenMetaverse.packet</param>
         public void ProcessInPacket(Packet Pack)
         {
-//            m_log.DebugFormat("[CLIENT]: Packet IN {0}", Pack);
+            if (m_debugPacketLevel >= 255)
+                m_log.DebugFormat("[CLIENT]: Packet IN {0}", Pack.Type);
             
             if (!ProcessPacketMethod(Pack))
-                m_log.Warn("[CLIENT]: unhandled packet " + Pack);
+                m_log.Warn("[CLIENT]: unhandled packet " + Pack.Type);
 
             PacketPool.Instance.ReturnPacket(Pack);
         }
@@ -11307,8 +11419,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //    }
             }
 
-            //check to see if asset is in local cache, if not we need to request it from asset server.
-            //m_log.Debug("asset request " + requestID);
+//            m_log.DebugFormat("[CLIENT]: {0} requesting asset {1}", Name, requestID);
 
             m_assetService.Get(requestID.ToString(), transferRequest, AssetReceived);
 
@@ -11589,6 +11700,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             public PacketMethod method;
             public bool Async;
         }
+        
         public class AsyncPacketProcess
         {
             public bool result = false;

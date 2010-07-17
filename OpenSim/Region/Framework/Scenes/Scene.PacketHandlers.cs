@@ -116,6 +116,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void RequestPrim(uint primLocalID, IClientAPI remoteClient)
         {
+//            m_log.DebugFormat("[SCENE]: {0} requested full update for {1}", remoteClient.Name, primLocalID);
+            
             List<EntityBase> EntityList = GetEntities();
 
             foreach (EntityBase ent in EntityList)

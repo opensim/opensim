@@ -1891,9 +1891,31 @@ namespace OpenSim.Region.Framework.Scenes
         /// true if the object was added, false if an object with the same uuid was already in the scene
         /// </returns>
         public bool AddRestoredSceneObject(
+            SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted, bool sendClientUpdates)
+        {
+            return m_sceneGraph.AddRestoredSceneObject(sceneObject, attachToBackup, alreadyPersisted, sendClientUpdates);
+        }        
+
+        /// <summary>
+        /// Add an object into the scene that has come from storage
+        /// </summary>
+        ///
+        /// <param name="sceneObject"></param>
+        /// <param name="attachToBackup">
+        /// If true, changes to the object will be reflected in its persisted data
+        /// If false, the persisted data will not be changed even if the object in the scene is changed
+        /// </param>
+        /// <param name="alreadyPersisted">
+        /// If true, we won't persist this object until it changes
+        /// If false, we'll persist this object immediately
+        /// </param>
+        /// <returns>
+        /// true if the object was added, false if an object with the same uuid was already in the scene
+        /// </returns>
+        public bool AddRestoredSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted)
         {
-            return m_sceneGraph.AddRestoredSceneObject(sceneObject, attachToBackup, alreadyPersisted);
+            return AddRestoredSceneObject(sceneObject, attachToBackup, alreadyPersisted, true);
         }
 
         /// <summary>
@@ -2506,7 +2528,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public bool IncomingCreateObject(ISceneObject sog)
         {
-            //m_log.Debug(" >>> IncomingCreateObject(sog) <<< " + ((SceneObjectGroup)sog).AbsolutePosition + " deleted? " + ((SceneObjectGroup)sog).IsDeleted);
+//            m_log.Debug(" >>> IncomingCreateObject(sog) <<< " + ((SceneObjectGroup)sog).AbsolutePosition + " deleted? " + ((SceneObjectGroup)sog).IsDeleted);
             SceneObjectGroup newObject;
             try
             {
@@ -2578,16 +2600,20 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (sceneObject.IsAttachmentCheckFull()) // Attachment
             {
+//                m_log.DebugFormat("[SCENE]: Adding attachment {0} {1}", sceneObject.Name, sceneObject.LocalId);
+                
                 sceneObject.RootPart.AddFlag(PrimFlags.TemporaryOnRez);
                 sceneObject.RootPart.AddFlag(PrimFlags.Phantom);
 
-                AddRestoredSceneObject(sceneObject, false, false);
+                AddRestoredSceneObject(sceneObject, false, false, false);
 
                 // Handle attachment special case
                 SceneObjectPart RootPrim = sceneObject.RootPart;
 
                 // Fix up attachment Parent Local ID
                 ScenePresence sp = GetScenePresence(sceneObject.OwnerID);
+
+//                Console.WriteLine("AAAA");
 
                 //uint parentLocalID = 0;
                 if (sp != null)
@@ -2607,20 +2633,25 @@ namespace OpenSim.Region.Framework.Scenes
                     //grp.SetFromAssetID(grp.RootPart.LastOwnerID);
                     m_log.DebugFormat(
                         "[ATTACHMENT]: Attach to avatar {0} at position {1}", sp.UUID, grp.AbsolutePosition);
-                    
+
+                    RootPrim.RemFlag(PrimFlags.TemporaryOnRez);                    
                     AttachObject(
                         sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition, false);
-                    RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
-                    grp.SendGroupFullUpdate();
+                    
+                    //grp.SendGroupFullUpdate();
                 }
                 else
                 {
                     RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
                     RootPrim.AddFlag(PrimFlags.TemporaryOnRez);
                 }
+
+//                Console.WriteLine("BBBB");
             }
             else
             {
+//                m_log.DebugFormat("[SCENE]: Adding ordinary object {0} {1}", sceneObject.Name, sceneObject.LocalId);
+                
                 AddRestoredSceneObject(sceneObject, true, false);
 
                 if (!Permissions.CanObjectEntry(sceneObject.UUID,

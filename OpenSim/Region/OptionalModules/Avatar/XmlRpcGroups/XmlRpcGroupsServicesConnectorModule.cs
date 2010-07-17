@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 
 using Nwc.XmlRpc;
 
@@ -42,6 +43,7 @@ using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
@@ -72,7 +74,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private bool m_debugEnabled = false;
 
-
+        private ExpiringCache<string, XmlRpcResponse> m_memoryCache;
+        private int m_cacheTimeout = 30;
+        
         // Used to track which agents are have dropped from a group chat session
         // Should be reset per agent, on logon
         // TODO: move this to Flotsam XmlRpc Service
@@ -132,8 +136,18 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 m_debugEnabled = groupsConfig.GetBoolean("DebugEnabled", true);
 
-
+                m_cacheTimeout = groupsConfig.GetInt("GroupsCacheTimeout", 30);
+                if (m_cacheTimeout == 0)
+                {
+                    m_log.WarnFormat("[XMLRPC-GROUPS-CONNECTOR]: Groups Cache Disabled.");
+                }
+                else
+                {
+                    m_log.InfoFormat("[XMLRPC-GROUPS-CONNECTOR]: Groups Cache Timeout set to {0}.", m_cacheTimeout);
+                }                
+                
                 // If we got all the config options we need, lets start'er'up
+                m_memoryCache = new ExpiringCache<string, XmlRpcResponse>();
                 m_connectorEnabled = true;
             }
         }
@@ -921,61 +935,94 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         /// </summary>
         private Hashtable XmlRpcCall(UUID requestingAgentID, string function, Hashtable param)
         {
-            string UserService;
-            UUID SessionID;
-            GetClientGroupRequestID(requestingAgentID, out UserService, out SessionID);
-            param.Add("RequestingAgentID", requestingAgentID.ToString());
-            param.Add("RequestingAgentUserService", UserService);
-            param.Add("RequestingSessionID", SessionID.ToString());
-            
-
-            param.Add("ReadKey", m_groupReadKey);
-            param.Add("WriteKey", m_groupWriteKey);
-
-            if (m_debugEnabled)
-            {
-                m_log.Debug("[XMLRPCGROUPDATA] XmlRpcCall Params:");
-                foreach (string key in param.Keys)
-                {
-                    m_log.DebugFormat("[XMLRPCGROUPDATA] {0} : {1}", key, param[key]);
-                }
-            }
-
-            IList parameters = new ArrayList();
-            parameters.Add(param);
-
-            ConfigurableKeepAliveXmlRpcRequest req;
-            req = new ConfigurableKeepAliveXmlRpcRequest(function, parameters, m_disableKeepAlive);
-
             XmlRpcResponse resp = null;
+            string CacheKey = null;
 
-            try
+            // Only bother with the cache if it isn't disabled.
+            if (m_cacheTimeout > 0)
             {
-                resp = req.Send(m_groupsServerURI, 10000);
+                if (!function.StartsWith("groups.get"))
+                {
+                    // Any and all updates cause the cache to clear
+                    m_memoryCache.Clear();
+                }
+                else
+                {
+                    StringBuilder sb = new StringBuilder(requestingAgentID + function);
+                    foreach (object key in param.Keys)
+                    {
+                        if (param[key] != null)
+                        {
+                            sb.AppendFormat(",{0}:{1}", key.ToString(), param[key].ToString());
+                        }
+                    }
+
+                    CacheKey = sb.ToString();
+                    m_memoryCache.TryGetValue(CacheKey, out resp);
+                }
             }
-            catch (Exception e)
+            
+            if (resp == null)
             {
+                string UserService;
+                UUID SessionID;
+                GetClientGroupRequestID(requestingAgentID, out UserService, out SessionID);
+                param.Add("RequestingAgentID", requestingAgentID.ToString());
+                param.Add("RequestingAgentUserService", UserService);
+                param.Add("RequestingSessionID", SessionID.ToString());
                 
-
-                m_log.ErrorFormat("[XMLRPCGROUPDATA]: An error has occured while attempting to access the XmlRpcGroups server method: {0}", function);
-                m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0} ", e.ToString());
-
-                if ((req != null) && (req.RequestResponse != null))
+    
+                param.Add("ReadKey", m_groupReadKey);
+                param.Add("WriteKey", m_groupWriteKey);
+    
+                if (m_debugEnabled)
                 {
-                    foreach (string ResponseLine in req.RequestResponse.Split(new string[] { Environment.NewLine }, StringSplitOptions.None))
+                    m_log.Debug("[XMLRPCGROUPDATA] XmlRpcCall Params:");
+                    foreach (string key in param.Keys)
+                    {
+                        m_log.DebugFormat("[XMLRPCGROUPDATA] {0} : {1}", key, param[key]);
+                    }
+                }
+    
+                IList parameters = new ArrayList();
+                parameters.Add(param);
+    
+                ConfigurableKeepAliveXmlRpcRequest req;
+                req = new ConfigurableKeepAliveXmlRpcRequest(function, parameters, m_disableKeepAlive);
+                
+                try
                 {
-                    m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0} ", ResponseLine);
+                    resp = req.Send(m_groupsServerURI, 10000);
+                    
+                    if ((m_cacheTimeout > 0) && (CacheKey != null))
+                    {
+                        m_memoryCache.AddOrUpdate(CacheKey, resp, TimeSpan.FromSeconds(m_cacheTimeout));
+                    }
                 }
-                }
-
-                foreach (string key in param.Keys)
+                catch (Exception e)
                 {
-                    m_log.WarnFormat("[XMLRPCGROUPDATA]: {0} :: {1}", key, param[key].ToString());
+                    
+    
+                    m_log.ErrorFormat("[XMLRPCGROUPDATA]: An error has occured while attempting to access the XmlRpcGroups server method: {0}", function);
+                    m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0} ", e.ToString());
+    
+                    if ((req != null) && (req.RequestResponse != null))
+                    {
+                        foreach (string ResponseLine in req.RequestResponse.Split(new string[] { Environment.NewLine }, StringSplitOptions.None))
+                    {
+                        m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0} ", ResponseLine);
+                    }
+                    }
+    
+                    foreach (string key in param.Keys)
+                    {
+                        m_log.WarnFormat("[XMLRPCGROUPDATA]: {0} :: {1}", key, param[key].ToString());
+                    }
+    
+                    Hashtable respData = new Hashtable();
+                    respData.Add("error", e.ToString());
+                    return respData;
                 }
-
-                Hashtable respData = new Hashtable();
-                respData.Add("error", e.ToString());
-                return respData;
             }
 
 

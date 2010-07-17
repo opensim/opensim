@@ -885,7 +885,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (!(pos.Y < 0))
                         emergencyPos.Y = pos.Y;
                     if (!(pos.Z < 0))
-                        emergencyPos.X = pos.X;
+                        emergencyPos.Z = pos.Z;
                 }
                 if (pos.Y < 0)
                 {
@@ -903,7 +903,7 @@ namespace OpenSim.Region.Framework.Scenes
                         emergencyPos.Y = pos.Y;
                     //Leave as 128
                 }
-
+                
                 m_log.WarnFormat(
                     "[SCENE PRESENCE]: MakeRootAgent() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
                     pos, Name, UUID, emergencyPos);
@@ -4103,6 +4103,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private double UpdatePriority(UpdatePriorityData data)
         {
+//          m_log.DebugFormat("[SCENE PRESENCE]: Reprioritizing updates to client {0} for {1}", Name, data.localID);
+			
             EntityBase entity;
             SceneObjectGroup group;
 

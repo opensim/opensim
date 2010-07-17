@@ -171,7 +171,9 @@ namespace OpenSim.Region.Framework.Scenes
                             item.NextPermissions;
                     taskItem.NextPermissions = item.NextPermissions;
                     taskItem.CurrentPermissions |= 8;
-                } else {
+                } 
+                else 
+                {
                     taskItem.BasePermissions = item.BasePermissions;
                     taskItem.CurrentPermissions = item.CurrentPermissions;
                     taskItem.CurrentPermissions |= 8;

@@ -125,6 +125,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         private ScriptCompileQueue m_CompileQueue = new ScriptCompileQueue();
         IWorkItemResult m_CurrentCompile = null;
+        private Dictionary<UUID, int> m_CompileDict = new Dictionary<UUID, int>();
 
         private void lockScriptsForRead(bool locked)
         {
@@ -555,11 +556,20 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             if (stateSource == (int)StateSource.ScriptedRez)
             {
+                lock (m_CompileDict)
+                {
+                    m_CompileDict[itemID] = 0;
+                }
+
                 DoOnRezScript(parms);
             }
             else
             {
                 m_CompileQueue.Enqueue(parms);
+                lock (m_CompileDict)
+                {
+                    m_CompileDict[itemID] = 0;
+                }
 
                 if (m_CurrentCompile == null)
                 {
@@ -621,6 +631,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             int startParam = (int)p[3];
             bool postOnRez = (bool)p[4];
             StateSource stateSource = (StateSource)p[5];
+
+            lock(m_CompileDict)
+            {
+                if (!m_CompileDict.ContainsKey(itemID))
+                    return false;
+                m_CompileDict.Remove(itemID);
+            }
 
             // Get the asset ID of the script, so we can check if we
             // already have it.
@@ -868,9 +885,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void OnRemoveScript(uint localID, UUID itemID)
         {
-            lockScriptsForRead(true);
-            // Do we even have it?
-            if (!m_Scripts.ContainsKey(itemID))
+            // If it's not yet been compiled, make sure we don't try
+            lock (m_CompileDict)
+            {
+                if (m_CompileDict.ContainsKey(itemID))
+                    m_CompileDict.Remove(itemID);
+            }
+
+            lock (m_Scripts)
             {
                 lockScriptsForRead(false);
                 return;
@@ -1375,10 +1397,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                     try
                     {
-                        FileStream tfs = File.Open(assemName + ".text",
-                                FileMode.Open, FileAccess.Read);
-                        tfs.Read(tdata, 0, tdata.Length);
-                        tfs.Close();
+                        using (FileStream tfs = File.Open(assemName + ".text",
+                                FileMode.Open, FileAccess.Read))
+                        {
+                            tfs.Read(tdata, 0, tdata.Length);
+                            tfs.Close();
+                        }
 
                         assem = new System.Text.ASCIIEncoding().GetString(tdata);
                     }
@@ -1398,9 +1422,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                     try
                     {
-                        FileStream fs = File.Open(assemName, FileMode.Open, FileAccess.Read);
-                        fs.Read(data, 0, data.Length);
-                        fs.Close();
+                        using (FileStream fs = File.Open(assemName, FileMode.Open, FileAccess.Read))
+                        {
+                            fs.Read(data, 0, data.Length);
+                            fs.Close();
+                        }
 
                         assem = System.Convert.ToBase64String(data);
                     }
@@ -1416,13 +1442,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             if (File.Exists(fn + ".map"))
             {
-                FileStream mfs = File.Open(fn + ".map", FileMode.Open, FileAccess.Read);
-                StreamReader msr = new StreamReader(mfs);
-
-                map = msr.ReadToEnd();
-
-                msr.Close();
-                mfs.Close();
+                using (FileStream mfs = File.Open(fn + ".map", FileMode.Open, FileAccess.Read))
+                {
+                    using (StreamReader msr = new StreamReader(mfs))
+                    {
+                        map = msr.ReadToEnd();
+                        msr.Close();
+                    }
+                    mfs.Close();
+                }
             }
 
             XmlElement assemblyData = doc.CreateElement("", "Assembly", "");
@@ -1510,30 +1538,59 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 {
                     Byte[] filedata = Convert.FromBase64String(base64);
 
-                    FileStream fs = File.Create(path);
-                    fs.Write(filedata, 0, filedata.Length);
-                    fs.Close();
-
-                    fs = File.Create(path + ".text");
-                    StreamWriter sw = new StreamWriter(fs);
-
-                    sw.Write(base64);
-
-                    sw.Close();
-                    fs.Close();
+                    try
+                    {
+                        using (FileStream fs = File.Create(path))
+                        {
+                            fs.Write(filedata, 0, filedata.Length);
+                            fs.Close();
+                        }
+                    }
+                    catch (IOException ex)
+                    {
+                        // if there already exists a file at that location, it may be locked.
+                        m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", path, ex.Message);
+                    }
+                    try
+                    {
+                        using (FileStream fs = File.Create(path + ".text"))
+                        {
+                            using (StreamWriter sw = new StreamWriter(fs))
+                            {
+                                sw.Write(base64);
+                                sw.Close();
+                            }
+                            fs.Close();
+                        }
+                    }
+                    catch (IOException ex)
+                    {
+                        // if there already exists a file at that location, it may be locked.
+                        m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", path, ex.Message);
+                    }
                 }
             }
 
             string statepath = Path.Combine("ScriptEngines", World.RegionInfo.RegionID.ToString());
             statepath = Path.Combine(statepath, itemID.ToString() + ".state");
 
-            FileStream sfs = File.Create(statepath);
-            StreamWriter ssw = new StreamWriter(sfs);
-
-            ssw.Write(stateE.OuterXml);
-
-            ssw.Close();
-            sfs.Close();
+            try
+            {
+                using (FileStream sfs = File.Create(statepath))
+                {
+                    using (StreamWriter ssw = new StreamWriter(sfs))
+                    {
+                        ssw.Write(stateE.OuterXml);
+                        ssw.Close();
+                    }
+                    sfs.Close();
+                }
+            }
+            catch (IOException ex)
+            {
+                // if there already exists a file at that location, it may be locked.
+                m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", statepath, ex.Message);
+            }
 
             XmlNodeList mapL = rootE.GetElementsByTagName("LineMap");
             if (mapL.Count > 0)
@@ -1543,13 +1600,23 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 string mappath = Path.Combine("ScriptEngines", World.RegionInfo.RegionID.ToString());
                 mappath = Path.Combine(mappath, mapE.GetAttribute("Filename"));
 
-                FileStream mfs = File.Create(mappath);
-                StreamWriter msw = new StreamWriter(mfs);
-
-                msw.Write(mapE.InnerText);
-
-                msw.Close();
-                mfs.Close();
+                try
+                {
+                    using (FileStream mfs = File.Create(mappath))
+                    {
+                        using (StreamWriter msw = new StreamWriter(mfs))
+                        {
+                            msw.Write(mapE.InnerText);
+                            msw.Close();
+                        }
+                        mfs.Close();
+                    }
+                }
+                catch (IOException ex)
+                {
+                    // if there already exists a file at that location, it may be locked.
+                    m_log.ErrorFormat("[XEngine]: File {0} already exists! {1}", statepath, ex.Message);
+                }
             }
 
             return true;

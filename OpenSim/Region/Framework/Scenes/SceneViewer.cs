@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
@@ -39,6 +40,8 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public class SceneViewer : ISceneViewer
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         protected ScenePresence m_presence;
         protected UpdateQueue m_partsUpdateQueue = new UpdateQueue();
         protected Queue<SceneObjectGroup> m_pendingObjects;
@@ -60,6 +63,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="part"></param>
         public void QueuePartForUpdate(SceneObjectPart part)
         {
+//            if (part.IsAttachment)
+//                m_log.DebugFormat("[SCENE VIEWER]: Queueing part {0} {1} for update", part.Name, part.LocalId);
+            
             lock (m_partsUpdateQueue)
             {
                 m_partsUpdateQueue.Enqueue(part);
@@ -134,7 +140,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else if (update.LastTerseUpdateTime <= part.TimeStampTerse)
                     {
-//                            m_log.DebugFormat(
+//                            m_log.DebugFormat(AddFullUpdateToAvatar
 //                                "[SCENE PRESENCE]: Tersely updating prim {0}, {1} - part timestamp {2}",
 //                                part.Name, part.UUID, part.TimeStampTerse);
 
