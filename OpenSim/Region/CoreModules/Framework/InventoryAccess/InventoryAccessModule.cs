@@ -529,7 +529,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     // find small items.
                     //
                     if (!attachment)
+                    {
                         group.RootPart.CreateSelected = true;
+                        foreach (SceneObjectPart child in group.Children.Values)
+                            child.CreateSelected = true;
+                    }
 
                     if (!m_Scene.Permissions.CanRezObject(
                         group.Children.Count, remoteClient.AgentId, pos)

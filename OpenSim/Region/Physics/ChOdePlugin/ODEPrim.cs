@@ -1735,6 +1735,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_isphysical)
                 {
                     disableBodySoft();
+
+                    if (Body != IntPtr.Zero)
+                    {
+                        d.BodySetLinearVel(Body, 0f, 0f, 0f);
+                        d.BodySetForce(Body, 0, 0, 0);
+                        enableBodySoft();
+                    }
                 }
             }
             else
@@ -1756,6 +1763,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                     d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
                 }
+/* Uhhh - stop the motion if the object is _selected_!!
                 if (m_isphysical)
                 {
                     if (Body != IntPtr.Zero)
@@ -1765,6 +1773,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         enableBodySoft();
                     }
                 }
+*/
             }
 
             resetCollisionAccounting();
