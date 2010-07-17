@@ -4177,7 +4177,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 byte[] bucket = new byte[17];
                 bucket[0] = (byte)assetType;
-                byte[] objBytes = objId.GetBytes();
+                byte[] objBytes = agentItem.ID.GetBytes();
                 Array.Copy(objBytes, 0, bucket, 1, 16);
 
                 Console.WriteLine("Giving inventory");
