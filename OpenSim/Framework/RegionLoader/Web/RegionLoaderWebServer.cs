@@ -82,6 +82,25 @@ namespace OpenSim.Framework.RegionLoader.Web
                             xmlSource = xmlSource + tempStr;
                             tempStr = reader.ReadLine();
                         }
+                        m_log.Debug("[WEBLOADER]: Done downloading region information from server. Total Bytes: " +
+                                    xmlSource.Length);
+                        XmlDocument xmlDoc = new XmlDocument();
+                        xmlDoc.LoadXml(xmlSource);
+                        if (xmlDoc.FirstChild.Name == "Regions")
+                        {
+                            RegionInfo[] regionInfos = new RegionInfo[xmlDoc.FirstChild.ChildNodes.Count];
+                            int i;
+                            for (i = 0; i < xmlDoc.FirstChild.ChildNodes.Count; i++)
+                            {
+                                m_log.Debug(xmlDoc.FirstChild.ChildNodes[i].OuterXml);
+                                regionInfos[i] =
+                                    new RegionInfo("REGION CONFIG #" + (i + 1), xmlDoc.FirstChild.ChildNodes[i],false,m_configSource);
+                            }
+
+                            if (i > 0)
+                                return regionInfos;
+                        }
+
                         m_log.Debug("[WEBLOADER]: Request yielded no regions.");
                         tries--;
                         if (tries > 0)
