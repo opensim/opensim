@@ -145,6 +145,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected SceneCommunicationService m_sceneGridService;
         public bool LoginsDisabled = true;
+        public bool LoadingPrims = false;
 
         public new float TimeDilation
         {
@@ -1650,6 +1651,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public virtual void LoadPrimsFromStorage(UUID regionID)
         {
+            LoadingPrims = true;
             m_log.Info("[SCENE]: Loading objects from datastore");
 
             List<SceneObjectGroup> PrimsFromDB = m_storageManager.DataStore.LoadObjects(regionID);
@@ -1673,6 +1675,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_log.Info("[SCENE]: Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
+            LoadingPrims = false;
         }
 
 
