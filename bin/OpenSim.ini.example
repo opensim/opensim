@@ -884,8 +884,11 @@
 Enabled = true
 RepoPath = "git"
 
-;How many frames between the scheduled commits?
-CommitFrameInterval = 360000
+;How many seconds between the scheduled commits?
+CommitInterval = 21600
+
+;Disable all except the initial commit?
+DisableNonEssentialCommits = false
 
 ;Should we automatically commit when necessary to avoid objects never making it into the repo?
 UseSafetyCommit = true
