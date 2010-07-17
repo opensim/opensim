@@ -900,16 +900,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 // Start the IClientAPI
                 // Spin it off so that it doesn't clog up the LLUDPServer
-                //Util.FireAndForget(delegate(object o) { client.Start(); });
-
-                // NOTE: DO NOT CALL THIS ASYNCHRONOUSLY!!!!!
-                // This method will ultimately cause the modules to hook
-                // client events in OnNewClient. If they can't do this
-                // before further packets are processed, packets WILL BE LOST.
-                // This includes the all-important EconomyDataRequest!
-                // So using FireAndForget here WILL screw up money. Badly.
-                // You have been warned!
-                client.Start();
+                Util.FireAndForget(delegate(object o) { client.Start(); });
             }
             else
             {
