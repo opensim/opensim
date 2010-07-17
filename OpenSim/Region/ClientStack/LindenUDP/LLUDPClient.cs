@@ -149,6 +149,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private int m_defaultRTO = 3000;
         private int m_maxRTO = 60000;
+        public bool m_deliverPackets = true;
 
         /// <summary>
         /// Default constructor
@@ -389,6 +390,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (category >= 0 && category < m_packetOutboxes.Length)
             {
                 OpenSim.Framework.LocklessQueue<OutgoingPacket> queue = m_packetOutboxes[category];
+
+                if (m_deliverPackets == false)
+                {
+                    queue.Enqueue(packet);
+                    return true;
+                }
+
                 TokenBucket bucket = m_throttleCategories[category];
 
                 if (bucket.RemoveTokens(packet.Buffer.DataLength))
@@ -419,6 +427,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns>True if any packets were sent, otherwise false</returns>
         public bool DequeueOutgoing()
         {
+            if (m_deliverPackets == false) return false;
+
             OutgoingPacket packet;
             OpenSim.Framework.LocklessQueue<OutgoingPacket> queue;
             TokenBucket bucket;

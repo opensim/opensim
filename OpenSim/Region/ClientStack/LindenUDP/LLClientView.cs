@@ -334,6 +334,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //        protected HashSet<uint> m_attachmentsSent;        
         
         private int m_moneyBalance;
+        private bool m_deliverPackets = true;
         private int m_animationSequenceNumber = 1;
         private bool m_SendLogoutPacketWhenClosing = true;
         private AgentUpdateArgs lastarg;
@@ -377,6 +378,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             get { return m_startpos; }
             set { m_startpos = value; }
+        }
+        public bool DeliverPackets
+        {
+            get { return m_deliverPackets; }
+            set {
+                m_deliverPackets = value;
+                m_udpClient.m_deliverPackets = value;
+            }
         }
         public UUID AgentId { get { return m_agentId; } }
         public UUID ActiveGroupId { get { return m_activeGroupID; } }

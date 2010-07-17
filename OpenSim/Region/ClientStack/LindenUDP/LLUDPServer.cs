@@ -900,7 +900,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 // Start the IClientAPI
                 // Spin it off so that it doesn't clog up the LLUDPServer
-                Util.FireAndForget(delegate(object o) { client.Start(); });
+                
+                //First, and very importantly:
+                //
+                //Set our DeliverPackets flag in the client to *false*
+                //this will prevent us from missing important messages
+                //before the modules are bound
+                client.DeliverPackets = false;
+                
+                Util.FireAndForget(
+                    delegate
+                    {
+                        try
+                        {
+                            client.Start();
+                        }
+                        finally
+                        {
+                            //Now, release the hounds. er, packets.
+                            client.DeliverPackets = true;
+                        }
+                    }
+                );
             }
             else
             {
