@@ -1700,11 +1700,19 @@ namespace OpenSim.Region.Framework.Scenes
                 // Invalid id
                 SceneObjectPart part = GetSceneObjectPart(localID);
                 if (part == null)
+                {
+                    //Client still thinks the object exists, kill it
+                    SendKillObject(localID);
                     continue;
+                }
 
                 // Already deleted by someone else
                 if (part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                {
+                    //Client still thinks the object exists, kill it
+                    SendKillObject(localID);
                     continue;
+                }
 
                 // Can't delete child prims
                 if (part != part.ParentGroup.RootPart)
