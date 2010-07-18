@@ -122,7 +122,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         private ScriptCompileQueue m_CompileQueue = new ScriptCompileQueue();
         IWorkItemResult m_CurrentCompile = null;
-        private Dictionary<UUID, int> m_CompileDict = new Dictionary<UUID, int>();
+//        private Dictionary<UUID, int> m_CompileDict = new Dictionary<UUID, int>();
 
         public string ScriptEngineName
         {
@@ -488,20 +488,20 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             if (stateSource == (int)StateSource.ScriptedRez)
             {
-                lock (m_CompileDict)
-                {
-                    m_CompileDict[itemID] = 0;
-                }
+//                lock (m_CompileDict)
+//                {
+//                    m_CompileDict[itemID] = 0;
+//                }
 
                 DoOnRezScript(parms);
             }
             else
             {
                 m_CompileQueue.Enqueue(parms);
-                lock (m_CompileDict)
-                {
-                    m_CompileDict[itemID] = 0;
-                }
+//                lock (m_CompileDict)
+//                {
+//                    m_CompileDict[itemID] = 0;
+//                }
 
                 if (m_CurrentCompile == null)
                 {
@@ -564,12 +564,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             bool postOnRez = (bool)p[4];
             StateSource stateSource = (StateSource)p[5];
 
-            lock(m_CompileDict)
-            {
-                if (!m_CompileDict.ContainsKey(itemID))
-                    return false;
-                m_CompileDict.Remove(itemID);
-            }
+//            lock(m_CompileDict)
+//            {
+//                if (!m_CompileDict.ContainsKey(itemID))
+//                    return false;
+//                m_CompileDict.Remove(itemID);
+//            }
 
             // Get the asset ID of the script, so we can check if we
             // already have it.
@@ -814,11 +814,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void OnRemoveScript(uint localID, UUID itemID)
         {
             // If it's not yet been compiled, make sure we don't try
-            lock (m_CompileDict)
-            {
-                if (m_CompileDict.ContainsKey(itemID))
-                    m_CompileDict.Remove(itemID);
-            }
+//            lock (m_CompileDict)
+//            {
+//                if (m_CompileDict.ContainsKey(itemID))
+//                    m_CompileDict.Remove(itemID);
+//            }
 
             lock (m_Scripts)
             {
