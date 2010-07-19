@@ -615,10 +615,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 int la = -1;
                 int lb = -1;
-                try { la = a.Length; }
-                catch (NullReferenceException) { }
-                try { lb = b.Length; }
-                catch (NullReferenceException) { }
+                if (a != null)
+                    la = a.Length;
+                if (b != null)
+                    lb = b.Length;
 
                 return la == lb;
             }
@@ -627,10 +627,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 int la = -1;
                 int lb = -1;
-                try { la = a.Length; }
-                catch (NullReferenceException) { }
-                try {lb = b.Length;}
-                catch (NullReferenceException) { }
+                if (a != null)
+                    la = a.Length;
+                if (b != null)
+                    lb = b.Length;
 
                 return la != lb;
             }
