@@ -701,9 +701,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
             }
 
+            ScriptInstance instance = null;
             lock (m_Scripts)
             {
-                ScriptInstance instance = null;
                 // Create the object record
 
                 if ((!m_Scripts.ContainsKey(itemID)) ||
@@ -784,28 +784,29 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                     m_Scripts[itemID] = instance;
                 }
-
-                lock (m_PrimObjects)
-                {
-                    if (!m_PrimObjects.ContainsKey(localID))
-                        m_PrimObjects[localID] = new List<UUID>();
-
-                    if (!m_PrimObjects[localID].Contains(itemID))
-                        m_PrimObjects[localID].Add(itemID);
-
-                }
-
-                if (!m_Assemblies.ContainsKey(assetID))
-                    m_Assemblies[assetID] = assembly;
-
-                lock (m_AddingAssemblies) 
-                {
-                    m_AddingAssemblies[assembly]--;
-                }
-
-                if (instance!=null) 
-                    instance.Init();
             }
+
+            lock (m_PrimObjects)
+            {
+                if (!m_PrimObjects.ContainsKey(localID))
+                    m_PrimObjects[localID] = new List<UUID>();
+
+                if (!m_PrimObjects[localID].Contains(itemID))
+                    m_PrimObjects[localID].Add(itemID);
+
+            }
+
+            if (!m_Assemblies.ContainsKey(assetID))
+                m_Assemblies[assetID] = assembly;
+
+            lock (m_AddingAssemblies) 
+            {
+                m_AddingAssemblies[assembly]--;
+            }
+
+            if (instance != null) 
+                instance.Init();
+
             return true;
         }
 
@@ -1005,26 +1006,33 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public bool PostObjectEvent(uint localID, EventParams p)
         {
             bool result = false;
-            
+            List<UUID> uuids = null;
+
             lock (m_PrimObjects)
             {
                 if (!m_PrimObjects.ContainsKey(localID))
                     return false;
 
-            
-                foreach (UUID itemID in m_PrimObjects[localID])
+                uuids = m_PrimObjects[localID];
+            }
+
+            foreach (UUID itemID in uuids)
+            {
+                IScriptInstance instance = null;
+                try
                 {
                     if (m_Scripts.ContainsKey(itemID))
-                    {
-                        IScriptInstance instance = m_Scripts[itemID];
-                        if (instance != null)
-                        {
-                            instance.PostEvent(p);
-                            result = true;
-                        }
-                    }
+                        instance = m_Scripts[itemID];
+                }
+                catch { /* ignore race conditions */ }
+
+                if (instance != null)
+                {
+                    instance.PostEvent(p);
+                    result = true;
                 }
             }
+            
             return result;
         }
 
