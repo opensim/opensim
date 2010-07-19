@@ -613,24 +613,16 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static bool operator ==(list a, list b)
             {
-                int la = -1;
-                int lb = -1;
-                if (a != null)
-                    la = a.Length;
-                if (b != null)
-                    lb = b.Length;
+                int la = a.Length;
+                int lb = b.Length;
 
                 return la == lb;
             }
 
             public static bool operator !=(list a, list b)
             {
-                int la = -1;
-                int lb = -1;
-                if (a != null)
-                    la = a.Length;
-                if (b != null)
-                    lb = b.Length;
+                int la = a.Length;
+                int lb = b.Length;
 
                 return la != lb;
             }

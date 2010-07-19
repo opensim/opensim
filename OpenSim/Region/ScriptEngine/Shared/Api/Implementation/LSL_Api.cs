@@ -5027,14 +5027,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (src == null)
-            {
-                return 0;
-            }
-            else
-            {
-                return src.Length;
-            }
+            return src.Length;
         }
 
         public LSL_Integer llList2Integer(LSL_List src, int index)
