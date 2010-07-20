@@ -752,10 +752,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     item.AssetID = m_items[item.ItemID].AssetID;
                 }
-                else if ((InventoryType)item.Type == InventoryType.Notecard)
-                {
-                    ScenePresence presence = m_part.ParentGroup.Scene.GetScenePresence(item.OwnerID);
-                }
 
                 m_items[item.ItemID] = item;
                 m_inventorySerial++;
