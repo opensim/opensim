@@ -701,9 +701,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
             }
 
+            ScriptInstance instance = null;
             lock (m_Scripts)
             {
-                ScriptInstance instance = null;
                 // Create the object record
 
                 if ((!m_Scripts.ContainsKey(itemID)) ||
@@ -786,28 +786,29 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                     m_Scripts[itemID] = instance;
                 }
-
-                lock (m_PrimObjects)
-                {
-                    if (!m_PrimObjects.ContainsKey(localID))
-                        m_PrimObjects[localID] = new List<UUID>();
-
-                    if (!m_PrimObjects[localID].Contains(itemID))
-                        m_PrimObjects[localID].Add(itemID);
-
-                }
-
-                if (!m_Assemblies.ContainsKey(assetID))
-                    m_Assemblies[assetID] = assembly;
-
-                lock (m_AddingAssemblies) 
-                {
-                    m_AddingAssemblies[assembly]--;
-                }
-
-                if (instance!=null) 
-                    instance.Init();
             }
+
+            lock (m_PrimObjects)
+            {
+                if (!m_PrimObjects.ContainsKey(localID))
+                    m_PrimObjects[localID] = new List<UUID>();
+
+                if (!m_PrimObjects[localID].Contains(itemID))
+                    m_PrimObjects[localID].Add(itemID);
+
+            }
+
+            if (!m_Assemblies.ContainsKey(assetID))
+                m_Assemblies[assetID] = assembly;
+
+            lock (m_AddingAssemblies) 
+            {
+                m_AddingAssemblies[assembly]--;
+            }
+
+            if (instance != null) 
+                instance.Init();
+
             return true;
         }
 
@@ -820,59 +821,59 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_CompileDict.Remove(itemID);
             }
 
+            IScriptInstance instance = null;
+
             lock (m_Scripts)
             {
                 // Do we even have it?
                 if (!m_Scripts.ContainsKey(itemID))
                     return;
 
-                IScriptInstance instance=m_Scripts[itemID];
+                instance=m_Scripts[itemID];
                 m_Scripts.Remove(itemID);
+            }
 
-                instance.ClearQueue();
-                instance.Stop(0);
-
+            instance.ClearQueue();
+            instance.Stop(0);
 //                bool objectRemoved = false;
 
-                lock (m_PrimObjects)
+            lock (m_PrimObjects)
+            {
+                // Remove the script from it's prim
+                if (m_PrimObjects.ContainsKey(localID))
                 {
-                    // Remove the script from it's prim
-                    if (m_PrimObjects.ContainsKey(localID))
-                    {
-                        // Remove inventory item record
-                        if (m_PrimObjects[localID].Contains(itemID))
-                            m_PrimObjects[localID].Remove(itemID);
+                    // Remove inventory item record
+                    if (m_PrimObjects[localID].Contains(itemID))
+                        m_PrimObjects[localID].Remove(itemID);
 
-                        // If there are no more scripts, remove prim
-                        if (m_PrimObjects[localID].Count == 0)
-                        {
-                            m_PrimObjects.Remove(localID);
+                    // If there are no more scripts, remove prim
+                    if (m_PrimObjects[localID].Count == 0)
+                    {
+                        m_PrimObjects.Remove(localID);
 //                            objectRemoved = true;
-                        }
                     }
                 }
-
-                instance.RemoveState();
-                instance.DestroyScriptInstance();
-
-                m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
-                if (m_DomainScripts[instance.AppDomain].Count == 0)
-                {
-                    m_DomainScripts.Remove(instance.AppDomain);
-                    UnloadAppDomain(instance.AppDomain);
-                }
-
-                instance = null;
-
-                ObjectRemoved handlerObjectRemoved = OnObjectRemoved;
-                if (handlerObjectRemoved != null)
-                {
-                    SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);
-                    handlerObjectRemoved(part.UUID);
-                }
-
-                CleanAssemblies();
             }
+
+            instance.RemoveState();
+            instance.DestroyScriptInstance();
+
+            m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
+            if (m_DomainScripts[instance.AppDomain].Count == 0)
+            {
+                m_DomainScripts.Remove(instance.AppDomain);
+                UnloadAppDomain(instance.AppDomain);
+            }
+
+            instance = null;
+
+            ObjectRemoved handlerObjectRemoved = OnObjectRemoved;
+            if (handlerObjectRemoved != null)
+            {
+                SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);
+                handlerObjectRemoved(part.UUID);
+            }
+
 
             ScriptRemoved handlerScriptRemoved = OnScriptRemoved;
             if (handlerScriptRemoved != null)
@@ -1007,26 +1008,33 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public bool PostObjectEvent(uint localID, EventParams p)
         {
             bool result = false;
-            
+            List<UUID> uuids = null;
+
             lock (m_PrimObjects)
             {
                 if (!m_PrimObjects.ContainsKey(localID))
                     return false;
 
-            
-                foreach (UUID itemID in m_PrimObjects[localID])
+                uuids = m_PrimObjects[localID];
+            }
+
+            foreach (UUID itemID in uuids)
+            {
+                IScriptInstance instance = null;
+                try
                 {
                     if (m_Scripts.ContainsKey(itemID))
-                    {
-                        IScriptInstance instance = m_Scripts[itemID];
-                        if (instance != null)
-                        {
-                            instance.PostEvent(p);
-                            result = true;
-                        }
-                    }
+                        instance = m_Scripts[itemID];
+                }
+                catch { /* ignore race conditions */ }
+
+                if (instance != null)
+                {
+                    instance.PostEvent(p);
+                    result = true;
                 }
             }
+            
             return result;
         }
 
