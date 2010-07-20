@@ -598,10 +598,14 @@ namespace OpenSim.Region.Framework.Scenes
                 // changed since permissions were last set.
                 if (item.GroupPermissions != (uint)PermissionMask.None)
                     item.GroupID = m_part.GroupID;
-                        
+
                 if (item.AssetID == UUID.Zero)
+                    item.AssetID = it.AssetID;
+
+                lock (m_items)
                 {
-                    item.AssetID = m_items[item.ItemID].AssetID;
+                    m_items[item.ItemID] = item;
+                    m_inventorySerial++;
                 }
 
                 if (fireScriptEvents)
