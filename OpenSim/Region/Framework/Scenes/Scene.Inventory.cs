@@ -1383,6 +1383,9 @@ namespace OpenSim.Region.Framework.Scenes
                             remoteClient.SendAgentAlertMessage("Item saved", false);
                     }
 
+                    // Base ALWAYS has move
+                    currentItem.BasePermissions |= (uint)PermissionMask.Move;
+
                     // Check if we're allowed to mess with permissions
                     if (!Permissions.IsGod(remoteClient.AgentId)) // Not a god
                     {
@@ -1399,18 +1402,18 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             // Owner can't change base, and can change other
                             // only up to base
-                            // Base ALWAYS has move
-                            currentItem.BasePermissions |= (uint)PermissionMask.Move;
                             itemInfo.BasePermissions = currentItem.BasePermissions;
                             itemInfo.EveryonePermissions &= currentItem.BasePermissions;
                             itemInfo.GroupPermissions &= currentItem.BasePermissions;
                             itemInfo.CurrentPermissions &= currentItem.BasePermissions;
                             itemInfo.NextPermissions &= currentItem.BasePermissions;
-                            // Next ALWAYS has move
-                            itemInfo.NextPermissions |= (uint)PermissionMask.Move;
                         }
 
                     }
+
+                    // Next ALWAYS has move
+                    itemInfo.NextPermissions |= (uint)PermissionMask.Move;
+
                     if (part.Inventory.UpdateInventoryItem(itemInfo))
                     {
                         part.GetProperties(remoteClient);
