@@ -6134,6 +6134,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             PSYS_PART_MAX_AGE = 7,
             PSYS_SRC_ACCEL = 8,
             PSYS_SRC_PATTERN = 9,
+            PSYS_SRC_INNERANGLE = 10,
+            PSYS_SRC_OUTERANGLE = 11,
             PSYS_SRC_TEXTURE = 12,
             PSYS_SRC_BURST_RATE = 13,
             PSYS_SRC_BURST_PART_COUNT = 15,
@@ -6266,6 +6268,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             prules.Pattern = (Primitive.ParticleSystem.SourcePattern)tmpi;
                             break;
 
+                        // PSYS_SRC_INNERANGLE and PSYS_SRC_ANGLE_BEGIN use the same variables. The
+                        // PSYS_SRC_OUTERANGLE and PSYS_SRC_ANGLE_END also use the same variable. The
+                        // client tells the difference between the two by looking at the 0x02 bit in
+                        // the PartFlags variable.
+                        case (int)ScriptBaseClass.PSYS_SRC_INNERANGLE:
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            prules.InnerAngle = (float)tempf;
+                            prules.PartFlags &= 0xFFFFFFFD; // Make sure new angle format is off.
+                            break;
+
+                        case (int)ScriptBaseClass.PSYS_SRC_OUTERANGLE:
+                            tempf = (float)rules.GetLSLFloatItem(i + 1);
+                            prules.OuterAngle = (float)tempf;
+                            prules.PartFlags &= 0xFFFFFFFD; // Make sure new angle format is off.
+                            break;
+
                         case (int)ScriptBaseClass.PSYS_SRC_TEXTURE:
                             prules.Texture = KeyOrName(rules.GetLSLStringItem(i + 1));
                             break;
@@ -6322,11 +6340,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         case (int)ScriptBaseClass.PSYS_SRC_ANGLE_BEGIN:
                             tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.InnerAngle = (float)tempf;
+                            prules.PartFlags |= 0x02; // Set new angle format.
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_ANGLE_END:
                             tempf = (float)rules.GetLSLFloatItem(i + 1);
                             prules.OuterAngle = (float)tempf;
+                            prules.PartFlags |= 0x02; // Set new angle format.
                             break;
 
                         case (int)ScriptBaseClass.PSYS_SRC_INNERANGLE:

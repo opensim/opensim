@@ -769,8 +769,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
             }
 
-            
-
             ScriptInstance instance = null;
             // Create the object record
             lockScriptsForRead(true);
@@ -952,7 +950,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             CleanAssemblies();
             
-
             ScriptRemoved handlerScriptRemoved = OnScriptRemoved;
             if (handlerScriptRemoved != null)
                 handlerScriptRemoved(itemID);
@@ -1086,26 +1083,33 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public bool PostObjectEvent(uint localID, EventParams p)
         {
             bool result = false;
-            
+            List<UUID> uuids = null;
+
             lock (m_PrimObjects)
             {
                 if (!m_PrimObjects.ContainsKey(localID))
                     return false;
 
-            
-                foreach (UUID itemID in m_PrimObjects[localID])
+                uuids = m_PrimObjects[localID];
+            }
+
+            foreach (UUID itemID in uuids)
+            {
+                IScriptInstance instance = null;
+                try
                 {
                     if (m_Scripts.ContainsKey(itemID))
-                    {
-                        IScriptInstance instance = m_Scripts[itemID];
-                        if (instance != null)
-                        {
-                            instance.PostEvent(p);
-                            result = true;
-                        }
-                    }
+                        instance = m_Scripts[itemID];
+                }
+                catch { /* ignore race conditions */ }
+
+                if (instance != null)
+                {
+                    instance.PostEvent(p);
+                    result = true;
                 }
             }
+            
             return result;
         }
 
