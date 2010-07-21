@@ -1681,7 +1681,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
-                if (!m_scene.ShuttingDown) // if shutting down then there will be nothing to handle the return so leave till next restart
+                if (!m_scene.ShuttingDown || // if shutting down then there will be nothing to handle the return so leave till next restart
+                        m_scene.LoginsDisabled || // We're starting up or doing maintenance, don't mess with things
+                        m_scene.LoadingPrims) // Land may not be valid yet
+                
                 {
                     ILandObject parcel = m_scene.LandChannel.GetLandObject(
                             m_rootPart.GroupPosition.X, m_rootPart.GroupPosition.Y);

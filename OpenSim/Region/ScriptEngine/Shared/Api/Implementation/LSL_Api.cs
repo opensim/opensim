@@ -6348,16 +6348,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             prules.OuterAngle = (float)tempf;
                             prules.PartFlags |= 0x02; // Set new angle format.
                             break;
-
-                        case (int)ScriptBaseClass.PSYS_SRC_INNERANGLE:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
-                            prules.InnerAngle = (float)tempf;
-                            break;
-
-                        case (int)ScriptBaseClass.PSYS_SRC_OUTERANGLE:
-                            tempf = (float)rules.GetLSLFloatItem(i + 1);
-                            prules.OuterAngle = (float)tempf;
-                            break;
                     }
 
                 }
