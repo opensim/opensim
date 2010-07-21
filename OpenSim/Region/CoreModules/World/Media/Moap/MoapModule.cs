@@ -189,7 +189,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 part.Shape.Media = new List<MediaEntry>(new MediaEntry[part.GetNumberOfSides()]);
                         
             part.Shape.Media[face] = me;                                   
-            UpdateMediaUrl(part);                      
+            UpdateMediaUrl(part, UUID.Zero);                      
             part.ScheduleFullUpdate();
             part.TriggerScriptChangedEvent(Changed.MEDIA);
         }
@@ -300,6 +300,11 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 return string.Empty;
             }
             
+            UUID agentId = default(UUID);
+            
+            lock (m_omCapUsers)
+                agentId = m_omCapUsers[path]; 
+            
             List<MediaEntry> media = part.Shape.Media;
             
             if (null == media)
@@ -310,12 +315,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             else
             {
                 // We need to go through the media textures one at a time to make sure that we have permission 
-                // to change them                    
-                UUID agentId = default(UUID);
-                
-                lock (m_omCapUsers)
-                    agentId = m_omCapUsers[path];                
-                
+                // to change them                                                  
                 for (int i = 0; i < media.Count; i++)
                 {
                     if (m_scene.Permissions.CanControlPrimMedia(agentId, part.UUID, i))
@@ -326,7 +326,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 }
             }
             
-            UpdateMediaUrl(part);                        
+            UpdateMediaUrl(part, agentId);                        
             
             // Arguably, we could avoid sending a full update to the avatar that just changed the texture.
             part.ScheduleFullUpdate();
@@ -402,13 +402,13 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             
             me.CurrentURL = omn.URL;
             
-            UpdateMediaUrl(part);
+            UpdateMediaUrl(part, agentId);
             
             part.ScheduleFullUpdate();      
             
             part.TriggerScriptChangedEvent(Changed.MEDIA);
             
-            return string.Empty;
+            return OSDParser.SerializeLLSDXmlString(new OSD());
         }      
         
         /// <summary>
@@ -431,12 +431,16 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         /// Update the media url of the given part
         /// </summary>
         /// <param name="part"></param>
-        protected void UpdateMediaUrl(SceneObjectPart part)
+        /// <param name="updateId">
+        /// The id to attach to this update.  Normally, this is the user that changed the
+        /// texture
+        /// </param>
+        protected void UpdateMediaUrl(SceneObjectPart part, UUID updateId)
         {
             if (null == part.MediaUrl)
             {
                 // TODO: We can't set the last changer until we start tracking which cap we give to which agent id
-                part.MediaUrl = "x-mv:0000000000/" + UUID.Zero;
+                part.MediaUrl = "x-mv:0000000000/" + updateId;
             }
             else
             {
