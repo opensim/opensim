@@ -311,19 +311,59 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             {
                 m_log.DebugFormat("[MOAP]: Setting all new media list for {0}", part.Name);
                 part.Shape.Media = new List<MediaEntry>(omu.FaceMedia);
+                
+                for (int i = 0; i < omu.FaceMedia.Length; i++)
+                {
+                    if (omu.FaceMedia[i] != null)
+                    {
+                        // FIXME: Race condition here since some other texture entry manipulator may overwrite/get
+                        // overwritten.  Unfortunately, PrimitiveBaseShape does not allow us to change texture entry
+                        // directly.
+                        Primitive.TextureEntry te = part.Shape.Textures;
+                        Primitive.TextureEntryFace face = te.CreateFace((uint)i);
+                        face.MediaFlags = true;
+                        part.Shape.Textures = te;
+                        m_log.DebugFormat(
+                            "[MOAP]: Media flags for face {0} is {1}", 
+                            i, part.Shape.Textures.FaceTextures[i].MediaFlags);                        
+                    }
+                }
             }
             else
-            {
+            {                
                 // We need to go through the media textures one at a time to make sure that we have permission 
                 // to change them                                                  
+                
+                // FIXME: Race condition here since some other texture entry manipulator may overwrite/get
+                // overwritten.  Unfortunately, PrimitiveBaseShape does not allow us to change texture entry
+                // directly.
+                Primitive.TextureEntry te = part.Shape.Textures;
+                
                 for (int i = 0; i < media.Count; i++)
-                {
+                {                                    
                     if (m_scene.Permissions.CanControlPrimMedia(agentId, part.UUID, i))
-                    {
+                    {            
                         media[i] = omu.FaceMedia[i];
+                        
+                        // When a face is cleared this is done by setting the MediaFlags in the TextureEntry via a normal
+                        // texture update, so we don't need to worry about clearing MediaFlags here.
+                        if (null == media[i])
+                            continue;                            
+                        
+                        Primitive.TextureEntryFace face = te.CreateFace((uint)i);
+                        face.MediaFlags = true;                     
+
+                        m_log.DebugFormat(
+                            "[MOAP]: Media flags for face {0} is {1}", 
+                            i, face.MediaFlags);
 //                        m_log.DebugFormat("[MOAP]: Set media entry for face {0} on {1}", i, part.Name);
                     }
                 }
+                
+                part.Shape.Textures = te;
+                        
+//                for (int i2 = 0; i2 < part.Shape.Textures.FaceTextures.Length; i2++)                    
+//                    m_log.DebugFormat("[MOAP]: FaceTexture[{0}] is {1}", i2, part.Shape.Textures.FaceTextures[i2]);                  
             }
             
             UpdateMediaUrl(part, agentId);                        
