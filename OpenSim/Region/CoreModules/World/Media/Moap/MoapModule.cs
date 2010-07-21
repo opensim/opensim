@@ -486,7 +486,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             {
                 string rawVersion = part.MediaUrl.Substring(5, 10);
                 int version = int.Parse(rawVersion);
-                part.MediaUrl = string.Format("x-mv:{0:D10}/{1}", ++version, UUID.Zero);
+                part.MediaUrl = string.Format("x-mv:{0:D10}/{1}", ++version, updateId);
             }   
             
             m_log.DebugFormat("[MOAP]: Storing media url [{0}] in prim {1} {2}", part.MediaUrl, part.Name, part.UUID);            
