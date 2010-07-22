@@ -7193,7 +7193,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetLinkPrimitiveParams(int linknumber, LSL_List rules)
         {
-            llSetLinkPrimitiveParams(linknumber, rules);
+            llSetLinkPrimitiveParamsFast(linknumber, rules);
             ScriptSleep(200);
         }
 
