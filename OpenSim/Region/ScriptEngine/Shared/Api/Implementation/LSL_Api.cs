@@ -7165,7 +7165,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SetPrimParams(m_host, rules);
         }
 
-        public void llSetLinkPrimitiveParams(int linknumber, LSL_List rules)
+        public void llSetLinkPrimitiveParamsFast(int linknumber, LSL_List rules)
         {
              m_host.AddScriptLPS(1);
 
@@ -7191,9 +7191,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public void llSetLinkPrimitiveParamsFast(int linknumber, LSL_List rules)
+        public void llSetLinkPrimitiveParams(int linknumber, LSL_List rules)
         {
             llSetLinkPrimitiveParams(linknumber, rules);
+            ScriptSleep(100);
         }
 
         protected void SetPrimParams(ScenePresence av, LSL_List rules)
