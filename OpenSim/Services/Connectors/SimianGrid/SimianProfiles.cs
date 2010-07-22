@@ -88,7 +88,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            if (Simian.IsSimianEnabled(source, "UserAccountServices", this.Name))
+            if (Simian.IsSimianEnabled(source, "UserAccountServices", "SimianUserAccountServiceConnector"))
             {
                 IConfig gridConfig = source.Configs["UserAccountService"];
                 if (gridConfig == null)
@@ -108,6 +108,23 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     serviceUrl = serviceUrl + '/';
 
                 m_serverUrl = serviceUrl;
+                IConfig profilesConfig = source.Configs["Profiles"];
+                if (profilesConfig == null)
+                {
+                    // Do not run this module by default.
+                    return;
+                }
+                else
+                {
+                    // if profiles aren't enabled, we're not needed.
+                    // if we're not specified as the connector to use, then we're not wanted
+                    if (profilesConfig.GetString("Module", String.Empty) != Name)
+                    {
+
+                        return;
+                    }
+                    m_log.InfoFormat("[SIMIAN ACCOUNT CONNECTOR]: Initializing {0}", this.Name);
+                }
             }
         }
 
@@ -135,6 +152,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
                 // Profiles
                 client.OnRequestAvatarProperties += RequestAvatarPropertiesHandler;
+
                 client.OnUpdateAvatarProperties += UpdateAvatarPropertiesHandler;
                 client.OnAvatarInterestUpdate += AvatarInterestUpdateHandler;
                 client.OnUserInfoRequest += UserInfoRequestHandler;
@@ -302,12 +320,25 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     System.Globalization.CultureInfo.InvariantCulture), charterMember, about["FLAbout"].AsString(), (uint)flags,
                     about["FLImage"].AsUUID(), about["Image"].AsUUID(), about["URL"].AsString(), user["Partner"].AsUUID());
 
+                OSDMap interests = null;
+                if (user.ContainsKey("LLInterests"))
+                {
+                    try
+                    {
+                        interests = OSDParser.DeserializeJson(user["LLInterests"].AsString()) as OSDMap;
+                        client.SendAvatarInterestsReply(avatarID, interests["WantMask"].AsUInteger(), interests["WantText"].AsString(), interests["SkillsMask"].AsUInteger(), interests["SkillsText"].AsString(), interests["languages"].AsString());
+                    }
+                    catch { }
+                }
+
+                if (about == null)
+                    about = new OSDMap(0);
             }
             else
             {
                 m_log.Warn("[SIMIAN PROFILES]: Failed to fetch profile information for " + client.Name + ", returning default values");
                 client.SendAvatarProperties(avatarID, String.Empty, "1/1/1970", Utils.EmptyBytes,
-                    String.Empty, (uint)flags, UUID.Zero, UUID.Zero, String.Empty, UUID.Zero);
+                        String.Empty, (uint)flags, UUID.Zero, UUID.Zero, String.Empty, UUID.Zero);
             }
         }
 
