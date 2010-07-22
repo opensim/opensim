@@ -226,30 +226,33 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal bool AddRestoredSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted, bool sendClientUpdates)
         {
-        	// KF: Check for out-of-region, move inside and make static.
-			Vector3 npos = new Vector3(sceneObject.RootPart.GroupPosition.X,
-               						   sceneObject.RootPart.GroupPosition.Y,
-               						   sceneObject.RootPart.GroupPosition.Z);
-			if (!(((sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim) && (sceneObject.RootPart.Shape.State != 0))) && (npos.X < 0.0 || npos.Y < 0.0 || npos.Z < 0.0 ||
-			    npos.X > Constants.RegionSize ||
-			    npos.Y > Constants.RegionSize))
-			{
-				if (npos.X < 0.0) npos.X = 1.0f;
-				if (npos.Y < 0.0) npos.Y = 1.0f;
-				if (npos.Z < 0.0) npos.Z = 0.0f;
-				if (npos.X > Constants.RegionSize) npos.X = Constants.RegionSize - 1.0f;
-				if (npos.Y > Constants.RegionSize) npos.Y = Constants.RegionSize - 1.0f;
- 
-                foreach (SceneObjectPart part in sceneObject.Children.Values)
+            if (!m_parentScene.CombineRegions)
+            {
+                // KF: Check for out-of-region, move inside and make static.
+                Vector3 npos = new Vector3(sceneObject.RootPart.GroupPosition.X,
+                                           sceneObject.RootPart.GroupPosition.Y,
+                                           sceneObject.RootPart.GroupPosition.Z);
+                if (!(((sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim) && (sceneObject.RootPart.Shape.State != 0))) && (npos.X < 0.0 || npos.Y < 0.0 || npos.Z < 0.0 ||
+                    npos.X > Constants.RegionSize ||
+                    npos.Y > Constants.RegionSize))
                 {
-                	part.GroupPosition = npos;
+                    if (npos.X < 0.0) npos.X = 1.0f;
+                    if (npos.Y < 0.0) npos.Y = 1.0f;
+                    if (npos.Z < 0.0) npos.Z = 0.0f;
+                    if (npos.X > Constants.RegionSize) npos.X = Constants.RegionSize - 1.0f;
+                    if (npos.Y > Constants.RegionSize) npos.Y = Constants.RegionSize - 1.0f;
+     
+                    foreach (SceneObjectPart part in sceneObject.Children.Values)
+                    {
+                        part.GroupPosition = npos;
+                    }
+                    sceneObject.RootPart.Velocity = Vector3.Zero;
+                    sceneObject.RootPart.AngularVelocity = Vector3.Zero;
+                    sceneObject.RootPart.Acceleration = Vector3.Zero;
+                    sceneObject.RootPart.Velocity = Vector3.Zero;
                 }
-                sceneObject.RootPart.Velocity = Vector3.Zero;
-                sceneObject.RootPart.AngularVelocity = Vector3.Zero;
-                sceneObject.RootPart.Acceleration = Vector3.Zero;
-                sceneObject.RootPart.Velocity = Vector3.Zero;
-			}
-			
+            }
+
             if (!alreadyPersisted)
             {
                 sceneObject.ForceInventoryPersistence();
