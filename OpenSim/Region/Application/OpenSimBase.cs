@@ -91,6 +91,10 @@ namespace OpenSim
 
         protected List<IApplicationPlugin> m_plugins = new List<IApplicationPlugin>();
 
+        private List<string> m_permsModules;
+
+        private bool m_securePermissionsLoading = true;
+
         /// <value>
         /// The config information passed into the OpenSimulator region server.
         /// </value>
@@ -188,6 +192,11 @@ namespace OpenSim
                     CreatePIDFile(pidFile);
                 
                 userStatsURI = startupConfig.GetString("Stats_URI", String.Empty);
+
+                m_securePermissionsLoading = startupConfig.GetBoolean("SecurePermissionsLoading", true);
+
+                string permissionModules = startupConfig.GetString("permissionmodules", "DefaultPermissionsModule");
+                m_permsModules = new List<string>(permissionModules.Split(','));
             }
 
             base.StartupSpecific();
@@ -344,6 +353,18 @@ namespace OpenSim
                 controller.AddRegionToModules(scene);
             }
             else m_log.Error("[MODULES]: The new RegionModulesController is missing...");
+
+            if (m_securePermissionsLoading)
+            {
+                foreach (string s in m_permsModules)
+                {
+                    if (!scene.RegionModules.ContainsKey(s))
+                    {
+                        m_log.Fatal("[MODULES]: Required module " + s + " not found.");
+                        Environment.Exit(0);
+                    }
+                }
+            }
 
             scene.SetModuleInterfaces();
 // First Step of bootreport sequence
