@@ -118,7 +118,7 @@ namespace OpenSim.Framework.Console
         // (Done with no echo and suitable for passwords)
         public string PasswdPrompt(string p)
         {
-            return ReadLine(p, false, false);
+            return ReadLine(String.Format("{0}: ", p), false, false);
         }
 
         public virtual string ReadLine(string p, bool isCommand, bool e)
