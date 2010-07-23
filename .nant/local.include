@@ -29,7 +29,7 @@
       <include name="TESTING.txt"/>
       <include name="TestResult.xml"/>
       <include name="bin/OpenSim.Server.ini"/>
-      <include name="bin/Regions/*"/>
+      <include name="bin/Regions/Regions.ini"/>
       <include name="bin/*.db"/>
       <include name="**/.git/**"/>
       <include name=".gitignore"/>
