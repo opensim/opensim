@@ -384,7 +384,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
         public string Name
         {
-            get { return "PermissionsModule"; }
+            get { return "DefaultPermissionsModule"; }
         }
 
         public bool IsSharedModule
