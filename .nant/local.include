@@ -20,6 +20,7 @@
   <delete dir="${distbindir}/.nant"/>
   <delete>
     <fileset basedir="${distbindir}">
+      <include name="compile.bat"/>
       <include name="BUILDING.txt"/>
       <include name="Makefile"/>
       <include name="nant-color"/>
