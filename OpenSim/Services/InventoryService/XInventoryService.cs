@@ -45,6 +45,7 @@ namespace OpenSim.Services.InventoryService
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         protected IXInventoryData m_Database;
+        protected bool m_AllowDelete = true;
 
         public XInventoryService(IConfigSource config) : base(config)
         {
@@ -60,6 +61,7 @@ namespace OpenSim.Services.InventoryService
             {
                 dllName = authConfig.GetString("StorageProvider", dllName);
                 connString = authConfig.GetString("ConnectionString", connString);
+                m_AllowDelete = authConfig.GetBoolean("AllowDelete", true);
                 // realm = authConfig.GetString("Realm", realm);
             }
 
@@ -304,6 +306,9 @@ namespace OpenSim.Services.InventoryService
         //
         public virtual bool DeleteFolders(UUID principalID, List<UUID> folderIDs)
         {
+            if (!m_AllowDelete)
+                return false;
+
             // Ignore principal ID, it's bogus at connector level
             //
             foreach (UUID id in folderIDs)
@@ -321,6 +326,9 @@ namespace OpenSim.Services.InventoryService
 
         public virtual bool PurgeFolder(InventoryFolderBase folder)
         {
+            if (!m_AllowDelete)
+                return false;
+
             if (!ParentIsTrash(folder.ID))
                 return false;
 
@@ -363,6 +371,9 @@ namespace OpenSim.Services.InventoryService
 
         public virtual bool DeleteItems(UUID principalID, List<UUID> itemIDs)
         {
+            if (!m_AllowDelete)
+                return false;
+
             // Just use the ID... *facepalms*
             //
             foreach (UUID id in itemIDs)
