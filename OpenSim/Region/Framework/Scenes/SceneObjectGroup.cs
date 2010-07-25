@@ -136,12 +136,21 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_partsLock.RecursiveReadCount > 0)
                 {
                     m_log.Error("[SceneObjectGroup.m_parts] Recursive read lock requested. This should not happen and means something needs to be fixed. For now though, it's safe to continue.");
-                    m_partsLock.ExitReadLock();
+                    try
+                    {
+                        m_partsLock.ExitReadLock();
+                    }
+                    catch { } // Ignore errors, to allow resync
                 }
                 if (m_partsLock.RecursiveWriteCount > 0)
                 {
                     m_log.Error("[SceneObjectGroup.m_parts] Recursive read lock requested (write lock exists on this thread). This should not happen and means something needs to be fixed.");
-                    m_partsLock.ExitWriteLock();
+                    try
+                    {
+                        m_partsLock.ExitWriteLock();
+                    }
+                    catch { }
+
                 }
 
                 while (!m_partsLock.TryEnterReadLock(60000))
