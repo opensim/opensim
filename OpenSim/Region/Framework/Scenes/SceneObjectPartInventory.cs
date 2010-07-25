@@ -210,11 +210,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if ((int)InventoryType.LSL == item.InvType)
                 {
                     CreateScriptInstance(item, startParam, postOnRez, engine, stateSource);
-                    if ((int)InventoryType.LSL == item.InvType)
-                    {
-                        CreateScriptInstance(item, startParam, postOnRez, engine, stateSource);
-                        Thread.Sleep(10); // workaround for Mono cpu utilization > 100% bug
-                    }
                 }
             }
         }
