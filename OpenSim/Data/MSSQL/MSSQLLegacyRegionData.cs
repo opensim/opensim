@@ -385,7 +385,7 @@ IF EXISTS (SELECT UUID FROM primshapes WHERE UUID = @UUID)
             PathSkew = @PathSkew, PathCurve = @PathCurve, PathRadiusOffset = @PathRadiusOffset, PathRevolutions = @PathRevolutions, 
             PathTaperX = @PathTaperX, PathTaperY = @PathTaperY, PathTwist = @PathTwist, PathTwistBegin = @PathTwistBegin, 
             ProfileBegin = @ProfileBegin, ProfileEnd = @ProfileEnd, ProfileCurve = @ProfileCurve, ProfileHollow = @ProfileHollow, 
-            Texture = @Texture, ExtraParams = @ExtraParams, State = @State
+            Texture = @Texture, ExtraParams = @ExtraParams, State = @State, Media = @Media
         WHERE UUID = @UUID
     END
 ELSE
@@ -394,11 +394,11 @@ ELSE
             primshapes (
             UUID, Shape, ScaleX, ScaleY, ScaleZ, PCode, PathBegin, PathEnd, PathScaleX, PathScaleY, PathShearX, PathShearY, 
             PathSkew, PathCurve, PathRadiusOffset, PathRevolutions, PathTaperX, PathTaperY, PathTwist, PathTwistBegin, ProfileBegin, 
-            ProfileEnd, ProfileCurve, ProfileHollow, Texture, ExtraParams, State
+            ProfileEnd, ProfileCurve, ProfileHollow, Texture, ExtraParams, State, Media
             ) VALUES (
             @UUID, @Shape, @ScaleX, @ScaleY, @ScaleZ, @PCode, @PathBegin, @PathEnd, @PathScaleX, @PathScaleY, @PathShearX, @PathShearY, 
             @PathSkew, @PathCurve, @PathRadiusOffset, @PathRevolutions, @PathTaperX, @PathTaperY, @PathTwist, @PathTwistBegin, @ProfileBegin, 
-            @ProfileEnd, @ProfileCurve, @ProfileHollow, @Texture, @ExtraParams, @State
+            @ProfileEnd, @ProfileCurve, @ProfileHollow, @Texture, @ExtraParams, @State, @Media
             )
     END";
 
@@ -1180,6 +1180,9 @@ VALUES
             {
             }
 
+            if (!(shapeRow["Media"] is System.DBNull))          
+                baseShape.MediaRaw = (string)shapeRow["Media"];
+
             return baseShape;
         }
 
@@ -1557,6 +1560,7 @@ VALUES
             parameters.Add(_Database.CreateParameter("Texture", s.TextureEntry));
             parameters.Add(_Database.CreateParameter("ExtraParams", s.ExtraParams));
             parameters.Add(_Database.CreateParameter("State", s.State));
+            parameters.Add(_Database.CreateParameter("Media", s.MediaRaw));
 
             return parameters.ToArray();
         }
