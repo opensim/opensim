@@ -222,7 +222,7 @@ namespace OpenSim.Data.MySQL
                                 "PathTaperX, PathTaperY, PathTwist, " +
                                 "PathTwistBegin, ProfileBegin, ProfileEnd, " +
                                 "ProfileCurve, ProfileHollow, Texture, " +
-                                "ExtraParams, State) values (?UUID, " +
+                                "ExtraParams, State, Media) values (?UUID, " +
                                 "?Shape, ?ScaleX, ?ScaleY, ?ScaleZ, " +
                                 "?PCode, ?PathBegin, ?PathEnd, " +
                                 "?PathScaleX, ?PathScaleY, " +
@@ -233,7 +233,7 @@ namespace OpenSim.Data.MySQL
                                 "?PathTwistBegin, ?ProfileBegin, " +
                                 "?ProfileEnd, ?ProfileCurve, " +
                                 "?ProfileHollow, ?Texture, ?ExtraParams, " +
-                                "?State)";
+                                "?State, ?Media)";
 
                         FillShapeCommand(cmd, prim);
 
@@ -1700,6 +1700,9 @@ namespace OpenSim.Data.MySQL
             s.ExtraParams = (byte[])row["ExtraParams"];
 
             s.State = (byte)(int)row["State"];
+            
+            if (!(row["Media"] is System.DBNull))          
+                s.MediaRaw = (string)row["Media"];
 
             return s;
         }
@@ -1743,6 +1746,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("Texture", s.TextureEntry);
             cmd.Parameters.AddWithValue("ExtraParams", s.ExtraParams);
             cmd.Parameters.AddWithValue("State", s.State);
+            cmd.Parameters.AddWithValue("Media", s.MediaRaw);
         }
 
         public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
