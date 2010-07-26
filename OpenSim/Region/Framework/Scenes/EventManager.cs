@@ -331,9 +331,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// the avatarID is UUID.Zero (I know, this doesn't make much sense but now it's historical).
         public delegate void Attach(uint localID, UUID itemID, UUID avatarID);
         public event Attach OnAttach;
+        
+        public delegate void SceneObjectDelegate(SceneObjectGroup so);
+        
+        /// <summary>
+        /// Called immediately after an object is loaded from storage.
+        /// </summary>
+        public event SceneObjectDelegate OnSceneObjectLoaded;
 
         public delegate void RegionUp(GridRegion region);
-        public event RegionUp OnRegionUp;
+        public event RegionUp OnRegionUp;       
 
         public class MoneyTransferArgs : EventArgs
         {
@@ -2013,5 +2020,26 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
+        
+        public void TriggerOnSceneObjectLoaded(SceneObjectGroup so)
+        {
+            SceneObjectDelegate handler = OnSceneObjectLoaded;
+            if (handler != null)
+            {
+                foreach (SceneObjectDelegate d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(so);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnSceneObjectLoaded failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }        
     }
 }
