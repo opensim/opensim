@@ -31,7 +31,6 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
-using System.Xml;
 using log4net;
 using Mono.Data.Sqlite;
 using OpenMetaverse;
@@ -1862,28 +1861,7 @@ namespace OpenSim.Data.SQLite
             s.ExtraParams = (byte[]) row["ExtraParams"];
             
             if (!(row["Media"] is System.DBNull))
-            {
-                using (StringReader sr = new StringReader((string)row["Media"]))
-                {
-                    using (XmlTextReader xtr = new XmlTextReader(sr))
-                    {            
-                        xtr.ReadStartElement("osmedia");     
-                        
-                        OSDArray osdMeArray = (OSDArray)OSDParser.DeserializeLLSDXml(xtr.ReadInnerXml());
-                        
-                        List<MediaEntry> mediaEntries = new List<MediaEntry>();
-                        foreach (OSD osdMe in osdMeArray)
-                        {
-                            MediaEntry me = (osdMe is OSDMap ? MediaEntry.FromOSD(osdMe) : new MediaEntry());
-                            mediaEntries.Add(me);
-                        }
-                        
-                        s.Media = mediaEntries;               
-                        
-                        xtr.ReadEndElement();
-                    }
-                }
-            }
+                s.MediaRaw = (string)row["Media"];
                         
             return s;
         }
@@ -1928,36 +1906,7 @@ namespace OpenSim.Data.SQLite
 
             row["Texture"] = s.TextureEntry;
             row["ExtraParams"] = s.ExtraParams;
-            
-            if (null != s.Media)
-            {
-                using (StringWriter sw = new StringWriter())
-                {
-                    using (XmlTextWriter xtw = new XmlTextWriter(sw))
-                    {                
-                        xtw.WriteStartElement("osmedia");
-                        xtw.WriteAttributeString("type", "sl");
-                        xtw.WriteAttributeString("major_version", "0");
-                        xtw.WriteAttributeString("minor_version", "1");
-                        
-                        OSDArray meArray = new OSDArray();
-                        foreach (MediaEntry me in s.Media)
-                        {
-                            OSD osd = (null == me ? new OSD() : me.GetOSD());
-                            meArray.Add(osd);
-                        }              
-                        
-                        xtw.WriteStartElement("osdata");
-                        xtw.WriteRaw(OSDParser.SerializeLLSDXmlString(meArray));
-                        xtw.WriteEndElement();
-                        
-                        xtw.WriteEndElement();
-                        
-                        xtw.Flush();   
-                        row["Media"] = sw.ToString();                
-                    }
-                }
-            }
+            row["Media"] = s.MediaRaw;
         }
 
         /// <summary>

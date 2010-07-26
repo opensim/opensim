@@ -174,6 +174,12 @@ namespace OpenSim.Framework
         }
         
         /// <summary>
+        /// Raw media data suitable for serialization operations.  This should only ever be used by an IMoapModule.
+        /// </summary>
+        [XmlIgnore]
+        public string MediaRaw { get; set; }
+            
+        /// <summary>
         /// Entries to store media textures on each face
         /// </summary>
         /// Do not change this value directly - always do it through an IMoapModule.

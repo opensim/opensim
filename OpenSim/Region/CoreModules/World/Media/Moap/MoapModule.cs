@@ -32,6 +32,7 @@ using System.Collections.Specialized;
 using System.Reflection;
 using System.IO;
 using System.Web;
+using System.Xml;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
@@ -46,6 +47,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
+using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
 namespace OpenSim.Region.CoreModules.Media.Moap
@@ -162,12 +164,76 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         public void OnSceneObjectLoaded(SceneObjectGroup so)
         {
             m_log.DebugFormat("[MOAP]: OnSceneObjectLoaded fired for {0} {1}", so.Name, so.UUID);
+            
+            so.ForEachPart(OnSceneObjectPartLoaded);
         }
         
         public void OnSceneObjectPreSave(SceneObjectGroup persistingSo, SceneObjectGroup originalSo)
         {
-            m_log.DebugFormat("[MOAP]: OnSceneObjectPreSave fired for {0} {1}", persistingSo.Name, persistingSo.UUID);
-        }        
+            m_log.DebugFormat("[MOAP]: OnSceneObjectPreSave fired for {0} {1}", persistingSo.Name, persistingSo.UUID);            
+            
+            persistingSo.ForEachPart(OnSceneObjectPartPreSave);          
+        }              
+           
+        protected void OnSceneObjectPartLoaded(SceneObjectPart part)
+        {
+            if (null == part.Shape.MediaRaw)
+                return;
+            
+            using (StringReader sr = new StringReader(part.Shape.MediaRaw))
+            {
+                using (XmlTextReader xtr = new XmlTextReader(sr))
+                {            
+                    xtr.ReadStartElement("osmedia");     
+                    
+                    OSDArray osdMeArray = (OSDArray)OSDParser.DeserializeLLSDXml(xtr.ReadInnerXml());
+                    
+                    List<MediaEntry> mediaEntries = new List<MediaEntry>();
+                    foreach (OSD osdMe in osdMeArray)
+                    {
+                        MediaEntry me = (osdMe is OSDMap ? MediaEntry.FromOSD(osdMe) : new MediaEntry());
+                        mediaEntries.Add(me);
+                    }
+                
+                    xtr.ReadEndElement();
+                    
+                    part.Shape.Media = mediaEntries;                                            
+                }
+            }       
+        }
+        
+        protected void OnSceneObjectPartPreSave(SceneObjectPart part)
+        {
+            if (null == part.Shape.Media)
+                return;
+
+            using (StringWriter sw = new StringWriter())
+            {
+                using (XmlTextWriter xtw = new XmlTextWriter(sw))
+                {                
+                    xtw.WriteStartElement("osmedia");
+                    xtw.WriteAttributeString("type", "sl");
+                    xtw.WriteAttributeString("major_version", "0");
+                    xtw.WriteAttributeString("minor_version", "1");
+                    
+                    OSDArray meArray = new OSDArray();
+                    foreach (MediaEntry me in part.Shape.Media)
+                    {
+                        OSD osd = (null == me ? new OSD() : me.GetOSD());
+                        meArray.Add(osd);
+                    }              
+                    
+                    xtw.WriteStartElement("osdata");
+                    xtw.WriteRaw(OSDParser.SerializeLLSDXmlString(meArray));
+                    xtw.WriteEndElement();
+                    
+                    xtw.WriteEndElement();
+                    
+                    xtw.Flush();  
+                    part.Shape.MediaRaw = sw.ToString();         
+                }
+            }            
+        }
         
         public MediaEntry GetMediaEntry(SceneObjectPart part, int face)
         {
