@@ -101,6 +101,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
             m_scene.EventManager.OnDeregisterCaps += OnDeregisterCaps;
             m_scene.EventManager.OnSceneObjectLoaded += OnSceneObjectLoaded;
+            m_scene.EventManager.OnSceneObjectPreSave += OnSceneObjectPreSave;
         }
         
         public void Close() 
@@ -108,6 +109,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             m_scene.EventManager.OnRegisterCaps -= OnRegisterCaps;
             m_scene.EventManager.OnDeregisterCaps -= OnDeregisterCaps;
             m_scene.EventManager.OnSceneObjectLoaded -= OnSceneObjectLoaded;
+            m_scene.EventManager.OnSceneObjectPreSave -= OnSceneObjectPreSave;
         }        
         
         public void OnRegisterCaps(UUID agentID, Caps caps)
@@ -157,10 +159,15 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             }
         }
         
-        public void OnSceneObjectLoaded(SceneObjectGroup sog)
+        public void OnSceneObjectLoaded(SceneObjectGroup so)
         {
-            m_log.DebugFormat("[MOAP]: OnSceneObjectLoaded fired for {0} {1}", sog.Name, sog.UUID);
+            m_log.DebugFormat("[MOAP]: OnSceneObjectLoaded fired for {0} {1}", so.Name, so.UUID);
         }
+        
+        public void OnSceneObjectPreSave(SceneObjectGroup persistingSo, SceneObjectGroup originalSo)
+        {
+            m_log.DebugFormat("[MOAP]: OnSceneObjectPreSave fired for {0} {1}", persistingSo.Name, persistingSo.UUID);
+        }        
         
         public MediaEntry GetMediaEntry(SceneObjectPart part, int face)
         {
