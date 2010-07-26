@@ -98,17 +98,19 @@ namespace OpenSim.Region.CoreModules.Media.Moap
 
         public void RegionLoaded(Scene scene) 
         {
-            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
-            m_scene.EventManager.OnDeregisterCaps += DeregisterCaps;
+            m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
+            m_scene.EventManager.OnDeregisterCaps += OnDeregisterCaps;
+            m_scene.EventManager.OnSceneObjectLoaded += OnSceneObjectLoaded;
         }
         
         public void Close() 
         {
-            m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
-            m_scene.EventManager.OnDeregisterCaps -= DeregisterCaps;
+            m_scene.EventManager.OnRegisterCaps -= OnRegisterCaps;
+            m_scene.EventManager.OnDeregisterCaps -= OnDeregisterCaps;
+            m_scene.EventManager.OnSceneObjectLoaded -= OnSceneObjectLoaded;
         }        
         
-        public void RegisterCaps(UUID agentID, Caps caps)
+        public void OnRegisterCaps(UUID agentID, Caps caps)
         {
             m_log.DebugFormat(
                 "[MOAP]: Registering ObjectMedia and ObjectMediaNavigate capabilities for agent {0}", agentID);
@@ -138,7 +140,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             }
         }  
         
-        public void DeregisterCaps(UUID agentID, Caps caps)
+        public void OnDeregisterCaps(UUID agentID, Caps caps)
         {
             lock (m_omCapUsers)
             {
@@ -153,6 +155,11 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 m_omuCapUrls.Remove(agentID);
                 m_omuCapUsers.Remove(path);
             }
+        }
+        
+        public void OnSceneObjectLoaded(SceneObjectGroup sog)
+        {
+            m_log.DebugFormat("[MOAP]: OnSceneObjectLoaded fired for {0} {1}", sog.Name, sog.UUID);
         }
         
         public MediaEntry GetMediaEntry(SceneObjectPart part, int face)
