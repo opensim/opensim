@@ -401,8 +401,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_moapModule = m_scene.RequestModuleInterface<IMoapModule>();
             
             // This log line will be commented out when no longer required for debugging
-            if (m_moapModule == null)
-                m_log.Warn("[PERMISSIONS]: Media on a prim module not found, media on a prim permissions will not work");                    
+//            if (m_moapModule == null)
+//                m_log.Warn("[PERMISSIONS]: Media on a prim module not found, media on a prim permissions will not work");                    
         }
 
         public void Close()

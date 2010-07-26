@@ -61,6 +61,11 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         public Type ReplaceableInterface { get { return null; } }        
         
         /// <summary>
+        /// Is this module enabled?
+        /// </summary>
+        protected bool m_isEnabled = true;
+        
+        /// <summary>
         /// The scene to which this module is attached
         /// </summary>
         protected Scene m_scene;
@@ -85,13 +90,19 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         /// </summary>        
         protected Dictionary<UUID, string> m_omuCapUrls = new Dictionary<UUID, string>();      
         
-        public void Initialise(IConfigSource config) 
+        public void Initialise(IConfigSource configSource) 
         {
-            // TODO: Add config switches to enable/disable this module
+            IConfig config = configSource.Configs["MediaOnAPrim"];
+
+            if (config != null && !config.GetBoolean("Enabled", false))
+                m_isEnabled = false;
         }
 
         public void AddRegion(Scene scene) 
         { 
+            if (!m_isEnabled)
+                return;
+            
             m_scene = scene;
             m_scene.RegisterModuleInterface<IMoapModule>(this);
         }
@@ -100,6 +111,9 @@ namespace OpenSim.Region.CoreModules.Media.Moap
 
         public void RegionLoaded(Scene scene) 
         {
+            if (!m_isEnabled)
+                return;
+            
             m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
             m_scene.EventManager.OnDeregisterCaps += OnDeregisterCaps;
             m_scene.EventManager.OnSceneObjectLoaded += OnSceneObjectLoaded;
@@ -108,6 +122,9 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         
         public void Close() 
         {
+            if (!m_isEnabled)
+                return;
+            
             m_scene.EventManager.OnRegisterCaps -= OnRegisterCaps;
             m_scene.EventManager.OnDeregisterCaps -= OnDeregisterCaps;
             m_scene.EventManager.OnSceneObjectLoaded -= OnSceneObjectLoaded;
