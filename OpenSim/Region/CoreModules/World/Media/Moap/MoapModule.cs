@@ -60,6 +60,8 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         public string Name { get { return "MoapModule"; } }                
         public Type ReplaceableInterface { get { return null; } }        
         
+        public const string MEDIA_TEXTURE_TYPE = "sl";
+        
         /// <summary>
         /// Is this module enabled?
         /// </summary>
@@ -206,7 +208,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                     string type = xtr.GetAttribute("type");
                     //m_log.DebugFormat("[MOAP]: Loaded media texture entry with type {0}", type);
                     
-                    if (type != "sl")
+                    if (type != MEDIA_TEXTURE_TYPE)
                         return;                        
                     
                     xtr.ReadStartElement("osmedia");    
@@ -237,7 +239,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 using (XmlTextWriter xtw = new XmlTextWriter(sw))
                 {                
                     xtw.WriteStartElement("osmedia");
-                    xtw.WriteAttributeString("type", "sl");
+                    xtw.WriteAttributeString("type", MEDIA_TEXTURE_TYPE);
                     xtw.WriteAttributeString("major_version", "0");
                     xtw.WriteAttributeString("minor_version", "1");
                     
