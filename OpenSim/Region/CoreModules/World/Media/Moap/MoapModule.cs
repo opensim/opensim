@@ -200,8 +200,16 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             using (StringReader sr = new StringReader(part.Shape.MediaRaw))
             {
                 using (XmlTextReader xtr = new XmlTextReader(sr))
-                {            
-                    xtr.ReadStartElement("osmedia");     
+                {             
+                    xtr.MoveToContent();
+                    
+                    string type = xtr.GetAttribute("type");
+                    //m_log.DebugFormat("[MOAP]: Loaded media texture entry with type {0}", type);
+                    
+                    if (type != "sl")
+                        return;                        
+                    
+                    xtr.ReadStartElement("osmedia");    
                     
                     OSDArray osdMeArray = (OSDArray)OSDParser.DeserializeLLSDXml(xtr.ReadInnerXml());
                     
