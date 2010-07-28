@@ -1528,6 +1528,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Duplicates this object, including operations such as physics set up and attaching to the backup event.
         /// </summary>
+        /// <param name="userExposed">True if the duplicate will immediately be in the scene, false otherwise</param>
         /// <returns></returns>
         public SceneObjectGroup Copy(bool userExposed)
         {

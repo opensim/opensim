@@ -1554,6 +1554,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Duplicates this part.
         /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="AgentID"></param>
+        /// <param name="GroupID"></param>
+        /// <param name="linkNum"></param>
+        /// <param name="userExposed">True if the duplicate will immediately be in the scene, false otherwise</param>
         /// <returns></returns>
         public SceneObjectPart Copy(uint localID, UUID AgentID, UUID GroupID, int linkNum, bool userExposed)
         {
@@ -1617,7 +1622,7 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
             }
             
-            ParentGroup.Scene.EventManager.TriggerOnSceneObjectPartCopy(dupe, this);
+            ParentGroup.Scene.EventManager.TriggerOnSceneObjectPartCopy(dupe, this, userExposed);
 
 //            m_log.DebugFormat("[SCENE OBJECT PART]: Clone of {0} {1} finished", Name, UUID);
                           
