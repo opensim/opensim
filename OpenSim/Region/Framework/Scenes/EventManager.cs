@@ -350,6 +350,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </param>
         public event SceneObjectPreSaveDelegate OnSceneObjectPreSave;
         public delegate void SceneObjectPreSaveDelegate(SceneObjectGroup persistingSo, SceneObjectGroup originalSo);
+        
+        /// <summary>
+        /// Called when a scene object part is cloned within the region.
+        /// </summary>
+        public event SceneObjectPartCopyDelegate OnSceneObjectPartCopy;
+        public delegate void SceneObjectPartCopyDelegate(SceneObjectPart copy, SceneObjectPart original);
 
         public delegate void RegionUp(GridRegion region);
         public event RegionUp OnRegionUp;       
@@ -2073,6 +2079,27 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-        }        
+        } 
+        
+        public void TriggerOnSceneObjectPartCopy(SceneObjectPart copy, SceneObjectPart original)
+        {
+            SceneObjectPartCopyDelegate handler = OnSceneObjectPartCopy;
+            if (handler != null)
+            {
+                foreach (SceneObjectPartCopyDelegate d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(copy, original);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnSceneObjectPartCopy failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }   
     }
 }

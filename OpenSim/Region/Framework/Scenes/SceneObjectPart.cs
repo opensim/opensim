@@ -1617,20 +1617,7 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
             }
             
-            if (Shape.Media != null)
-            {
-                List<MediaEntry> dupeMedia = new List<MediaEntry>();
-                
-                foreach (MediaEntry me in Shape.Media)
-                {
-                    if (me != null)
-                        dupeMedia.Add(MediaEntry.FromOSD(me.GetOSD()));
-                    else
-                        dupeMedia.Add(null);
-                }
-                
-                dupe.Shape.Media = dupeMedia;
-            }
+            ParentGroup.Scene.EventManager.TriggerOnSceneObjectPartCopy(dupe, this);
 
 //            m_log.DebugFormat("[SCENE OBJECT PART]: Clone of {0} {1} finished", Name, UUID);
                           
