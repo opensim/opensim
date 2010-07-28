@@ -1923,9 +1923,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (null == me)
                 return true;
             
-            m_log.DebugFormat(
-                "[PERMISSIONS]: Checking CanControlPrimMedia for {0} on {1} face {2} with control permissions {3}", 
-                agentID, primID, face, me.ControlPermissions);
+//            m_log.DebugFormat(
+//                "[PERMISSIONS]: Checking CanControlPrimMedia for {0} on {1} face {2} with control permissions {3}", 
+//                agentID, primID, face, me.ControlPermissions);
             
             return GenericPrimMediaPermission(part, agentID, me.ControlPermissions);
         }  
@@ -1949,9 +1949,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (null == me)
                 return true;
             
-            m_log.DebugFormat(
-                "[PERMISSIONS]: Checking CanInteractWithPrimMedia for {0} on {1} face {2} with interact permissions {3}", 
-                agentID, primID, face, me.InteractPermissions);            
+//            m_log.DebugFormat(
+//                "[PERMISSIONS]: Checking CanInteractWithPrimMedia for {0} on {1} face {2} with interact permissions {3}", 
+//                agentID, primID, face, me.InteractPermissions);            
             
             return GenericPrimMediaPermission(part, agentID, me.InteractPermissions);
         }          

@@ -350,9 +350,9 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             
             if (null == part)
             {
-//                m_log.WarnFormat(
-//                    "[MOAP]: Received a GET ObjectMediaRequest for prim {0} but this doesn't exist in region {1}", 
-//                    primId, m_scene.RegionInfo.RegionName);
+                m_log.WarnFormat(
+                    "[MOAP]: Received a GET ObjectMediaRequest for prim {0} but this doesn't exist in region {1}", 
+                    primId, m_scene.RegionInfo.RegionName);
                 return string.Empty;
             }
             
@@ -386,9 +386,9 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             
             if (null == part)
             {
-//                m_log.WarnFormat(
-//                    "[MOAP]: Received an UPDATE ObjectMediaRequest for prim {0} but this doesn't exist in region {1}", 
-//                    primId, m_scene.RegionInfo.RegionName);
+                m_log.WarnFormat(
+                    "[MOAP]: Received an UPDATE ObjectMediaRequest for prim {0} but this doesn't exist in region {1}", 
+                    primId, m_scene.RegionInfo.RegionName);
                 return string.Empty;
             }                                    
             
@@ -403,9 +403,9 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             
             if (omu.FaceMedia.Length > part.GetNumberOfSides())
             {
-//                m_log.WarnFormat(
-//                    "[MOAP]: Received {0} media entries from client for prim {1} {2} but this prim has only {3} faces.  Dropping request.", 
-//                    omu.FaceMedia.Length, part.Name, part.UUID, part.GetNumberOfSides());
+                m_log.WarnFormat(
+                    "[MOAP]: Received {0} media entries from client for prim {1} {2} but this prim has only {3} faces.  Dropping request.", 
+                    omu.FaceMedia.Length, part.Name, part.UUID, part.GetNumberOfSides());
                 return string.Empty;
             }
             
