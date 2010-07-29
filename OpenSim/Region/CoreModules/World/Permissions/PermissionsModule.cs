@@ -209,6 +209,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnDeedParcel += CanDeedParcel;
             m_scene.Permissions.OnDeedObject += CanDeedObject;
             m_scene.Permissions.OnIsGod += IsGod;
+            m_scene.Permissions.OnIsAdministrator += IsAdministrator;
             m_scene.Permissions.OnDuplicateObject += CanDuplicateObject;
             m_scene.Permissions.OnDeleteObject += CanDeleteObject; //MAYBE FULLY IMPLEMENTED
             m_scene.Permissions.OnEditObject += CanEditObject; //MAYBE FULLY IMPLEMENTED

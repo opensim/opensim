@@ -64,6 +64,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool RunConsoleCommandHandler(UUID user, Scene requestFromScene);
     public delegate bool IssueEstateCommandHandler(UUID user, Scene requestFromScene, bool ownerCommand);
     public delegate bool IsGodHandler(UUID user, Scene requestFromScene);
+    public delegate bool IsAdministratorHandler(UUID user);
     public delegate bool EditParcelHandler(UUID user, ILandObject parcel, Scene scene);
     public delegate bool SellParcelHandler(UUID user, ILandObject parcel, Scene scene);
     public delegate bool AbandonParcelHandler(UUID user, ILandObject parcel, Scene scene);
@@ -122,6 +123,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event RunConsoleCommandHandler OnRunConsoleCommand;
         public event IssueEstateCommandHandler OnIssueEstateCommand;
         public event IsGodHandler OnIsGod;
+        public event IsAdministratorHandler OnIsAdministrator;
         public event EditParcelHandler OnEditParcel;
         public event SellParcelHandler OnSellParcel;
         public event AbandonParcelHandler OnAbandonParcel;
@@ -647,6 +649,21 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (IsGodHandler h in list)
                 {
                     if (h(user, m_scene) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public bool IsAdministrator(UUID user)
+        {
+            IsAdministratorHandler handler = OnIsAdministrator;
+            if (handler != null)
+            {
+                Delegate[] list = handler.GetInvocationList();
+                foreach (IsAdministratorHandler h in list)
+                {
+                    if (h(user) == false)
                         return false;
                 }
             }

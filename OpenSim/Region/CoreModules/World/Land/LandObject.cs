@@ -283,6 +283,9 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsBannedFromLand(UUID avatar)
         {
+            if (m_scene.Permissions.IsAdministrator(avatar))
+                return false;
+
             if ((LandData.Flags & (uint) ParcelFlags.UseBanList) > 0)
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
@@ -301,6 +304,9 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsRestrictedFromLand(UUID avatar)
         {
+            if (m_scene.Permissions.IsAdministrator(avatar))
+                return false;
+
             if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) > 0)
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
