@@ -20,6 +20,7 @@
   <delete dir="${distbindir}/.nant"/>
   <delete>
     <fileset basedir="${distbindir}">
+      <include name="compile.bat"/>
       <include name="BUILDING.txt"/>
       <include name="Makefile"/>
       <include name="nant-color"/>
@@ -29,7 +30,7 @@
       <include name="TESTING.txt"/>
       <include name="TestResult.xml"/>
       <include name="bin/OpenSim.Server.ini"/>
-      <include name="bin/Regions/*"/>
+      <include name="bin/Regions/Regions.ini"/>
       <include name="bin/*.db"/>
       <include name="**/.git/**"/>
       <include name=".gitignore"/>
