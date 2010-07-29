@@ -139,8 +139,9 @@ namespace OpenSim.Framework
                 request.ContentLength = requestData.Length;
                 request.ContentType = "application/x-www-form-urlencoded";
 
-                using (Stream requestStream = request.GetRequestStream())
-                    requestStream.Write(requestData, 0, requestData.Length);
+                Stream requestStream = request.GetRequestStream();
+                requestStream.Write(requestData, 0, requestData.Length);
+                requestStream.Close();
 
                 using (WebResponse response = request.GetResponse())
                 {
@@ -169,7 +170,7 @@ namespace OpenSim.Framework
             }
             catch (Exception ex)
             {
-                m_log.Warn("POST to URL " + url + " failed: " + ex.Message);
+                m_log.Warn("POST to URL " + url + " failed: " + ex);
                 errorMessage = ex.Message;
             }
 
