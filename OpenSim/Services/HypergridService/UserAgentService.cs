@@ -63,6 +63,8 @@ namespace OpenSim.Services.HypergridService
         protected static IGridService m_GridService;
         protected static GatekeeperServiceConnector m_GatekeeperConnector;
 
+        protected static bool m_BypassClientVerification;
+
         public UserAgentService(IConfigSource config)
         {
             if (!m_Initialized)
@@ -75,6 +77,8 @@ namespace OpenSim.Services.HypergridService
 
                 string gridService = serverConfig.GetString("GridService", String.Empty);
                 string gridUserService = serverConfig.GetString("GridUserService", String.Empty);
+
+                m_BypassClientVerification = serverConfig.GetBoolean("BypassClientVerification", false);
 
                 if (gridService == string.Empty || gridUserService == string.Empty)
                     throw new Exception(String.Format("Incomplete specifications, UserAgent Service cannot function."));
@@ -212,11 +216,10 @@ namespace OpenSim.Services.HypergridService
 
         public bool VerifyClient(UUID sessionID, string token)
         {
-            m_log.DebugFormat("[USER AGENT SERVICE]: Verifying Client session {0} with token {1}", sessionID, token);
-            //return true;
+            if (m_BypassClientVerification)
+                return true;
 
-            // Commenting this for now until I understand better what part of a sender's
-            // info stays unchanged throughout a session
+            m_log.DebugFormat("[USER AGENT SERVICE]: Verifying Client session {0} with token {1}", sessionID, token);
 
             if (m_TravelingAgents.ContainsKey(sessionID))
                 return m_TravelingAgents[sessionID].ClientToken == token;
