@@ -2725,7 +2725,9 @@ namespace OpenSim.Region.Framework.Scenes
                 IUserAgentVerificationModule userVerification = RequestModuleInterface<IUserAgentVerificationModule>();
                 if (userVerification != null && ep != null)
                 {
-                    if (!userVerification.VerifyClient(aCircuit, ep.Address.ToString()))
+                    System.Net.IPAddress addr = NetworkUtil.GetExternalIPOf(ep.Address);
+
+                    if (!userVerification.VerifyClient(aCircuit, /*ep.Address.ToString() */ addr.ToString()))
                     {
                         // uh-oh, this is fishy
                         m_log.DebugFormat("[Scene]: User Client Verification for {0} {1} in {2} returned false", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
