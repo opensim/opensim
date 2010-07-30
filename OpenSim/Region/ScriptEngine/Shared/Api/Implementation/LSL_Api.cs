@@ -6075,7 +6075,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return m_host.ParentGroup.RootPart.AttachmentPoint;
         }
 
-        public LSL_Integer llGetFreeMemory()
+        public virtual LSL_Integer llGetFreeMemory()
         {
             m_host.AddScriptLPS(1);
             // Make scripts designed for LSO happy

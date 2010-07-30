@@ -244,7 +244,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                         ILandObject Presencecheck = s.LandChannel.GetLandObject(presence.AbsolutePosition.X, presence.AbsolutePosition.Y);
                         if (Presencecheck != null)
                         {
-                            if (Presencecheck.IsEitherBannedOrRestricted(c.SenderUUID) != true)
+                            // This will pass all chat from objects. Not
+                            // perfect, but it will do. For now. Better
+                            // than the prior behavior of muting all
+                            // objects on a parcel with access restrictions
+                            if (c.Sender == null || Presencecheck.IsEitherBannedOrRestricted(c.Sender.AgentId) != true)
                             {
                                 TrySendChatMessage(presence, fromPos, regionPos, fromID, fromNamePrefix+fromName, c.Type, message, sourceType);
                             }
