@@ -2912,10 +2912,6 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnViewerEffect += ProcessViewerEffect;
         }
 
-        protected virtual void UnsubscribeToClientEvents(IClientAPI client)
-        {
-        }
-
         /// <summary>
         /// Unsubscribe the client from events.
         /// </summary>
