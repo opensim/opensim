@@ -68,7 +68,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         #endregion
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        
         private readonly Commander m_commander = new Commander("terrain");
 
         private readonly Dictionary<StandardTerrainEffects, ITerrainFloodEffect> m_floodeffects =
@@ -381,8 +381,13 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private void LoadPlugins()
         {
             m_plugineffects = new Dictionary<string, ITerrainEffect>();
+            string plugineffectsPath = "Terrain";
+            
             // Load the files in the Terrain/ dir
-            string[] files = Directory.GetFiles("Terrain");
+            if (!Directory.Exists(plugineffectsPath))
+                return;
+            
+            string[] files = Directory.GetFiles(plugineffectsPath);
             foreach (string file in files)
             {
                 m_log.Info("Loading effects in " + file);
