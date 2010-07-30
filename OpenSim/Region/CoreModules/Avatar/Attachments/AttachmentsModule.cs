@@ -56,11 +56,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         {
             m_scene = scene;
             m_scene.RegisterModuleInterface<IAttachmentsModule>(this);
+            m_scene.EventManager.OnNewClient += SubscribeToClientEvents;
+            // TODO: Should probably be subscribing to CloseClient too, but this doesn't yet give us IClientAPI
         }
         
         public void RemoveRegion(Scene scene) 
         {
             m_scene.UnregisterModuleInterface<IAttachmentsModule>(this);
+            m_scene.EventManager.OnNewClient -= SubscribeToClientEvents;
         }
         
         public void RegionLoaded(Scene scene) {}
@@ -69,7 +72,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         {
             RemoveRegion(m_scene);
         }
-
+        
+        public void SubscribeToClientEvents(IClientAPI client)
+        {
+            client.OnRezSingleAttachmentFromInv += RezSingleAttachmentFromInventory;
+            client.OnRezMultipleAttachmentsFromInv += RezMultipleAttachmentsFromInventory;
+            client.OnObjectAttach += AttachObject;
+            client.OnObjectDetach += DetachObject;
+            client.OnDetachAttachmentIntoInv += ShowDetachInUserInventory;             
+        }
+        
+        public void UnsubscribeFromClientEvents(IClientAPI client)
+        {
+            client.OnRezSingleAttachmentFromInv -= RezSingleAttachmentFromInventory;
+            client.OnRezMultipleAttachmentsFromInv -= RezMultipleAttachmentsFromInventory;
+            client.OnObjectAttach -= AttachObject;
+            client.OnObjectDetach -= DetachObject;
+            client.OnDetachAttachmentIntoInv -= ShowDetachInUserInventory;       
+        }
+        
         /// <summary>
         /// Called by client
         /// </summary>

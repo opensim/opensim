@@ -2783,17 +2783,12 @@ namespace OpenSim.Region.Framework.Scenes
             SubscribeToClientPrimEvents(client);
             SubscribeToClientPrimRezEvents(client);
             SubscribeToClientInventoryEvents(client);
-            SubscribeToClientAttachmentEvents(client);
             SubscribeToClientTeleportEvents(client);
             SubscribeToClientScriptEvents(client);
             SubscribeToClientParcelEvents(client);
             SubscribeToClientGridEvents(client);
             SubscribeToClientGodEvents(client);
-
             SubscribeToClientNetworkEvents(client);
-            
-
-            // EventManager.TriggerOnNewClient(client);
         }
 
         public virtual void SubscribeToClientTerrainEvents(IClientAPI client)
@@ -2874,18 +2869,6 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnMoveTaskItem += ClientMoveTaskInventoryItem;
         }
 
-        public virtual void SubscribeToClientAttachmentEvents(IClientAPI client)
-        {                                    
-            if (AttachmentsModule != null)
-            {
-                client.OnRezSingleAttachmentFromInv += AttachmentsModule.RezSingleAttachmentFromInventory;
-                client.OnRezMultipleAttachmentsFromInv += AttachmentsModule.RezMultipleAttachmentsFromInventory;
-                client.OnObjectAttach += AttachmentsModule.AttachObject;
-                client.OnObjectDetach += AttachmentsModule.DetachObject;
-                client.OnDetachAttachmentIntoInv += AttachmentsModule.ShowDetachInUserInventory;
-            }
-        }
-
         public virtual void SubscribeToClientTeleportEvents(IClientAPI client)
         {
             client.OnTeleportLocationRequest += RequestTeleportLocation;
@@ -2934,16 +2917,15 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Register for events from the client
+        /// Unsubscribe the client from events.
         /// </summary>
-        /// <param name="client">The IClientAPI of the connected client</param>
+        /// <param name="client">The IClientAPI of the client</param>
         public virtual void UnSubscribeToClientEvents(IClientAPI client)
         {
             UnSubscribeToClientTerrainEvents(client);
             UnSubscribeToClientPrimEvents(client);
             UnSubscribeToClientPrimRezEvents(client);
             UnSubscribeToClientInventoryEvents(client);
-            UnSubscribeToClientAttachmentEvents(client);
             UnSubscribeToClientTeleportEvents(client);
             UnSubscribeToClientScriptEvents(client);
             UnSubscribeToClientParcelEvents(client);
@@ -2951,8 +2933,6 @@ namespace OpenSim.Region.Framework.Scenes
             UnSubscribeToClientGodEvents(client);
 
             UnSubscribeToClientNetworkEvents(client);
-
-            // EventManager.TriggerOnNewClient(client);
         }
 
         public virtual void UnSubscribeToClientTerrainEvents(IClientAPI client)
@@ -3027,18 +3007,6 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnRemoveTaskItem -= RemoveTaskInventory;
             client.OnUpdateTaskInventory -= UpdateTaskInventory;
             client.OnMoveTaskItem -= ClientMoveTaskInventoryItem;
-        }
-
-        public virtual void UnSubscribeToClientAttachmentEvents(IClientAPI client)
-        {            
-            if (AttachmentsModule != null)
-            {
-                client.OnRezSingleAttachmentFromInv -= AttachmentsModule.RezSingleAttachmentFromInventory;
-                client.OnRezMultipleAttachmentsFromInv -= AttachmentsModule.RezMultipleAttachmentsFromInventory;
-                client.OnObjectAttach -= AttachmentsModule.AttachObject;
-                client.OnObjectDetach -= AttachmentsModule.DetachObject;
-                client.OnDetachAttachmentIntoInv -= AttachmentsModule.ShowDetachInUserInventory;
-            }
         }
 
         public virtual void UnSubscribeToClientTeleportEvents(IClientAPI client)

@@ -28,11 +28,12 @@
 using System;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region.CoreModules.Avatar.Attachments;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.RegionCombinerModule
 {
- public class RegionCombinerIndividualEventForwarder
+    public class RegionCombinerIndividualEventForwarder
     {
         private Scene m_rootScene;
         private Scene m_virtScene;
@@ -48,7 +49,7 @@ namespace OpenSim.Region.RegionCombinerModule
             m_virtScene.UnSubscribeToClientPrimEvents(client);
             m_virtScene.UnSubscribeToClientPrimRezEvents(client);
             m_virtScene.UnSubscribeToClientInventoryEvents(client);
-            m_virtScene.UnSubscribeToClientAttachmentEvents(client);
+            ((AttachmentsModule)m_virtScene.AttachmentsModule).UnsubscribeFromClientEvents(client);
             //m_virtScene.UnSubscribeToClientTeleportEvents(client);
             m_virtScene.UnSubscribeToClientScriptEvents(client);
             m_virtScene.UnSubscribeToClientGodEvents(client);
@@ -58,7 +59,7 @@ namespace OpenSim.Region.RegionCombinerModule
             client.OnAddPrim += LocalAddNewPrim;
             client.OnRezObject += LocalRezObject;
             m_rootScene.SubscribeToClientInventoryEvents(client);
-            m_rootScene.SubscribeToClientAttachmentEvents(client);
+            ((AttachmentsModule)m_rootScene.AttachmentsModule).SubscribeToClientEvents(client);
             //m_rootScene.SubscribeToClientTeleportEvents(client);
             m_rootScene.SubscribeToClientScriptEvents(client);
             m_rootScene.SubscribeToClientGodEvents(client);
