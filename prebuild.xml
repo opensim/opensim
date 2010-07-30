@@ -255,58 +255,6 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Framework.Configuration.XML" path="OpenSim/Framework/Configuration/XML" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Data"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Framework.Configuration.HTTP" path="OpenSim/Framework/Configuration/HTTP" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Configuration.XML"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="log4net.dll"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <Project frameworkVersion="v3_5" name="OpenSim.Framework.AssetLoader.Filesystem" path="OpenSim/Framework/AssetLoader/Filesystem" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1449,34 +1397,10 @@
         <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
         <Match pattern="*.cs" recurse="true">
           <Exclude name="Tests" pattern="Tests" />
-          <Exclude name="TerrainDefaultEffects" pattern="World/Terrain/DefaultEffects" />
         </Match>
         <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Region.CoreModules.World.Terrain.DefaultEffects" path="OpenSim/Region/CoreModules/World/Terrain/DefaultEffects" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../../../bin/Terrain/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../../../bin/Terrain/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.CoreModules"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
 
     <Project frameworkVersion="v3_5" name="OpenSim.Region.OptionalModules" path="OpenSim/Region/OptionalModules" type="Library">
       <Configuration name="Debug">

@@ -2788,7 +2788,9 @@ namespace OpenSim.Region.Framework.Scenes
                 IUserAgentVerificationModule userVerification = RequestModuleInterface<IUserAgentVerificationModule>();
                 if (userVerification != null && ep != null)
                 {
-                    if (!userVerification.VerifyClient(aCircuit, ep.Address.ToString()))
+                    System.Net.IPAddress addr = NetworkUtil.GetExternalIPOf(ep.Address);
+
+                    if (!userVerification.VerifyClient(aCircuit, /*ep.Address.ToString() */ addr.ToString()))
                     {
                         // uh-oh, this is fishy
                         m_log.DebugFormat("[Scene]: User Client Verification for {0} {1} in {2} returned false", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
@@ -2846,17 +2848,11 @@ namespace OpenSim.Region.Framework.Scenes
             SubscribeToClientPrimEvents(client);
             SubscribeToClientPrimRezEvents(client);
             SubscribeToClientInventoryEvents(client);
-            SubscribeToClientAttachmentEvents(client);
             SubscribeToClientTeleportEvents(client);
             SubscribeToClientScriptEvents(client);
             SubscribeToClientParcelEvents(client);
             SubscribeToClientGridEvents(client);
-            SubscribeToClientGodEvents(client);
-
             SubscribeToClientNetworkEvents(client);
-            
-
-            // EventManager.TriggerOnNewClient(client);
         }
 
         public virtual void SubscribeToClientTerrainEvents(IClientAPI client)
@@ -2866,8 +2862,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
         
         public virtual void SubscribeToClientPrimEvents(IClientAPI client)
-        {
-            
+        {            
             client.OnUpdatePrimGroupPosition += m_sceneGraph.UpdatePrimPosition;
             client.OnUpdatePrimSinglePosition += m_sceneGraph.UpdatePrimSinglePosition;
             client.OnUpdatePrimGroupRotation += m_sceneGraph.UpdatePrimRotation;
@@ -2937,18 +2932,6 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnMoveTaskItem += ClientMoveTaskInventoryItem;
         }
 
-        public virtual void SubscribeToClientAttachmentEvents(IClientAPI client)
-        {                                    
-            if (AttachmentsModule != null)
-            {
-                client.OnRezSingleAttachmentFromInv += AttachmentsModule.RezSingleAttachmentFromInventory;
-                client.OnRezMultipleAttachmentsFromInv += AttachmentsModule.RezMultipleAttachmentsFromInventory;
-                client.OnObjectAttach += AttachmentsModule.AttachObject;
-                client.OnObjectDetach += AttachmentsModule.DetachObject;
-                client.OnDetachAttachmentIntoInv += AttachmentsModule.ShowDetachInUserInventory;
-            }
-        }
-
         public virtual void SubscribeToClientTeleportEvents(IClientAPI client)
         {
             client.OnTeleportLocationRequest += RequestTeleportLocation;
@@ -2978,44 +2961,29 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnSetStartLocationRequest += SetHomeRezPoint;
             client.OnRegionHandleRequest += RegionHandleRequest;
         }
-
-        public virtual void SubscribeToClientGodEvents(IClientAPI client)
-        {
-            IGodsModule godsModule = RequestModuleInterface<IGodsModule>();
-            client.OnGodKickUser += godsModule.KickUser;
-            client.OnRequestGodlikePowers += godsModule.RequestGodlikePowers;
-        }
-
+        
         public virtual void SubscribeToClientNetworkEvents(IClientAPI client)
         {
             client.OnNetworkStatsUpdate += StatsReporter.AddPacketsStats;
             client.OnViewerEffect += ProcessViewerEffect;
         }
 
-        protected virtual void UnsubscribeToClientEvents(IClientAPI client)
-        {
-        }
-
         /// <summary>
-        /// Register for events from the client
+        /// Unsubscribe the client from events.
         /// </summary>
-        /// <param name="client">The IClientAPI of the connected client</param>
+        /// FIXME: Not called anywhere!
+        /// <param name="client">The IClientAPI of the client</param>
         public virtual void UnSubscribeToClientEvents(IClientAPI client)
         {
             UnSubscribeToClientTerrainEvents(client);
             UnSubscribeToClientPrimEvents(client);
             UnSubscribeToClientPrimRezEvents(client);
             UnSubscribeToClientInventoryEvents(client);
-            UnSubscribeToClientAttachmentEvents(client);
             UnSubscribeToClientTeleportEvents(client);
             UnSubscribeToClientScriptEvents(client);
             UnSubscribeToClientParcelEvents(client);
             UnSubscribeToClientGridEvents(client);
-            UnSubscribeToClientGodEvents(client);
-
             UnSubscribeToClientNetworkEvents(client);
-
-            // EventManager.TriggerOnNewClient(client);
         }
 
         public virtual void UnSubscribeToClientTerrainEvents(IClientAPI client)
@@ -3092,18 +3060,6 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnMoveTaskItem -= ClientMoveTaskInventoryItem;
         }
 
-        public virtual void UnSubscribeToClientAttachmentEvents(IClientAPI client)
-        {            
-            if (AttachmentsModule != null)
-            {
-                client.OnRezSingleAttachmentFromInv -= AttachmentsModule.RezSingleAttachmentFromInventory;
-                client.OnRezMultipleAttachmentsFromInv -= AttachmentsModule.RezMultipleAttachmentsFromInventory;
-                client.OnObjectAttach -= AttachmentsModule.AttachObject;
-                client.OnObjectDetach -= AttachmentsModule.DetachObject;
-                client.OnDetachAttachmentIntoInv -= AttachmentsModule.ShowDetachInUserInventory;
-            }
-        }
-
         public virtual void UnSubscribeToClientTeleportEvents(IClientAPI client)
         {
             client.OnTeleportLocationRequest -= RequestTeleportLocation;
@@ -3133,13 +3089,6 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnAvatarPickerRequest -= ProcessAvatarPickerRequest;
             client.OnSetStartLocationRequest -= SetHomeRezPoint;
             client.OnRegionHandleRequest -= RegionHandleRequest;
-        }
-
-        public virtual void UnSubscribeToClientGodEvents(IClientAPI client)
-        {
-            IGodsModule godsModule = RequestModuleInterface<IGodsModule>();
-            client.OnGodKickUser -= godsModule.KickUser;
-            client.OnRequestGodlikePowers -= godsModule.RequestGodlikePowers;
         }
 
         public virtual void UnSubscribeToClientNetworkEvents(IClientAPI client)

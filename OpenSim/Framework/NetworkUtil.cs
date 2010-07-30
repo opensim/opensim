@@ -31,6 +31,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Reflection;
+using System.Text;
 using log4net;
 
 namespace OpenSim.Framework
@@ -180,8 +181,16 @@ namespace OpenSim.Framework
             throw new ArgumentException("[NetworkUtil] Unable to resolve defaultHostname to an IPv4 address for an IPv4 client");
         }
 
+        static IPAddress externalIPAddress;
+
         static NetworkUtil()
         {
+            try
+            {
+                externalIPAddress = GetExternalIP();
+            }
+            catch { /* ignore */ }
+
             try
             {
                 foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
@@ -243,6 +252,81 @@ namespace OpenSim.Framework
                     return rtn.ToString();
             }
             return defaultHostname;
+        }
+
+        public static IPAddress GetExternalIPOf(IPAddress user)
+        {
+            if (externalIPAddress == null)
+                return user;
+
+            if (user.ToString() == "127.0.0.1")
+            {
+                m_log.Info("[NetworkUtil] 127.0.0.1 user detected, sending '" + externalIPAddress + "' instead of '" + user + "'");
+                return externalIPAddress;
+            }
+            // Check if we're accessing localhost.
+            foreach (IPAddress host in Dns.GetHostAddresses(Dns.GetHostName()))
+            {
+                if (host.Equals(user) && host.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    m_log.Info("[NetworkUtil] Localhost user detected, sending '" + externalIPAddress + "' instead of '" + user + "'");
+                    return externalIPAddress;
+                }
+            }
+
+            // Check for same LAN segment
+            foreach (KeyValuePair<IPAddress, IPAddress> subnet in m_subnets)
+            {
+                byte[] subnetBytes = subnet.Value.GetAddressBytes();
+                byte[] localBytes = subnet.Key.GetAddressBytes();
+                byte[] destBytes = user.GetAddressBytes();
+
+                if (subnetBytes.Length != destBytes.Length || subnetBytes.Length != localBytes.Length)
+                    return user;
+
+                bool valid = true;
+
+                for (int i = 0; i < subnetBytes.Length; i++)
+                {
+                    if ((localBytes[i] & subnetBytes[i]) != (destBytes[i] & subnetBytes[i]))
+                    {
+                        valid = false;
+                        break;
+                    }
+                }
+
+                if (subnet.Key.AddressFamily != AddressFamily.InterNetwork)
+                    valid = false;
+
+                if (valid)
+                {
+                    m_log.Info("[NetworkUtil] Local LAN user detected, sending '" + externalIPAddress + "' instead of '" + user + "'");
+                    return externalIPAddress;
+                }
+            }
+
+            // Otherwise, return user address
+            return user;
+        }
+
+        private static IPAddress GetExternalIP()
+        {
+            string whatIsMyIp = "http://www.whatismyip.com/automation/n09230945.asp";
+            WebClient wc = new WebClient();
+            UTF8Encoding utf8 = new UTF8Encoding();
+            string requestHtml = "";
+            try
+            {
+                requestHtml = utf8.GetString(wc.DownloadData(whatIsMyIp));
+            }
+            catch (WebException we)
+            {
+                m_log.Info("[NetworkUtil]: Exception in GetExternalIP: " + we.ToString());
+                return null;
+            }
+            
+            IPAddress externalIp = IPAddress.Parse(requestHtml);
+            return externalIp;
         }
     }
 }

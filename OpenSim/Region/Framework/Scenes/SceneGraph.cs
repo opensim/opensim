@@ -87,8 +87,6 @@ namespace OpenSim.Region.Framework.Scenes
 //        protected internal Dictionary<UUID, EntityBase> Entities = new Dictionary<UUID, EntityBase>();
         protected internal Dictionary<UUID, ScenePresence> RestorePresences = new Dictionary<UUID, ScenePresence>();
 
-        protected internal BasicQuadTreeNode QuadTree;
-
         protected RegionInfo m_regInfo;
         protected Scene m_parentScene;
         protected Dictionary<UUID, SceneObjectGroup> m_updateList = new Dictionary<UUID, SceneObjectGroup>();
@@ -116,9 +114,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_parentScene = parent;
             m_regInfo = regInfo;
-            QuadTree = new BasicQuadTreeNode(null, "/0/", 0, 0, (short)Constants.RegionSize, (short)Constants.RegionSize);
-            QuadTree.Subdivide();
-            QuadTree.Subdivide();
         }
 
         public PhysicsScene PhysicsScene

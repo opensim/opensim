@@ -47,12 +47,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
             m_scene = scene;
             m_dialogModule = m_scene.RequestModuleInterface<IDialogModule>();
             m_scene.RegisterModuleInterface<IGodsModule>(this);
+            m_scene.EventManager.OnNewClient += SubscribeToClientEvents;
         }
         
         public void PostInitialise() {}
         public void Close() {}
         public string Name { get { return "Gods Module"; } }
         public bool IsSharedModule { get { return false; } }
+        
+        public void SubscribeToClientEvents(IClientAPI client)
+        {
+            client.OnGodKickUser += KickUser;
+            client.OnRequestGodlikePowers += RequestGodlikePowers;             
+        }        
+        
+        public void UnsubscribeFromClientEvents(IClientAPI client)
+        {
+            client.OnGodKickUser -= KickUser;
+            client.OnRequestGodlikePowers -= RequestGodlikePowers;       
+        }
         
         public void RequestGodlikePowers(
             UUID agentID, UUID sessionID, UUID token, bool godLike, IClientAPI controllingClient)
