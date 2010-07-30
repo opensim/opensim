@@ -29,6 +29,8 @@ using System;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Avatar.Attachments;
+using OpenSim.Region.CoreModules.Avatar.Gods;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.RegionCombinerModule
@@ -47,22 +49,31 @@ namespace OpenSim.Region.RegionCombinerModule
         public void ClientConnect(IClientAPI client)
         {
             m_virtScene.UnSubscribeToClientPrimEvents(client);
-            m_virtScene.UnSubscribeToClientPrimRezEvents(client);
+            m_virtScene.UnSubscribeToClientPrimRezEvents(client);            
             m_virtScene.UnSubscribeToClientInventoryEvents(client);
             ((AttachmentsModule)m_virtScene.AttachmentsModule).UnsubscribeFromClientEvents(client);
             //m_virtScene.UnSubscribeToClientTeleportEvents(client);
             m_virtScene.UnSubscribeToClientScriptEvents(client);
-            m_virtScene.UnSubscribeToClientGodEvents(client);
+            
+            IGodsModule virtGodsModule = m_virtScene.RequestModuleInterface<IGodsModule>();
+            if (virtGodsModule != null)
+                ((GodsModule)virtGodsModule).UnsubscribeFromClientEvents(client);
+            
             m_virtScene.UnSubscribeToClientNetworkEvents(client);
 
             m_rootScene.SubscribeToClientPrimEvents(client);
             client.OnAddPrim += LocalAddNewPrim;
             client.OnRezObject += LocalRezObject;
+            
             m_rootScene.SubscribeToClientInventoryEvents(client);
-            ((AttachmentsModule)m_rootScene.AttachmentsModule).SubscribeToClientEvents(client);
+            ((AttachmentsModule)m_rootScene.AttachmentsModule).SubscribeToClientEvents(client);            
             //m_rootScene.SubscribeToClientTeleportEvents(client);
             m_rootScene.SubscribeToClientScriptEvents(client);
-            m_rootScene.SubscribeToClientGodEvents(client);
+            
+            IGodsModule rootGodsModule = m_virtScene.RequestModuleInterface<IGodsModule>();
+            if (rootGodsModule != null)
+                ((GodsModule)rootGodsModule).UnsubscribeFromClientEvents(client);
+            
             m_rootScene.SubscribeToClientNetworkEvents(client);
         }
 
