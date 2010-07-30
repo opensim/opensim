@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
@@ -39,38 +40,43 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.Attachments
 {
-    public class AttachmentsModule : IAttachmentsModule, IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "AttachmentsModule")]
+    public class AttachmentsModule : IAttachmentsModule, INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Scene m_scene = null;
+        
+        public string Name { get { return "Attachments Module"; } }        
+        public Type ReplaceableInterface { get { return null; } }        
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source) {}
+        
+        public void AddRegion(Scene scene)
         {
-            scene.RegisterModuleInterface<IAttachmentsModule>(this);
             m_scene = scene;
+            m_scene.RegisterModuleInterface<IAttachmentsModule>(this);
         }
-
-        public void PostInitialise()
+        
+        public void RemoveRegion(Scene scene) 
         {
+            m_scene.UnregisterModuleInterface<IAttachmentsModule>(this);
         }
-
-        public void Close()
+        
+        public void RegionLoaded(Scene scene) {}
+        
+        public void Close() 
         {
+            RemoveRegion(m_scene);
         }
 
-        public string Name
-        {
-            get { return "Attachments Module"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
-        }
-
-        // Called by client
-        //
+        /// <summary>
+        /// Called by client
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="objectLocalID"></param>
+        /// <param name="AttachmentPt"></param>
+        /// <param name="silent"></param>
         public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, bool silent)
         {
             m_log.Debug("[ATTACHMENTS MODULE]: Invoking AttachObject");
