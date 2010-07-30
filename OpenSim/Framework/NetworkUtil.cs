@@ -188,7 +188,11 @@ namespace OpenSim.Framework
             try
             {
                 externalIPAddress = GetExternalIP();
+            }
+            catch { /* ignore */ }
 
+            try
+            {
                 foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
                 {
                     foreach (UnicastIPAddressInformation address in ni.GetIPProperties().UnicastAddresses)
@@ -252,6 +256,14 @@ namespace OpenSim.Framework
 
         public static IPAddress GetExternalIPOf(IPAddress user)
         {
+            if (externalIPAddress == null)
+                return user;
+
+            if (user.ToString() == "127.0.0.1")
+            {
+                m_log.Info("[NetworkUtil] 127.0.0.1 user detected, sending '" + externalIPAddress + "' instead of '" + user + "'");
+                return externalIPAddress;
+            }
             // Check if we're accessing localhost.
             foreach (IPAddress host in Dns.GetHostAddresses(Dns.GetHostName()))
             {
@@ -309,8 +321,8 @@ namespace OpenSim.Framework
             }
             catch (WebException we)
             {
-                // do something with exception
                 m_log.Info("[NetworkUtil]: Exception in GetExternalIP: " + we.ToString());
+                return null;
             }
             
             IPAddress externalIp = IPAddress.Parse(requestHtml);
