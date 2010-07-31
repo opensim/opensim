@@ -62,6 +62,7 @@ namespace OpenSim.Data
 
         List<RegionData> GetDefaultRegions(UUID scopeID);
         List<RegionData> GetFallbackRegions(UUID scopeID, int x, int y);
+        List<RegionData> GetHyperlinks(UUID scopeID);
     }
 
     [Flags]
