@@ -2116,13 +2116,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                if (llVecDist(new LSL_Vector(0,0,0), targetPos) <= 10.0f)
-                {
-                    part.OffsetPosition = new Vector3((float)targetPos.x, (float)targetPos.y, (float)targetPos.z);
-                    SceneObjectGroup parent = part.ParentGroup;
-                    parent.HasGroupChanged = true;
-                    parent.ScheduleGroupForTerseUpdate();
-                }
+                LSL_Vector rel_vec = SetPosAdjust(currentPos, targetPos);
+                part.OffsetPosition = new Vector3((float)rel_vec.x, (float)rel_vec.y, (float)rel_vec.z);
+                SceneObjectGroup parent = part.ParentGroup;
+                parent.HasGroupChanged = true;
+                parent.ScheduleGroupForTerseUpdate();
             }
         }
 
