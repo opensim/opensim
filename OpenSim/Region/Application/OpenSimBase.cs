@@ -357,8 +357,19 @@ namespace OpenSim
                 {
                     if (!scene.RegionModules.ContainsKey(s))
                     {
-                        m_log.Fatal("[MODULES]: Required module " + s + " not found.");
-                        Environment.Exit(0);
+                        bool found = false;
+                        foreach (IRegionModule m in modules)
+                        {
+                            if (m.Name == s)
+                            {
+                                found = true;
+                            }
+                        }
+                        if (!found)
+                        {
+                            m_log.Fatal("[MODULES]: Required module " + s + " not found.");
+                            Environment.Exit(0);
+                        }
                     }
                 }
             }
