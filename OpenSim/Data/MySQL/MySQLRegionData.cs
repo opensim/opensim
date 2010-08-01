@@ -281,22 +281,26 @@ namespace OpenSim.Data.MySQL
 
             return false;
         }
+
         public List<RegionData> GetDefaultRegions(UUID scopeID)
         {
-            string command = "select * from `"+m_Realm+"` where (flags & 1) <> 0";
-            if (scopeID != UUID.Zero)
-                command += " and ScopeID = ?scopeID";
-
-            MySqlCommand cmd = new MySqlCommand(command);
-
-            cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
-
-            return RunCommand(cmd);
+            return Get((int)RegionFlags.DefaultRegion, scopeID);
         }
 
         public List<RegionData> GetFallbackRegions(UUID scopeID, int x, int y)
         {
-            string command = "select * from `"+m_Realm+"` where (flags & 2) <> 0";
+            // TODO: distance-sort results
+            return Get((int)RegionFlags.FallbackRegion, scopeID);
+        }
+
+        public List<RegionData> GetHyperlinks(UUID scopeID)
+        {
+            return Get((int)RegionFlags.Hyperlink, scopeID);
+        }
+
+        private List<RegionData> Get(int regionFlags, UUID scopeID)
+        {
+            string command = "select * from `" + m_Realm + "` where (flags & " + regionFlags.ToString() + ") <> 0";
             if (scopeID != UUID.Zero)
                 command += " and ScopeID = ?scopeID";
 
@@ -304,7 +308,6 @@ namespace OpenSim.Data.MySQL
 
             cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
 
-            // TODO: distance-sort results
             return RunCommand(cmd);
         }
     }

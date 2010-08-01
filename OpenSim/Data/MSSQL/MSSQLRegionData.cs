@@ -310,23 +310,23 @@ namespace OpenSim.Data.MSSQL
 
         public List<RegionData> GetDefaultRegions(UUID scopeID)
         {
-            string sql = "SELECT * FROM [" + m_Realm + "] WHERE (flags & 1) <> 0";
-            if (scopeID != UUID.Zero)
-                sql += " AND ScopeID = @scopeID";
-
-            using (SqlConnection conn = new SqlConnection(m_ConnectionString))
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
-            {
-                cmd.Parameters.Add(m_database.CreateParameter("@scopeID", scopeID));
-                conn.Open();
-                return RunCommand(cmd);
-            }
-            
+            return Get((int)RegionFlags.DefaultRegion, scopeID);
         }
 
         public List<RegionData> GetFallbackRegions(UUID scopeID, int x, int y)
         {
-            string sql = "SELECT * FROM [" + m_Realm + "] WHERE (flags & 2) <> 0";
+            // TODO: distance-sort results
+            return Get((int)RegionFlags.FallbackRegion, scopeID);
+        }
+
+        public List<RegionData> GetHyperlinks(UUID scopeID)
+        {
+            return Get((int)RegionFlags.Hyperlink, scopeID);
+        }
+
+        private List<RegionData> Get(int regionFlags, UUID scopeID)
+        {
+            string sql = "SELECT * FROM [" + m_Realm + "] WHERE (flags & " + regionFlags.ToString() + ") <> 0";
             if (scopeID != UUID.Zero)
                 sql += " AND ScopeID = @scopeID";
 
@@ -335,7 +335,6 @@ namespace OpenSim.Data.MSSQL
             {
                 cmd.Parameters.Add(m_database.CreateParameter("@scopeID", scopeID));
                 conn.Open();
-                // TODO: distance-sort results
                 return RunCommand(cmd);
             }
         }
