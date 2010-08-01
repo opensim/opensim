@@ -42,7 +42,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcRouterModule
     public class XmlRpcRouter : IRegionModule, IXmlRpcRouter
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+        private bool m_enabled = false;
         public void Initialise(Scene scene, IConfigSource config)
         {
             IConfig startupConfig = config.Configs["Startup"];
@@ -53,6 +53,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcRouterModule
                     "XmlRpcRouterModule") == "XmlRpcRouterModule")
             {
                 scene.RegisterModuleInterface<IXmlRpcRouter>(this);
+                m_enabled = true;
+            }
+            else
+            {
+                m_enabled = false;
             }
         }
 
@@ -76,7 +81,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcRouterModule
 
         public void RegisterNewReceiver(IScriptModule scriptEngine, UUID channel, UUID objectID, UUID itemID, string uri)
         {
-            scriptEngine.PostScriptEvent(itemID, "xmlrpc_uri", new Object[] {uri});
+            if (m_enabled)
+            {
+                scriptEngine.PostScriptEvent(itemID, "xmlrpc_uri", new Object[] { uri });
+            }
         }
 
         public void ScriptRemoved(UUID itemID)
