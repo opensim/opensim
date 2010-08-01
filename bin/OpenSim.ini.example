@@ -178,6 +178,9 @@
 
     ;permissionmodules = "DefaultPermissionsModule"
 
+    ;If any of the specified permissions modules fail to load, quit?
+    SecurePermissionsLoading = true
+
     ; If set to false, then, in theory, the server never carries out permission checks (allowing anybody to copy
     ; any item, etc.  This may not yet be implemented uniformally.
     ; If set to true, then all permissions checks are carried out
