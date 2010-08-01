@@ -196,7 +196,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 Hashtable requestData = (Hashtable) request.Params[0];
 
                 m_log.Info("[RADMIN]: Request to restart Region.");
-                checkStringParameters(request, new string[] {"password", "regionID"});
+                CheckStringParameters(request, new string[] {"password", "regionID"});
 
                 if (m_requiredPassword != String.Empty &&
                     (!requestData.Contains("password") || (string) requestData["password"] != m_requiredPassword))
@@ -245,7 +245,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 Hashtable requestData = (Hashtable) request.Params[0];
 
-                checkStringParameters(request, new string[] {"password", "message"});
+                CheckStringParameters(request, new string[] {"password", "message"});
 
                 if (m_requiredPassword != String.Empty &&
                     (!requestData.Contains("password") || (string) requestData["password"] != m_requiredPassword))
@@ -299,7 +299,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 //                       k, (string)requestData[k], ((string)requestData[k]).Length);
                 // }
 
-                checkStringParameters(request, new string[] {"password", "filename", "regionid"});
+                CheckStringParameters(request, new string[] {"password", "filename", "regionid"});
 
                 if (m_requiredPassword != String.Empty &&
                     (!requestData.Contains("password") || (string) requestData["password"] != m_requiredPassword))
@@ -499,7 +499,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];
 
-                    checkStringParameters(request, new string[]
+                    CheckStringParameters(request, new string[]
                                                        {
                                                            "password",
                                                            "region_name",
@@ -507,7 +507,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                                            "region_master_password",
                                                            "listen_ip", "external_address"
                                                        });
-                    checkIntegerParams(request, new string[] {"region_x", "region_y", "listen_port"});
+                    CheckIntegerParams(request, new string[] {"region_x", "region_y", "listen_port"});
 
                     // check password
                     if (!String.IsNullOrEmpty(m_requiredPassword) &&
@@ -630,7 +630,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     // If an access specification was provided, use it.
                     // Otherwise accept the default.
-                    newscene.RegionInfo.EstateSettings.PublicAccess = getBoolean(requestData, "public", m_publicAccess);
+                    newscene.RegionInfo.EstateSettings.PublicAccess = GetBoolean(requestData, "public", m_publicAccess);
                     newscene.RegionInfo.EstateSettings.EstateOwner = userID;
                     if (persist)
                         newscene.RegionInfo.EstateSettings.Save();
@@ -638,7 +638,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     // enable voice on newly created region if
                     // requested by either the XmlRpc request or the
                     // configuration
-                    if (getBoolean(requestData, "enable_voice", m_enableVoiceForNewRegions))
+                    if (GetBoolean(requestData, "enable_voice", m_enableVoiceForNewRegions))
                     {
                         List<ILandObject> parcels = ((Scene)newscene).LandChannel.AllParcels();
 
@@ -709,7 +709,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 try
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];
-                    checkStringParameters(request, new string[] {"password", "region_name"});
+                    CheckStringParameters(request, new string[] {"password", "region_name"});
 
                     Scene scene = null;
                     string regionName = (string) requestData["region_name"];
@@ -779,7 +779,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 try
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];
-                    checkStringParameters(request, new string[] {"password"});
+                    CheckStringParameters(request, new string[] {"password"});
 
                     if (requestData.ContainsKey("region_id") &&
                         !String.IsNullOrEmpty((string) requestData["region_id"]))
@@ -874,7 +874,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 try
                 {
                     Hashtable requestData = (Hashtable) request.Params[0];
-                    checkStringParameters(request, new string[] {"password", "region_name"});
+                    CheckStringParameters(request, new string[] {"password", "region_name"});
 
                     Scene scene = null;
                     string regionName = (string) requestData["region_name"];
@@ -883,13 +883,13 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     // Modify access
                     scene.RegionInfo.EstateSettings.PublicAccess =
-                        getBoolean(requestData,"public", scene.RegionInfo.EstateSettings.PublicAccess);
+                        GetBoolean(requestData,"public", scene.RegionInfo.EstateSettings.PublicAccess);
                     if (scene.RegionInfo.Persistent)
                         scene.RegionInfo.EstateSettings.Save();
 
                     if (requestData.ContainsKey("enable_voice"))
                     {
-                        bool enableVoice = getBoolean(requestData, "enable_voice", true);
+                        bool enableVoice = GetBoolean(requestData, "enable_voice", true);
                         List<ILandObject> parcels = ((Scene)scene).LandChannel.AllParcels();
 
                         foreach (ILandObject parcel in parcels)
@@ -983,12 +983,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     Hashtable requestData = (Hashtable) request.Params[0];
 
                     // check completeness
-                    checkStringParameters(request, new string[]
+                    CheckStringParameters(request, new string[]
                                                        {
                                                            "password", "user_firstname",
                                                            "user_lastname", "user_password",
                                                        });
-                    checkIntegerParams(request, new string[] {"start_region_x", "start_region_y"});
+                    CheckIntegerParams(request, new string[] {"start_region_x", "start_region_y"});
 
                     // check password
                     if (!String.IsNullOrEmpty(m_requiredPassword) &&
@@ -1028,7 +1028,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     // Establish the avatar's initial appearance
 
-                    updateUserAppearance(responseData, requestData, account.PrincipalID);
+                    UpdateUserAppearance(responseData, requestData, account.PrincipalID);
 
                     responseData["success"] = true;
                     responseData["avatar_uuid"] = account.PrincipalID.ToString();
@@ -1099,7 +1099,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 Hashtable requestData = (Hashtable) request.Params[0];
 
                 // check completeness
-                checkStringParameters(request, new string[] {"password", "user_firstname", "user_lastname"});
+                CheckStringParameters(request, new string[] {"password", "user_firstname", "user_lastname"});
 
                 string firstname = (string) requestData["user_firstname"];
                 string lastname = (string) requestData["user_lastname"];
@@ -1204,7 +1204,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     Hashtable requestData = (Hashtable) request.Params[0];
 
                     // check completeness
-                    checkStringParameters(request, new string[] {
+                    CheckStringParameters(request, new string[] {
                             "password", "user_firstname",
                             "user_lastname"});
 
@@ -1292,7 +1292,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     // User has been created. Now establish gender and appearance.
 
-                    updateUserAppearance(responseData, requestData, account.PrincipalID);
+                    UpdateUserAppearance(responseData, requestData, account.PrincipalID);
 
                     responseData["success"] = true;
                     responseData["avatar_uuid"] = account.PrincipalID.ToString();
@@ -1328,7 +1328,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// This should probably get moved into somewhere more core eventually.
         /// </summary>
 
-        private void updateUserAppearance(Hashtable responseData, Hashtable requestData, UUID userid)
+        private void UpdateUserAppearance(Hashtable responseData, Hashtable requestData, UUID userid)
         {
             m_log.DebugFormat("[RADMIN] updateUserAppearance");
 
@@ -1398,7 +1398,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             // actual asset ids, however to complete the magic we need to populate the inventory with the
             // assets in question.
 
-            establishAppearance(userid, mprof.PrincipalID);
+            EstablishAppearance(userid, mprof.PrincipalID);
 
             m_log.DebugFormat("[RADMIN] Finished setting appearance for avatar {0}, using model {1}",
                               userid, model);
@@ -1410,7 +1410,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// is known to exist, as is the target avatar.
         /// </summary>
 
-        private void establishAppearance(UUID dest, UUID srca)
+        private void EstablishAppearance(UUID dest, UUID srca)
         {
             m_log.DebugFormat("[RADMIN] Initializing inventory for {0} from {1}", dest, srca);
             Scene scene = m_app.SceneManager.CurrentOrFirstScene;
@@ -1431,7 +1431,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 // Simple copy of wearables and appearance update
                 try
                 {
-                    copyWearablesAndAttachments(dest, srca, ava);
+                    CopyWearablesAndAttachments(dest, srca, ava);
 
                     AvatarData adata = new AvatarData(ava);
                     scene.AvatarService.SetAvatar(dest, adata);
@@ -1449,8 +1449,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             try
             {
                 Dictionary<UUID,UUID> imap = new Dictionary<UUID,UUID>();
-                copyInventoryFolders(dest, srca, AssetType.Clothing, imap, ava);
-                copyInventoryFolders(dest, srca, AssetType.Bodypart, imap, ava);
+                CopyInventoryFolders(dest, srca, AssetType.Clothing, imap, ava);
+                CopyInventoryFolders(dest, srca, AssetType.Bodypart, imap, ava);
 
                 AvatarWearable[] wearables = ava.Wearables;
 
@@ -1483,7 +1483,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// In parallel the avatar wearables and attachments are updated.
         /// </summary>
 
-        private void copyWearablesAndAttachments(UUID dest, UUID srca, AvatarAppearance ava)
+        private void CopyWearablesAndAttachments(UUID dest, UUID srca, AvatarAppearance ava)
         {
             IInventoryService iserv = m_app.SceneManager.CurrentOrFirstScene.InventoryService;
 
@@ -1618,7 +1618,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// copies of Clothing and Bodyparts inventory folders and attaches worn attachments
         /// </summary>
 
-        private void copyInventoryFolders(UUID dest, UUID srca, AssetType assettype, Dictionary<UUID,UUID> imap,
+        private void CopyInventoryFolders(UUID dest, UUID srca, AssetType assettype, Dictionary<UUID,UUID> imap,
                                           AvatarAppearance ava)
         {
             IInventoryService iserv = m_app.SceneManager.CurrentOrFirstScene.InventoryService;
@@ -1728,7 +1728,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// other outfits are provided to allow "real" avatars a way to easily change their outfits.
         /// </summary>
 
-        private bool createDefaultAvatars()
+        private bool CreateDefaultAvatars()
         {
             // Only load once
 
@@ -2827,7 +2827,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
-        private static void checkStringParameters(XmlRpcRequest request, string[] param)
+        private static void CheckStringParameters(XmlRpcRequest request, string[] param)
         {
             Hashtable requestData = (Hashtable) request.Params[0];
             foreach (string p in param)
@@ -2839,7 +2839,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
         }
 
-        private static void checkIntegerParams(XmlRpcRequest request, string[] param)
+        private static void CheckIntegerParams(XmlRpcRequest request, string[] param)
         {
             Hashtable requestData = (Hashtable) request.Params[0];
             foreach (string p in param)
@@ -2849,7 +2849,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
         }
 
-        private bool getBoolean(Hashtable requestData, string tag, bool defv)
+        private bool GetBoolean(Hashtable requestData, string tag, bool defv)
         {
             // If an access value has been provided, apply it.
             if (requestData.Contains(tag))
