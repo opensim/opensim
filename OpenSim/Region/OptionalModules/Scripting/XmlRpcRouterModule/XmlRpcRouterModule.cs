@@ -45,12 +45,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcRouterModule
         private bool m_enabled = false;
         public void Initialise(Scene scene, IConfigSource config)
         {
-            IConfig startupConfig = config.Configs["Startup"];
+            IConfig startupConfig = config.Configs["XMLRPC"];
             if (startupConfig == null)
                 return;
 
             if (startupConfig.GetString("XmlRpcRouterModule",
-                    "XmlRpcRouterModule") == "XmlRpcRouterModule")
+                    "") == "XmlRpcRouterModule")
             {
                 scene.RegisterModuleInterface<IXmlRpcRouter>(this);
                 m_enabled = true;
