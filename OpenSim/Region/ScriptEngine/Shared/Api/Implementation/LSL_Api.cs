@@ -3248,17 +3248,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llPointAt(LSL_Vector pos)
         {
             m_host.AddScriptLPS(1);
-            ScenePresence Owner = World.GetScenePresence(m_host.UUID);
-            LSL_Rotation rot = llEuler2Rot(pos);
-            Owner.PreviousRotation = Owner.Rotation;
-            Owner.Rotation = (new Quaternion((float)rot.x,(float)rot.y,(float)rot.z,(float)rot.s));
         }
 
         public void llStopPointAt()
         {
             m_host.AddScriptLPS(1);
-            ScenePresence Owner = m_host.ParentGroup.Scene.GetScenePresence(m_host.OwnerID);
-            Owner.Rotation = Owner.PreviousRotation;
         }
 
         public void llTargetOmega(LSL_Vector axis, double spinrate, double gain)
