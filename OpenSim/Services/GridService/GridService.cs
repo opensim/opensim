@@ -124,7 +124,7 @@ namespace OpenSim.Services.GridService
                 {
                     // Regions reserved for the null key cannot be taken.
                     if ((string)region.Data["PrincipalID"] == UUID.Zero.ToString())
-                        return "Region location us reserved";
+                        return "Region location is reserved";
 
                     // Treat it as an auth request
                     //
@@ -210,6 +210,7 @@ namespace OpenSim.Services.GridService
                 {
                     int newFlags = 0;
                     string regionName = rdata.RegionName.Trim().Replace(' ', '_');
+                    newFlags = ParseFlags(newFlags, gridConfig.GetString("DefaultRegionFlags", String.Empty));
                     newFlags = ParseFlags(newFlags, gridConfig.GetString("Region_" + regionName, String.Empty));
                     newFlags = ParseFlags(newFlags, gridConfig.GetString("Region_" + rdata.RegionID.ToString(), String.Empty));
                     rdata.Data["flags"] = newFlags.ToString();
