@@ -327,7 +327,7 @@ IF EXISTS (SELECT UUID FROM prims WHERE UUID = @UUID)
             ScriptAccessPin = @ScriptAccessPin, AllowedDrop = @AllowedDrop, DieAtEdge = @DieAtEdge, SalePrice = @SalePrice, 
             SaleType = @SaleType, ColorR = @ColorR, ColorG = @ColorG, ColorB = @ColorB, ColorA = @ColorA, ParticleSystem = @ParticleSystem, 
             ClickAction = @ClickAction, Material = @Material, CollisionSound = @CollisionSound, CollisionSoundVolume = @CollisionSoundVolume, PassTouches = @PassTouches,
-            LinkNumber = @LinkNumber
+            LinkNumber = @LinkNumber, MediaURL = @MediaURL
         WHERE UUID = @UUID
     END
 ELSE
@@ -342,7 +342,7 @@ ELSE
             PayPrice, PayButton1, PayButton2, PayButton3, PayButton4, LoopedSound, LoopedSoundGain, TextureAnimation, OmegaX, 
             OmegaY, OmegaZ, CameraEyeOffsetX, CameraEyeOffsetY, CameraEyeOffsetZ, CameraAtOffsetX, CameraAtOffsetY, CameraAtOffsetZ, 
             ForceMouselook, ScriptAccessPin, AllowedDrop, DieAtEdge, SalePrice, SaleType, ColorR, ColorG, ColorB, ColorA, 
-            ParticleSystem, ClickAction, Material, CollisionSound, CollisionSoundVolume, PassTouches, LinkNumber
+            ParticleSystem, ClickAction, Material, CollisionSound, CollisionSoundVolume, PassTouches, LinkNumber, MediaURL
             ) VALUES (
             @UUID, @CreationDate, @Name, @Text, @Description, @SitName, @TouchName, @ObjectFlags, @OwnerMask, @NextOwnerMask, @GroupMask, 
             @EveryoneMask, @BaseMask, @PositionX, @PositionY, @PositionZ, @GroupPositionX, @GroupPositionY, @GroupPositionZ, @VelocityX, 
@@ -352,7 +352,7 @@ ELSE
             @PayPrice, @PayButton1, @PayButton2, @PayButton3, @PayButton4, @LoopedSound, @LoopedSoundGain, @TextureAnimation, @OmegaX, 
             @OmegaY, @OmegaZ, @CameraEyeOffsetX, @CameraEyeOffsetY, @CameraEyeOffsetZ, @CameraAtOffsetX, @CameraAtOffsetY, @CameraAtOffsetZ, 
             @ForceMouselook, @ScriptAccessPin, @AllowedDrop, @DieAtEdge, @SalePrice, @SaleType, @ColorR, @ColorG, @ColorB, @ColorA, 
-            @ParticleSystem, @ClickAction, @Material, @CollisionSound, @CollisionSoundVolume, @PassTouches, @LinkNumber
+            @ParticleSystem, @ClickAction, @Material, @CollisionSound, @CollisionSoundVolume, @PassTouches, @LinkNumber, @MediaURL
             )
     END";
 
@@ -1127,6 +1127,9 @@ VALUES
             if (Convert.ToInt16(primRow["PassTouches"]) != 0)
                 prim.PassTouches = true;
             prim.LinkNum = Convert.ToInt32(primRow["LinkNumber"]);
+            
+            if (!(primRow["MediaURL"] is System.DBNull))
+                prim.MediaUrl = (string)primRow["MediaURL"];            
 
             return prim;
         }
@@ -1512,7 +1515,10 @@ VALUES
                 parameters.Add(_Database.CreateParameter("PassTouches", 1));
             else
                 parameters.Add(_Database.CreateParameter("PassTouches", 0));
-            parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));
+            parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));            
+            
+            if (prim.MediaUrl != null)
+                parameters.Add(_Database.CreateParameter("MediaURL", prim.MediaUrl));
 
             return parameters.ToArray();
         }

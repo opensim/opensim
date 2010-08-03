@@ -174,7 +174,7 @@ namespace OpenSim.Data.MySQL
                                 "ParticleSystem, ClickAction, Material, " +
                                 "CollisionSound, CollisionSoundVolume, " +
                                 "PassTouches, " +
-                                "LinkNumber) values (" + "?UUID, " +
+                                "LinkNumber, MediaURL) values (" + "?UUID, " +
                                 "?CreationDate, ?Name, ?Text, " +
                                 "?Description, ?SitName, ?TouchName, " +
                                 "?ObjectFlags, ?OwnerMask, ?NextOwnerMask, " +
@@ -205,7 +205,7 @@ namespace OpenSim.Data.MySQL
                                 "?SaleType, ?ColorR, ?ColorG, " +
                                 "?ColorB, ?ColorA, ?ParticleSystem, " +
                                 "?ClickAction, ?Material, ?CollisionSound, " +
-                                "?CollisionSoundVolume, ?PassTouches, ?LinkNumber)";
+                                "?CollisionSoundVolume, ?PassTouches, ?LinkNumber, ?MediaURL)";
 
                         FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
@@ -1184,6 +1184,9 @@ namespace OpenSim.Data.MySQL
             
             prim.PassTouches = ((sbyte)row["PassTouches"] != 0);
             prim.LinkNum = (int)row["LinkNumber"];
+            
+            if (!(row["MediaURL"] is System.DBNull))
+                prim.MediaUrl = (string)row["MediaURL"];
 
             return prim;
         }
@@ -1521,6 +1524,9 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("PassTouches", 0);
 
             cmd.Parameters.AddWithValue("LinkNumber", prim.LinkNum);
+            
+            if (prim.MediaUrl != null)
+                cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
         }
 
         /// <summary>
