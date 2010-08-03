@@ -219,7 +219,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                     
                     OSDArray osdMeArray = (OSDArray)OSDParser.DeserializeLLSDXml(xtr.ReadInnerXml());
                     
-                    List<MediaEntry> mediaEntries = new List<MediaEntry>();
+                    PrimitiveBaseShape.MediaList mediaEntries = new PrimitiveBaseShape.MediaList();
                     foreach (OSD osdMe in osdMeArray)
                     {
                         MediaEntry me = (osdMe is OSDMap ? MediaEntry.FromOSD(osdMe) : new MediaEntry());
@@ -270,7 +270,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         {            
             if (original.Shape.Media != null)
             {
-                List<MediaEntry> dupeMedia = new List<MediaEntry>();
+                PrimitiveBaseShape.MediaList dupeMedia = new PrimitiveBaseShape.MediaList();
                 
                 foreach (MediaEntry me in original.Shape.Media)
                 {
@@ -315,7 +315,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             CheckFaceParam(part, face);          
             
             if (null == part.Shape.Media)
-                part.Shape.Media = new List<MediaEntry>(new MediaEntry[part.GetNumberOfSides()]);
+                part.Shape.Media = new PrimitiveBaseShape.MediaList(new MediaEntry[part.GetNumberOfSides()]);
                         
             part.Shape.Media[face] = me;                                   
             UpdateMediaUrl(part, UUID.Zero);                      
@@ -439,7 +439,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             if (null == media)
             {
 //                m_log.DebugFormat("[MOAP]: Setting all new media list for {0}", part.Name);
-                part.Shape.Media = new List<MediaEntry>(omu.FaceMedia);
+                part.Shape.Media = new PrimitiveBaseShape.MediaList(omu.FaceMedia);
                 
                 for (int i = 0; i < omu.FaceMedia.Length; i++)
                 {

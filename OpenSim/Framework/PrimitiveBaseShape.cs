@@ -29,7 +29,10 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Reflection;
+using System.Xml;
+using System.Xml.Schema;
 using System.Xml.Serialization;
 using log4net;
 using OpenMetaverse;
@@ -183,7 +186,7 @@ namespace OpenSim.Framework
         /// Entries to store media textures on each face
         /// </summary>
         /// Do not change this value directly - always do it through an IMoapModule.
-        public List<MediaEntry> Media { get; set; }
+        public MediaList Media { get; set; }
 
         public PrimitiveBaseShape()
         {
@@ -1221,5 +1224,86 @@ namespace OpenSim.Framework
             
             return prim;
         }
-    }
+        
+        public class MediaList : List<MediaEntry>, IXmlSerializable
+        {        
+            public const string MEDIA_TEXTURE_TYPE = "sl";
+            
+            public MediaList() : base() {}
+            public MediaList(IEnumerable<MediaEntry> collection) : base(collection) {}
+            public MediaList(int capacity) : base(capacity) {}
+            
+            public XmlSchema GetSchema()
+            {
+                return null;
+            }
+            
+            public void WriteXml(XmlWriter writer)
+            {
+                lock (this)
+                {
+                    using (StringWriter sw = new StringWriter())
+                    {
+                        using (XmlTextWriter xtw = new XmlTextWriter(sw))
+                        {                
+                            xtw.WriteStartElement("osmedia");
+                            xtw.WriteAttributeString("type", MEDIA_TEXTURE_TYPE);
+                            xtw.WriteAttributeString("major_version", "0");
+                            xtw.WriteAttributeString("minor_version", "1");
+                            
+                            OSDArray meArray = new OSDArray();
+                            foreach (MediaEntry me in this)
+                            {
+                                OSD osd = (null == me ? new OSD() : me.GetOSD());
+                                meArray.Add(osd);
+                            }              
+                            
+                            xtw.WriteStartElement("osdata");
+                            xtw.WriteRaw(OSDParser.SerializeLLSDXmlString(meArray));
+                            xtw.WriteEndElement();
+                            
+                            xtw.WriteEndElement();
+                            
+                            xtw.Flush();                          
+                            writer.WriteRaw(sw.ToString());
+                        }
+                    }                                
+                }
+            }
+    
+            public void ReadXml(XmlReader reader)
+            {
+                if (reader.IsEmptyElement)
+                    return;
+                
+                string rawXml = reader.ReadInnerXml();                
+                using (StringReader sr = new StringReader(rawXml))
+                {
+                    using (XmlTextReader xtr = new XmlTextReader(sr))
+                    {             
+                        xtr.MoveToContent();
+                        
+                        string type = xtr.GetAttribute("type");
+                        //m_log.DebugFormat("[MOAP]: Loaded media texture entry with type {0}", type);
+                        
+                        if (type != MEDIA_TEXTURE_TYPE)
+                            return;                        
+                        
+                        xtr.ReadStartElement("osmedia");    
+                        
+                        OSDArray osdMeArray = (OSDArray)OSDParser.DeserializeLLSDXml(xtr.ReadInnerXml());
+                        
+                        List<MediaEntry> mediaEntries = new List<MediaEntry>();
+                        foreach (OSD osdMe in osdMeArray)
+                        {
+                            MediaEntry me = (osdMe is OSDMap ? MediaEntry.FromOSD(osdMe) : new MediaEntry());
+                            Add(me);
+                        }
+                    
+                        xtr.ReadEndElement();                                         
+                    }
+                }
+            }   
+        }
+    }        
 }
