@@ -131,6 +131,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         //public GCHandle gc;
         private CollisionLocker ode;
 
+        private bool m_meshfailed = false;
         private bool m_taintforce = false;
         private bool m_taintaddangularforce = false;
         private Vector3 m_force;
@@ -1882,12 +1883,20 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_targetSpace = targetspace;
 
-            if (_mesh == null)
+            if (_mesh == null && m_meshfailed == false)
             {
                 if (_parent_scene.needsMeshing(_pbs))
                 {
                     // Don't need to re-enable body..   it's done in SetMesh
-                    _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
+                    try
+                    {
+                        _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
+                    }
+                    catch
+                    {
+                        //Don't continuously try to mesh prims when meshing has failed
+                        m_meshfailed = true;
+                    }
                     // createmesh returns null when it's a shape that isn't a cube.
                    // m_log.Debug(m_localID);
                 }
