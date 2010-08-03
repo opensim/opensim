@@ -61,7 +61,8 @@ namespace OpenSim.Services.HypergridService
 
         protected static IGridUserService m_GridUserService;
         protected static IGridService m_GridService;
-        protected static GatekeeperServiceConnector m_GatekeeperConnector;
+        //protected static GatekeeperServiceConnector m_GatekeeperConnector;
+        protected static IGatekeeperService m_GatekeeperService;
 
         protected static bool m_BypassClientVerification;
 
@@ -69,6 +70,8 @@ namespace OpenSim.Services.HypergridService
         {
             if (!m_Initialized)
             {
+                m_Initialized = true;
+
                 m_log.DebugFormat("[HOME USERS SECURITY]: Starting...");
                 
                 IConfig serverConfig = config.Configs["UserAgentService"];
@@ -77,18 +80,18 @@ namespace OpenSim.Services.HypergridService
 
                 string gridService = serverConfig.GetString("GridService", String.Empty);
                 string gridUserService = serverConfig.GetString("GridUserService", String.Empty);
+                string gatekeeperService = serverConfig.GetString("GatekeeperService", String.Empty);
 
                 m_BypassClientVerification = serverConfig.GetBoolean("BypassClientVerification", false);
 
-                if (gridService == string.Empty || gridUserService == string.Empty)
+                if (gridService == string.Empty || gridUserService == string.Empty || gatekeeperService == string.Empty)
                     throw new Exception(String.Format("Incomplete specifications, UserAgent Service cannot function."));
 
                 Object[] args = new Object[] { config };
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
                 m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(gridUserService, args);
-                m_GatekeeperConnector = new GatekeeperServiceConnector();
-
-                m_Initialized = true;
+                //m_GatekeeperConnector = new GatekeeperServiceConnector();
+                m_GatekeeperService = ServerUtils.LoadPlugin<IGatekeeperService>(gatekeeperService, args);
             }
         }
 
@@ -135,7 +138,8 @@ namespace OpenSim.Services.HypergridService
             agentCircuit.ServiceSessionID = "http://" + region.ExternalHostName + ":" + region.HttpPort + ";" + UUID.Random();
             TravelingAgentInfo old = UpdateTravelInfo(agentCircuit, region);
 
-            bool success = m_GatekeeperConnector.CreateAgent(region, agentCircuit, (uint)Constants.TeleportFlags.ViaLogin, out reason);
+            //bool success = m_GatekeeperConnector.CreateAgent(region, agentCircuit, (uint)Constants.TeleportFlags.ViaLogin, out reason);
+            bool success = m_GatekeeperService.LoginAgent(agentCircuit, finalDestination, out reason);
 
             if (!success)
             {
