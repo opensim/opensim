@@ -2136,7 +2136,7 @@ Console.WriteLine(" JointCreateFixed");
             // we don't need to do space calculation because the client sends a position update also.
 
             // Construction of new prim
-            if (_parent_scene.needsMeshing(_pbs))
+            if (_parent_scene.needsMeshing(_pbs) && m_meshfailed == false)
             {
                 float meshlod = _parent_scene.meshSculptLOD;
 
@@ -2146,8 +2146,15 @@ Console.WriteLine(" JointCreateFixed");
 
                 IMesh mesh = null;
 
-                if (_parent_scene.needsMeshing(_pbs))
-                    mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
+                try
+                {
+                    if (_parent_scene.needsMeshing(_pbs))
+                        mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
+                }
+                catch
+                {
+                    m_meshfailed = true;
+                }
 
                 //IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
 //Console.WriteLine("changesize 1");
@@ -2242,17 +2249,23 @@ Console.WriteLine(" JointCreateFixed");
             if (_size.Z <= 0) _size.Z = 0.01f;
             // Construction of new prim
 
-            if (_parent_scene.needsMeshing(_pbs))
+            if (_parent_scene.needsMeshing(_pbs) && m_meshfailed == false)
             {
                 // Don't need to re-enable body..   it's done in SetMesh
                 float meshlod = _parent_scene.meshSculptLOD;
 
                 if (IsPhysical)
                     meshlod = _parent_scene.MeshSculptphysicalLOD;
-
-                IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
+                try
+                {
+                    IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
+                    CreateGeom(m_targetSpace, mesh);
+                }
+                catch
+                {
+                    m_meshfailed = true;
+                }
                 // createmesh returns null when it doesn't mesh.
-                CreateGeom(m_targetSpace, mesh);
             }
             else
             {
