@@ -73,7 +73,7 @@ namespace OpenSim.Services.HypergridService
                     throw new Exception(String.Format("No section GatekeeperService in config file"));
 
                 string accountService = serverConfig.GetString("UserAccountService", String.Empty);
-                string homeUsersService = serverConfig.GetString("HomeUsersSecurityService", string.Empty);
+                string homeUsersService = serverConfig.GetString("UserAgentService", string.Empty);
                 string gridService = serverConfig.GetString("GridService", String.Empty);
                 string presenceService = serverConfig.GetString("PresenceService", String.Empty);
                 string simulationService = serverConfig.GetString("SimulationService", String.Empty);
