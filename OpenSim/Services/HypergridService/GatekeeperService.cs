@@ -284,7 +284,7 @@ namespace OpenSim.Services.HypergridService
             }
 
             if (userURL == m_ExternalName)
-                m_UserAgentService.VerifyAgent(aCircuit.SecureSessionID, aCircuit.ServiceSessionID);
+                m_UserAgentService.VerifyAgent(aCircuit.SessionID, aCircuit.ServiceSessionID);
             else
             {
                 Object[] args = new Object[] { userURL };
