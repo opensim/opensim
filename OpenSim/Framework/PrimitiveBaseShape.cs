@@ -1238,7 +1238,7 @@ namespace OpenSim.Framework
                 return null;
             }
             
-            public void WriteXml(XmlWriter writer)
+            public string ToXml()
             {
                 lock (this)
                 {
@@ -1265,18 +1265,26 @@ namespace OpenSim.Framework
                             xtw.WriteEndElement();
                             
                             xtw.Flush();                          
-                            writer.WriteRaw(sw.ToString());
+                            return sw.ToString();
                         }
                     }                                
-                }
+                }                
             }
-    
-            public void ReadXml(XmlReader reader)
+            
+            public void WriteXml(XmlWriter writer)
+            {                    
+                writer.WriteRaw(ToXml());
+            }
+                        
+            public static MediaList FromXml(string rawXml)
             {
-                if (reader.IsEmptyElement)
-                    return;
-                
-                string rawXml = reader.ReadInnerXml();                
+                MediaList ml = new MediaList();
+                ml.ReadXml(rawXml);
+                return ml;
+            }
+            
+            public void ReadXml(string rawXml)
+            {              
                 using (StringReader sr = new StringReader(rawXml))
                 {
                     using (XmlTextReader xtr = new XmlTextReader(sr))
@@ -1292,8 +1300,6 @@ namespace OpenSim.Framework
                         xtr.ReadStartElement("osmedia");    
                         
                         OSDArray osdMeArray = (OSDArray)OSDParser.DeserializeLLSDXml(xtr.ReadInnerXml());
-                        
-                        List<MediaEntry> mediaEntries = new List<MediaEntry>();
                         foreach (OSD osdMe in osdMeArray)
                         {
                             MediaEntry me = (osdMe is OSDMap ? MediaEntry.FromOSD(osdMe) : new MediaEntry());
@@ -1303,7 +1309,15 @@ namespace OpenSim.Framework
                         xtr.ReadEndElement();                                         
                     }
                 }
-            }   
+            }              
+    
+            public void ReadXml(XmlReader reader)
+            {
+                if (reader.IsEmptyElement)
+                    return;
+                
+                ReadXml(reader.ReadInnerXml());
+            }                        
         }
     }        
 }

@@ -203,67 +203,15 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             if (null == part.Shape.MediaRaw)
                 return;
             
-            using (StringReader sr = new StringReader(part.Shape.MediaRaw))
-            {
-                using (XmlTextReader xtr = new XmlTextReader(sr))
-                {             
-                    xtr.MoveToContent();
-                    
-                    string type = xtr.GetAttribute("type");
-                    //m_log.DebugFormat("[MOAP]: Loaded media texture entry with type {0}", type);
-                    
-                    if (type != MEDIA_TEXTURE_TYPE)
-                        return;                        
-                    
-                    xtr.ReadStartElement("osmedia");    
-                    
-                    OSDArray osdMeArray = (OSDArray)OSDParser.DeserializeLLSDXml(xtr.ReadInnerXml());
-                    
-                    PrimitiveBaseShape.MediaList mediaEntries = new PrimitiveBaseShape.MediaList();
-                    foreach (OSD osdMe in osdMeArray)
-                    {
-                        MediaEntry me = (osdMe is OSDMap ? MediaEntry.FromOSD(osdMe) : new MediaEntry());
-                        mediaEntries.Add(me);
-                    }
-                
-                    xtr.ReadEndElement();
-                    
-                    part.Shape.Media = mediaEntries;                                            
-                }
-            }       
+            part.Shape.Media = PrimitiveBaseShape.MediaList.FromXml(part.Shape.MediaRaw);    
         }
         
         protected void OnSceneObjectPartPreSave(SceneObjectPart part)
         {
             if (null == part.Shape.Media)
                 return;
-
-            using (StringWriter sw = new StringWriter())
-            {
-                using (XmlTextWriter xtw = new XmlTextWriter(sw))
-                {                
-                    xtw.WriteStartElement("osmedia");
-                    xtw.WriteAttributeString("type", MEDIA_TEXTURE_TYPE);
-                    xtw.WriteAttributeString("major_version", "0");
-                    xtw.WriteAttributeString("minor_version", "1");
-                    
-                    OSDArray meArray = new OSDArray();
-                    foreach (MediaEntry me in part.Shape.Media)
-                    {
-                        OSD osd = (null == me ? new OSD() : me.GetOSD());
-                        meArray.Add(osd);
-                    }              
-                    
-                    xtw.WriteStartElement("osdata");
-                    xtw.WriteRaw(OSDParser.SerializeLLSDXmlString(meArray));
-                    xtw.WriteEndElement();
-                    
-                    xtw.WriteEndElement();
-                    
-                    xtw.Flush();  
-                    part.Shape.MediaRaw = sw.ToString();         
-                }
-            }            
+ 
+            part.Shape.MediaRaw = part.Shape.Media.ToXml();         
         }
         
         protected void OnSceneObjectPartCopy(SceneObjectPart copy, SceneObjectPart original, bool userExposed)
