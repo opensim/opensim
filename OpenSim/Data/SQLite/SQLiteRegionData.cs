@@ -1346,7 +1346,7 @@ namespace OpenSim.Data.SQLite
             
             if (!(row["MediaURL"] is System.DBNull))
             {
-                m_log.DebugFormat("[SQLITE]: MediaUrl type [{0}]", row["MediaURL"].GetType());
+                //m_log.DebugFormat("[SQLITE]: MediaUrl type [{0}]", row["MediaURL"].GetType());
                 prim.MediaUrl = (string)row["MediaURL"];
             }
 
@@ -1861,7 +1861,7 @@ namespace OpenSim.Data.SQLite
             s.ExtraParams = (byte[]) row["ExtraParams"];
             
             if (!(row["Media"] is System.DBNull))
-                s.MediaRaw = (string)row["Media"];
+                s.Media = PrimitiveBaseShape.MediaList.FromXml((string)row["Media"]);
                         
             return s;
         }
@@ -1906,7 +1906,9 @@ namespace OpenSim.Data.SQLite
 
             row["Texture"] = s.TextureEntry;
             row["ExtraParams"] = s.ExtraParams;
-            row["Media"] = s.MediaRaw;
+            
+            if (s.Media != null)
+                row["Media"] = s.Media.ToXml();
         }
 
         /// <summary>

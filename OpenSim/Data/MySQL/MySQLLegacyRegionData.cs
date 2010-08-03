@@ -1701,8 +1701,8 @@ namespace OpenSim.Data.MySQL
 
             s.State = (byte)(int)row["State"];
             
-            if (!(row["Media"] is System.DBNull))          
-                s.MediaRaw = (string)row["Media"];
+            if (!(row["Media"] is System.DBNull))         
+                s.Media = PrimitiveBaseShape.MediaList.FromXml((string)row["Media"]);
 
             return s;
         }
@@ -1746,7 +1746,9 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("Texture", s.TextureEntry);
             cmd.Parameters.AddWithValue("ExtraParams", s.ExtraParams);
             cmd.Parameters.AddWithValue("State", s.State);
-            cmd.Parameters.AddWithValue("Media", s.MediaRaw);
+            
+            if (s.Media != null)
+                cmd.Parameters.AddWithValue("Media", s.Media.ToXml());
         }
 
         public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)

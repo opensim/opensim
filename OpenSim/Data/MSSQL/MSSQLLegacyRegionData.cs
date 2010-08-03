@@ -1180,8 +1180,8 @@ VALUES
             {
             }
 
-            if (!(shapeRow["Media"] is System.DBNull))          
-                baseShape.MediaRaw = (string)shapeRow["Media"];
+            if (!(shapeRow["Media"] is System.DBNull))  
+                baseShape.Media = PrimitiveBaseShape.MediaList.FromXml((string)shapeRow["Media"]);
 
             return baseShape;
         }
@@ -1560,7 +1560,9 @@ VALUES
             parameters.Add(_Database.CreateParameter("Texture", s.TextureEntry));
             parameters.Add(_Database.CreateParameter("ExtraParams", s.ExtraParams));
             parameters.Add(_Database.CreateParameter("State", s.State));
-            parameters.Add(_Database.CreateParameter("Media", s.MediaRaw));
+            
+            if (s.Media != null)
+                parameters.Add(_Database.CreateParameter("Media", s.Media.ToXml()));
 
             return parameters.ToArray();
         }

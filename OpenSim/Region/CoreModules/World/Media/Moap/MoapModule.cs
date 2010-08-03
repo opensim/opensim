@@ -120,8 +120,6 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             
             m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
             m_scene.EventManager.OnDeregisterCaps += OnDeregisterCaps;
-            m_scene.EventManager.OnSceneObjectLoaded += OnSceneObjectLoaded;
-            m_scene.EventManager.OnSceneObjectPreSave += OnSceneObjectPreSave;
             m_scene.EventManager.OnSceneObjectPartCopy += OnSceneObjectPartCopy;
         }
         
@@ -132,8 +130,6 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             
             m_scene.EventManager.OnRegisterCaps -= OnRegisterCaps;
             m_scene.EventManager.OnDeregisterCaps -= OnDeregisterCaps;
-            m_scene.EventManager.OnSceneObjectLoaded -= OnSceneObjectLoaded;
-            m_scene.EventManager.OnSceneObjectPreSave -= OnSceneObjectPreSave;
             m_scene.EventManager.OnSceneObjectPartCopy -= OnSceneObjectPartCopy;
         }        
         
@@ -182,36 +178,6 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 m_omuCapUrls.Remove(agentID);
                 m_omuCapUsers.Remove(path);
             }
-        }
-        
-        public void OnSceneObjectLoaded(SceneObjectGroup so)
-        {
-//            m_log.DebugFormat("[MOAP]: OnSceneObjectLoaded fired for {0} {1}", so.Name, so.UUID);
-            
-            so.ForEachPart(OnSceneObjectPartLoaded);
-        }
-        
-        public void OnSceneObjectPreSave(SceneObjectGroup persistingSo, SceneObjectGroup originalSo)
-        {
-//            m_log.DebugFormat("[MOAP]: OnSceneObjectPreSave fired for {0} {1}", persistingSo.Name, persistingSo.UUID);            
-            
-            persistingSo.ForEachPart(OnSceneObjectPartPreSave);          
-        }              
-           
-        protected void OnSceneObjectPartLoaded(SceneObjectPart part)
-        {
-            if (null == part.Shape.MediaRaw)
-                return;
-            
-            part.Shape.Media = PrimitiveBaseShape.MediaList.FromXml(part.Shape.MediaRaw);    
-        }
-        
-        protected void OnSceneObjectPartPreSave(SceneObjectPart part)
-        {
-            if (null == part.Shape.Media)
-                return;
- 
-            part.Shape.MediaRaw = part.Shape.Media.ToXml();         
         }
         
         protected void OnSceneObjectPartCopy(SceneObjectPart copy, SceneObjectPart original, bool userExposed)
