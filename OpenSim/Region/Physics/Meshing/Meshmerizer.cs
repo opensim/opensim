@@ -336,24 +336,16 @@ namespace OpenSim.Region.Physics.Meshing
                 bool mirror = ((primShape.SculptType & 128) != 0);
                 bool invert = ((primShape.SculptType & 64) != 0);
 
-                try
-                {
-                    sculptMesh = new PrimMesher.SculptMesh((Bitmap)idata, sculptType, (int)lod, false, mirror, invert);
+                sculptMesh = new PrimMesher.SculptMesh((Bitmap)idata, sculptType, (int)lod, false, mirror, invert);
+                
+                idata.Dispose();
 
-                    idata.Dispose();
+                sculptMesh.DumpRaw(baseDir, primName, "primMesh");
 
-                    sculptMesh.DumpRaw(baseDir, primName, "primMesh");
+                sculptMesh.Scale(size.X, size.Y, size.Z);
 
-                    sculptMesh.Scale(size.X, size.Y, size.Z);
-
-                    coords = sculptMesh.coords;
-                    faces = sculptMesh.faces;
-                }
-                catch(Exception ex)
-                {
-                    m_log.Error("[Meshing]: Unable to generate a Sculpty mesh. " + ex.Message);
-                    return null;
-                }
+                coords = sculptMesh.coords;
+                faces = sculptMesh.faces;
             }
             else
             {
