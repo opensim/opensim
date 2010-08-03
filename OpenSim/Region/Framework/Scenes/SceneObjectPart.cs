@@ -1497,14 +1497,21 @@ namespace OpenSim.Region.Framework.Scenes
                 // or flexible
                 if (!isPhantom && !IsAttachment && !(Shape.PathCurve == (byte) Extrusion.Flexible))
                 {
-                    PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
-                        Name,
-                        Shape,
-                        AbsolutePosition,
-                        Scale,
-                        RotationOffset,
-                        RigidBody);
-
+                    try
+                    {
+                        PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
+                                Name,
+                                Shape,
+                                AbsolutePosition,
+                                Scale,
+                                RotationOffset,
+                                RigidBody);
+                    }
+                    catch
+                    {
+                        m_log.ErrorFormat("[SCENE]: caught exception meshing object {0}. Object set to phantom.", m_uuid);
+                        PhysActor = null;
+                    }
                     // Basic Physics returns null..  joy joy joy.
                     if (PhysActor != null)
                     {
