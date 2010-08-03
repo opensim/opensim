@@ -180,6 +180,7 @@ namespace OpenSim.Framework
         /// Entries to store media textures on each face
         /// </summary>
         /// Do not change this value directly - always do it through an IMoapModule.
+        /// Lock before manipulating.
         public MediaList Media { get; set; }
 
         public PrimitiveBaseShape()
@@ -1219,6 +1220,11 @@ namespace OpenSim.Framework
             return prim;
         }
         
+        /// <summary>
+        /// Encapsulates a list of media entries.
+        /// </summary>
+        /// This class is necessary because we want to replace auto-serialization of MediaEntry with something more 
+        /// OSD like and less vulnerable to change.
         public class MediaList : List<MediaEntry>, IXmlSerializable
         {        
             public const string MEDIA_TEXTURE_TYPE = "sl";
@@ -1240,10 +1246,9 @@ namespace OpenSim.Framework
                     {
                         using (XmlTextWriter xtw = new XmlTextWriter(sw))
                         {                
-                            xtw.WriteStartElement("osmedia");
+                            xtw.WriteStartElement("OSMedia");
                             xtw.WriteAttributeString("type", MEDIA_TEXTURE_TYPE);
-                            xtw.WriteAttributeString("major_version", "0");
-                            xtw.WriteAttributeString("minor_version", "1");
+                            xtw.WriteAttributeString("version", "0.1");
                             
                             OSDArray meArray = new OSDArray();
                             foreach (MediaEntry me in this)
@@ -1252,7 +1257,7 @@ namespace OpenSim.Framework
                                 meArray.Add(osd);
                             }              
                             
-                            xtw.WriteStartElement("osdata");
+                            xtw.WriteStartElement("OSData");
                             xtw.WriteRaw(OSDParser.SerializeLLSDXmlString(meArray));
                             xtw.WriteEndElement();
                             
@@ -1291,7 +1296,7 @@ namespace OpenSim.Framework
                         if (type != MEDIA_TEXTURE_TYPE)
                             return;                        
                         
-                        xtr.ReadStartElement("osmedia");    
+                        xtr.ReadStartElement("OSMedia");    
                         
                         OSDArray osdMeArray = (OSDArray)OSDParser.DeserializeLLSDXml(xtr.ReadInnerXml());
                         foreach (OSD osdMe in osdMeArray)

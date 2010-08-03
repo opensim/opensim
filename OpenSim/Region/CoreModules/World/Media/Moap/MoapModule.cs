@@ -185,13 +185,15 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             if (original.Shape.Media != null)
             {
                 PrimitiveBaseShape.MediaList dupeMedia = new PrimitiveBaseShape.MediaList();
-                
-                foreach (MediaEntry me in original.Shape.Media)
+                lock (original.Shape.Media)
                 {
-                    if (me != null)
-                        dupeMedia.Add(MediaEntry.FromOSD(me.GetOSD()));
-                    else
-                        dupeMedia.Add(null);
+                    foreach (MediaEntry me in original.Shape.Media)
+                    {
+                        if (me != null)
+                            dupeMedia.Add(MediaEntry.FromOSD(me.GetOSD()));
+                        else
+                            dupeMedia.Add(null);
+                    }
                 }
                 
                 copy.Shape.Media = dupeMedia;
@@ -211,8 +213,9 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 me = null;
             }
             else
-            {                            
-                me = media[face];                
+            {     
+                lock (media)
+                    me = media[face];                
                 
                 // TODO: Really need a proper copy constructor down in libopenmetaverse
                 if (me != null)
@@ -230,11 +233,13 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             
             if (null == part.Shape.Media)
                 part.Shape.Media = new PrimitiveBaseShape.MediaList(new MediaEntry[part.GetNumberOfSides()]);
-                        
-            part.Shape.Media[face] = me;                                   
+                
+            lock (part.Shape.Media)                
+                part.Shape.Media[face] = me;
+            
             UpdateMediaUrl(part, UUID.Zero);                      
             part.ScheduleFullUpdate();
-            part.TriggerScriptChangedEvent(Changed.MEDIA);
+            part.TriggerScriptChangedEvent(Changed.MEDIA);                
         }
         
         public void ClearMediaEntry(SceneObjectPart part, int face)
@@ -296,7 +301,10 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             ObjectMediaResponse resp = new ObjectMediaResponse();
             
             resp.PrimID = primId;
-            resp.FaceMedia = part.Shape.Media.ToArray();
+            
+            lock (part.Shape.Media)
+                resp.FaceMedia = part.Shape.Media.ToArray();
+            
             resp.Version = part.MediaUrl;
            
             string rawResp = OSDParser.SerializeLLSDXmlString(resp.Serialize());
@@ -382,24 +390,27 @@ namespace OpenSim.Region.CoreModules.Media.Moap
                 // directly.
                 Primitive.TextureEntry te = part.Shape.Textures;
                 
-                for (int i = 0; i < media.Count; i++)
-                {                                    
-                    if (m_scene.Permissions.CanControlPrimMedia(agentId, part.UUID, i))
-                    {            
-                        media[i] = omu.FaceMedia[i];
-                        
-                        // When a face is cleared this is done by setting the MediaFlags in the TextureEntry via a normal
-                        // texture update, so we don't need to worry about clearing MediaFlags here.
-                        if (null == media[i])
-                            continue;                            
-                        
-                        Primitive.TextureEntryFace face = te.CreateFace((uint)i);
-                        face.MediaFlags = true;                     
-
-//                        m_log.DebugFormat(
-//                            "[MOAP]: Media flags for face {0} is {1}", 
-//                            i, face.MediaFlags);
-//                        m_log.DebugFormat("[MOAP]: Set media entry for face {0} on {1}", i, part.Name);
+                lock (media)
+                {
+                    for (int i = 0; i < media.Count; i++)
+                    {                                    
+                        if (m_scene.Permissions.CanControlPrimMedia(agentId, part.UUID, i))
+                        {            
+                            media[i] = omu.FaceMedia[i];
+                            
+                            // When a face is cleared this is done by setting the MediaFlags in the TextureEntry via a normal
+                            // texture update, so we don't need to worry about clearing MediaFlags here.
+                            if (null == media[i])
+                                continue;                            
+                            
+                            Primitive.TextureEntryFace face = te.CreateFace((uint)i);
+                            face.MediaFlags = true;                     
+    
+    //                        m_log.DebugFormat(
+    //                            "[MOAP]: Media flags for face {0} is {1}", 
+    //                            i, face.MediaFlags);
+    //                        m_log.DebugFormat("[MOAP]: Set media entry for face {0} on {1}", i, part.Name);
+                        }
                     }
                 }
                 
@@ -465,7 +476,10 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             if (null == part.Shape.Media)
                 return string.Empty;
             
-            MediaEntry me = part.Shape.Media[omn.Face];
+            MediaEntry me = null;
+                
+            lock (part.Shape.Media)
+                me = part.Shape.Media[omn.Face];
             
             // Do the same if media has not been set up for a specific face
             if (null == me)
