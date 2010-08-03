@@ -378,32 +378,31 @@ namespace OpenSim.Services.GridService
 
         public void HandleShow(string module, string[] cmd)
         {
-            MainConsole.Instance.Output("Not Implemented Yet");
-            //if (cmd.Length != 2)
-            //{
-            //    MainConsole.Instance.Output("Syntax: show hyperlinks");
-            //    return;
-            //}
-            //List<GridRegion> regions = new List<GridRegion>(m_HypergridService.m_HyperlinkRegions.Values);
-            //if (regions == null || regions.Count < 1)
-            //{
-            //    MainConsole.Instance.Output("No hyperlinks");
-            //    return;
-            //}
+            if (cmd.Length != 2)
+            {
+                MainConsole.Instance.Output("Syntax: show hyperlinks");
+                return;
+            }
+            List<RegionData> regions = m_Database.GetHyperlinks(UUID.Zero);
+            if (regions == null || regions.Count < 1)
+            {
+                MainConsole.Instance.Output("No hyperlinks");
+                return;
+            }
 
-            //MainConsole.Instance.Output("Region Name          Region UUID");
-            //MainConsole.Instance.Output("Location             URI");
-            //MainConsole.Instance.Output("Owner ID  ");
-            //MainConsole.Instance.Output("-------------------------------------------------------------------------------");
-            //foreach (GridRegion r in regions)
-            //{
-            //    MainConsole.Instance.Output(String.Format("{0,-20} {1}\n{2,-20} {3}\n{4,-39} \n\n",
-            //            r.RegionName, r.RegionID,
-            //            String.Format("{0},{1}", r.RegionLocX, r.RegionLocY), "http://" + r.ExternalHostName + ":" + r.HttpPort.ToString(),
-            //            r.EstateOwner.ToString()));
-            //}
-            //return;
+            MainConsole.Instance.Output("Region Name                             Region UUID");
+            MainConsole.Instance.Output("Location                                URI");
+            MainConsole.Instance.Output("-------------------------------------------------------------------------------");
+            foreach (RegionData r in regions)
+            {
+                MainConsole.Instance.Output(String.Format("{0,-39} {1}\n{2,-39} {3}\n",
+                        r.RegionName, r.RegionID,
+                        String.Format("{0},{1} ({2},{3})", r.posX, r.posY, r.posX / 256, r.posY / 256),
+                        "http://" + r.Data["serverIP"].ToString() + ":" + r.Data["serverHttpPort"].ToString()));
+            }
+            return;
         }
+
         public void RunCommand(string module, string[] cmdparams)
         {
             List<string> args = new List<string>(cmdparams);

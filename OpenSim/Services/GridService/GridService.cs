@@ -50,7 +50,7 @@ namespace OpenSim.Services.GridService
         private bool m_DeleteOnUnregister = true;
         private static GridService m_RootInstance = null;
         protected IConfigSource m_config;
-        protected HypergridLinker m_HypergridLinker;
+        protected static HypergridLinker m_HypergridLinker;
 
         protected IAuthenticationService m_AuthenticationService = null;
         protected bool m_AllowDuplicateNames = false;
