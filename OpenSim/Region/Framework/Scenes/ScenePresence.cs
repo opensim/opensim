@@ -1935,8 +1935,14 @@ namespace OpenSim.Region.Framework.Scenes
 //Console.WriteLine("Scripted, unoccupied");
     	            part.SetAvatarOnSitTarget(UUID);		// set that Av will be on it
     	            offset = new Vector3(avSitOffSet.X, avSitOffSet.Y, avSitOffSet.Z);	// change ofset to the scripted one
-    	            sitOrientation = avSitOrientation;		// Change rotatione to the scripted one
-                    OffsetRotation = avSitOrientation;
+
+                    Quaternion nrot = avSitOrientation;
+                    if (!part.IsRoot)
+                    {
+                        nrot = nrot * part.RotationOffset;
+                    }
+    	            sitOrientation = nrot;		// Change rotatione to the scripted one
+                    OffsetRotation = nrot;
     	            autopilot = false;						// Jump direct to scripted llSitPos()
     	        }
     	       	else
@@ -2010,7 +2016,7 @@ namespace OpenSim.Region.Framework.Scenes
 	//		offsetr = (part.OffsetPosition * Quaternion.Inverse(part.ParentGroup.RootPart.RotationOffset)) + (offset * partIRot);
  //           if (part.LinkNum < 2)    091216 All this was necessary because of the GetWorldRotation error.
   //          {				// Single, or Root prim of linkset, target is ClickOffset * RootRot
-            	offsetr = offset * partIRot;
+            	//offsetr = offset * partIRot;
 //
   //          else
     //        {	// Child prim, offset is (ChildOffset * RootRot) + (ClickOffset * ChildRot)
@@ -2029,7 +2035,7 @@ namespace OpenSim.Region.Framework.Scenes
 //Console.WriteLine("Camera Eye  ={0}", cameraEyeOffset);
 
             //NOTE: SendSitResponse should be relative to the GROUP *NOT* THE PRIM if we're sitting on a child
-            ControllingClient.SendSitResponse(part.ParentGroup.UUID, offsetr + part.OffsetPosition, sitOrientation, autopilot, cameraAtOffset, cameraEyeOffset, forceMouselook);
+            ControllingClient.SendSitResponse(part.ParentGroup.UUID, ((offset * part.RotationOffset) + part.OffsetPosition), sitOrientation, autopilot, cameraAtOffset, cameraEyeOffset, forceMouselook);
             
             m_requestedSitTargetUUID = part.UUID;		//KF: Correct autopilot target
             // This calls HandleAgentSit twice, once from here, and the client calls
@@ -2343,6 +2349,10 @@ namespace OpenSim.Region.Framework.Scenes
                         Quaternion sitTargetOrient = part.SitTargetOrientation;
                         m_pos = new Vector3(sitTargetPos.X, sitTargetPos.Y, sitTargetPos.Z);
                         m_pos += SIT_TARGET_ADJUSTMENT;
+                        if (!part.IsRoot)
+                        {
+                            m_pos *= part.RotationOffset;
+                        }
                         m_bodyRot = sitTargetOrient;
                         m_parentPosition = part.AbsolutePosition;
 	    	            part.IsOccupied = true;
