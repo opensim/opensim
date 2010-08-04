@@ -1516,9 +1516,7 @@ VALUES
             else
                 parameters.Add(_Database.CreateParameter("PassTouches", 0));
             parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));            
-            
-            if (prim.MediaUrl != null)
-                parameters.Add(_Database.CreateParameter("MediaURL", prim.MediaUrl));
+            parameters.Add(_Database.CreateParameter("MediaURL", prim.MediaUrl));
 
             return parameters.ToArray();
         }
@@ -1566,9 +1564,7 @@ VALUES
             parameters.Add(_Database.CreateParameter("Texture", s.TextureEntry));
             parameters.Add(_Database.CreateParameter("ExtraParams", s.ExtraParams));
             parameters.Add(_Database.CreateParameter("State", s.State));
-            
-            if (s.Media != null)
-                parameters.Add(_Database.CreateParameter("Media", s.Media.ToXml()));
+            parameters.Add(_Database.CreateParameter("Media", null == s.Media ? null : s.Media.ToXml()));
 
             return parameters.ToArray();
         }

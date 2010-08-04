@@ -1524,9 +1524,7 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("PassTouches", 0);
 
             cmd.Parameters.AddWithValue("LinkNumber", prim.LinkNum);
-            
-            if (prim.MediaUrl != null)
-                cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
+            cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
         }
 
         /// <summary>
@@ -1752,9 +1750,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("Texture", s.TextureEntry);
             cmd.Parameters.AddWithValue("ExtraParams", s.ExtraParams);
             cmd.Parameters.AddWithValue("State", s.State);
-            
-            if (s.Media != null)
-                cmd.Parameters.AddWithValue("Media", s.Media.ToXml());
+            cmd.Parameters.AddWithValue("Media", null == s.Media ? null : s.Media.ToXml());
         }
 
         public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
