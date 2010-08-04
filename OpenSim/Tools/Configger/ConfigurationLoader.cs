@@ -241,16 +241,6 @@ namespace OpenSim.Tools.Configger
                 config.Set("EventQueue", true);
             }
 
-            {
-                IConfig config = defaultConfig.Configs["Network"];
-
-                if (null == config)
-                    config = defaultConfig.AddConfig("Network");
-
-                config.Set("default_location_x", 1000);
-                config.Set("default_location_y", 1000);
-            }
-
             return defaultConfig;
         }
 
