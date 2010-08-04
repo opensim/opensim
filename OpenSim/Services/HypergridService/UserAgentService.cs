@@ -179,7 +179,7 @@ namespace OpenSim.Services.HypergridService
                 m_TravelingAgents[agentCircuit.SessionID] = travel;
             }
             travel.UserID = agentCircuit.AgentID;
-            travel.GridExternalName = region.ExternalHostName + ":" + region.HttpPort;
+            travel.GridExternalName = "http://" + region.ExternalHostName + ":" + region.HttpPort;
             travel.ServiceToken = agentCircuit.ServiceSessionID;
             if (old != null)
                 travel.ClientToken = old.ClientToken;
@@ -215,6 +215,7 @@ namespace OpenSim.Services.HypergridService
                 return false;
 
             TravelingAgentInfo travel = m_TravelingAgents[sessionID];
+
             return travel.GridExternalName == thisGridExternalName;
         }
 
