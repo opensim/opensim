@@ -162,7 +162,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     delegate(bool success)
                     {
                         if (dialog == (uint)InstantMessageDialog.StartTyping ||
-                            dialog == (uint)InstantMessageDialog.StopTyping)
+                            dialog == (uint)InstantMessageDialog.StopTyping ||
+                            dialog == (uint)InstantMessageDialog.MessageFromObject)
                         {
                             return;
                         }
