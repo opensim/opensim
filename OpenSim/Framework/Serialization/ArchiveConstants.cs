@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using OpenMetaverse;
 
 namespace OpenSim.Framework.Serialization
@@ -171,6 +172,30 @@ namespace OpenSim.Framework.Serialization
         public static string CreateOarObjectPath(string objectName, UUID uuid, Vector3 pos)
         {
             return OBJECTS_PATH + CreateOarObjectFilename(objectName, uuid, pos);          
-        }        
+        }  
+        
+        /// <summary>
+        /// Extract a plain path from an IAR path
+        /// </summary>
+        /// <param name="iarPath"></param>
+        /// <returns></returns>
+        public static string ExtractPlainPathFromIarPath(string iarPath)
+        {
+            List<string> plainDirs = new List<string>();
+
+            string[] iarDirs = iarPath.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            
+            foreach (string iarDir in iarDirs)
+            {
+                if (!iarDir.Contains(ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR))
+                    plainDirs.Add(iarDir);
+                
+                int i = iarDir.LastIndexOf(ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR);
+
+                plainDirs.Add(iarDir.Remove(i));
+            }
+            
+            return string.Join("/", plainDirs.ToArray());          
+        }
     }
 }
