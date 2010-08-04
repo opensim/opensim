@@ -549,6 +549,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             if (uinfo != null)
             {
+                if (uinfo.HomeRegionID == UUID.Zero)
+                {
+                    // can't find the Home region: Tell viewer and abort
+                    client.SendTeleportFailed("You don't have a home position set.");
+                    return;
+                }
                 GridRegion regionInfo = m_aScene.GridService.GetRegionByUUID(UUID.Zero, uinfo.HomeRegionID);
                 if (regionInfo == null)
                 {
@@ -556,13 +562,19 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     client.SendTeleportFailed("Your home region could not be found.");
                     return;
                 }
-                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: User's home region is {0} {1} ({2}-{3})", 
+                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: User's home region is {0} {1} ({2}-{3})",
                     regionInfo.RegionName, regionInfo.RegionID, regionInfo.RegionLocX / Constants.RegionSize, regionInfo.RegionLocY / Constants.RegionSize);
 
                 // a little eekie that this goes back to Scene and with a forced cast, will fix that at some point...
                 ((Scene)(client.Scene)).RequestTeleportLocation(
                     client, regionInfo.RegionHandle, uinfo.HomePosition, uinfo.HomeLookAt,
                     (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaHome));
+            }
+            else
+            {
+                // can't find the Home region: Tell viewer and abort
+                client.SendTeleportFailed("Your home region could not be found.");
+                return;
             }
         }
 

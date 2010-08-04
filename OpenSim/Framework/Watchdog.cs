@@ -51,7 +51,7 @@ namespace OpenSim.Framework
             public ThreadWatchdogInfo(Thread thread)
             {
                 Thread = thread;
-                LastTick = Environment.TickCount & Int32.MaxValue;
+                LastTick = Environment.TickCount;
             }
         }
 
@@ -143,7 +143,7 @@ namespace OpenSim.Framework
             try
             {
                 if (m_threads.TryGetValue(threadID, out threadInfo))
-                    threadInfo.LastTick = Environment.TickCount & Int32.MaxValue;
+                    threadInfo.LastTick = Environment.TickCount;
                 else
                     AddThread(new ThreadWatchdogInfo(Thread.CurrentThread));
             }
@@ -160,7 +160,7 @@ namespace OpenSim.Framework
 
                 lock (m_threads)
                 {
-                    int now = Environment.TickCount & Int32.MaxValue;
+                    int now = Environment.TickCount;
 
                     foreach (ThreadWatchdogInfo threadInfo in m_threads.Values)
                     {

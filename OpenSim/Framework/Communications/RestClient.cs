@@ -363,7 +363,7 @@ namespace OpenSim.Framework.Communications
             _request = (HttpWebRequest) WebRequest.Create(buildUri());
             _request.KeepAlive = false;
             _request.ContentType = "application/xml";
-            _request.Timeout = 900000;
+            _request.Timeout = 30000;
             _request.Method = RequestMethod;
             _asyncException = null;
             _request.ContentLength = src.Length;

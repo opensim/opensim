@@ -49,61 +49,64 @@ namespace OpenSim.Services.HypergridService
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        IGridService m_GridService;
-        IPresenceService m_PresenceService;
-        IUserAccountService m_UserAccountService;
-        IUserAgentService m_UserAgentService;
-        ISimulationService m_SimulationService;
+        private static bool m_Initialized = false;
 
-        string m_AuthDll;
+        private static IGridService m_GridService;
+        private static IPresenceService m_PresenceService;
+        private static IUserAccountService m_UserAccountService;
+        private static IUserAgentService m_UserAgentService;
+        private static ISimulationService m_SimulationService;
 
-        UUID m_ScopeID;
-        bool m_AllowTeleportsToAnyRegion;
-        string m_ExternalName;
-        GridRegion m_DefaultGatewayRegion;
+        private static UUID m_ScopeID;
+        private static bool m_AllowTeleportsToAnyRegion;
+        private static string m_ExternalName;
+        private static GridRegion m_DefaultGatewayRegion;
 
         public GatekeeperService(IConfigSource config, ISimulationService simService)
         {
-            IConfig serverConfig = config.Configs["GatekeeperService"];
-            if (serverConfig == null)
-                throw new Exception(String.Format("No section GatekeeperService in config file"));
+            if (!m_Initialized)
+            {
+                m_Initialized = true;
 
-            string accountService = serverConfig.GetString("UserAccountService", String.Empty);
-            string homeUsersService = serverConfig.GetString("HomeUsersSecurityService", string.Empty);
-            string gridService = serverConfig.GetString("GridService", String.Empty);
-            string presenceService = serverConfig.GetString("PresenceService", String.Empty);
-            string simulationService = serverConfig.GetString("SimulationService", String.Empty);
+                IConfig serverConfig = config.Configs["GatekeeperService"];
+                if (serverConfig == null)
+                    throw new Exception(String.Format("No section GatekeeperService in config file"));
 
-            //m_AuthDll = serverConfig.GetString("AuthenticationService", String.Empty);
+                string accountService = serverConfig.GetString("UserAccountService", String.Empty);
+                string homeUsersService = serverConfig.GetString("HomeUsersSecurityService", string.Empty);
+                string gridService = serverConfig.GetString("GridService", String.Empty);
+                string presenceService = serverConfig.GetString("PresenceService", String.Empty);
+                string simulationService = serverConfig.GetString("SimulationService", String.Empty);
 
-            // These 3 are mandatory, the others aren't
-            if (gridService == string.Empty || presenceService == string.Empty || m_AuthDll == string.Empty)
-                throw new Exception("Incomplete specifications, Gatekeeper Service cannot function.");
-            
-            string scope = serverConfig.GetString("ScopeID", UUID.Zero.ToString());
-            UUID.TryParse(scope, out m_ScopeID);
-            //m_WelcomeMessage = serverConfig.GetString("WelcomeMessage", "Welcome to OpenSim!");
-            m_AllowTeleportsToAnyRegion = serverConfig.GetBoolean("AllowTeleportsToAnyRegion", true);
-            m_ExternalName = serverConfig.GetString("ExternalName", string.Empty);
+                // These 3 are mandatory, the others aren't
+                if (gridService == string.Empty || presenceService == string.Empty)
+                    throw new Exception("Incomplete specifications, Gatekeeper Service cannot function.");
+                
+                string scope = serverConfig.GetString("ScopeID", UUID.Zero.ToString());
+                UUID.TryParse(scope, out m_ScopeID);
+                //m_WelcomeMessage = serverConfig.GetString("WelcomeMessage", "Welcome to OpenSim!");
+                m_AllowTeleportsToAnyRegion = serverConfig.GetBoolean("AllowTeleportsToAnyRegion", true);
+                m_ExternalName = serverConfig.GetString("ExternalName", string.Empty);
 
-            Object[] args = new Object[] { config };
-            m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
-            m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
+                Object[] args = new Object[] { config };
+                m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
+                m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
 
-            if (accountService != string.Empty)
-                m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(accountService, args);
-            if (homeUsersService != string.Empty)
-                m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(homeUsersService, args);
+                if (accountService != string.Empty)
+                    m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(accountService, args);
+                if (homeUsersService != string.Empty)
+                    m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(homeUsersService, args);
 
-            if (simService != null)
-                m_SimulationService = simService;
-            else if (simulationService != string.Empty)
-                    m_SimulationService = ServerUtils.LoadPlugin<ISimulationService>(simulationService, args);
+                if (simService != null)
+                    m_SimulationService = simService;
+                else if (simulationService != string.Empty)
+                        m_SimulationService = ServerUtils.LoadPlugin<ISimulationService>(simulationService, args);
 
-            if (m_GridService == null || m_PresenceService == null || m_SimulationService == null)
-                throw new Exception("Unable to load a required plugin, Gatekeeper Service cannot function.");
+                if (m_GridService == null || m_PresenceService == null || m_SimulationService == null)
+                    throw new Exception("Unable to load a required plugin, Gatekeeper Service cannot function.");
 
-            m_log.Debug("[GATEKEEPER SERVICE]: Starting...");
+                m_log.Debug("[GATEKEEPER SERVICE]: Starting...");
+            }
         }
 
         public GatekeeperService(IConfigSource config)

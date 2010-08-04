@@ -3485,6 +3485,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void SendPrimUpdate(ISceneEntity entity, PrimUpdateFlags updateFlags)
         {
+            if (entity is SceneObjectPart)
+            {
+                SceneObjectPart e = (SceneObjectPart)entity;
+                SceneObjectGroup g = e.ParentGroup;
+                if (g.RootPart.Shape.State > 30) // HUD
+                    if (g.OwnerID != AgentId)
+                        return; // Don't send updates for other people's HUDs
+            }
+
             double priority = m_prioritizer.GetUpdatePriority(this, entity);
 
             lock (m_entityUpdates.SyncRoot)

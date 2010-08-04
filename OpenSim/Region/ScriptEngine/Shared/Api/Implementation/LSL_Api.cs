@@ -2116,7 +2116,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                LSL_Vector rel_vec = SetPosAdjust(currentPos, targetPos);
+                LSL_Vector rel_vec = SetPosAdjust(new LSL_Vector(part.OffsetPosition.X, part.OffsetPosition.Y, part.OffsetPosition.Z), targetPos);
                 part.OffsetPosition = new Vector3((float)rel_vec.x, (float)rel_vec.y, (float)rel_vec.z);
                 SceneObjectGroup parent = part.ParentGroup;
                 parent.HasGroupChanged = true;

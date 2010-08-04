@@ -207,6 +207,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ;; for the service
     GridUserService = "OpenSim.Services.UserAccountService.dll:GridUserService"
     GridService = "OpenSim.Services.GridService.dll:GridService"
+    GatekeeperService = "OpenSim.Services.HypergridService.dll:GatekeeperService"
 
 ;; The interface that local users get when they are in other grids.
 ;; This restricts the inventory operations while in other grids.
