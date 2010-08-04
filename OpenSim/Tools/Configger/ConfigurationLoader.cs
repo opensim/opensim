@@ -249,11 +249,6 @@ namespace OpenSim.Tools.Configger
 
                 config.Set("default_location_x", 1000);
                 config.Set("default_location_y", 1000);
-                config.Set("grid_send_key", "null");
-                config.Set("grid_recv_key", "null");
-                config.Set("user_send_key", "null");
-                config.Set("user_recv_key", "null");
-                config.Set("secure_inventory_server", "true");
             }
 
             return defaultConfig;
