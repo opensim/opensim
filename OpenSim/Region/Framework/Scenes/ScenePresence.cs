@@ -1939,7 +1939,7 @@ namespace OpenSim.Region.Framework.Scenes
                     Quaternion nrot = avSitOrientation;
                     if (!part.IsRoot)
                     {
-                        nrot = nrot * part.RotationOffset;
+                        nrot = part.RotationOffset * avSitOrientation;
                     }
     	            sitOrientation = nrot;		// Change rotatione to the scripted one
                     OffsetRotation = nrot;
