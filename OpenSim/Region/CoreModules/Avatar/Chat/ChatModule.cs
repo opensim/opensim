@@ -218,7 +218,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 fromPos = avatar.AbsolutePosition;
                 fromName = avatar.Name;
                 fromID = c.Sender.AgentId;
-                if (avatar.GodLevel > 200)
+                if (avatar.GodLevel >= 200)
                 {
                     fromNamePrefix = m_adminPrefix;
                 }
