@@ -68,6 +68,14 @@ using System.Reflection;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
+    // MUST be a ref type
+    public class UserInfoCacheEntry
+    {
+        public int time;
+        public UserAccount account;
+        public PresenceInfo pinfo;
+    }
+
     /// <summary>
     /// Contains all LSL ll-functions. This class will be in Default AppDomain.
     /// </summary>
@@ -92,6 +100,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected int m_scriptConsoleChannel = 0;
         protected bool m_scriptConsoleChannelEnabled = false;
         protected IUrlModule m_UrlModule = null;
+        protected Dictionary<UUID, UserInfoCacheEntry> m_userInfoCache =
+                new Dictionary<UUID, UserInfoCacheEntry>();
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
         {
@@ -3908,16 +3918,47 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             UUID uuid = (UUID)id;
-
-            UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, uuid);
-            if (account == null)
-                return UUID.Zero.ToString();
-
-
             PresenceInfo pinfo = null;
-            PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
-            if (pinfos != null && pinfos.Length > 0)
-                pinfo = pinfos[0];
+            UserAccount account;
+
+            UserInfoCacheEntry ce;
+            if (!m_userInfoCache.TryGetValue(uuid, out ce))
+            {
+                account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, uuid);
+                if (account == null)
+                {
+                    m_userInfoCache[uuid] = null; // Cache negative
+                    return UUID.Zero.ToString();
+                }
+
+
+                PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
+                if (pinfos != null && pinfos.Length > 0)
+                    pinfo = pinfos[0];
+
+                ce = new UserInfoCacheEntry();
+                ce.time = Util.EnvironmentTickCount();
+                ce.account = account;
+                ce.pinfo = pinfo;
+            }
+            else
+            {
+                if (ce == null)
+                    return UUID.Zero.ToString();
+
+                account = ce.account;
+                pinfo = ce.pinfo;
+            }
+
+            if (Util.EnvironmentTickCount() < ce.time || (Util.EnvironmentTickCount() - ce.time) >= 20000)
+            {
+                PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
+                if (pinfos != null && pinfos.Length > 0)
+                    pinfo = pinfos[0];
+
+                ce.time = Util.EnvironmentTickCount();
+                ce.pinfo = pinfo;
+            }
 
             string reply = String.Empty;
 
