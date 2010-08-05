@@ -2222,9 +2222,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     if (avatar.IsChildAgent == false)
                     {
-                        result.Add(avatar.UUID);
-                        result.Add(avatar.AbsolutePosition);
-                        result.Add(avatar.Name);
+                        result.Add(new LSL_Key(avatar.UUID.ToString()));
+                        result.Add(new LSL_Vector(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y, avatar.AbsolutePosition.Z));
+                        result.Add(new LSL_String(avatar.Name));
                     }
                 }
             });
