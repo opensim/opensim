@@ -8881,8 +8881,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return UUID.Zero.ToString();
                         }
                         reply = new LSL_Vector(
-                            info.RegionLocX * Constants.RegionSize,
-                            info.RegionLocY * Constants.RegionSize,
+                            info.RegionLocX / Constants.RegionSize,
+                            info.RegionLocY / Constants.RegionSize,
                             0).ToString();
                         break;
                     case 6: // DATA_SIM_STATUS
