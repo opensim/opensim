@@ -3955,6 +3955,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
                 if (pinfos != null && pinfos.Length > 0)
                     pinfo = pinfos[0];
+                else
+                    pinfo = null;
 
                 ce.time = Util.EnvironmentTickCount();
                 ce.pinfo = pinfo;
