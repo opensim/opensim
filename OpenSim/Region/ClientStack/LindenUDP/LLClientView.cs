@@ -3514,6 +3514,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 EntityUpdate update;
                 while (updatesThisCall < maxUpdates && m_entityUpdates.TryDequeue(out update))
                 {
+                    // If we have sent a kill packet for this object
+                    // drop any updates on the floor
+                    if (update.Entity is SceneObjectPart)
+                    {
+                        SceneObjectPart part = (SceneObjectPart)update.Entity;
+                        if (m_killRecord.Contains(part.ParentGroup.RootPart.LocalId))
+                            continue;
+                    }
+
                     ++updatesThisCall;
 
                     #region UpdateFlags to packet type conversion
