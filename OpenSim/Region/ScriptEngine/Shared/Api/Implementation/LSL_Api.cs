@@ -4276,6 +4276,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ce.time = Util.EnvironmentTickCount();
                 ce.account = account;
                 ce.pinfo = pinfo;
+                m_userInfoCache[uuid] = ce;
             }
             else
             {
