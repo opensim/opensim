@@ -319,6 +319,13 @@ namespace OpenSim.Framework.Servers.HttpServer
             OSHttpRequest req = new OSHttpRequest(context, request);
             OSHttpResponse resp = new OSHttpResponse(new HttpResponse(context, request),context);
             HandleRequest(req, resp);
+
+            // !!!HACK ALERT!!!
+            // There seems to be a bug in the underlying http code that makes subsequent requests
+            // come up with trash in Accept headers. Until that gets fixed, we're cleaning them up here.
+            if (request.AcceptTypes != null)
+                for (int i = 0; i < request.AcceptTypes.Length; i++)
+                    request.AcceptTypes[i] = string.Empty;
         }
 
         // public void ConvertIHttpClientContextToOSHttp(object stateinfo)
