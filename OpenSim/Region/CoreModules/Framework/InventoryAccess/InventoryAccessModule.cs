@@ -496,6 +496,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             if (item != null)
             {
+                if (item.ID == UUID.Zero)
+                {
+                    m_log.Debug("[InventoryAccessModule]: Inventory object has UUID.Zero! Position 1");
+                }
+
                 AssetBase rezAsset = m_Scene.AssetService.Get(item.AssetID.ToString());
 
                 if (rezAsset != null)
@@ -518,11 +523,19 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         itemId = item.ID;
                     }
 
+                    if (item.ID == UUID.Zero)
+                    {
+                        m_log.Debug("[InventoryAccessModule]: Inventory object has UUID.Zero! Position 2");
+                    }
+
                     string xmlData = Utils.BytesToString(rezAsset.Data);
                     SceneObjectGroup group
                         = SceneObjectSerializer.FromOriginalXmlFormat(itemId, xmlData);
                     Vector3 storedPosition = group.AbsolutePosition;
-
+                    if (group.UUID == UUID.Zero)
+                    {
+                        m_log.Debug("[InventoryAccessModule]: Inventory object has UUID.Zero! Position 3");
+                    }
                     group.RootPart.FromFolderID = item.Folder;
 
                     // If it's rezzed in world, select it. Much easier to 
@@ -548,9 +561,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             remoteClient.SendBulkUpdateInventory(item);
                         return null;
                     }
-
+                    if (group.UUID == UUID.Zero)
+                    {
+                        m_log.Debug("[InventoryAccessModule]: Inventory object has UUID.Zero! Position 4");
+                    }
                     group.ResetIDs();
-
+                    if (group.UUID == UUID.Zero)
+                    {
+                        m_log.Debug("[InventoryAccessModule]: Inventory object has UUID.Zero! Position 5");
+                    }
                     if (attachment)
                     {
                         group.RootPart.ObjectFlags |= (uint)PrimFlags.Phantom;
@@ -582,7 +601,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     {
                         group.SetFromItemID(itemID);
                     }
-
+                    if (group.UUID == UUID.Zero)
+                    {
+                        m_log.Debug("[InventoryAccessModule]: Inventory object has UUID.Zero! Position 6");
+                    }
                     SceneObjectPart rootPart = null;
                     try
                     {
@@ -597,7 +619,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                         m_log.Error("[AGENT INVENTORY]: Error rezzing ItemID: " + itemID + " object has no rootpart." + isAttachment);
                     }
-
+                    if (group.UUID == UUID.Zero)
+                    {
+                        m_log.Debug("[InventoryAccessModule]: Inventory object has UUID.Zero! Position 7");
+                    }
                     // Since renaming the item in the inventory does not affect the name stored
                     // in the serialization, transfer the correct name from the inventory to the
                     // object itself before we rez.
@@ -625,7 +650,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             group.ApplyNextOwnerPermissions();
                         }
                     }
-
+                    if (group.UUID == UUID.Zero)
+                    {
+                        m_log.Debug("[InventoryAccessModule]: Inventory object has UUID.Zero! Position 8");
+                    }
                     foreach (SceneObjectPart part in partList)
                     {
                         if ((part.OwnerID != item.Owner) || (item.CurrentPermissions & 16) != 0)
@@ -638,9 +666,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         part.EveryoneMask = item.EveryOnePermissions;
                         part.NextOwnerMask = item.NextPermissions;
                     }
-
+                    if (group.UUID == UUID.Zero)
+                    {
+                        m_log.Debug("[InventoryAccessModule]: Inventory object has UUID.Zero! Position 9");
+                    }
                     rootPart.TrimPermissions();
-
+                    if (group.UUID == UUID.Zero)
+                    {
+                        m_log.Debug("[InventoryAccessModule]: Inventory object has UUID.Zero! Position 10");
+                    }
                     if (!attachment)
                     {
                         if (group.RootPart.Shape.PCode == (byte)PCode.Prim)
@@ -674,8 +708,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             }
                         }
                     }
-
-                    return rootPart.ParentGroup;
+                    if (group.UUID == UUID.Zero)
+                    {
+                        m_log.Debug("[InventoryAccessModule]: Inventory object has UUID.Zero! Position 11");
+                    }
+                    return group;
                 }
             }
 
