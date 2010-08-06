@@ -56,9 +56,10 @@ namespace OpenSim.Region.Framework.Scenes
         LINK = 32,
         ALLOWED_DROP = 64,
         OWNER = 128,
-        REGION_RESTART = 256,
-        REGION = 512,
-        TELEPORT = 1024
+        REGION = 256,
+        TELEPORT = 512,
+        REGION_RESTART = 1024,
+        ANIMATION = 16384
     }
 
     // I don't really know where to put this except here.

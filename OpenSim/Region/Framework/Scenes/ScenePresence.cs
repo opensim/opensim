@@ -3939,7 +3939,7 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
                             if (m == null) // No script engine loaded
                                 continue;
 
-                            m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] { 16384 });
+                            m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] { (int)Changed.ANIMATION });
                         }
                     }
                 }

@@ -321,6 +321,22 @@ namespace OpenSim.Region.Framework.Scenes
                     StoreScriptErrors(item.ItemID, null);
                     m_part.ParentGroup.AddActiveScriptCount(1);
                     m_part.ScheduleFullUpdate();
+
+                    //This should play nice with XEngine since XEngine loads scripts /after/ the region starts
+                    if (stateSource == 0 && m_part.ParentGroup.Scene.LoginsDisabled == true)
+                    {
+                        IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
+                        if (engines != null)
+                        {
+                            foreach (IScriptModule xengine in engines)
+                            {
+                                if (xengine != null)
+                                {
+                                    xengine.PostScriptEvent(item.ItemID, "changed", new Object[] { (int)Changed.REGION_RESTART });
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
