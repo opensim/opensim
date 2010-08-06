@@ -3460,7 +3460,7 @@ namespace OpenSim.Region.Framework.Scenes
                             if (m == null) // No script engine loaded
                                 continue;
 
-                            m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] { 16384 });
+                            m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] { (int)Changed.ANIMATION });
                         }
                     }
                 }
