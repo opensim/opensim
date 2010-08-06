@@ -1438,7 +1438,6 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
-      <Reference name="System.Core"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Web"/>
@@ -2920,6 +2919,7 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Core"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
       <Reference name="OpenMetaverseTypes.dll"/>
