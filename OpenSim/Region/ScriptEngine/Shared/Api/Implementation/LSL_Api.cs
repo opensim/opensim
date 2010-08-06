@@ -1929,7 +1929,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected void SetPos(SceneObjectPart part, LSL_Vector targetPos)
         {
             // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
-            LSL_Vector currentPos = llGetLocalPos();
+            LSL_Vector currentPos = GetPartLocalPos(part);
 
             float ground = World.GetGroundHeight((float)targetPos.x, (float)targetPos.y);
             bool disable_underground_movement = m_ScriptEngine.Config.GetBoolean("DisableUndergroundMovement", true);
@@ -1962,17 +1962,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetLocalPos()
         {
             m_host.AddScriptLPS(1);
-            if (m_host.ParentID != 0)
+            return GetPartLocalPos(m_host);
+        }
+
+        protected LSL_Vector GetPartLocalPos(SceneObjectPart part)
+        {
+            m_host.AddScriptLPS(1);
+            if (part.ParentID != 0)
             {
-                return new LSL_Vector(m_host.OffsetPosition.X,
-                                      m_host.OffsetPosition.Y,
-                                      m_host.OffsetPosition.Z);
+                return new LSL_Vector(part.OffsetPosition.X,
+                                      part.OffsetPosition.Y,
+                                      part.OffsetPosition.Z);
             }
             else
             {
-                return new LSL_Vector(m_host.AbsolutePosition.X,
-                                      m_host.AbsolutePosition.Y,
-                                      m_host.AbsolutePosition.Z);
+                return new LSL_Vector(part.AbsolutePosition.X,
+                                      part.AbsolutePosition.Y,
+                                      part.AbsolutePosition.Z);
             }
         }
 
