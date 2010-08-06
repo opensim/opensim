@@ -61,8 +61,10 @@ namespace OpenSim.Services.HypergridService
 
         protected static IGridUserService m_GridUserService;
         protected static IGridService m_GridService;
-        //protected static GatekeeperServiceConnector m_GatekeeperConnector;
+        protected static GatekeeperServiceConnector m_GatekeeperConnector;
         protected static IGatekeeperService m_GatekeeperService;
+
+        protected static string m_GridName;
 
         protected static bool m_BypassClientVerification;
 
@@ -90,8 +92,15 @@ namespace OpenSim.Services.HypergridService
                 Object[] args = new Object[] { config };
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
                 m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(gridUserService, args);
-                //m_GatekeeperConnector = new GatekeeperServiceConnector();
+                m_GatekeeperConnector = new GatekeeperServiceConnector();
                 m_GatekeeperService = ServerUtils.LoadPlugin<IGatekeeperService>(gatekeeperService, args);
+
+                m_GridName = serverConfig.GetString("ExternalName", string.Empty);
+                if (m_GridName == string.Empty)
+                {
+                    serverConfig = config.Configs["GatekeeperService"];
+                    m_GridName = serverConfig.GetString("ExternalName", string.Empty);
+                }
             }
         }
 
@@ -139,7 +148,12 @@ namespace OpenSim.Services.HypergridService
             TravelingAgentInfo old = UpdateTravelInfo(agentCircuit, region);
 
             //bool success = m_GatekeeperConnector.CreateAgent(region, agentCircuit, (uint)Constants.TeleportFlags.ViaLogin, out reason);
-            bool success = m_GatekeeperService.LoginAgent(agentCircuit, finalDestination, out reason);
+            bool success = false;
+            string gridName = "http://" + gatekeeper.ExternalHostName + ":" + gatekeeper.HttpPort;
+            if (m_GridName == gridName)
+                success = m_GatekeeperService.LoginAgent(agentCircuit, finalDestination, out reason);
+            else
+                success = m_GatekeeperConnector.CreateAgent(region, agentCircuit, (uint)Constants.TeleportFlags.ViaLogin, out reason);
 
             if (!success)
             {
@@ -179,7 +193,7 @@ namespace OpenSim.Services.HypergridService
                 m_TravelingAgents[agentCircuit.SessionID] = travel;
             }
             travel.UserID = agentCircuit.AgentID;
-            travel.GridExternalName = region.ExternalHostName + ":" + region.HttpPort;
+            travel.GridExternalName = "http://" + region.ExternalHostName + ":" + region.HttpPort;
             travel.ServiceToken = agentCircuit.ServiceSessionID;
             if (old != null)
                 travel.ClientToken = old.ClientToken;
@@ -215,6 +229,7 @@ namespace OpenSim.Services.HypergridService
                 return false;
 
             TravelingAgentInfo travel = m_TravelingAgents[sessionID];
+
             return travel.GridExternalName == thisGridExternalName;
         }
 

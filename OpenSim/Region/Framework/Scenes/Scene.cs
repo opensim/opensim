@@ -1918,9 +1918,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (SceneObjectGroup group in PrimsFromDB)
             {
+                EventManager.TriggerOnSceneObjectLoaded(group);
+                
                 if (group.RootPart == null)
                 {
-                    m_log.ErrorFormat("[SCENE] Found a SceneObjectGroup with m_rootPart == null and {0} children",
+                    m_log.ErrorFormat("[SCENE]: Found a SceneObjectGroup with m_rootPart == null and {0} children",
                                       group.Children == null ? 0 : group.Children.Count);
                 }
 

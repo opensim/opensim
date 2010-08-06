@@ -1059,7 +1059,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void MakeChildAgent()
         {
-            Animator.ResetAnimations();
+            // It looks like m_animator is set to null somewhere, and MakeChild
+            // is called after that. Probably in aborted teleports.
+            if (m_animator == null)
+                m_animator = new ScenePresenceAnimator(this);
+            else
+                Animator.ResetAnimations();
 
 //            m_log.DebugFormat(
 //                 "[SCENEPRESENCE]: Downgrading root agent {0}, {1} to a child agent in {2}",

@@ -4327,8 +4327,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendLandObjectOwners(LandData land, List<UUID> groups, Dictionary<UUID, int> ownersAndCount)
         {
-
-
             int notifyCount = ownersAndCount.Count;
             ParcelObjectOwnersReplyPacket pack = (ParcelObjectOwnersReplyPacket)PacketPool.Instance.GetPacket(PacketType.ParcelObjectOwnersReply);
 
@@ -4600,6 +4598,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.TextureEntry = data.Shape.TextureEntry ?? Utils.EmptyBytes;
             update.Scale = data.Shape.Scale;
             update.Text = Util.StringToBytes256(data.Text);
+            update.MediaURL = Util.StringToBytes256(data.MediaUrl);
 
             #region PrimFlags
 

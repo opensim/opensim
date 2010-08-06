@@ -2111,7 +2111,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
-            LSL_Vector currentPos = llGetLocalPos();
+            LSL_Vector currentPos = GetPartLocalPos(part);
 
             float ground = World.GetGroundHeight((float)targetPos.x, (float)targetPos.y);
             bool disable_underground_movement = m_ScriptEngine.Config.GetBoolean("DisableUndergroundMovement", true);
@@ -2144,33 +2144,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetLocalPos()
         {
             m_host.AddScriptLPS(1);
-            if (m_host.IsAttachment == true) {
-                if (m_host.IsRoot == true)
-                {
-                    return new LSL_Vector(m_host.AbsolutePosition.X,
-                                        m_host.AbsolutePosition.Y,
-                                        m_host.AbsolutePosition.Z);
+            return GetPartLocalPos(m_host);
+        }
 
-                }
-                else
-                {
-                    return new LSL_Vector(m_host.OffsetPosition.X,
-                                        m_host.OffsetPosition.Y,
-                                        m_host.OffsetPosition.Z);
-                }
-		    }
-
-            if (m_host.ParentID != 0)
+        protected LSL_Vector GetPartLocalPos(SceneObjectPart part)
+        {
+            m_host.AddScriptLPS(1);
+            if (part.ParentID != 0)
             {
-                return new LSL_Vector(m_host.OffsetPosition.X,
-                                      m_host.OffsetPosition.Y,
-                                      m_host.OffsetPosition.Z);
+                return new LSL_Vector(part.OffsetPosition.X,
+                                      part.OffsetPosition.Y,
+                                      part.OffsetPosition.Z);
             }
             else
             {
-                return new LSL_Vector(m_host.AbsolutePosition.X,
-                                      m_host.AbsolutePosition.Y,
-                                      m_host.AbsolutePosition.Z);
+                return new LSL_Vector(part.AbsolutePosition.X,
+                                      part.AbsolutePosition.Y,
+                                      part.AbsolutePosition.Z);
             }
         }
 
@@ -8300,6 +8290,241 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return res;
         }
 
+        public LSL_List llGetPrimMediaParams(int face, LSL_List rules)
+        {
+            m_host.AddScriptLPS(1);
+            ScriptSleep(1000);
+
+            // LSL Spec http://wiki.secondlife.com/wiki/LlGetPrimMediaParams says to fail silently if face is invalid
+            // TODO: Need to correctly handle case where a face has no media (which gives back an empty list).
+            // Assuming silently fail means give back an empty list.  Ideally, need to check this.
+            if (face < 0 || face > m_host.GetNumberOfSides() - 1)
+                return new LSL_List();
+            
+            return GetPrimMediaParams(face, rules);
+        }
+        
+        private LSL_List GetPrimMediaParams(int face, LSL_List rules)
+        {
+            IMoapModule module = m_ScriptEngine.World.RequestModuleInterface<IMoapModule>();
+            if (null == module)
+                throw new Exception("Media on a prim functions not available");
+            
+            MediaEntry me = module.GetMediaEntry(m_host, face);
+            
+            // As per http://wiki.secondlife.com/wiki/LlGetPrimMediaParams
+            if (null == me)
+                return new LSL_List();
+            
+            LSL_List res = new LSL_List();
+
+            for (int i = 0; i < rules.Length; i++)
+            {
+                int code = (int)rules.GetLSLIntegerItem(i);
+                
+                switch (code)
+                {
+                    case ScriptBaseClass.PRIM_MEDIA_ALT_IMAGE_ENABLE:
+                        // Not implemented
+                        res.Add(new LSL_Integer(0));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_CONTROLS:
+                        if (me.Controls == MediaControls.Standard)
+                            res.Add(new LSL_Integer(ScriptBaseClass.PRIM_MEDIA_CONTROLS_STANDARD));
+                        else
+                            res.Add(new LSL_Integer(ScriptBaseClass.PRIM_MEDIA_CONTROLS_MINI));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_CURRENT_URL:
+                        res.Add(new LSL_String(me.CurrentURL));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_HOME_URL:
+                        res.Add(new LSL_String(me.HomeURL));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_LOOP:
+                        res.Add(me.AutoLoop ? ScriptBaseClass.TRUE : ScriptBaseClass.FALSE);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_PLAY:
+                        res.Add(me.AutoPlay ? ScriptBaseClass.TRUE : ScriptBaseClass.FALSE);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_SCALE:
+                        res.Add(me.AutoScale ? ScriptBaseClass.TRUE : ScriptBaseClass.FALSE);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_ZOOM:
+                        res.Add(me.AutoZoom ? ScriptBaseClass.TRUE : ScriptBaseClass.FALSE);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_FIRST_CLICK_INTERACT:
+                        res.Add(me.InteractOnFirstClick ? ScriptBaseClass.TRUE : ScriptBaseClass.FALSE);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_WIDTH_PIXELS:
+                        res.Add(new LSL_Integer(me.Width));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_HEIGHT_PIXELS:
+                        res.Add(new LSL_Integer(me.Height));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_WHITELIST_ENABLE:
+                        res.Add(me.EnableWhiteList ? ScriptBaseClass.TRUE : ScriptBaseClass.FALSE);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_WHITELIST:
+                        string[] urls = (string[])me.WhiteList.Clone();
+                    
+                        for (int j = 0; j < urls.Length; j++)
+                            urls[j] = Uri.EscapeDataString(urls[j]);
+                    
+                        res.Add(new LSL_String(string.Join(", ", urls)));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_PERMS_INTERACT:
+                        res.Add(new LSL_Integer((int)me.InteractPermissions));
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_PERMS_CONTROL:
+                        res.Add(new LSL_Integer((int)me.ControlPermissions));
+                        break;
+                }
+            }            
+            
+            return res;
+        }
+        
+        public LSL_Integer llSetPrimMediaParams(int face, LSL_List rules)
+        {
+            m_host.AddScriptLPS(1);
+            ScriptSleep(1000);
+
+            // LSL Spec http://wiki.secondlife.com/wiki/LlSetPrimMediaParams says to fail silently if face is invalid
+            // Assuming silently fail means sending back LSL_STATUS_OK.  Ideally, need to check this.
+            // Don't perform the media check directly
+            if (face < 0 || face > m_host.GetNumberOfSides() - 1)
+                return ScriptBaseClass.LSL_STATUS_OK;
+            
+            return SetPrimMediaParams(face, rules);            
+        }
+        
+        private LSL_Integer SetPrimMediaParams(int face, LSL_List rules)
+        {
+            IMoapModule module = m_ScriptEngine.World.RequestModuleInterface<IMoapModule>();
+            if (null == module)
+                throw new Exception("Media on a prim functions not available");
+            
+            MediaEntry me = module.GetMediaEntry(m_host, face);
+            if (null == me)
+                me = new MediaEntry();
+            
+            int i = 0;
+            
+            while (i < rules.Length - 1)
+            {
+                int code = rules.GetLSLIntegerItem(i++);
+                
+                switch (code)
+                {
+                    case ScriptBaseClass.PRIM_MEDIA_ALT_IMAGE_ENABLE:
+                        me.EnableAlterntiveImage = (rules.GetLSLIntegerItem(i++) != 0 ? true : false);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_CONTROLS:
+                        int v = rules.GetLSLIntegerItem(i++);
+                        if (ScriptBaseClass.PRIM_MEDIA_CONTROLS_STANDARD == v)
+                            me.Controls = MediaControls.Standard;
+                        else
+                            me.Controls = MediaControls.Mini;
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_CURRENT_URL:
+                        me.CurrentURL = rules.GetLSLStringItem(i++);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_HOME_URL:
+                        me.HomeURL = rules.GetLSLStringItem(i++);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_LOOP:
+                        me.AutoLoop = (ScriptBaseClass.TRUE == rules.GetLSLIntegerItem(i++) ? true : false);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_PLAY:
+                        me.AutoPlay = (ScriptBaseClass.TRUE == rules.GetLSLIntegerItem(i++) ? true : false);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_SCALE:
+                        me.AutoScale = (ScriptBaseClass.TRUE == rules.GetLSLIntegerItem(i++) ? true : false);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_AUTO_ZOOM:
+                        me.AutoZoom = (ScriptBaseClass.TRUE == rules.GetLSLIntegerItem(i++) ? true : false);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_FIRST_CLICK_INTERACT:
+                        me.InteractOnFirstClick = (ScriptBaseClass.TRUE == rules.GetLSLIntegerItem(i++) ? true : false);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_WIDTH_PIXELS:
+                        me.Width = (int)rules.GetLSLIntegerItem(i++);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_HEIGHT_PIXELS:
+                        me.Height = (int)rules.GetLSLIntegerItem(i++);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_WHITELIST_ENABLE:
+                        me.EnableWhiteList = (ScriptBaseClass.TRUE == rules.GetLSLIntegerItem(i++) ? true : false);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_WHITELIST:
+                        string[] rawWhiteListUrls = rules.GetLSLStringItem(i++).ToString().Split(new char[] { ',' });
+                        List<string> whiteListUrls = new List<string>();
+                        Array.ForEach(
+                            rawWhiteListUrls, delegate(string rawUrl) { whiteListUrls.Add(rawUrl.Trim()); });
+                        me.WhiteList = whiteListUrls.ToArray();
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_PERMS_INTERACT:
+                        me.InteractPermissions = (MediaPermission)(byte)(int)rules.GetLSLIntegerItem(i++);
+                        break;
+                        
+                    case ScriptBaseClass.PRIM_MEDIA_PERMS_CONTROL:
+                        me.ControlPermissions = (MediaPermission)(byte)(int)rules.GetLSLIntegerItem(i++);
+                        break;
+                }
+            }       
+                        
+            module.SetMediaEntry(m_host, face, me);
+            
+            return ScriptBaseClass.LSL_STATUS_OK;
+        }
+        
+        public LSL_Integer llClearPrimMedia(LSL_Integer face)
+        {
+            m_host.AddScriptLPS(1);
+            ScriptSleep(1000);
+
+            // LSL Spec http://wiki.secondlife.com/wiki/LlClearPrimMedia says to fail silently if face is invalid
+            // Assuming silently fail means sending back LSL_STATUS_OK.  Ideally, need to check this.
+            // FIXME: Don't perform the media check directly
+            if (face < 0 || face > m_host.GetNumberOfSides() - 1)
+                return ScriptBaseClass.LSL_STATUS_OK;
+            
+            IMoapModule module = m_ScriptEngine.World.RequestModuleInterface<IMoapModule>();
+            if (null == module)
+                throw new Exception("Media on a prim functions not available");            
+            
+            module.ClearMediaEntry(m_host, face);
+            
+            return ScriptBaseClass.LSL_STATUS_OK;
+        }
+        
         //  <remarks>
         //  <para>
         //  The .NET definition of base 64 is:
