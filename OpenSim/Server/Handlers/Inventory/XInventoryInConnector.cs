@@ -408,6 +408,7 @@ namespace OpenSim.Server.Handlers.Asset
 
         byte[] HandlePurgeFolder(Dictionary<string,object> request)
         {
+
             Dictionary<string,object> result = new Dictionary<string,object>();
             UUID folderID = UUID.Zero;
             UUID.TryParse(request["ID"].ToString(), out folderID);
