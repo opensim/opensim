@@ -79,7 +79,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event DisconnectUser OnDisconnectUser;
         public event RequestAvatarProperties OnRequestAvatarProperties;
         public event SetAlwaysRun OnSetAlwaysRun;
-
+        public event MoveItemsAndLeaveCopy OnMoveItemsAndLeaveCopy;
         public event DeRezObject OnDeRezObject;
         public event Action<IClientAPI> OnRegionHandShakeReply;
         public event GenericCall2 OnRequestWearables;

@@ -593,6 +593,7 @@ namespace OpenSim.Client.MXP.ClientStack
         public event DisconnectUser OnDisconnectUser;
         public event RequestAvatarProperties OnRequestAvatarProperties;
         public event SetAlwaysRun OnSetAlwaysRun;
+        public event MoveItemsAndLeaveCopy OnMoveItemsAndLeaveCopy;
         public event TeleportLandmarkRequest OnTeleportLandmarkRequest;
         public event DeRezObject OnDeRezObject;
         public event Action<IClientAPI> OnRegionHandShakeReply;

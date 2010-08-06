@@ -2922,6 +2922,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnFetchInventory += HandleFetchInventory;
             client.OnUpdateInventoryItem += UpdateInventoryItemAsset;
             client.OnCopyInventoryItem += CopyInventoryItem;
+            client.OnMoveItemsAndLeaveCopy += MoveInventoryItemsLeaveCopy;
             client.OnMoveInventoryItem += MoveInventoryItem;
             client.OnRemoveInventoryItem += RemoveInventoryItem;
             client.OnRemoveInventoryFolder += RemoveInventoryFolder;

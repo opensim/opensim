@@ -156,7 +156,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 #pragma warning disable 67
         public event Action<IClientAPI> OnLogout;
         public event ObjectPermissions OnObjectPermissions;
-
+        public event MoveItemsAndLeaveCopy OnMoveItemsAndLeaveCopy;
         public event MoneyTransferRequest OnMoneyTransferRequest;
         public event ParcelBuy OnParcelBuy;
         public event Action<IClientAPI> OnConnectionClosed;
