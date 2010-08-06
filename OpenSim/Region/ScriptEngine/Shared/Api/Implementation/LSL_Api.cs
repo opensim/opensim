@@ -1919,7 +1919,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected void SetPos(SceneObjectPart part, LSL_Vector targetPos)
         {
             // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
-            LSL_Vector currentPos = GetPartLocalPos((part);
+            LSL_Vector currentPos = GetPartLocalPos(part);
 
             float ground = World.GetGroundHeight((float)targetPos.x, (float)targetPos.y);
             bool disable_underground_movement = m_ScriptEngine.Config.GetBoolean("DisableUndergroundMovement", true);
