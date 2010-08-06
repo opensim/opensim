@@ -277,6 +277,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int CHANGED_TELEPORT = 512;
         public const int CHANGED_REGION_RESTART = 1024;
         public const int CHANGED_REGION_START = 1024; //LL Changed the constant from CHANGED_REGION_RESTART
+        public const int CHANGED_MEDIA = 2048;
         public const int CHANGED_ANIMATION = 16384;
         public const int TYPE_INVALID = 0;
         public const int TYPE_INTEGER = 1;
@@ -518,6 +519,41 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int TOUCH_INVALID_FACE = -1;
         public static readonly vector TOUCH_INVALID_TEXCOORD = new vector(-1.0, -1.0, 0.0);
         public static readonly vector TOUCH_INVALID_VECTOR = ZERO_VECTOR;
+        
+        // constants for llGetPrimMediaParams/llSetPrimMediaParams
+        public const int PRIM_MEDIA_ALT_IMAGE_ENABLE = 0;
+        public const int PRIM_MEDIA_CONTROLS = 1;
+        public const int PRIM_MEDIA_CURRENT_URL = 2;
+        public const int PRIM_MEDIA_HOME_URL = 3;
+        public const int PRIM_MEDIA_AUTO_LOOP = 4;
+        public const int PRIM_MEDIA_AUTO_PLAY = 5;
+        public const int PRIM_MEDIA_AUTO_SCALE = 6;
+        public const int PRIM_MEDIA_AUTO_ZOOM = 7;
+        public const int PRIM_MEDIA_FIRST_CLICK_INTERACT = 8;
+        public const int PRIM_MEDIA_WIDTH_PIXELS = 9;
+        public const int PRIM_MEDIA_HEIGHT_PIXELS = 10;
+        public const int PRIM_MEDIA_WHITELIST_ENABLE = 11;
+        public const int PRIM_MEDIA_WHITELIST = 12;
+        public const int PRIM_MEDIA_PERMS_INTERACT = 13;
+        public const int PRIM_MEDIA_PERMS_CONTROL = 14;
+        
+        public const int PRIM_MEDIA_CONTROLS_STANDARD = 0;
+        public const int PRIM_MEDIA_CONTROLS_MINI = 1;
+        
+        public const int PRIM_MEDIA_PERM_NONE = 0;
+        public const int PRIM_MEDIA_PERM_OWNER = 1;
+        public const int PRIM_MEDIA_PERM_GROUP = 2;
+        public const int PRIM_MEDIA_PERM_ANYONE = 4;
+        
+        // extra constants for llSetPrimMediaParams
+        public static readonly LSLInteger LSL_STATUS_OK = new LSLInteger(0);
+        public static readonly LSLInteger LSL_STATUS_MALFORMED_PARAMS = new LSLInteger(1000);
+        public static readonly LSLInteger LSL_STATUS_TYPE_MISMATCH = new LSLInteger(1001);
+        public static readonly LSLInteger LSL_STATUS_BOUNDS_ERROR = new LSLInteger(1002);
+        public static readonly LSLInteger LSL_STATUS_NOT_FOUND = new LSLInteger(1003);
+        public static readonly LSLInteger LSL_STATUS_NOT_SUPPORTED = new LSLInteger(1004);
+        public static readonly LSLInteger LSL_STATUS_INTERNAL_ERROR = new LSLInteger(1999);
+        public static readonly LSLInteger LSL_STATUS_WHITELIST_FAILED = new LSLInteger(2001);
 
         // Constants for default textures
         public const string TEXTURE_BLANK = "5748decc-f629-461c-9a36-a35a221fe21f";

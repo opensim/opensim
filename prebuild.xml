@@ -2214,6 +2214,7 @@
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="Mono.Data.Sqlite"/>
       <Reference name="Mono.Addins.dll" />
       <Reference name="log4net.dll"/>

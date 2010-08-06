@@ -330,10 +330,38 @@ namespace OpenSim.Region.Framework.Scenes
         /// If the object is being attached, then the avatarID will be present.  If the object is being detached then
         /// the avatarID is UUID.Zero (I know, this doesn't make much sense but now it's historical).
         public delegate void Attach(uint localID, UUID itemID, UUID avatarID);
-        public event Attach OnAttach;
+        public event Attach OnAttach;                
+        
+        /// <summary>
+        /// Called immediately after an object is loaded from storage.
+        /// </summary>
+        public event SceneObjectDelegate OnSceneObjectLoaded;
+        public delegate void SceneObjectDelegate(SceneObjectGroup so);
+        
+        /// <summary>
+        /// Called immediately before an object is saved to storage.
+        /// </summary>
+        /// <param name="persistingSo">
+        /// The scene object being persisted.  
+        /// This is actually a copy of the original scene object so changes made here will be saved to storage but will not be kept in memory.
+        /// </param>
+        /// <param name="originalSo">
+        /// The original scene object being persisted.  Changes here will stay in memory but will not be saved to storage on this save.
+        /// </param>
+        public event SceneObjectPreSaveDelegate OnSceneObjectPreSave;
+        public delegate void SceneObjectPreSaveDelegate(SceneObjectGroup persistingSo, SceneObjectGroup originalSo);
+        
+        /// <summary>
+        /// Called when a scene object part is cloned within the region.
+        /// </summary>
+        /// <param name="copy"></param>
+        /// <param name="original"></param>
+        /// <param name="userExposed">True if the duplicate will immediately be in the scene, false otherwise</param>
+        public event SceneObjectPartCopyDelegate OnSceneObjectPartCopy;
+        public delegate void SceneObjectPartCopyDelegate(SceneObjectPart copy, SceneObjectPart original, bool userExposed);
 
         public delegate void RegionUp(GridRegion region);
-        public event RegionUp OnRegionUp;
+        public event RegionUp OnRegionUp;       
 
         public class MoneyTransferArgs : EventArgs
         {
@@ -2013,5 +2041,68 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
+        
+        public void TriggerOnSceneObjectLoaded(SceneObjectGroup so)
+        {
+            SceneObjectDelegate handler = OnSceneObjectLoaded;
+            if (handler != null)
+            {
+                foreach (SceneObjectDelegate d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(so);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnSceneObjectLoaded failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }  
+        
+        public void TriggerOnSceneObjectPreSave(SceneObjectGroup persistingSo, SceneObjectGroup originalSo)
+        {
+            SceneObjectPreSaveDelegate handler = OnSceneObjectPreSave;
+            if (handler != null)
+            {
+                foreach (SceneObjectPreSaveDelegate d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(persistingSo, originalSo);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnSceneObjectPreSave failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        } 
+        
+        public void TriggerOnSceneObjectPartCopy(SceneObjectPart copy, SceneObjectPart original, bool userExposed)
+        {
+            SceneObjectPartCopyDelegate handler = OnSceneObjectPartCopy;
+            if (handler != null)
+            {
+                foreach (SceneObjectPartCopyDelegate d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(copy, original, userExposed);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnSceneObjectPartCopy failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }   
     }
 }

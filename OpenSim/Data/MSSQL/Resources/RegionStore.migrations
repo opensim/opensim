@@ -1,4 +1,4 @@
-﻿
+
 :VERSION 1
 
 CREATE TABLE [dbo].[prims](
@@ -925,5 +925,12 @@ ALTER TABLE regionsettings ADD loaded_creation_datetime int NOT NULL default 0
 
 COMMIT
 
+:VERSION 24
+-- Added post 0.7
 
+BEGIN TRANSACTION
 
+ALTER TABLE prims ADD COLUMN MediaURL varchar(255)
+ALTER TABLE primshapes ADD COLUMN Media TEXT
+
+COMMIT
