@@ -250,7 +250,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             if ((estateAccessType & 4) != 0) // User add
             {
-                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || m_scene.Permissions.BypassPermissions())
+                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, false) || m_scene.Permissions.BypassPermissions())
                 {
                     m_scene.RegionInfo.EstateSettings.AddEstateUser(user);
                     m_scene.RegionInfo.EstateSettings.Save();
@@ -265,7 +265,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
             if ((estateAccessType & 8) != 0) // User remove
             {
-                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || m_scene.Permissions.BypassPermissions())
+                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, false) || m_scene.Permissions.BypassPermissions())
                 {
                     m_scene.RegionInfo.EstateSettings.RemoveEstateUser(user);
                     m_scene.RegionInfo.EstateSettings.Save();
@@ -280,7 +280,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
             if ((estateAccessType & 16) != 0) // Group add
             {
-                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || m_scene.Permissions.BypassPermissions())
+                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, false) || m_scene.Permissions.BypassPermissions())
                 {
                     m_scene.RegionInfo.EstateSettings.AddEstateGroup(user);
                     m_scene.RegionInfo.EstateSettings.Save();
@@ -294,7 +294,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
             if ((estateAccessType & 32) != 0) // Group remove
             {
-                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || m_scene.Permissions.BypassPermissions())
+                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, false) || m_scene.Permissions.BypassPermissions())
                 {
                     m_scene.RegionInfo.EstateSettings.RemoveEstateGroup(user);
                     m_scene.RegionInfo.EstateSettings.Save();
