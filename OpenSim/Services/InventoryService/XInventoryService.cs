@@ -342,7 +342,6 @@ namespace OpenSim.Services.InventoryService
                 m_Database.DeleteFolders("folderID", x.folderID.ToString());
             }
 
-            m_Database.DeleteItems("parentFolderID", folder.ID.ToString());
 
             return true;
         }
@@ -541,6 +540,9 @@ namespace OpenSim.Services.InventoryService
             XInventoryFolder[] folder = m_Database.GetFolders(new string[] {"folderID"}, new string[] {folderID.ToString()});
             if (folder.Length < 1)
                 return false;
+
+            if (folder[0].type == (int)AssetType.TrashFolder)
+                return true;
 
             UUID parentFolder = folder[0].parentFolderID;
 
