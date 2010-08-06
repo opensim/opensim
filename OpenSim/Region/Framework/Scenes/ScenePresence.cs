@@ -595,11 +595,21 @@ namespace OpenSim.Region.Framework.Scenes
 
         private uint m_parentID;
 
+
+        private UUID m_linkedPrim;
+
         public uint ParentID
         {
             get { return m_parentID; }
             set { m_parentID = value; }
         }
+
+        public UUID LinkedPrim
+        {
+            get { return m_linkedPrim; }
+            set { m_linkedPrim = value; }
+        }
+
         public float Health
         {
             get { return m_health; }
@@ -1835,6 +1845,7 @@ namespace OpenSim.Region.Framework.Scenes
                 
 		        m_parentPosition = Vector3.Zero;
 				m_parentID = 0;
+                m_linkedPrim = UUID.Zero;
                 m_offsetRotation = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
                 SendFullUpdateToAllClients();
                 m_requestedSitTargetID = 0;
@@ -2421,6 +2432,8 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
             {
                 m_parentID = m_requestedSitTargetID;
             }
+
+            m_linkedPrim = part.UUID;
 
             Velocity = Vector3.Zero;
             RemoveFromPhysicalScene();
