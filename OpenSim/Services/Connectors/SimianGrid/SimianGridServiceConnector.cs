@@ -357,6 +357,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 return new List<GridRegion>(0);
         }
 
+        public List<GridRegion> GetHyperlinks(UUID scopeID)
+        {
+            // Hypergrid/linked regions are not supported
+            return new List<GridRegion>();
+        }
+        
         public int GetRegionFlags(UUID scopeID, UUID regionID)
         {
             const int REGION_ONLINE = 4;

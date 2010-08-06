@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Xml;
@@ -332,18 +333,43 @@ namespace OpenSim.Services.GridService
         /// <returns></returns>
         public bool Check4096(ulong realHandle, out uint x, out uint y)
         {
-            GridRegion defRegion = DefaultRegion;
-
             uint ux = 0, uy = 0;
             Utils.LongToUInts(realHandle, out ux, out uy);
             x = ux / Constants.RegionSize;
             y = uy / Constants.RegionSize;
 
-            if ((Math.Abs((int)defRegion.RegionLocX - ux) >= 4096 * Constants.RegionSize) ||
-                (Math.Abs((int)defRegion.RegionLocY - uy) >= 4096 * Constants.RegionSize))
+            const uint limit = (4096 - 1) * Constants.RegionSize;
+            uint xmin = ux - limit;
+            uint xmax = ux + limit;
+            uint ymin = uy - limit;
+            uint ymax = uy + limit;
+            // World map boundary checks
+            if (xmin < 0 || xmin > ux)
+                xmin = 0;
+            if (xmax > int.MaxValue || xmax < ux)
+                xmax = int.MaxValue;
+            if (ymin < 0 || ymin > uy)
+                ymin = 0;
+            if (ymax > int.MaxValue || ymax < uy)
+                ymax = int.MaxValue;
+
+            // Check for any regions that are within the possible teleport range to the linked region
+            List<GridRegion> regions = m_GridService.GetRegionRange(m_ScopeID, (int)xmin, (int)xmax, (int)ymin, (int)ymax);
+            if (regions.Count == 0)
             {
                 return false;
             }
+            else
+            {
+                // Check for regions which are not linked regions
+                List<GridRegion> hyperlinks = m_GridService.GetHyperlinks(m_ScopeID);
+                IEnumerable<GridRegion> availableRegions = regions.Except(hyperlinks);
+                if (availableRegions.Count() == 0)
+            {
+                return false;
+            }
+            }
+
             return true;
         }
 

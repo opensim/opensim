@@ -136,6 +136,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
                 900 * (int)Constants.RegionSize, 1100 * (int)Constants.RegionSize);
             Assert.IsNotNull(results, "Retrieved GetRegionRange list is null");
             Assert.That(results.Count, Is.EqualTo(2), "Retrieved neighbour collection is not the number expected");
+
+            results = m_LocalConnector.GetHyperlinks(UUID.Zero);
+            Assert.IsNotNull(results, "Retrieved GetHyperlinks list is null");
+            Assert.That(results.Count, Is.EqualTo(0), "Retrieved linked regions collection is not the number expected");
+
         }
     }
 }
