@@ -73,7 +73,7 @@ namespace OpenSim.Services.HypergridService
                     throw new Exception(String.Format("No section GatekeeperService in config file"));
 
                 string accountService = serverConfig.GetString("UserAccountService", String.Empty);
-                string homeUsersService = serverConfig.GetString("HomeUsersSecurityService", string.Empty);
+                string homeUsersService = serverConfig.GetString("UserAgentService", string.Empty);
                 string gridService = serverConfig.GetString("GridService", String.Empty);
                 string presenceService = serverConfig.GetString("PresenceService", String.Empty);
                 string simulationService = serverConfig.GetString("SimulationService", String.Empty);
@@ -283,18 +283,23 @@ namespace OpenSim.Services.HypergridService
                 return false;
             }
 
-            Object[] args = new Object[] { userURL };
-            IUserAgentService userAgentService = new UserAgentServiceConnector(userURL); //ServerUtils.LoadPlugin<IUserAgentService>(m_AuthDll, args);
-            if (userAgentService != null)
+            if (userURL == m_ExternalName)
+                return m_UserAgentService.VerifyAgent(aCircuit.SessionID, aCircuit.ServiceSessionID);
+            else
             {
-                try
+                Object[] args = new Object[] { userURL };
+                IUserAgentService userAgentService = new UserAgentServiceConnector(userURL); 
+                if (userAgentService != null)
                 {
-                    return userAgentService.VerifyAgent(aCircuit.SessionID, aCircuit.ServiceSessionID);
-                }
-                catch
-                {
-                    m_log.DebugFormat("[GATEKEEPER SERVICE]: Unable to contact authentication service at {0}", userURL);
-                    return false;
+                    try
+                    {
+                        return userAgentService.VerifyAgent(aCircuit.SessionID, aCircuit.ServiceSessionID);
+                    }
+                    catch
+                    {
+                        m_log.DebugFormat("[GATEKEEPER SERVICE]: Unable to contact authentication service at {0}", userURL);
+                        return false;
+                    }
                 }
             }
 

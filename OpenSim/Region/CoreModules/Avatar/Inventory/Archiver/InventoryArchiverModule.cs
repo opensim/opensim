@@ -91,12 +91,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 
                 scene.AddCommand(
                     this, "load iar",
-					"load iar <first> <last> <inventory path> <password> [<IAR path>]",				                 
+                    "load iar <first> <last> <inventory path> <password> [<IAR path>]",                              
                     //"load iar [--merge] <first> <last> <inventory path> <password> [<IAR path>]",
                     "Load user inventory archive (IAR).",
-				    //"--merge is an option which merges the loaded IAR with existing inventory folders where possible, rather than always creating new ones"
+                    //"--merge is an option which merges the loaded IAR with existing inventory folders where possible, rather than always creating new ones"
                     //+ "<first> is user's first name." + Environment.NewLine
-                    "<first> is user's first name." + Environment.NewLine				                 
+                    "<first> is user's first name." + Environment.NewLine                                
                     + "<last> is user's last name." + Environment.NewLine
                     + "<inventory path> is the path inside the user's inventory where the IAR should be loaded." + Environment.NewLine
                     + "<password> is the user's password." + Environment.NewLine
@@ -136,16 +136,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (handlerInventoryArchiveSaved != null)
                 handlerInventoryArchiveSaved(id, succeeded, userInfo, invPath, saveStream, reportedException);
         }
-		
+        
         public bool ArchiveInventory(
-		     Guid id, string firstName, string lastName, string invPath, string pass, Stream saveStream)
-		{
-			return ArchiveInventory(id, firstName, lastName, invPath, pass, saveStream, new Dictionary<string, object>());
-		}
+             Guid id, string firstName, string lastName, string invPath, string pass, Stream saveStream)
+        {
+            return ArchiveInventory(id, firstName, lastName, invPath, pass, saveStream, new Dictionary<string, object>());
+        }
 
         public bool ArchiveInventory(
-		    Guid id, string firstName, string lastName, string invPath, string pass, Stream saveStream, 
-		    Dictionary<string, object> options)
+            Guid id, string firstName, string lastName, string invPath, string pass, Stream saveStream, 
+            Dictionary<string, object> options)
         {
             if (m_scenes.Count > 0)
             {
@@ -184,8 +184,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
                         
         public bool ArchiveInventory(
-		    Guid id, string firstName, string lastName, string invPath, string pass, string savePath, 
-		    Dictionary<string, object> options)
+            Guid id, string firstName, string lastName, string invPath, string pass, string savePath, 
+            Dictionary<string, object> options)
         {
             if (m_scenes.Count > 0)
             {
@@ -224,13 +224,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
 
         public bool DearchiveInventory(string firstName, string lastName, string invPath, string pass, Stream loadStream)
-		{
-			return DearchiveInventory(firstName, lastName, invPath, pass, loadStream, new Dictionary<string, object>());
-		}
-		
+        {
+            return DearchiveInventory(firstName, lastName, invPath, pass, loadStream, new Dictionary<string, object>());
+        }
+        
         public bool DearchiveInventory(
-		    string firstName, string lastName, string invPath, string pass, Stream loadStream, 
-		    Dictionary<string, object> options)
+            string firstName, string lastName, string invPath, string pass, Stream loadStream, 
+            Dictionary<string, object> options)
         {
             if (m_scenes.Count > 0)
             {
@@ -241,10 +241,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     if (CheckPresence(userInfo.PrincipalID))
                     {
                         InventoryArchiveReadRequest request;
+                        bool merge = (options.ContainsKey("merge") ? (bool)options["merge"] : false);                        
                         
                         try
                         {
-                            request = new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadStream);
+                            request = new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadStream, merge);
                         }
                         catch (EntryPointNotFoundException e)
                         {
@@ -273,8 +274,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
         
         public bool DearchiveInventory(
-		     string firstName, string lastName, string invPath, string pass, string loadPath, 
-		     Dictionary<string, object> options)
+             string firstName, string lastName, string invPath, string pass, string loadPath, 
+             Dictionary<string, object> options)
         {
             if (m_scenes.Count > 0)
             {
@@ -285,10 +286,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     if (CheckPresence(userInfo.PrincipalID))
                     {
                         InventoryArchiveReadRequest request;
+                        bool merge = (options.ContainsKey("merge") ? (bool)options["merge"] : false);                        
                         
                         try
-                        {
-                            request = new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadPath);
+                        {                            
+                            request = new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadPath, merge);
                         }
                         catch (EntryPointNotFoundException e)
                         {
@@ -334,7 +336,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 if (mainParams.Count < 6)
                 {
                     m_log.Error(
-                        "[INVENTORY ARCHIVER]: usage is load iar <first name> <last name> <inventory path> <user password> [<load file path>]");
+                        "[INVENTORY ARCHIVER]: usage is load iar [--merge] <first name> <last name> <inventory path> <user password> [<load file path>]");
                     return;
                 }            
     
@@ -356,7 +358,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             catch (InventoryArchiverException e)
             {
                 m_log.ErrorFormat("[INVENTORY ARCHIVER]: {0}", e.Message);
-            }                
+            }
         }
         
         /// <summary>
@@ -469,7 +471,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Notify the client of loaded nodes if they are logged in
         /// </summary>
         /// <param name="loadedNodes">Can be empty.  In which case, nothing happens</param>
-        private void UpdateClientWithLoadedNodes(UserAccount userInfo, List<InventoryNodeBase> loadedNodes)
+        private void UpdateClientWithLoadedNodes(UserAccount userInfo, HashSet<InventoryNodeBase> loadedNodes)
         {
             if (loadedNodes.Count == 0)
                 return;

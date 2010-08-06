@@ -15,6 +15,67 @@
             
             </summary>
         </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDNotationElement(System.IO.StringReader)">
+            <summary>
+            
+            </summary>
+            <param name="reader"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.PeekAndSkipWhitespace(System.IO.StringReader)">
+            <summary>
+            
+            </summary>
+            <param name="reader"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.ReadAndSkipWhitespace(System.IO.StringReader)">
+            <summary>
+            
+            </summary>
+            <param name="reader"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.GetLengthInBrackets(System.IO.StringReader)">
+            <summary>
+            
+            </summary>
+            <param name="reader"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.GetStringDelimitedBy(System.IO.StringReader,System.Char)">
+            <summary>
+            
+            </summary>
+            <param name="reader"></param>
+            <param name="delimiter"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.BufferCharactersEqual(System.IO.StringReader,System.Char[],System.Int32)">
+            <summary>
+            
+            </summary>
+            <param name="reader"></param>
+            <param name="buffer"></param>
+            <param name="offset"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.UnescapeCharacter(System.String,System.Char)">
+            <summary>
+            
+            </summary>
+            <param name="s"></param>
+            <param name="c"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.EscapeCharacter(System.String,System.Char)">
+            <summary>
+            
+            </summary>
+            <param name="s"></param>
+            <param name="c"></param>
+            <returns></returns>
+        </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDBinary(System.Byte[])">
             <summary>
             
@@ -149,67 +210,6 @@
             
             </summary>
             <param name="reader"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDNotationElement(System.IO.StringReader)">
-            <summary>
-            
-            </summary>
-            <param name="reader"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.PeekAndSkipWhitespace(System.IO.StringReader)">
-            <summary>
-            
-            </summary>
-            <param name="reader"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.ReadAndSkipWhitespace(System.IO.StringReader)">
-            <summary>
-            
-            </summary>
-            <param name="reader"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.GetLengthInBrackets(System.IO.StringReader)">
-            <summary>
-            
-            </summary>
-            <param name="reader"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.GetStringDelimitedBy(System.IO.StringReader,System.Char)">
-            <summary>
-            
-            </summary>
-            <param name="reader"></param>
-            <param name="delimiter"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.BufferCharactersEqual(System.IO.StringReader,System.Char[],System.Int32)">
-            <summary>
-            
-            </summary>
-            <param name="reader"></param>
-            <param name="buffer"></param>
-            <param name="offset"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.UnescapeCharacter(System.String,System.Char)">
-            <summary>
-            
-            </summary>
-            <param name="s"></param>
-            <param name="c"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.EscapeCharacter(System.String,System.Char)">
-            <summary>
-            
-            </summary>
-            <param name="s"></param>
-            <param name="c"></param>
             <returns></returns>
         </member>
         <member name="T:OpenMetaverse.StructuredData.OSDType">
