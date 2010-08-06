@@ -741,7 +741,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         public void TestMergeIarPath()
         {
             TestHelper.InMethod();
-            log4net.Config.XmlConfigurator.Configure();
+//            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneSetupHelpers.SetupScene("inventory");
             UserAccount ua1 = UserProfileTestUtils.CreateUserWithInventory(scene);
