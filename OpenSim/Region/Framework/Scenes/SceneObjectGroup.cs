@@ -469,13 +469,22 @@ namespace OpenSim.Region.Framework.Scenes
                         return;
                     }
                 }
-                foreach (SceneObjectPart part in m_parts.Values)
+                List<SceneObjectPart> parts = new List<SceneObjectPart>(m_parts.Values);
+                lockPartsForRead(false);
+                foreach (SceneObjectPart part in parts)
                 {
                     part.IgnoreUndoUpdate = false;
                     part.StoreUndoState(UndoType.STATE_GROUP_POSITION);
                     part.GroupPosition = val;
                 }
-                lockPartsForRead(false);
+
+                foreach (ScenePresence av in m_linkedAvatars)
+                {
+                    Vector3 offset = m_parts[av.LinkedPrim].GetWorldPosition() - av.ParentPosition;
+                    av.AbsolutePosition += offset;
+                    av.ParentPosition = m_parts[av.LinkedPrim].GetWorldPosition(); //ParentPosition gets cleared by AbsolutePosition
+                    av.SendFullUpdateToAllClients();
+                }
 
                 //if (m_rootPart.PhysActor != null)
                 //{

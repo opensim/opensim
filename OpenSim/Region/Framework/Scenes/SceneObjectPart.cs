@@ -682,23 +682,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                         // Tell the physics engines that this prim changed.
                         m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
+
                     }
                     catch (Exception e)
                     {
                         m_log.Error("[SCENEOBJECTPART]: GROUP POSITION. " + e.Message);
-                    }
-                }
-                
-                // TODO if we decide to do sitting in a more SL compatible way (multiple avatars per prim), this has to be fixed, too
-                if (m_sitTargetAvatar != UUID.Zero)
-                {
-                    if (m_parentGroup != null) // TODO can there be a SOP without a SOG?
-                    {
-                        ScenePresence avatar;
-                        if (m_parentGroup.Scene.TryGetScenePresence(m_sitTargetAvatar, out avatar))
-                        {
-                            avatar.ParentPosition = GetWorldPosition();
-                        }
                     }
                 }
             }
@@ -709,6 +697,7 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_offsetPosition; }
             set
             {
+                Vector3 oldpos = m_offsetPosition;
                 StoreUndoState(UndoType.STATE_PRIM_POSITION);
                 m_offsetPosition = value;
 
@@ -727,7 +716,12 @@ namespace OpenSim.Region.Framework.Scenes
                     List<ScenePresence> avs = ParentGroup.GetLinkedAvatars();
                     foreach (ScenePresence av in avs)
                     {
-                        av.SendFullUpdateToAllClients();
+                        if (av.LinkedPrim == m_uuid)
+                        {
+                            Vector3 offset = (m_offsetPosition - oldpos);
+                            av.OffsetPosition += offset;
+                            av.SendFullUpdateToAllClients();
+                        }
                     }
                 }
             }
