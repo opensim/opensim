@@ -1479,6 +1479,7 @@ namespace OpenSim.Region.Framework.Scenes
                         backup_group.RootPart.ParticleSystem = RootPart.ParticleSystem;
                         HasGroupChanged = false;
 
+                        m_scene.EventManager.TriggerOnSceneObjectPreSave(backup_group, this);
                         datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
 
                         backup_group.ForEachPart(delegate(SceneObjectPart part) 
@@ -1527,6 +1528,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Duplicates this object, including operations such as physics set up and attaching to the backup event.
         /// </summary>
+        /// <param name="userExposed">True if the duplicate will immediately be in the scene, false otherwise</param>
         /// <returns></returns>
         public SceneObjectGroup Copy(bool userExposed)
         {
