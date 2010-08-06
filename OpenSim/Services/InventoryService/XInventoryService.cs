@@ -329,8 +329,8 @@ namespace OpenSim.Services.InventoryService
             if (!m_AllowDelete)
                 return false;
 
-//            if (!ParentIsTrash(folder.ID))
-//                return false;
+            if (!ParentIsTrash(folder.ID))
+                return false;
 
             XInventoryFolder[] subFolders = m_Database.GetFolders(
                     new string[] { "parentFolderID" },
@@ -342,8 +342,6 @@ namespace OpenSim.Services.InventoryService
                 m_Database.DeleteFolders("folderID", x.folderID.ToString());
             }
 
-	if (!ParentIsTrash(folder.ID))
-            m_Database.DeleteItems("parentFolderID", folder.ID.ToString());
 
             return true;
         }
