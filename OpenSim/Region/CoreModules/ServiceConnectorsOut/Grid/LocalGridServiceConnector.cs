@@ -233,6 +233,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return m_GridService.GetFallbackRegions(scopeID, x, y);
         }
 
+        public List<GridRegion> GetHyperlinks(UUID scopeID)
+        {
+            return m_GridService.GetHyperlinks(scopeID);
+        }
+        
         public int GetRegionFlags(UUID scopeID, UUID regionID)
         {
             return m_GridService.GetRegionFlags(scopeID, regionID);
