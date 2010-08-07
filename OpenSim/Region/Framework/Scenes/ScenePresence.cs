@@ -2442,9 +2442,9 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
 
             Velocity = Vector3.Zero;
             RemoveFromPhysicalScene();
-
             Animator.TrySetMovementAnimation(sitAnimation);
             SendFullUpdateToAllClients();
+            SendTerseUpdateToAllClients();
         }
         
         public void SitAltitudeCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 normal)
