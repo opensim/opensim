@@ -279,6 +279,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int CHANGED_REGION_START = 1024; //LL Changed the constant from CHANGED_REGION_RESTART
         public const int CHANGED_MEDIA = 2048;
         public const int CHANGED_ANIMATION = 16384;
+        public const int CHANGED_POSITION = 32768;
         public const int TYPE_INVALID = 0;
         public const int TYPE_INTEGER = 1;
         public const int TYPE_FLOAT = 2;

@@ -60,7 +60,8 @@ namespace OpenSim.Region.Framework.Scenes
         TELEPORT = 512,
         REGION_RESTART = 1024,
         MEDIA = 2048,
-        ANIMATION = 16384
+        ANIMATION = 16384,
+        POSITION = 32768
     }
 
     // I don't really know where to put this except here.
@@ -730,6 +731,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
+                TriggerScriptChangedEvent(Changed.POSITION);
             }
         }
 

@@ -476,6 +476,7 @@ namespace OpenSim.Region.Framework.Scenes
                     part.IgnoreUndoUpdate = false;
                     part.StoreUndoState(UndoType.STATE_GROUP_POSITION);
                     part.GroupPosition = val;
+                    part.TriggerScriptChangedEvent(Changed.POSITION);
                 }
 
                 foreach (ScenePresence av in m_linkedAvatars)
