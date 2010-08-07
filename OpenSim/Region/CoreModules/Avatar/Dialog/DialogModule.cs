@@ -101,7 +101,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         {
             m_scene.ForEachScenePresence(delegate(ScenePresence presence)
             {
-                presence.ControllingClient.SendAlertMessage(message);
+                if (!presence.IsChildAgent)
+                {
+                    presence.ControllingClient.SendAlertMessage(message);
+                }
             });
         }
 
