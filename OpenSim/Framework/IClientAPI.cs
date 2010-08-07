@@ -264,6 +264,9 @@ namespace OpenSim.Framework
     public delegate void MoveInventoryItem(
         IClientAPI remoteClient, List<InventoryItemBase> items);
 
+    public delegate void MoveItemsAndLeaveCopy(
+        IClientAPI remoteClient, List<InventoryItemBase> items, UUID destFolder);
+
     public delegate void RemoveInventoryItem(
         IClientAPI remoteClient, List<UUID> itemIDs);
 
@@ -772,6 +775,7 @@ namespace OpenSim.Framework
         event RequestTaskInventory OnRequestTaskInventory;
         event UpdateInventoryItem OnUpdateInventoryItem;
         event CopyInventoryItem OnCopyInventoryItem;
+        event MoveItemsAndLeaveCopy OnMoveItemsAndLeaveCopy;
         event MoveInventoryItem OnMoveInventoryItem;
         event RemoveInventoryFolder OnRemoveInventoryFolder;
         event RemoveInventoryItem OnRemoveInventoryItem;

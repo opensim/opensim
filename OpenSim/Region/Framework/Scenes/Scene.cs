@@ -1918,9 +1918,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (SceneObjectGroup group in PrimsFromDB)
             {
+                EventManager.TriggerOnSceneObjectLoaded(group);
+                
                 if (group.RootPart == null)
                 {
-                    m_log.ErrorFormat("[SCENE] Found a SceneObjectGroup with m_rootPart == null and {0} children",
+                    m_log.ErrorFormat("[SCENE]: Found a SceneObjectGroup with m_rootPart == null and {0} children",
                                       group.Children == null ? 0 : group.Children.Count);
                 }
 
@@ -2922,6 +2924,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnFetchInventory += HandleFetchInventory;
             client.OnUpdateInventoryItem += UpdateInventoryItemAsset;
             client.OnCopyInventoryItem += CopyInventoryItem;
+            client.OnMoveItemsAndLeaveCopy += MoveInventoryItemsLeaveCopy;
             client.OnMoveInventoryItem += MoveInventoryItem;
             client.OnRemoveInventoryItem += RemoveInventoryItem;
             client.OnRemoveInventoryFolder += RemoveInventoryFolder;

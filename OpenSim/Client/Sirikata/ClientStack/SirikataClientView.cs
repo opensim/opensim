@@ -253,6 +253,7 @@ namespace OpenSim.Client.Sirikata.ClientStack
         public event AddNewPrim OnAddPrim;
         public event FetchInventory OnAgentDataUpdateRequest;
         public event TeleportLocationRequest OnSetStartLocationRequest;
+        public event MoveItemsAndLeaveCopy OnMoveItemsAndLeaveCopy;
         public event RequestGodlikePowers OnRequestGodlikePowers;
         public event GodKickUser OnGodKickUser;
         public event ObjectDuplicate OnObjectDuplicate;

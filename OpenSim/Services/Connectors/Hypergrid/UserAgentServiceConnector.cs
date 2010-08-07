@@ -358,7 +358,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         private bool GetBoolResponse(XmlRpcRequest request, out string reason)
         {
-            //m_log.Debug("[HGrid]: Linking to " + uri);
+            //m_log.Debug("[USER AGENT CONNECTOR]: GetBoolResponse from/to " + m_ServerURL);
             XmlRpcResponse response = null;
             try
             {
@@ -366,14 +366,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             catch (Exception e)
             {
-                m_log.Debug("[USER AGENT CONNECTOR]: Unable to contact remote server ");
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0}", m_ServerURL);
                 reason = "Exception: " + e.Message;
                 return false;
             }
 
             if (response.IsFault)
             {
-                m_log.ErrorFormat("[HGrid]: remote call returned an error: {0}", response.FaultString);
+                m_log.ErrorFormat("[HGrid]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
                 reason = "XMLRPC Fault";
                 return false;
             }
@@ -383,15 +383,29 @@ namespace OpenSim.Services.Connectors.Hypergrid
             //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
             try
             {
+                if (hash == null)
+                {
+                    m_log.ErrorFormat("[USER AGENT CONNECTOR]: Got null response from {0}! THIS IS BAAAAD", m_ServerURL);
+                    reason = "Internal error 1";
+                    return false;
+                }
                 bool success = false;
                 reason = string.Empty;
-                Boolean.TryParse((string)hash["result"], out success);
+                if (hash.ContainsKey("result"))
+                    Boolean.TryParse((string)hash["result"], out success);
+                else
+                {
+                    reason = "Internal error 2";
+                    m_log.WarnFormat("[USER AGENT CONNECTOR]: response from {0} does not have expected key 'result'", m_ServerURL);
+                }
 
                 return success;
             }
             catch (Exception e)
             {
-                m_log.Error("[HGrid]: Got exception while parsing GetEndPoint response " + e.StackTrace);
+                m_log.ErrorFormat("[HGrid]: Got exception on GetBoolResponse response.");
+                if (hash.ContainsKey("result") && hash["result"] != null)
+                    m_log.ErrorFormat("Reply was ", (string)hash["result"]);
                 reason = "Exception: " + e.Message;
                 return false;
             }

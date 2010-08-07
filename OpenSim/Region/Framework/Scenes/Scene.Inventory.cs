@@ -648,6 +648,8 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
             }
 
+            if (newName == null) newName = item.Name;
+
             AssetBase asset = AssetService.Get(item.AssetID.ToString());
 
             if (asset != null)
@@ -692,6 +694,24 @@ namespace OpenSim.Region.Framework.Scenes
             asset.Data = (data == null) ? new byte[1] : data;
 
             return asset;
+        }
+
+        /// <summary>
+        /// Move an item within the agent's inventory, and leave a copy (used in making a new outfit)
+        /// </summary>
+        public void MoveInventoryItemsLeaveCopy(IClientAPI remoteClient, List<InventoryItemBase> items, UUID destfolder)
+        {
+            List<InventoryItemBase> moveitems = new List<InventoryItemBase>();
+            foreach (InventoryItemBase b in items)
+            {
+                CopyInventoryItem(remoteClient, 0, remoteClient.AgentId, b.ID, b.Folder, null);
+                InventoryItemBase n = InventoryService.GetItem(b);
+                n.Folder = destfolder;
+                moveitems.Add(n);
+                remoteClient.SendInventoryItemCreateUpdate(n, 0);
+            }
+            
+            MoveInventoryItem(remoteClient, moveitems);
         }
 
         /// <summary>

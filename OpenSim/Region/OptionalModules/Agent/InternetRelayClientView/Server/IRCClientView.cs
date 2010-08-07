@@ -815,6 +815,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event ObjectOwner OnObjectOwner;
         public event DirPlacesQuery OnDirPlacesQuery;
         public event DirFindQuery OnDirFindQuery;
+        public event MoveItemsAndLeaveCopy OnMoveItemsAndLeaveCopy;
         public event DirLandQuery OnDirLandQuery;
         public event DirPopularQuery OnDirPopularQuery;
         public event DirClassifiedQuery OnDirClassifiedQuery;

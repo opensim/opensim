@@ -154,6 +154,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event RequestTaskInventory OnRequestTaskInventory;
         public event UpdateInventoryItem OnUpdateInventoryItem;
         public event CopyInventoryItem OnCopyInventoryItem;
+        public event MoveItemsAndLeaveCopy OnMoveItemsAndLeaveCopy;
         public event MoveInventoryItem OnMoveInventoryItem;
         public event RemoveInventoryItem OnRemoveInventoryItem;
         public event RemoveInventoryFolder OnRemoveInventoryFolder;
@@ -4327,8 +4328,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendLandObjectOwners(LandData land, List<UUID> groups, Dictionary<UUID, int> ownersAndCount)
         {
-
-
             int notifyCount = ownersAndCount.Count;
             ParcelObjectOwnersReplyPacket pack = (ParcelObjectOwnersReplyPacket)PacketPool.Instance.GetPacket(PacketType.ParcelObjectOwnersReply);
 
@@ -4600,6 +4599,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.TextureEntry = data.Shape.TextureEntry ?? Utils.EmptyBytes;
             update.Scale = data.Shape.Scale;
             update.Text = Util.StringToBytes256(data.Text);
+            update.MediaURL = Util.StringToBytes256(data.MediaUrl);
 
             #region PrimFlags
 
@@ -4840,6 +4840,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.TransferAbort, HandleTransferAbort, false);
             AddLocalPacketHandler(PacketType.MuteListRequest, HandleMuteListRequest, false);
             AddLocalPacketHandler(PacketType.UseCircuitCode, HandleUseCircuitCode);
+            AddLocalPacketHandler(PacketType.CreateNewOutfitAttachments, HandleCreateNewOutfitAttachments);
             AddLocalPacketHandler(PacketType.AgentHeightWidth, HandleAgentHeightWidth, false);
             AddLocalPacketHandler(PacketType.InventoryDescendents, HandleInventoryDescendents);
             AddLocalPacketHandler(PacketType.DirPlacesQuery, HandleDirPlacesQuery);
@@ -9347,6 +9348,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool HandleUseCircuitCode(IClientAPI sender, Packet Pack)
         {
+            return true;
+        }
+        
+        private bool HandleCreateNewOutfitAttachments(IClientAPI sender, Packet Pack)
+        {
+            CreateNewOutfitAttachmentsPacket packet = (CreateNewOutfitAttachmentsPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (packet.AgentData.SessionID != SessionId ||
+                    packet.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+            MoveItemsAndLeaveCopy handlerMoveItemsAndLeaveCopy = null;
+            List<InventoryItemBase> items = new List<InventoryItemBase>();
+            foreach (CreateNewOutfitAttachmentsPacket.ObjectDataBlock n in packet.ObjectData)
+            {
+                InventoryItemBase b = new InventoryItemBase();
+                b.ID = n.OldItemID;
+                b.Folder = n.OldFolderID;
+                items.Add(b);
+            }
+
+            handlerMoveItemsAndLeaveCopy = OnMoveItemsAndLeaveCopy;
+            if (handlerMoveItemsAndLeaveCopy != null)
+            {
+                handlerMoveItemsAndLeaveCopy(this, items, packet.HeaderData.NewFolderID);
+            }
+
             return true;
         }
 
