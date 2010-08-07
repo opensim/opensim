@@ -1734,9 +1734,9 @@ namespace OpenSim.Region.Framework.Scenes
                     // don't backup while it's selected or you're asking for changes mid stream.
                     if ((isTimeToPersist()) || (forcedBackup))
                     {
-                        m_log.DebugFormat(
-                            "[SCENE]: Storing {0}, {1} in {2}",
-                            Name, UUID, m_scene.RegionInfo.RegionName);
+                     //   m_log.DebugFormat(
+                     //       "[SCENE]: Storing {0}, {1} in {2}",
+                     //       Name, UUID, m_scene.RegionInfo.RegionName);
 
                         SceneObjectGroup backup_group = Copy(false);
                         backup_group.RootPart.Velocity = RootPart.Velocity;
