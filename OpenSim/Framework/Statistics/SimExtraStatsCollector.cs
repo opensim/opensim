@@ -390,36 +390,41 @@ Asset service request failures: {3}" + Environment.NewLine,
         public override string XReport(string uptime, string version)
         {
             OSDMap args = new OSDMap(30);
-            args["AssetsInCache"] = OSD.FromReal(AssetsInCache);
-            args["TimeAfterCacheMiss"] = OSD.FromReal(assetRequestTimeAfterCacheMiss.Milliseconds / 1000.0);
-            args["BlockedMissingTextureRequests"] = OSD.FromReal(BlockedMissingTextureRequests);
-            args["AssetServiceRequestFailures"] = OSD.FromReal(AssetServiceRequestFailures);
-            args["abnormalClientThreadTerminations"] = OSD.FromReal(abnormalClientThreadTerminations);
-            args["InventoryServiceRetrievalFailures"] = OSD.FromReal(InventoryServiceRetrievalFailures);
-            args["Dilatn"] = OSD.FromReal(timeDilation);
-            args["SimFPS"] = OSD.FromReal(simFps);
-            args["PhyFPS"] = OSD.FromReal(physicsFps);
-            args["AgntUp"] = OSD.FromReal(agentUpdates);
-            args["RootAg"] = OSD.FromReal(rootAgents);
-            args["ChldAg"] = OSD.FromReal(childAgents);
-            args["Prims"] = OSD.FromReal(totalPrims);
-            args["AtvPrm"] = OSD.FromReal(activePrims);
-            args["AtvScr"] = OSD.FromReal(activeScripts);
-            args["ScrLPS"] = OSD.FromReal(scriptLinesPerSecond);
-            args["PktsIn"] = OSD.FromReal(inPacketsPerSecond);
-            args["PktOut"] = OSD.FromReal(outPacketsPerSecond);
-            args["PendDl"] = OSD.FromReal(pendingDownloads);
-            args["PendUl"] = OSD.FromReal(pendingUploads);
-            args["UnackB"] = OSD.FromReal(unackedBytes);
-            args["TotlFt"] = OSD.FromReal(totalFrameTime);
-            args["NetFt"] = OSD.FromReal(netFrameTime);
-            args["PhysFt"] = OSD.FromReal(physicsFrameTime);
-            args["OthrFt"] = OSD.FromReal(otherFrameTime);
-            args["AgntFt"] = OSD.FromReal(agentFrameTime);
-            args["ImgsFt"] = OSD.FromReal(imageFrameTime);
-            args["Memory"] = OSD.FromString(base.XReport(uptime, version));
-            args["Uptime"] = OSD.FromString(uptime);
-            args["Version"] = OSD.FromString(version);
+            args["AssetsInCache"] = OSD.FromString (String.Format ("{0:0.##}", AssetsInCache));
+            args["TimeAfterCacheMiss"] = OSD.FromString (String.Format ("{0:0.##}",
+                    assetRequestTimeAfterCacheMiss.Milliseconds / 1000.0));
+            args["BlockedMissingTextureRequests"] = OSD.FromString (String.Format ("{0:0.##}",
+                    BlockedMissingTextureRequests));
+            args["AssetServiceRequestFailures"] = OSD.FromString (String.Format ("{0:0.##}",
+                    AssetServiceRequestFailures));
+            args["abnormalClientThreadTerminations"] = OSD.FromString (String.Format ("{0:0.##}",
+                    abnormalClientThreadTerminations));
+            args["InventoryServiceRetrievalFailures"] = OSD.FromString (String.Format ("{0:0.##}",
+                    InventoryServiceRetrievalFailures));
+            args["Dilatn"] = OSD.FromString (String.Format ("{0:0.##}", timeDilation));
+            args["SimFPS"] = OSD.FromString (String.Format ("{0:0.##}", simFps));
+            args["PhyFPS"] = OSD.FromString (String.Format ("{0:0.##}", physicsFps));
+            args["AgntUp"] = OSD.FromString (String.Format ("{0:0.##}", agentUpdates));
+            args["RootAg"] = OSD.FromString (String.Format ("{0:0.##}", rootAgents));
+            args["ChldAg"] = OSD.FromString (String.Format ("{0:0.##}", childAgents));
+            args["Prims"] = OSD.FromString (String.Format ("{0:0.##}", totalPrims));
+            args["AtvPrm"] = OSD.FromString (String.Format ("{0:0.##}", activePrims));
+            args["AtvScr"] = OSD.FromString (String.Format ("{0:0.##}", activeScripts));
+            args["ScrLPS"] = OSD.FromString (String.Format ("{0:0.##}", scriptLinesPerSecond));
+            args["PktsIn"] = OSD.FromString (String.Format ("{0:0.##}", inPacketsPerSecond));
+            args["PktOut"] = OSD.FromString (String.Format ("{0:0.##}", outPacketsPerSecond));
+            args["PendDl"] = OSD.FromString (String.Format ("{0:0.##}", pendingDownloads));
+            args["PendUl"] = OSD.FromString (String.Format ("{0:0.##}", pendingUploads));
+            args["UnackB"] = OSD.FromString (String.Format ("{0:0.##}", unackedBytes));
+            args["TotlFt"] = OSD.FromString (String.Format ("{0:0.##}", totalFrameTime));
+            args["NetFt"] = OSD.FromString (String.Format ("{0:0.##}", netFrameTime));
+            args["PhysFt"] = OSD.FromString (String.Format ("{0:0.##}", physicsFrameTime));
+            args["OthrFt"] = OSD.FromString (String.Format ("{0:0.##}", otherFrameTime));
+            args["AgntFt"] = OSD.FromString (String.Format ("{0:0.##}", agentFrameTime));
+            args["ImgsFt"] = OSD.FromString (String.Format ("{0:0.##}", imageFrameTime));
+            args["Memory"] = OSD.FromString (base.XReport (uptime, version));
+            args["Uptime"] = OSD.FromString (uptime);
+            args["Version"] = OSD.FromString (version);
             
             string strBuffer = "";
             strBuffer = OSDParser.SerializeJsonString(args);

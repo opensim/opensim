@@ -92,6 +92,7 @@ namespace OpenSim.Services.Interfaces
 
         List<GridRegion> GetDefaultRegions(UUID scopeID);
         List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y);
+        List<GridRegion> GetHyperlinks(UUID scopeID);
 
         int GetRegionFlags(UUID scopeID, UUID regionID);
     }
