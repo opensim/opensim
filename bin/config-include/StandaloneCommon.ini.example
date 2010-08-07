@@ -48,6 +48,9 @@
     ;;--- For MySql region storage (alternative)
  	  ;StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
 
+	; If HG, do you want this check on the distance to be performed?
+    ; Check4096 = "False"
+
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegioName> = "<flags>"
     ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut

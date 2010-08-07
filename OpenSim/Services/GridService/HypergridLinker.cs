@@ -27,7 +27,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Xml;
@@ -63,6 +62,7 @@ namespace OpenSim.Services.GridService
         protected GatekeeperServiceConnector m_GatekeeperConnector;
 
         protected UUID m_ScopeID = UUID.Zero;
+        protected bool m_Check4096 = true;
 
         // Hyperlink regions are hyperlinks on the map
         public readonly Dictionary<UUID, GridRegion> m_HyperlinkRegions = new Dictionary<UUID, GridRegion>();
@@ -116,6 +116,8 @@ namespace OpenSim.Services.GridService
                 string scope = gridConfig.GetString("ScopeID", string.Empty);
                 if (scope != string.Empty)
                     UUID.TryParse(scope, out m_ScopeID);
+
+                m_Check4096 = gridConfig.GetBoolean("Check4096", true);
 
                 m_GatekeeperConnector = new GatekeeperServiceConnector(m_AssetService);
 
@@ -278,7 +280,7 @@ namespace OpenSim.Services.GridService
             }
 
             uint x, y;
-            if (!Check4096(handle, out x, out y))
+            if (m_Check4096 && !Check4096(handle, out x, out y))
             {
                 RemoveHyperlinkRegion(regInfo.RegionID);
                 reason = "Region is too far (" + x + ", " + y + ")";
@@ -363,11 +365,18 @@ namespace OpenSim.Services.GridService
             {
                 // Check for regions which are not linked regions
                 List<GridRegion> hyperlinks = m_GridService.GetHyperlinks(m_ScopeID);
-                IEnumerable<GridRegion> availableRegions = regions.Except(hyperlinks);
-                if (availableRegions.Count() == 0)
-            {
-                return false;
-            }
+                // would like to use .Except, but doesn't seem to exist
+                //IEnumerable<GridRegion> availableRegions = regions.Except(hyperlinks);
+                List<GridRegion> availableRegions = regions.FindAll(delegate(GridRegion region) 
+                {
+                    // Ewww! n^2
+                    if (hyperlinks.Find(delegate(GridRegion r) { return r.RegionID == region.RegionID; }) == null) // not hyperlink. good.
+                        return true;
+
+                    return false;
+                });
+                if (availableRegions.Count == 0)
+                    return false;
             }
 
             return true;
