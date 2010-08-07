@@ -168,7 +168,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (neighbour != null)
             {
-                m_log.DebugFormat("[INTERGRID]: Successfully informed neighbour {0}-{1} that I'm here", x / Constants.RegionSize, y / Constants.RegionSize);
+              //  m_log.DebugFormat("[INTERGRID]: Successfully informed neighbour {0}-{1} that I'm here", x / Constants.RegionSize, y / Constants.RegionSize);
                 m_scene.EventManager.TriggerOnRegionUp(neighbour);
             }
             else
@@ -183,7 +183,7 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
 
             List<GridRegion> neighbours = m_scene.GridService.GetNeighbours(m_scene.RegionInfo.ScopeID, m_scene.RegionInfo.RegionID);
-            m_log.DebugFormat("[INTERGRID]: Informing {0} neighbours that this region is up", neighbours.Count);
+            //m_log.DebugFormat("[INTERGRID]: Informing {0} neighbours that this region is up", neighbours.Count);
             foreach (GridRegion n in neighbours)
             {
                 InformNeighbourThatRegionUpDelegate d = InformNeighboursThatRegionIsUpAsync;
@@ -267,7 +267,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected void SendCloseChildAgentAsync(UUID agentID, ulong regionHandle)
         {
 
-            m_log.Debug("[INTERGRID]: Sending close agent to " + regionHandle);
+            //m_log.Debug("[INTERGRID]: Sending close agent to " + regionHandle);
             // let's do our best, but there's not much we can do if the neighbour doesn't accept.
 
             //m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, agentID);

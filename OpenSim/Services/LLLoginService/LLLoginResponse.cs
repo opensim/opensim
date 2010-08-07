@@ -178,6 +178,8 @@ namespace OpenSim.Services.LLLoginService
         // Web map
         private string mapTileURL;
 
+        private string searchURL;
+
         // Error Flags
         private string errorReason;
         private string errorMessage;
@@ -226,7 +228,7 @@ namespace OpenSim.Services.LLLoginService
         public LLLoginResponse(UserAccount account, AgentCircuitData aCircuit, GridUserInfo pinfo,
             GridRegion destination, List<InventoryFolderBase> invSkel, FriendInfo[] friendsList, ILibraryService libService,
             string where, string startlocation, Vector3 position, Vector3 lookAt, List<InventoryItemBase> gestures, string message,
-            GridRegion home, IPEndPoint clientIP, string mapTileURL)
+            GridRegion home, IPEndPoint clientIP, string mapTileURL, string searchURL)
             : this()
         {
             FillOutInventoryData(invSkel, libService);
@@ -243,6 +245,7 @@ namespace OpenSim.Services.LLLoginService
             BuddList = ConvertFriendListItem(friendsList);
             StartLocation = where;
             MapTileURL = mapTileURL;
+            SearchURL = searchURL;
 
             FillOutHomeData(pinfo, home);
             LookAt = String.Format("[r{0},r{1},r{2}]", lookAt.X, lookAt.Y, lookAt.Z);
@@ -416,6 +419,7 @@ namespace OpenSim.Services.LLLoginService
             InitialOutfitHash["gender"] = "female";
             initialOutfit.Add(InitialOutfitHash);
             mapTileURL = String.Empty;
+            searchURL = String.Empty;
         }
 
 
@@ -478,6 +482,9 @@ namespace OpenSim.Services.LLLoginService
                 responseData["message"] = welcomeMessage;
                 responseData["region_x"] = (Int32)(RegionX);
                 responseData["region_y"] = (Int32)(RegionY);
+
+                if (searchURL != String.Empty)
+                    responseData["search"] = searchURL;
 
                 if (mapTileURL != String.Empty)
                     responseData["map-server-url"] = mapTileURL;
@@ -580,6 +587,9 @@ namespace OpenSim.Services.LLLoginService
 
                 if (mapTileURL != String.Empty)
                     map["map-server-url"] = OSD.FromString(mapTileURL);
+
+                if (searchURL != String.Empty)
+                    map["search"] = OSD.FromString(searchURL);
 
                 if (m_buddyList != null)
                 {
@@ -936,6 +946,12 @@ namespace OpenSim.Services.LLLoginService
         {
             get { return mapTileURL; }
             set { mapTileURL = value; }
+        }
+
+        public string SearchURL
+        {
+            get { return searchURL; }
+            set { searchURL = value; }
         }
 
         public string Message
