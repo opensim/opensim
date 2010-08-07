@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -26,61 +26,46 @@
  */
 
 using System;
+using System.Reflection;
 using NUnit.Framework;
+using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
-using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using OpenSim.Framework.Communications;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Mock;
+using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
-    /// <summary>
-    /// Scene presence tests
-    /// </summary>
     [TestFixture]
-    public class SceneBaseTests
+    public class SceneGraphTests
     {
-        private class SceneBaseImpl : SceneBase
-        {
-            public override void Update()
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void LoadWorldMap()
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void AddNewClient(IClientAPI client)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void RemoveClient(UUID agentID)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void OtherRegionUp(GridRegion otherRegion)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override bool TryGetScenePresence(UUID agentID, out ScenePresence scenePresence)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override bool CheckClient(UUID agentID, System.Net.IPEndPoint ep)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         [Test]
-        public void TestConstructor()
+        public void TestDuplicateObject()
         {
-            new SceneBaseImpl();
-        }
+            TestHelper.InMethod();
+            Scene scene = SceneSetupHelpers.SetupScene();
+
+            UUID ownerUuid = new UUID("00000000-0000-0000-0000-000000000010");
+            string objName = "obj1";
+            UUID objUuid = new UUID("00000000-0000-0000-0000-000000000001");
+
+            SceneObjectPart part
+                = new SceneObjectPart(ownerUuid, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                    { Name = objName, UUID = objUuid };
+
+            scene.AddNewSceneObject(new SceneObjectGroup(part), false);
+            
+            SceneObjectGroup duplicatedSo 
+                = scene.SceneGraph.DuplicateObject(
+                    part.LocalId, new Vector3(10, 0, 0), 0, ownerUuid, UUID.Zero, Quaternion.Identity);
+            
+            Assert.That(duplicatedSo.Children.Count, Is.EqualTo(1));
+            Assert.That(duplicatedSo.RootPart.LocalId, Is.Not.EqualTo(part.LocalId));
+            
+            //SceneObjectPart retrievedPart = scene.GetSceneObjectPart(objUuid);
+        }        
     }
 }
