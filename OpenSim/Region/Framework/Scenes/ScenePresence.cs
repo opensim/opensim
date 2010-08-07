@@ -2007,13 +2007,14 @@ namespace OpenSim.Region.Framework.Scenes
                 if (autopilot)
                 {				// its not a scripted sit
 //                        if (Util.GetDistanceTo(AbsolutePosition, autopilotTarget) < 4.5)
-					if( (Math.Abs(AbsolutePosition.X - autopilotTarget.X) < 2.0f) && (Math.Abs(AbsolutePosition.Y - autopilotTarget.Y) < 2.0f) )
+					if( (Math.Abs(AbsolutePosition.X - autopilotTarget.X) < 10.0f) && (Math.Abs(AbsolutePosition.Y - autopilotTarget.Y) < 10.0f) )
                     {
                         autopilot = false;		// close enough
                         m_lastWorldPosition = m_pos; /* CW - This give us a position to return the avatar to if the part is killed before standup.
                                                              Not using the part's position because returning the AV to the last known standing
                                                              position is likely to be more friendly, isn't it? */
                         RemoveFromPhysicalScene();
+                        Velocity = Vector3.Zero;
                         AbsolutePosition = autopilotTarget + new Vector3(0.0f, 0.0f, (m_sitAvatarHeight / 2.0f));  // Warp av to over sit target
                     } // else the autopilot will get us close
                 }
@@ -2023,6 +2024,7 @@ namespace OpenSim.Region.Framework.Scenes
                                                                           I *am* using the part's position this time because we have no real idea how far away
                                                                           the avatar is from the sit target. */
                     RemoveFromPhysicalScene();
+                    Velocity = Vector3.Zero;
                 }
             }
             else return;    // physactor is null! 
