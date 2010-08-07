@@ -64,7 +64,7 @@ namespace OpenSim.Services.Connectors
             m_GridService = gridServices;
         }
 
-        public virtual LandData GetLandData(ulong regionHandle, uint x, uint y)
+        public virtual LandData GetLandData(ulong regionHandle, uint x, uint y, out byte regionAccess)
         {
             LandData landData = null;
             Hashtable hash = new Hashtable();
@@ -74,6 +74,7 @@ namespace OpenSim.Services.Connectors
 
             IList paramList = new ArrayList();
             paramList.Add(hash);
+            regionAccess = 42; // Default to adult. Better safe...
 
             try
             {
@@ -107,6 +108,8 @@ namespace OpenSim.Services.Connectors
                             landData.SalePrice = Convert.ToInt32(hash["SalePrice"]);
                             landData.SnapshotID = new UUID((string)hash["SnapshotID"]);
                             landData.UserLocation = Vector3.Parse((string)hash["UserLocation"]);
+                            if (hash["RegionAccess"] != null)
+                                regionAccess = (byte)Convert.ToInt32((string)hash["RegionAccess"]);
                             m_log.DebugFormat("[OGS1 GRID SERVICES] Got land data for parcel {0}", landData.Name);
                         }
                         catch (Exception e)

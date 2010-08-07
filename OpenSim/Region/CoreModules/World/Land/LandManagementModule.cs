@@ -51,6 +51,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public LandData LandData;
         public ulong RegionHandle;
         public uint X, Y;
+        public byte RegionAccess;
     }
 
     public class LandManagementModule : INonSharedRegionModule
@@ -1459,13 +1460,15 @@ namespace OpenSim.Region.CoreModules.World.Land
                                                           if (extLandData.RegionHandle == m_scene.RegionInfo.RegionHandle)
                                                           {
                                                               extLandData.LandData = this.GetLandObject(extLandData.X, extLandData.Y).LandData;
+                                                              extLandData.RegionAccess = m_scene.RegionInfo.AccessLevel;
                                                           }
                                                           else
                                                           {
                                                               ILandService landService = m_scene.RequestModuleInterface<ILandService>();
                                                               extLandData.LandData = landService.GetLandData(extLandData.RegionHandle,
                                                                                                              extLandData.X,
-                                                                                                             extLandData.Y);
+                                                                                                             extLandData.Y,
+                                                                                                             out extLandData.RegionAccess);
                                                               if (extLandData.LandData == null)
                                                               {
                                                                   // we didn't find the region/land => don't cache
@@ -1497,6 +1500,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 r.RegionName = info.RegionName;
                 r.RegionLocX = (uint)info.RegionLocX;
                 r.RegionLocY = (uint)info.RegionLocY;
+                r.RegionSettings.Maturity = (int)Util.ConvertAccessLevelToMaturity(data.RegionAccess);
                 remoteClient.SendParcelInfo(r, data.LandData, parcelID, data.X, data.Y);
             }
             else
