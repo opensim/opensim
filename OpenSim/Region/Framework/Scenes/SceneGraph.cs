@@ -1739,7 +1739,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="AgentID"></param>
         /// <param name="GroupID"></param>
         /// <param name="rot"></param>
-        protected internal SceneObjectGroup DuplicateObject(uint originalPrimID, Vector3 offset, uint flags, UUID AgentID, UUID GroupID, Quaternion rot)
+        public SceneObjectGroup DuplicateObject(uint originalPrimID, Vector3 offset, uint flags, UUID AgentID, UUID GroupID, Quaternion rot)
         {
             //m_log.DebugFormat("[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", originalPrim, offset, AgentID);
             SceneObjectGroup original = GetGroupByPrim(originalPrimID);
