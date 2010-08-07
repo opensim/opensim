@@ -169,7 +169,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             }
             catch
             {
-                m_log.Info("[OFFLINE MESSAGING]: No PST timezone found on this machine. Saving with local timestamp.");
+                //m_log.Info("[OFFLINE MESSAGING]: No PST timezone found on this machine. Saving with local timestamp.");
             }
 
             // And make it look local again to fool the unix time util

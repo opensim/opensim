@@ -33,6 +33,6 @@ namespace OpenSim.Services.Interfaces
 {
     public interface ILandService
     {
-        LandData GetLandData(ulong regionHandle, uint x, uint y);
+        LandData GetLandData(ulong regionHandle, uint x, uint y, out byte regionAccess);
     }
 }

@@ -116,8 +116,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Land
 
         #region ILandService
 
-        public LandData GetLandData(ulong regionHandle, uint x, uint y)
+        public LandData GetLandData(ulong regionHandle, uint x, uint y, out byte regionAccess)
         {
+            regionAccess = 2;
             m_log.DebugFormat("[LAND CONNECTOR]: request for land data in {0} at {1}, {2}",
                   regionHandle, x, y);
 
@@ -126,6 +127,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Land
                 if (s.RegionInfo.RegionHandle == regionHandle)
                 {
                     LandData land = s.GetLandData(x, y);
+                    regionAccess = s.RegionInfo.AccessLevel;
                     return land;
                 }
             }

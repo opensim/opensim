@@ -66,7 +66,8 @@ namespace OpenSim.Server.Handlers.Land
             uint y = Convert.ToUInt32(requestData["y"]);
             m_log.DebugFormat("[LAND HANDLER]: Got request for land data at {0}, {1} for region {2}", x, y, regionHandle);
 
-            LandData landData = m_LocalService.GetLandData(regionHandle, x, y);
+            byte regionAccess;
+            LandData landData = m_LocalService.GetLandData(regionHandle, x, y, out regionAccess);
             Hashtable hash = new Hashtable();
             if (landData != null)
             {
@@ -83,6 +84,7 @@ namespace OpenSim.Server.Handlers.Land
                 hash["SalePrice"] = landData.SalePrice.ToString();
                 hash["SnapshotID"] = landData.SnapshotID.ToString();
                 hash["UserLocation"] = landData.UserLocation.ToString();
+                hash["RegionAccess"] = regionAccess.ToString();
             }
 
             XmlRpcResponse response = new XmlRpcResponse();
