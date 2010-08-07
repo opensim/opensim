@@ -250,7 +250,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (toadd.Length > 0)
                 {
-                    values.Add(rule);
+                    values.Add(new LSL_Integer(rule));
                     values.Add(toadd.Data[0]);
                 }
                 idx++;
