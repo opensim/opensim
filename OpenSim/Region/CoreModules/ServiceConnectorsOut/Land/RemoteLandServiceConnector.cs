@@ -108,13 +108,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Land
 
         #region ILandService
 
-        public override LandData GetLandData(ulong regionHandle, uint x, uint y)
+        public override LandData GetLandData(ulong regionHandle, uint x, uint y, out byte regionAccess)
         {
-            LandData land = m_LocalService.GetLandData(regionHandle, x, y);
+            LandData land = m_LocalService.GetLandData(regionHandle, x, y, out regionAccess);
             if (land != null)
                 return land;
 
-            return base.GetLandData(regionHandle, x, y);
+            return base.GetLandData(regionHandle, x, y, out regionAccess);
 
         }
         #endregion ILandService
