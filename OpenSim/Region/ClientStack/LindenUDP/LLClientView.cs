@@ -314,6 +314,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_cachedTextureSerial;
         private PriorityQueue m_entityUpdates;
         private Prioritizer m_prioritizer;
+        private bool m_disableFacelights = false;
 
         /// <value>
         /// List used in construction of data blocks for an object update packet.  This is to stop us having to
@@ -405,6 +406,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             get { return m_IsLoggingOut; }
             set { m_IsLoggingOut = value; }
+        }
+
+        public bool DisableFacelights
+        {
+            get { return m_disableFacelights; }
+            set { m_disableFacelights = value; }
         }
 
         public bool SendLogoutPacketWhenClosing { set { m_SendLogoutPacketWhenClosing = value; } }
@@ -3487,6 +3494,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 EntityUpdate update;
                 while (updatesThisCall < maxUpdates && m_entityUpdates.TryDequeue(out update))
                 {
+                    if (update.Entity is SceneObjectPart)
+                    {
+                        SceneObjectPart part = (SceneObjectPart)update.Entity;
+
+                        if (part.ParentGroup.IsAttachment && m_disableFacelights)
+                        {
+                            if (part.ParentGroup.RootPart.Shape.State != (byte)AttachmentPoint.LeftHand &&
+                                part.ParentGroup.RootPart.Shape.State != (byte)AttachmentPoint.RightHand)
+                            {
+                                part.Shape.LightEntry = false;
+                            }
+                        }
+                    }
+
                     ++updatesThisCall;
 
                     #region UpdateFlags to packet type conversion
