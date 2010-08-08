@@ -2007,7 +2007,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (autopilot)
                 {				// its not a scripted sit
 //                        if (Util.GetDistanceTo(AbsolutePosition, autopilotTarget) < 4.5)
-					if( (Math.Abs(AbsolutePosition.X - autopilotTarget.X) < 10.0f) && (Math.Abs(AbsolutePosition.Y - autopilotTarget.Y) < 10.0f) )
+					if( (Math.Abs(AbsolutePosition.X - autopilotTarget.X) < 256.0f) && (Math.Abs(AbsolutePosition.Y - autopilotTarget.Y) < 256.0f) )
                     {
                         autopilot = false;		// close enough
                         m_lastWorldPosition = m_pos; /* CW - This give us a position to return the avatar to if the part is killed before standup.
