@@ -2053,9 +2053,13 @@ namespace OpenSim.Region.Framework.Scenes
 //Console.WriteLine("Camera Eye  ={0}", cameraEyeOffset);
 
             //NOTE: SendSitResponse should be relative to the GROUP *NOT* THE PRIM if we're sitting on a child
-            ControllingClient.SendSitResponse(part.ParentGroup.UUID, ((offset * part.RotationOffset) + part.OffsetPosition), sitOrientation, autopilot, cameraAtOffset, cameraEyeOffset, forceMouselook);
+            Quaternion roffset = Quaternion.Identity;
+            if (SitTargetisSet)
+            {
+                roffset = part.RotationOffset;
+            }
+            ControllingClient.SendSitResponse(part.ParentGroup.UUID, ((offset * roffset) + part.OffsetPosition), sitOrientation / part.RotationOffset, autopilot, cameraAtOffset, cameraEyeOffset, forceMouselook);
             
-            m_requestedSitTargetUUID = part.UUID;		//KF: Correct autopilot target
             // This calls HandleAgentSit twice, once from here, and the client calls
             // HandleAgentSit itself after it gets to the location
             // It doesn't get to the location until we've moved them there though
@@ -2441,7 +2445,7 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
             }
 
             m_linkedPrim = part.UUID;
-
+            m_offsetRotation = m_offsetRotation / part.RotationOffset;
             Velocity = Vector3.Zero;
             RemoveFromPhysicalScene();
             Animator.TrySetMovementAnimation(sitAnimation);
