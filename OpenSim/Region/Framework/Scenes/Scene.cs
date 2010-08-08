@@ -2592,6 +2592,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>True if the SceneObjectGroup was added, False if it was not</returns>
         public bool AddSceneObject(SceneObjectGroup sceneObject)
         {
+            if (sceneObject.OwnerID == UUID.Zero)
+            {
+                m_log.ErrorFormat("[SCENE]: Owner ID for {0} was zero", sceneObject.UUID);
+                return false;
+            }
+
             // If the user is banned, we won't let any of their objects
             // enter. Period.
             //
@@ -2641,15 +2647,27 @@ namespace OpenSim.Region.Framework.Scenes
                     if (AttachmentsModule != null)
                         AttachmentsModule.AttachObject(sp.ControllingClient, grp, 0, false);
 
+                    m_log.DebugFormat("[SCENE]: Attachment {0} arrived and scene presence was found, attaching", sceneObject.UUID);
                 }
                 else
                 {
+                    m_log.DebugFormat("[SCENE]: Attachment {0} arrived and scene presence was not found, setting to temp", sceneObject.UUID);
                     RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
                     RootPrim.AddFlag(PrimFlags.TemporaryOnRez);
+                }
+                if (sceneObject.OwnerID == UUID.Zero)
+                {
+                    m_log.ErrorFormat("[SCENE]: Owner ID for {0} was zero after attachment processing. BUG!", sceneObject.UUID);
+                    return false;
                 }
             }
             else
             {
+                if (sceneObject.OwnerID == UUID.Zero)
+                {
+                    m_log.ErrorFormat("[SCENE]: Owner ID for non-attachment {0} was zero", sceneObject.UUID);
+                    return false;
+                }
                 AddRestoredSceneObject(sceneObject, true, false);
 
                 if (!Permissions.CanObjectEntry(sceneObject.UUID,
