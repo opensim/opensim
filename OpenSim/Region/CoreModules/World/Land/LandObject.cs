@@ -281,6 +281,34 @@ namespace OpenSim.Region.CoreModules.World.Land
             return false;
         }
 
+        public bool HasGroupAccess(UUID avatar)
+        {
+            if ((LandData.Flags & (uint)ParcelFlags.UseAccessGroup) == (uint)ParcelFlags.UseAccessGroup)
+            {
+                IGroupsModule groupsModule =
+                        m_scene.RequestModuleInterface<IGroupsModule>();
+
+                List<UUID> agentGroups = new List<UUID>();
+                if (groupsModule != null)
+                {
+                    GroupMembershipData[] GroupMembership =
+                            groupsModule.GetMembershipData(avatar);
+
+                    if (GroupMembership != null)
+                    {
+                        for (int i = 0; i < GroupMembership.Length; i++)
+                        {
+                            if (LandData.GroupID == GroupMembership[i].GroupID)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
         public bool IsBannedFromLand(UUID avatar)
         {
             if (m_scene.Permissions.IsAdministrator(avatar))
@@ -317,10 +345,14 @@ namespace OpenSim.Region.CoreModules.World.Land
                 //If they are not on the access list and are not the owner
                 if (!LandData.ParcelAccessList.Contains(entry) && LandData.OwnerID != avatar)
                 {
-                    //They are not allowed in this parcel, but not banned, so lets send them a notice about this parcel
-                    return true;
+                    if (!HasGroupAccess(avatar))
+                    {
+                        //They are not allowed in this parcel, but not banned, so lets send them a notice about this parcel
+                        return true;
+                    }
                 }
             }
+
             return false;
         }
 
