@@ -2440,7 +2440,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_linkedPrim = part.UUID;
-
+            if (part.GetAvatarOnSitTarget() != UUID)
+            {
+                m_offsetRotation = m_offsetRotation / part.RotationOffset;
+            }
             Velocity = Vector3.Zero;
             RemoveFromPhysicalScene();
             Animator.TrySetMovementAnimation(sitAnimation);
