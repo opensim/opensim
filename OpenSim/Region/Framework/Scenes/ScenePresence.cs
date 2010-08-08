@@ -2378,8 +2378,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_bodyRot = sitTargetOrient;
                         m_parentPosition = part.AbsolutePosition;
 	    	            part.IsOccupied = true;
-                        part.ParentGroup.AddAvatar(agentID);
-Console.WriteLine("Scripted Sit ofset {0}", m_pos);	    	                                
+                        part.ParentGroup.AddAvatar(agentID); 	                                
                     }
                     else
                     {
