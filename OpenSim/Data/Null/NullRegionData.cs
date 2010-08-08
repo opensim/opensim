@@ -169,7 +169,10 @@ namespace OpenSim.Data.Null
 
         public List<RegionData> GetFallbackRegions(UUID scopeID, int x, int y)
         {
-            return Get((int)RegionFlags.FallbackRegion, scopeID);
+            List<RegionData> regions = Get((int)RegionFlags.FallbackRegion, scopeID);
+            RegionDataDistanceCompare distanceComparer = new RegionDataDistanceCompare(x, y);
+            regions.Sort(distanceComparer);
+            return regions;
         }
 
         public List<RegionData> GetHyperlinks(UUID scopeID)

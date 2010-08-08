@@ -2317,8 +2317,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ScheduleGroupForFullUpdate()
         {
-            //if (IsAttachment)
-               // m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, LocalId);
+//            if (IsAttachment)
+//                m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, LocalId);
             
             checkAtTargets();
             RootPart.ScheduleFullUpdate();

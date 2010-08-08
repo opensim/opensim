@@ -901,6 +901,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 LLClientView client = new LLClientView(remoteEndPoint, m_scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
                 client.OnLogout += LogoutHandler;
 
+                client.DisableFacelights = m_disableFacelights;
+
                 // Start the IClientAPI
                 // Spin it off so that it doesn't clog up the LLUDPServer
                 
