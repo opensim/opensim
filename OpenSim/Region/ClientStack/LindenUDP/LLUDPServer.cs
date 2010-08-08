@@ -153,6 +153,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_defaultRTO = 0;
         private int m_maxRTO = 0;
 
+        private bool m_disableFacelights = false;
+
         public Socket Server { get { return null; } }
 
         public LLUDPServer(IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, AgentCircuitManager circuitManager)
@@ -190,6 +192,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 m_defaultRTO = config.GetInt("DefaultRTO", 0);
                 m_maxRTO = config.GetInt("MaxRTO", 0);
+                m_disableFacelights = config.GetBoolean("DisableFacelights", false);
             }
             else
             {
@@ -907,6 +910,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //this will prevent us from missing important messages
                 //before the modules are bound
                 client.DeliverPackets = false;
+                client.DisableFacelights = m_disableFacelights;
                 
                 Util.FireAndForget(
                     delegate
