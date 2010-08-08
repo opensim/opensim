@@ -720,14 +720,17 @@ namespace OpenSim.Region.Framework.Scenes
                         m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
 
-                    List<ScenePresence> avs = ParentGroup.GetLinkedAvatars();
-                    foreach (ScenePresence av in avs)
+                    if (!m_parentGroup.m_dupeInProgress)
                     {
-                        if (av.LinkedPrim == m_uuid)
+                        List<ScenePresence> avs = ParentGroup.GetLinkedAvatars();
+                        foreach (ScenePresence av in avs)
                         {
-                            Vector3 offset = (m_offsetPosition - oldpos);
-                            av.OffsetPosition += offset;
-                            av.SendFullUpdateToAllClients();
+                            if (av.LinkedPrim == m_uuid)
+                            {
+                                Vector3 offset = (m_offsetPosition - oldpos);
+                                av.OffsetPosition += offset;
+                                av.SendFullUpdateToAllClients();
+                            }
                         }
                     }
                 }

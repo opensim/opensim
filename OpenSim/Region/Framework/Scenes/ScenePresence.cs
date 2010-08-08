@@ -2007,7 +2007,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (autopilot)
                 {				// its not a scripted sit
 //                        if (Util.GetDistanceTo(AbsolutePosition, autopilotTarget) < 4.5)
-					if( (Math.Abs(AbsolutePosition.X - autopilotTarget.X) < 10.0f) && (Math.Abs(AbsolutePosition.Y - autopilotTarget.Y) < 10.0f) )
+					if( (Math.Abs(AbsolutePosition.X - autopilotTarget.X) < 256.0f) && (Math.Abs(AbsolutePosition.Y - autopilotTarget.Y) < 256.0f) )
                     {
                         autopilot = false;		// close enough
                         m_lastWorldPosition = m_pos; /* CW - This give us a position to return the avatar to if the part is killed before standup.
@@ -2053,9 +2053,13 @@ namespace OpenSim.Region.Framework.Scenes
 //Console.WriteLine("Camera Eye  ={0}", cameraEyeOffset);
 
             //NOTE: SendSitResponse should be relative to the GROUP *NOT* THE PRIM if we're sitting on a child
-            ControllingClient.SendSitResponse(part.ParentGroup.UUID, ((offset * part.RotationOffset) + part.OffsetPosition), sitOrientation, autopilot, cameraAtOffset, cameraEyeOffset, forceMouselook);
+            Quaternion roffset = Quaternion.Identity;
+            if (SitTargetisSet)
+            {
+                roffset = part.RotationOffset;
+            }
+            ControllingClient.SendSitResponse(part.ParentGroup.UUID, ((offset * roffset) + part.OffsetPosition), sitOrientation / part.RotationOffset, autopilot, cameraAtOffset, cameraEyeOffset, forceMouselook);
             
-            m_requestedSitTargetUUID = part.UUID;		//KF: Correct autopilot target
             // This calls HandleAgentSit twice, once from here, and the client calls
             // HandleAgentSit itself after it gets to the location
             // It doesn't get to the location until we've moved them there though
@@ -2374,8 +2378,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_bodyRot = sitTargetOrient;
                         m_parentPosition = part.AbsolutePosition;
 	    	            part.IsOccupied = true;
-                        part.ParentGroup.AddAvatar(agentID);
-Console.WriteLine("Scripted Sit ofset {0}", m_pos);	    	                                
+                        part.ParentGroup.AddAvatar(agentID); 	                                
                     }
                     else
                     {
@@ -2441,7 +2444,7 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
             }
 
             m_linkedPrim = part.UUID;
-
+            m_offsetRotation = m_offsetRotation / part.RotationOffset;
             Velocity = Vector3.Zero;
             RemoveFromPhysicalScene();
             Animator.TrySetMovementAnimation(sitAnimation);

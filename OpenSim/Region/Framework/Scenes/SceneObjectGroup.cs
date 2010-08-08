@@ -318,7 +318,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_scriptListens_atRotTarget = false;
         private bool m_scriptListens_notAtRotTarget = false;
-
+        public bool m_dupeInProgress = false;
         internal Dictionary<UUID, string> m_savedScriptState = null;
 
         #region Properties
@@ -476,15 +476,20 @@ namespace OpenSim.Region.Framework.Scenes
                     part.IgnoreUndoUpdate = false;
                     part.StoreUndoState(UndoType.STATE_GROUP_POSITION);
                     part.GroupPosition = val;
-                    part.TriggerScriptChangedEvent(Changed.POSITION);
+                    if (!m_dupeInProgress)
+                    {
+                        part.TriggerScriptChangedEvent(Changed.POSITION);
+                    }
                 }
-
-                foreach (ScenePresence av in m_linkedAvatars)
+                if (!m_dupeInProgress)
                 {
-                    Vector3 offset = m_parts[av.LinkedPrim].GetWorldPosition() - av.ParentPosition;
-                    av.AbsolutePosition += offset;
-                    av.ParentPosition = m_parts[av.LinkedPrim].GetWorldPosition(); //ParentPosition gets cleared by AbsolutePosition
-                    av.SendFullUpdateToAllClients();
+                    foreach (ScenePresence av in m_linkedAvatars)
+                    {
+                        Vector3 offset = m_parts[av.LinkedPrim].GetWorldPosition() - av.ParentPosition;
+                        av.AbsolutePosition += offset;
+                        av.ParentPosition = m_parts[av.LinkedPrim].GetWorldPosition(); //ParentPosition gets cleared by AbsolutePosition
+                        av.SendFullUpdateToAllClients();
+                    }
                 }
 
                 //if (m_rootPart.PhysActor != null)
@@ -1801,87 +1806,95 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public SceneObjectGroup Copy(bool userExposed)
         {
-            SceneObjectGroup dupe = (SceneObjectGroup)MemberwiseClone();
-            dupe.m_isBackedUp = false;
-            dupe.m_parts = new Dictionary<UUID, SceneObjectPart>();
-
-            // Warning, The following code related to previousAttachmentStatus is needed so that clones of 
-            // attachments do not bordercross while they're being duplicated.  This is hacktastic!
-            // Normally, setting AbsolutePosition will bordercross a prim if it's outside the region!
-            // unless IsAttachment is true!, so to prevent border crossing, we save it's attachment state 
-            // (which should be false anyway) set it as an Attachment and then set it's Absolute Position, 
-            // then restore it's attachment state
-
-            // This is only necessary when userExposed is false!
-
-            bool previousAttachmentStatus = dupe.RootPart.IsAttachment;
-            
-            if (!userExposed)
-                dupe.RootPart.IsAttachment = true;
-
-            dupe.AbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
-
-            if (!userExposed)
+            SceneObjectGroup dupe;
+            try
             {
-                dupe.RootPart.IsAttachment = previousAttachmentStatus;
-            }
+                m_dupeInProgress = true;
+                dupe = (SceneObjectGroup)MemberwiseClone();
+                dupe.m_isBackedUp = false;
+                dupe.m_parts = new Dictionary<UUID, SceneObjectPart>();
 
-            dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
-            dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
+                // Warning, The following code related to previousAttachmentStatus is needed so that clones of 
+                // attachments do not bordercross while they're being duplicated.  This is hacktastic!
+                // Normally, setting AbsolutePosition will bordercross a prim if it's outside the region!
+                // unless IsAttachment is true!, so to prevent border crossing, we save it's attachment state 
+                // (which should be false anyway) set it as an Attachment and then set it's Absolute Position, 
+                // then restore it's attachment state
 
-            if (userExposed)
-                dupe.m_rootPart.TrimPermissions();
+                // This is only necessary when userExposed is false!
 
-            /// may need to create a new Physics actor.
-            if (dupe.RootPart.PhysActor != null && userExposed)
-            {
-                PrimitiveBaseShape pbs = dupe.RootPart.Shape;
+                bool previousAttachmentStatus = dupe.RootPart.IsAttachment;
 
-                dupe.RootPart.PhysActor = m_scene.PhysicsScene.AddPrimShape(
-                    dupe.RootPart.Name,
-                    pbs,
-                    dupe.RootPart.AbsolutePosition,
-                    dupe.RootPart.Scale,
-                    dupe.RootPart.RotationOffset,
-                    dupe.RootPart.PhysActor.IsPhysical);
+                if (!userExposed)
+                    dupe.RootPart.IsAttachment = true;
 
-                dupe.RootPart.PhysActor.LocalID = dupe.RootPart.LocalId;
-                dupe.RootPart.DoPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
-            }
+                dupe.AbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
 
-            List<SceneObjectPart> partList;
-
-            lockPartsForRead(true);
-            
-            partList = new List<SceneObjectPart>(m_parts.Values);
-            
-            lockPartsForRead(false);
-            
-            partList.Sort(delegate(SceneObjectPart p1, SceneObjectPart p2)
+                if (!userExposed)
                 {
-                    return p1.LinkNum.CompareTo(p2.LinkNum);
+                    dupe.RootPart.IsAttachment = previousAttachmentStatus;
                 }
-            );
 
-            foreach (SceneObjectPart part in partList)
-            {
-                if (part.UUID != m_rootPart.UUID)
+                dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
+                dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
+
+                if (userExposed)
+                    dupe.m_rootPart.TrimPermissions();
+
+                /// may need to create a new Physics actor.
+                if (dupe.RootPart.PhysActor != null && userExposed)
                 {
-                    SceneObjectPart newPart = dupe.CopyPart(part, OwnerID, GroupID, userExposed);
+                    PrimitiveBaseShape pbs = dupe.RootPart.Shape;
 
-                    newPart.LinkNum = part.LinkNum;
+                    dupe.RootPart.PhysActor = m_scene.PhysicsScene.AddPrimShape(
+                        dupe.RootPart.Name,
+                        pbs,
+                        dupe.RootPart.AbsolutePosition,
+                        dupe.RootPart.Scale,
+                        dupe.RootPart.RotationOffset,
+                        dupe.RootPart.PhysActor.IsPhysical);
+
+                    dupe.RootPart.PhysActor.LocalID = dupe.RootPart.LocalId;
+                    dupe.RootPart.DoPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
+                }
+
+                List<SceneObjectPart> partList;
+
+                lockPartsForRead(true);
+
+                partList = new List<SceneObjectPart>(m_parts.Values);
+
+                lockPartsForRead(false);
+
+                partList.Sort(delegate(SceneObjectPart p1, SceneObjectPart p2)
+                    {
+                        return p1.LinkNum.CompareTo(p2.LinkNum);
+                    }
+                );
+
+                foreach (SceneObjectPart part in partList)
+                {
+                    if (part.UUID != m_rootPart.UUID)
+                    {
+                        SceneObjectPart newPart = dupe.CopyPart(part, OwnerID, GroupID, userExposed);
+
+                        newPart.LinkNum = part.LinkNum;
+                    }
+                }
+
+                if (userExposed)
+                {
+                    dupe.UpdateParentIDs();
+                    dupe.HasGroupChanged = true;
+                    dupe.AttachToBackup();
+
+                    ScheduleGroupForFullUpdate();
                 }
             }
-
-            if (userExposed)
+            finally
             {
-                dupe.UpdateParentIDs();
-                dupe.HasGroupChanged = true;
-                dupe.AttachToBackup();
-
-                ScheduleGroupForFullUpdate();
+                m_dupeInProgress = false;
             }
-
             return dupe;
         }
 
