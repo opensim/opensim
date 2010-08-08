@@ -351,7 +351,7 @@ namespace OpenSim.Services.LLLoginService
                 {
                     m_PresenceService.LogoutAgent(session);
                     m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: {0}", reason);
-                    return LLFailedLoginResponse.AuthorizationProblem;
+                    return new LLFailedLoginResponse("key", reason, "false");
 
                 }
                 // Get Friends list 

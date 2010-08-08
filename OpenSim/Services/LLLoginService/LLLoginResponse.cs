@@ -52,7 +52,6 @@ namespace OpenSim.Services.LLLoginService
         protected string m_login;
 
         public static LLFailedLoginResponse UserProblem;
-        public static LLFailedLoginResponse AuthorizationProblem;
         public static LLFailedLoginResponse GridProblem;
         public static LLFailedLoginResponse InventoryProblem;
         public static LLFailedLoginResponse DeadRegionProblem;
@@ -65,9 +64,6 @@ namespace OpenSim.Services.LLLoginService
         {
             UserProblem = new LLFailedLoginResponse("key", 
                 "Could not authenticate your avatar. Please check your username and password, and check the grid if problems persist.",
-                "false");
-            AuthorizationProblem = new LLFailedLoginResponse("key",
-                "Error connecting to grid. Unable to authorize your session into the region.",
                 "false");
             GridProblem = new LLFailedLoginResponse("key",
                 "Error connecting to the desired location. Try connecting to another region.",
