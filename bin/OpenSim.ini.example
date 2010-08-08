@@ -390,6 +390,13 @@
     ;
     ;TextureSendLimit = 20
 
+    ; Quash and remove any light properties from attachments not on the
+    ; hands. This allows flashlights and lanterns to function, but kills
+    ; silly vanity "Facelights" dead. Sorry, head mounted miner's lamps
+    ; will also be affected.
+    ;
+    ;DisableFacelights = "false"
+
 [Chat]
     ; Controls whether the chat module is enabled.  Default is true.
     enabled = true;
