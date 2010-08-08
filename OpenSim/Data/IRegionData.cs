@@ -79,4 +79,26 @@ namespace OpenSim.Data
         Authenticate = 256, // Require authentication
         Hyperlink = 512 // Record represents a HG link
     }
+    
+    public class RegionDataDistanceCompare : IComparer<RegionData>
+    {
+        private Vector2 m_origin;
+
+        public RegionDataDistanceCompare(int x, int y)
+        {
+            m_origin = new Vector2(x, y);
+        }
+
+        public int Compare(RegionData regionA, RegionData regionB)
+        {
+            Vector2 vectorA = new Vector2(regionA.posX, regionA.posY);
+            Vector2 vectorB = new Vector2(regionB.posX, regionB.posY);
+            return Math.Sign(VectorDistance(m_origin, vectorA) - VectorDistance(m_origin, vectorB));
+        }
+
+        private float VectorDistance(Vector2 x, Vector2 y)
+        {
+            return (x - y).Length();
+        }
+    }
 }
