@@ -3313,6 +3313,7 @@ namespace OpenSim.Region.Framework.Scenes
                 texcolor.B = Util.Clip((float)color.Z, 0.0f, 1.0f);
                 tex.FaceTextures[face].RGBA = texcolor;
                 UpdateTexture(tex);
+                TriggerScriptChangedEvent(Changed.COLOR);
                 return;
             }
             else if (face == ALL_SIDES)
@@ -3334,6 +3335,7 @@ namespace OpenSim.Region.Framework.Scenes
                     tex.DefaultTexture.RGBA = texcolor;
                 }
                 UpdateTexture(tex);
+                TriggerScriptChangedEvent(Changed.COLOR);
                 return;
             }
         }
