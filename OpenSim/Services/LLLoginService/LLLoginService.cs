@@ -345,8 +345,9 @@ namespace OpenSim.Services.LLLoginService
                 // Instantiate/get the simulation interface and launch an agent at the destination
                 //
                 string reason = string.Empty;
-                AgentCircuitData aCircuit = LaunchAgentAtGrid(gatekeeper, destination, account, avatar, session, secureSession, position, where, clientVersion, clientIP, out where, out reason);
-
+                GridRegion dest;
+                AgentCircuitData aCircuit = LaunchAgentAtGrid(gatekeeper, destination, account, avatar, session, secureSession, position, where, clientVersion, clientIP, out where, out reason, out dest);
+                destination = dest;
                 if (aCircuit == null)
                 {
                     m_PresenceService.LogoutAgent(session);
@@ -605,7 +606,7 @@ namespace OpenSim.Services.LLLoginService
         }
 
         protected AgentCircuitData LaunchAgentAtGrid(GridRegion gatekeeper, GridRegion destination, UserAccount account, AvatarData avatar,
-            UUID session, UUID secureSession, Vector3 position, string currentWhere, string viewer, IPEndPoint clientIP, out string where, out string reason)
+            UUID session, UUID secureSession, Vector3 position, string currentWhere, string viewer, IPEndPoint clientIP, out string where, out string reason, out GridRegion dest)
         {
             where = currentWhere;
             ISimulationService simConnector = null;
@@ -691,7 +692,7 @@ namespace OpenSim.Services.LLLoginService
                     }
                 }
             }
-
+            dest = destination;
             if (success)
                 return aCircuit;
             else
