@@ -691,11 +691,7 @@ namespace OpenSim.Services.LLLoginService
                         }
                     }
                 }
-<<<<<<< HEAD:OpenSim/Services/LLLoginService/LLLoginService.cs
             }
-=======
-            }
->>>>>>> master:OpenSim/Services/LLLoginService/LLLoginService.cs
             dest = destination;
             if (success)
                 return aCircuit;
