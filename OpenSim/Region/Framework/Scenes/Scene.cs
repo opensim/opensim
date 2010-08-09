@@ -3514,6 +3514,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (land != null && !TestLandRestrictions(agent, land, out reason))
                 {
+                    m_log.DebugFormat("[CONNECTION BEGIN]: Denying access to {0} due to no land access", agent.AgentID.ToString());
                     return false;
                 }
             }
