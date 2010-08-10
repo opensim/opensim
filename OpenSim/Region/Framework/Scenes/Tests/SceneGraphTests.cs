@@ -48,24 +48,42 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelper.InMethod();
             Scene scene = SceneSetupHelpers.SetupScene();
 
-            UUID ownerUuid = new UUID("00000000-0000-0000-0000-000000000010");
-            string objName = "obj1";
-            UUID objUuid = new UUID("00000000-0000-0000-0000-000000000001");
+            UUID ownerId = new UUID("00000000-0000-0000-0000-000000000010");
+            string part1Name = "part1";
+            UUID part1Id = new UUID("00000000-0000-0000-0000-000000000001");
+            string part2Name = "part2";
+            UUID part2Id = new UUID("00000000-0000-0000-0000-000000000002");
 
-            SceneObjectPart part
-                = new SceneObjectPart(ownerUuid, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
-                    { Name = objName, UUID = objUuid };
+            SceneObjectPart part1
+                = new SceneObjectPart(ownerId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                    { Name = part1Name, UUID = part1Id };
+            SceneObjectGroup so = new SceneObjectGroup(part1);
+            SceneObjectPart part2 
+                = new SceneObjectPart(ownerId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                    { Name = part2Name, UUID = part2Id }; 
+            so.AddPart(part2);
 
-            scene.AddNewSceneObject(new SceneObjectGroup(part), false);
+            scene.AddNewSceneObject(so, false);
             
-            SceneObjectGroup duplicatedSo 
+            SceneObjectGroup dupeSo 
                 = scene.SceneGraph.DuplicateObject(
-                    part.LocalId, new Vector3(10, 0, 0), 0, ownerUuid, UUID.Zero, Quaternion.Identity);
+                    part1.LocalId, new Vector3(10, 0, 0), 0, ownerId, UUID.Zero, Quaternion.Identity);
+            Assert.That(dupeSo.Children.Count, Is.EqualTo(2));
             
-            Assert.That(duplicatedSo.Children.Count, Is.EqualTo(1));
-            Assert.That(duplicatedSo.RootPart.LocalId, Is.Not.EqualTo(part.LocalId));
+            SceneObjectPart dupePart1 = dupeSo.GetLinkNumPart(1);
+            SceneObjectPart dupePart2 = dupeSo.GetLinkNumPart(2);                        
+            Assert.That(dupePart1.LocalId, Is.Not.EqualTo(part1.LocalId));
+            Assert.That(dupePart2.LocalId, Is.Not.EqualTo(part2.LocalId));
             
-            //SceneObjectPart retrievedPart = scene.GetSceneObjectPart(objUuid);
+            Assert.That(dupePart1.Flags, Is.EqualTo(part1.Flags));
+            Assert.That(dupePart2.Flags, Is.EqualTo(part2.Flags));
+            
+            /*
+            Assert.That(part1.PhysActor, Is.Not.Null);
+            Assert.That(part2.PhysActor, Is.Not.Null);
+            Assert.That(dupePart1.PhysActor, Is.Not.Null);
+            Assert.That(dupePart2.PhysActor, Is.Not.Null);
+            */
         }        
     }
 }

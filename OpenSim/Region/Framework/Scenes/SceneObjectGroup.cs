@@ -1563,23 +1563,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (userExposed)
                 dupe.m_rootPart.TrimPermissions();
 
-            /// may need to create a new Physics actor.
-            if (dupe.RootPart.PhysActor != null && userExposed)
-            {
-                PrimitiveBaseShape pbs = dupe.RootPart.Shape;
-
-                dupe.RootPart.PhysActor = m_scene.PhysicsScene.AddPrimShape(
-                    dupe.RootPart.Name,
-                    pbs,
-                    dupe.RootPart.AbsolutePosition,
-                    dupe.RootPart.Scale,
-                    dupe.RootPart.RotationOffset,
-                    dupe.RootPart.PhysActor.IsPhysical);
-
-                dupe.RootPart.PhysActor.LocalID = dupe.RootPart.LocalId;
-                dupe.RootPart.DoPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
-            }
-
             List<SceneObjectPart> partList;
 
             lock (m_parts)
@@ -1598,11 +1581,28 @@ namespace OpenSim.Region.Framework.Scenes
                 if (part.UUID != m_rootPart.UUID)
                 {
                     SceneObjectPart newPart = dupe.CopyPart(part, OwnerID, GroupID, userExposed);
-
                     newPart.LinkNum = part.LinkNum;
                 }
-            }
 
+                // Need to duplicate the physics actor as well            
+                if (part.PhysActor != null && userExposed)
+                {
+                    PrimitiveBaseShape pbs = part.Shape;
+    
+                    part.PhysActor 
+                        = m_scene.PhysicsScene.AddPrimShape(
+                            part.Name,
+                            pbs,
+                            part.AbsolutePosition,
+                            part.Scale,
+                            part.RotationOffset,
+                            part.PhysActor.IsPhysical);
+    
+                    part.PhysActor.LocalID = part.LocalId;
+                    part.DoPhysicsPropertyUpdate(part.PhysActor.IsPhysical, true);
+                }                
+            }
+            
             if (userExposed)
             {
                 dupe.UpdateParentIDs();

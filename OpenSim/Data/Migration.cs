@@ -407,9 +407,8 @@ scan_old_style:
             }
             
             if (migrations.Count < 1) 
-            {
-                m_log.InfoFormat("[MIGRATIONS]: {0} up to date, no migrations to apply", _type);
-            }
+                m_log.DebugFormat("[MIGRATIONS]: {0} data tables already up to date at revision {1}", _type, after);
+            
             return migrations;
         }
     }
