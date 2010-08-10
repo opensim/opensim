@@ -141,7 +141,17 @@ namespace OpenSim.Tools.Configger
                         else
                         {
                             string basepath = Path.GetFullPath(".");
-                            string path = Path.Combine(basepath, file);
+                            // Resolve relative paths with wildcards
+                            string chunkWithoutWildcards = file;
+                            string chunkWithWildcards = string.Empty;
+                            int wildcardIndex = file.IndexOfAny(new char[] { '*', '?' });
+                            if (wildcardIndex != -1)
+                            {
+                                chunkWithoutWildcards = file.Substring(0, wildcardIndex);
+                                chunkWithWildcards = file.Substring(wildcardIndex);
+                            }
+                            string path = Path.Combine(basepath, chunkWithoutWildcards);
+                            path = Path.GetFullPath(path) + chunkWithWildcards;
                             string[] paths = Util.Glob(path);
                             foreach (string p in paths)
                             {
