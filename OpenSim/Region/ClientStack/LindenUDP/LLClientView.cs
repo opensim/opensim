@@ -4599,6 +4599,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
+//            m_log.DebugFormat(
+//                "[LLCLIENTVIEW]: Constructing client update for part {0} {1} with flags {2}, localId {3}", 
+//                data.Name, update.FullID, flags, update.ID);
+            
             update.UpdateFlags = (uint)flags;
 
             #endregion PrimFlags

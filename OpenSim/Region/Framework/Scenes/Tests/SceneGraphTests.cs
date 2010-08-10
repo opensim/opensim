@@ -77,6 +77,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             
             Assert.That(dupePart1.Flags, Is.EqualTo(part1.Flags));
             Assert.That(dupePart2.Flags, Is.EqualTo(part2.Flags));
+            
+            /*
+            Assert.That(part1.PhysActor, Is.Not.Null);
+            Assert.That(part2.PhysActor, Is.Not.Null);
+            Assert.That(dupePart1.PhysActor, Is.Not.Null);
+            Assert.That(dupePart2.PhysActor, Is.Not.Null);
+            */
         }        
     }
 }

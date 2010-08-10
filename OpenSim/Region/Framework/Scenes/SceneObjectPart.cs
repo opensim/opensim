@@ -150,8 +150,17 @@ namespace OpenSim.Region.Framework.Scenes
         // TODO: This needs to be persisted in next XML version update!
         [XmlIgnore]
         public readonly int[] PayPrice = {-2,-2,-2,-2,-2};
+        
         [XmlIgnore]
-        public PhysicsActor PhysActor;
+        public PhysicsActor PhysActor
+        {
+            get { return m_physActor; }
+            set
+            {
+//                m_log.DebugFormat("[SOP]: PhysActor set to {0} for {1} {2}", value, Name, UUID);
+                m_physActor = value;
+            }
+        }
 
         //Xantor 20080528 Sound stuff:
         //  Note: This isn't persisted in the database right now, as the fields for that aren't just there yet.
@@ -297,6 +306,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private byte m_updateFlag;
 
+        private PhysicsActor m_physActor;
         protected Vector3 m_acceleration;
         protected Vector3 m_angularVelocity;
 
@@ -1006,7 +1016,11 @@ namespace OpenSim.Region.Framework.Scenes
         public bool CreateSelected
         {
             get { return m_createSelected; }
-            set { m_createSelected = value; }
+            set 
+            { 
+//                m_log.DebugFormat("[SOP]: Setting CreateSelected to {0} for {1} {2}", value, Name, UUID);
+                m_createSelected = value; 
+            }
         }                
 
         #endregion
@@ -1531,7 +1545,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        m_log.DebugFormat("[SPEW]: physics actor is null for {0} with parent {1}", UUID, this.ParentGroup.UUID);
+                        m_log.DebugFormat("[SOP]: physics actor is null for {0} with parent {1}", UUID, this.ParentGroup.UUID);
                     }
                 }
             }
@@ -1801,7 +1815,7 @@ namespace OpenSim.Region.Framework.Scenes
                         /// that's not wholesome.  Had to make Scene public
                         //PhysActor = null;
 
-                        if ((ObjectFlags & (uint)PrimFlags.Phantom) == 0)
+                        if ((Flags & PrimFlags.Phantom) == 0)
                         {
                             if (UsePhysics)
                             {
