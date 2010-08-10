@@ -949,7 +949,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             break;
                     }
                     m_scene.RegionInfo.RegionSettings.Save();
-                    TriggerRegionInfoChange();
+                    //TriggerRegionInfoChange();
+                    TriggerEstateInfoChange();
                     sendRegionInfoPacketToAll();
 
                 }
@@ -995,7 +996,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             break;
                     }
                     m_scene.RegionInfo.RegionSettings.Save();
-                    TriggerRegionInfoChange();
+                    //TriggerRegionInfoChange();
+                    TriggerEstateInfoChange();
                     sendRegionHandshakeToAll();
                 }
             }
