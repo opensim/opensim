@@ -99,7 +99,7 @@ namespace OpenSim.Framework
                         // write call stack method names
                         foreach (StackFrame stackFrame in stackFrames)
                         {
-                            m_log.Error("[SceneObjectGroup.m_parts]  "+(stackFrame.GetMethod().Name);   // write method name
+                            m_log.Error("[SceneObjectGroup.m_parts]  "+(stackFrame.GetMethod().Name));   // write method name
                         }
                     }
                     catch
