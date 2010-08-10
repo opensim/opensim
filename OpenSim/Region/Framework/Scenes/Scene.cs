@@ -726,8 +726,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //Animation states
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
                 // TODO: Change default to true once the feature is supported
-                m_usePreJump = startupConfig.GetBoolean("enableprejump", false);
-                m_usePreJump = true;	// Above line fails!?
+                m_usePreJump = startupConfig.GetBoolean("enableprejump", true);
                 m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", m_maxNonphys);
                 if (RegionInfo.NonphysPrimMax > 0)
                 {
