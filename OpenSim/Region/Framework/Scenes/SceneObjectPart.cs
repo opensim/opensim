@@ -396,7 +396,7 @@ namespace OpenSim.Region.Framework.Scenes
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
             // the prim into an agent inventory (Linden client reports that the "Object not found for drop" in its log
 
-            _flags = 0;
+            Flags = 0;
             CreateSelected = true;
 
             TrimPermissions();
@@ -424,7 +424,7 @@ namespace OpenSim.Region.Framework.Scenes
         private uint _groupMask = (uint)PermissionMask.None;
         private uint _everyoneMask = (uint)PermissionMask.None;
         private uint _nextOwnerMask = (uint)PermissionMask.All;
-        private PrimFlags _flags = 0;
+        private PrimFlags _flags = PrimFlags.None;
         private DateTime m_expires;
         private DateTime m_rezzed;
         private bool m_createSelected = false;
@@ -471,10 +471,14 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_inventory.Items = value; }
         }
 
+        /// <summary>
+        /// This is idential to the Flags property, except that the returned value is uint rather than PrimFlags
+        /// </summary>
+        [Obsolete("Use Flags property instead")]
         public uint ObjectFlags
         {
-            get { return (uint)_flags; }
-            set { _flags = (PrimFlags)value; }
+            get { return (uint)Flags; }
+            set { Flags = (PrimFlags)value; }
         }
 
         public UUID UUID
@@ -1169,7 +1173,11 @@ namespace OpenSim.Region.Framework.Scenes
         public PrimFlags Flags
         {
             get { return _flags; }
-            set { _flags = value; }
+            set 
+            { 
+//                m_log.DebugFormat("[SOP]: Setting flags for {0} {1} to {2}", UUID, Name, value);
+                _flags = value; 
+            }
         }
 
         [XmlIgnore]
@@ -1305,7 +1313,7 @@ namespace OpenSim.Region.Framework.Scenes
             if ((ObjectFlags & (uint) flag) == 0)
             {
                 //m_log.Debug("Adding flag: " + ((PrimFlags) flag).ToString());
-                _flags |= flag;
+                Flags |= flag;
 
                 if (flag == PrimFlags.TemporaryOnRez)
                     ResetExpire();
@@ -1940,12 +1948,14 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public uint GetEffectiveObjectFlags()
-        {
-            PrimFlags f = _flags;
-            if (m_parentGroup == null || m_parentGroup.RootPart == this)
-                f &= ~(PrimFlags.Touch | PrimFlags.Money);
+        {            
+            // Commenting this section of code out since it doesn't actually do anything, as enums are handled by 
+            // value rather than reference
+//            PrimFlags f = _flags;                        
+//            if (m_parentGroup == null || m_parentGroup.RootPart == this)
+//                f &= ~(PrimFlags.Touch | PrimFlags.Money);
 
-            return (uint)_flags | (uint)LocalFlags;
+            return (uint)Flags | (uint)LocalFlags;
         }
 
         public Vector3 GetGeometricCenter()
@@ -2696,10 +2706,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void RemFlag(PrimFlags flag)
         {
             // PrimFlags prevflag = Flags;
-            if ((ObjectFlags & (uint) flag) != 0)
+            if ((Flags & flag) != 0)
             {
                 //m_log.Debug("Removing flag: " + ((PrimFlags)flag).ToString());
-                _flags &= ~flag;
+                Flags &= ~flag;
             }
             //m_log.Debug("prev: " + prevflag.ToString() + " curr: " + Flags.ToString());
             //ScheduleFullUpdate();
@@ -2990,10 +3000,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (remoteClient.AgentId == _ownerID)
             {
-                if ((uint) (_flags & PrimFlags.CreateSelected) != 0)
+                if ((Flags & PrimFlags.CreateSelected) != 0)
                 {
                     clientFlags |= (uint) PrimFlags.CreateSelected;
-                    _flags &= ~PrimFlags.CreateSelected;
+                    Flags &= ~PrimFlags.CreateSelected;
                 }
             }
             //bool isattachment = IsAttachment;
