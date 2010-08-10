@@ -129,6 +129,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal ThreatLevel m_MaxThreatLevel = ThreatLevel.VeryLow;
         internal float m_ScriptDelayFactor = 1.0f;
         internal float m_ScriptDistanceFactor = 1.0f;
+        internal bool m_debuggerSafe = false;
         internal Dictionary<string, FunctionPerms > m_FunctionPerms = new Dictionary<string, FunctionPerms >();
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
@@ -137,6 +138,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host = host;
             m_localID = localID;
             m_itemID = itemID;
+            m_debuggerSafe = m_ScriptEngine.Config.GetBoolean("DebuggerSafe", false);
 
             if (m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
                 m_OSFunctionsEnabled = true;
@@ -195,7 +197,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         internal void OSSLError(string msg)
         {
-            throw new Exception("OSSL Runtime Error: " + msg);
+            if (m_debuggerSafe)
+            {
+                OSSLShoutError(msg);
+            }
+            else
+            {
+                throw new Exception("OSSL Runtime Error: " + msg);
+            }
         }
 
         private void InitLSL()

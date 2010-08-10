@@ -100,6 +100,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected int m_notecardLineReadCharsMax = 255;
         protected int m_scriptConsoleChannel = 0;
         protected bool m_scriptConsoleChannelEnabled = false;
+        protected bool m_debuggerSafe = false;
         protected IUrlModule m_UrlModule = null;
         protected Dictionary<UUID, UserInfoCacheEntry> m_userInfoCache =
                 new Dictionary<UUID, UserInfoCacheEntry>();
@@ -110,6 +111,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host = host;
             m_localID = localID;
             m_itemID = itemID;
+            m_debuggerSafe = m_ScriptEngine.Config.GetBoolean("DebuggerSafe", false);
 
             m_ScriptDelayFactor =
                 m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
@@ -3220,13 +3222,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return m_host.OwnerID.ToString();
         }
 
-        [DebuggerNonUserCode]
         public void llInstantMessage(string user, string message)
         {
             UUID result;
             if (!UUID.TryParse(user, out result))
             {
-                throw new Exception(String.Format("An invalid key of '{0} was passed to llInstantMessage", user));
+                if (!m_debuggerSafe)
+                {
+                    throw new Exception(String.Format("An invalid key of '{0} was passed to llInstantMessage", user));
+                }
                 return;
             }
             
