@@ -1838,6 +1838,26 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
                 dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
 
+                if (userExposed)
+                    dupe.m_rootPart.TrimPermissions();
+
+                /// may need to create a new Physics actor.
+                if (dupe.RootPart.PhysActor != null && userExposed)
+                {
+                    PrimitiveBaseShape pbs = dupe.RootPart.Shape;
+
+                    dupe.RootPart.PhysActor = m_scene.PhysicsScene.AddPrimShape(
+                        dupe.RootPart.Name,
+                        pbs,
+                        dupe.RootPart.AbsolutePosition,
+                        dupe.RootPart.Scale,
+                        dupe.RootPart.RotationOffset,
+                        dupe.RootPart.PhysActor.IsPhysical);
+
+                    dupe.RootPart.PhysActor.LocalID = dupe.RootPart.LocalId;
+                    dupe.RootPart.DoPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
+                }
+
                 lockPartsForRead(true);
 
                 List<SceneObjectPart> partList;
@@ -1860,34 +1880,37 @@ namespace OpenSim.Region.Framework.Scenes
 
                         newPart.LinkNum = part.LinkNum;
                     }
-                }
 
+                    // Need to duplicate the physics actor as well            
+                    if (part.PhysActor != null && userExposed)
+                    {
+                        PrimitiveBaseShape pbs = part.Shape;
+        
+                        part.PhysActor 
+                            = m_scene.PhysicsScene.AddPrimShape(
+                                part.Name,
+                                pbs,
+                                part.AbsolutePosition,
+                                part.Scale,
+                                part.RotationOffset,
+                                part.PhysActor.IsPhysical);
+        
+                        part.PhysActor.LocalID = part.LocalId;
+                        part.DoPhysicsPropertyUpdate(part.PhysActor.IsPhysical, true);
+                    }                
+
+                }
                 if (userExposed)
                 {
-                    SceneObjectPart newPart = dupe.CopyPart(part, OwnerID, GroupID, userExposed);
-                    newPart.LinkNum = part.LinkNum;
+                    dupe.UpdateParentIDs();
+                    dupe.HasGroupChanged = true;
+                    dupe.AttachToBackup();
+
+                    ScheduleGroupForFullUpdate();
                 }
 
-                // Need to duplicate the physics actor as well            
-                if (part.PhysActor != null && userExposed)
-                {
-                    PrimitiveBaseShape pbs = part.Shape;
-    
-                    part.PhysActor 
-                        = m_scene.PhysicsScene.AddPrimShape(
-                            part.Name,
-                            pbs,
-                            part.AbsolutePosition,
-                            part.Scale,
-                            part.RotationOffset,
-                            part.PhysActor.IsPhysical);
-    
-                    part.PhysActor.LocalID = part.LocalId;
-                    part.DoPhysicsPropertyUpdate(part.PhysActor.IsPhysical, true);
-                }                
             }
-            
-            if (userExposed)
+            finally
             {
                 m_dupeInProgress = false;
             }
@@ -1905,6 +1928,7 @@ namespace OpenSim.Region.Framework.Scenes
             SetRootPart(part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, m_parts.Count, userExposed));
         }
 
+        public void ScriptSetPhysicsStatus(bool UsePhysics)
         {
             bool IsTemporary = ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0);
             bool IsPhantom = ((RootPart.Flags & PrimFlags.Phantom) != 0);
