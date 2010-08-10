@@ -1629,7 +1629,7 @@ namespace OpenSim.Region.Framework.Scenes
             ScheduleGroupForFullUpdate();
         }
 
-        public override void SetText(string text, Vector3 color, double alpha)
+        public void SetText(string text, Vector3 color, double alpha)
         {
             Color = Color.FromArgb(0xff - (int) (alpha * 0xff),
                                    (int) (color.X * 0xff),
@@ -1868,9 +1868,9 @@ namespace OpenSim.Region.Framework.Scenes
                     dupe.RootPart.DoPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
                 }
 
-                List<SceneObjectPart> partList;
-
                 lockPartsForRead(true);
+
+                List<SceneObjectPart> partList;
 
                 partList = new List<SceneObjectPart>(m_parts.Values);
 
@@ -1890,8 +1890,26 @@ namespace OpenSim.Region.Framework.Scenes
 
                         newPart.LinkNum = part.LinkNum;
                     }
-                }
 
+                    // Need to duplicate the physics actor as well            
+                    if (part.PhysActor != null && userExposed)
+                    {
+                        PrimitiveBaseShape pbs = part.Shape;
+        
+                        part.PhysActor 
+                            = m_scene.PhysicsScene.AddPrimShape(
+                                part.Name,
+                                pbs,
+                                part.AbsolutePosition,
+                                part.Scale,
+                                part.RotationOffset,
+                                part.PhysActor.IsPhysical);
+        
+                        part.PhysActor.LocalID = part.LocalId;
+                        part.DoPhysicsPropertyUpdate(part.PhysActor.IsPhysical, true);
+                    }                
+
+                }
                 if (userExposed)
                 {
                     dupe.UpdateParentIDs();
@@ -1900,6 +1918,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     ScheduleGroupForFullUpdate();
                 }
+
             }
             finally
             {

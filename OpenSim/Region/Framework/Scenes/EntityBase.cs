@@ -130,8 +130,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             return (EntityBase) MemberwiseClone();
         }
-
-        public abstract void SetText(string text, Vector3 color, double alpha);
     }
 
     //Nested Classes

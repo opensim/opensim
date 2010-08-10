@@ -4634,6 +4634,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
+//            m_log.DebugFormat(
+//                "[LLCLIENTVIEW]: Constructing client update for part {0} {1} with flags {2}, localId {3}", 
+//                data.Name, update.FullID, flags, update.ID);
+            
             update.UpdateFlags = (uint)flags;
 
             #endregion PrimFlags
@@ -4766,7 +4770,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.ObjectScale, HandleObjectScale);
             AddLocalPacketHandler(PacketType.ObjectRotation, HandleObjectRotation);
             AddLocalPacketHandler(PacketType.ObjectFlagUpdate, HandleObjectFlagUpdate);
-            AddLocalPacketHandler(PacketType.ObjectImage, HandleObjectImage);
+                        
+            // Handle ObjectImage (TextureEntry) updates synchronously, since when updating multiple prim faces at once,
+            // some clients will send out a separate ObjectImage packet for each face
+            AddLocalPacketHandler(PacketType.ObjectImage, HandleObjectImage, false);
+            
             AddLocalPacketHandler(PacketType.ObjectGrab, HandleObjectGrab, false);
             AddLocalPacketHandler(PacketType.ObjectGrabUpdate, HandleObjectGrabUpdate, false);
             AddLocalPacketHandler(PacketType.ObjectDeGrab, HandleObjectDeGrab);
