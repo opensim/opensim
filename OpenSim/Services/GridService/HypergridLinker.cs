@@ -247,21 +247,8 @@ namespace OpenSim.Services.GridService
                 }
 
                 regInfo.RegionID = regionID;
-                Uri uri = null;
-                try
-                {
-                    uri = new Uri(externalName);
-                    regInfo.ExternalHostName = uri.Host;
-                    regInfo.HttpPort = (uint)uri.Port;
-                }
-                catch 
-                {
-                    m_log.WarnFormat("[HYPERGRID LINKER]: Remote Gatekeeper at {0} provided malformed ExternalName {1}", regInfo.ExternalHostName, externalName);
-                }
-                string name = regInfo.RegionName;
-                regInfo.RegionName = regInfo.ExternalHostName + ":" + regInfo.HttpPort;
-                if (name != string.Empty)
-                    regInfo.RegionName += ":" + name;
+                if (regInfo.RegionName == string.Empty)
+                    regInfo.RegionName = regInfo.ExternalHostName;
 
                 // Try get the map image
                 //regInfo.TerrainImage = m_GatekeeperConnector.GetMapImage(regionID, imageURL);
@@ -384,8 +371,6 @@ namespace OpenSim.Services.GridService
 
         private void AddHyperlinkRegion(GridRegion regionInfo, ulong regionHandle)
         {
-            //m_HyperlinkRegions[regionInfo.RegionID] = regionInfo;
-            //m_HyperlinkHandles[regionInfo.RegionID] = regionHandle;
 
             RegionData rdata = m_GridService.RegionInfo2RegionData(regionInfo);
             int flags = (int)OpenSim.Data.RegionFlags.Hyperlink + (int)OpenSim.Data.RegionFlags.NoDirectLogin + (int)OpenSim.Data.RegionFlags.RegionOnline;
@@ -397,12 +382,6 @@ namespace OpenSim.Services.GridService
 
         private void RemoveHyperlinkRegion(UUID regionID)
         {
-            //// Try the hyperlink collection
-            //if (m_HyperlinkRegions.ContainsKey(regionID))
-            //{
-            //    m_HyperlinkRegions.Remove(regionID);
-            //    m_HyperlinkHandles.Remove(regionID);
-            //}
             m_Database.Delete(regionID);
         }
 
