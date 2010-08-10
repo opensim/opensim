@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Security;
+using System.Timers;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
@@ -45,6 +46,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private delegate void LookupUUIDS(List<UUID> uuidLst);
 
         private Scene m_scene;
+        private Timer m_regionChangeTimer = new Timer();
 
         private EstateTerrainXferHandler TerrainUploader;
 
@@ -898,6 +900,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
             m_scene.RegisterModuleInterface<IEstateModule>(this);
             m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
             m_scene.EventManager.OnRequestChangeWaterHeight += changeWaterHeight;
+            m_regionChangeTimer.AutoReset = false;
+            m_regionChangeTimer.Interval = 2000;
+            m_regionChangeTimer.Elapsed += RaiseRegionInfoChange;
 
             m_scene.AddCommand(this, "set terrain texture",
                                "set terrain texture <number> <uuid> [<x>] [<y>]",
@@ -949,8 +954,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             break;
                     }
                     m_scene.RegionInfo.RegionSettings.Save();
-                    //TriggerRegionInfoChange();
-                    TriggerEstateInfoChange();
+                    TriggerRegionInfoChange();
                     sendRegionInfoPacketToAll();
 
                 }
@@ -996,8 +1000,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             break;
                     }
                     m_scene.RegionInfo.RegionSettings.Save();
-                    //TriggerRegionInfoChange();
-                    TriggerEstateInfoChange();
+                    TriggerRegionInfoChange();
                     sendRegionHandshakeToAll();
                 }
             }
@@ -1169,6 +1172,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
         }
 
         protected void TriggerRegionInfoChange()
+        {
+            m_regionChangeTimer.Stop();
+            m_regionChangeTimer.Start();
+        }
+
+        protected void RaiseRegionInfoChange(object sender, ElapsedEventArgs e)
         {
             ChangeDelegate change = OnRegionInfoChange;
 
