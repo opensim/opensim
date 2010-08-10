@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Reflection;
 using System.Xml;
+using System.Diagnostics;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using log4net;
@@ -90,6 +91,19 @@ namespace OpenSim.Framework
                 if (m_itemLock.RecursiveReadCount > 0)
                 {
                     m_log.Error("[TaskInventoryDictionary] Recursive read lock requested. This should not happen and means something needs to be fixed. For now though, it's safe to continue.");
+                    try
+                    {
+                        StackTrace stackTrace = new StackTrace();           // get call stack
+                        StackFrame[] stackFrames = stackTrace.GetFrames();  // get method calls (frames)
+
+                        // write call stack method names
+                        foreach (StackFrame stackFrame in stackFrames)
+                        {
+                            m_log.Error("[SceneObjectGroup.m_parts]  "+(stackFrame.GetMethod().Name);   // write method name
+                        }
+                    }
+                    catch
+                    {}
                     m_itemLock.ExitReadLock();
                 }
                 if (m_itemLock.RecursiveWriteCount > 0)
