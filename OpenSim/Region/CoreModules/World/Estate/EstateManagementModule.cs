@@ -148,7 +148,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void setEstateTerrainBaseTexture(IClientAPI remoteClient, int corner, UUID texture)
         {
-            m_log.DebugFormat("[ESTATE]: sacha setting terrain texture change {0}, corner {1}",texture,corner);
             if (texture == UUID.Zero)
                 return;
 
@@ -167,11 +166,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     m_scene.RegionInfo.RegionSettings.TerrainTexture4 = texture;
                     break;
             }
-            m_log.DebugFormat("[ESTATE]: sacha step 2 {0}",texture);
             m_scene.RegionInfo.RegionSettings.Save();
-            m_log.DebugFormat("[ESTATE]: sacha step 3 {0}",texture);
             TriggerRegionInfoChange();
-            m_log.DebugFormat("[ESTATE]: sacha step 4 {0}",texture);
             sendRegionInfoPacketToAll();
         }
 
@@ -203,7 +199,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void handleCommitEstateTerrainTextureRequest(IClientAPI remoteClient)
         {
-            m_log.Debug("[ESTATE]: sacha Commit terrain texture change");
             sendRegionHandshakeToAll();
         }
 
