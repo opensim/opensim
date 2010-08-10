@@ -3560,11 +3560,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public override void SetText(string text, Vector3 color, double alpha)
-        {
-            throw new Exception("Can't set Text on avatar.");
-        }
-
         /// <summary>
         /// Adds a physical representation of the avatar to the Physics plugin
         /// </summary>
