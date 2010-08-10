@@ -1090,12 +1090,17 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (PhysicsActor != null)
             {
-                m_physicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
-                m_physicsActor.OnOutOfBounds -= OutOfBoundsCall;
-                m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
-                m_physicsActor.UnSubscribeEvents();
-                m_physicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
-                PhysicsActor = null;
+                try
+                {
+                    m_physicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
+                    m_physicsActor.OnOutOfBounds -= OutOfBoundsCall;
+                    m_physicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
+                    m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
+                    m_physicsActor.UnSubscribeEvents();
+                    PhysicsActor = null;
+                }
+                catch
+                { }
             }
         }
 
