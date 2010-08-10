@@ -4731,7 +4731,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.ObjectScale, HandleObjectScale);
             AddLocalPacketHandler(PacketType.ObjectRotation, HandleObjectRotation);
             AddLocalPacketHandler(PacketType.ObjectFlagUpdate, HandleObjectFlagUpdate);
-            AddLocalPacketHandler(PacketType.ObjectImage, HandleObjectImage);
+                        
+            // Handle ObjectImage (TextureEntry) updates synchronously, since when updating multiple prim faces at once,
+            // some clients will send out a separate ObjectImage packet for each face
+            AddLocalPacketHandler(PacketType.ObjectImage, HandleObjectImage, false);
+            
             AddLocalPacketHandler(PacketType.ObjectGrab, HandleObjectGrab, false);
             AddLocalPacketHandler(PacketType.ObjectGrabUpdate, HandleObjectGrabUpdate, false);
             AddLocalPacketHandler(PacketType.ObjectDeGrab, HandleObjectDeGrab);
