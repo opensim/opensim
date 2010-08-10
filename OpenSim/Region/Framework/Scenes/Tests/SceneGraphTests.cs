@@ -65,16 +65,18 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             scene.AddNewSceneObject(so, false);
             
-            uint part1LocalId = part1.LocalId;
-            
-            SceneObjectGroup duplicatedSo 
+            SceneObjectGroup dupeSo 
                 = scene.SceneGraph.DuplicateObject(
-                    part1LocalId, new Vector3(10, 0, 0), 0, ownerId, UUID.Zero, Quaternion.Identity);
+                    part1.LocalId, new Vector3(10, 0, 0), 0, ownerId, UUID.Zero, Quaternion.Identity);
+            Assert.That(dupeSo.Children.Count, Is.EqualTo(2));
             
-            Assert.That(duplicatedSo.Children.Count, Is.EqualTo(2));
-            Assert.That(duplicatedSo.RootPart.LocalId, Is.Not.EqualTo(part1.LocalId));
+            SceneObjectPart dupePart1 = dupeSo.GetLinkNumPart(1);
+            SceneObjectPart dupePart2 = dupeSo.GetLinkNumPart(2);                        
+            Assert.That(dupePart1.LocalId, Is.Not.EqualTo(part1.LocalId));
+            Assert.That(dupePart2.LocalId, Is.Not.EqualTo(part2.LocalId));
             
-            //SceneObjectPart retrievedPart = scene.GetSceneObjectPart(objUuid);
+            Assert.That(dupePart1.Flags, Is.EqualTo(part1.Flags));
+            Assert.That(dupePart2.Flags, Is.EqualTo(part2.Flags));
         }        
     }
 }
