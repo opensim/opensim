@@ -4200,21 +4200,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            m_host.TaskInventory.LockItemsForRead(true);
-            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
+            try
             {
-                if (item.Name == name)
+                m_host.TaskInventory.LockItemsForRead(true);
+                foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
                 {
-                    if (item.ItemID == m_itemID)
-                        throw new ScriptDeleteException();
-                    else
-                        m_host.Inventory.RemoveInventoryItem(item.ItemID);
-
-                    m_host.TaskInventory.LockItemsForRead(false);
-                    return;
+                    if (item.Name == name)
+                    {
+                        if (item.ItemID == m_itemID)
+                            throw new ScriptDeleteException();
+                        else
+                            m_host.Inventory.RemoveInventoryItem(item.ItemID);
+                        return;
+                    }
                 }
             }
-            m_host.TaskInventory.LockItemsForRead(false);
+            finally
+            {
+                m_host.TaskInventory.LockItemsForRead(false);
+            }
         }
 
         public void llSetText(string text, LSL_Vector color, double alpha)
