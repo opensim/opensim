@@ -1091,7 +1091,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     return false;
 
                 uuids = m_PrimObjects[localID];
-            }
+            
 
             foreach (UUID itemID in uuids)
             {
@@ -1108,6 +1108,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     instance.PostEvent(p);
                     result = true;
                 }
+            }
             }
             
             return result;
