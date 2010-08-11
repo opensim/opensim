@@ -102,11 +102,10 @@ namespace OpenSim.Server.Handlers.Grid
             }
             catch (Exception)
             {
-                _log.Debug("[GRID INFO SERVICE]: Cannot get grid info from config source, using minimal defaults");
+                _log.Warn("[GRID INFO SERVICE]: Cannot get grid info from config source, using minimal defaults");
             }
             
             _log.DebugFormat("[GRID INFO SERVICE]: Grid info service initialized with {0} keys", _info.Count);
-
         }
 
         private void IssueWarning()
@@ -125,7 +124,7 @@ namespace OpenSim.Server.Handlers.Grid
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            _log.Info("[GRID INFO SERVICE]: Request for grid info");
+            _log.Debug("[GRID INFO SERVICE]: Request for grid info");
 
             foreach (string k in _info.Keys)
             {
