@@ -787,7 +787,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             reply.ChatData.OwnerID = fromAgentID;
             reply.ChatData.SourceID = fromAgentID;
 
-            OutPacket(reply, ThrottleOutPacketType.Task);
+            OutPacket(reply, ThrottleOutPacketType.Unknown);
         }
 
         /// <summary>

@@ -728,6 +728,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // TODO: Change default to true once the feature is supported
                 m_usePreJump = startupConfig.GetBoolean("enableprejump", true);
                 m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", m_maxNonphys);
+
+                m_log.DebugFormat("[SCENE]: prejump is {0}", m_usePreJump ? "ON" : "OFF");
                 if (RegionInfo.NonphysPrimMax > 0)
                 {
                     m_maxNonphys = RegionInfo.NonphysPrimMax;
