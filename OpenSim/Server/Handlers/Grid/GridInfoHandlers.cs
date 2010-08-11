@@ -111,7 +111,7 @@ namespace OpenSim.Server.Handlers.Grid
 
         private void IssueWarning()
         {
-            _log.Warn("[GRID INFO SERVICE]: found no [GridInfo] section in your OpenSim.ini");
+            _log.Warn("[GRID INFO SERVICE]: found no [GridInfo] section in your configuration files");
             _log.Warn("[GRID INFO SERVICE]: trying to guess sensible defaults, you might want to provide better ones:");
             
             foreach (string k in _info.Keys)
