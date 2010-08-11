@@ -2770,6 +2770,28 @@
       </Files>
     </Project>
 
+    <Project frameworkVersion="v3_5" name="OpenSim.Tests" path="OpenSim/Tests" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../bin/</ReferencePath>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="Nini.dll" />
+      <Reference name="nunit.framework.dll" />
+      <Reference name="OpenSim" />
+      <Files>
+        <Match pattern="*.cs" recurse="false"/>
+      </Files>
+    </Project>
+
     <Project frameworkVersion="v3_5" name="OpenSim.Data.Tests" path="OpenSim/Data/Tests" type="Library">
       <Configuration name="Debug">
         <Options>
