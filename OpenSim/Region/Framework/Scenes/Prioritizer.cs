@@ -134,6 +134,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private double GetPriorityByFrontBack(IClientAPI client, ISceneEntity entity)
         {
+            if (entity == null) return double.NaN;
             ScenePresence presence = m_scene.GetScenePresence(client.AgentId);
             if (presence != null)
             {
@@ -144,7 +145,17 @@ namespace OpenSim.Region.Framework.Scenes
                 // Use group position for child prims
                 Vector3 entityPos = entity.AbsolutePosition;
                 if (entity is SceneObjectPart)
-                    entityPos = m_scene.GetGroupByPrim(entity.LocalId).AbsolutePosition;
+                {
+                    SceneObjectGroup group = m_scene.GetGroupByPrim(entity.LocalId);
+                    if (group == null)
+                    {
+                        entityPos = entity.AbsolutePosition;
+                    }
+                    else
+                    {
+                        entityPos = group.AbsolutePosition;
+                    }
+                }
                 else
                     entityPos = entity.AbsolutePosition;
 
