@@ -1897,7 +1897,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 AddRestoredSceneObject(group, true, true);
                 SceneObjectPart rootPart = group.GetChildPart(group.UUID);
-                rootPart.ObjectFlags &= ~(uint)PrimFlags.Scripted;
+                rootPart.Flags &= ~PrimFlags.Scripted;
                 rootPart.TrimPermissions();
                 group.CheckSculptAndLoad();
                 //rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
@@ -2184,7 +2184,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (SceneObjectPart part in group.Children.Values)
             {
-                if (part.IsJoint() && ((part.ObjectFlags&(uint)PrimFlags.Physics) != 0))
+                if (part.IsJoint() && ((part.Flags & PrimFlags.Physics) != 0))
                 {
                     PhysicsScene.RequestJointDeletion(part.Name); // FIXME: what if the name changed?
                 }
@@ -4852,7 +4852,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // turn the proxy non-physical, which also stops its client-side interpolation
-            bool wasUsingPhysics = ((jointProxyObject.ObjectFlags & (uint)PrimFlags.Physics) != 0);
+            bool wasUsingPhysics = ((jointProxyObject.Flags & PrimFlags.Physics) != 0);
             if (wasUsingPhysics)
             {
                 jointProxyObject.UpdatePrimFlags(false, false, true, false); // FIXME: possible deadlock here; check to make sure all the scene alterations set into motion here won't deadlock

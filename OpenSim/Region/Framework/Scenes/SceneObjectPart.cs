@@ -1324,7 +1324,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void AddFlag(PrimFlags flag)
         {
             // PrimFlags prevflag = Flags;
-            if ((ObjectFlags & (uint) flag) == 0)
+            if ((Flags & flag) == 0)
             {
                 //m_log.Debug("Adding flag: " + ((PrimFlags) flag).ToString());
                 Flags |= flag;
@@ -1607,7 +1607,7 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.Velocity = new Vector3(0, 0, 0);
             dupe.Acceleration = new Vector3(0, 0, 0);
             dupe.AngularVelocity = new Vector3(0, 0, 0);
-            dupe.ObjectFlags = ObjectFlags;
+            dupe.Flags = Flags;
 
             dupe._ownershipCost = _ownershipCost;
             dupe._objectSaleType = _objectSaleType;
@@ -1644,7 +1644,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_parentGroup.Scene.AssetService.Get(dupe.m_shape.SculptTexture.ToString(), dupe, AssetReceived); 
                 }
                 
-                bool UsePhysics = ((dupe.ObjectFlags & (uint)PrimFlags.Physics) != 0);
+                bool UsePhysics = ((dupe.Flags & PrimFlags.Physics) != 0);
                 dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
             }
             
@@ -4271,9 +4271,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void UpdatePrimFlags(bool UsePhysics, bool IsTemporary, bool IsPhantom, bool IsVD)
         {
-            bool wasUsingPhysics = ((ObjectFlags & (uint) PrimFlags.Physics) != 0);
-            bool wasTemporary = ((ObjectFlags & (uint)PrimFlags.TemporaryOnRez) != 0);
-            bool wasPhantom = ((ObjectFlags & (uint)PrimFlags.Phantom) != 0);
+            bool wasUsingPhysics = ((Flags & PrimFlags.Physics) != 0);
+            bool wasTemporary = ((Flags & PrimFlags.TemporaryOnRez) != 0);
+            bool wasPhantom = ((Flags & PrimFlags.Phantom) != 0);
             bool wasVD = VolumeDetectActive;
 
             if ((UsePhysics == wasUsingPhysics) && (wasTemporary == IsTemporary) && (wasPhantom == IsPhantom) && (IsVD==wasVD))

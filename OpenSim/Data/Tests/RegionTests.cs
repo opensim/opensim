@@ -317,7 +317,7 @@ namespace OpenSim.Data.Tests
             sop.CreatorID = creator;
             sop.InventorySerial = iserial;
             sop.TaskInventory = dic;
-            sop.ObjectFlags = objf;
+            sop.Flags = (PrimFlags)objf;
             sop.Name = name;
             sop.Material = material;
             sop.ScriptAccessPin = pin;
@@ -350,7 +350,7 @@ namespace OpenSim.Data.Tests
             // Modified in-class
             // Assert.That(iserial,Is.EqualTo(sop.InventorySerial), "Assert.That(iserial,Is.EqualTo(sop.InventorySerial))");
             Assert.That(dic,Is.EqualTo(sop.TaskInventory), "Assert.That(dic,Is.EqualTo(sop.TaskInventory))");
-            Assert.That(objf,Is.EqualTo(sop.ObjectFlags), "Assert.That(objf,Is.EqualTo(sop.ObjectFlags))");
+            Assert.That(objf, Is.EqualTo((uint)sop.Flags), "Assert.That(objf,Is.EqualTo(sop.Flags))");
             Assert.That(name,Is.EqualTo(sop.Name), "Assert.That(name,Is.EqualTo(sop.Name))");
             Assert.That(material,Is.EqualTo(sop.Material), "Assert.That(material,Is.EqualTo(sop.Material))");
             Assert.That(pin,Is.EqualTo(sop.ScriptAccessPin), "Assert.That(pin,Is.EqualTo(sop.ScriptAccessPin))");
@@ -373,7 +373,7 @@ namespace OpenSim.Data.Tests
             Assert.That(updatef,Is.EqualTo(sop.UpdateFlag), "Assert.That(updatef,Is.EqualTo(sop.UpdateFlag))");
             
             // This is necessary or object will not be inserted in DB
-            sop.ObjectFlags = 0;
+            sop.Flags = PrimFlags.None;
 
             SceneObjectGroup sog = new SceneObjectGroup(sop);
             
@@ -398,7 +398,7 @@ namespace OpenSim.Data.Tests
             Assert.That(creator,Is.EqualTo(p.CreatorID), "Assert.That(creator,Is.EqualTo(p.CreatorID))");
             //Assert.That(iserial,Is.EqualTo(p.InventorySerial), "Assert.That(iserial,Is.EqualTo(p.InventorySerial))");
             Assert.That(dic,Is.EqualTo(p.TaskInventory), "Assert.That(dic,Is.EqualTo(p.TaskInventory))");
-            //Assert.That(objf,Is.EqualTo(p.ObjectFlags), "Assert.That(objf,Is.EqualTo(p.ObjectFlags))");
+            //Assert.That(objf, Is.EqualTo((uint)p.Flags), "Assert.That(objf,Is.EqualTo(p.Flags))");
             Assert.That(name,Is.EqualTo(p.Name), "Assert.That(name,Is.EqualTo(p.Name))");
             Assert.That(material,Is.EqualTo(p.Material), "Assert.That(material,Is.EqualTo(p.Material))");
             Assert.That(pin,Is.EqualTo(p.ScriptAccessPin), "Assert.That(pin,Is.EqualTo(p.ScriptAccessPin))");
