@@ -1812,33 +1812,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
-        /// <summary>
-        /// Create a terrain texture for this scene
-        /// </summary>
-        public void CreateTerrainTexture()
-        {
-            //create a texture asset of the terrain
-            IMapImageGenerator terrain = RequestModuleInterface<IMapImageGenerator>();
-
-            // Cannot create a map for a nonexistant heightmap yet.
-            if (Heightmap == null)
-                return;
-
-            if (terrain == null)
-                return;
-
-            byte[] data = terrain.WriteJpeg2000Image("defaultstripe.png");
-            if (data != null)
-            {
-                IWorldMapModule mapModule = RequestModuleInterface<IWorldMapModule>();
-
-                if (mapModule != null)
-                    mapModule.RegenerateMaptile(data);
-                else
-                    m_log.DebugFormat("[SCENE]: MapModule is null, can't save maptile");
-            }
-        }
-
         #endregion
 
         #region Load Land
