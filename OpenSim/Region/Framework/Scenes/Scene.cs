@@ -2809,8 +2809,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnUndo += m_sceneGraph.HandleUndo;
             client.OnRedo += m_sceneGraph.HandleRedo;
             client.OnObjectDescription += m_sceneGraph.PrimDescription;
-            client.OnObjectDrop += m_sceneGraph.DropObject;
-            client.OnObjectSaleInfo += ObjectSaleInfo;
+            client.OnObjectDrop += m_sceneGraph.DropObject;            
             client.OnObjectIncludeInSearch += m_sceneGraph.MakeObjectSearchable;
             client.OnObjectOwner += ObjectOwner;
         }
@@ -2938,7 +2937,6 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnRedo -= m_sceneGraph.HandleRedo;
             client.OnObjectDescription -= m_sceneGraph.PrimDescription;
             client.OnObjectDrop -= m_sceneGraph.DropObject;
-            client.OnObjectSaleInfo -= ObjectSaleInfo;
             client.OnObjectIncludeInSearch -= m_sceneGraph.MakeObjectSearchable;
             client.OnObjectOwner -= ObjectOwner;
         }
@@ -4486,25 +4484,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return true;
 
             return inv.NeedSceneCacheClear(agentID, this);
-        }
-
-        public void ObjectSaleInfo(IClientAPI client, UUID agentID, UUID sessionID, uint localID, byte saleType, int salePrice)
-        {
-            SceneObjectPart part = GetSceneObjectPart(localID);
-            if (part == null || part.ParentGroup == null)
-                return;
-
-            if (part.ParentGroup.IsDeleted)
-                return;
-
-            part = part.ParentGroup.RootPart;
-
-            part.ObjectSaleType = saleType;
-            part.SalePrice = salePrice;
-
-            part.ParentGroup.HasGroupChanged = true;
-
-            part.GetProperties(client);
         }
 
         public bool PerformObjectBuy(IClientAPI remoteClient, UUID categoryID,
