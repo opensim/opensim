@@ -85,7 +85,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         // private int m_stipend = 1000;
 
-        private int ObjectCapacity = 45000;
+//        private int ObjectCapacity = 45000;
         private int ObjectCount = 0;
         private int PriceEnergyUnit = 0;
         private int PriceGroupCreate = 0;
