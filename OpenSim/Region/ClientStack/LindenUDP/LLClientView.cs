@@ -6295,7 +6295,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             #endregion
 
-            ObjectDuplicatePacket.AgentDataBlock AgentandGroupData = dupe.AgentData;
+//            ObjectDuplicatePacket.AgentDataBlock AgentandGroupData = dupe.AgentData;
 
             ObjectDuplicate handlerObjectDuplicate = null;
 
@@ -11668,8 +11668,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     StringBuilder sb = new StringBuilder();
                     sb.Append("[");
-                    if (this.priority != null)
-                        sb.Append(this.priority.ToString());
+                    sb.Append(this.priority.ToString());
                     sb.Append(",");
                     if (this.value != null)
                         sb.Append(this.value.ToString());
