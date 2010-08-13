@@ -2770,7 +2770,6 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void SubscribeToClientTerrainEvents(IClientAPI client)
         {
             client.OnRegionHandShakeReply += SendLayerData;
-            client.OnUnackedTerrain += TerrainUnAcked;
         }
         
         public virtual void SubscribeToClientPrimEvents(IClientAPI client)
@@ -2901,7 +2900,6 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void UnSubscribeToClientTerrainEvents(IClientAPI client)
         {
             client.OnRegionHandShakeReply -= SendLayerData;
-            client.OnUnackedTerrain -= TerrainUnAcked;
         }
 
         public virtual void UnSubscribeToClientPrimEvents(IClientAPI client)
@@ -4479,12 +4477,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (handle != 0)
                 client.SendRegionHandle(regionID, handle);
-        }
-
-        public void TerrainUnAcked(IClientAPI client, int patchX, int patchY)
-        {
-            //m_log.Debug("Terrain packet unacked, resending patch: " + patchX + " , " + patchY);
-             client.SendLayerData(patchX, patchY, Heightmap.GetFloatsSerialised());
         }
 
         public bool NeedSceneCacheClear(UUID agentID)

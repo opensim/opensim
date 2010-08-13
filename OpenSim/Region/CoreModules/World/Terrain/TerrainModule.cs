@@ -586,8 +586,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             client.OnModifyTerrain += client_OnModifyTerrain;
             client.OnBakeTerrain += client_OnBakeTerrain;
             client.OnLandUndo += client_OnLandUndo;
+            client.OnUnackedTerrain += client_OnUnackedTerrain;
         }
-
+        
         /// <summary>
         /// Checks to see if the terrain has been modified since last check
         /// but won't attempt to limit those changes to the limits specified in the estate settings
@@ -808,6 +809,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 InterfaceBakeTerrain(null); //bake terrain does not use the passed in parameter
             }
         }
+        
+        protected void client_OnUnackedTerrain(IClientAPI client, int patchX, int patchY)
+        {
+            //m_log.Debug("Terrain packet unacked, resending patch: " + patchX + " , " + patchY);
+             client.SendLayerData(patchX, patchY, m_scene.Heightmap.GetFloatsSerialised());
+        }        
 
         private void StoreUndoState()
         {
