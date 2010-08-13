@@ -481,73 +481,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        #region BinaryStats
-
-        public class StatLogger
-        {
-            public DateTime StartTime;
-            public string Path;
-            public System.IO.BinaryWriter Log;
-        }
-        static StatLogger m_statLog = null;
-        static TimeSpan m_statLogPeriod = TimeSpan.FromSeconds(300);
-        static string m_statsDir = String.Empty;
-        static Object m_statLockObject = new Object();
-        private void LogSimStats(SimStats stats)
-        {
-            SimStatsPacket pack = new SimStatsPacket();
-            pack.Region = new SimStatsPacket.RegionBlock();
-            pack.Region.RegionX = stats.RegionX;
-            pack.Region.RegionY = stats.RegionY;
-            pack.Region.RegionFlags = stats.RegionFlags;
-            pack.Region.ObjectCapacity = stats.ObjectCapacity;
-            //pack.Region = //stats.RegionBlock;
-            pack.Stat = stats.StatsBlock;
-            pack.Header.Reliable = false;
-
-            // note that we are inside the reporter lock when called
-            DateTime now = DateTime.Now;
-
-            // hide some time information into the packet
-            pack.Header.Sequence = (uint)now.Ticks;
-
-            lock (m_statLockObject) // m_statLog is shared so make sure there is only executer here
-            {
-                try
-                {
-                    if (m_statLog == null || now > m_statLog.StartTime + m_statLogPeriod)
-                    {
-                        // First log file or time has expired, start writing to a new log file
-                        if (m_statLog != null && m_statLog.Log != null)
-                        {
-                            m_statLog.Log.Close();
-                        }
-                        m_statLog = new StatLogger();
-                        m_statLog.StartTime = now;
-                        m_statLog.Path = (m_statsDir.Length > 0 ? m_statsDir + System.IO.Path.DirectorySeparatorChar.ToString() : "")
-                                + String.Format("stats-{0}.log", now.ToString("yyyyMMddHHmmss"));
-                        m_statLog.Log = new BinaryWriter(File.Open(m_statLog.Path, FileMode.Append, FileAccess.Write));
-                    }
-
-                    // Write the serialized data to disk
-                    if (m_statLog != null && m_statLog.Log != null)
-                        m_statLog.Log.Write(pack.ToBytes());
-                }
-                catch (Exception ex)
-                {
-                    m_log.Error("statistics gathering failed: " + ex.Message, ex);
-                    if (m_statLog != null && m_statLog.Log != null)
-                    {
-                        m_statLog.Log.Close();
-                    }
-                    m_statLog = null;
-                }
-            }
-            return;
-        }
-
-        #endregion
-
         #region Constructors
 
         public Scene(RegionInfo regInfo, AgentCircuitManager authen,
@@ -752,38 +685,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
-
-                #region BinaryStats
-
-                try
-                {
-                    IConfig statConfig = m_config.Configs["Statistics.Binary"];
-                    if (statConfig.Contains("enabled") && statConfig.GetBoolean("enabled"))
-                    {
-                        if (statConfig.Contains("collect_region_stats"))
-                        {
-                            if (statConfig.GetBoolean("collect_region_stats"))
-                            {
-                                // if enabled, add us to the event. If not enabled, I won't get called
-                                StatsReporter.OnSendStatsResult += LogSimStats;
-                            }
-                        }
-                        if (statConfig.Contains("region_stats_period_seconds"))
-                        {
-                            m_statLogPeriod = TimeSpan.FromSeconds(statConfig.GetInt("region_stats_period_seconds"));
-                        }
-                        if (statConfig.Contains("stats_dir"))
-                        {
-                            m_statsDir = statConfig.GetString("stats_dir");
-                        }
-                    }
-                }
-                catch
-                {
-                    // if it doesn't work, we don't collect anything
-                }
-
-                #endregion BinaryStats
             }
             catch
             {
@@ -2652,7 +2553,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (!VerifyClient(aCircuit, ep, out vialogin))
                     {
                         // uh-oh, this is fishy
-                        m_log.WarnFormat("[Scene]: Agent {0} with session {1} connecting with unidentified end point {2}. Refusing service.",
+                        m_log.WarnFormat("[SCENE]: Agent {0} with session {1} connecting with unidentified end point {2}. Refusing service.",
                             client.AgentId, client.SessionId, ep.ToString());
                         try
                         {
@@ -2660,13 +2561,13 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         catch (Exception e)
                         {
-                            m_log.DebugFormat("[Scene]: Exception while closing aborted client: {0}", e.StackTrace);
+                            m_log.DebugFormat("[SCENE]: Exception while closing aborted client: {0}", e.StackTrace);
                         }
                         return;
                     }
                 }
 
-                m_log.Debug("[Scene] Adding new agent " + client.Name + " to scene " + RegionInfo.RegionName);
+                m_log.Debug("[SCENE]: Adding new agent " + client.Name + " to scene " + RegionInfo.RegionName);
 
                 ScenePresence sp = CreateAndAddScenePresence(client);
                 if (aCircuit != null)
@@ -2695,7 +2596,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Do the verification here
             if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0)
             {
-                m_log.DebugFormat("[Scene]: Incoming client {0} {1} in region {2} via Login", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
+                m_log.DebugFormat("[SCENE]: Incoming client {0} {1} in region {2} via Login", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
                 vialogin = true;
                 IUserAgentVerificationModule userVerification = RequestModuleInterface<IUserAgentVerificationModule>();
                 if (userVerification != null && ep != null)
@@ -2705,11 +2606,11 @@ namespace OpenSim.Region.Framework.Scenes
                     if (!userVerification.VerifyClient(aCircuit, /*ep.Address.ToString() */ addr.ToString()))
                     {
                         // uh-oh, this is fishy
-                        m_log.DebugFormat("[Scene]: User Client Verification for {0} {1} in {2} returned false", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
+                        m_log.DebugFormat("[SCENE]: User Client Verification for {0} {1} in {2} returned false", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
                         return false;
                     }
                     else
-                        m_log.DebugFormat("[Scene]: User Client Verification for {0} {1} in {2} returned true", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
+                        m_log.DebugFormat("[SCENE]: User Client Verification for {0} {1} in {2} returned true", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
                 }
             }
 
@@ -2740,7 +2641,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     catch (Exception e)
                     {
-                        m_log.DebugFormat("[Scene]: Exception while closing aborted client: {0}", e.StackTrace);
+                        m_log.DebugFormat("[SCENE]: Exception while closing aborted client: {0}", e.StackTrace);
                     }
                 }
                 else
