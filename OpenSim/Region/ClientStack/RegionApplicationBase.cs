@@ -58,6 +58,11 @@ namespace OpenSim.Region.ClientStack
         
         protected StorageManager m_storageManager;
         
+        public StorageManager StorageManager
+        {
+            get { return m_storageManager; }
+        }
+        
         protected ClientStackManager m_clientStackManager;
 
         public SceneManager SceneManager

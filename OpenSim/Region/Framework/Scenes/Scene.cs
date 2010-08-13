@@ -544,45 +544,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_storageManager.EstateDataStore != null)
             {
                 m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID, false);
-                if (m_regInfo.EstateSettings.EstateID == 0) // No record at all
-                {
-                    MainConsole.Instance.Output("Your region is not part of an estate.");
-                    while (true)
-                    {
-                        string response = MainConsole.Instance.CmdPrompt("Do you wish to join an existing estate?", "no", new List<string>() {"yes", "no"});
-                        if (response == "no")
-                        {
-                            // Create a new estate
-                            m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID, true);
-
-                            m_regInfo.EstateSettings.EstateName = MainConsole.Instance.CmdPrompt("New estate name", m_regInfo.EstateSettings.EstateName);
-                            m_regInfo.EstateSettings.Save();
-                            break;
-                        }
-                        else
-                        {
-                            response = MainConsole.Instance.CmdPrompt("Estate name to join", "None");
-                            if (response == "None")
-                                continue;
-
-                            List<int> estateIDs = m_storageManager.EstateDataStore.GetEstates(response);
-                            if (estateIDs.Count < 1)
-                            {
-                                MainConsole.Instance.Output("The name you have entered matches no known estate. Please try again");
-                                continue;
-                            }
-
-                            int estateID = estateIDs[0];
-
-                            m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(estateID);
-
-                            if (m_storageManager.EstateDataStore.LinkRegion(m_regInfo.RegionID, estateID))
-                                break;
-
-                            MainConsole.Instance.Output("Joining the estate failed. Please try again.");
-                        }
-                    }
-                }
             }
 
             #endregion Region Settings

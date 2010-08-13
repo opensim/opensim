@@ -530,7 +530,10 @@ namespace OpenSim
                     regionFile = cmd[3];
 
                 IScene scene;
-                CreateRegion(new RegionInfo(cmd[2], regionFile, false, ConfigSource.Source), true, out scene);
+                RegionInfo regInfo = new RegionInfo(cmd[2], regionFile, false, ConfigSource.Source);
+                PopulateRegionEstateInfo(regInfo);
+                CreateRegion(regInfo, true, out scene);
+                regInfo.EstateSettings.Save();
             }
             else if (cmd[3].EndsWith(".ini"))
             {
@@ -541,7 +544,10 @@ namespace OpenSim
                     regionFile = cmd[3];
 
                 IScene scene;
-                CreateRegion(new RegionInfo(cmd[2], regionFile, false, ConfigSource.Source, cmd[2]), true, out scene);
+                RegionInfo regInfo = new RegionInfo(cmd[2], regionFile, false, ConfigSource.Source, cmd[2]);
+                PopulateRegionEstateInfo(regInfo);
+                CreateRegion(regInfo, true, out scene);
+                regInfo.EstateSettings.Save();
             }
             else
             {
