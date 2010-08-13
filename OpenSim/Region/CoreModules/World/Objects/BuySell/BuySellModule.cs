@@ -44,7 +44,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BuySellModule")]
     public class BuySellModule : IBuySellModule, INonSharedRegionModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Scene m_scene = null;
         protected IDialogModule m_dialogModule;

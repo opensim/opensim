@@ -91,7 +91,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
         private string httpsCN = "";
         private bool httpSSL = false;
         private uint httpsslport = 0;
-        private bool GridMode = false;
+//        private bool GridMode = false;
 
         #region IRegionModule Members
 
@@ -126,10 +126,10 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
             }
 
-            if (startupcfg != null)
-            {
-                GridMode = enabled = startupcfg.GetBoolean("gridmode", false);
-            }
+//            if (startupcfg != null)
+//            {
+//                GridMode = enabled = startupcfg.GetBoolean("gridmode", false);
+//            }
 
             if (cfg != null)
             {
@@ -1213,18 +1213,19 @@ namespace OpenSim.Region.CoreModules.InterGrid
             }
         }
 
-        private string CreateRandomStr(int len)
-        {
-            Random rnd = new Random(Environment.TickCount);
-            string returnstring = "";
-            string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-
-            for (int i = 0; i < len; i++)
-            {
-                returnstring += chars.Substring(rnd.Next(chars.Length), 1);
-            }
-            return returnstring;
-        }
+//        private string CreateRandomStr(int len)
+//        {
+//            Random rnd = new Random(Environment.TickCount);
+//            string returnstring = "";
+//            string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+//
+//            for (int i = 0; i < len; i++)
+//            {
+//                returnstring += chars.Substring(rnd.Next(chars.Length), 1);
+//            }
+//            return returnstring;
+//        }
+        
         // Temporary hack to allow teleporting to and from Vaak
         private static bool customXertificateValidation(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error)
         {
