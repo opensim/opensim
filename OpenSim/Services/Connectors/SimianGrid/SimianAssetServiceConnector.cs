@@ -184,7 +184,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
             catch (Exception ex)
             {
-                m_log.Warn("[SIMIAN ASSET CONNECTOR]: Asset GET from " + url + " failed: " + ex.Message);
+                m_log.Warn("[SIMIAN ASSET CONNECTOR]: Asset HEAD from " + url + " failed: " + ex.Message);
             }
 
             return metadata;

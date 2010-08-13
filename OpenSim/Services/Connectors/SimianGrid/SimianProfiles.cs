@@ -326,7 +326,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     try
                     {
                         interests = OSDParser.DeserializeJson(user["LLInterests"].AsString()) as OSDMap;
-                        client.SendAvatarInterestsReply(avatarID, interests["WantMask"].AsUInteger(), interests["WantText"].AsString(), interests["SkillsMask"].AsUInteger(), interests["SkillsText"].AsString(), interests["languages"].AsString());
+                        client.SendAvatarInterestsReply(avatarID, interests["WantMask"].AsUInteger(), interests["WantText"].AsString(), interests["SkillsMask"].AsUInteger(), interests["SkillsText"].AsString(), interests["Languages"].AsString());
                     }
                     catch { }
                 }
