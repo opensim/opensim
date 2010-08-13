@@ -4487,17 +4487,6 @@ namespace OpenSim.Region.Framework.Scenes
              client.SendLayerData(patchX, patchY, Heightmap.GetFloatsSerialised());
         }
 
-        public void SetRootAgentScene(UUID agentID)
-        {
-            IInventoryTransferModule inv = RequestModuleInterface<IInventoryTransferModule>();
-            if (inv == null)
-                return;
-
-            inv.SetRootAgentScene(agentID, this);
-
-            EventManager.TriggerSetRootAgentScene(agentID, this);
-        }
-
         public bool NeedSceneCacheClear(UUID agentID)
         {
             IInventoryTransferModule inv = RequestModuleInterface<IInventoryTransferModule>();

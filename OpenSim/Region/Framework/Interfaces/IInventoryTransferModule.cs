@@ -35,7 +35,6 @@ namespace OpenSim.Region.Framework.Interfaces
     /// </summary>
     public interface IInventoryTransferModule
     {
-        void SetRootAgentScene(UUID agentID, Scene scene);
         bool NeedSceneCacheClear(UUID agentID, Scene scene);
     }
 }

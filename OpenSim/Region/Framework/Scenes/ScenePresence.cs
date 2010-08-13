@@ -821,7 +821,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_rootRegionHandle = m_scene.RegionInfo.RegionHandle;
 
-            m_scene.SetRootAgentScene(m_uuid);
+            m_scene.EventManager.TriggerSetRootAgentScene(m_uuid, m_scene);
 
             // Moved this from SendInitialData to ensure that m_appearance is initialized
             // before the inventory is processed in MakeRootAgent. This fixes a race condition
