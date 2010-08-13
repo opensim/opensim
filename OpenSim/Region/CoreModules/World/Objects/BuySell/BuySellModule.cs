@@ -37,15 +37,17 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.CoreModules.World.Objects.BuySell
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BuySellModule")]
-    public class BuySellModule : INonSharedRegionModule
+    public class BuySellModule : IBuySellModule, INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Scene m_scene = null;
+        protected IDialogModule m_dialogModule;
         
         public string Name { get { return "Object BuySell Module"; } }        
         public Type ReplaceableInterface { get { return null; } }        
@@ -55,6 +57,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
         public void AddRegion(Scene scene)
         {
             m_scene = scene;
+            m_scene.RegisterModuleInterface<IBuySellModule>(this);
             m_scene.EventManager.OnNewClient += SubscribeToClientEvents;
         }
         
@@ -63,7 +66,10 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
             m_scene.EventManager.OnNewClient -= SubscribeToClientEvents;
         }
         
-        public void RegionLoaded(Scene scene) {}
+        public void RegionLoaded(Scene scene) 
+        {
+            m_dialogModule = scene.RequestModuleInterface<IDialogModule>();
+        }
         
         public void Close() 
         {
@@ -93,6 +99,165 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
             part.ParentGroup.HasGroupChanged = true;
 
             part.GetProperties(client);
+        }         
+
+        public bool BuyObject(IClientAPI remoteClient, UUID categoryID, uint localID, byte saleType)
+        {
+            SceneObjectPart part = m_scene.GetSceneObjectPart(localID);
+
+            if (part == null)
+                return false;
+
+            if (part.ParentGroup == null)
+                return false;
+
+            SceneObjectGroup group = part.ParentGroup;
+
+            switch (saleType)
+            {
+            case 1: // Sell as original (in-place sale)
+                uint effectivePerms = group.GetEffectivePermissions();
+
+                if ((effectivePerms & (uint)PermissionMask.Transfer) == 0)
+                {
+                    if (m_dialogModule != null)
+                        m_dialogModule.SendAlertToUser(remoteClient, "This item doesn't appear to be for sale");
+                    return false;
+                }
+
+                group.SetOwnerId(remoteClient.AgentId);
+                group.SetRootPartOwner(part, remoteClient.AgentId, remoteClient.ActiveGroupId);
+
+                List<SceneObjectPart> partList = new List<SceneObjectPart>(group.Children.Values);
+
+                if (m_scene.Permissions.PropagatePermissions())
+                {
+                    foreach (SceneObjectPart child in partList)
+                    {
+                        child.Inventory.ChangeInventoryOwner(remoteClient.AgentId);
+                        child.TriggerScriptChangedEvent(Changed.OWNER);
+                        child.ApplyNextOwnerPermissions();
+                    }
+                }
+
+                part.ObjectSaleType = 0;
+                part.SalePrice = 10;
+
+                group.HasGroupChanged = true;
+                part.GetProperties(remoteClient);
+                part.TriggerScriptChangedEvent(Changed.OWNER);
+                group.ResumeScripts();
+                part.ScheduleFullUpdate();
+
+                break;
+
+            case 2: // Sell a copy
+                Vector3 inventoryStoredPosition = new Vector3
+                       (((group.AbsolutePosition.X > (int)Constants.RegionSize)
+                             ? 250
+                             : group.AbsolutePosition.X)
+                        ,
+                        (group.AbsolutePosition.X > (int)Constants.RegionSize)
+                            ? 250
+                            : group.AbsolutePosition.X,
+                        group.AbsolutePosition.Z);
+
+                Vector3 originalPosition = group.AbsolutePosition;
+
+                group.AbsolutePosition = inventoryStoredPosition;
+
+                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(group);
+                group.AbsolutePosition = originalPosition;
+
+                uint perms = group.GetEffectivePermissions();
+
+                if ((perms & (uint)PermissionMask.Transfer) == 0)
+                {
+                    if (m_dialogModule != null)
+                        m_dialogModule.SendAlertToUser(remoteClient, "This item doesn't appear to be for sale");
+                    return false;
+                }
+
+                AssetBase asset = m_scene.CreateAsset(
+                    group.GetPartName(localID),
+                    group.GetPartDescription(localID),
+                    (sbyte)AssetType.Object,
+                    Utils.StringToBytes(sceneObjectXml),
+                    group.OwnerID);
+                m_scene.AssetService.Store(asset);
+
+                InventoryItemBase item = new InventoryItemBase();
+                item.CreatorId = part.CreatorID.ToString();
+
+                item.ID = UUID.Random();
+                item.Owner = remoteClient.AgentId;
+                item.AssetID = asset.FullID;
+                item.Description = asset.Description;
+                item.Name = asset.Name;
+                item.AssetType = asset.Type;
+                item.InvType = (int)InventoryType.Object;
+                item.Folder = categoryID;
+
+                uint nextPerms=(perms & 7) << 13;
+                if ((nextPerms & (uint)PermissionMask.Copy) == 0)
+                    perms &= ~(uint)PermissionMask.Copy;
+                if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
+                    perms &= ~(uint)PermissionMask.Transfer;
+                if ((nextPerms & (uint)PermissionMask.Modify) == 0)
+                    perms &= ~(uint)PermissionMask.Modify;
+
+                item.BasePermissions = perms & part.NextOwnerMask;
+                item.CurrentPermissions = perms & part.NextOwnerMask;
+                item.NextPermissions = part.NextOwnerMask;
+                item.EveryOnePermissions = part.EveryoneMask &
+                                           part.NextOwnerMask;
+                item.GroupPermissions = part.GroupMask &
+                                           part.NextOwnerMask;
+                item.CurrentPermissions |= 16; // Slam!
+                item.CreationDate = Util.UnixTimeSinceEpoch();
+
+                if (m_scene.InventoryService.AddItem(item))
+                {
+                    remoteClient.SendInventoryItemCreateUpdate(item, 0);
+                }
+                else
+                {
+                    if (m_dialogModule != null)   
+                        m_dialogModule.SendAlertToUser(remoteClient, "Cannot buy now. Your inventory is unavailable");
+                    return false;
+                }
+                break;
+
+            case 3: // Sell contents
+                List<UUID> invList = part.Inventory.GetInventoryList();
+
+                bool okToSell = true;
+
+                foreach (UUID invID in invList)
+                {
+                    TaskInventoryItem item1 = part.Inventory.GetInventoryItem(invID);
+                    if ((item1.CurrentPermissions &
+                            (uint)PermissionMask.Transfer) == 0)
+                    {
+                        okToSell = false;
+                        break;
+                    }
+                }
+
+                if (!okToSell)
+                {
+                    if (m_dialogModule != null)
+                        m_dialogModule.SendAlertToUser(
+                            remoteClient, "This item's inventory doesn't appear to be for sale");
+                    return false;
+                }
+
+                if (invList.Count > 0)
+                    m_scene.MoveTaskInventoryItems(remoteClient.AgentId, part.Name, part, invList);
+                break;
+            }
+
+            return true;
         }        
     }
 }

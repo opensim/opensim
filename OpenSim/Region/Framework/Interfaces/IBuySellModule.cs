@@ -25,13 +25,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using OpenMetaverse;
+using OpenSim.Framework;
+
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface ICloudModule : IRegionModule
-    {
+    public interface IBuySellModule
+    { 
         /// <summary>
-        /// Retrieves the cloud density at the given region coordinates
+        /// Try to buy an object
         /// </summary>
-        float CloudCover(int x, int y, int z);
+        /// <param name="remoteClient"></param>
+        /// <param name="categoryID"></param>
+        /// <param name="localID"></param>
+        /// <param name="saleType"></param>
+        /// <returns>
+        /// True on a successful purchase, false on failure
+        /// </returns>
+        bool BuyObject(IClientAPI remoteClient, UUID categoryID, uint localID, byte saleType);
     }
 }

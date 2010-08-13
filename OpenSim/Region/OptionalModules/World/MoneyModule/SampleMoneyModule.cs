@@ -72,8 +72,6 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         private IConfigSource m_gConfig;
 
-
-
         /// <summary>
         /// Region UUIDS indexed by AgentID
         /// </summary>
@@ -267,13 +265,11 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                 PriceGroupCreate = startupConfig.GetInt("PriceGroupCreate", -1);
                 m_sellEnabled = startupConfig.GetBoolean("SellEnabled", false);
             }
-
         }
 
         private void GetClientFunds(IClientAPI client)
         {
             CheckExistAndRefreshFunds(client.AgentId);
-
         }
 
         /// <summary>
@@ -815,7 +811,10 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                 remoteClient.SendAgentAlertMessage("Unable to buy now. The object was not found.", false);
                 return;
             }
-            s.PerformObjectBuy(remoteClient, categoryID, localID, saleType);
+            
+            IBuySellModule module = s.RequestModuleInterface<IBuySellModule>();
+            if (module != null)
+                module.BuyObject(remoteClient, categoryID, localID, saleType);
         }
     }
 
@@ -825,7 +824,5 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         RegionMoneyRequest = 1,
         Gift = 2,
         Purchase = 3
-    }
-
-  
+    }  
 }
