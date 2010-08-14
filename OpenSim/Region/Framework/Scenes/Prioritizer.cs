@@ -186,9 +186,9 @@ namespace OpenSim.Region.Framework.Scenes
                     return 0.0;
 
                 // Use group position for child prims
-                Vector3 entityPos = entity.AbsolutePosition;
+                Vector3 entityPos;
                 if (entity is SceneObjectPart)
-                    entityPos = m_scene.GetGroupByPrim(entity.LocalId).AbsolutePosition;
+                    entityPos = ((SceneObjectPart)entity).ParentGroup.AbsolutePosition;
                 else
                     entityPos = entity.AbsolutePosition;
 
