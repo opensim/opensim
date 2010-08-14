@@ -3335,7 +3335,9 @@ namespace OpenSim.Region.Framework.Scenes
                         m_sceneGridService.SendCloseChildAgentConnections(agentID, regions);
 
                     }
+                    m_log.Debug("[Scene] Beginning ClientClosed");
                     m_eventManager.TriggerClientClosed(agentID, this);
+                    m_log.Debug("[Scene] Finished ClientClosed");
                 }
                 catch (NullReferenceException)
                 {
@@ -3343,7 +3345,9 @@ namespace OpenSim.Region.Framework.Scenes
                     // Avatar is already disposed :/
                 }
 
+                m_log.Debug("[Scene] Beginning OnRemovePresence");
                 m_eventManager.TriggerOnRemovePresence(agentID);
+                m_log.Debug("[Scene] Finished OnRemovePresence");
                 ForEachClient(
                     delegate(IClientAPI client)
                     {
@@ -3359,8 +3363,11 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 // Remove the avatar from the scene
+                m_log.Debug("[Scene] Begin RemoveScenePresence");
                 m_sceneGraph.RemoveScenePresence(agentID);
+                m_log.Debug("[Scene] Finished RemoveScenePresence. Removing the client manager");
                 m_clientManager.Remove(agentID);
+                m_log.Debug("[Scene] Removed the client manager. Firing avatar.close");
 
                 try
                 {
@@ -3374,9 +3381,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_log.Error("[SCENE] Scene.cs:RemoveClient exception: " + e.ToString());
                 }
-
+                m_log.Debug("[Scene] Done. Firing RemoveCircuit");
                 m_authenticateHandler.RemoveCircuit(avatar.ControllingClient.CircuitCode);
-
+                m_log.Debug("[Scene] The avatar has left the building");
                 //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
                 //m_log.InfoFormat("[SCENE] Memory post GC {0}", System.GC.GetTotalMemory(true));
             }
