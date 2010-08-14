@@ -308,8 +308,13 @@ namespace OpenSim
                                           "Persist objects to the database now", RunCommand);
 
             m_console.Commands.AddCommand("region", false, "create region",
-                                          "create region",
-                                          "Create a new region", HandleCreateRegion);
+                                          "create region [\"region name\"] <region_file.ini>",
+                                          "Create a new region.",
+                                          "The settings for \"region name\" are read from <region_file.ini>."
+                                          + " If \"region name\" does not exist in <region_file.ini>, it will be added." + Environment.NewLine
+                                          + "Without \"region name\", the first region found in <region_file.ini> will be created." + Environment.NewLine
+                                          + "If <region_file.ini> does not exist, it will be created.",
+                                          HandleCreateRegion);
 
             m_console.Commands.AddCommand("region", false, "restart",
                                           "restart",
@@ -513,47 +518,47 @@ namespace OpenSim
         /// Creates a new region based on the parameters specified.   This will ask the user questions on the console
         /// </summary>
         /// <param name="module"></param>
-        /// <param name="cmd">0,1,region name, region XML file</param>
+        /// <param name="cmd">0,1,region name, region ini or XML file</param>
         private void HandleCreateRegion(string module, string[] cmd)
         {
-            if (cmd.Length < 4)
+            string regionName = string.Empty;
+            string regionFile = string.Empty;
+            if (cmd.Length == 3)
             {
-                MainConsole.Instance.Output("Usage: create region <region name> <region_file.ini>");
+                regionFile = cmd[2];
+            }
+            else if (cmd.Length > 3)
+            {
+                regionName = cmd[2];
+                regionFile = cmd[3];
+            }
+            string extension = Path.GetExtension(regionFile).ToLower();
+            bool isXml = extension.Equals(".xml");
+            bool isIni = extension.Equals(".ini");
+            if (!isXml && !isIni)
+            {
+                MainConsole.Instance.Output("Usage: create region [\"region name\"] <region_file.ini>");
                 return;
             }
-            if (cmd[3].EndsWith(".xml"))
+            if (!Path.IsPathRooted(regionFile))
             {
                 string regionsDir = ConfigSource.Source.Configs["Startup"].GetString("regionload_regionsdir", "Regions").Trim();
-                string regionFile = String.Format("{0}/{1}", regionsDir, cmd[3]);
-                // Allow absolute and relative specifiers
-                if (cmd[3].StartsWith("/") || cmd[3].StartsWith("\\") || cmd[3].StartsWith(".."))
-                    regionFile = cmd[3];
-
-                IScene scene;
-                RegionInfo regInfo = new RegionInfo(cmd[2], regionFile, false, ConfigSource.Source);
-                PopulateRegionEstateInfo(regInfo);
-                CreateRegion(regInfo, true, out scene);
-                regInfo.EstateSettings.Save();
+                regionFile = Path.Combine(regionsDir, regionFile);
             }
-            else if (cmd[3].EndsWith(".ini"))
-            {
-                string regionsDir = ConfigSource.Source.Configs["Startup"].GetString("regionload_regionsdir", "Regions").Trim();
-                string regionFile = String.Format("{0}/{1}", regionsDir, cmd[3]);
-                // Allow absolute and relative specifiers
-                if (cmd[3].StartsWith("/") || cmd[3].StartsWith("\\") || cmd[3].StartsWith(".."))
-                    regionFile = cmd[3];
 
-                IScene scene;
-                RegionInfo regInfo = new RegionInfo(cmd[2], regionFile, false, ConfigSource.Source, cmd[2]);
-                PopulateRegionEstateInfo(regInfo);
-                CreateRegion(regInfo, true, out scene);
-                regInfo.EstateSettings.Save();
+	    RegionInfo regInfo;
+            if (isXml)
+            {
+		regInfo = new RegionInfo(regionName, regionFile, false, ConfigSource.Source);
             }
             else
             {
-                MainConsole.Instance.Output("Usage: create region <region name> <region_file.ini>");
-                return;
+		regInfo = new RegionInfo(regionName, regionFile, false, ConfigSource.Source, regionName);
             }
+            IScene scene;
+	    PopulateRegionEstateInfo(regInfo);
+    	    CreateRegion(regInfo, true, out scene);
+    	    regInfo.EstateSettings.Save();
         }
 
         /// <summary>

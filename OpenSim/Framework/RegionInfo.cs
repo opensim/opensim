@@ -393,7 +393,7 @@ namespace OpenSim.Framework
                 if (!File.Exists(filename)) // New region config request
                 {
                     IniConfigSource newFile = new IniConfigSource();
-                    ReadNiniConfig(newFile, String.Empty);
+                    ReadNiniConfig(newFile, configName);
 
                     newFile.Save(filename);
 
