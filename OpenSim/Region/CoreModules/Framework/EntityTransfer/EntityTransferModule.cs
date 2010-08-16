@@ -307,7 +307,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 string reason = String.Empty;
 
                 // Let's create an agent there if one doesn't exist yet. 
-                if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, out reason))
+                bool logout = false;
+                if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, out reason, out logout))
                 {
                     sp.ControllingClient.SendTeleportFailed(String.Format("Destination refused: {0}",
                                                                               reason));
@@ -434,7 +435,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
                 CrossAttachmentsIntoNewRegion(finalDestination, sp, true);
 
+                // Well, this is it. The agent is over there.
+
                 KillEntity(sp.Scene, sp.LocalId);
+
+                // May need to logout or other cleanup
+                AgentHasMovedAway(sp.ControllingClient.SessionId, logout);
 
                 // Now let's make it officially a child agent
                 sp.MakeChildAgent();
@@ -483,8 +489,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         }
 
-        protected virtual bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason)
+        protected virtual bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason, out bool logout)
         {
+            logout = false;
             return m_aScene.SimulationService.CreateAgent(finalDestination, agentCircuit, teleportFlags, out reason);
         }
 
@@ -498,6 +505,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             agent.CallbackURI = "http://" + region.ExternalHostName + ":" + region.HttpPort +
                 "/agent/" + agent.AgentID.ToString() + "/" + region.RegionID.ToString() + "/release/";
 
+        }
+
+        protected virtual void AgentHasMovedAway(UUID sessionID, bool logout)
+        {
         }
 
         protected void KillEntity(Scene scene, uint localID)

@@ -140,9 +140,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return false;
         }
 
-        protected override bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason)
+        protected override void AgentHasMovedAway(UUID sessionID, bool logout)
+        {
+            if (logout)
+                // Log them out of this grid
+                m_aScene.PresenceService.LogoutAgent(sessionID);
+        }
+
+        protected override bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason, out bool logout)
         {
             reason = string.Empty;
+            logout = false;
             int flags = m_aScene.GridService.GetRegionFlags(m_aScene.RegionInfo.ScopeID, reg.RegionID);
             if (flags == -1 /* no region in DB */ || (flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0)
             {
@@ -152,9 +160,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     string userAgentDriver = agentCircuit.ServiceURLs["HomeURI"].ToString();
                     IUserAgentService connector = new UserAgentServiceConnector(userAgentDriver);
                     bool success = connector.LoginAgentToGrid(agentCircuit, reg, finalDestination, out reason);
-                    if (success)
-                        // Log them out of this grid
-                        m_aScene.PresenceService.LogoutAgent(agentCircuit.SessionID);
+                    logout = success;
 
                     return success;
                 }
