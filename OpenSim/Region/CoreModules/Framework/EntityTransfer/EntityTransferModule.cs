@@ -317,6 +317,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 if (NeedsNewAgent(oldRegionX, newRegionX, oldRegionY, newRegionY))
                 {
+                    //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Creating agent...");
 
                     #region IP Translation for NAT
                     IClientIPEndpoint ipepClient;
@@ -394,6 +395,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 sp.CopyTo(agent);
                 agent.Position = position;
                 SetCallbackURL(agent, sp.Scene.RegionInfo);
+
+                //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Updating agent...");
 
                 if (!UpdateAgent(reg, finalDestination, agent))
                 {
