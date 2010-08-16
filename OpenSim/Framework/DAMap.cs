@@ -60,7 +60,8 @@ namespace OpenSim.Framework
         {            
             //System.Console.WriteLine("Trying to deserialize [{0}]", rawXml);
             
-            m_map = (OSDMap)OSDParser.DeserializeLLSDXml(rawXml);         
+            lock (this)
+                m_map = (OSDMap)OSDParser.DeserializeLLSDXml(rawXml);         
         }
         
         public void ReadXml(XmlReader reader)
@@ -70,7 +71,7 @@ namespace OpenSim.Framework
         
         public string ToXml()
         {
-            lock (m_map)
+            lock (this)
                 return OSDParser.SerializeLLSDXmlString(m_map);
         }
 
@@ -79,17 +80,17 @@ namespace OpenSim.Framework
             writer.WriteRaw(ToXml());
         }                             
         
-        public int Count { get { lock (m_map) { return m_map.Count; } } }
+        public int Count { get { lock (this) { return m_map.Count; } } }
         public bool IsReadOnly { get { return false; } }
-        public ICollection<string> Keys { get { lock (m_map) { return m_map.Keys; } } }
-        public ICollection<OSD> Values { get { lock (m_map) { return m_map.Values; } } }
+        public ICollection<string> Keys { get { lock (this) { return m_map.Keys; } } }
+        public ICollection<OSD> Values { get { lock (this) { return m_map.Values; } } }
         public OSD this[string key] 
         {    
             get  
             {                    
                 OSD llsd;
                 
-                lock (m_map)
+                lock (this)
                 {
                     if (m_map.TryGetValue(key, out llsd))
                         return llsd;
@@ -97,48 +98,48 @@ namespace OpenSim.Framework
                         return null;
                 }
             }    
-            set { lock (m_map) { m_map[key] = value; } }
+            set { lock (this) { m_map[key] = value; } }
         }    
 
         public bool ContainsKey(string key) 
         {    
-            lock (m_map)
+            lock (this)
                 return m_map.ContainsKey(key);
         }    
 
         public void Add(string key, OSD llsd)
         {    
-            lock (m_map)
+            lock (this)
                 m_map.Add(key, llsd);
         }    
 
         public void Add(KeyValuePair<string, OSD> kvp) 
         {    
-            lock (m_map)
+            lock (this)
                 m_map.Add(kvp.Key, kvp.Value);
         }    
 
         public bool Remove(string key) 
         {    
-            lock (m_map)
+            lock (this)
                 return m_map.Remove(key);
         }    
 
         public bool TryGetValue(string key, out OSD llsd)
         {    
-            lock (m_map)
+            lock (this)
                 return m_map.TryGetValue(key, out llsd);
         }    
 
         public void Clear()
         {
-            lock (m_map)
+            lock (this)
                 m_map.Clear();
         }  
         
         public bool Contains(KeyValuePair<string, OSD> kvp)
         {
-            lock (m_map)
+            lock (this)
                 return m_map.ContainsKey(kvp.Key);
         }
 
@@ -149,13 +150,13 @@ namespace OpenSim.Framework
 
         public bool Remove(KeyValuePair<string, OSD> kvp)
         {
-            lock (m_map)
+            lock (this)
                 return m_map.Remove(kvp.Key);
         }
 
         public System.Collections.IDictionaryEnumerator GetEnumerator()
         {
-            lock (m_map)
+            lock (this)
                 return m_map.GetEnumerator();
         }
 
@@ -166,7 +167,7 @@ namespace OpenSim.Framework
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            lock (m_map)
+            lock (this)
                 return m_map.GetEnumerator();
         }        
     }
