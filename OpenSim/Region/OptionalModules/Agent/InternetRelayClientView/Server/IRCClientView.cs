@@ -1035,7 +1035,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void SendTeleportLocationStart()
+        public void SendTeleportStart(uint flags)
         {
             
         }

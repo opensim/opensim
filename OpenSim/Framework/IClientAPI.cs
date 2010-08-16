@@ -1011,7 +1011,7 @@ namespace OpenSim.Framework
                                 uint flags, string capsURL);
 
         void SendTeleportFailed(string reason);
-        void SendTeleportLocationStart();
+        void SendTeleportStart(uint flags);
         void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance);
         void SendPayPrice(UUID objectID, int[] payPrice);
 

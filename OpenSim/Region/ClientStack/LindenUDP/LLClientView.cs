@@ -1432,14 +1432,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         ///
         /// </summary>
-        public void SendTeleportLocationStart()
+        public void SendTeleportStart(uint flags)
         {
-            //TeleportStartPacket tpStart = (TeleportStartPacket)PacketPool.Instance.GetPacket(PacketType.TeleportStart);
-            TeleportStartPacket tpStart = new TeleportStartPacket();
-            tpStart.Info.TeleportFlags = 16; // Teleport via location
+            TeleportStartPacket tpStart = (TeleportStartPacket)PacketPool.Instance.GetPacket(PacketType.TeleportStart);
+            //TeleportStartPacket tpStart = new TeleportStartPacket();
+            tpStart.Info.TeleportFlags = flags; //16; // Teleport via location
 
             // Hack to get this out immediately and skip throttles
             OutPacket(tpStart, ThrottleOutPacketType.Unknown);
+        }
+
+        public void SendTeleportProgress(uint flags, string message)
+        {
+            TeleportProgressPacket tpProgress = (TeleportProgressPacket)PacketPool.Instance.GetPacket(PacketType.TeleportProgress);
+            tpProgress.AgentData.AgentID = this.AgentId;
+            tpProgress.Info.TeleportFlags = flags;
+            tpProgress.Info.Message = Util.StringToBytes256(message);
+
+            // Hack to get this out immediately and skip throttles
+            OutPacket(tpProgress, ThrottleOutPacketType.Unknown);
         }
 
         public void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance)

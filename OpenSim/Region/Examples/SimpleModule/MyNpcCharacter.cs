@@ -520,7 +520,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public virtual void SendTeleportLocationStart()
+        public virtual void SendTeleportStart(uint flags)
         {
         }
 

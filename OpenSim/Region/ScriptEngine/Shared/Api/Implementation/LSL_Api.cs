@@ -4070,7 +4070,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (m_host.OwnerID == World.LandChannel.GetLandObject(
                             presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
                     {
-                        presence.ControllingClient.SendTeleportLocationStart();
                         World.TeleportClientHome(agentId, presence.ControllingClient);
                     }
                 }
