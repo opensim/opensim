@@ -259,7 +259,16 @@ namespace OpenSim.Services.HypergridService
             if (account == null && !aCircuit.lastname.StartsWith("@"))
             {
                 aCircuit.firstname = aCircuit.firstname + "." + aCircuit.lastname;
-                aCircuit.lastname = "@" + aCircuit.ServiceURLs["HomeURI"].ToString();
+                try
+                {
+                    Uri uri = new Uri(aCircuit.ServiceURLs["HomeURI"].ToString());
+                    aCircuit.lastname = "@" + uri.Host; // + ":" + uri.Port;
+                }
+                catch
+                {
+                    m_log.WarnFormat("[GATEKEEPER SERVICE]: Malformed HomeURI (this should never happen): {0}", aCircuit.ServiceURLs["HomeURI"]);
+                    aCircuit.lastname = "@" + aCircuit.ServiceURLs["HomeURI"].ToString();
+                }
             }
 
             //
