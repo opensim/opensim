@@ -202,7 +202,7 @@ namespace OpenSim.Data.MySQL
                                     "?SaleType, ?ColorR, ?ColorG, " +
                                     "?ColorB, ?ColorA, ?ParticleSystem, " +
                                     "?ClickAction, ?Material, ?CollisionSound, " +
-                                    "?CollisionSoundVolume, ?PassTouches, ?LinkNumber, ?MediaURL)";
+                                    "?CollisionSoundVolume, ?PassTouches, ?LinkNumber, ?MediaURL, ?DynAttrs)";
     
                             FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
     
@@ -230,7 +230,7 @@ namespace OpenSim.Data.MySQL
                                     "?PathTwistBegin, ?ProfileBegin, " +
                                     "?ProfileEnd, ?ProfileCurve, " +
                                     "?ProfileHollow, ?Texture, ?ExtraParams, " +
-                                    "?State, ?Media)";
+                                    "?State, ?Media, ?DynAttrs)";
     
                             FillShapeCommand(cmd, prim);
     
@@ -1291,6 +1291,11 @@ namespace OpenSim.Data.MySQL
             
             if (!(row["MediaURL"] is System.DBNull))
                 prim.MediaUrl = (string)row["MediaURL"];
+            
+            if (!(row["DynAttrs"] is System.DBNull))
+                prim.DynAttrs = DynAttrsOSDMap.FromXml((string)row["DynAttrs"]);
+            else
+                prim.DynAttrs = new DynAttrsOSDMap();        
 
             return prim;
         }
@@ -1637,6 +1642,7 @@ namespace OpenSim.Data.MySQL
 
             cmd.Parameters.AddWithValue("LinkNumber", prim.LinkNum);
             cmd.Parameters.AddWithValue("MediaURL", prim.MediaUrl);
+            cmd.Parameters.AddWithValue("DynAttrs", prim.DynAttrs.ToXml());
         }
 
         /// <summary>
@@ -1829,6 +1835,11 @@ namespace OpenSim.Data.MySQL
             
             if (!(row["Media"] is System.DBNull))
                 s.Media = PrimitiveBaseShape.MediaList.FromXml((string)row["Media"]);
+            
+            if (!(row["DynAttrs"] is System.DBNull))
+                s.DynAttrs = DynAttrsOSDMap.FromXml((string)row["DynAttrs"]);            
+            else
+                s.DynAttrs = new DynAttrsOSDMap();             
 
             return s;
         }
@@ -1873,6 +1884,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("ExtraParams", s.ExtraParams);
             cmd.Parameters.AddWithValue("State", s.State);
             cmd.Parameters.AddWithValue("Media", null == s.Media ? null : s.Media.ToXml());
+            cmd.Parameters.AddWithValue("DynAttrs", s.DynAttrs.ToXml());
         }
 
         public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)

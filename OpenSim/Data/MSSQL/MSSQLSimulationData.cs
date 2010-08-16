@@ -351,7 +351,7 @@ IF EXISTS (SELECT UUID FROM prims WHERE UUID = @UUID)
             ScriptAccessPin = @ScriptAccessPin, AllowedDrop = @AllowedDrop, DieAtEdge = @DieAtEdge, SalePrice = @SalePrice, 
             SaleType = @SaleType, ColorR = @ColorR, ColorG = @ColorG, ColorB = @ColorB, ColorA = @ColorA, ParticleSystem = @ParticleSystem, 
             ClickAction = @ClickAction, Material = @Material, CollisionSound = @CollisionSound, CollisionSoundVolume = @CollisionSoundVolume, PassTouches = @PassTouches,
-            LinkNumber = @LinkNumber, MediaURL = @MediaURL
+            LinkNumber = @LinkNumber, MediaURL = @MediaURL, DynAttrs = @DynAttrs
         WHERE UUID = @UUID
     END
 ELSE
@@ -366,7 +366,7 @@ ELSE
             PayPrice, PayButton1, PayButton2, PayButton3, PayButton4, LoopedSound, LoopedSoundGain, TextureAnimation, OmegaX, 
             OmegaY, OmegaZ, CameraEyeOffsetX, CameraEyeOffsetY, CameraEyeOffsetZ, CameraAtOffsetX, CameraAtOffsetY, CameraAtOffsetZ, 
             ForceMouselook, ScriptAccessPin, AllowedDrop, DieAtEdge, SalePrice, SaleType, ColorR, ColorG, ColorB, ColorA, 
-            ParticleSystem, ClickAction, Material, CollisionSound, CollisionSoundVolume, PassTouches, LinkNumber, MediaURL
+            ParticleSystem, ClickAction, Material, CollisionSound, CollisionSoundVolume, PassTouches, LinkNumber, MediaURL, DynAttrs
             ) VALUES (
             @UUID, @CreationDate, @Name, @Text, @Description, @SitName, @TouchName, @ObjectFlags, @OwnerMask, @NextOwnerMask, @GroupMask, 
             @EveryoneMask, @BaseMask, @PositionX, @PositionY, @PositionZ, @GroupPositionX, @GroupPositionY, @GroupPositionZ, @VelocityX, 
@@ -376,7 +376,7 @@ ELSE
             @PayPrice, @PayButton1, @PayButton2, @PayButton3, @PayButton4, @LoopedSound, @LoopedSoundGain, @TextureAnimation, @OmegaX, 
             @OmegaY, @OmegaZ, @CameraEyeOffsetX, @CameraEyeOffsetY, @CameraEyeOffsetZ, @CameraAtOffsetX, @CameraAtOffsetY, @CameraAtOffsetZ, 
             @ForceMouselook, @ScriptAccessPin, @AllowedDrop, @DieAtEdge, @SalePrice, @SaleType, @ColorR, @ColorG, @ColorB, @ColorA, 
-            @ParticleSystem, @ClickAction, @Material, @CollisionSound, @CollisionSoundVolume, @PassTouches, @LinkNumber, @MediaURL
+            @ParticleSystem, @ClickAction, @Material, @CollisionSound, @CollisionSoundVolume, @PassTouches, @LinkNumber, @MediaURL, @DynAttrs
             )
     END";
 
@@ -409,7 +409,7 @@ IF EXISTS (SELECT UUID FROM primshapes WHERE UUID = @UUID)
             PathSkew = @PathSkew, PathCurve = @PathCurve, PathRadiusOffset = @PathRadiusOffset, PathRevolutions = @PathRevolutions, 
             PathTaperX = @PathTaperX, PathTaperY = @PathTaperY, PathTwist = @PathTwist, PathTwistBegin = @PathTwistBegin, 
             ProfileBegin = @ProfileBegin, ProfileEnd = @ProfileEnd, ProfileCurve = @ProfileCurve, ProfileHollow = @ProfileHollow, 
-            Texture = @Texture, ExtraParams = @ExtraParams, State = @State, Media = @Media
+            Texture = @Texture, ExtraParams = @ExtraParams, State = @State, Media = @Media, DynAttrs = @DynAttrs
         WHERE UUID = @UUID
     END
 ELSE
@@ -418,11 +418,11 @@ ELSE
             primshapes (
             UUID, Shape, ScaleX, ScaleY, ScaleZ, PCode, PathBegin, PathEnd, PathScaleX, PathScaleY, PathShearX, PathShearY, 
             PathSkew, PathCurve, PathRadiusOffset, PathRevolutions, PathTaperX, PathTaperY, PathTwist, PathTwistBegin, ProfileBegin, 
-            ProfileEnd, ProfileCurve, ProfileHollow, Texture, ExtraParams, State, Media
+            ProfileEnd, ProfileCurve, ProfileHollow, Texture, ExtraParams, State, Media, DynAttrs
             ) VALUES (
             @UUID, @Shape, @ScaleX, @ScaleY, @ScaleZ, @PCode, @PathBegin, @PathEnd, @PathScaleX, @PathScaleY, @PathShearX, @PathShearY, 
             @PathSkew, @PathCurve, @PathRadiusOffset, @PathRevolutions, @PathTaperX, @PathTaperY, @PathTwist, @PathTwistBegin, @ProfileBegin, 
-            @ProfileEnd, @ProfileCurve, @ProfileHollow, @Texture, @ExtraParams, @State, @Media
+            @ProfileEnd, @ProfileCurve, @ProfileHollow, @Texture, @ExtraParams, @State, @Media, @DynAttrs
             )
     END";
 
@@ -1691,6 +1691,11 @@ VALUES
 
             if (!(primRow["MediaURL"] is System.DBNull))
                 prim.MediaUrl = (string)primRow["MediaURL"];
+            
+            if (!(primRow["DynAttrs"] is System.DBNull))
+                prim.DynAttrs = DynAttrsOSDMap.FromXml((string)primRow["DynAttrs"]);
+            else
+                prim.DynAttrs = new DynAttrsOSDMap();             
 
             return prim;
         }
@@ -1749,6 +1754,10 @@ VALUES
                 baseShape.Media = PrimitiveBaseShape.MediaList.FromXml((string)shapeRow["Media"]);
             }
 
+            if (!(shapeRow["DynAttrs"] is System.DBNull))
+                baseShape.DynAttrs = DynAttrsOSDMap.FromXml((string)shapeRow["DynAttrs"]);            
+            else
+                baseShape.DynAttrs = new DynAttrsOSDMap();             
 
             return baseShape;
         }
@@ -2086,6 +2095,7 @@ VALUES
                 parameters.Add(_Database.CreateParameter("PassTouches", 0));
             parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));
             parameters.Add(_Database.CreateParameter("MediaURL", prim.MediaUrl));
+            parameters.Add(_Database.CreateParameter("DynAttrs", prim.DynAttrs.ToXml()));
 
             return parameters.ToArray();
         }
@@ -2143,6 +2153,7 @@ VALUES
                 parameters.Add(_Database.CreateParameter("Media", s.Media.ToXml()));
             }
 
+            parameters.Add(_Database.CreateParameter("DynAttrs", s.DynAttrs.ToXml()));
 
             return parameters.ToArray();
         }

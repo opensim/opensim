@@ -902,3 +902,12 @@ BEGIN;
 CREATE TABLE `regionextra` (`RegionID` char(36) not null, `Name` varchar(32) not null, `value` text, primary key(`RegionID`, `Name`));
 
 COMMIT;
+
+:VERSION 46       #---------------- Dynamic attributes
+
+BEGIN;
+
+ALTER TABLE prims ADD COLUMN DynAttrs TEXT;
+ALTER TABLE primshapes ADD COLUMN DynAttrs TEXT;
+
+COMMIT;
