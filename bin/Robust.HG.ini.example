@@ -1,14 +1,24 @@
-;; Configurations for enabling HG1.5
-;; 
-;; Run
-;; $ Robust.exe -inifile Robust.HG.ini
-
-;; HG1.5 handlers are: OpenSim.Server.Handlers.dll:GatekeeperService
-;;                     OpenSim.Server.Handlers.dll:UserAgentService
-;; Additional OpenSim.Server.Handlers.dll:AssetServiceConnector and 
-;;            OpenSim.Server.Handlers.dll:XInventoryInConnector 
-;; are started in port 8002, outside the firewall
-;;
+; * Run
+; * $ Robust.exe -inifile Robust.HG.ini
+; *
+; * Configurations for enabling HG1.5
+; * 
+; * HG1.5 handlers are: OpenSim.Server.Handlers.dll:GatekeeperService
+; *                     OpenSim.Server.Handlers.dll:UserAgentService
+; * Additional OpenSim.Server.Handlers.dll:AssetServiceConnector and 
+; *            OpenSim.Server.Handlers.dll:XInventoryInConnector 
+; * are started in port 8002, outside the firewall
+; *
+; * The startup section lists all the connectors to start up in this server
+; * instance. This may be only one, or it may be the entire server suite.
+; * Multiple connectors should be separated by commas.
+; *
+; * These are the IN connectors the server uses, the in connectors
+; * read this config file and load the needed service and database connectors
+; *
+; * The full syntax of a connector string is:
+; * [[<ConfigName>@]<port>/]<class name>[:<dll name>]
+; *
 
 [Startup]
 ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector,8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector,HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector,8002/OpenSim.Server.Handlers.dll:AssetServiceConnector"
@@ -52,10 +62,10 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 ; *
 [GridService]
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
-    Realm = "regions"
+    ; Realm = "regions"
     ; AllowDuplicateNames = "True"
     ; Check4096 = "False"
-    
+
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegionName> = "<flags>"
     ;; or:            Region_<RegionID> = "<flags>"
@@ -70,12 +80,13 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 
 ; * This is the new style authentication service. Currently, only MySQL
 ; * is implemented. "Realm" is the table that is used for user lookup.
-; * By setting it to "users", you can use the old style users table
-; * as an authentication source.
+; * It defaults to "useraccounts", which uses the new style.
+; * Realm = "users" will use the legacy tables as an authentication source
 ; *
 [AuthenticationService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
+    ; Realm = "useraccounts"
 
 [OpenIdService]
     ; for the server connector
@@ -89,12 +100,12 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [UserAccountService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
-    ;; These are for creating new accounts by the service
+    ; Realm = "users"
+    ; These are for creating new accounts by the service
     AuthenticationService = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
     PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
     GridService = "OpenSim.Services.GridService.dll:GridService"
     InventoryService = "OpenSim.Services.InventoryService.dll:XInventoryService"
-
 [GridUserService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.UserAccountService.dll:GridUserService"
@@ -131,7 +142,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
     FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
 
-    WelcomeMessage = "Welcome, Avatar!"
+    WelcomeMessage = "Welcome to OpenSim!"
     AllowRemoteSetLoginLevel = "false"
     
     ; Defaults for the users, if none is specified in the useraccounts table entry (ServiceURLs)
@@ -186,7 +197,6 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; currently unused
     ;password = http://127.0.0.1/password
 
-
 [GatekeeperService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:GatekeeperService"
     ;; for the service
@@ -200,9 +210,9 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; CHANGE THIS
     ExternalName = "http://127.0.0.1:8002"
 
-	; Does this grid allow incoming links to any region in it? 
-	; If false, HG TPs happen only to the  Default regions specified in [GridService] section
-	AllowTeleportsToAnyRegion = true
+    ; Does this grid allow incoming links to any region in it? 
+    ; If false, HG TPs happen only to the Default regions specified in [GridService] section
+    AllowTeleportsToAnyRegion = true
 
 [UserAgentService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:UserAgentService"
@@ -211,12 +221,12 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     GridService = "OpenSim.Services.GridService.dll:GridService"
     GatekeeperService = "OpenSim.Services.HypergridService.dll:GatekeeperService"
 
-;; The interface that local users get when they are in other grids.
-;; This restricts the inventory operations while in other grids.
-;; Still not completely safe, especially if users perform inventory operations 
-;; while in those grids. The more the user accesses his/her inventory, the more
-;; those simulators will know about the user's inventory.
+; * The interface that local users get when they are in other grids.
+; * This restricts the inventory operations while in other grids.
+; * Still not completely safe, especially if users perform inventory operations 
+; * while in those grids. The more the user accesses his/her inventory, the more
+; * those simulators will know about the user's inventory.
+; * 
 [HGInventoryService]
     ; For the InventoryServiceInConnector
-    LocalServiceModule    = "OpenSim.Services.InventoryService.dll:HGInventoryService"
-
+    LocalServiceModule = "OpenSim.Services.InventoryService.dll:HGInventoryService"
