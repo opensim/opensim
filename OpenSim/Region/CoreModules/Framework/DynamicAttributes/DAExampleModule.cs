@@ -76,7 +76,7 @@ namespace OpenSim.Region.Framework.DynamicAttributes.DAExampleModule
         protected bool OnSceneGroupMove(UUID groupId, Vector3 delta)
         {
             SceneObjectPart sop = m_scene.GetSceneObjectPart(groupId);
-            OSDMap attrs = sop.DynAttrs;
+            DAMap attrs = sop.DynAttrs;
             
             lock (attrs)
             {

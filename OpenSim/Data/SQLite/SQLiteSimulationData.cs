@@ -1718,11 +1718,11 @@ namespace OpenSim.Data.SQLite
             if (!(row["DynAttrs"] is System.DBNull))
             {
                 //m_log.DebugFormat("[SQLITE]: DynAttrs type [{0}]", row["DynAttrs"].GetType());
-                prim.DynAttrs = DynAttrsOSDMap.FromXml((string)row["DynAttrs"]);
+                prim.DynAttrs = DAMap.FromXml((string)row["DynAttrs"]);
             }   
             else
             {
-                prim.DynAttrs = new DynAttrsOSDMap();
+                prim.DynAttrs = new DAMap();
             }
 
             return prim;
@@ -2408,9 +2408,9 @@ namespace OpenSim.Data.SQLite
                 s.Media = PrimitiveBaseShape.MediaList.FromXml((string)row["Media"]);
 
             if (!(row["DynAttrs"] is System.DBNull))
-                s.DynAttrs = DynAttrsOSDMap.FromXml((string)row["DynAttrs"]);            
+                s.DynAttrs = DAMap.FromXml((string)row["DynAttrs"]);            
             else
-                s.DynAttrs = new DynAttrsOSDMap();                
+                s.DynAttrs = new DAMap();                
                         
             return s;
         }
