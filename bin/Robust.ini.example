@@ -1,14 +1,17 @@
+; * Run
+; * $ Robust.exe -inifile Robust.ini
+; *
 ; * The startup section lists all the connectors to start up in this server
 ; * instance. This may be only one, or it may be the entire server suite.
-; * Multiple connectors should be seaprated by commas.
-; * The startup section lists all the connectors to start up in this server
-; * instance. This may be only one, or it may be the entire server suite.
-; * Multiple connectors should be seaprated by commas.
+; * Multiple connectors should be separated by commas.
 ; *
 ; * These are the IN connectors the server uses, the in connectors
 ; * read this config file and load the needed service and database connectors
 ; *
+; *  The full syntax of a connector string is:
+; * [[<ConfigName>@]<port>/]<class name>[:<dll name>]
 ; *
+
 [Startup]
 
 ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
@@ -29,7 +32,6 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [DatabaseService]
     StorageProvider = "OpenSim.Data.MySQL.dll"
     ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;"
-
 
 ; * As an example, the below configuration precisely mimicks the legacy
 ; * asset server. It is read by the asset IN connector (defined above)
@@ -54,7 +56,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 ; *
 [GridService]
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
-    Realm = "regions"
+    ; Realm = "regions"
     ; AllowDuplicateNames = "True"
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegionName> = "<flags>"
@@ -70,8 +72,8 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 
 ; * This is the new style authentication service. Currently, only MySQL
 ; * is implemented. "Realm" is the table that is used for user lookup.
-; * By setting it to "users", you can use the old style users table
-; * as an authentication source.
+; * It defaults to "users", which uses the legacy tables as an
+; * authentication source.
 ; *
 [AuthenticationService]
     ; for the server connector
@@ -82,9 +84,10 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
     UserAccountServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
 	
-; * This is the new style user service.
-; * "Realm" is the table that is used for user lookup.
-; * It defaults to "users", which uses the legacy tables
+; * This is the new style authentication service. Currently, only MySQL
+; * is implemented. "Realm" is the table that is used for user lookup.
+; * It defaults to "useraccounts", which uses the new style.
+; * Realm = "users" will use the legacy tables as an authentication source
 ; *
 [UserAccountService]
     ; for the server connector
