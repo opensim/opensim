@@ -578,6 +578,11 @@ namespace OpenSim.Client.Sirikata.ClientStack
             throw new System.NotImplementedException();
         }
 
+        public void SendTeleportProgress(uint flags, string message)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance)
         {
             throw new System.NotImplementedException();

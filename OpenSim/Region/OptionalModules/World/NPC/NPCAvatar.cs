@@ -615,6 +615,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
+        public virtual void SendTeleportProgress(uint flags, string message)
+        {
+        }
+
         public virtual void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance)
         {
         }

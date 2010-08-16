@@ -618,6 +618,10 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
+        public void SendTeleportProgress(uint flags, string message)
+        {
+        }
+
         public virtual void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance)
         {
         }
