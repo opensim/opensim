@@ -147,12 +147,12 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
         }
 
-        private bool OnVerifyUserConnection(ScenePresence scenePresence, out string reason)
-        {
-            ILandObject nearestParcel = m_scene.GetNearestAllowedParcel(scenePresence.UUID, scenePresence.AbsolutePosition.X, scenePresence.AbsolutePosition.Y);
-            reason = "You are not allowed to enter this sim.";
-            return nearestParcel != null;
-        }
+//        private bool OnVerifyUserConnection(ScenePresence scenePresence, out string reason)
+//        {
+//            ILandObject nearestParcel = m_scene.GetNearestAllowedParcel(scenePresence.UUID, scenePresence.AbsolutePosition.X, scenePresence.AbsolutePosition.Y);
+//            reason = "You are not allowed to enter this sim.";
+//            return nearestParcel != null;
+//        }
 
         void EventManagerOnNewClient(IClientAPI client)
         {

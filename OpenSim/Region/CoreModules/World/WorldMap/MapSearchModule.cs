@@ -138,14 +138,14 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             remoteClient.SendMapBlock(blocks, 2);
         }
 
-        private Scene GetClientScene(IClientAPI client)
-        {
-            foreach (Scene s in m_scenes)
-            {
-                if (client.Scene.RegionInfo.RegionHandle == s.RegionInfo.RegionHandle)
-                    return s;
-            }
-            return m_scene;
-        }
+//        private Scene GetClientScene(IClientAPI client)
+//        {
+//            foreach (Scene s in m_scenes)
+//            {
+//                if (client.Scene.RegionInfo.RegionHandle == s.RegionInfo.RegionHandle)
+//                    return s;
+//            }
+//            return m_scene;
+//        }
     }
 }

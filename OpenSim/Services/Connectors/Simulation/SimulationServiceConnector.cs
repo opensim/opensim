@@ -257,7 +257,7 @@ namespace OpenSim.Services.Connectors.Simulation
             HttpWebRequest ChildUpdateRequest = (HttpWebRequest)WebRequest.Create(uri);
             ChildUpdateRequest.Method = "PUT";
             ChildUpdateRequest.ContentType = "application/json";
-            ChildUpdateRequest.Timeout = 10000;
+            ChildUpdateRequest.Timeout = 30000;
             //ChildUpdateRequest.KeepAlive = false;
 
             // Fill it in
@@ -334,7 +334,7 @@ namespace OpenSim.Services.Connectors.Simulation
             }
             catch (WebException ex)
             {
-                m_log.InfoFormat("[REMOTE SIMULATION CONNECTOR]: exception on reply of ChilAgentUpdate {0}", ex.Message);
+                m_log.InfoFormat("[REMOTE SIMULATION CONNECTOR]: exception on reply of ChilAgentUpdate from {0}: {1}", uri, ex.Message);
                 // ignore, really
             }
             finally

@@ -54,12 +54,10 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
         }
 
         private static byte[] uintToByteArray(uint uIntValue)
-        {
-            byte[] resultbytes = Utils.UIntToBytes(uIntValue);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(resultbytes);
-
-            return resultbytes;
+        {   
+            byte[] result = new byte[4];
+            Utils.UIntToBytesBig(uIntValue, result, 0);
+            return result;
         }
 
         public static OSD buildEvent(string eventName, OSD eventBody)
@@ -160,7 +158,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             info.Add("SimAccess", OSD.FromInteger(simAccess));
             info.Add("SimIP", OSD.FromBinary(regionExternalEndPoint.Address.GetAddressBytes()));
             info.Add("SimPort", OSD.FromInteger(regionExternalEndPoint.Port));
-            info.Add("TeleportFlags", OSD.FromBinary(1L << 4)); // AgentManager.TeleportFlags.ViaLocation
+            info.Add("TeleportFlags", OSD.FromULong(1L << 4)); // AgentManager.TeleportFlags.ViaLocation
 
             OSDArray infoArr = new OSDArray();
             infoArr.Add(info);

@@ -1081,7 +1081,7 @@ namespace OpenSim.Data.MySQL
             prim.SitName = (string)row["SitName"];
             prim.TouchName = (string)row["TouchName"];
             // Permissions
-            prim.ObjectFlags = (uint)(int)row["ObjectFlags"];
+            prim.Flags = (PrimFlags)(int)row["ObjectFlags"];
             prim.OwnerMask = (uint)(int)row["OwnerMask"];
             prim.NextOwnerMask = (uint)(int)row["NextOwnerMask"];
             prim.GroupMask = (uint)(int)row["GroupMask"];
@@ -1414,7 +1414,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("SitName", prim.SitName);
             cmd.Parameters.AddWithValue("TouchName", prim.TouchName);
             // permissions
-            cmd.Parameters.AddWithValue("ObjectFlags", prim.ObjectFlags);
+            cmd.Parameters.AddWithValue("ObjectFlags", (uint)prim.Flags);
             cmd.Parameters.AddWithValue("CreatorID", prim.CreatorID.ToString());
             cmd.Parameters.AddWithValue("OwnerID", prim.OwnerID.ToString());
             cmd.Parameters.AddWithValue("GroupID", prim.GroupID.ToString());
