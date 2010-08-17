@@ -3033,7 +3033,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
              {
                  OSDMap GroupDataMap = new OSDMap(6);
                  OSDMap NewGroupDataMap = new OSDMap(1);
-                 GroupDataMap.Add("GroupPowers", OSD.FromBinary(m.GroupPowers));
+                 GroupDataMap.Add("GroupPowers", OSD.FromULong(m.GroupPowers));
                  GroupDataMap.Add("AcceptNotices", OSD.FromBoolean(m.AcceptNotices));
                  GroupDataMap.Add("GroupTitle", OSD.FromString(m.GroupTitle));
                  GroupDataMap.Add("GroupID", OSD.FromUUID(m.GroupID));
