@@ -579,7 +579,12 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
             throw new System.NotImplementedException();
         }
 
-        public void SendTeleportLocationStart()
+        public void SendTeleportStart(uint flags)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void SendTeleportProgress(uint flags, string message)
         {
             throw new System.NotImplementedException();
         }

@@ -343,7 +343,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         {
                             if (!s.IsChildAgent)
                             {
-                                s.ControllingClient.SendTeleportLocationStart();
                                 m_scene.TeleportClientHome(user, s.ControllingClient);
                             }
                         }
@@ -478,7 +477,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 ScenePresence s = m_scene.GetScenePresence(prey);
                 if (s != null)
                 {
-                    s.ControllingClient.SendTeleportLocationStart(); 
                     m_scene.TeleportClientHome(prey, s.ControllingClient);
                 }
             }
@@ -498,7 +496,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     // Also make sure they are actually in the region
                     if (p != null && !p.IsChildAgent)
                     {
-                        p.ControllingClient.SendTeleportLocationStart();
                         m_scene.TeleportClientHome(p.UUID, p.ControllingClient);
                     }
                 }

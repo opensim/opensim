@@ -614,7 +614,11 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public virtual void SendTeleportLocationStart()
+        public virtual void SendTeleportStart(uint flags)
+        {
+        }
+
+        public void SendTeleportProgress(uint flags, string message)
         {
         }
 

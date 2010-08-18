@@ -174,9 +174,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         position.Z = newPosZ;
                     }
 
-                    // Only send this if the event queue is null
-                    if (eq == null)
-                        sp.ControllingClient.SendTeleportLocationStart();
+                    sp.ControllingClient.SendTeleportStart(teleportFlags);
 
                     sp.ControllingClient.SendLocalTeleport(position, lookAt, teleportFlags);
                     sp.Teleport(position);
@@ -257,9 +255,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             ulong destinationHandle = finalDestination.RegionHandle;
 
-            if (eq == null)
-                sp.ControllingClient.SendTeleportLocationStart();
-
             // Let's do DNS resolution only once in this process, please!
             // This may be a costly operation. The reg.ExternalEndPoint field is not a passive field,
             // it's actually doing a lot of work.
@@ -276,6 +271,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.ControllingClient.SendTeleportFailed("Inconsistent attachment state");
                     return;
                 }
+
+                sp.ControllingClient.SendTeleportStart(teleportFlags);
 
                 // the avatar.Close below will clear the child region list. We need this below for (possibly)
                 // closing the child agents, so save it here (we need a copy as it is Clear()-ed).
@@ -320,6 +317,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 if (NeedsNewAgent(oldRegionX, newRegionX, oldRegionY, newRegionY))
                 {
+                    //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Creating agent...");
+
                     #region IP Translation for NAT
                     IClientIPEndpoint ipepClient;
                     if (sp.ClientView.TryGet(out ipepClient))
@@ -396,6 +395,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 sp.CopyTo(agent);
                 agent.Position = position;
                 SetCallbackURL(agent, sp.Scene.RegionInfo);
+
+                //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Updating agent...");
 
                 if (!UpdateAgent(reg, finalDestination, agent))
                 {

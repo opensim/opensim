@@ -611,7 +611,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public virtual void SendTeleportLocationStart()
+        public virtual void SendTeleportStart(uint flags)
+        {
+        }
+
+        public virtual void SendTeleportProgress(uint flags, string message)
         {
         }
 
