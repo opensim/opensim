@@ -35,3 +35,25 @@ A few of the wood textures were created by me using Wood Workshop. These I donat
     The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+6. From Second Life(TM) Viewer Artwork.  Copyright (C) 2008 Linden Research, Inc.
+
+Linden Research, Inc. ("Linden Lab") licenses the Second Life viewer
+artwork and  other works in the files distributed with this Notice under
+the Creative Commons Attribution-Share Alike 3.0 License, available at 
+http://creativecommons.org/licenses/by- sa/3.0/legalcode.  For the license
+summary, see http://creativecommons.org/licenses/by-sa/3.0/.
+
+Notwithstanding the foregoing, all of Linden Lab's trademarks, including
+but not limited to  the Second Life brand name and Second Life Eye-in-Hand
+logo, are subject to our trademark policy at
+http://secondlife.com/corporate/trademark/.
+
+If you distribute any copies or adaptations  of the Second Life viewer
+artwork or any other works in these files, you must include this Notice
+and clearly identify any changes made to the original works.  Include
+this Notice and  information where copyright notices are usually included,
+for example, after your own copyright notice acknowledging your use of
+the Second Life viewer artwork, in a text file distributed  with your
+program, in your application's About window, or on a credits page for
+your work.
