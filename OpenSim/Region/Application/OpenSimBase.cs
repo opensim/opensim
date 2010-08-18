@@ -395,9 +395,13 @@ namespace OpenSim
                 scene.SnmpService.BootInfo("Creating region texture", scene);
             }
 
-            // moved these here as the terrain texture has to be created after the modules are initialized
+            // moved these here as the map texture has to be created after the modules are initialized
             // and has to happen before the region is registered with the grid.
-            scene.CreateTerrainTexture();
+            IWorldMapModule mapModule = scene.RequestModuleInterface<IWorldMapModule>();
+            if (mapModule != null)
+                mapModule.GenerateMaptile();
+            else
+                m_log.WarnFormat("[STARTUP]: No map module available to generate map tile");
             
             // TODO : Try setting resource for region xstats here on scene
             MainServer.Instance.AddStreamHandler(new Region.Framework.Scenes.RegionStatsHandler(regionInfo)); 
@@ -866,6 +870,60 @@ namespace OpenSim
         public void GetRegionNumber(out int regionnum)
         {
             regionnum = m_sceneManager.Scenes.Count;
+        }
+        
+        /// <summary>
+        /// Load the estate information for the provided RegionInfo object.
+        /// </summary>
+        /// <param name="regInfo">
+        /// A <see cref="RegionInfo"/>
+        /// </param>
+        public void PopulateRegionEstateInfo(RegionInfo regInfo)
+        {
+            if (m_storageManager.EstateDataStore != null)
+            {
+                regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(regInfo.RegionID, false);
+            }
+            
+            if (regInfo.EstateSettings.EstateID == 0) // No record at all
+            {
+                MainConsole.Instance.Output("Your region is not part of an estate.");
+                while (true)
+                {
+                    string response = MainConsole.Instance.CmdPrompt("Do you wish to join an existing estate?", "no", new List<string>() {"yes", "no"});
+                    if (response == "no")
+                    {
+                        // Create a new estate
+                        regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(regInfo.RegionID, true);
+
+                        regInfo.EstateSettings.EstateName = MainConsole.Instance.CmdPrompt("New estate name", regInfo.EstateSettings.EstateName);
+                        //regInfo.EstateSettings.Save();
+                        break;
+                    }
+                    else
+                    {
+                        response = MainConsole.Instance.CmdPrompt("Estate name to join", "None");
+                        if (response == "None")
+                            continue;
+
+                        List<int> estateIDs = m_storageManager.EstateDataStore.GetEstates(response);
+                        if (estateIDs.Count < 1)
+                        {
+                            MainConsole.Instance.Output("The name you have entered matches no known estate. Please try again");
+                            continue;
+                        }
+
+                        int estateID = estateIDs[0];
+
+                        regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(estateID);
+
+                        if (m_storageManager.EstateDataStore.LinkRegion(regInfo.RegionID, estateID))
+                            break;
+
+                        MainConsole.Instance.Output("Joining the estate failed. Please try again.");
+                    }
+                }
+            }
         }
     }
 

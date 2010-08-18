@@ -1129,7 +1129,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 OSDMap NewGroupDataMap = new OSDMap(1);
 
                 GroupDataMap.Add("GroupID", OSD.FromUUID(membership.GroupID));
-                GroupDataMap.Add("GroupPowers", OSD.FromBinary(membership.GroupPowers));
+                GroupDataMap.Add("GroupPowers", OSD.FromULong(membership.GroupPowers));
                 GroupDataMap.Add("AcceptNotices", OSD.FromBoolean(membership.AcceptNotices));
                 GroupDataMap.Add("GroupInsigniaID", OSD.FromUUID(membership.GroupPicture));
                 GroupDataMap.Add("Contribution", OSD.FromInteger(membership.Contribution));

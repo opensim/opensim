@@ -496,73 +496,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        #region BinaryStats
-
-        public class StatLogger
-        {
-            public DateTime StartTime;
-            public string Path;
-            public System.IO.BinaryWriter Log;
-        }
-        static StatLogger m_statLog = null;
-        static TimeSpan m_statLogPeriod = TimeSpan.FromSeconds(300);
-        static string m_statsDir = String.Empty;
-        static Object m_statLockObject = new Object();
-        private void LogSimStats(SimStats stats)
-        {
-            SimStatsPacket pack = new SimStatsPacket();
-            pack.Region = new SimStatsPacket.RegionBlock();
-            pack.Region.RegionX = stats.RegionX;
-            pack.Region.RegionY = stats.RegionY;
-            pack.Region.RegionFlags = stats.RegionFlags;
-            pack.Region.ObjectCapacity = stats.ObjectCapacity;
-            //pack.Region = //stats.RegionBlock;
-            pack.Stat = stats.StatsBlock;
-            pack.Header.Reliable = false;
-
-            // note that we are inside the reporter lock when called
-            DateTime now = DateTime.Now;
-
-            // hide some time information into the packet
-            pack.Header.Sequence = (uint)now.Ticks;
-
-            lock (m_statLockObject) // m_statLog is shared so make sure there is only executer here
-            {
-                try
-                {
-                    if (m_statLog == null || now > m_statLog.StartTime + m_statLogPeriod)
-                    {
-                        // First log file or time has expired, start writing to a new log file
-                        if (m_statLog != null && m_statLog.Log != null)
-                        {
-                            m_statLog.Log.Close();
-                        }
-                        m_statLog = new StatLogger();
-                        m_statLog.StartTime = now;
-                        m_statLog.Path = (m_statsDir.Length > 0 ? m_statsDir + System.IO.Path.DirectorySeparatorChar.ToString() : "")
-                                + String.Format("stats-{0}.log", now.ToString("yyyyMMddHHmmss"));
-                        m_statLog.Log = new BinaryWriter(File.Open(m_statLog.Path, FileMode.Append, FileAccess.Write));
-                    }
-
-                    // Write the serialized data to disk
-                    if (m_statLog != null && m_statLog.Log != null)
-                        m_statLog.Log.Write(pack.ToBytes());
-                }
-                catch (Exception ex)
-                {
-                    m_log.Error("statistics gathering failed: " + ex.Message, ex);
-                    if (m_statLog != null && m_statLog.Log != null)
-                    {
-                        m_statLog.Log.Close();
-                    }
-                    m_statLog = null;
-                }
-            }
-            return;
-        }
-
-        #endregion
-
         #region Constructors
 
         public Scene(RegionInfo regInfo, AgentCircuitManager authen,
@@ -628,45 +561,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_storageManager.EstateDataStore != null)
             {
                 m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID, false);
-                if (m_regInfo.EstateSettings.EstateID == 0) // No record at all
-                {
-                    MainConsole.Instance.Output("Your region is not part of an estate.");
-                    while (true)
-                    {
-                        string response = MainConsole.Instance.CmdPrompt("Do you wish to join an existing estate?", "no", new List<string>() {"yes", "no"});
-                        if (response == "no")
-                        {
-                            // Create a new estate
-                            m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID, true);
-
-                            m_regInfo.EstateSettings.EstateName = MainConsole.Instance.CmdPrompt("New estate name", m_regInfo.EstateSettings.EstateName);
-                            m_regInfo.EstateSettings.Save();
-                            break;
-                        }
-                        else
-                        {
-                            response = MainConsole.Instance.CmdPrompt("Estate name to join", "None");
-                            if (response == "None")
-                                continue;
-
-                            List<int> estateIDs = m_storageManager.EstateDataStore.GetEstates(response);
-                            if (estateIDs.Count < 1)
-                            {
-                                MainConsole.Instance.Output("The name you have entered matches no known estate. Please try again");
-                                continue;
-                            }
-
-                            int estateID = estateIDs[0];
-
-                            m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(estateID);
-
-                            if (m_storageManager.EstateDataStore.LinkRegion(m_regInfo.RegionID, estateID))
-                                break;
-
-                            MainConsole.Instance.Output("Joining the estate failed. Please try again.");
-                        }
-                    }
-                }
             }
 
             #endregion Region Settings
@@ -771,38 +665,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
                 CombineRegions = startupConfig.GetBoolean("CombineContiguousRegions", false);
-
-                #region BinaryStats
-
-                try
-                {
-                    IConfig statConfig = m_config.Configs["Statistics.Binary"];
-                    if (statConfig.Contains("enabled") && statConfig.GetBoolean("enabled"))
-                    {
-                        if (statConfig.Contains("collect_region_stats"))
-                        {
-                            if (statConfig.GetBoolean("collect_region_stats"))
-                            {
-                                // if enabled, add us to the event. If not enabled, I won't get called
-                                StatsReporter.OnSendStatsResult += LogSimStats;
-                            }
-                        }
-                        if (statConfig.Contains("region_stats_period_seconds"))
-                        {
-                            m_statLogPeriod = TimeSpan.FromSeconds(statConfig.GetInt("region_stats_period_seconds"));
-                        }
-                        if (statConfig.Contains("stats_dir"))
-                        {
-                            m_statsDir = statConfig.GetString("stats_dir");
-                        }
-                    }
-                }
-                catch
-                {
-                    // if it doesn't work, we don't collect anything
-                }
-
-                #endregion BinaryStats
             }
             catch
             {
@@ -1844,33 +1706,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
-        /// <summary>
-        /// Create a terrain texture for this scene
-        /// </summary>
-        public void CreateTerrainTexture()
-        {
-            //create a texture asset of the terrain
-            IMapImageGenerator terrain = RequestModuleInterface<IMapImageGenerator>();
-
-            // Cannot create a map for a nonexistant heightmap yet.
-            if (Heightmap == null)
-                return;
-
-            if (terrain == null)
-                return;
-
-            byte[] data = terrain.WriteJpeg2000Image("defaultstripe.png");
-            if (data != null)
-            {
-                IWorldMapModule mapModule = RequestModuleInterface<IWorldMapModule>();
-
-                if (mapModule != null)
-                    mapModule.RegenerateMaptile(data);
-                else
-                    m_log.DebugFormat("[SCENE]: MapModule is null, can't save maptile");
-            }
-        }
-
         #endregion
 
         #region Load Land
@@ -1929,7 +1764,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 AddRestoredSceneObject(group, true, true);
                 SceneObjectPart rootPart = group.GetChildPart(group.UUID);
-                rootPart.ObjectFlags &= ~(uint)PrimFlags.Scripted;
+                rootPart.Flags &= ~PrimFlags.Scripted;
                 rootPart.TrimPermissions();
                 group.CheckSculptAndLoad();
                 //rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
@@ -2248,7 +2083,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (SceneObjectPart part in group.Children.Values)
             {
-                if (part.IsJoint() && ((part.ObjectFlags&(uint)PrimFlags.Physics) != 0))
+                if (part.IsJoint() && ((part.Flags & PrimFlags.Physics) != 0))
                 {
                     PhysicsScene.RequestJointDeletion(part.Name); // FIXME: what if the name changed?
                 }
@@ -2761,7 +2596,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (!VerifyClient(aCircuit, ep, out vialogin))
                     {
                         // uh-oh, this is fishy
-                        m_log.WarnFormat("[Scene]: Agent {0} with session {1} connecting with unidentified end point {2}. Refusing service.",
+                        m_log.WarnFormat("[SCENE]: Agent {0} with session {1} connecting with unidentified end point {2}. Refusing service.",
                             client.AgentId, client.SessionId, ep.ToString());
                         try
                         {
@@ -2769,13 +2604,13 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         catch (Exception e)
                         {
-                            m_log.DebugFormat("[Scene]: Exception while closing aborted client: {0}", e.StackTrace);
+                            m_log.DebugFormat("[SCENE]: Exception while closing aborted client: {0}", e.StackTrace);
                         }
                         return;
                     }
                 }
 
-                m_log.Debug("[Scene] Adding new agent " + client.Name + " to scene " + RegionInfo.RegionName);
+                m_log.Debug("[SCENE]: Adding new agent " + client.Name + " to scene " + RegionInfo.RegionName);
 
                 ScenePresence sp = CreateAndAddScenePresence(client);
                 if (aCircuit != null)
@@ -2804,7 +2639,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Do the verification here
             if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0)
             {
-                m_log.DebugFormat("[Scene]: Incoming client {0} {1} in region {2} via Login", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
+                m_log.DebugFormat("[SCENE]: Incoming client {0} {1} in region {2} via Login", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
                 vialogin = true;
                 IUserAgentVerificationModule userVerification = RequestModuleInterface<IUserAgentVerificationModule>();
                 if (userVerification != null && ep != null)
@@ -2814,11 +2649,11 @@ namespace OpenSim.Region.Framework.Scenes
                     if (!userVerification.VerifyClient(aCircuit, /*ep.Address.ToString() */ addr.ToString()))
                     {
                         // uh-oh, this is fishy
-                        m_log.DebugFormat("[Scene]: User Client Verification for {0} {1} in {2} returned false", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
+                        m_log.DebugFormat("[SCENE]: User Client Verification for {0} {1} in {2} returned false", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
                         return false;
                     }
                     else
-                        m_log.DebugFormat("[Scene]: User Client Verification for {0} {1} in {2} returned true", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
+                        m_log.DebugFormat("[SCENE]: User Client Verification for {0} {1} in {2} returned true", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
                 }
             }
 
@@ -2849,7 +2684,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     catch (Exception e)
                     {
-                        m_log.DebugFormat("[Scene]: Exception while closing aborted client: {0}", e.StackTrace);
+                        m_log.DebugFormat("[SCENE]: Exception while closing aborted client: {0}", e.StackTrace);
                     }
                 }
                 else
@@ -2879,7 +2714,6 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void SubscribeToClientTerrainEvents(IClientAPI client)
         {
             client.OnRegionHandShakeReply += SendLayerData;
-            client.OnUnackedTerrain += TerrainUnAcked;
         }
         
         public virtual void SubscribeToClientPrimEvents(IClientAPI client)
@@ -2919,8 +2753,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnUndo += m_sceneGraph.HandleUndo;
             client.OnRedo += m_sceneGraph.HandleRedo;
             client.OnObjectDescription += m_sceneGraph.PrimDescription;
-            client.OnObjectDrop += m_sceneGraph.DropObject;
-            client.OnObjectSaleInfo += ObjectSaleInfo;
+            client.OnObjectDrop += m_sceneGraph.DropObject;            
             client.OnObjectIncludeInSearch += m_sceneGraph.MakeObjectSearchable;
             client.OnObjectOwner += ObjectOwner;
         }
@@ -3011,7 +2844,6 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void UnSubscribeToClientTerrainEvents(IClientAPI client)
         {
             client.OnRegionHandShakeReply -= SendLayerData;
-            client.OnUnackedTerrain -= TerrainUnAcked;
         }
 
         public virtual void UnSubscribeToClientPrimEvents(IClientAPI client)
@@ -3050,7 +2882,6 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnRedo -= m_sceneGraph.HandleRedo;
             client.OnObjectDescription -= m_sceneGraph.PrimDescription;
             client.OnObjectDrop -= m_sceneGraph.DropObject;
-            client.OnObjectSaleInfo -= ObjectSaleInfo;
             client.OnObjectIncludeInSearch -= m_sceneGraph.MakeObjectSearchable;
             client.OnObjectOwner -= ObjectOwner;
         }
@@ -4625,23 +4456,6 @@ namespace OpenSim.Region.Framework.Scenes
                 client.SendRegionHandle(regionID, handle);
         }
 
-        public void TerrainUnAcked(IClientAPI client, int patchX, int patchY)
-        {
-            //m_log.Debug("Terrain packet unacked, resending patch: " + patchX + " , " + patchY);
-             client.SendLayerData(patchX, patchY, Heightmap.GetFloatsSerialised());
-        }
-
-        public void SetRootAgentScene(UUID agentID)
-        {
-            IInventoryTransferModule inv = RequestModuleInterface<IInventoryTransferModule>();
-            if (inv == null)
-                return;
-
-            inv.SetRootAgentScene(agentID, this);
-
-            EventManager.TriggerSetRootAgentScene(agentID, this);
-        }
-
         public bool NeedSceneCacheClear(UUID agentID)
         {
             IInventoryTransferModule inv = RequestModuleInterface<IInventoryTransferModule>();
@@ -4649,184 +4463,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return true;
 
             return inv.NeedSceneCacheClear(agentID, this);
-        }
-
-        public void ObjectSaleInfo(IClientAPI client, UUID agentID, UUID sessionID, uint localID, byte saleType, int salePrice)
-        {
-            SceneObjectPart part = GetSceneObjectPart(localID);
-            if (part == null || part.ParentGroup == null)
-                return;
-
-            if (part.ParentGroup.IsDeleted)
-                return;
-
-            part = part.ParentGroup.RootPart;
-
-            part.ObjectSaleType = saleType;
-            part.SalePrice = salePrice;
-
-            part.ParentGroup.HasGroupChanged = true;
-
-            part.GetProperties(client);
-        }
-
-        public bool PerformObjectBuy(IClientAPI remoteClient, UUID categoryID,
-                uint localID, byte saleType)
-        {
-            SceneObjectPart part = GetSceneObjectPart(localID);
-
-            if (part == null)
-                return false;
-
-            if (part.ParentGroup == null)
-                return false;
-
-            SceneObjectGroup group = part.ParentGroup;
-
-            switch (saleType)
-            {
-            case 1: // Sell as original (in-place sale)
-                uint effectivePerms=group.GetEffectivePermissions();
-
-                if ((effectivePerms & (uint)PermissionMask.Transfer) == 0)
-                {
-                    m_dialogModule.SendAlertToUser(remoteClient, "This item doesn't appear to be for sale");
-                    return false;
-                }
-
-                group.SetOwnerId(remoteClient.AgentId);
-                group.SetRootPartOwner(part, remoteClient.AgentId,
-                        remoteClient.ActiveGroupId);
-
-                List<SceneObjectPart> partList =
-                    new List<SceneObjectPart>(group.Children.Values);
-
-                if (Permissions.PropagatePermissions())
-                {
-                    foreach (SceneObjectPart child in partList)
-                    {
-                        child.Inventory.ChangeInventoryOwner(remoteClient.AgentId);
-                        child.TriggerScriptChangedEvent(Changed.OWNER);
-                        child.ApplyNextOwnerPermissions();
-                    }
-                }
-
-                part.ObjectSaleType = 0;
-                part.SalePrice = 10;
-
-                group.HasGroupChanged = true;
-                part.GetProperties(remoteClient);
-                part.TriggerScriptChangedEvent(Changed.OWNER);
-                group.ResumeScripts();
-                part.ScheduleFullUpdate();
-
-                break;
-
-            case 2: // Sell a copy
-
-
-                Vector3 inventoryStoredPosition = new Vector3
-                       (((group.AbsolutePosition.X > (int)Constants.RegionSize)
-                             ? 250
-                             : group.AbsolutePosition.X)
-                        ,
-                        (group.AbsolutePosition.X > (int)Constants.RegionSize)
-                            ? 250
-                            : group.AbsolutePosition.X,
-                        group.AbsolutePosition.Z);
-
-                Vector3 originalPosition = group.AbsolutePosition;
-
-                group.AbsolutePosition = inventoryStoredPosition;
-
-                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(group);
-                group.AbsolutePosition = originalPosition;
-
-                uint perms=group.GetEffectivePermissions();
-
-                if ((perms & (uint)PermissionMask.Transfer) == 0)
-                {
-                    m_dialogModule.SendAlertToUser(remoteClient, "This item doesn't appear to be for sale");
-                    return false;
-                }
-
-                AssetBase asset = CreateAsset(
-                    group.GetPartName(localID),
-                    group.GetPartDescription(localID),
-                    (sbyte)AssetType.Object,
-                    Utils.StringToBytes(sceneObjectXml),
-                    group.OwnerID);
-                AssetService.Store(asset);
-
-                InventoryItemBase item = new InventoryItemBase();
-                item.CreatorId = part.CreatorID.ToString();
-
-                item.ID = UUID.Random();
-                item.Owner = remoteClient.AgentId;
-                item.AssetID = asset.FullID;
-                item.Description = asset.Description;
-                item.Name = asset.Name;
-                item.AssetType = asset.Type;
-                item.InvType = (int)InventoryType.Object;
-                item.Folder = categoryID;
-
-                uint nextPerms=(perms & 7) << 13;
-                if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                    perms &= ~(uint)PermissionMask.Copy;
-                if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                    perms &= ~(uint)PermissionMask.Transfer;
-                if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                    perms &= ~(uint)PermissionMask.Modify;
-
-                item.BasePermissions = perms & part.NextOwnerMask;
-                item.CurrentPermissions = perms & part.NextOwnerMask;
-                item.NextPermissions = part.NextOwnerMask;
-                item.EveryOnePermissions = part.EveryoneMask &
-                                           part.NextOwnerMask;
-                item.GroupPermissions = part.GroupMask &
-                                           part.NextOwnerMask;
-                item.CurrentPermissions |= 16; // Slam!
-                item.CreationDate = Util.UnixTimeSinceEpoch();
-
-                if (InventoryService.AddItem(item))
-                    remoteClient.SendInventoryItemCreateUpdate(item, 0);
-                else
-                {
-                    m_dialogModule.SendAlertToUser(remoteClient, "Cannot buy now. Your inventory is unavailable");
-                    return false;
-                }
-                break;
-
-            case 3: // Sell contents
-                List<UUID> invList = part.Inventory.GetInventoryList();
-
-                bool okToSell = true;
-
-                foreach (UUID invID in invList)
-                {
-                    TaskInventoryItem item1 = part.Inventory.GetInventoryItem(invID);
-                    if ((item1.CurrentPermissions &
-                            (uint)PermissionMask.Transfer) == 0)
-                    {
-                        okToSell = false;
-                        break;
-                    }
-                }
-
-                if (!okToSell)
-                {
-                    m_dialogModule.SendAlertToUser(
-                        remoteClient, "This item's inventory doesn't appear to be for sale");
-                    return false;
-                }
-
-                if (invList.Count > 0)
-                    MoveTaskInventoryItems(remoteClient.AgentId, part.Name,
-                            part, invList);
-                break;
-            }
-
-            return true;
         }
 
         public void CleanTempObjects()
@@ -4969,7 +4605,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // turn the proxy non-physical, which also stops its client-side interpolation
-            bool wasUsingPhysics = ((jointProxyObject.ObjectFlags & (uint)PrimFlags.Physics) != 0);
+            bool wasUsingPhysics = ((jointProxyObject.Flags & PrimFlags.Physics) != 0);
             if (wasUsingPhysics)
             {
                 jointProxyObject.UpdatePrimFlags(false, false, true, false); // FIXME: possible deadlock here; check to make sure all the scene alterations set into motion here won't deadlock

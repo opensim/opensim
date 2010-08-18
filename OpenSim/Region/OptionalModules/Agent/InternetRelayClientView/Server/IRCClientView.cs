@@ -1045,9 +1045,13 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void SendTeleportLocationStart()
+        public void SendTeleportStart(uint flags)
         {
             
+        }
+
+        public void SendTeleportProgress(uint flags, string message)
+        {
         }
 
         public void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance)

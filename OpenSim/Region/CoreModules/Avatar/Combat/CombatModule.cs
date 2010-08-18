@@ -93,7 +93,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
         {
             string deadAvatarMessage;
             ScenePresence killingAvatar = null;
-            string killingAvatarMessage;
+//            string killingAvatarMessage;
 
             if (killerObjectLocalID == 0)
                 deadAvatarMessage = "You committed suicide!";
@@ -118,14 +118,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
                             deadAvatarMessage = String.Format("You impaled yourself on {0} owned by {1}!", part.Name, deadAvatar.Scene.GetUserName(part.OwnerID));
                         else
                         {
-                            killingAvatarMessage = String.Format("You fragged {0}!", deadAvatar.Name);
+//                            killingAvatarMessage = String.Format("You fragged {0}!", deadAvatar.Name);
                             deadAvatarMessage = String.Format("You got killed by {0}!", killingAvatar.Name);
                         }
                     }
                 }
                 else
                 {
-                    killingAvatarMessage = String.Format("You fragged {0}!", deadAvatar.Name);
+//                    killingAvatarMessage = String.Format("You fragged {0}!", deadAvatar.Name);
                     deadAvatarMessage = String.Format("You got killed by {0}!", killingAvatar.Name);
                 }
             }

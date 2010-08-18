@@ -1588,9 +1588,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void aggregateScriptEvents()
         {
-            uint objectflagupdate=(uint)RootPart.GetEffectiveObjectFlags();
+            PrimFlags objectflagupdate = (PrimFlags)RootPart.GetEffectiveObjectFlags();
 
-            scriptEvents aggregateScriptEvents=0;
+            scriptEvents aggregateScriptEvents = 0;
 
             lockPartsForRead(true);
             {
@@ -1600,7 +1600,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (part == null)
                         continue;
                     if (part != RootPart)
-                        part.ObjectFlags = objectflagupdate;
+                        part.Flags = objectflagupdate;
                     aggregateScriptEvents |= part.AggregateScriptEvents;
                     
                 }

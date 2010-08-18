@@ -135,7 +135,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                             xmlobject.AppendChild(node);
 
                             node = nodeFactory.CreateNode(XmlNodeType.Element, "flags", "");
-                            node.InnerText = String.Format("{0:x}", m_rootPart.ObjectFlags);
+                            node.InnerText = String.Format("{0:x}", (uint)m_rootPart.Flags);
                             xmlobject.AppendChild(node);
 
                             node = nodeFactory.CreateNode(XmlNodeType.Element, "regionuuid", "");

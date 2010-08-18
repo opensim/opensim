@@ -687,7 +687,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Create a new asset data structure.
         /// </summary>
-        private AssetBase CreateAsset(string name, string description, sbyte assetType, byte[] data, UUID creatorID)
+        public AssetBase CreateAsset(string name, string description, sbyte assetType, byte[] data, UUID creatorID)
         {
             AssetBase asset = new AssetBase(UUID.Random(), name, assetType, creatorID.ToString());
             asset.Description = description;
@@ -869,7 +869,7 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence presence;
             if (TryGetScenePresence(remoteClient.AgentId, out presence))
             {
-                byte[] data = null;
+//                byte[] data = null;
 
                 AssetBase asset = new AssetBase();
                 asset.FullID = olditemID;
@@ -877,8 +877,10 @@ namespace OpenSim.Region.Framework.Scenes
                 asset.Name = name;
                 asset.Description = description;
                 
-                CreateNewInventoryItem(remoteClient, remoteClient.AgentId.ToString(), folderID, name, 0, callbackID, asset, invType, (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All, Util.UnixTimeSinceEpoch());
-
+                CreateNewInventoryItem(
+                    remoteClient, remoteClient.AgentId.ToString(), folderID, name, 0, callbackID, asset, invType, 
+                    (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All, 
+                    (uint)PermissionMask.All, (uint)PermissionMask.All, Util.UnixTimeSinceEpoch());
             }
             else
             {
@@ -910,7 +912,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.DebugFormat("[SCENE INVENTORY]: RemoveInventoryFolders count {0}", folderIDs.Count);
             InventoryService.DeleteFolders(remoteClient.AgentId, folderIDs);
         }
-
 
         /// <summary>
         /// Send the details of a prim's inventory to the client.

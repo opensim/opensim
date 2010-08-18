@@ -26,15 +26,22 @@
  */
 
 using OpenMetaverse;
-using OpenSim.Region.Framework.Scenes;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    /// <summary>
-    /// An interface for a module that manages inter-agent inventory offers and transfers.
-    /// </summary>
-    public interface IInventoryTransferModule
-    {
-        bool NeedSceneCacheClear(UUID agentID, Scene scene);
+    public interface IBuySellModule
+    { 
+        /// <summary>
+        /// Try to buy an object
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="categoryID"></param>
+        /// <param name="localID"></param>
+        /// <param name="saleType"></param>
+        /// <returns>
+        /// True on a successful purchase, false on failure
+        /// </returns>
+        bool BuyObject(IClientAPI remoteClient, UUID categoryID, uint localID, byte saleType);
     }
 }

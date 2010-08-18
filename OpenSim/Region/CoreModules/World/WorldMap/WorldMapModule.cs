@@ -1000,11 +1000,24 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             return responsemap;
         }
 
-        public void RegenerateMaptile(byte[] data)
+        public void GenerateMaptile()
         {
+            // Cannot create a map for a nonexistant heightmap
+            if (m_scene.Heightmap == null)
+                return;
+            
+            //create a texture asset of the terrain
+            IMapImageGenerator terrain = m_scene.RequestModuleInterface<IMapImageGenerator>();
+            if (terrain == null)
+                return;
+
+            byte[] data = terrain.WriteJpeg2000Image("defaultstripe.png");
+            if (data == null)
+                return;
+            
             UUID lastMapRegionUUID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
 
-            m_log.Debug("[MAPTILE]: STORING MAPTILE IMAGE");
+            m_log.Debug("[WORLDMAP]: STORING MAPTILE IMAGE");
 
             m_scene.RegionInfo.RegionSettings.TerrainImageID = UUID.Random();
 

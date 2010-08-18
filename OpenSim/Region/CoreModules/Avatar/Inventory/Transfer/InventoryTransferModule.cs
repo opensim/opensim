@@ -82,6 +82,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnClientClosed += ClientLoggedOut;
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
+            scene.EventManager.OnSetRootAgentScene += OnSetRootAgentScene;
         }
 
         public void RegionLoaded(Scene scene)
@@ -98,9 +99,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     scene.EventManager.OnNewClient -= OnNewClient;
                     scene.EventManager.OnClientClosed -= ClientLoggedOut;
                     scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
+                    scene.EventManager.OnSetRootAgentScene -= OnSetRootAgentScene;
                 }
             }
-
         }
 
         public void RemoveRegion(Scene scene)
@@ -108,6 +109,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
             scene.EventManager.OnNewClient -= OnNewClient;
             scene.EventManager.OnClientClosed -= ClientLoggedOut;
             scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
+            scene.EventManager.OnSetRootAgentScene -= OnSetRootAgentScene;
             m_Scenelist.Remove(scene);
         }
 
@@ -136,6 +138,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
             // Inventory giving is conducted via instant message
             client.OnInstantMessage += OnInstantMessage;
         }
+        
+        protected void OnSetRootAgentScene(UUID id, Scene scene)
+        {
+            m_AgentRegions[id] = scene;
+        }
 
         private Scene FindClientScene(UUID agentId)
         {
@@ -159,7 +166,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
             if (scene == null) // Something seriously wrong here.
                 return;
-
 
             if (im.dialog == (byte) InstantMessageDialog.InventoryOffered)
             {
@@ -346,11 +352,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         m_TransferModule.SendInstantMessage(im, delegate(bool success) {});
                 }
             }
-        }
-
-        public void SetRootAgentScene(UUID agentID, Scene scene)
-        {
-            m_AgentRegions[agentID] = scene;
         }
 
         public bool NeedSceneCacheClear(UUID agentID, Scene scene)

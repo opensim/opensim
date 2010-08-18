@@ -418,7 +418,7 @@ namespace OpenSim
                 {
                     MainConsole.Instance.Output(
                         String.Format(
-                            "Kicking user: {0,-16}{1,-16}{2,-37} in region: {3,-16}",
+                            "Kicking user: {0,-16} {1,-16} {2,-37} in region: {3,-16}",
                             presence.Firstname, presence.Lastname, presence.UUID, regionInfo.RegionName));
 
                     // kick client...
@@ -530,7 +530,10 @@ namespace OpenSim
                     regionFile = cmd[3];
 
                 IScene scene;
-                CreateRegion(new RegionInfo(cmd[2], regionFile, false, ConfigSource.Source), true, out scene);
+                RegionInfo regInfo = new RegionInfo(cmd[2], regionFile, false, ConfigSource.Source);
+                PopulateRegionEstateInfo(regInfo);
+                CreateRegion(regInfo, true, out scene);
+                regInfo.EstateSettings.Save();
             }
             else if (cmd[3].EndsWith(".ini"))
             {
@@ -541,7 +544,10 @@ namespace OpenSim
                     regionFile = cmd[3];
 
                 IScene scene;
-                CreateRegion(new RegionInfo(cmd[2], regionFile, false, ConfigSource.Source, cmd[2]), true, out scene);
+                RegionInfo regInfo = new RegionInfo(cmd[2], regionFile, false, ConfigSource.Source, cmd[2]);
+                PopulateRegionEstateInfo(regInfo);
+                CreateRegion(regInfo, true, out scene);
+                regInfo.EstateSettings.Save();
             }
             else
             {
@@ -861,7 +867,7 @@ namespace OpenSim
                     MainConsole.Instance.Output(String.Format("\nAgents connected: {0}\n", agents.Count));
 
                     MainConsole.Instance.Output(
-                        String.Format("{0,-16}{1,-16}{2,-37}{3,-11}{4,-16}{5,-30}", "Firstname", "Lastname",
+                        String.Format("{0,-16} {1,-16} {2,-37} {3,-11} {4,-16} {5,-30}", "Firstname", "Lastname",
                                       "Agent ID", "Root/Child", "Region", "Position"));
 
                     foreach (ScenePresence presence in agents)
@@ -880,7 +886,7 @@ namespace OpenSim
 
                         MainConsole.Instance.Output(
                             String.Format(
-                                "{0,-16}{1,-16}{2,-37}{3,-11}{4,-16}{5,-30}",
+                                "{0,-16} {1,-16} {2,-37} {3,-11} {4,-16} {5,-30}",
                                 presence.Firstname,
                                 presence.Lastname,
                                 presence.UUID,

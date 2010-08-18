@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.Framework.Library
         private static bool m_HasRunOnce = false;
 
         private bool m_Enabled = false;
-        private string m_LibraryName = "OpenSim Library";
+//        private string m_LibraryName = "OpenSim Library";
         private Scene m_Scene;
 
         private ILibraryService m_Library;
@@ -212,13 +212,13 @@ namespace OpenSim.Region.CoreModules.Framework.Library
             }
         }
 
-        private void DumpLibrary()
-        {
-            InventoryFolderImpl lib = m_Library.LibraryRootFolder;
-
-            m_log.DebugFormat(" - folder {0}", lib.Name);
-            DumpFolder(lib);
-        }
+//        private void DumpLibrary()
+//        {
+//            InventoryFolderImpl lib = m_Library.LibraryRootFolder;
+//
+//            m_log.DebugFormat(" - folder {0}", lib.Name);
+//            DumpFolder(lib);
+//        }
 //
 //        private void DumpLibrary()
 //        {

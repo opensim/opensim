@@ -32,7 +32,6 @@ using System.Reflection;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Statistics;
-
 using OpenSim.Services.Connectors;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -48,7 +47,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         private bool m_Enabled = false;
         private bool m_Initialized = false;
-        private Scene m_Scene;
+//        private Scene m_Scene;
         private XInventoryServicesConnector m_RemoteConnector;
 
         public Type ReplaceableInterface 
@@ -109,7 +108,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public void AddRegion(Scene scene)
         {
-            m_Scene = scene;
+//            m_Scene = scene;
             //m_log.Debug("[XXXX] Adding scene " + m_Scene.RegionInfo.RegionName);
 
             if (!m_Enabled)

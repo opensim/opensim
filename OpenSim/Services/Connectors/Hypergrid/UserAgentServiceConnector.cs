@@ -53,9 +53,20 @@ namespace OpenSim.Services.Connectors.Hypergrid
             MethodBase.GetCurrentMethod().DeclaringType);
 
         string m_ServerURL;
+        Uri m_Uri;
         public UserAgentServiceConnector(string url)
         {
             m_ServerURL = url;
+            try
+            {
+                m_Uri = new Uri(m_ServerURL);
+                IPAddress ip = Util.GetHostFromDNS(m_Uri.Host);
+                m_ServerURL = "http://" + ip.ToString() + ":" + m_Uri.Port;
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Malformed Uri {0}: {1}", m_ServerURL, e.Message);
+            }
         }
 
         public UserAgentServiceConnector(IConfigSource config)
@@ -373,7 +384,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
             if (response.IsFault)
             {
-                m_log.ErrorFormat("[HGrid]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
                 reason = "XMLRPC Fault";
                 return false;
             }
@@ -403,7 +414,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[HGrid]: Got exception on GetBoolResponse response.");
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: Got exception on GetBoolResponse response.");
                 if (hash.ContainsKey("result") && hash["result"] != null)
                     m_log.ErrorFormat("Reply was ", (string)hash["result"]);
                 reason = "Exception: " + e.Message;

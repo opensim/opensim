@@ -1017,7 +1017,7 @@ VALUES
             prim.SitName = (string)primRow["SitName"];
             prim.TouchName = (string)primRow["TouchName"];
             // permissions
-            prim.ObjectFlags = Convert.ToUInt32(primRow["ObjectFlags"]);
+            prim.Flags = (PrimFlags)Convert.ToUInt32(primRow["ObjectFlags"]);
             prim.CreatorID = new UUID((Guid)primRow["CreatorID"]);
             prim.OwnerID = new UUID((Guid)primRow["OwnerID"]);
             prim.GroupID = new UUID((Guid)primRow["GroupID"]);
@@ -1408,7 +1408,7 @@ VALUES
             parameters.Add(_Database.CreateParameter("SitName", prim.SitName));
             parameters.Add(_Database.CreateParameter("TouchName", prim.TouchName));
             // permissions
-            parameters.Add(_Database.CreateParameter("ObjectFlags", prim.ObjectFlags));
+            parameters.Add(_Database.CreateParameter("ObjectFlags", (uint)prim.Flags));
             parameters.Add(_Database.CreateParameter("CreatorID", prim.CreatorID));
             parameters.Add(_Database.CreateParameter("OwnerID", prim.OwnerID));
             parameters.Add(_Database.CreateParameter("GroupID", prim.GroupID));

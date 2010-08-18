@@ -1028,9 +1028,13 @@ namespace OpenSim.Client.MXP.ClientStack
             // Need to translate to MXP somehow
         }
 
-        public void SendTeleportLocationStart()
+        public void SendTeleportStart(uint flags)
         {
             // Need to translate to MXP somehow
+        }
+
+        public void SendTeleportProgress(uint flags, string message)
+        {
         }
 
         public void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance)

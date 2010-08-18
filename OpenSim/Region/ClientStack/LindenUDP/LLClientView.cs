@@ -1442,14 +1442,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         ///
         /// </summary>
-        public void SendTeleportLocationStart()
+        public void SendTeleportStart(uint flags)
         {
-            //TeleportStartPacket tpStart = (TeleportStartPacket)PacketPool.Instance.GetPacket(PacketType.TeleportStart);
-            TeleportStartPacket tpStart = new TeleportStartPacket();
-            tpStart.Info.TeleportFlags = 16; // Teleport via location
+            TeleportStartPacket tpStart = (TeleportStartPacket)PacketPool.Instance.GetPacket(PacketType.TeleportStart);
+            //TeleportStartPacket tpStart = new TeleportStartPacket();
+            tpStart.Info.TeleportFlags = flags; //16; // Teleport via location
 
             // Hack to get this out immediately and skip throttles
             OutPacket(tpStart, ThrottleOutPacketType.Unknown);
+        }
+
+        public void SendTeleportProgress(uint flags, string message)
+        {
+            TeleportProgressPacket tpProgress = (TeleportProgressPacket)PacketPool.Instance.GetPacket(PacketType.TeleportProgress);
+            tpProgress.AgentData.AgentID = this.AgentId;
+            tpProgress.Info.TeleportFlags = flags;
+            tpProgress.Info.Message = Util.StringToBytes256(message);
+
+            // Hack to get this out immediately and skip throttles
+            OutPacket(tpProgress, ThrottleOutPacketType.Unknown);
         }
 
         public void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance)
@@ -3041,7 +3052,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
              {
                  OSDMap GroupDataMap = new OSDMap(6);
                  OSDMap NewGroupDataMap = new OSDMap(1);
-                 GroupDataMap.Add("GroupPowers", OSD.FromBinary(m.GroupPowers));
+                 GroupDataMap.Add("GroupPowers", OSD.FromULong(m.GroupPowers));
                  GroupDataMap.Add("AcceptNotices", OSD.FromBoolean(m.AcceptNotices));
                  GroupDataMap.Add("GroupTitle", OSD.FromString(m.GroupTitle));
                  GroupDataMap.Add("GroupID", OSD.FromUUID(m.GroupID));
@@ -6332,7 +6343,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             #endregion
 
-            ObjectDuplicatePacket.AgentDataBlock AgentandGroupData = dupe.AgentData;
+//            ObjectDuplicatePacket.AgentDataBlock AgentandGroupData = dupe.AgentData;
 
             ObjectDuplicate handlerObjectDuplicate = null;
 
@@ -11765,8 +11776,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     StringBuilder sb = new StringBuilder();
                     sb.Append("[");
-                    if (this.priority != null)
-                        sb.Append(this.priority.ToString());
+                    sb.Append(this.priority.ToString());
                     sb.Append(",");
                     if (this.value != null)
                         sb.Append(this.value.ToString());

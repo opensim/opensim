@@ -562,12 +562,14 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>desired region X coordinate (integer)</description></item>
         /// <item><term>region_y</term>
         ///       <description>desired region Y coordinate (integer)</description></item>
-        /// <item><term>region_master_first</term>
-        ///       <description>firstname of region master</description></item>
-        /// <item><term>region_master_last</term>
-        ///       <description>lastname of region master</description></item>
-        /// <item><term>region_master_uuid</term>
-        ///       <description>explicit UUID to use for master avatar (optional)</description></item>
+        /// <item><term>estate_owner_first</term>
+        ///       <description>firstname of estate owner (formerly region master)
+        ///       (required if new estate is being created, optional otherwise)</description></item>
+        /// <item><term>estate_owner_last</term>
+        ///       <description>lastname of estate owner (formerly region master)
+        ///       (required if new estate is being created, optional otherwise)</description></item>
+        /// <item><term>estate_owner_uuid</term>
+        ///       <description>explicit UUID to use for estate owner (optional)</description></item>
         /// <item><term>listen_ip</term>
         ///       <description>internal IP address (dotted quad)</description></item>
         /// <item><term>listen_port</term>
@@ -583,6 +585,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// <item><term>enable_voice</term>
         ///       <description>if true, enable voice on all parcels,
         ///       ('true' or 'false') (optional, default: false)</description></item>
+        /// <item><term>estate_name</term>
+        ///       <description>the name of the estate to join (or to create if it doesn't
+        ///       already exist)</description></item>
         /// </list>
         ///
         /// XmlRpcCreateRegionMethod returns
@@ -621,9 +626,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                                        {
                                                            "password",
                                                            "region_name",
-                                                           "region_master_first", "region_master_last",
-                                                           "region_master_password",
-                                                           "listen_ip", "external_address"
+                                                           "listen_ip", "external_address",
+                                                           "estate_name"
                                                        });
                     CheckIntegerParams(request, new string[] {"region_x", "region_y", "listen_port"});
 
@@ -694,18 +698,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                     region.ExternalHostName = (string) requestData["external_address"];
 
-                    string masterFirst = (string) requestData["region_master_first"];
-                    string masterLast = (string) requestData["region_master_last"];
-                    string masterPassword = (string) requestData["region_master_password"];
-
-                    UUID userID = UUID.Zero;
-                    if (requestData.ContainsKey("region_master_uuid"))
-                    {
-                        // ok, client wants us to use an explicit UUID
-                        // regardless of what the avatar name provided
-                        userID = new UUID((string) requestData["estate_owner_uuid"]);
-                    }
-
                     bool persist = Convert.ToBoolean((string) requestData["persist"]);
                     if (persist)
                     {
@@ -740,7 +732,55 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     {
                         region.Persistent = false;
                     }
+                        
+                    // Set the estate
+                    
+                    // Check for an existing estate
+                    List<int> estateIDs = m_application.StorageManager.EstateDataStore.GetEstates((string) requestData["estate_name"]);
+                    if (estateIDs.Count < 1)
+                    {
+                        UUID userID = UUID.Zero;
+                        if (requestData.ContainsKey("estate_owner_uuid"))
+                        {
+                            // ok, client wants us to use an explicit UUID
+                            // regardless of what the avatar name provided
+                            userID = new UUID((string) requestData["estate_owner_uuid"]);
+                        }
+                        else if (requestData.ContainsKey("estate_owner_first") & requestData.ContainsKey("estate_owner_last"))
+                        {
+                            // We need to look up the UUID for the avatar with the provided name.
+                            string ownerFirst = (string) requestData["estate_owner_first"];
+                            string ownerLast = (string) requestData["estate_owner_last"];
+                            
+                            Scene currentOrFirst = m_application.SceneManager.CurrentOrFirstScene;
+                            IUserAccountService accountService = currentOrFirst.UserAccountService;
+                            UserAccount user = accountService.GetUserAccount(currentOrFirst.RegionInfo.ScopeID,
+                                                                               ownerFirst, ownerLast);
+                            userID = user.PrincipalID;
+                        }
+                        else
+                        {
+                            throw new Exception("Estate owner details not provided.");
+                        }
+                        
+                        // Create a new estate with the name provided
+                        region.EstateSettings = m_application.StorageManager.EstateDataStore.LoadEstateSettings(region.RegionID, true);
 
+                        region.EstateSettings.EstateName = (string) requestData["estate_name"];
+                        region.EstateSettings.EstateOwner = userID;
+                        // Persistence does not seem to effect the need to save a new estate
+                        region.EstateSettings.Save();
+                    }
+                    else
+                    {
+                        int estateID = estateIDs[0];
+    
+                        region.EstateSettings = m_application.StorageManager.EstateDataStore.LoadEstateSettings(estateID);
+    
+                        if (!m_application.StorageManager.EstateDataStore.LinkRegion(region.RegionID, estateID))
+                            throw new Exception("Failed to join estate.");
+                    }
+                    
                     // Create the region and perform any initial initialization
 
                     IScene newScene;
@@ -749,9 +789,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     // If an access specification was provided, use it.
                     // Otherwise accept the default.
                     newScene.RegionInfo.EstateSettings.PublicAccess = GetBoolean(requestData, "public", m_publicAccess);
-                    newScene.RegionInfo.EstateSettings.EstateOwner = userID;
-                    if (persist)
-                        newScene.RegionInfo.EstateSettings.Save();
+                    newScene.RegionInfo.EstateSettings.Save();
 
                     // enable voice on newly created region if
                     // requested by either the XmlRpc request or the
@@ -1615,7 +1653,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             if (destinationFolder.Type != (short)AssetType.Clothing)
             {
                 destinationFolder = new InventoryFolderBase();
-				
+                
                 destinationFolder.ID       = UUID.Random();
                 destinationFolder.Name     = "Clothing";
                 destinationFolder.Owner    = destination;
@@ -3100,7 +3138,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// <param name="password"></param>
         private bool ChangeUserPassword(string firstName, string lastName, string password)
         {
-	    Scene scene = m_application.SceneManager.CurrentOrFirstScene;
+            Scene scene = m_application.SceneManager.CurrentOrFirstScene;
             IUserAccountService userAccountService = scene.UserAccountService;
             IAuthenticationService authenticationService = scene.AuthenticationService;
 
