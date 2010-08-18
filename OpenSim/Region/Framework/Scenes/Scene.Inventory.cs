@@ -2169,7 +2169,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (root == null)
             {
-                m_log.DebugFormat("[LINK]: Can't find linkset root prim {0{", parentPrimId);
+                m_log.DebugFormat("[LINK]: Can't find linkset root prim {0}", parentPrimId);
                 return;
             }
 
