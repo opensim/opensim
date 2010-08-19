@@ -88,7 +88,7 @@ namespace OpenSim.Services.Connectors
                     XmlRpcResponse response = request.Send(uri, 10000);
                     if (response.IsFault)
                     {
-                        m_log.ErrorFormat("[LAND CONNECTOR] remote call returned an error: {0}", response.FaultString);
+                        m_log.ErrorFormat("[LAND CONNECTOR]: remote call returned an error: {0}", response.FaultString);
                     }
                     else
                     {
@@ -110,19 +110,23 @@ namespace OpenSim.Services.Connectors
                             landData.UserLocation = Vector3.Parse((string)hash["UserLocation"]);
                             if (hash["RegionAccess"] != null)
                                 regionAccess = (byte)Convert.ToInt32((string)hash["RegionAccess"]);
-                            m_log.DebugFormat("[OGS1 GRID SERVICES] Got land data for parcel {0}", landData.Name);
+                            m_log.DebugFormat("[LAND CONNECTOR]: Got land data for parcel {0}", landData.Name);
                         }
                         catch (Exception e)
                         {
-                            m_log.Error("[LAND CONNECTOR] Got exception while parsing land-data:", e);
+                            m_log.ErrorFormat(
+                                "[LAND CONNECTOR]: Got exception while parsing land-data: {0} {1}", 
+                                e.Message, e.StackTrace);
                         }
                     }
                 }
-                else m_log.WarnFormat("[LAND CONNECTOR] Couldn't find region with handle {0}", regionHandle);
+                else 
+                    m_log.WarnFormat("[LAND CONNECTOR]: Couldn't find region with handle {0}", regionHandle);
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[LAND CONNECTOR] Couldn't contact region {0}: {1}", regionHandle, e);
+                m_log.ErrorFormat(
+                    "[LAND CONNECTOR]: Couldn't contact region {0}: {1} {2}", regionHandle, e.Message, e.StackTrace);
             }
         
             return landData;
