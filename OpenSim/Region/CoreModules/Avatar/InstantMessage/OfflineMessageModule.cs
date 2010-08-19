@@ -215,6 +215,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             if (im.dialog != (byte)InstantMessageDialog.MessageFromObject &&
                 im.dialog != (byte)InstantMessageDialog.MessageFromAgent &&
                 im.dialog != (byte)InstantMessageDialog.GroupNotice &&
+                im.dialog != (byte)InstantMessageDialog.GroupInvitation &&
                 im.dialog != (byte)InstantMessageDialog.InventoryOffered)
             {
                 return;
