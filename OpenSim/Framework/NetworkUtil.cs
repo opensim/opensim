@@ -274,48 +274,36 @@ namespace OpenSim.Framework
                 }
             }
 
-            // Check for private networks
-            if (user.ToString().StartsWith("192.168"))
+            // Check for same LAN segment
+            foreach (KeyValuePair<IPAddress, IPAddress> subnet in m_subnets)
             {
-                m_log.Info("[NetworkUtil] Private network user detected, sending '" + externalIPAddress + "' instead of '" + user + "'");
-                return externalIPAddress;
+                byte[] subnetBytes = subnet.Value.GetAddressBytes();
+                byte[] localBytes = subnet.Key.GetAddressBytes();
+                byte[] destBytes = user.GetAddressBytes();
+
+                if (subnetBytes.Length != destBytes.Length || subnetBytes.Length != localBytes.Length)
+                    return user;
+
+                bool valid = true;
+
+                for (int i = 0; i < subnetBytes.Length; i++)
+                {
+                    if ((localBytes[i] & subnetBytes[i]) != (destBytes[i] & subnetBytes[i]))
+                    {
+                        valid = false;
+                        break;
+                    }
+                }
+
+                if (subnet.Key.AddressFamily != AddressFamily.InterNetwork)
+                    valid = false;
+
+                if (valid)
+                {
+                    m_log.Info("[NetworkUtil] Local LAN user detected, sending '" + externalIPAddress + "' instead of '" + user + "'");
+                    return externalIPAddress;
+                }
             }
-
-            // We may need to do more fancy configuration-based checks... I'm not entirely sure there is
-            // a 100% algorithmic manner of dealing with all the network setups out there. This code
-            // will evolve as people bump into problems.
-
-            //// Check for same LAN segment -- I don't think we want to do this in general. Leaving it here
-            //// for now as a reminder
-            //foreach (KeyValuePair<IPAddress, IPAddress> subnet in m_subnets)
-            //{
-            //    byte[] subnetBytes = subnet.Value.GetAddressBytes();
-            //    byte[] localBytes = subnet.Key.GetAddressBytes();
-            //    byte[] destBytes = user.GetAddressBytes();
-
-            //    if (subnetBytes.Length != destBytes.Length || subnetBytes.Length != localBytes.Length)
-            //        return user;
-
-            //    bool valid = true;
-
-            //    for (int i = 0; i < subnetBytes.Length; i++)
-            //    {
-            //        if ((localBytes[i] & subnetBytes[i]) != (destBytes[i] & subnetBytes[i]))
-            //        {
-            //            valid = false;
-            //            break;
-            //        }
-            //    }
-
-            //    if (subnet.Key.AddressFamily != AddressFamily.InterNetwork)
-            //        valid = false;
-
-            //    if (valid)
-            //    {
-            //        m_log.Info("[NetworkUtil] Local LAN user detected, sending '" + externalIPAddress + "' instead of '" + user + "'");
-            //        return externalIPAddress;
-            //    }
-            //}
 
             // Otherwise, return user address
             return user;
