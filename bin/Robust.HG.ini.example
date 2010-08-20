@@ -1,6 +1,7 @@
 ; * Run
 ; * $ Robust.exe -inifile Robust.HG.ini
 ; *
+
 ; * Configurations for enabling HG1.5
 ; * 
 ; * HG1.5 handlers are: OpenSim.Server.Handlers.dll:GatekeeperService
@@ -17,9 +18,8 @@
 ; * read this config file and load the needed service and database connectors
 ; *
 ; * The full syntax of a connector string is:
-; * [[<ConfigName>@]<port>/]<class name>[:<dll name>]
+; * [[<ConfigName>@]<port>/]<dll name>[:<class name>]
 ; *
-
 [Startup]
 ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector,8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector,HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector,8002/OpenSim.Server.Handlers.dll:AssetServiceConnector"
 
@@ -100,12 +100,14 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [UserAccountService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
-    ; Realm = "users"
+    ; Realm = "usersaccounts"
+
     ; These are for creating new accounts by the service
     AuthenticationService = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
     PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
     GridService = "OpenSim.Services.GridService.dll:GridService"
     InventoryService = "OpenSim.Services.InventoryService.dll:XInventoryService"
+
 [GridUserService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.UserAccountService.dll:GridUserService"
@@ -142,7 +144,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
     FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
 
-    WelcomeMessage = "Welcome to OpenSim!"
+    WelcomeMessage = "Welcome, Avatar!"
     AllowRemoteSetLoginLevel = "false"
     
     ; Defaults for the users, if none is specified in the useraccounts table entry (ServiceURLs)
@@ -172,29 +174,23 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 
     ; login page: optional: if it exists it will be used to tell the client to use
     ;                       this as splash page
-    ; currently unused
     ;welcome = http://127.0.0.1/welcome
 
     ; helper uri: optional: if it exists if will be used to tell the client to use
     ;                       this for all economy related things
-    ; currently unused
     ;economy = http://127.0.0.1:9000/
 
     ; web page of grid: optional: page providing further information about your grid
-    ; currently unused
     ;about = http://127.0.0.1/about/
 
     ; account creation: optional: page providing further information about obtaining
     ;                             a user account on your grid
-    ; currently unused
     ;register = http://127.0.0.1/register
 
     ; help: optional: page providing further assistance for users of your grid
-    ; currently unused
     ;help = http://127.0.0.1/help
 
     ; password help: optional: page providing password assistance for users of your grid
-    ; currently unused
     ;password = http://127.0.0.1/password
 
 [GatekeeperService]
