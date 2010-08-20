@@ -324,6 +324,12 @@ namespace OpenSim.Services.Interfaces
             if (kvp.ContainsKey("regionName"))
                 RegionName = (string)kvp["regionName"];
 
+            if (kvp.ContainsKey("access"))
+            {
+                byte access = Convert.ToByte((string)kvp["access"]);
+                Maturity = (int)Util.ConvertAccessLevelToMaturity(access);
+            }
+
             if (kvp.ContainsKey("serverIP"))
             {
                 //int port = 0;
