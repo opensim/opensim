@@ -102,7 +102,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Land
 
         public void RegionLoaded(Scene scene)
         {
-            m_GridService = scene.GridService;
+            if (m_Enabled)
+                m_GridService = scene.GridService;
         }
 
 
