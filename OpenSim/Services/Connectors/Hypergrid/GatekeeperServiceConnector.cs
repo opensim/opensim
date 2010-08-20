@@ -38,6 +38,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
+using OpenMetaverse.StructuredData;
 using Nwc.XmlRpc;
 using log4net;
 
@@ -267,6 +268,49 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
             return null;
         }
+
+        public bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint flags, out string myipaddress, out string reason)
+        {
+            HttpWebRequest AgentCreateRequest = null;
+            myipaddress = String.Empty;
+            reason = String.Empty;
+
+            if (SendRequest(destination, aCircuit, flags, out reason, out AgentCreateRequest))
+            {
+                string response = GetResponse(AgentCreateRequest, out reason);
+                bool success = true;
+                UnpackResponse(response, out success, out reason, out myipaddress);
+                return success;
+            }
+
+            return false;
+        }
+
+        protected void UnpackResponse(string response, out bool result, out string reason, out string ipaddress)
+        {
+            result = true;
+            reason = string.Empty;
+            ipaddress = string.Empty;
+
+            if (!String.IsNullOrEmpty(response))
+            {
+                try
+                {
+                    // we assume we got an OSDMap back
+                    OSDMap r = Util.GetOSDMap(response);
+                    result = r["success"].AsBoolean();
+                    reason = r["reason"].AsString();
+                    ipaddress = r["your_ip"].AsString();
+                }
+                catch (NullReferenceException e)
+                {
+                    m_log.InfoFormat("[GATEKEEPER SERVICE CONNECTOR]: exception on UnpackResponse of DoCreateChildAgentCall {0}", e.Message);
+                    reason = "Internal error";
+                    result = false;
+                }
+            }
+        }
+
 
     }
 }

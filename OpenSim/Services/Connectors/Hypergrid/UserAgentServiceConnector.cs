@@ -73,6 +73,13 @@ namespace OpenSim.Services.Connectors.Hypergrid
         {
         }
 
+        public bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, IPEndPoint ipaddress, out string reason)
+        {
+            // not available over remote calls
+            reason = "Method not available over remote calls";
+            return false;
+        }
+
         public bool LoginAgentToGrid(AgentCircuitData aCircuit, GridRegion gatekeeper, GridRegion destination, out string reason)
         {
             reason = String.Empty;
