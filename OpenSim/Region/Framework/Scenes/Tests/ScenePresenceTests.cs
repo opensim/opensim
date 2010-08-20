@@ -104,8 +104,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             agent.AgentID = agent1;
             agent.firstname = firstName;
             agent.lastname = "testlastname";
-            agent.SessionID = UUID.Zero;
-            agent.SecureSessionID = UUID.Zero;
+            agent.SessionID = UUID.Random();
+            agent.SecureSessionID = UUID.Random();
             agent.circuitcode = 123;
             agent.BaseFolder = UUID.Zero;
             agent.InventoryFolder = UUID.Zero;
@@ -113,6 +113,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             agent.CapsPath = GetRandomCapsObjectPath();
             agent.ChildrenCapSeeds = new Dictionary<ulong, string>();
             agent.child = true;
+
+            if (scene.PresenceService == null)
+                Console.WriteLine("Presence Service is null");
+
+            scene.PresenceService.LoginAgent(agent.AgentID.ToString(), agent.SessionID, agent.SecureSessionID);
 
             string reason;
             scene.NewUserConnection(agent, (uint)TeleportFlags.ViaLogin, out reason);

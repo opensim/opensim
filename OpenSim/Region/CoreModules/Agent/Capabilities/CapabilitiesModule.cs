@@ -109,9 +109,9 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
             Caps caps
                 = new Caps(m_scene,
                     m_scene.AssetService, MainServer.Instance, m_scene.RegionInfo.ExternalHostName,
-                    MainServer.Instance.Port,
+                    (MainServer.Instance == null) ? 0: MainServer.Instance.Port,
                     capsObjectPath, agentId, m_scene.DumpAssetsToFile, m_scene.RegionInfo.RegionName);
-            
+
             caps.RegisterHandlers();
 
             m_scene.EventManager.TriggerOnRegisterCaps(agentId, caps);
@@ -121,7 +121,7 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
             caps.TaskScriptUpdatedCall = m_scene.CapsUpdateTaskInventoryScriptAsset;
             caps.CAPSFetchInventoryDescendents = m_scene.HandleFetchInventoryDescendentsCAPS;
             caps.GetClient = m_scene.SceneContents.GetControllingClient;
-            
+
             m_capsHandlers[agentId] = caps;
         }
 

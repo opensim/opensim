@@ -130,11 +130,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelper.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
-            
+
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
-            
+
             TestScene scene = SceneSetupHelpers.SetupScene();
-            
+
             // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
             AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
             sogd.Enabled = false;
@@ -147,7 +147,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
 
             Assert.That(retrievedPart, Is.Not.Null);
-            
+
             sogd.InventoryDeQueueAndDelete();
 
             SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(part.LocalId);
