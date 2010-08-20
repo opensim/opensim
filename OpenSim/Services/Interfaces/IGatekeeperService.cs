@@ -48,13 +48,15 @@ namespace OpenSim.Services.Interfaces
     /// </summary>
     public interface IUserAgentService
     {
+        // called by login service only
+        bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, IPEndPoint clientIP, out string reason);
+        // called by simulators
         bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, out string reason);
-        void SetClientToken(UUID sessionID, string token);
         void LogoutAgent(UUID userID, UUID sessionID);
         GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt);
 
         bool AgentIsComingHome(UUID sessionID, string thisGridExternalName);
         bool VerifyAgent(UUID sessionID, string token);
-        bool VerifyClient(UUID sessionID, string token);
+        bool VerifyClient(UUID sessionID, string reportedIP);
     }
 }
