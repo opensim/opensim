@@ -347,14 +347,6 @@ namespace OpenSim
             // Prims have to be loaded after module configuration since some modules may be invoked during the load
             scene.LoadPrimsFromStorage(regionInfo.originRegionID);
             
-            // moved these here as the map texture has to be created after the modules are initialized
-            // and has to happen before the region is registered with the grid.
-            IWorldMapModule mapModule = scene.RequestModuleInterface<IWorldMapModule>();
-            if (mapModule != null)
-                mapModule.GenerateMaptile();
-            else
-                m_log.WarnFormat("[STARTUP]: No map module available to generate map tile");
-            
             // TODO : Try setting resource for region xstats here on scene
             MainServer.Instance.AddStreamHandler(new Region.Framework.Scenes.RegionStatsHandler(regionInfo)); 
             

@@ -396,6 +396,9 @@ namespace OpenSim.Region.Framework.Scenes
         private double m_rootReprioritizationDistance = 10.0;
         private double m_childReprioritizationDistance = 20.0;
 
+        private Timer m_mapGenerationTimer = new Timer();
+        bool m_generateMaptiles = false;
+
         #endregion
 
         #region Properties
@@ -646,6 +649,29 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
+
+                m_generateMaptiles = startupConfig.GetBoolean("GenerateMaptiles", true);
+                if (m_generateMaptiles)
+                {
+                    int maptileRefresh = startupConfig.GetInt("MaptileRefresh", 0);
+                    if (maptileRefresh != 0)
+                    {
+                        m_mapGenerationTimer.Interval = maptileRefresh * 1000;
+                        m_mapGenerationTimer.Elapsed += RegenerateMaptile;
+                        m_mapGenerationTimer.AutoReset = true;
+                        m_mapGenerationTimer.Start();
+                    }
+                }
+                else
+                {
+                    string tile = startupConfig.GetString("MaptileStaticUUID", UUID.Zero.ToString());
+                    UUID tileID;
+
+                    if (UUID.TryParse(tile, out tileID))
+                    {
+                        RegionInfo.RegionSettings.TerrainImageID = tileID;
+                    }
+                }
             }
             catch
             {
@@ -1662,16 +1688,21 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_sceneGridService.SetScene(this);
 
-            // These two 'commands' *must be* next to each other or sim rebooting fails.
-            //m_sceneGridService.RegisterRegion(m_interregionCommsOut, RegionInfo);
-
-            GridRegion region = new GridRegion(RegionInfo);
-            string error = GridService.RegisterRegion(RegionInfo.ScopeID, region);
-            if (error != String.Empty)
+            // If we generate maptiles internally at all, the maptile generator
+            // will register the region. If not, do it here
+            if (m_generateMaptiles)
             {
-                throw new Exception(error);
+                RegenerateMaptile(null, null);
             }
-
+            else
+            {
+                GridRegion region = new GridRegion(RegionInfo);
+                string error = GridService.RegisterRegion(RegionInfo.ScopeID, region);
+                if (error != String.Empty)
+                {
+                    throw new Exception(error);
+                }
+            }
         }
 
         #endregion
@@ -4877,6 +4908,20 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             return offsets.ToArray();
+        }
+
+        public void RegenerateMaptile(object sender, ElapsedEventArgs e)
+        {
+            IWorldMapModule mapModule = RequestModuleInterface<IWorldMapModule>();
+            if (mapModule != null)
+            {
+                mapModule.GenerateMaptile();
+
+                string error = GridService.RegisterRegion(RegionInfo.ScopeID, new GridRegion(RegionInfo));
+
+                if (error != String.Empty)
+                    throw new Exception(error);
+            }
         }
     }
 }
