@@ -1,16 +1,18 @@
+; * Run
+; * $ Robust.exe -inifile Robust.ini
+; *
+
 ; * The startup section lists all the connectors to start up in this server
 ; * instance. This may be only one, or it may be the entire server suite.
-; * Multiple connectors should be seaprated by commas.
-; * The startup section lists all the connectors to start up in this server
-; * instance. This may be only one, or it may be the entire server suite.
-; * Multiple connectors should be seaprated by commas.
+; * Multiple connectors should be separated by commas.
 ; *
 ; * These are the IN connectors the server uses, the in connectors
 ; * read this config file and load the needed service and database connectors
 ; *
+; *  The full syntax of a connector string is:
+; * [[<ConfigName>@]<port>/]<dll name>[:<class name>]
 ; *
 [Startup]
-
 ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
 
 ; * This is common for all services, it's the network setup for the entire
@@ -29,7 +31,6 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [DatabaseService]
     StorageProvider = "OpenSim.Data.MySQL.dll"
     ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;Old Guids=true;"
-
 
 ; * As an example, the below configuration precisely mimicks the legacy
 ; * asset server. It is read by the asset IN connector (defined above)
@@ -54,8 +55,10 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 ; *
 [GridService]
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
-    Realm = "regions"
+    ; Realm = "regions"
     ; AllowDuplicateNames = "True"
+    ; Check4096 = "False"
+
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegionName> = "<flags>"
     ;; or:            Region_<RegionID> = "<flags>"
@@ -70,8 +73,8 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 
 ; * This is the new style authentication service. Currently, only MySQL
 ; * is implemented. "Realm" is the table that is used for user lookup.
-; * By setting it to "users", you can use the old style users table
-; * as an authentication source.
+; * It defaults to "users", which uses the legacy tables as an
+; * authentication source.
 ; *
 [AuthenticationService]
     ; for the server connector
@@ -82,15 +85,17 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
     UserAccountServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
 	
-; * This is the new style user service.
-; * "Realm" is the table that is used for user lookup.
-; * It defaults to "users", which uses the legacy tables
+; * This is the new style authentication service. Currently, only MySQL
+; * is implemented. "Realm" is the table that is used for user lookup.
+; * It defaults to "useraccounts", which uses the new style.
+; * Realm = "users" will use the legacy tables as an authentication source
 ; *
 [UserAccountService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
     ; Realm = "useraccounts"
-    ;; These are for creating new accounts by the service
+
+    ; These are for creating new accounts by the service
     AuthenticationService = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
     PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
     GridService = "OpenSim.Services.GridService.dll:GridService"
@@ -158,27 +163,21 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 
     ; login page: optional: if it exists it will be used to tell the client to use
     ;                       this as splash page
-    ; currently unused
     ;welcome = http://127.0.0.1/welcome
 
     ; helper uri: optional: if it exists if will be used to tell the client to use
     ;                       this for all economy related things
-    ; currently unused
     ;economy = http://127.0.0.1:9000/
 
     ; web page of grid: optional: page providing further information about your grid
-    ; currently unused
     ;about = http://127.0.0.1/about/
 
     ; account creation: optional: page providing further information about obtaining
     ;                             a user account on your grid
-    ; currently unused
     ;register = http://127.0.0.1/register
 
     ; help: optional: page providing further assistance for users of your grid
-    ; currently unused
     ;help = http://127.0.0.1/help
 
     ; password help: optional: page providing password assistance for users of your grid
-    ; currently unused
     ;password = http://127.0.0.1/password

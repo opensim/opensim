@@ -100,7 +100,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             bool enabled = false;
             IConfig cfg = null;
             IConfig httpcfg = null;
-            IConfig startupcfg = null;
+//            IConfig startupcfg = null;
             try
             {
                 cfg = config.Configs["OpenGridProtocol"];
@@ -117,14 +117,14 @@ namespace OpenSim.Region.CoreModules.InterGrid
             {
                
             }
-            try
-            {
-                startupcfg = config.Configs["Startup"];
-            }
-            catch (NullReferenceException)
-            {
-
-            }
+//            try
+//            {
+//                startupcfg = config.Configs["Startup"];
+//            }
+//            catch (NullReferenceException)
+//            {
+//
+//            }
 
 //            if (startupcfg != null)
 //            {
