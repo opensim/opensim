@@ -148,6 +148,10 @@ namespace OpenSim.Data.MySQL
 
                         foreach (string name in m_Fields.Keys)
                         {
+                            if (reader[name] is DBNull)
+                            {
+                                continue;
+                            }
                             if (m_Fields[name].FieldType == typeof(bool))
                             {
                                 int v = Convert.ToInt32(reader[name]);

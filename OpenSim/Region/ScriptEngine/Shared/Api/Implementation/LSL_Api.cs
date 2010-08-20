@@ -3780,6 +3780,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID invItemID = InventorySelf();
+            UUID targetID;
+
+            if (!UUID.TryParse(target, out targetID))
+                return;
 
             TaskInventoryItem item;
             m_host.TaskInventory.LockItemsForRead(true);
@@ -3798,7 +3802,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (sp != null)
                 client = sp.ControllingClient;
 
-            SceneObjectPart targetPart = World.GetSceneObjectPart((UUID)target);
+            SceneObjectPart targetPart = World.GetSceneObjectPart((UUID)targetID);
 
             if (targetPart.ParentGroup.RootPart.AttachmentPoint != 0)
                 return; // Fail silently if attached
@@ -9143,7 +9147,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 string reply = String.Empty;
 
-                GridRegion info = m_ScriptEngine.World.GridService.GetRegionByName(m_ScriptEngine.World.RegionInfo.ScopeID, simulator);
+                GridRegion info;
+
+                if (m_ScriptEngine.World.RegionInfo.RegionName == simulator)
+                    info = new GridRegion(m_ScriptEngine.World.RegionInfo);
+                else
+                    info = m_ScriptEngine.World.GridService.GetRegionByName(m_ScriptEngine.World.RegionInfo.ScopeID, simulator);
 
                 switch (data)
                 {
