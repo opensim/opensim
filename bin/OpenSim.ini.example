@@ -300,7 +300,7 @@
 
     ; What is reported as the "X-Secondlife-Shard"
     ; Defaults to the user server url if not set
-    ; The old default is "OpenSim", set here fro compatibility
+    ; The old default is "OpenSim", set here for compatibility
     shard = "OpenSim"
 
     ; What is reported as the "User-Agent" when using llHTTPRequest
@@ -309,6 +309,18 @@
     ; " (Mozilla Compatible)" to the text where there are problems with a web server
     ;user_agent = "OpenSim LSL (Mozilla Compatible)"
 
+[XMLRPC]
+    ; ##
+    ; ## Scripting XMLRPC mapper
+    ; ##
+
+    ; If enabled, this will post an event, "xmlrpc_uri(string)" to the
+    ; script concurrently with the first remote_data event.
+    ; This will contain the fully qualified URI an external site needs
+    ; to use to send XMLRPC requests to that script
+
+    ;XmlRpcRouterModule = "XmlRpcRouterModule"
+    ;XmlRpcPort = 20800
 
 [ClientStack.LindenUDP]
     ; Set this to true to process incoming packets asynchronously. Networking is
@@ -1180,36 +1192,37 @@ UseSafetyCommit = true
     ;vivox_channel_clamping_distance = 10
 
 [FreeSwitchVoice]
-    ; In order for this to work you need a functioning freeswitch pbx set
-    ; up.  Configuration for that will be posted in the wiki soon.
+    ; In order for this to work you need a functioning FreeSWITCH PBX set up.
+    ; Configuration details at http://opensimulator.org/wiki/Freeswitch_Module
     enabled = false
-    ;FreeSwitch server is going to contact us and ask us all
-    ;sorts of things.
+    ; FreeSWITCH server is going to contact us and ask us all sorts of things
     freeswitch_server_user = freeswitch
     freeswitch_server_pass = password
     freeswitch_api_prefix = /api
-    ; this is the IP of your sim
+    ; external IP address of your OpenSim voice enabled region
+    ; note: all regions running on same OpenSim.exe will be enabled
     freeswitch_service_server = ip.address.of.your.sim
-    ;freeswitch_service_port = 80
     ; this should be the same port the region listens on
     freeswitch_service_port = 9000
     freeswitch_realm = ip.address.of.freeswitch.server
     freeswitch_sip_proxy = ip.address.of.freeswitch.server:5060
+    ; STUN = Simple Traversal of UDP through NATs
+    ; See http://wiki.freeswitch.org/wiki/NAT_Traversal
+    ; stun.freeswitch.org is not guaranteed to be running so use it in production at your own risk
     freeswitch_attempt_stun = false
-    freeswitch_stun_server = ip.address.of.freeswitch.server
+    freeswitch_stun_server = ip.address.of.stun.server
     freeswitch_echo_server = ip.address.of.freeswitch.server
     freeswitch_echo_port = 50505
     freeswitch_well_known_ip = ip.address.of.freeswitch.server
-
-    ;Type the address of your http server here, hostname is allowed.  This is provided so you can specify a hostname
-    ;This is used by client for account verification.  By default, it's the same as the freeswitch service server.
-
-    ;opensim_well_known_http_address = Address_Of_your_SIM_HTTP_Server_Hostname_Allowed
-
+    ;
+    ; Type the address of your http server here, hostname is allowed.  This is provided so you can specify a hostname
+    ; This is used by client for account verification.  By default, it's the same as the freeswitch service server.
+    ;
+    ; opensim_well_known_http_address = Address_Of_Your_SIM_HTTP_Server_Hostname_Allowed
+    ;
     freeswitch_default_timeout = 5000
     freeswitch_subscribe_retry = 120
     ; freeswitch_password_reset_url =
-
 
 [Groups]
     Enabled = false
@@ -1331,16 +1344,8 @@ Message = "The MOTD module is working!"
 [Modules]
     Include-modules = "addon-modules/*/config/*.ini"
 
-[XMLRPC]
-    ; ##
-    ; ## Scripting XMLRPC mapper
-    ; ##
 
-    ; If enabled, this will post an event, "xmlrpc_uri(string)" to the
-    ; script concurrently with the first remote_data event.
-    ; This will contain the fully qualified URI an external site needs
-    ; to use to send XMLRPC requests to that script
-
-    ;XmlRpcRouterModule = "XmlRpcRouterModule"
-    ;XmlRpcPort = 20800
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ENSURE [Architecture] and [Modules] Sections with their "includes"
+;; are last to allow for overrides
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

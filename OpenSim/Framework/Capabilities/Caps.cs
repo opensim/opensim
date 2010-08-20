@@ -142,7 +142,7 @@ namespace OpenSim.Framework.Capabilities
 
             m_httpListenPort = httpPort;
 
-            if (httpServer.UseSSL)
+            if (httpServer != null && httpServer.UseSSL)
             {
                 m_httpListenPort = httpServer.SSLPort;
                 httpListen = httpServer.SSLCommonName;
@@ -151,7 +151,7 @@ namespace OpenSim.Framework.Capabilities
 
             m_agentID = agent;
             m_dumpAssetsToFile = dumpAssetsToFile;
-            m_capsHandlers = new CapsHandlers(httpServer, httpListen, httpPort, httpServer.UseSSL);
+            m_capsHandlers = new CapsHandlers(httpServer, httpListen, httpPort, (httpServer == null) ? false : httpServer.UseSSL);
             m_regionName = regionName;
         }
 

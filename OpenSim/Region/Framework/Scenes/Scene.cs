@@ -2584,17 +2584,24 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="client"></param>
         public override void AddNewClient(IClientAPI client)
         {
+            AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(client.CircuitCode);
             bool vialogin = false;
 
-            m_clientManager.Add(client);
+            if (aCircuit == null) // no good, didn't pass NewUserConnection successfully
+                return;
+
+            vialogin = (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0 || 
+                       (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0;
 
             CheckHeartbeat();
-            SubscribeToClientEvents(client);
             ScenePresence presence;
 
             if (m_restorePresences.ContainsKey(client.AgentId))
             {
                 m_log.DebugFormat("[SCENE]: Restoring agent {0} {1} in {2}", client.Name, client.AgentId, RegionInfo.RegionName);
+
+                m_clientManager.Add(client);
+                SubscribeToClientEvents(client);
 
                 presence = m_restorePresences[client.AgentId];
                 m_restorePresences.Remove(client.AgentId);
@@ -2618,49 +2625,35 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(client.CircuitCode);
-
-                // Do the verification here
-                System.Net.IPEndPoint ep = (System.Net.IPEndPoint)client.GetClientEP();
-                if (aCircuit != null)
+                if (GetScenePresence(client.AgentId) == null) // ensure there is no SP here
                 {
-                    if (!VerifyClient(aCircuit, ep, out vialogin))
+                    m_log.Debug("[SCENE]: Adding new agent " + client.Name + " to scene " + RegionInfo.RegionName);
+
+                    m_clientManager.Add(client);
+                    SubscribeToClientEvents(client);
+
+                    ScenePresence sp = CreateAndAddScenePresence(client);
+                    if (aCircuit != null)
+                        sp.Appearance = aCircuit.Appearance;
+
+                    // HERE!!! Do the initial attachments right here
+                    // first agent upon login is a root agent by design.
+                    // All other AddNewClient calls find aCircuit.child to be true
+                    if (aCircuit == null || (aCircuit != null && aCircuit.child == false))
                     {
-                        // uh-oh, this is fishy
-                        m_log.WarnFormat("[SCENE]: Agent {0} with session {1} connecting with unidentified end point {2}. Refusing service.",
-                            client.AgentId, client.SessionId, ep.ToString());
-                        try
-                        {
-                            client.Close();
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.DebugFormat("[SCENE]: Exception while closing aborted client: {0}", e.StackTrace);
-                        }
-                        return;
+                        sp.IsChildAgent = false;
+                        Util.FireAndForget(delegate(object o) { sp.RezAttachments(); });
                     }
-                }
-
-                m_log.Debug("[SCENE]: Adding new agent " + client.Name + " to scene " + RegionInfo.RegionName);
-
-                ScenePresence sp = CreateAndAddScenePresence(client);
-                if (aCircuit != null)
-                    sp.Appearance = aCircuit.Appearance;
-
-                // HERE!!! Do the initial attachments right here
-                // first agent upon login is a root agent by design.
-                // All other AddNewClient calls find aCircuit.child to be true
-                if (aCircuit == null || (aCircuit != null && aCircuit.child == false))
-                {
-                    sp.IsChildAgent = false;
-                    Util.FireAndForget(delegate(object o) { sp.RezAttachments(); });
                 }
             }
 
-            m_LastLogin = Util.EnvironmentTickCount();
-            EventManager.TriggerOnNewClient(client);
-            if (vialogin)
-                EventManager.TriggerOnClientLogin(client);
+            if (GetScenePresence(client.AgentId) != null)
+            {
+                m_LastLogin = Util.EnvironmentTickCount();
+                EventManager.TriggerOnNewClient(client);
+                if (vialogin)
+                    EventManager.TriggerOnClientLogin(client);
+            }
         }
 
         private bool VerifyClient(AgentCircuitData aCircuit, System.Net.IPEndPoint ep, out bool vialogin)
@@ -2668,16 +2661,14 @@ namespace OpenSim.Region.Framework.Scenes
             vialogin = false;
             
             // Do the verification here
-            if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0)
+            if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
             {
-                m_log.DebugFormat("[SCENE]: Incoming client {0} {1} in region {2} via Login", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
+                m_log.DebugFormat("[SCENE]: Incoming client {0} {1} in region {2} via HG login", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
                 vialogin = true;
                 IUserAgentVerificationModule userVerification = RequestModuleInterface<IUserAgentVerificationModule>();
                 if (userVerification != null && ep != null)
                 {
-                    System.Net.IPAddress addr = NetworkUtil.GetExternalIPOf(ep.Address);
-
-                    if (!userVerification.VerifyClient(aCircuit, /*ep.Address.ToString() */ addr.ToString()))
+                    if (!userVerification.VerifyClient(aCircuit, ep.Address.ToString()))
                     {
                         // uh-oh, this is fishy
                         m_log.DebugFormat("[SCENE]: User Client Verification for {0} {1} in {2} returned false", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
@@ -2686,6 +2677,13 @@ namespace OpenSim.Region.Framework.Scenes
                     else
                         m_log.DebugFormat("[SCENE]: User Client Verification for {0} {1} in {2} returned true", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
                 }
+            }
+
+            else if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0)
+            {
+                m_log.DebugFormat("[SCENE]: Incoming client {0} {1} in region {2} via regular login. Client IP verification not performed.",
+                    aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
+                vialogin = true;
             }
 
             return true;
@@ -3343,7 +3341,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// also return a reason.</returns>
         public bool NewUserConnection(AgentCircuitData agent, uint teleportFlags, out string reason)
         {
-            TeleportFlags tp = (TeleportFlags)teleportFlags;
+            bool vialogin = ((teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0 ||
+                             (teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0);
             reason = String.Empty;
 
             //Teleport flags:
@@ -3380,7 +3379,7 @@ namespace OpenSim.Region.Framework.Scenes
             ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
 
             //On login test land permisions
-            if (tp == TeleportFlags.ViaLogin)
+            if (vialogin)
             {
                 if (land != null && !TestLandRestrictions(agent, land, out reason))
                 {
@@ -3440,7 +3439,7 @@ namespace OpenSim.Region.Framework.Scenes
             agent.teleportFlags = teleportFlags;
             m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
 
-            if (tp == TeleportFlags.ViaLogin) 
+            if (vialogin) 
             {
                 if (TestBorderCross(agent.startpos, Cardinals.E))
                 {
@@ -3561,7 +3560,7 @@ namespace OpenSim.Region.Framework.Scenes
             IPresenceService presence = RequestModuleInterface<IPresenceService>();
             if (presence == null)
             {
-                reason = String.Format("Failed to verify user {0} {1} in region {2}. Presence service does not exist.", agent.firstname, agent.lastname, RegionInfo.RegionName);
+                reason = String.Format("Failed to verify user presence in the grid for {0} {1} in region {2}. Presence service does not exist.", agent.firstname, agent.lastname, RegionInfo.RegionName);
                 return false;
             }
 
@@ -3569,7 +3568,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (pinfo == null)
             {
-                reason = String.Format("Failed to verify user {0} {1}, access denied to region {2}.", agent.firstname, agent.lastname, RegionInfo.RegionName);
+                reason = String.Format("Failed to verify user presence in the grid for {0} {1}, access denied to region {2}.", agent.firstname, agent.lastname, RegionInfo.RegionName);
                 return false;
             }
 
