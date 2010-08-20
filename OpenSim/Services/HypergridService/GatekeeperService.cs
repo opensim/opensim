@@ -225,17 +225,23 @@ namespace OpenSim.Services.HypergridService
 
             // May want to authorize
 
+            bool isFirstLogin = false;
             //
-            // Login the presence
+            // Login the presence, if it's not there yet (by the login service)
             //
-            if (!m_PresenceService.LoginAgent(aCircuit.AgentID.ToString(), aCircuit.SessionID, aCircuit.SecureSessionID))
-            {
-                reason = "Unable to login presence";
-                m_log.InfoFormat("[GATEKEEPER SERVICE]: Presence login failed for foreign agent {0} {1}. Refusing service.",
-                    aCircuit.firstname, aCircuit.lastname);
-                return false;
-            }
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: Login presence ok");
+            PresenceInfo presence = m_PresenceService.GetAgent(aCircuit.SessionID);
+            if (presence != null) // it has been placed there by the login service
+                isFirstLogin = true;
+
+            else 
+                if (!m_PresenceService.LoginAgent(aCircuit.AgentID.ToString(), aCircuit.SessionID, aCircuit.SecureSessionID))
+                {
+                    reason = "Unable to login presence";
+                    m_log.InfoFormat("[GATEKEEPER SERVICE]: Presence login failed for foreign agent {0} {1}. Refusing service.",
+                        aCircuit.firstname, aCircuit.lastname);
+                    return false;
+                }
+                m_log.DebugFormat("[GATEKEEPER SERVICE]: Login presence ok");
 
             //
             // Get the region
@@ -274,7 +280,9 @@ namespace OpenSim.Services.HypergridService
             //
             // Finally launch the agent at the destination
             //
-            return m_SimulationService.CreateAgent(destination, aCircuit, (uint)Constants.TeleportFlags.ViaLogin, out reason);
+            Constants.TeleportFlags loginFlag = isFirstLogin ? Constants.TeleportFlags.ViaLogin : Constants.TeleportFlags.ViaHGLogin;
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: launching agent {0}", loginFlag);
+            return m_SimulationService.CreateAgent(destination, aCircuit, (uint)loginFlag, out reason);
         }
 
         protected bool Authenticate(AgentCircuitData aCircuit)

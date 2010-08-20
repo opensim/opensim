@@ -2673,26 +2673,26 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(client.CircuitCode);
 
-                // Do the verification here
-                System.Net.IPEndPoint ep = (System.Net.IPEndPoint)client.GetClientEP();
-                if (aCircuit != null)
-                {
-                    if (!VerifyClient(aCircuit, ep, out vialogin))
-                    {
-                        // uh-oh, this is fishy
-                        m_log.WarnFormat("[Scene]: Agent {0} with session {1} connecting with unidentified end point {2}. Refusing service.",
-                            client.AgentId, client.SessionId, ep.ToString());
-                        try
-                        {
-                            client.Close();
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.DebugFormat("[Scene]: Exception while closing aborted client: {0}", e.StackTrace);
-                        }
-                        return;
-                    }
-                }
+                //// Do the verification here -- No, really don't do this here. This is UDP address, let it go.
+                //System.Net.IPEndPoint ep = (System.Net.IPEndPoint)client.GetClientEP();
+                //if (aCircuit != null)
+                //{
+                //    if (!VerifyClient(aCircuit, ep, out vialogin))
+                //    {
+                //        // uh-oh, this is fishy
+                //        m_log.WarnFormat("[SCENE]: Agent {0} with session {1} connecting with unidentified end point {2}. Refusing service.",
+                //            client.AgentId, client.SessionId, ep.ToString());
+                //        try
+                //        {
+                //            client.Close();
+                //        }
+                //        catch (Exception e)
+                //        {
+                //            m_log.DebugFormat("[SCENE]: Exception while closing aborted client: {0}", e.StackTrace);
+                //        }
+                //        return;
+                //    }
+                //}
 
                 m_log.Debug("[Scene] Adding new agent " + client.Name + " to scene " + RegionInfo.RegionName);
 
@@ -2721,16 +2721,14 @@ namespace OpenSim.Region.Framework.Scenes
             vialogin = false;
             
             // Do the verification here
-            if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0)
+            if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
             {
-                m_log.DebugFormat("[Scene]: Incoming client {0} {1} in region {2} via Login", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
+                m_log.DebugFormat("[SCENE]: Incoming client {0} {1} in region {2} via HG login", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
                 vialogin = true;
                 IUserAgentVerificationModule userVerification = RequestModuleInterface<IUserAgentVerificationModule>();
                 if (userVerification != null && ep != null)
                 {
-                    System.Net.IPAddress addr = NetworkUtil.GetExternalIPOf(ep.Address);
-
-                    if (!userVerification.VerifyClient(aCircuit, /*ep.Address.ToString() */ addr.ToString()))
+                    if (!userVerification.VerifyClient(aCircuit, ep.Address.ToString()))
                     {
                         // uh-oh, this is fishy
                         m_log.DebugFormat("[Scene]: User Client Verification for {0} {1} in {2} returned false", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
@@ -2740,6 +2738,10 @@ namespace OpenSim.Region.Framework.Scenes
                         m_log.DebugFormat("[Scene]: User Client Verification for {0} {1} in {2} returned true", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
                 }
             }
+
+            else if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0)
+                m_log.DebugFormat("[SCENE]: Incoming client {0} {1} in region {2} via regular login. Client IP verification not performed.", 
+                    aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
 
             return true;
         }

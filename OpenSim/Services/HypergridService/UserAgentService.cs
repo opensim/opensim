@@ -134,7 +134,7 @@ namespace OpenSim.Services.HypergridService
         public bool LoginAgentToGrid(AgentCircuitData agentCircuit, GridRegion gatekeeper, GridRegion finalDestination, IPEndPoint clientIP, out string reason)
         {
             m_log.DebugFormat("[USER AGENT SERVICE]: Request to login user {0} {1} (@{2}) to grid {3}", 
-                agentCircuit.firstname, agentCircuit.lastname, ((clientIP == null) ? "(stored IP)" : clientIP.ToString()), 
+                agentCircuit.firstname, agentCircuit.lastname, ((clientIP == null) ? "stored IP" : clientIP.Address.ToString()), 
                 gatekeeper.ExternalHostName +":"+ gatekeeper.HttpPort);
 
             // Take the IP address + port of the gatekeeper (reg) plus the info of finalDestination
@@ -169,9 +169,10 @@ namespace OpenSim.Services.HypergridService
                 return false;
             }
 
+            m_log.DebugFormat("[USER AGENT SERVICE]: Gatekeeper sees me as {0}", myExternalIP);
             // else set the IP addresses associated with this client
             if (clientIP != null)
-                m_TravelingAgents[agentCircuit.SessionID].ClientIPAddress = clientIP.ToString();
+                m_TravelingAgents[agentCircuit.SessionID].ClientIPAddress = clientIP.Address.ToString();
             m_TravelingAgents[agentCircuit.SessionID].MyIpAddress = myExternalIP;
             return true;
         }
