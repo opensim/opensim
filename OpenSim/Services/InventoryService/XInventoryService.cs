@@ -342,7 +342,7 @@ namespace OpenSim.Services.InventoryService
                 m_Database.DeleteFolders("folderID", x.folderID.ToString());
             }
 
-            m_Database.DeleteItems("parentFolderID", folder.id.ToString());
+            m_Database.DeleteItems("parentFolderID", folder.ID.ToString());
 
             return true;
         }
