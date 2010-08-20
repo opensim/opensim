@@ -342,17 +342,7 @@ namespace OpenSim.Services.InventoryService
                 m_Database.DeleteFolders("folderID", x.folderID.ToString());
             }
 
-            XInventoryItem[] items = m_Database.GetItems(
-                    new string[] { "parentFolderID" },
-                    new string[] { folder.ID.ToString() });
-
-            List<UUID> itemlist = new List<UUID>();
-            foreach (XInventoryItem i in items)
-            {
-                itemlist.Add(i.inventoryID);
-            }
-
-            DeleteItems(folder.Owner, itemlist);
+            m_Database.DeleteItems("parentFolderID", folder.id.ToString());
 
             return true;
         }
