@@ -3985,6 +3985,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
+                if (linknum > m_host.ParentGroup.PrimCount || (linknum == 1 && m_host.ParentGroup.PrimCount == 1))
+                {
+                    linknum -= (m_host.ParentGroup.PrimCount) + 1;
+                    if (linknum > 0) linknum--; //for linksets
+
+                    List<ScenePresence> avatars = GetLinkAvatars(ScriptBaseClass.LINK_SET);
+                    if (avatars.Count > linknum)
+                    {
+                        return avatars[linknum].UUID.ToString();
+                    }
+                }
                 return UUID.Zero.ToString();
             }
         }
