@@ -5797,7 +5797,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetSoundQueueing(int queue)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetSoundQueueing");
         }
 
         public void llSetSoundRadius(double radius)
