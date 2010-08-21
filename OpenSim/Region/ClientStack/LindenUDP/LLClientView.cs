@@ -2697,32 +2697,57 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.QueryData = new DirPlacesReplyPacket.QueryDataBlock[1];
             packet.QueryData[0] = new DirPlacesReplyPacket.QueryDataBlock();
 
-            packet.QueryReplies =
-                    new DirPlacesReplyPacket.QueryRepliesBlock[data.Length];
-
-            packet.StatusData = new DirPlacesReplyPacket.StatusDataBlock[
-                    data.Length];
-
             packet.AgentData.AgentID = AgentId;
 
             packet.QueryData[0].QueryID = queryID;
 
+            DirPlacesReplyPacket.QueryRepliesBlock[] replies =
+                    new DirPlacesReplyPacket.QueryRepliesBlock[0];
+            DirPlacesReplyPacket.StatusDataBlock[] status =
+                    new DirPlacesReplyPacket.StatusDataBlock[0];
+
             int i = 0;
             foreach (DirPlacesReplyData d in data)
             {
-                packet.QueryReplies[i] =
-                        new DirPlacesReplyPacket.QueryRepliesBlock();
-                packet.StatusData[i] = new DirPlacesReplyPacket.StatusDataBlock();
-                packet.QueryReplies[i].ParcelID = d.parcelID;
-                packet.QueryReplies[i].Name = Utils.StringToBytes(d.name);
-                packet.QueryReplies[i].ForSale = d.forSale;
-                packet.QueryReplies[i].Auction = d.auction;
-                packet.QueryReplies[i].Dwell = d.dwell;
-                packet.StatusData[i].Status = d.Status;
-                i++;
+                int idx = replies.Length;
+                Array.Resize(ref replies, idx + 1);
+                Array.Resize(ref status, idx + 1);
+
+                replies[idx] = new DirPlacesReplyPacket.QueryRepliesBlock();
+                status[idx] = new DirPlacesReplyPacket.StatusDataBlock();
+                replies[idx].ParcelID = d.parcelID;
+                replies[idx].Name = Utils.StringToBytes(d.name);
+                replies[idx].ForSale = d.forSale;
+                replies[idx].Auction = d.auction;
+                replies[idx].Dwell = d.dwell;
+                status[idx].Status = d.Status;
+
+                packet.QueryReplies = replies;
+                packet.StatusData = status;
+
+                if (packet.Length >= 1000)
+                {
+                    OutPacket(packet, ThrottleOutPacketType.Task);
+
+                    packet = (DirPlacesReplyPacket)PacketPool.Instance.GetPacket(PacketType.DirPlacesReply);
+
+                    packet.AgentData = new DirPlacesReplyPacket.AgentDataBlock();
+
+                    packet.QueryData = new DirPlacesReplyPacket.QueryDataBlock[1];
+                    packet.QueryData[0] = new DirPlacesReplyPacket.QueryDataBlock();
+
+                    packet.AgentData.AgentID = AgentId;
+
+                    packet.QueryData[0].QueryID = queryID;
+
+                    replies = new DirPlacesReplyPacket.QueryRepliesBlock[0];
+                    status = new DirPlacesReplyPacket.StatusDataBlock[0];
+
+                }
             }
 
-            OutPacket(packet, ThrottleOutPacketType.Task);
+            if (replies.Length > 0)
+                OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
         public void SendDirPeopleReply(UUID queryID, DirPeopleReplyData[] data)
