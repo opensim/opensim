@@ -422,6 +422,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ResumeScripts()
         {
+            if (m_scene.RegionInfo.RegionSettings.DisableScripts)
+                return;
+
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 part.Inventory.ResumeScripts();
