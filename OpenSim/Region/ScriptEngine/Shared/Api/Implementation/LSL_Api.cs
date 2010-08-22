@@ -5123,7 +5123,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else if (src.Data[index] is LSL_Float)
                     return Convert.ToDouble(((LSL_Float) src.Data[index]).value);
                 else if (src.Data[index] is LSL_String)
-                    return Convert.ToDouble(((LSL_String) src.Data[index]).m_string);
+                {
+                    string str = ((LSL_String) src.Data[index]).m_string;
+                    Match m = Regex.Match(str, "^\\s*(-?+?[0-9,]+\\.?[0-9]*)");
+                    if (m != Match.Empty)
+                    {
+                        str = m.Value;
+                        double d = 0.0;
+                        if (!Double.TryParse(str, out d))
+                            return 0.0;
+
+                        return d;
+                    }
+                    return 0.0;
+                }
                 return Convert.ToDouble(src.Data[index]);
             }
             catch (FormatException)
