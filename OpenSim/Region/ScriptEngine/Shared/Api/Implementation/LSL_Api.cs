@@ -5125,7 +5125,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else if (src.Data[index] is LSL_String)
                 {
                     string str = ((LSL_String) src.Data[index]).m_string;
-                    Match m = Regex.Match(str, "^\\s*(-?+?[0-9,]+\\.?[0-9]*)");
+                    Match m = Regex.Match(str, "^\\s*(-?\\+?[,0-9]+\\.?[0-9]*)");
                     if (m != Match.Empty)
                     {
                         str = m.Value;
