@@ -658,6 +658,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_persistAfter *= 10000000;
 
                 m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "XEngine");
+                m_log.InfoFormat("[SCENE]: Default script engine {0}", m_defaultScriptEngine);
 
                 IConfig packetConfig = m_config.Configs["PacketPool"];
                 if (packetConfig != null)
@@ -692,9 +693,9 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-            catch
+            catch (Exception e)
             {
-                m_log.Warn("[SCENE]: Failed to load StartupConfig");
+                m_log.Error("[SCENE]: Failed to load StartupConfig: " + e.ToString());
             }
 
             #endregion Region Config
