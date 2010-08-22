@@ -3988,7 +3988,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (linknum > m_host.ParentGroup.PrimCount || (linknum == 1 && m_host.ParentGroup.PrimCount == 1))
                 {
                     linknum -= (m_host.ParentGroup.PrimCount) + 1;
-                    if (linknum > 0) linknum--; //for linksets
 
                     List<ScenePresence> avatars = GetLinkAvatars(ScriptBaseClass.LINK_SET);
                     if (avatars.Count > linknum)
@@ -7807,13 +7806,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetNumberOfPrims()
         {
             m_host.AddScriptLPS(1);
-            int avatarCount = 0;
-            World.ForEachScenePresence(delegate(ScenePresence presence)
-            {
-                if (!presence.IsChildAgent && presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
-                        avatarCount++;
-            });
-
+            int avatarCount = m_host.ParentGroup.GetLinkedAvatars().Count;
+            
             return m_host.ParentGroup.PrimCount + avatarCount;
         }
 
