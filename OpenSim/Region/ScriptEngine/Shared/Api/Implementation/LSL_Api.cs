@@ -5123,7 +5123,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else if (src.Data[index] is LSL_Float)
                     return Convert.ToDouble(((LSL_Float) src.Data[index]).value);
                 else if (src.Data[index] is LSL_String)
-                    return Convert.ToDouble(Regex.Replace(((LSL_String)src.Data[index]).m_string, "[^0-9]", ""));
+                    return Convert.ToDouble(((LSL_String) src.Data[index]).m_string);
                 return Convert.ToDouble(src.Data[index]);
             }
             catch (FormatException)
