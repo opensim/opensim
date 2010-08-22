@@ -7829,55 +7829,98 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             UUID objID = UUID.Zero;
             LSL_List result = new LSL_List();
+
+            // If the ID is not valid, return null result
             if (!UUID.TryParse(obj, out objID))
             {
                 result.Add(new LSL_Vector());
                 result.Add(new LSL_Vector());
                 return result;
             }
+
+            // Check if this is an attached prim. If so, replace
+            // the UUID with the avatar UUID and report it's bounding box
+            SceneObjectPart part = World.GetSceneObjectPart(objID);
+            if (part != null && part.ParentGroup.IsAttachment)
+                objID = part.ParentGroup.RootPart.AttachedAvatar;
+
+            // Find out if this is an avatar ID. If so, return it's box
             ScenePresence presence = World.GetScenePresence(objID);
             if (presence != null)
             {
-                if (presence.ParentID == 0) // not sat on an object
+                // As per LSL Wiki, there is no difference between sitting
+                // and standing avatar since server 1.36
+                LSL_Vector lower;
+                LSL_Vector upper;
+                if (presence.Animator.Animations.DefaultAnimation.AnimID 
+                    == AnimationSet.Animations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
                 {
-                    LSL_Vector lower;
-                    LSL_Vector upper;
-                    if (presence.Animator.Animations.DefaultAnimation.AnimID 
-                        == AnimationSet.Animations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
-                    {
-                        // This is for ground sitting avatars
-                        float height = presence.Appearance.AvatarHeight / 2.66666667f;
-                        lower = new LSL_Vector(-0.3375f, -0.45f, height * -1.0f);
-                        upper = new LSL_Vector(0.3375f, 0.45f, 0.0f);
-                    }
-                    else
-                    {
-                        // This is for standing/flying avatars
-                        float height = presence.Appearance.AvatarHeight / 2.0f;
-                        lower = new LSL_Vector(-0.225f, -0.3f, height * -1.0f);
-                        upper = new LSL_Vector(0.225f, 0.3f, height + 0.05f);
-                    }
-                    result.Add(lower);
-                    result.Add(upper);
-                    return result;
+                    // This is for ground sitting avatars
+                    float height = presence.Appearance.AvatarHeight / 2.66666667f;
+                    lower = new LSL_Vector(-0.3375f, -0.45f, height * -1.0f);
+                    upper = new LSL_Vector(0.3375f, 0.45f, 0.0f);
                 }
                 else
                 {
-                    // sitting on an object so we need the bounding box of that
-                    // which should include the avatar so set the UUID to the
-                    // UUID of the object the avatar is sat on and allow it to fall through
-                    // to processing an object
-                    SceneObjectPart p = World.GetSceneObjectPart(presence.ParentID);
-                    objID = p.UUID;
+                    // This is for standing/flying avatars
+                    float height = presence.Appearance.AvatarHeight / 2.0f;
+                    lower = new LSL_Vector(-0.225f, -0.3f, height * -1.0f);
+                    upper = new LSL_Vector(0.225f, 0.3f, height + 0.05f);
                 }
+
+                // Adjust to the documented error offsets (see LSL Wiki)
+                lower += new LSL_Vector(0.05f, 0.05f, 0.05f);
+                upper -= new LSL_Vector(0.05f, 0.05f, 0.05f);
+
+                if (lower.x > upper.x)
+                    lower.x = upper.x;
+                if (lower.y > upper.y)
+                    lower.y = upper.y;
+                if (lower.z > upper.z)
+                    lower.z = upper.z;
+
+                result.Add(lower);
+                result.Add(upper);
+                return result;
             }
-            SceneObjectPart part = World.GetSceneObjectPart(objID);
+
+            part = World.GetSceneObjectPart(objID);
             // Currently only works for single prims without a sitting avatar
             if (part != null)
             {
-                Vector3 halfSize = part.Scale / 2.0f;
-                LSL_Vector lower = new LSL_Vector(halfSize.X * -1.0f, halfSize.Y * -1.0f, halfSize.Z * -1.0f);
-                LSL_Vector upper = new LSL_Vector(halfSize.X, halfSize.Y, halfSize.Z);
+                float minX;
+                float maxX;
+                float minY;
+                float maxY;
+                float minZ;
+                float maxZ;
+
+                // This BBox is in sim coordinates, with the offset being
+                // a contained point.
+                Vector3[] offsets = World.GetCombinedBoundingBox(new List<SceneObjectGroup> { part.ParentGroup },
+                        out minX, out maxX, out minY, out maxY, out minZ, out maxZ);
+
+                minX -= offsets[0].X;
+                maxX -= offsets[0].X;
+                minY -= offsets[0].Y;
+                maxY -= offsets[0].Y;
+                minZ -= offsets[0].Z;
+                maxZ -= offsets[0].Z;
+
+                LSL_Vector lower;
+                LSL_Vector upper;
+
+                // Adjust to the documented error offsets (see LSL Wiki)
+                lower = new LSL_Vector(minX + 0.05f, minY + 0.05f, minZ + 0.05f);
+                upper = new LSL_Vector(maxX - 0.05f, maxY - 0.05f, maxZ - 0.05f);
+
+                if (lower.x > upper.x)
+                    lower.x = upper.x;
+                if (lower.y > upper.y)
+                    lower.y = upper.y;
+                if (lower.z > upper.z)
+                    lower.z = upper.z;
+
                 result.Add(lower);
                 result.Add(upper);
                 return result;
