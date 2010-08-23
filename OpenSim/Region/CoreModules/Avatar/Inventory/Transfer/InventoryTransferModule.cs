@@ -32,7 +32,6 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
-
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
@@ -91,7 +90,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 m_TransferModule = m_Scenelist[0].RequestModuleInterface<IMessageTransferModule>();
                 if (m_TransferModule == null)
                 {
-                    m_log.Error("[INVENTORY TRANSFER] No Message transfer module found, transfers will be local only");
+                    m_log.Error("[INVENTORY TRANSFER]: No Message transfer module found, transfers will be local only");
                     m_Enabled = false;
 
                     m_Scenelist.Clear();
@@ -153,8 +152,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
         private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
-            m_log.InfoFormat("[INVENTORY TRANSFER]: OnInstantMessage {0}", im.dialog);
-            
+            m_log.InfoFormat(
+                "[INVENTORY TRANSFER]: {0} IM type received from {1}", 
+                (InstantMessageDialog)im.dialog, client.Name);
+          
             Scene scene = FindClientScene(client.AgentId);
 
             if (scene == null) // Something seriously wrong here.
@@ -179,7 +180,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 {
                     UUID folderID = new UUID(im.binaryBucket, 1);
                     
-                    m_log.DebugFormat("[AGENT INVENTORY]: Inserting original folder {0} "+
+                    m_log.DebugFormat("[INVENTORY TRANSFER]: Inserting original folder {0} "+
                             "into agent {1}'s inventory",
                             folderID, new UUID(im.toAgentID));
                     
@@ -215,7 +216,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                     UUID itemID = new UUID(im.binaryBucket, 1);
 
-                    m_log.DebugFormat("[AGENT INVENTORY]: (giving) Inserting item {0} "+
+                    m_log.DebugFormat("[INVENTORY TRANSFER]: (giving) Inserting item {0} "+
                             "into agent {1}'s inventory",
                             itemID, new UUID(im.toAgentID));
 
@@ -280,10 +281,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 // inventory is loaded. Courtesy of the above bulk update,
                 // It will have been pushed to the client, too
                 //
-                
-                //CachedUserInfo userInfo =
-                //        scene.CommsManager.UserProfileCacheService.
-                //        GetUserDetails(client.AgentId);
                 IInventoryService invService = scene.InventoryService;
 
                 InventoryFolderBase trashFolder =

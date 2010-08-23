@@ -27,14 +27,11 @@
 
 using System;
 using System.Collections.Generic;
-
 using OpenMetaverse;
 using Nini.Config;
 using log4net;
-
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
-
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {

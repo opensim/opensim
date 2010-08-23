@@ -157,6 +157,8 @@ namespace OpenSim.Services.InventoryService
 
         protected virtual XInventoryFolder[] GetSystemFolders(UUID principalID)
         {
+//            m_log.DebugFormat("[XINVENTORY SERVICE]: Getting system folders for {0}", principalID);
+            
             XInventoryFolder[] allFolders = m_Database.GetFolders(
                     new string[] { "agentID" },
                     new string[] { principalID.ToString() });
@@ -170,6 +172,9 @@ namespace OpenSim.Services.InventoryService
                         return false;
                     });
 
+//            m_log.DebugFormat(
+//                "[XINVENTORY SERVICE]: Found {0} system folders for {1}", sysFolders.Length, principalID);
+            
             return sysFolders;
         }
 
@@ -186,7 +191,7 @@ namespace OpenSim.Services.InventoryService
 
             foreach (XInventoryFolder x in allFolders)
             {
-                //m_log.DebugFormat("[XINVENTORY]: Adding folder {0} to skeleton", x.folderName);
+                //m_log.DebugFormat("[XINVENTORY SERVICE]: Adding folder {0} to skeleton", x.folderName);
                 folders.Add(ConvertToOpenSim(x));
             }
 

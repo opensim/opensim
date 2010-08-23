@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -69,7 +69,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         private string m_serverUrl = String.Empty;
         private string m_userServerUrl = String.Empty;
-        private object m_gestureSyncRoot = new object();
+//        private object m_gestureSyncRoot = new object();
 
         #region ISharedRegionModule
 
@@ -687,12 +687,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
             for (int i = 0; i < items.Count; i++)
                 itemIDs[i] = items[i].AsUUID().ToString();
 
-            NameValueCollection requestArgs = new NameValueCollection
-            {
-                { "RequestMethod", "GetInventoryNodes" },
-                { "OwnerID", userID.ToString() },
-                { "Items", String.Join(",", itemIDs) }
-            };
+//            NameValueCollection requestArgs = new NameValueCollection
+//            {
+//                { "RequestMethod", "GetInventoryNodes" },
+//                { "OwnerID", userID.ToString() },
+//                { "Items", String.Join(",", itemIDs) }
+//            };
 
             // FIXME: Implement this in SimianGrid
             return new List<InventoryItemBase>(0);
@@ -708,12 +708,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
         /// the user's inventory</returns>
         public int GetAssetPermissions(UUID userID, UUID assetID)
         {
-            NameValueCollection requestArgs = new NameValueCollection
-            {
-                { "RequestMethod", "GetInventoryNodes" },
-                { "OwnerID", userID.ToString() },
-                { "AssetID", assetID.ToString() }
-            };
+//            NameValueCollection requestArgs = new NameValueCollection
+//            {
+//                { "RequestMethod", "GetInventoryNodes" },
+//                { "OwnerID", userID.ToString() },
+//                { "AssetID", assetID.ToString() }
+//            };
 
             // FIXME: Implement this in SimianGrid
             return (int)PermissionMask.All;

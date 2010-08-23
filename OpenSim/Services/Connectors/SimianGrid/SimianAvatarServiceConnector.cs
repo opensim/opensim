@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -53,7 +53,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
-        private static string ZeroID = UUID.Zero.ToString();
+//        private static string ZeroID = UUID.Zero.ToString();
 
         private string m_serverUrl = String.Empty;
 

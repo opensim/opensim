@@ -76,7 +76,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             base.Init(source);
         }
 
-
         #region ISharedRegionModule
 
         public void Initialise(IConfigSource source)

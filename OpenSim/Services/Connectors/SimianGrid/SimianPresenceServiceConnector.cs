@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -349,24 +349,24 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return null;
         }
 
-        private OSDMap GetSessionData(UUID sessionID)
-        {
-            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting session data for session " + sessionID);
-
-            NameValueCollection requestArgs = new NameValueCollection
-            {
-                { "RequestMethod", "GetSession" },
-                { "SessionID", sessionID.ToString() }
-            };
-
-            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
-            if (response["Success"].AsBoolean())
-                return response;
-            else
-                m_log.Warn("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve session data for session " + sessionID);
-
-            return null;
-        }
+//        private OSDMap GetSessionData(UUID sessionID)
+//        {
+//            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting session data for session " + sessionID);
+//
+//            NameValueCollection requestArgs = new NameValueCollection
+//            {
+//                { "RequestMethod", "GetSession" },
+//                { "SessionID", sessionID.ToString() }
+//            };
+//
+//            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+//            if (response["Success"].AsBoolean())
+//                return response;
+//            else
+//                m_log.Warn("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve session data for session " + sessionID);
+//
+//            return null;
+//        }
 
         private List<PresenceInfo> GetSessions(UUID userID)
         {

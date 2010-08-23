@@ -132,20 +132,21 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         {
             UUID toAgentID = new UUID(im.toAgentID);
 
-            m_log.DebugFormat("[INSTANT MESSAGE]: Attempting delivery of IM from {0} to {1}", im.fromAgentName, toAgentID.ToString());
-
             // Try root avatar only first
             foreach (Scene scene in m_Scenes)
             {
                 if (scene.Entities.ContainsKey(toAgentID) &&
                         scene.Entities[toAgentID] is ScenePresence)
-                {
-                    m_log.DebugFormat("[INSTANT MESSAGE]: Looking for {0} in {1}", toAgentID.ToString(), scene.RegionInfo.RegionName);
-                    // Local message
+                {                    
+//                    m_log.DebugFormat(
+//                        "[INSTANT MESSAGE]: Looking for root agent {0} in {1}", 
+//                        toAgentID.ToString(), scene.RegionInfo.RegionName);
+                                        
                     ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
                     if (!user.IsChildAgent)
                     {
-                        m_log.DebugFormat("[INSTANT MESSAGE]: Delivering to client");
+                        // Local message
+                        m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to root agent {0} {1}", user.Name, toAgentID);
                         user.ControllingClient.SendInstantMessage(im);
 
                         // Message sent
@@ -167,7 +168,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     // Local message
                     ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
 
-                    m_log.DebugFormat("[INSTANT MESSAGE]: Delivering to client");
+                    m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to child agent {0} {1}", user.Name, toAgentID);
                     user.ControllingClient.SendInstantMessage(im);
 
                     // Message sent
@@ -176,6 +177,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 }
             }
 
+            m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to {0} via XMLRPC", im.toAgentID);
             SendGridInstantMessageViaXMLRPC(im, result);
 
             return;
