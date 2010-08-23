@@ -219,12 +219,21 @@ namespace OpenSim.Services.InventoryService
 
         public virtual InventoryFolderBase GetFolderForType(UUID principalID, AssetType type)
         {
+//            m_log.DebugFormat("[XINVENTORY SERVICE]: Getting folder type {0} for user {1}", type, principalID);
+            
             XInventoryFolder[] folders = m_Database.GetFolders(
                     new string[] { "agentID", "type"},
                     new string[] { principalID.ToString(), ((int)type).ToString() });
 
             if (folders.Length == 0)
+            {
+//                m_log.WarnFormat("[XINVENTORY SERVICE]: Found no folder for type {0} for user {1}", type, principalID);
                 return null;
+            }
+            
+//            m_log.DebugFormat(
+//                "[XINVENTORY SERVICE]: Found folder {0} {1} for type {2} for user {3}", 
+//                folders[0].folderName, folders[0].folderID, type, principalID);
 
             return ConvertToOpenSim(folders[0]);
         }
@@ -235,7 +244,7 @@ namespace OpenSim.Services.InventoryService
             // connector. So we disregard the principal and look
             // by ID.
             //
-            m_log.DebugFormat("[XINVENTORY]: Fetch contents for folder {0}", folderID.ToString());
+            m_log.DebugFormat("[XINVENTORY SERVICE]: Fetch contents for folder {0}", folderID.ToString());
             InventoryCollection inventory = new InventoryCollection();
             inventory.UserID = principalID;
             inventory.Folders = new List<InventoryFolderBase>();
@@ -354,6 +363,9 @@ namespace OpenSim.Services.InventoryService
 
         public virtual bool AddItem(InventoryItemBase item)
         {
+//            m_log.DebugFormat(
+//                "[XINVENTORY SERVICE]: Adding item {0} to folder {1} for {2}", item.ID, item.Folder, item.Owner);
+            
             return m_Database.StoreItem(ConvertFromOpenSim(item));
         }
 
