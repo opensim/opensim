@@ -223,6 +223,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// <returns>true if the item was successfully added</returns>
         public bool AddItem(InventoryItemBase item)
         {
+            m_log.DebugFormat(
+                "[LOCAL INVENTORY SERVICES CONNECTOR]: Adding inventory item {0} to user {1} folder {2}", 
+                item.Name, item.Owner, item.Folder);            
+            
             return m_InventoryService.AddItem(item);
         }
 
@@ -235,7 +239,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
             return m_InventoryService.UpdateItem(item);
         }
-
 
         public bool MoveItems(UUID ownerID, List<InventoryItemBase> items)
         {

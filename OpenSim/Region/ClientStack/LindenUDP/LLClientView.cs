@@ -2724,7 +2724,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             DirPlacesReplyPacket.StatusDataBlock[] status =
                     new DirPlacesReplyPacket.StatusDataBlock[0];
 
-            int i = 0;
             foreach (DirPlacesReplyData d in data)
             {
                 int idx = replies.Length;
@@ -2760,7 +2759,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     replies = new DirPlacesReplyPacket.QueryRepliesBlock[0];
                     status = new DirPlacesReplyPacket.StatusDataBlock[0];
-
                 }
             }
 
