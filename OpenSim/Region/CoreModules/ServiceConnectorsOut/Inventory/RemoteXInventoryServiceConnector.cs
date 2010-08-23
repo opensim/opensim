@@ -229,6 +229,23 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
             if (item == null)
                 return false;
+            
+            if (UUID.Zero == item.Folder)
+            {
+                InventoryFolderBase f = m_RemoteConnector.GetFolderForType(item.Owner, (AssetType)item.AssetType);
+                if (f != null)
+                {
+                    item.Folder = f.ID;
+                }
+                else
+                {
+                    f = m_RemoteConnector.GetRootFolder(item.Owner);
+                    if (f != null)
+                        item.Folder = f.ID;
+                    else
+                        return false;
+                }
+            }            
 
             return m_RemoteConnector.AddItem(item);
         }
