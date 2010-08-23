@@ -141,8 +141,11 @@ namespace OpenSim.Services.Interfaces
         /// <summary>
         /// Add a new item to the user's inventory
         /// </summary>
-        /// <param name="item"></param>
-        /// <returns>true if the item was successfully added</returns>
+        /// <param name="item">
+        /// The item to be added.  If item.FolderID == UUID.Zero then the item is added to the most suitable system
+        /// folder.  If there is no suitable folder then the item is added to the user's root inventory folder.
+        /// </param>
+        /// <returns>true if the item was successfully added, false if it was not</returns>
         bool AddItem(InventoryItemBase item);
 
         /// <summary>

@@ -295,9 +295,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.GetAssetPermissions(userID, assetID);
         }
 
-
         #endregion
-
-
     }
 }
