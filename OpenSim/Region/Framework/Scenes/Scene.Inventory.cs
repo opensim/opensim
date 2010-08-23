@@ -984,7 +984,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private InventoryItemBase CreateAgentInventoryItemFromTask(UUID destAgent, SceneObjectPart part, UUID itemId)
         {
-            Console.WriteLine("CreateAgentInventoryItemFromTask");
             TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(itemId);
 
             if (null == taskItem)
@@ -1055,7 +1054,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="itemID"></param>
         public InventoryItemBase MoveTaskInventoryItem(IClientAPI remoteClient, UUID folderId, SceneObjectPart part, UUID itemId)
         {
-            m_log.Info("Adding task inventory");
+            m_log.DebugFormat(
+                "[PRIM INVENTORY]: Adding item {0} from {1} to folder {2} for {3}", 
+                itemId, part.Name, folderId, remoteClient.Name);
+            
             InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(remoteClient.AgentId, part, itemId);
 
             if (agentItem == null)
@@ -1121,7 +1123,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <see>MoveTaskInventoryItem</see>
         /// </summary>
         /// <param name="remoteClient"></param>
-        /// <param name="folderID"></param>
+        /// <param name="folderID">
+        /// The user inventory folder to move (or copy) the item to.  If null, then the most
+        /// suitable system folder is used (e.g. the Objects folder for objects).  If there is no suitable folder, then
+        /// the item is placed in the user's root inventory folder
+        /// </param>
         /// <param name="part"></param>
         /// <param name="itemID"></param>
         public InventoryItemBase MoveTaskInventoryItem(UUID avatarId, UUID folderId, SceneObjectPart part, UUID itemId)

@@ -161,6 +161,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// <returns></returns>
         public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
         {
+            m_log.DebugFormat("[INVENTORY CACHE]: Getting folder for asset type {0} for user {1}", type, userID);
+            
             Dictionary<AssetType, InventoryFolderBase> folders = null;
             
             lock (m_InventoryCache)
@@ -177,8 +179,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             
             if ((folders != null) && folders.ContainsKey(type))
             {
+                m_log.DebugFormat(
+                    "[INVENTORY CACHE]: Returning folder {0} as type {1} for {2}", folders[type], type, userID);
+                
                 return folders[type];
             }
+            
+            m_log.WarnFormat("[INVENTORY CACHE]: Could not find folder for system type {0} for {1}", type, userID);            
 
             return null;
         }

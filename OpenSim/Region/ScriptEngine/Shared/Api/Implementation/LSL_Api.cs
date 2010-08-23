@@ -4179,8 +4179,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
 
                 // destination is an avatar
-                InventoryItemBase agentItem =
-                        World.MoveTaskInventoryItem(destId, UUID.Zero, m_host, objId);
+                InventoryItemBase agentItem = World.MoveTaskInventoryItem(destId, UUID.Zero, m_host, objId);
 
                 if (agentItem == null)
                     return;
@@ -4190,7 +4189,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 byte[] objBytes = agentItem.ID.GetBytes();
                 Array.Copy(objBytes, 0, bucket, 1, 16);
 
-                Console.WriteLine("Giving inventory");
                 GridInstantMessage msg = new GridInstantMessage(World,
                         m_host.UUID, m_host.Name+", an object owned by "+
                         resolveName(m_host.OwnerID)+",", destId,
