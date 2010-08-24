@@ -134,7 +134,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             sop.Text = RandomName();
             sop.SitName = RandomName();
             sop.TouchName = RandomName();
-            sop.ObjectFlags |= (uint)PrimFlags.Phantom;
+            sop.Flags |= PrimFlags.Phantom;
 
             SceneObjectGroup sog = new SceneObjectGroup(sop);
             scene.AddNewSceneObject(sog, false);
