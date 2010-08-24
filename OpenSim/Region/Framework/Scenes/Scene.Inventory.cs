@@ -106,7 +106,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 m_log.WarnFormat(
-                    "[AGENT INVENTORY]: Agent {1} could not add item {2} {3}",
+                    "[AGENT INVENTORY]: Agent {0} could not add item {1} {2}",
                     AgentID, item.Name, item.ID);
 
                 return;

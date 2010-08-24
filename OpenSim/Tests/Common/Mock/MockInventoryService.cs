@@ -37,13 +37,9 @@ namespace OpenSim.Tests.Common.Mock
 {
     public class MockInventoryService : IInventoryService
     {
-        public MockInventoryService()
-        {
-        }
+        public MockInventoryService() {}
         
-        public MockInventoryService(IConfigSource config)
-        {
-        }
+        public MockInventoryService(IConfigSource config) {}
 
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInterServiceInventoryServices"/>
@@ -140,7 +136,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public bool AddItem(InventoryItemBase item)
         {
-            return false;
+            return true;
         }
 
         public bool UpdateItem(InventoryItemBase item)

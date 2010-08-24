@@ -285,10 +285,16 @@ namespace OpenSim.Tests.Common.Setup
             config.AddConfig("Modules");
             config.AddConfig("InventoryService");
             config.Configs["Modules"].Set("InventoryServices", "LocalInventoryServicesConnector");
+            
             if (real)
+            {
                 config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Services.InventoryService.dll:InventoryService");
+            }
             else
+            {
                 config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:MockInventoryService");
+            }
+            
             config.Configs["InventoryService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
             inventoryService.Initialise(config);
             inventoryService.AddRegion(testScene);
