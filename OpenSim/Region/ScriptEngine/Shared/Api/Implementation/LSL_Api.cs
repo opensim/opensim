@@ -1926,7 +1926,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (part.ParentGroup.RootPart == part)
             {
-                if ((targetPos.z < ground) && disable_underground_movement)
+                if ((targetPos.z < ground) && disable_underground_movement && m_host.AttachmentPoint == 0)
                     targetPos.z = ground;
                 SceneObjectGroup parent = part.ParentGroup;
                 LSL_Vector real_vec = SetPosAdjust(currentPos, targetPos);
@@ -1958,17 +1958,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected LSL_Vector GetPartLocalPos(SceneObjectPart part)
         {
             m_host.AddScriptLPS(1);
-            if (part.ParentID != 0)
-            {
-                return new LSL_Vector(part.OffsetPosition.X,
-                                      part.OffsetPosition.Y,
-                                      part.OffsetPosition.Z);
-            }
-            else
+            if (part.ParentID == 0)
             {
                 return new LSL_Vector(part.AbsolutePosition.X,
                                       part.AbsolutePosition.Y,
                                       part.AbsolutePosition.Z);
+            }
+            else
+            {
+                if (m_host.IsRoot)
+                {
+                    return new LSL_Vector(m_host.AttachedPos.X,
+                                          m_host.AttachedPos.Y,
+                                          m_host.AttachedPos.Z);
+                }
+                else
+                {
+                    return new LSL_Vector(part.OffsetPosition.X,
+                                          part.OffsetPosition.Y,
+                                          part.OffsetPosition.Z);
+                }
             }
         }
 
