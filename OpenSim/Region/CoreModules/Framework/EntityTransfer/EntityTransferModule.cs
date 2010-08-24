@@ -459,6 +459,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // Now let's make it officially a child agent
                 sp.MakeChildAgent();
 
+                sp.Scene.CleanDroppedAttachments();
+
                 // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 
                 if (NeedsClosing(oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
