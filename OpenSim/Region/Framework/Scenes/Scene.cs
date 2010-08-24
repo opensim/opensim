@@ -3209,6 +3209,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.Debug("[Scene] Beginning OnRemovePresence");
                 m_eventManager.TriggerOnRemovePresence(agentID);
                 m_log.Debug("[Scene] Finished OnRemovePresence");
+
+                CleanDroppedAttachments();
+
                 ForEachClient(
                     delegate(IClientAPI client)
                     {
@@ -3442,6 +3445,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (vialogin) 
             {
+                CleanDroppedAttachments();
+
                 if (TestBorderCross(agent.startpos, Cardinals.E))
                 {
                     Border crossedBorder = GetCrossedBorder(agent.startpos, Cardinals.E);
@@ -5038,6 +5043,38 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (error != String.Empty)
                     throw new Exception(error);
+            }
+        }
+
+        public void CleanDroppedAttachments()
+        {
+            List<SceneObjectGroup> objectsToDelete =
+                    new List<SceneObjectGroup>();
+
+            ForEachSOG(delegate (SceneObjectGroup grp)
+                    {
+                        if (grp.RootPart.Shape.State != 0)
+                        {
+                            UUID agentID = grp.OwnerID;
+                            if (agentID == UUID.Zero)
+                            {
+                                objectsToDelete.Add(grp);
+                                return;
+                            }
+
+                            ScenePresence sp = GetScenePresence(agentID);
+                            if (sp == null)
+                            {
+                                objectsToDelete.Add(grp);
+                                return;
+                            }
+                        }
+                    });
+            
+            foreach (SceneObjectGroup grp in objectsToDelete)
+            {
+                m_log.InfoFormat("[SCENE]: Deleting dropped attachment {0} of user {1}", grp.UUID, grp.OwnerID);
+                DeleteSceneObject(grp, true);
             }
         }
     }
