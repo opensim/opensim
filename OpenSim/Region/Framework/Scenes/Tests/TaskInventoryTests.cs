@@ -95,6 +95,32 @@ namespace OpenSim.Region.Framework.Tests
         /// </summary>
         /// This should place it in the most suitable user folder.
         [Test]
+        public void TestMoveTaskInventoryItem()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+            
+            Scene scene = SceneSetupHelpers.SetupScene("inventory");
+            UserAccount user1 = CreateUser(scene);
+            SceneObjectGroup sog1 = CreateSO1(scene, user1.PrincipalID);
+            SceneObjectPart sop1 = sog1.RootPart;
+            TaskInventoryItem sopItem1 = CreateSOItem1(scene, sop1);
+            InventoryFolderBase folder 
+                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, user1.PrincipalID, "Objects")[0];
+            
+            // Perform test
+            scene.MoveTaskInventoryItem(user1.PrincipalID, folder.ID, sop1, sopItem1.ItemID);
+                
+            InventoryItemBase ncUserItem
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, user1.PrincipalID, "Objects/ncItem");            
+            Assert.That(ncUserItem, Is.Not.Null, "Objects/ncItem was not found");
+        }        
+        
+        /// <summary>
+        /// Test MoveTaskInventoryItem where the item has no parent folder assigned.
+        /// </summary>
+        /// This should place it in the most suitable user folder.
+        [Test]
         public void TestMoveTaskInventoryItemNoParent()
         {
             TestHelper.InMethod();
