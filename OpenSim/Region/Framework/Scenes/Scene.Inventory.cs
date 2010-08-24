@@ -1983,11 +1983,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             group.ResetIDs();
 
-            AddNewSceneObject(group, true);
-
-            // we set it's position in world.
-            group.AbsolutePosition = pos;
-
             SceneObjectPart rootPart = group.GetChildPart(group.UUID);
 
             // Since renaming the item in the inventory does not affect the name stored
@@ -2027,31 +2022,21 @@ namespace OpenSim.Region.Framework.Scenes
                 part.NextOwnerMask = item.NextPermissions;
             }
             
-            rootPart.TrimPermissions();
-            
-            if (group.RootPart.Shape.PCode == (byte)PCode.Prim)
-            {
-                group.ClearPartAttachmentData();
-            }
-            
-            group.UpdateGroupRotationR(rot);
-            
-            //group.ApplyPhysics(m_physicalPrim);
-            if (group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical && vel != Vector3.Zero)
-            {
-                group.RootPart.ApplyImpulse((vel * group.GetMass()), false);
-                group.Velocity = vel;
-                rootPart.ScheduleFullUpdate();
-            }
-            
-            group.CreateScriptInstances(param, true, DefaultScriptEngine, 2);
-            rootPart.ScheduleFullUpdate();
+            rootPart.TrimPermissions();                        
 
             if (!Permissions.BypassPermissions())
             {
                 if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                     sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
             }
+                        
+            AddNewSceneObject(group, true, pos, rot, vel);
+            
+            // We can only call this after adding the scene object, since the scene object references the scene
+            // to find out if scripts should be activated at all.
+            group.CreateScriptInstances(param, true, DefaultScriptEngine, 2);
+            
+            group.ScheduleGroupForFullUpdate();
         
             return rootPart.ParentGroup;
         }

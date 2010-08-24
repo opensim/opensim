@@ -292,6 +292,42 @@ namespace OpenSim.Region.Framework.Scenes
 
             return AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
         }
+        
+        /// <summary>
+        /// Add a newly created object to the scene.
+        /// </summary>
+        /// 
+        /// This method does not send updates to the client - callers need to handle this themselves.
+        /// <param name="sceneObject"></param>
+        /// <param name="attachToBackup"></param>
+        /// <param name="pos">Position of the object</param>
+        /// <param name="rot">Rotation of the object</param>
+        /// <param name="vel">Velocity of the object.  This parameter only has an effect if the object is physical</param>
+        /// <returns></returns>        
+        public bool AddNewSceneObject(
+            SceneObjectGroup sceneObject, bool attachToBackup, Vector3 pos, Quaternion rot, Vector3 vel)
+        {
+            AddNewSceneObject(sceneObject, true, false);
+
+            // we set it's position in world.
+            sceneObject.AbsolutePosition = pos;
+
+            if (sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim)
+            {
+                sceneObject.ClearPartAttachmentData();
+            }
+            
+            sceneObject.UpdateGroupRotationR(rot);
+            
+            //group.ApplyPhysics(m_physicalPrim);
+            if (sceneObject.RootPart.PhysActor != null && sceneObject.RootPart.PhysActor.IsPhysical && vel != Vector3.Zero)
+            {
+                sceneObject.RootPart.ApplyImpulse((vel * sceneObject.GetMass()), false);
+                sceneObject.Velocity = vel;
+            }
+        
+            return true;
+        }        
 
         /// <summary>
         /// Add an object to the scene.  This will both update the scene, and send information about the
