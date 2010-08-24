@@ -1951,7 +1951,7 @@ namespace OpenSim.Region.Framework.Scenes
                     remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
                     RezSelected, RemoveItem, fromTaskID, false);
         }
-
+        
         /// <summary>
         /// Rez an object into the scene from a prim's inventory.
         /// </summary>
@@ -1966,95 +1966,94 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart sourcePart, TaskInventoryItem item,
             Vector3 pos, Quaternion rot, Vector3 vel, int param)
         {
-            // Rez object
-            if (item != null)
+            if (null == item)
+                return null;
+            
+            UUID ownerID = item.OwnerID;
+            AssetBase rezAsset = AssetService.Get(item.AssetID.ToString());
+
+            if (null == rezAsset)
+                return null;
+
+            string xmlData = Utils.BytesToString(rezAsset.Data);
+            SceneObjectGroup group = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
+
+            if (!Permissions.CanRezObject(group.Children.Count, ownerID, pos))
+                return null;
+
+            group.ResetIDs();
+
+            AddNewSceneObject(group, true);
+
+            // we set it's position in world.
+            group.AbsolutePosition = pos;
+
+            SceneObjectPart rootPart = group.GetChildPart(group.UUID);
+
+            // Since renaming the item in the inventory does not affect the name stored
+            // in the serialization, transfer the correct name from the inventory to the
+            // object itself before we rez.
+            rootPart.Name = item.Name;
+            rootPart.Description = item.Description;
+
+            List<SceneObjectPart> partList = new List<SceneObjectPart>(group.Children.Values);
+
+            group.SetGroup(sourcePart.GroupID, null);
+
+            if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0)
             {
-                UUID ownerID = item.OwnerID;
-
-                AssetBase rezAsset = AssetService.Get(item.AssetID.ToString());
-
-                if (rezAsset != null)
+                if (Permissions.PropagatePermissions())
                 {
-                    string xmlData = Utils.BytesToString(rezAsset.Data);
-                    SceneObjectGroup group = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
-
-                    if (!Permissions.CanRezObject(group.Children.Count, ownerID, pos))
-                    {
-                        return null;
-                    }
-                    group.ResetIDs();
-
-                    AddNewSceneObject(group, true);
-
-                    // we set it's position in world.
-                    group.AbsolutePosition = pos;
-
-                    SceneObjectPart rootPart = group.GetChildPart(group.UUID);
-
-                    // Since renaming the item in the inventory does not affect the name stored
-                    // in the serialization, transfer the correct name from the inventory to the
-                    // object itself before we rez.
-                    rootPart.Name = item.Name;
-                    rootPart.Description = item.Description;
-
-                    List<SceneObjectPart> partList = new List<SceneObjectPart>(group.Children.Values);
-
-                    group.SetGroup(sourcePart.GroupID, null);
-
-                    if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0)
-                    {
-                        if (Permissions.PropagatePermissions())
-                        {
-                            foreach (SceneObjectPart part in partList)
-                            {
-                                part.EveryoneMask = item.EveryonePermissions;
-                                part.NextOwnerMask = item.NextPermissions;
-                            }
-                            group.ApplyNextOwnerPermissions();
-                        }
-                    }
-
                     foreach (SceneObjectPart part in partList)
                     {
-                        if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0)
-                        {
-                            part.LastOwnerID = part.OwnerID;
-                            part.OwnerID = item.OwnerID;
-                            part.Inventory.ChangeInventoryOwner(item.OwnerID);
-                        }
                         part.EveryoneMask = item.EveryonePermissions;
                         part.NextOwnerMask = item.NextPermissions;
                     }
                     
-                    rootPart.TrimPermissions();
-                    
-                    if (group.RootPart.Shape.PCode == (byte)PCode.Prim)
-                    {
-                        group.ClearPartAttachmentData();
-                    }
-                    
-                    group.UpdateGroupRotationR(rot);
-                    
-                    //group.ApplyPhysics(m_physicalPrim);
-                    if (group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical && vel != Vector3.Zero)
-                    {
-                        group.RootPart.ApplyImpulse((vel * group.GetMass()), false);
-                        group.Velocity = vel;
-                        rootPart.ScheduleFullUpdate();
-                    }
-                    group.CreateScriptInstances(param, true, DefaultScriptEngine, 2);
-                    rootPart.ScheduleFullUpdate();
-
-                    if (!Permissions.BypassPermissions())
-                    {
-                        if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                            sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
-                    }
-                    return rootPart.ParentGroup;
+                    group.ApplyNextOwnerPermissions();
                 }
             }
 
-            return null;
+            foreach (SceneObjectPart part in partList)
+            {
+                if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0)
+                {
+                    part.LastOwnerID = part.OwnerID;
+                    part.OwnerID = item.OwnerID;
+                    part.Inventory.ChangeInventoryOwner(item.OwnerID);
+                }
+                
+                part.EveryoneMask = item.EveryonePermissions;
+                part.NextOwnerMask = item.NextPermissions;
+            }
+            
+            rootPart.TrimPermissions();
+            
+            if (group.RootPart.Shape.PCode == (byte)PCode.Prim)
+            {
+                group.ClearPartAttachmentData();
+            }
+            
+            group.UpdateGroupRotationR(rot);
+            
+            //group.ApplyPhysics(m_physicalPrim);
+            if (group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical && vel != Vector3.Zero)
+            {
+                group.RootPart.ApplyImpulse((vel * group.GetMass()), false);
+                group.Velocity = vel;
+                rootPart.ScheduleFullUpdate();
+            }
+            
+            group.CreateScriptInstances(param, true, DefaultScriptEngine, 2);
+            rootPart.ScheduleFullUpdate();
+
+            if (!Permissions.BypassPermissions())
+            {
+                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+                    sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
+            }
+        
+            return rootPart.ParentGroup;
         }
 
         public virtual bool returnObjects(SceneObjectGroup[] returnobjects, UUID AgentId)
