@@ -3199,6 +3199,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.Debug("[Scene] Beginning ClientClosed");
                     m_eventManager.TriggerClientClosed(agentID, this);
                     m_log.Debug("[Scene] Finished ClientClosed");
+                    CleanDroppedAttachments();
                 }
                 catch (NullReferenceException)
                 {
@@ -3442,6 +3443,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (vialogin) 
             {
+                CleanDroppedAttachments();
+
                 if (TestBorderCross(agent.startpos, Cardinals.E))
                 {
                     Border crossedBorder = GetCrossedBorder(agent.startpos, Cardinals.E);
