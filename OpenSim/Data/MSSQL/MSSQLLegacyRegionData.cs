@@ -89,7 +89,6 @@ namespace OpenSim.Data.MSSQL
             Dictionary<UUID, SceneObjectGroup> objects = new Dictionary<UUID, SceneObjectGroup>();
             SceneObjectGroup grp = null;
 
-
             string sql = "SELECT *, " +
                            "sort = CASE WHEN prims.UUID = prims.SceneGroupID THEN 0 ELSE 1 END " +
                            "FROM prims " +
@@ -232,65 +231,62 @@ namespace OpenSim.Data.MSSQL
         /// <param name="regionUUID"></param>
         public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
-            lock (obj.Children)
+            _Log.DebugFormat("[MSSQL]: Adding/Changing SceneObjectGroup: {0} to region: {1}, object has {2} prims.", obj.UUID, regionUUID, obj.Children.Count);
+
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
             {
-                _Log.DebugFormat("[MSSQL]: Adding/Changing SceneObjectGroup: {0} to region: {1}, object has {2} prims.", obj.UUID, regionUUID, obj.Children.Count);
-    
-                using (SqlConnection conn = new SqlConnection(m_connectionString))
+                conn.Open();
+                SqlTransaction transaction = conn.BeginTransaction();
+
+                try
                 {
-                    conn.Open();
-                    SqlTransaction transaction = conn.BeginTransaction();
-    
+                    foreach (SceneObjectPart sceneObjectPart in obj.Children.Values)
+                    {
+                        //Update prim
+                        using (SqlCommand sqlCommand = conn.CreateCommand())
+                        {
+                            sqlCommand.Transaction = transaction;
+                            try
+                            {
+                                StoreSceneObjectPrim(sceneObjectPart, sqlCommand, obj.UUID, regionUUID);
+                            }
+                            catch (SqlException sqlEx)
+                            {
+                                _Log.ErrorFormat("[REGION DB]: Store SceneObjectPrim SQL error: {0} at line {1}", sqlEx.Message, sqlEx.LineNumber);
+                                throw;
+                            }
+                        }
+
+                        //Update primshapes
+                        using (SqlCommand sqlCommand = conn.CreateCommand())
+                        {
+                            sqlCommand.Transaction = transaction;
+                            try
+                            {
+                                StoreSceneObjectPrimShapes(sceneObjectPart, sqlCommand, obj.UUID, regionUUID);
+                            }
+                            catch (SqlException sqlEx)
+                            {
+                                _Log.ErrorFormat("[REGION DB]: Store SceneObjectPrimShapes SQL error: {0} at line {1}", sqlEx.Message, sqlEx.LineNumber);
+                                throw;
+                            }
+                        }
+                    }
+
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    _Log.ErrorFormat("[REGION DB]: Store SceneObjectGroup error: {0}, Rolling back...", ex.Message);
                     try
                     {
-                        foreach (SceneObjectPart sceneObjectPart in obj.Children.Values)
-                        {
-                            //Update prim
-                            using (SqlCommand sqlCommand = conn.CreateCommand())
-                            {
-                                sqlCommand.Transaction = transaction;
-                                try
-                                {
-                                    StoreSceneObjectPrim(sceneObjectPart, sqlCommand, obj.UUID, regionUUID);
-                                }
-                                catch (SqlException sqlEx)
-                                {
-                                    _Log.ErrorFormat("[REGION DB]: Store SceneObjectPrim SQL error: {0} at line {1}", sqlEx.Message, sqlEx.LineNumber);
-                                    throw;
-                                }
-                            }
-    
-                            //Update primshapes
-                            using (SqlCommand sqlCommand = conn.CreateCommand())
-                            {
-                                sqlCommand.Transaction = transaction;
-                                try
-                                {
-                                    StoreSceneObjectPrimShapes(sceneObjectPart, sqlCommand, obj.UUID, regionUUID);
-                                }
-                                catch (SqlException sqlEx)
-                                {
-                                    _Log.ErrorFormat("[REGION DB]: Store SceneObjectPrimShapes SQL error: {0} at line {1}", sqlEx.Message, sqlEx.LineNumber);
-                                    throw;
-                                }
-                            }
-                        }
-    
-                        transaction.Commit();
+                        transaction.Rollback();
                     }
-                    catch (Exception ex)
+                    catch (Exception ex2)
                     {
-                        _Log.ErrorFormat("[REGION DB]: Store SceneObjectGroup error: {0}, Rolling back...", ex.Message);
-                        try
-                        {
-                            transaction.Rollback();
-                        }
-                        catch (Exception ex2)
-                        {
-                            //Show error
-                            _Log.InfoFormat("[REGION DB]: Rollback of SceneObjectGroup store transaction failed with error: {0}", ex2.Message);
-    
-                        }
+                        //Show error
+                        _Log.InfoFormat("[REGION DB]: Rollback of SceneObjectGroup store transaction failed with error: {0}", ex2.Message);
+
                     }
                 }
             }
