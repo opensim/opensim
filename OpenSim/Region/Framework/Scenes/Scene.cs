@@ -399,6 +399,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_firstHeartbeat = true;
 
         private object m_deleting_scene_object = new object();
+        private object m_cleaningAttachments = new object();
 
         // the minimum time that must elapse before a changed object will be considered for persisted
         public long m_dontPersistBefore = DEFAULT_MIN_TIME_FOR_PERSISTENCE * 10000000L;
@@ -5051,26 +5052,29 @@ namespace OpenSim.Region.Framework.Scenes
             List<SceneObjectGroup> objectsToDelete =
                     new List<SceneObjectGroup>();
 
-            ForEachSOG(delegate (SceneObjectGroup grp)
-                    {
-                        if (grp.RootPart.Shape.State != 0)
+            lock (m_cleaningAttachments)
+            {
+                ForEachSOG(delegate (SceneObjectGroup grp)
                         {
-                            UUID agentID = grp.OwnerID;
-                            if (agentID == UUID.Zero)
+                            if (grp.RootPart.Shape.State != 0 || objectsToDelete.Contains(grp))
                             {
-                                objectsToDelete.Add(grp);
-                                return;
-                            }
+                                UUID agentID = grp.OwnerID;
+                                if (agentID == UUID.Zero)
+                                {
+                                    objectsToDelete.Add(grp);
+                                    return;
+                                }
 
-                            ScenePresence sp = GetScenePresence(agentID);
-                            if (sp == null)
-                            {
-                                objectsToDelete.Add(grp);
-                                return;
+                                ScenePresence sp = GetScenePresence(agentID);
+                                if (sp == null)
+                                {
+                                    objectsToDelete.Add(grp);
+                                    return;
+                                }
                             }
-                        }
-                    });
-            
+                        });
+            }
+
             foreach (SceneObjectGroup grp in objectsToDelete)
             {
                 m_log.InfoFormat("[SCENE]: Deleting dropped attachment {0} of user {1}", grp.UUID, grp.OwnerID);
