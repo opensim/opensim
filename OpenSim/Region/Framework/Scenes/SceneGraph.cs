@@ -1140,9 +1140,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="action"></param>
         protected internal void ForEachSOG(Action<SceneObjectGroup> action)
         {
-            List<SceneObjectGroup> objlist = new List<SceneObjectGroup>(SceneObjectGroupsByFullID.Values);
-            foreach (SceneObjectGroup obj in objlist)
+            List<EntityBase> objlist = Entities.GetAllByType<SceneObjectGroup>();
+            foreach (EntityBase ent in objlist)
             {
+                SceneObjectGroup obj = (SceneObjectGroup)ent;
+
                 try
                 {
                     action(obj);
