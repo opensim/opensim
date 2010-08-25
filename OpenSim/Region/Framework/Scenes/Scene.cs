@@ -3211,8 +3211,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_eventManager.TriggerOnRemovePresence(agentID);
                 m_log.Debug("[Scene] Finished OnRemovePresence");
 
-                CleanDroppedAttachments();
-
                 ForEachClient(
                     delegate(IClientAPI client)
                     {
@@ -3248,6 +3246,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 m_log.Debug("[Scene] Done. Firing RemoveCircuit");
                 m_authenticateHandler.RemoveCircuit(avatar.ControllingClient.CircuitCode);
+                CleanDroppedAttachments();
                 m_log.Debug("[Scene] The avatar has left the building");
                 //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
                 //m_log.InfoFormat("[SCENE] Memory post GC {0}", System.GC.GetTotalMemory(true));
