@@ -253,16 +253,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 idx++;
             }
 
-
             return values;
-
         }
 
         private RegionLightShareData getWindlightProfileFromRules(LSL_List rules)
         {
             RegionLightShareData wl = (RegionLightShareData)m_host.ParentGroup.Scene.RegionInfo.WindlightSettings.Clone();
 
-            LSL_List values = new LSL_List();
+//            LSL_List values = new LSL_List();
             int idx = 0;
             while (idx < rules.Length)
             {
