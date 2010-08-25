@@ -85,8 +85,13 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 finally
                 {
-                    if (requestStream != null)
-                        requestStream.Close();
+                    // If this is closed, it will be disposed internally,
+                    // but the above write is asynchronous and may hit after
+                    // we're through here. So the thread handling that will
+                    // throw and put us back into the catch above. Isn't 
+                    // .NET great?
+                    //if (requestStream != null)
+                    //    requestStream.Close();
                     // Let's not close this
                     //buffer.Close();
 
