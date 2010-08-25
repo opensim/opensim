@@ -601,7 +601,10 @@ namespace OpenSim.Region.Framework.Scenes
             rootPart.Name = item.Name;
             rootPart.Description = item.Description;
 
-            List<SceneObjectPart> partList = new List<SceneObjectPart>(group.Children.Values);
+            List<SceneObjectPart> partList = null;
+            
+            lock (group.Children)
+                partList = new List<SceneObjectPart>(group.Children.Values);
 
             group.SetGroup(m_part.GroupID, null);
 

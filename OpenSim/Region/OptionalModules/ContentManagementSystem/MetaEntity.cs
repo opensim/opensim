@@ -150,15 +150,19 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         {
             //make new uuids
             Dictionary<UUID, SceneObjectPart> parts = new Dictionary<UUID, SceneObjectPart>();
-            foreach (SceneObjectPart part in m_Entity.Children.Values)
+            
+            lock (m_Entity.Children)
             {
-                part.ResetIDs(part.LinkNum);
-                parts.Add(part.UUID, part);
+                foreach (SceneObjectPart part in m_Entity.Children.Values)
+                {
+                    part.ResetIDs(part.LinkNum);
+                    parts.Add(part.UUID, part);
+                }
+                
+                //finalize
+                m_Entity.RootPart.PhysActor = null;
+                m_Entity.Children = parts;                
             }
-
-            //finalize
-            m_Entity.RootPart.PhysActor = null;
-            m_Entity.Children = parts;
         }
 
         #endregion Protected Methods
@@ -173,8 +177,11 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
             //This deletes the group without removing from any databases.
             //This is important because we are not IN any database.
             //m_Entity.FakeDeleteGroup();
-            foreach (SceneObjectPart part in m_Entity.Children.Values)
-                client.SendKillObject(m_Entity.RegionHandle, part.LocalId);
+            lock (m_Entity.Children)
+            {
+                foreach (SceneObjectPart part in m_Entity.Children.Values)
+                    client.SendKillObject(m_Entity.RegionHandle, part.LocalId);
+            }
         }
 
         /// <summary>
@@ -182,12 +189,15 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         /// </summary>
         public virtual void HideFromAll()
         {
-            foreach (SceneObjectPart part in m_Entity.Children.Values)
+            lock (m_Entity.Children)
             {
-                m_Entity.Scene.ForEachClient(
-                    delegate(IClientAPI controller)
-                    { controller.SendKillObject(m_Entity.RegionHandle, part.LocalId); }
-                );
+                foreach (SceneObjectPart part in m_Entity.Children.Values)
+                {
+                    m_Entity.Scene.ForEachClient(
+                        delegate(IClientAPI controller)
+                        { controller.SendKillObject(m_Entity.RegionHandle, part.LocalId); }
+                    );
+                }
             }
         }
 

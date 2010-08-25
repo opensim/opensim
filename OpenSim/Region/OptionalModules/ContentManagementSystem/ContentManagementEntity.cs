@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -132,30 +132,33 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
             // if group is not contained in scene's list
             if (!ContainsKey(sceneEntityList, m_UnchangedEntity.UUID))
             {
-                foreach (SceneObjectPart part in m_UnchangedEntity.Children.Values)
+                lock (m_UnchangedEntity.Children)
                 {
-                    // if scene list no longer contains this part, display translucent part and mark with red aura
-                    if (!ContainsKey(sceneEntityList, part.UUID))
+                    foreach (SceneObjectPart part in m_UnchangedEntity.Children.Values)
                     {
-                        // if already displaying a red aura over part, make sure its red
-                        if (m_AuraEntities.ContainsKey(part.UUID))
+                        // if scene list no longer contains this part, display translucent part and mark with red aura
+                        if (!ContainsKey(sceneEntityList, part.UUID))
                         {
-                            m_AuraEntities[part.UUID].SetAura(new Vector3(254,0,0), part.Scale);
+                            // if already displaying a red aura over part, make sure its red
+                            if (m_AuraEntities.ContainsKey(part.UUID))
+                            {
+                                m_AuraEntities[part.UUID].SetAura(new Vector3(254,0,0), part.Scale);
+                            }
+                            else
+                            {
+                                AuraMetaEntity auraGroup = new AuraMetaEntity(m_Entity.Scene,
+                                                                              part.GetWorldPosition(),
+                                                                              MetaEntity.TRANSLUCENT,
+                                                                              new Vector3(254,0,0),
+                                                                              part.Scale
+                                                                              );
+                                m_AuraEntities.Add(part.UUID, auraGroup);
+                            }
+                            SceneObjectPart metaPart = m_Entity.GetLinkNumPart(part.LinkNum);
+                            SetPartTransparency(metaPart, MetaEntity.TRANSLUCENT);
                         }
-                        else
-                        {
-                            AuraMetaEntity auraGroup = new AuraMetaEntity(m_Entity.Scene,
-                                                                          part.GetWorldPosition(),
-                                                                          MetaEntity.TRANSLUCENT,
-                                                                          new Vector3(254,0,0),
-                                                                          part.Scale
-                                                                          );
-                            m_AuraEntities.Add(part.UUID, auraGroup);
-                        }
-                        SceneObjectPart metaPart = m_Entity.GetLinkNumPart(part.LinkNum);
-                        SetPartTransparency(metaPart, MetaEntity.TRANSLUCENT);
+                        // otherwise, scene will not contain the part. note: a group can not remove a part without changing group id
                     }
-                    // otherwise, scene will not contain the part. note: a group can not remove a part without changing group id
                 }
 
                 // a deleted part has no where to point a beam particle system,
@@ -180,8 +183,10 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         /// </summary>
         public bool HasChildPrim(UUID uuid)
         {
-            if (m_UnchangedEntity.Children.ContainsKey(uuid))
-                return true;
+            lock (m_UnchangedEntity.Children)
+                if (m_UnchangedEntity.Children.ContainsKey(uuid))
+                    return true;
+            
             return false;
         }
 
@@ -190,9 +195,13 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         /// </summary>
         public bool HasChildPrim(uint localID)
         {
-            foreach (SceneObjectPart part in m_UnchangedEntity.Children.Values)
-                if (part.LocalId == localID)
-                    return true;
+            lock (m_UnchangedEntity.Children)
+            {
+                foreach (SceneObjectPart part in m_UnchangedEntity.Children.Values)
+                    if (part.LocalId == localID)
+                        return true;
+            }
+            
             return false;
         }
 
@@ -228,37 +237,72 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
             // Use "UnchangedEntity" to do comparisons because its text, transparency, and other attributes will be just as the user
             // had originally saved.
             // m_Entity will NOT necessarily be the same entity as the user had saved.
-            foreach (SceneObjectPart UnchangedPart in m_UnchangedEntity.Children.Values)
+            lock (m_UnchangedEntity.Children)
             {
-                //This is the part that we use to show changes.
-                metaEntityPart = m_Entity.GetLinkNumPart(UnchangedPart.LinkNum);
-                if (sceneEntityGroup.Children.ContainsKey(UnchangedPart.UUID))
+                foreach (SceneObjectPart UnchangedPart in m_UnchangedEntity.Children.Values)
                 {
-                    sceneEntityPart = sceneEntityGroup.Children[UnchangedPart.UUID];
-                    differences = Difference.FindDifferences(UnchangedPart,  sceneEntityPart);
-                    if (differences != Diff.NONE)
-                        metaEntityPart.Text = "CHANGE: " + differences.ToString();
-                    if (differences != 0)
+                    //This is the part that we use to show changes.
+                    metaEntityPart = m_Entity.GetLinkNumPart(UnchangedPart.LinkNum);
+                    if (sceneEntityGroup.Children.ContainsKey(UnchangedPart.UUID))
                     {
-                        // Root Part that has been modified
-                        if ((differences&Diff.POSITION) > 0)
+                        sceneEntityPart = sceneEntityGroup.Children[UnchangedPart.UUID];
+                        differences = Difference.FindDifferences(UnchangedPart,  sceneEntityPart);
+                        if (differences != Diff.NONE)
+                            metaEntityPart.Text = "CHANGE: " + differences.ToString();
+                        if (differences != 0)
                         {
-                            // If the position of any part has changed, make sure the RootPart of the
-                            // meta entity is pointing with a beam particle system
+                            // Root Part that has been modified
+                            if ((differences&Diff.POSITION) > 0)
+                            {
+                                // If the position of any part has changed, make sure the RootPart of the
+                                // meta entity is pointing with a beam particle system
+                                if (m_BeamEntities.ContainsKey(m_UnchangedEntity.RootPart.UUID))
+                                {
+                                    m_BeamEntities[m_UnchangedEntity.RootPart.UUID].HideFromAll();
+                                    m_BeamEntities.Remove(m_UnchangedEntity.RootPart.UUID);
+                                }
+                                BeamMetaEntity beamGroup = new BeamMetaEntity(m_Entity.Scene,
+                                                                              m_UnchangedEntity.RootPart.GetWorldPosition(),
+                                                                              MetaEntity.TRANSLUCENT,
+                                                                              sceneEntityPart,
+                                                                              new Vector3(0,0,254)
+                                                                              );
+                                m_BeamEntities.Add(m_UnchangedEntity.RootPart.UUID, beamGroup);
+                            }
+    
+                            if (m_AuraEntities.ContainsKey(UnchangedPart.UUID))
+                            {
+                                m_AuraEntities[UnchangedPart.UUID].HideFromAll();
+                                m_AuraEntities.Remove(UnchangedPart.UUID);
+                            }
+                            AuraMetaEntity auraGroup = new AuraMetaEntity(m_Entity.Scene,
+                                                                          UnchangedPart.GetWorldPosition(),
+                                                                          MetaEntity.TRANSLUCENT,
+                                                                          new Vector3(0,0,254),
+                                                                          UnchangedPart.Scale
+                                                                          );
+                            m_AuraEntities.Add(UnchangedPart.UUID, auraGroup);
+                            SetPartTransparency(metaEntityPart, MetaEntity.TRANSLUCENT);
+    
+                            DiffersFromSceneGroup = true;
+                        }
+                        else // no differences between scene part and meta part
+                        {
                             if (m_BeamEntities.ContainsKey(m_UnchangedEntity.RootPart.UUID))
                             {
                                 m_BeamEntities[m_UnchangedEntity.RootPart.UUID].HideFromAll();
                                 m_BeamEntities.Remove(m_UnchangedEntity.RootPart.UUID);
                             }
-                            BeamMetaEntity beamGroup = new BeamMetaEntity(m_Entity.Scene,
-                                                                          m_UnchangedEntity.RootPart.GetWorldPosition(),
-                                                                          MetaEntity.TRANSLUCENT,
-                                                                          sceneEntityPart,
-                                                                          new Vector3(0,0,254)
-                                                                          );
-                            m_BeamEntities.Add(m_UnchangedEntity.RootPart.UUID, beamGroup);
+                            if (m_AuraEntities.ContainsKey(UnchangedPart.UUID))
+                            {
+                                m_AuraEntities[UnchangedPart.UUID].HideFromAll();
+                                m_AuraEntities.Remove(UnchangedPart.UUID);
+                            }
+                            SetPartTransparency(metaEntityPart, MetaEntity.NONE);
                         }
-
+                    }
+                    else  //The entity currently in the scene is missing parts from the metaentity saved, so mark parts red as deleted.
+                    {
                         if (m_AuraEntities.ContainsKey(UnchangedPart.UUID))
                         {
                             m_AuraEntities[UnchangedPart.UUID].HideFromAll();
@@ -267,48 +311,17 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                         AuraMetaEntity auraGroup = new AuraMetaEntity(m_Entity.Scene,
                                                                       UnchangedPart.GetWorldPosition(),
                                                                       MetaEntity.TRANSLUCENT,
-                                                                      new Vector3(0,0,254),
+                                                                      new Vector3(254,0,0),
                                                                       UnchangedPart.Scale
                                                                       );
                         m_AuraEntities.Add(UnchangedPart.UUID, auraGroup);
                         SetPartTransparency(metaEntityPart, MetaEntity.TRANSLUCENT);
-
+                       
                         DiffersFromSceneGroup = true;
                     }
-                    else // no differences between scene part and meta part
-                    {
-                        if (m_BeamEntities.ContainsKey(m_UnchangedEntity.RootPart.UUID))
-                        {
-                            m_BeamEntities[m_UnchangedEntity.RootPart.UUID].HideFromAll();
-                            m_BeamEntities.Remove(m_UnchangedEntity.RootPart.UUID);
-                        }
-                        if (m_AuraEntities.ContainsKey(UnchangedPart.UUID))
-                        {
-                            m_AuraEntities[UnchangedPart.UUID].HideFromAll();
-                            m_AuraEntities.Remove(UnchangedPart.UUID);
-                        }
-                        SetPartTransparency(metaEntityPart, MetaEntity.NONE);
-                    }
-                }
-                else  //The entity currently in the scene is missing parts from the metaentity saved, so mark parts red as deleted.
-                {
-                    if (m_AuraEntities.ContainsKey(UnchangedPart.UUID))
-                    {
-                        m_AuraEntities[UnchangedPart.UUID].HideFromAll();
-                        m_AuraEntities.Remove(UnchangedPart.UUID);
-                    }
-                    AuraMetaEntity auraGroup = new AuraMetaEntity(m_Entity.Scene,
-                                                                  UnchangedPart.GetWorldPosition(),
-                                                                  MetaEntity.TRANSLUCENT,
-                                                                  new Vector3(254,0,0),
-                                                                  UnchangedPart.Scale
-                                                                  );
-                    m_AuraEntities.Add(UnchangedPart.UUID, auraGroup);
-                    SetPartTransparency(metaEntityPart, MetaEntity.TRANSLUCENT);
-                   
-                    DiffersFromSceneGroup = true;
                 }
             }
+            
             return changed;
         }
 

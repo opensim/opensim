@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -167,9 +167,12 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         public void RemoveOrUpdateDeletedEntity(SceneObjectGroup group)
         {
             // Deal with new parts not revisioned that have been deleted.
-            foreach (SceneObjectPart part in group.Children.Values)
-                if (m_MetaEntityCollection.Auras.ContainsKey(part.UUID))
-                    m_MetaEntityCollection.RemoveNewlyCreatedEntityAura(part.UUID);
+            lock (group.Children)
+            {
+                foreach (SceneObjectPart part in group.Children.Values)
+                    if (m_MetaEntityCollection.Auras.ContainsKey(part.UUID))
+                        m_MetaEntityCollection.RemoveNewlyCreatedEntityAura(part.UUID);
+            }
         }
 
         /// <summary>
@@ -207,8 +210,13 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                 {
                     temp = SceneObjectSerializer.FromXml2Format(xml);
                     temp.SetScene(scene);
-                    foreach (SceneObjectPart part in temp.Children.Values)
-                        part.RegionHandle = scene.RegionInfo.RegionHandle;
+                    
+                    lock (temp.Children)
+                    {
+                        foreach (SceneObjectPart part in temp.Children.Values)
+                            part.RegionHandle = scene.RegionInfo.RegionHandle;
+                    }
+                    
                     ReplacementList.Add(temp.UUID, (EntityBase)temp);
                 }
                 catch (Exception e)
@@ -338,15 +346,20 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
             System.Collections.ArrayList auraList = new System.Collections.ArrayList();
             if (group == null)
                 return null;
-            foreach (SceneObjectPart part in group.Children.Values)
+            
+            lock (group.Children)
             {
-                if (m_MetaEntityCollection.Auras.ContainsKey(part.UUID))
+                foreach (SceneObjectPart part in group.Children.Values)
                 {
-                    ((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]).SetAura(new Vector3(0,254,0), part.Scale);
-                    ((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]).RootPart.GroupPosition = part.GetWorldPosition();
-                    auraList.Add((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]);
+                    if (m_MetaEntityCollection.Auras.ContainsKey(part.UUID))
+                    {
+                        ((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]).SetAura(new Vector3(0,254,0), part.Scale);
+                        ((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]).RootPart.GroupPosition = part.GetWorldPosition();
+                        auraList.Add((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]);
+                    }
                 }
             }
+            
             return auraList;
         }
 

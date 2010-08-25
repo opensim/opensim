@@ -406,7 +406,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
             {
                 if (!m_scene.Permissions.CanRezObject(
-                        part.ParentGroup.Children.Count, remoteClient.AgentId, presence.AbsolutePosition))
+                    part.ParentGroup.PrimCount, remoteClient.AgentId, presence.AbsolutePosition))
                     return;
 
                 presence.Appearance.DetachAttachment(itemID);

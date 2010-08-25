@@ -235,7 +235,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
             case ScriptBaseClass.LINK_SET:
                 if (m_host.ParentGroup != null)
-                    return new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                {
+                    lock (m_host.ParentGroup.Children)
+                        return new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                }
                 return ret;
 
             case ScriptBaseClass.LINK_ROOT:
@@ -250,7 +253,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             case ScriptBaseClass.LINK_ALL_OTHERS:
                 if (m_host.ParentGroup ==  null)
                     return new List<SceneObjectPart>();
-                ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                
+                lock (m_host.ParentGroup.Children)
+                    ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                
                 if (ret.Contains(m_host))
                     ret.Remove(m_host);
                 return ret;
@@ -258,7 +264,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             case ScriptBaseClass.LINK_ALL_CHILDREN:
                 if (m_host.ParentGroup ==  null)
                     return new List<SceneObjectPart>();
-                ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                
+                lock (m_host.ParentGroup.Children)
+                    ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                
                 if (ret.Contains(m_host.ParentGroup.RootPart))
                     ret.Remove(m_host.ParentGroup.RootPart);
                 return ret;
@@ -1178,12 +1187,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (group == null)
                         return;
                     bool allow = true;
-                    foreach (SceneObjectPart part in group.Children.Values)
+                    
+                    lock (group.Children)
                     {
-                        if (part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
+                        foreach (SceneObjectPart part in group.Children.Values)
                         {
-                            allow = false;
-                            break;
+                            if (part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
+                            {
+                                allow = false;
+                                break;
+                            }
                         }
                     }
 
@@ -3492,7 +3505,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (m_host.ParentGroup.Children.Count > 1)
+            if (m_host.ParentGroup.PrimCount > 1)
             {
                 return m_host.LinkNum;
             }
@@ -3604,15 +3617,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 case ScriptBaseClass.LINK_ALL_OTHERS:
                 case ScriptBaseClass.LINK_ALL_CHILDREN:
                 case ScriptBaseClass.LINK_THIS:
-                    foreach (SceneObjectPart part in parentPrim.Children.Values)
+                    lock (parentPrim.Children)
                     {
-                        if (part.UUID != m_host.UUID)
+                        foreach (SceneObjectPart part in parentPrim.Children.Values)
                         {
-                            childPrim = part;
-                            break;
+                            if (part.UUID != m_host.UUID)
+                            {
+                                childPrim = part;
+                                break;
+                            }
                         }
+                        break;
                     }
-                    break;
                 default:
                     childPrim = parentPrim.GetLinkNumPart(linknum);
                     if (childPrim.UUID == m_host.UUID)
@@ -3623,27 +3639,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (linknum == ScriptBaseClass.LINK_ROOT)
             {
                 // Restructuring Multiple Prims.
-                List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Children.Values);
-                parts.Remove(parentPrim.RootPart);
-                foreach (SceneObjectPart part in parts)
+                lock (parentPrim.Children)
                 {
-                    parentPrim.DelinkFromGroup(part.LocalId, true);
-                }
-                parentPrim.HasGroupChanged = true;
-                parentPrim.ScheduleGroupForFullUpdate();
-                parentPrim.TriggerScriptChangedEvent(Changed.LINK);
-
-                if (parts.Count > 0)
-                {
-                    SceneObjectPart newRoot = parts[0];
-                    parts.Remove(newRoot);
+                    List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Children.Values);
+                    parts.Remove(parentPrim.RootPart);
                     foreach (SceneObjectPart part in parts)
                     {
-                        part.UpdateFlag = 0;
-                        newRoot.ParentGroup.LinkToGroup(part.ParentGroup);
+                        parentPrim.DelinkFromGroup(part.LocalId, true);
                     }
-                    newRoot.ParentGroup.HasGroupChanged = true;
-                    newRoot.ParentGroup.ScheduleGroupForFullUpdate();
+                    parentPrim.HasGroupChanged = true;
+                    parentPrim.ScheduleGroupForFullUpdate();
+                    parentPrim.TriggerScriptChangedEvent(Changed.LINK);
+    
+                    if (parts.Count > 0)
+                    {
+                        SceneObjectPart newRoot = parts[0];
+                        parts.Remove(newRoot);
+                        foreach (SceneObjectPart part in parts)
+                        {
+                            part.UpdateFlag = 0;
+                            newRoot.ParentGroup.LinkToGroup(part.ParentGroup);
+                        }
+                        newRoot.ParentGroup.HasGroupChanged = true;
+                        newRoot.ParentGroup.ScheduleGroupForFullUpdate();
+                    }
                 }
             }
             else
@@ -3665,16 +3684,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (parentPrim.RootPart.AttachmentPoint != 0)
                 return; // Fail silently if attached
 
-            List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Children.Values);
-            parts.Remove(parentPrim.RootPart);
-
-            foreach (SceneObjectPart part in parts)
+            lock (parentPrim.Children)
             {
-                parentPrim.DelinkFromGroup(part.LocalId, true);
-                parentPrim.TriggerScriptChangedEvent(Changed.LINK);
+                List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Children.Values);
+                parts.Remove(parentPrim.RootPart);
+    
+                foreach (SceneObjectPart part in parts)
+                {
+                    parentPrim.DelinkFromGroup(part.LocalId, true);
+                    parentPrim.TriggerScriptChangedEvent(Changed.LINK);
+                }
+                parentPrim.HasGroupChanged = true;
+                parentPrim.ScheduleGroupForFullUpdate();
             }
-            parentPrim.HasGroupChanged = true;
-            parentPrim.ScheduleGroupForFullUpdate();
         }
 
         public LSL_String llGetLinkKey(int linknum)
@@ -4200,7 +4222,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         partItemID = item.ItemID;
                         int linkNumber = m_host.LinkNum;
-                        if (m_host.ParentGroup.Children.Count == 1)
+                        if (m_host.ParentGroup.PrimCount == 1)
                             linkNumber = 0;
 
                         object[] resobj = new object[]

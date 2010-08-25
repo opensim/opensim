@@ -1974,7 +1974,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (null == group)
                 return null;
             
-            if (!Permissions.CanRezObject(group.Children.Count, item.OwnerID, pos))
+            if (!Permissions.CanRezObject(group.PrimCount, item.OwnerID, pos))
                 return null;            
 
             if (!Permissions.BypassPermissions())
@@ -2051,8 +2051,11 @@ namespace OpenSim.Region.Framework.Scenes
                     sog.SetGroup(groupID, remoteClient);
                     sog.ScheduleGroupForFullUpdate();
 
-                    foreach (SceneObjectPart child in sog.Children.Values)
-                        child.Inventory.ChangeInventoryOwner(ownerID);
+                    lock (sog.Children)
+                    {
+                        foreach (SceneObjectPart child in sog.Children.Values)
+                            child.Inventory.ChangeInventoryOwner(ownerID);
+                    }
                 }
                 else
                 {
@@ -2062,16 +2065,18 @@ namespace OpenSim.Region.Framework.Scenes
                     if (sog.GroupID != groupID)
                         continue;
 
-                    foreach (SceneObjectPart child in sog.Children.Values)
+                    lock (sog.Children)
                     {
-                        child.LastOwnerID = child.OwnerID;
-                        child.Inventory.ChangeInventoryOwner(groupID);
+                        foreach (SceneObjectPart child in sog.Children.Values)
+                        {
+                            child.LastOwnerID = child.OwnerID;
+                            child.Inventory.ChangeInventoryOwner(groupID);
+                        }
                     }
 
                     sog.SetOwnerId(groupID);
                     sog.ApplyNextOwnerPermissions();
-                }
-                
+                }                
             }
 
             foreach (uint localID in localIDs)
