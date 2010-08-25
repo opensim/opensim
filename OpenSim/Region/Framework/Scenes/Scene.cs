@@ -5056,7 +5056,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 ForEachSOG(delegate (SceneObjectGroup grp)
                         {
-                            if (grp.RootPart.Shape.State != 0 || objectsToDelete.Contains(grp))
+                            if (grp.RootPart.Shape.State != 0 && (!objectsToDelete.Contains(grp)))
                             {
                                 UUID agentID = grp.OwnerID;
                                 if (agentID == UUID.Zero)
@@ -5075,10 +5075,15 @@ namespace OpenSim.Region.Framework.Scenes
                         });
             }
 
-            foreach (SceneObjectGroup grp in objectsToDelete)
+            if (objectsToDelete.Count > 0)
             {
-                m_log.InfoFormat("[SCENE]: Deleting dropped attachment {0} of user {1}", grp.UUID, grp.OwnerID);
-                DeleteSceneObject(grp, true);
+                m_log.DebugFormat("[SCENE]: Starting delete of {0} dropped attachments", objectsToDelete.Count);
+                foreach (SceneObjectGroup grp in objectsToDelete)
+                {
+                    m_log.InfoFormat("[SCENE]: Deleting dropped attachment {0} of user {1}", grp.UUID, grp.OwnerID);
+                    DeleteSceneObject(grp, true);
+                }
+                m_log.Debug("[SCENE]: Finished dropped attachment deletion");
             }
         }
     }
