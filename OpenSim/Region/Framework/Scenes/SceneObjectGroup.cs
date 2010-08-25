@@ -335,7 +335,16 @@ namespace OpenSim.Region.Framework.Scenes
         public override UUID UUID
         {
             get { return m_rootPart.UUID; }
-            set { m_rootPart.UUID = value; }
+            set 
+            { 
+                m_rootPart.UUID = value; 
+                
+                lock (m_parts)
+                {
+                    m_parts.Remove(m_rootPart.UUID);
+                    m_parts.Add(m_rootPart.UUID, m_rootPart);
+                }
+            }
         }
 
         public UUID OwnerID
