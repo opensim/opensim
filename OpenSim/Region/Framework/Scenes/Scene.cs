@@ -3159,7 +3159,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_authenticateHandler.RemoveCircuit(avatar.ControllingClient.CircuitCode);
-
                 //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
                 //m_log.InfoFormat("[SCENE] Memory post GC {0}", System.GC.GetTotalMemory(true));
             }

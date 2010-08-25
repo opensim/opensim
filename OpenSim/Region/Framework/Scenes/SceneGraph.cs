@@ -95,7 +95,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal Dictionary<uint, SceneObjectGroup> SceneObjectGroupsByLocalID = new Dictionary<uint, SceneObjectGroup>();
         protected internal Dictionary<UUID, SceneObjectGroup> SceneObjectGroupsByFullID = new Dictionary<UUID, SceneObjectGroup>();
-        private readonly Object m_dictionary_lock = new Object();
 
         private Object m_updateLock = new Object();
 
@@ -136,11 +135,10 @@ namespace OpenSim.Region.Framework.Scenes
                 m_scenePresenceArray = newlist;
             }
 
-            lock (m_dictionary_lock)
-            {
+            lock (SceneObjectGroupsByFullID)
                 SceneObjectGroupsByFullID.Clear();
+            lock (SceneObjectGroupsByLocalID)
                 SceneObjectGroupsByLocalID.Clear();
-            }
 
             Entities.Clear();
         }
@@ -395,15 +393,17 @@ namespace OpenSim.Region.Framework.Scenes
                 if (OnObjectCreate != null)
                     OnObjectCreate(sceneObject);
                 
-                lock (m_dictionary_lock)
+                lock (SceneObjectGroupsByFullID)
                 {
                     SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
+                    foreach (SceneObjectPart part in sceneObject.Children.Values)
+                        SceneObjectGroupsByFullID[part.UUID] = sceneObject;
+                }
+                lock (SceneObjectGroupsByLocalID)
+                {
                     SceneObjectGroupsByLocalID[sceneObject.LocalId] = sceneObject;
                     foreach (SceneObjectPart part in sceneObject.Children.Values)
-                    {
-                        SceneObjectGroupsByFullID[part.UUID] = sceneObject;
                         SceneObjectGroupsByLocalID[part.LocalId] = sceneObject;
-                    }
                 }
             }
 
@@ -418,24 +418,32 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (Entities.ContainsKey(uuid))
             {
+                SceneObjectGroup grp = (SceneObjectGroup)Entities[uuid];
+
                 if (!resultOfObjectLinked)
                 {
                     m_numPrim -= ((SceneObjectGroup) Entities[uuid]).Children.Count;
 
-                    if ((((SceneObjectGroup)Entities[uuid]).RootPart.Flags & PrimFlags.Physics) == PrimFlags.Physics)
-                    {
-                        RemovePhysicalPrim(((SceneObjectGroup)Entities[uuid]).Children.Count);
-                    }
+                    if ((grp.RootPart.Flags & PrimFlags.Physics) == PrimFlags.Physics)
+                        RemovePhysicalPrim(grp.Children.Count);
                 }
 
                 if (OnObjectRemove != null)
                     OnObjectRemove(Entities[uuid]);
 
-                lock (m_dictionary_lock)
+                lock (SceneObjectGroupsByFullID)
                 {
-                    SceneObjectGroupsByFullID.Remove(uuid);
-                    SceneObjectGroupsByLocalID.Remove(((SceneObjectGroup)Entities[uuid]).LocalId);
+                    foreach (SceneObjectPart part in grp.Children.Values)
+                        SceneObjectGroupsByFullID.Remove(part.UUID);
+                    SceneObjectGroupsByFullID.Remove(grp.RootPart.UUID);
                 }
+                lock (SceneObjectGroupsByLocalID)
+                {
+                    foreach (SceneObjectPart part in grp.Children.Values)
+                        SceneObjectGroupsByLocalID.Remove(part.LocalId);
+                    SceneObjectGroupsByLocalID.Remove(grp.RootPart.LocalId);
+                }
+
                 Entities.Remove(uuid);
                 //SceneObjectGroup part;
                 //((part.RootPart.Flags & PrimFlags.Physics) == PrimFlags.Physics)
@@ -860,7 +868,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (SceneObjectGroupsByLocalID.TryGetValue(localID, out sog))
                 {
-                    return sog;
+                    if (sog.HasChildPrim(localID))
+                        return sog;
+                    SceneObjectGroupsByLocalID.Remove(localID);
                 }
             }
 
@@ -896,7 +906,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (SceneObjectGroupsByFullID.TryGetValue(fullID, out sog))
                 {
-                    return sog;
+                    if (sog.Children.ContainsKey(fullID))
+                        return sog;
+                    SceneObjectGroupsByFullID.Remove(fullID);
                 }
             }
 
