@@ -100,7 +100,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [UserAccountService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
-    ; Realm = "usersaccounts"
+    ; Realm = "useraccounts"
 
     ; These are for creating new accounts by the service
     AuthenticationService = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
