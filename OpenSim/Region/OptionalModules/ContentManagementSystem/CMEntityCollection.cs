@@ -121,16 +121,19 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                     continue;
                 temp = (SceneObjectGroup) currObj;
 
-                if (m_CMEntityHash.ContainsKey(temp.UUID))
+                lock (temp.Children)
                 {
-                    foreach (SceneObjectPart part in temp.Children.Values)
-                        if (!((ContentManagementEntity)m_CMEntityHash[temp.UUID]).HasChildPrim(part.UUID))
+                    if (m_CMEntityHash.ContainsKey(temp.UUID))
+                    {
+                        foreach (SceneObjectPart part in temp.Children.Values)
+                            if (!((ContentManagementEntity)m_CMEntityHash[temp.UUID]).HasChildPrim(part.UUID))
+                                missingList.Add(part);
+                    }
+                    else //Entire group is missing from revision. (and is a new part in region)
+                    {
+                        foreach (SceneObjectPart part in temp.Children.Values)
                             missingList.Add(part);
-                }
-                else //Entire group is missing from revision. (and is a new part in region)
-                {
-                    foreach (SceneObjectPart part in temp.Children.Values)
-                        missingList.Add(part);
+                    }
                 }
             }
             return missingList;

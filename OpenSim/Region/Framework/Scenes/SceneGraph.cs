@@ -384,34 +384,35 @@ namespace OpenSim.Region.Framework.Scenes
 //                        "[SCENE GRAPH]: Adding object {0} {1} to region {2}", 
 //                        sceneObject.Name, sceneObject.UUID, m_parentScene.RegionInfo.RegionName);                
             
-                if (m_parentScene.m_clampPrimSize)
+                lock (sceneObject.Children)
                 {
-                    foreach (SceneObjectPart part in sceneObject.Children.Values)
+                    if (m_parentScene.m_clampPrimSize)
                     {
-                        Vector3 scale = part.Shape.Scale;
-    
-                        if (scale.X > m_parentScene.m_maxNonphys)
-                            scale.X = m_parentScene.m_maxNonphys;
-                        if (scale.Y > m_parentScene.m_maxNonphys)
-                            scale.Y = m_parentScene.m_maxNonphys;
-                        if (scale.Z > m_parentScene.m_maxNonphys)
-                            scale.Z = m_parentScene.m_maxNonphys;
-    
-                        part.Shape.Scale = scale;
+                        foreach (SceneObjectPart part in sceneObject.Children.Values)
+                        {
+                            Vector3 scale = part.Shape.Scale;
+        
+                            if (scale.X > m_parentScene.m_maxNonphys)
+                                scale.X = m_parentScene.m_maxNonphys;
+                            if (scale.Y > m_parentScene.m_maxNonphys)
+                                scale.Y = m_parentScene.m_maxNonphys;
+                            if (scale.Z > m_parentScene.m_maxNonphys)
+                                scale.Z = m_parentScene.m_maxNonphys;
+        
+                            part.Shape.Scale = scale;
+                        }
                     }
-                }
-    
-                sceneObject.AttachToScene(m_parentScene);
-    
-                if (sendClientUpdates)
-                    sceneObject.ScheduleGroupForFullUpdate();
-                                     
-                Entities.Add(sceneObject);
-                m_numPrim += sceneObject.Children.Count;
+        
+                    sceneObject.AttachToScene(m_parentScene);
 
-                if (attachToBackup)
-                {
-                    sceneObject.AttachToBackup();
+                    if (sendClientUpdates)
+                        sceneObject.ScheduleGroupForFullUpdate();
+                                     
+                    Entities.Add(sceneObject);
+                    m_numPrim += sceneObject.Children.Count;
+    
+                    if (attachToBackup)
+                        sceneObject.AttachToBackup();
                 }
 
                 if (OnObjectCreate != null)
@@ -448,10 +449,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!resultOfObjectLinked)
                 {
-                    m_numPrim -= ((SceneObjectGroup) Entities[uuid]).Children.Count;
+                    m_numPrim -= grp.PrimCount;
 
                     if ((grp.RootPart.Flags & PrimFlags.Physics) == PrimFlags.Physics)
-                        RemovePhysicalPrim(grp.Children.Count);
+                        RemovePhysicalPrim(grp.PrimCount);
                 }
 
                 if (OnObjectRemove != null)
@@ -966,8 +967,12 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (SceneObjectGroupsByFullID.TryGetValue(fullID, out sog))
                 {
-                    if (sog.Children.ContainsKey(fullID))
-                        return sog;
+                    lock (sog.Children)
+                    {
+                        if (sog.Children.ContainsKey(fullID))
+                            return sog;
+                    }
+                    
                     SceneObjectGroupsByFullID.Remove(fullID);
                 }
             }
@@ -1678,7 +1683,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (part != null)
                     {
-                        if (part.ParentGroup.Children.Count != 1) // Skip single
+                        if (part.ParentGroup.PrimCount != 1) // Skip single
                         {
                             if (part.LinkNum < 2) // Root
                                 rootParts.Add(part);
@@ -1717,8 +1722,15 @@ namespace OpenSim.Region.Framework.Scenes
                     // However, editing linked parts and unlinking may be different
                     //
                     SceneObjectGroup group = root.ParentGroup;
-                    List<SceneObjectPart> newSet = new List<SceneObjectPart>(group.Children.Values);
-                    int numChildren = group.Children.Count;
+                    
+                    List<SceneObjectPart> newSet = null;
+                    int numChildren = -1;
+                    
+                    lock (group.Children)
+                    {
+                        newSet = new List<SceneObjectPart>(group.Children.Values);
+                        numChildren = group.PrimCount;
+                    }
 
                     // If there are prims left in a link set, but the root is
                     // slated for unlink, we need to do this
@@ -1808,12 +1820,17 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    foreach (KeyValuePair<UUID, SceneObjectPart> subent in ((SceneObjectGroup)ent).Children)
+                    SceneObjectGroup sog = ent as SceneObjectGroup;
+                    
+                    lock (sog.Children)
                     {
-                        if (subent.Value.LocalId == localID)
+                        foreach (KeyValuePair<UUID, SceneObjectPart> subent in sog.Children)
                         {
-                            objid = subent.Key;
-                            obj = subent.Value;
+                            if (subent.Value.LocalId == localID)
+                            {
+                                objid = subent.Key;
+                                obj = subent.Value;
+                            }
                         }
                     }
                 }
@@ -1878,7 +1895,8 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup original = GetGroupByPrim(originalPrimID);
             if (original != null)
             {
-                if (m_parentScene.Permissions.CanDuplicateObject(original.Children.Count, original.UUID, AgentID, original.AbsolutePosition))
+                if (m_parentScene.Permissions.CanDuplicateObject(
+                    original.PrimCount, original.UUID, AgentID, original.AbsolutePosition))
                 {
                     SceneObjectGroup copy = original.Copy(true);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;

@@ -89,7 +89,6 @@ namespace OpenSim.Data.MSSQL
             Dictionary<UUID, SceneObjectGroup> objects = new Dictionary<UUID, SceneObjectGroup>();
             SceneObjectGroup grp = null;
 
-
             string sql = "SELECT *, " +
                            "sort = CASE WHEN prims.UUID = prims.SceneGroupID THEN 0 ELSE 1 END " +
                            "FROM prims " +
@@ -232,7 +231,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="regionUUID"></param>
         public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
-            _Log.InfoFormat("[MSSQL]: Adding/Changing SceneObjectGroup: {0} to region: {1}, object has {2} prims.", obj.UUID, regionUUID, obj.Children.Count);
+            _Log.DebugFormat("[MSSQL]: Adding/Changing SceneObjectGroup: {0} to region: {1}, object has {2} prims.", obj.UUID, regionUUID, obj.Children.Count);
 
             using (SqlConnection conn = new SqlConnection(m_connectionString))
             {
@@ -291,7 +290,6 @@ namespace OpenSim.Data.MSSQL
                     }
                 }
             }
-
         }
 
         /// <summary>

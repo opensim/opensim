@@ -37,6 +37,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Scripting;
+using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -722,6 +723,71 @@ namespace OpenSim.Region.Framework.Scenes
             return items;
         }
         
+        public SceneObjectGroup GetRezReadySceneObject(TaskInventoryItem item)
+        {            
+            UUID ownerID = item.OwnerID;
+            AssetBase rezAsset = m_part.ParentGroup.Scene.AssetService.Get(item.AssetID.ToString());
+
+            if (null == rezAsset)
+            {
+                m_log.WarnFormat(
+                    "[PRIM INVENTORY]: Could not find asset {0} for inventory item {1} in {2}", 
+                    item.AssetID, item.Name, m_part.Name);
+                return null;
+            }
+
+            string xmlData = Utils.BytesToString(rezAsset.Data);
+            SceneObjectGroup group = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
+
+            group.ResetIDs();
+
+            SceneObjectPart rootPart = group.GetChildPart(group.UUID);
+
+            // Since renaming the item in the inventory does not affect the name stored
+            // in the serialization, transfer the correct name from the inventory to the
+            // object itself before we rez.
+            rootPart.Name = item.Name;
+            rootPart.Description = item.Description;
+
+            List<SceneObjectPart> partList = null;
+            
+            lock (group.Children)
+                partList = new List<SceneObjectPart>(group.Children.Values);
+
+            group.SetGroup(m_part.GroupID, null);
+
+            if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0)
+            {
+                if (m_part.ParentGroup.Scene.Permissions.PropagatePermissions())
+                {
+                    foreach (SceneObjectPart part in partList)
+                    {
+                        part.EveryoneMask = item.EveryonePermissions;
+                        part.NextOwnerMask = item.NextPermissions;
+                    }
+                    
+                    group.ApplyNextOwnerPermissions();
+                }
+            }
+
+            foreach (SceneObjectPart part in partList)
+            {
+                if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0)
+                {
+                    part.LastOwnerID = part.OwnerID;
+                    part.OwnerID = item.OwnerID;
+                    part.Inventory.ChangeInventoryOwner(item.OwnerID);
+                }
+                
+                part.EveryoneMask = item.EveryonePermissions;
+                part.NextOwnerMask = item.NextPermissions;
+            }
+            
+            rootPart.TrimPermissions(); 
+            
+            return group;
+        }
+        
         /// <summary>
         /// Update an existing inventory item.
         /// </summary>
@@ -1197,6 +1263,5 @@ namespace OpenSim.Region.Framework.Scenes
 
             Items.LockItemsForRead(false);
         }
-
     }
 }

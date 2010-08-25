@@ -1790,8 +1790,9 @@ namespace OpenSim.Region.Framework.Scenes
                 
                 if (group.RootPart == null)
                 {
-                    m_log.ErrorFormat("[SCENE]: Found a SceneObjectGroup with m_rootPart == null and {0} children",
-                                      group.Children == null ? 0 : group.Children.Count);
+                    m_log.ErrorFormat(
+                        "[SCENE]: Found a SceneObjectGroup with m_rootPart == null and {0} children",
+                        group.Children == null ? 0 : group.PrimCount);
                 }
 
                 AddRestoredSceneObject(group, true, true);
@@ -2130,18 +2131,22 @@ namespace OpenSim.Region.Framework.Scenes
                 group.RemoveScriptInstances(true);
             }
 
-            foreach (SceneObjectPart part in group.Children.Values)
+            lock (group.Children)
             {
-                if (part.IsJoint() && ((part.Flags & PrimFlags.Physics) != 0))
+                foreach (SceneObjectPart part in group.Children.Values)
                 {
-                    PhysicsScene.RequestJointDeletion(part.Name); // FIXME: what if the name changed?
-                }
-                else if (part.PhysActor != null)
-                {
-                    PhysicsScene.RemovePrim(part.PhysActor);
-                    part.PhysActor = null;
+                    if (part.IsJoint() && ((part.Flags & PrimFlags.Physics) != 0))
+                    {
+                        PhysicsScene.RequestJointDeletion(part.Name); // FIXME: what if the name changed?
+                    }
+                    else if (part.PhysActor != null)
+                    {
+                        PhysicsScene.RemovePrim(part.PhysActor);
+                        part.PhysActor = null;
+                    }
                 }
             }
+            
 //            if (rootPart.PhysActor != null)
 //            {
 //                PhysicsScene.RemovePrim(rootPart.PhysActor);
@@ -2498,14 +2503,16 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Force allocation of new LocalId
             //
-            foreach (SceneObjectPart p in sceneObject.Children.Values)
-                p.LocalId = 0;
+            lock (sceneObject.Children)
+            {
+                foreach (SceneObjectPart p in sceneObject.Children.Values)
+                    p.LocalId = 0;
+            }
 
             if (sceneObject.IsAttachmentCheckFull()) // Attachment
             {
                 sceneObject.RootPart.AddFlag(PrimFlags.TemporaryOnRez);
                 sceneObject.RootPart.AddFlag(PrimFlags.Phantom);
-
                       
                 // Don't sent a full update here because this will cause full updates to be sent twice for 
                 // attachments on region crossings, resulting in viewer glitches.                
@@ -2519,7 +2526,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (sp != null)
                 {
-
                     SceneObjectGroup grp = sceneObject;
 
                     m_log.DebugFormat(

@@ -2022,60 +2022,13 @@ namespace OpenSim.Region.Framework.Scenes
             if (null == item)
                 return null;
             
-            UUID ownerID = item.OwnerID;
-            AssetBase rezAsset = AssetService.Get(item.AssetID.ToString());
-
-            if (null == rezAsset)
-                return null;
-
-            string xmlData = Utils.BytesToString(rezAsset.Data);
-            SceneObjectGroup group = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
-
-            if (!Permissions.CanRezObject(group.Children.Count, ownerID, pos))
-                return null;
-
-            group.ResetIDs();
-
-            SceneObjectPart rootPart = group.GetChildPart(group.UUID);
-
-            // Since renaming the item in the inventory does not affect the name stored
-            // in the serialization, transfer the correct name from the inventory to the
-            // object itself before we rez.
-            rootPart.Name = item.Name;
-            rootPart.Description = item.Description;
-
-            List<SceneObjectPart> partList = new List<SceneObjectPart>(group.Children.Values);
-
-            group.SetGroup(sourcePart.GroupID, null);
-
-            if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0)
-            {
-                if (Permissions.PropagatePermissions())
-                {
-                    foreach (SceneObjectPart part in partList)
-                    {
-                        part.EveryoneMask = item.EveryonePermissions;
-                        part.NextOwnerMask = item.NextPermissions;
-                    }
-                    
-                    group.ApplyNextOwnerPermissions();
-                }
-            }
-
-            foreach (SceneObjectPart part in partList)
-            {
-                if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0)
-                {
-                    part.LastOwnerID = part.OwnerID;
-                    part.OwnerID = item.OwnerID;
-                    part.Inventory.ChangeInventoryOwner(item.OwnerID);
-                }
-                
-                part.EveryoneMask = item.EveryonePermissions;
-                part.NextOwnerMask = item.NextPermissions;
-            }
+            SceneObjectGroup group = sourcePart.Inventory.GetRezReadySceneObject(item);
             
-            rootPart.TrimPermissions();                        
+            if (null == group)
+                return null;
+            
+            if (!Permissions.CanRezObject(group.PrimCount, item.OwnerID, pos))
+                return null;            
 
             if (!Permissions.BypassPermissions())
             {
@@ -2091,7 +2044,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             group.ScheduleGroupForFullUpdate();
         
-            return rootPart.ParentGroup;
+            return group;
         }
 
         public virtual bool returnObjects(SceneObjectGroup[] returnobjects, UUID AgentId)
@@ -2151,8 +2104,11 @@ namespace OpenSim.Region.Framework.Scenes
                     sog.SetGroup(groupID, remoteClient);
                     sog.ScheduleGroupForFullUpdate();
 
-                    foreach (SceneObjectPart child in sog.Children.Values)
-                        child.Inventory.ChangeInventoryOwner(ownerID);
+                    lock (sog.Children)
+                    {
+                        foreach (SceneObjectPart child in sog.Children.Values)
+                            child.Inventory.ChangeInventoryOwner(ownerID);
+                    }
                 }
                 else
                 {
@@ -2162,16 +2118,18 @@ namespace OpenSim.Region.Framework.Scenes
                     if (sog.GroupID != groupID)
                         continue;
 
-                    foreach (SceneObjectPart child in sog.Children.Values)
+                    lock (sog.Children)
                     {
-                        child.LastOwnerID = child.OwnerID;
-                        child.Inventory.ChangeInventoryOwner(groupID);
+                        foreach (SceneObjectPart child in sog.Children.Values)
+                        {
+                            child.LastOwnerID = child.OwnerID;
+                            child.Inventory.ChangeInventoryOwner(groupID);
+                        }
                     }
 
                     sog.SetOwnerId(groupID);
                     sog.ApplyNextOwnerPermissions();
-                }
-                
+                }                
             }
 
             foreach (uint localID in localIDs)

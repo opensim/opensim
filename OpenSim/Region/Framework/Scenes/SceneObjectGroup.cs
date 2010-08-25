@@ -360,7 +360,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public int PrimCount
         {
-            get { return m_parts.Count; }
+            get { lock (m_parts) { return m_parts.Count; } }
         }
 
         protected Quaternion m_rotation = Quaternion.Identity;
@@ -398,6 +398,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <value>
         /// The parts of this scene object group.  You must lock this property before using it.
+        /// If you want to know the number of children, consider using the PrimCount property instead
         /// </value>
         public Dictionary<UUID, SceneObjectPart> Children
         {
@@ -521,7 +522,16 @@ namespace OpenSim.Region.Framework.Scenes
         public override UUID UUID
         {
             get { return m_rootPart.UUID; }
-            set { m_rootPart.UUID = value; }
+            set 
+            { 
+                m_rootPart.UUID = value; 
+                
+                lock (m_parts)
+                {
+                    m_parts.Remove(m_rootPart.UUID);
+                    m_parts.Add(m_rootPart.UUID, m_rootPart);
+                }
+            }
         }
 
         public UUID OwnerID
@@ -742,21 +752,23 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_rootPart.LocalId == 0)
                 m_rootPart.LocalId = m_scene.AllocateLocalId();
 
-            // No need to lock here since the object isn't yet in a scene
-            foreach (SceneObjectPart part in m_parts.Values)
+            lock (m_parts)
             {
-                if (Object.ReferenceEquals(part, m_rootPart))
+                foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    continue;
+                    if (Object.ReferenceEquals(part, m_rootPart))
+                    {
+                        continue;
+                    }
+    
+                    if (part.LocalId == 0)
+                    {
+                        part.LocalId = m_scene.AllocateLocalId();
+                    }
+    
+                    part.ParentID = m_rootPart.LocalId;
+                    //m_log.DebugFormat("[SCENE]: Given local id {0} to part {1}, linknum {2}, parent {3} {4}", part.LocalId, part.UUID, part.LinkNum, part.ParentID, part.ParentUUID);
                 }
-
-                if (part.LocalId == 0)
-                {
-                    part.LocalId = m_scene.AllocateLocalId();
-                }
-
-                part.ParentID = m_rootPart.LocalId;
-                //m_log.DebugFormat("[SCENE]: Given local id {0} to part {1}, linknum {2}, parent {3} {4}", part.LocalId, part.UUID, part.LinkNum, part.ParentID, part.ParentUUID);
             }
             
             ApplyPhysics(m_scene.m_physicalPrim);
@@ -1238,9 +1250,12 @@ namespace OpenSim.Region.Framework.Scenes
                 m_rootPart.AttachedAvatar = agentID;
 
                 //Anakin Lohner bug #3839 
-                foreach (SceneObjectPart p in m_parts.Values)
+                lock (m_parts)
                 {
-                    p.AttachedAvatar = agentID;
+                    foreach (SceneObjectPart p in m_parts.Values)
+                    {
+                        p.AttachedAvatar = agentID;
+                    }
                 }
 
                 if (m_rootPart.PhysActor != null)
@@ -1308,10 +1323,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             AbsolutePosition = detachedpos;
             m_rootPart.AttachedAvatar = UUID.Zero;
-            //Anakin Lohner bug #3839 
-            foreach (SceneObjectPart p in m_parts.Values)
+            
+            //Anakin Lohner bug #3839            
+            lock (m_parts)
             {
-                p.AttachedAvatar = UUID.Zero;
+                foreach (SceneObjectPart p in m_parts.Values)
+                {
+                    p.AttachedAvatar = UUID.Zero;
+                }
             }
 
             m_rootPart.SetParentLocalId(0);
@@ -1337,10 +1356,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_rootPart.AttachedAvatar = UUID.Zero;
+            
             //Anakin Lohner bug #3839 
-            foreach (SceneObjectPart p in m_parts.Values)
+            lock (m_parts)
             {
-                p.AttachedAvatar = UUID.Zero;
+                foreach (SceneObjectPart p in m_parts.Values)
+                {
+                    p.AttachedAvatar = UUID.Zero;
+                }
             }
 
             m_rootPart.SetParentLocalId(0);
@@ -1406,9 +1429,8 @@ namespace OpenSim.Region.Framework.Scenes
                 part.ParentID = 0;
             part.LinkNum = 0;
             
-            // No locking required since the SOG should not be in the scene yet - one can't change root parts after
-            // the scene object has been attached to the scene
-            m_parts.Add(m_rootPart.UUID, m_rootPart);
+            lock (m_parts)
+                m_parts.Add(m_rootPart.UUID, m_rootPart);
         }
 
         /// <summary>
@@ -1928,14 +1950,14 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        ///
+        /// Copy the given part as the root part of this scene object.
         /// </summary>
         /// <param name="part"></param>
         /// <param name="cAgentID"></param>
         /// <param name="cGroupID"></param>
         public void CopyRootPart(SceneObjectPart part, UUID cAgentID, UUID cGroupID, bool userExposed)
         {
-            SetRootPart(part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, m_parts.Count, userExposed));
+            SetRootPart(part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, 0, userExposed));
         }
 
         public void ScriptSetPhysicsStatus(bool UsePhysics)
@@ -2234,14 +2256,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ResetIDs()
         {
-            // As this is only ever called for prims which are not currently part of the scene (and hence
-            // not accessible by clients), there should be no need to lock
-            List<SceneObjectPart> partsList = new List<SceneObjectPart>(m_parts.Values);
-            m_parts.Clear();
-            foreach (SceneObjectPart part in partsList)
+            lock (m_parts)
             {
-                part.ResetIDs(part.LinkNum); // Don't change link nums
-                m_parts.Add(part.UUID, part);
+                List<SceneObjectPart> partsList = new List<SceneObjectPart>(m_parts.Values);
+                m_parts.Clear();
+                foreach (SceneObjectPart part in partsList)
+                {
+                    part.ResetIDs(part.LinkNum); // Don't change link nums
+                    m_parts.Add(part.UUID, part);
+                }
             }
         }
 
@@ -2479,10 +2502,15 @@ namespace OpenSim.Region.Framework.Scenes
         public SceneObjectPart GetChildPart(UUID primID)
         {
             SceneObjectPart childPart = null;
-            if (m_parts.ContainsKey(primID))
+            
+            lock (m_parts)
             {
-                childPart = m_parts[primID];
+                if (m_parts.ContainsKey(primID))
+                {
+                    childPart = m_parts[primID];
+                }
             }
+            
             return childPart;
         }
 
@@ -2519,9 +2547,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public bool HasChildPrim(UUID primID)
         {
-            if (m_parts.ContainsKey(primID))
+            lock (m_parts)
             {
-                return true;
+                if (m_parts.ContainsKey(primID))
+                    return true;
             }
 
             return false;
@@ -3132,9 +3161,11 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdatePermissions(UUID AgentID, byte field, uint localID,
                 uint mask, byte addRemTF)
         {
-            foreach (SceneObjectPart part in m_parts.Values)
-                part.UpdatePermissions(AgentID, field, localID, mask,
-                        addRemTF);
+            lock (m_parts)
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                    part.UpdatePermissions(AgentID, field, localID, mask, addRemTF);
+            }
 
             HasGroupChanged = true;
         }

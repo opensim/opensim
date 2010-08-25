@@ -209,12 +209,15 @@ namespace OpenSim.Region.ScriptEngine.Shared
             else
                 Type = 0x02; // Passive
 
-            foreach (SceneObjectPart p in part.ParentGroup.Children.Values)
+            lock (part.ParentGroup.Children)
             {
-                if (p.Inventory.ContainsScripts())
+                foreach (SceneObjectPart p in part.ParentGroup.Children.Values)
                 {
-                    Type |= 0x08; // Scripted
-                    break;
+                    if (p.Inventory.ContainsScripts())
+                    {
+                        Type |= 0x08; // Scripted
+                        break;
+                    }
                 }
             }
 

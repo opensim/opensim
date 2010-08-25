@@ -239,6 +239,7 @@ namespace OpenSim.Data.MySQL
 
                         ExecuteNonQuery(cmd);
                     }
+                    
                     cmd.Dispose();
                 }
             }

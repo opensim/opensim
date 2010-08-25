@@ -549,7 +549,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     }
 
                     if (!m_Scene.Permissions.CanRezObject(
-                        group.Children.Count, remoteClient.AgentId, pos)
+                        group.PrimCount, remoteClient.AgentId, pos)
                         && !attachment)
                     {
                         // The client operates in no fail mode. It will
@@ -629,7 +629,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     rootPart.Name = item.Name;
                     rootPart.Description = item.Description;
 
-                    List<SceneObjectPart> partList = new List<SceneObjectPart>(group.Children.Values);
+                    List<SceneObjectPart> partList = null;                    
+                    lock (group.Children)
+                        partList = new List<SceneObjectPart>(group.Children.Values);
 
                     group.SetGroup(remoteClient.ActiveGroupId, remoteClient);
                     if ((rootPart.OwnerID != item.Owner) || (item.CurrentPermissions & 16) != 0)
