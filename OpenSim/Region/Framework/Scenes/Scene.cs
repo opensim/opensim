@@ -42,7 +42,6 @@ using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Communications;
-
 using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Scripting;
@@ -2051,7 +2050,24 @@ namespace OpenSim.Region.Framework.Scenes
         public bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
             return m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, sendClientUpdates);
-        }        
+        }
+        
+        /// <summary>
+        /// Add a newly created object to the scene.
+        /// </summary>
+        /// 
+        /// This method does not send updates to the client - callers need to handle this themselves.
+        /// <param name="sceneObject"></param>
+        /// <param name="attachToBackup"></param>
+        /// <param name="pos">Position of the object</param>
+        /// <param name="rot">Rotation of the object</param>
+        /// <param name="vel">Velocity of the object.  This parameter only has an effect if the object is physical</param>
+        /// <returns></returns>
+        public bool AddNewSceneObject(
+            SceneObjectGroup sceneObject, bool attachToBackup, Vector3 pos, Quaternion rot, Vector3 vel)
+        {            
+            return m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, pos, rot, vel);
+        }
 
         /// <summary>
         /// Delete every object from the scene.  This does not include attachments worn by avatars.

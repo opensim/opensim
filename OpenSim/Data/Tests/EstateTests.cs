@@ -37,11 +37,6 @@ using log4net;
 using System.Reflection;
 using System.Data.Common;
 
-#if !NUNIT25
-using NUnit.Framework.SyntaxHelpers;
-#endif
-
-
 // DBMS-specific:
 using MySql.Data.MySqlClient;
 using OpenSim.Data.MySQL;
@@ -51,7 +46,6 @@ using OpenSim.Data.MSSQL;
 
 using Mono.Data.Sqlite;
 using OpenSim.Data.SQLite;
-
 
 namespace OpenSim.Data.Tests
 {
