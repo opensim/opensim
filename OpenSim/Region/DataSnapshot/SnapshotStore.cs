@@ -99,13 +99,21 @@ namespace OpenSim.Region.DataSnapshot
                 {
                     String path = DataFileNameFragment(provider.GetParentScene, provider.Name);
 
-                    using (XmlTextWriter snapXWriter = new XmlTextWriter(path, Encoding.Default))
+                    try
                     {
-                        snapXWriter.Formatting = Formatting.Indented;
-                        snapXWriter.WriteStartDocument();
-                        data.WriteTo(snapXWriter);
-                        snapXWriter.WriteEndDocument();
+                        using (XmlTextWriter snapXWriter = new XmlTextWriter(path, Encoding.Default))
+                        {
+                            snapXWriter.Formatting = Formatting.Indented;
+                            snapXWriter.WriteStartDocument();
+                            data.WriteTo(snapXWriter);
+                            snapXWriter.WriteEndDocument();
+                        }
                     }
+                    catch (Exception e)
+                    {
+                        m_log.WarnFormat("[DATASNAPSHOT]: Exception on writing to file {0}: {1}", path, e.Message);
+                    }
+
                 }
 
                 //mark provider as not stale, parent scene as stale
@@ -214,7 +222,7 @@ namespace OpenSim.Region.DataSnapshot
         #region Helpers
         private string DataFileNameFragment(Scene scene, String fragmentName)
         {
-            return Path.Combine(m_directory, Path.ChangeExtension(Sanitize(scene.RegionInfo.RegionName) + "_" + fragmentName, "xml"));
+            return Path.Combine(m_directory, Path.ChangeExtension(Sanitize(scene.RegionInfo.RegionName + "_" + fragmentName), "xml"));
         }
 
         private string DataFileNameScene(Scene scene)
