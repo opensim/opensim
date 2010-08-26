@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 using log4net;
 using OpenSim.Region.DataSnapshot.Interfaces;
@@ -185,12 +186,19 @@ namespace OpenSim.Region.DataSnapshot
                 //save snapshot
                 String path = DataFileNameScene(scene);
 
-                using (XmlTextWriter snapXWriter = new XmlTextWriter(path, Encoding.Default))
+                try
                 {
-                    snapXWriter.Formatting = Formatting.Indented;
-                    snapXWriter.WriteStartDocument();
-                    regionElement.WriteTo(snapXWriter);
-                    snapXWriter.WriteEndDocument();
+                    using (XmlTextWriter snapXWriter = new XmlTextWriter(path, Encoding.Default))
+                    {
+                        snapXWriter.Formatting = Formatting.Indented;
+                        snapXWriter.WriteStartDocument();
+                        regionElement.WriteTo(snapXWriter);
+                        snapXWriter.WriteEndDocument();
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.WarnFormat("[DATASNAPSHOT]: Exception on writing to file {0}: {1}", path, e.Message);
                 }
 
                 m_scenes[scene] = false;
@@ -206,13 +214,21 @@ namespace OpenSim.Region.DataSnapshot
         #region Helpers
         private string DataFileNameFragment(Scene scene, String fragmentName)
         {
-            return Path.Combine(m_directory, Path.ChangeExtension(scene.RegionInfo.RegionName + "_" + fragmentName, "xml"));
+            return Path.Combine(m_directory, Path.ChangeExtension(Sanitize(scene.RegionInfo.RegionName) + "_" + fragmentName, "xml"));
         }
 
         private string DataFileNameScene(Scene scene)
         {
-            return Path.Combine(m_directory, Path.ChangeExtension(scene.RegionInfo.RegionName, "xml"));
+            return Path.Combine(m_directory, Path.ChangeExtension(Sanitize(scene.RegionInfo.RegionName), "xml"));
             //return (m_snapsDir + Path.DirectorySeparatorChar + scene.RegionInfo.RegionName + ".xml");
+        }
+
+        private static string Sanitize(string name)
+        {
+            string invalidChars = Regex.Escape(new string(Path.GetInvalidFileNameChars()));
+            string invalidReStr = string.Format(@"[{0}]", invalidChars);
+            string newname = Regex.Replace(name, invalidReStr, "_");
+            return newname.Replace('.', '_');
         }
 
         private XmlNode MakeRegionNode(Scene scene, XmlDocument basedoc)
