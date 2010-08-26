@@ -122,9 +122,16 @@ namespace OpenSim.Region.Framework.Scenes
                 // Use group position for child prims
                 Vector3 entityPos;
                 if (entity is SceneObjectPart)
-                    entityPos = m_scene.GetGroupByPrim(entity.LocalId).AbsolutePosition;
+                {
+                    // Can't use Scene.GetGroupByPrim() here, since the entity may have been delete from the scene
+                    // before its scheduled update was triggered                    
+                    //entityPos = m_scene.GetGroupByPrim(entity.LocalId).AbsolutePosition;
+                    entityPos = ((SceneObjectPart)entity).ParentGroup.AbsolutePosition;                    
+                }
                 else
+                {
                     entityPos = entity.AbsolutePosition;
+                }
 
                 return Vector3.DistanceSquared(presencePos, entityPos);
             }
@@ -144,9 +151,16 @@ namespace OpenSim.Region.Framework.Scenes
                 // Use group position for child prims
                 Vector3 entityPos = entity.AbsolutePosition;
                 if (entity is SceneObjectPart)
-                    entityPos = m_scene.GetGroupByPrim(entity.LocalId).AbsolutePosition;
+                {                                                           
+                    // Can't use Scene.GetGroupByPrim() here, since the entity may have been delete from the scene
+                    // before its scheduled update was triggered
+                    //entityPos = m_scene.GetGroupByPrim(entity.LocalId).AbsolutePosition;
+                    entityPos = ((SceneObjectPart)entity).ParentGroup.AbsolutePosition;                    
+                }
                 else
+                {
                     entityPos = entity.AbsolutePosition;
+                }
 
                 if (!presence.IsChildAgent)
                 {
