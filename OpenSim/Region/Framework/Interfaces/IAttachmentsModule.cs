@@ -131,5 +131,13 @@ namespace OpenSim.Region.Framework.Interfaces
         /// A <see cref="IClientAPI"/>
         /// </param>
         void ShowDetachInUserInventory(UUID itemID, IClientAPI remoteClient);
+        
+        /// <summary>
+        /// Update the position of an attachment
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="sog"></param>
+        /// <param name="pos"></param>
+        void UpdateAttachmentPosition(IClientAPI client, SceneObjectGroup sog, Vector3 pos);
     }
 }
