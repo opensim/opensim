@@ -31,7 +31,7 @@ namespace OpenSim.Region.Framework.Scenes
 
     public class Prioritizer
     {
-        private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         
         /// <summary>
         /// This is added to the priority of all child prims, to make sure that the root prim update is sent to the
@@ -75,7 +75,6 @@ namespace OpenSim.Region.Framework.Scenes
                     break;
                 default:
                     throw new InvalidOperationException("UpdatePrioritizationScheme not defined.");
-                    break;
             }
             
             // Adjust priority so that root prims are sent to the viewer first.  This is especially important for 

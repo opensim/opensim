@@ -576,8 +576,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
         
         public SceneObjectGroup GetRezReadySceneObject(TaskInventoryItem item)
-        {            
-            UUID ownerID = item.OwnerID;
+        {
             AssetBase rezAsset = m_part.ParentGroup.Scene.AssetService.Get(item.AssetID.ToString());
 
             if (null == rezAsset)

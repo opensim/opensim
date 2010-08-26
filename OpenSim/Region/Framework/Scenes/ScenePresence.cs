@@ -2327,7 +2327,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_perfMonMS = Util.EnvironmentTickCount();
 
                 PhysicsActor actor = m_physicsActor;
-                Vector3 velocity = (actor != null) ? actor.Velocity : Vector3.Zero;
 
                 Vector3 pos = m_pos;
                 pos.Z += m_appearance.HipOffset;
