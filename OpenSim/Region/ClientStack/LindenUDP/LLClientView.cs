@@ -327,7 +327,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// thread servicing the m_primFullUpdates queue after a kill.  If this happens the object persists as an
         /// ownerless phantom.
         ///
-        /// All manipulation of this set has to occur under a m_primFullUpdate.SyncRoot lock
+        /// All manipulation of this set has to occur under an m_entityUpdates.SyncRoot lock
         ///       
         /// </value>
         protected HashSet<uint> m_killRecord;
@@ -382,18 +382,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public string ActiveGroupName { get { return m_activeGroupName; } }
         public ulong ActiveGroupPowers { get { return m_activeGroupPowers; } }
         public bool IsGroupMember(UUID groupID) { return m_groupPowers.ContainsKey(groupID); }
+        
         /// <summary>
         /// First name of the agent/avatar represented by the client
         /// </summary>
         public string FirstName { get { return m_firstName; } }
+        
         /// <summary>
         /// Last name of the agent/avatar represented by the client
         /// </summary>
         public string LastName { get { return m_lastName; } }
+        
         /// <summary>
         /// Full name of the client (first name and last name)
         /// </summary>
         public string Name { get { return FirstName + " " + LastName; } }
+        
         public uint CircuitCode { get { return m_circuitCode; } }
         public int MoneyBalance { get { return m_moneyBalance; } }
         public int NextAnimationSequenceNumber { get { return m_animationSequenceNumber++; } }
@@ -3531,6 +3535,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 EntityUpdate update;
                 while (updatesThisCall < maxUpdates && m_entityUpdates.TryDequeue(out update))
                 {
+                    // Please do not remove this unless you can demonstrate on the OpenSim mailing list that a client 
+                    // will never receive an update after a prim kill.  Even then, keeping the kill record may be a good
+                    // safety measure.
+                    //
+                    // Receiving updates after kills results in undeleteable prims that persist until relog and 
+                    // currently occurs because prims can be deleted before all queued updates are sent.
+                    if (m_killRecord.Contains(update.Entity.LocalId))
+                    {
+//                        m_log.WarnFormat(
+//                            "[CLIENT]: Preventing full update for prim with local id {0} after client for user {1} told it was deleted", 
+//                            update.Entity.LocalId, Name);                        
+                        continue;
+                    }
+                    
                     if (update.Entity is SceneObjectPart)
                     {
                         SceneObjectPart part = (SceneObjectPart)update.Entity;

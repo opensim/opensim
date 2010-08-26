@@ -3608,18 +3608,6 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
-        private ILandObject GetParcelAtPoint(float x, float y)
-        {
-            foreach (var parcel in AllParcels())
-            {
-                if (parcel.ContainsPoint((int)x,(int)y))
-                {
-                    return parcel;
-                }
-            }
-            return null;
-        }
-
         /// <summary>
         /// Update an AgentCircuitData object with new information
         /// </summary>

@@ -31,7 +31,7 @@ namespace OpenSim.Region.Framework.Scenes
 
     public class Prioritizer
     {
-        private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         
         /// <summary>
         /// This is added to the priority of all child prims, to make sure that the root prim update is sent to the
@@ -75,7 +75,6 @@ namespace OpenSim.Region.Framework.Scenes
                     break;
                 default:
                     throw new InvalidOperationException("UpdatePrioritizationScheme not defined.");
-                    break;
             }
             
             // Adjust priority so that root prims are sent to the viewer first.  This is especially important for 
@@ -122,9 +121,16 @@ namespace OpenSim.Region.Framework.Scenes
                 // Use group position for child prims
                 Vector3 entityPos;
                 if (entity is SceneObjectPart)
-                    entityPos = m_scene.GetGroupByPrim(entity.LocalId).AbsolutePosition;
+                {
+                    // Can't use Scene.GetGroupByPrim() here, since the entity may have been delete from the scene
+                    // before its scheduled update was triggered                    
+                    //entityPos = m_scene.GetGroupByPrim(entity.LocalId).AbsolutePosition;
+                    entityPos = ((SceneObjectPart)entity).ParentGroup.AbsolutePosition;                    
+                }
                 else
+                {
                     entityPos = entity.AbsolutePosition;
+                }
 
                 return Vector3.DistanceSquared(presencePos, entityPos);
             }
@@ -144,9 +150,16 @@ namespace OpenSim.Region.Framework.Scenes
                 // Use group position for child prims
                 Vector3 entityPos = entity.AbsolutePosition;
                 if (entity is SceneObjectPart)
-                    entityPos = m_scene.GetGroupByPrim(entity.LocalId).AbsolutePosition;
+                {                                                           
+                    // Can't use Scene.GetGroupByPrim() here, since the entity may have been delete from the scene
+                    // before its scheduled update was triggered
+                    //entityPos = m_scene.GetGroupByPrim(entity.LocalId).AbsolutePosition;
+                    entityPos = ((SceneObjectPart)entity).ParentGroup.AbsolutePosition;                    
+                }
                 else
+                {
                     entityPos = entity.AbsolutePosition;
+                }
 
                 if (!presence.IsChildAgent)
                 {

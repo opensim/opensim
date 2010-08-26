@@ -159,7 +159,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
         private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
-            m_log.InfoFormat(
+            m_log.DebugFormat(
                 "[INVENTORY TRANSFER]: {0} IM type received from {1}", 
                 (InstantMessageDialog)im.dialog, client.Name);
           

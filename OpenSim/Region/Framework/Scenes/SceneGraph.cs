@@ -1289,37 +1289,21 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="localID"></param>
         /// <param name="pos"></param>
         /// <param name="remoteClient"></param>
-        protected internal void UpdatePrimPosition(uint localID, Vector3 pos, IClientAPI remoteClient)
+        public void UpdatePrimPosition(uint localID, Vector3 pos, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
+            
             if (group != null)
-            {
-
-                // Vector3 oldPos = group.AbsolutePosition;
+            {                
                 if (group.IsAttachment || (group.RootPart.Shape.PCode == 9 && group.RootPart.Shape.State != 0))
                 {
- 
-                    // If this is an attachment, then we need to save the modified
-                    // object back into the avatar's inventory. First we save the
-                    // attachment point information, then we update the relative 
-                    // positioning (which caused this method to get driven in the
-                    // first place. Then we have to mark the object as NOT an
-                    // attachment. This is necessary in order to correctly save
-                    // and retrieve GroupPosition information for the attachment.
-                    // Then we save the asset back into the appropriate inventory
-                    // entry. Finally, we restore the object's attachment status.
-
-                    byte attachmentPoint = group.GetAttachmentPoint();
-                    group.UpdateGroupPosition(pos);
-                    group.RootPart.IsAttachment = false;
-                    group.AbsolutePosition = group.RootPart.AttachedPos;
-                    m_parentScene.UpdateKnownItem(remoteClient, group, group.GetFromItemID(), group.OwnerID);
-                    group.SetAttachmentPoint(attachmentPoint);
-
+                    if (m_parentScene.AttachmentsModule != null)
+                        m_parentScene.AttachmentsModule.UpdateAttachmentPosition(remoteClient, group, pos);
                 }
                 else
                 {
-                    if (m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId) && m_parentScene.Permissions.CanObjectEntry(group.UUID, false, pos))
+                    if (m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId) 
+                        && m_parentScene.Permissions.CanObjectEntry(group.UUID, false, pos))
                     {
                         group.UpdateGroupPosition(pos);
                     }
@@ -1328,14 +1312,19 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        ///
+        /// Update the texture entry of the given prim.
         /// </summary>
+        /// 
+        /// A texture entry is an object that contains details of all the textures of the prim's face.  In this case,
+        /// the texture is given in its byte serialized form.
+        /// 
         /// <param name="localID"></param>
         /// <param name="texture"></param>
         /// <param name="remoteClient"></param>
         protected internal void UpdatePrimTexture(uint localID, byte[] texture, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
+            
             if (group != null)
             {
                 if (m_parentScene.Permissions.CanEditObject(group.UUID,remoteClient.AgentId))
@@ -1699,8 +1688,6 @@ namespace OpenSim.Region.Framework.Scenes
                             //
                             SceneObjectPart newRoot = newSet[0];
                             newSet.RemoveAt(0);
-
-                            List<uint> linkIDs = new List<uint>();
 
                             foreach (SceneObjectPart newChild in newSet)
                                 newChild.UpdateFlag = 0;
