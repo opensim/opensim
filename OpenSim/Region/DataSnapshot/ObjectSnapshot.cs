@@ -142,9 +142,18 @@ namespace OpenSim.Region.DataSnapshot.Providers
                             node.InnerText = m_scene.RegionInfo.RegionSettings.RegionUUID.ToString();
                             xmlobject.AppendChild(node);
 
-                            node = nodeFactory.CreateNode(XmlNodeType.Element, "parceluuid", "");
-                            node.InnerText = land.LandData.GlobalID.ToString();
-                            xmlobject.AppendChild(node);
+                            if (land != null && land.LandData != null)
+                            {
+                                node = nodeFactory.CreateNode(XmlNodeType.Element, "parceluuid", "");
+                                node.InnerText = land.LandData.GlobalID.ToString();
+                                xmlobject.AppendChild(node);
+                            }
+                            else
+                            {
+                                // Something is wrong with this object. Let's not list it.
+                                m_log.WarnFormat("[DATASNAPSHOT]: Bad data for object {0} ({1}) in region {2}", obj.Name, obj.UUID, m_scene.RegionInfo.RegionName);
+                                continue;
+                            }
 
                             node = nodeFactory.CreateNode(XmlNodeType.Element, "location", "");
                             Vector3 loc = obj.AbsolutePosition;
