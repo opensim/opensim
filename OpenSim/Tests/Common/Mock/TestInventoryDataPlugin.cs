@@ -86,7 +86,7 @@ namespace OpenSim.Tests.Common.Mock
         {
             InventoryFolderBase folder = m_folders[folderID];
             
-            m_log.DebugFormat("[MOCK INV DB]: Getting items in folder {0} {1}", folder.Name, folder.ID);
+//            m_log.DebugFormat("[MOCK INV DB]: Getting items in folder {0} {1}", folder.Name, folder.ID);
             
             List<InventoryItemBase> items = new List<InventoryItemBase>();
 
@@ -94,7 +94,7 @@ namespace OpenSim.Tests.Common.Mock
             {
                 if (item.Folder == folderID)
                 {
-                    m_log.DebugFormat("[MOCK INV DB]: getInventoryInFolder() adding item {0}", item.Name);
+//                    m_log.DebugFormat("[MOCK INV DB]: getInventoryInFolder() adding item {0}", item.Name);
                     items.Add(item);
                 }
             }
@@ -106,7 +106,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public InventoryFolderBase getUserRootFolder(UUID user)
         {
-            m_log.DebugFormat("[MOCK INV DB]: Looking for root folder for {0}", user);
+//            m_log.DebugFormat("[MOCK INV DB]: Looking for root folder for {0}", user);
             
             InventoryFolderBase folder = null;
             m_rootFolders.TryGetValue(user, out folder);
@@ -118,7 +118,7 @@ namespace OpenSim.Tests.Common.Mock
         {
             InventoryFolderBase parentFolder = m_folders[parentID];
             
-            m_log.DebugFormat("[MOCK INV DB]: Getting folders in folder {0} {1}", parentFolder.Name, parentFolder.ID);
+//            m_log.DebugFormat("[MOCK INV DB]: Getting folders in folder {0} {1}", parentFolder.Name, parentFolder.ID);
             
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
 
@@ -126,9 +126,9 @@ namespace OpenSim.Tests.Common.Mock
             {
                 if (folder.ParentID == parentID)
                 {
-                    m_log.DebugFormat(
-                        "[MOCK INV DB]: Found folder {0} {1} in {2} {3}", 
-                        folder.Name, folder.ID, parentFolder.Name, parentFolder.ID);
+//                    m_log.DebugFormat(
+//                        "[MOCK INV DB]: Found folder {0} {1} in {2} {3}", 
+//                        folder.Name, folder.ID, parentFolder.Name, parentFolder.ID);
                     
                     folders.Add(folder);
                 }
@@ -152,9 +152,9 @@ namespace OpenSim.Tests.Common.Mock
 
         public void addInventoryFolder(InventoryFolderBase folder)
         {
-            m_log.DebugFormat(
-                "[MOCK INV DB]: Adding inventory folder {0} {1} type {2}", 
-                folder.Name, folder.ID, (AssetType)folder.Type);
+//            m_log.DebugFormat(
+//                "[MOCK INV DB]: Adding inventory folder {0} {1} type {2}", 
+//                folder.Name, folder.ID, (AssetType)folder.Type);
             
             m_folders[folder.ID] = folder;
 
@@ -187,8 +187,8 @@ namespace OpenSim.Tests.Common.Mock
         {
             InventoryFolderBase folder = m_folders[item.Folder];
             
-            m_log.DebugFormat(
-                "[MOCK INV DB]: Adding inventory item {0} {1} in {2} {3}", item.Name, item.ID, folder.Name, folder.ID);
+//            m_log.DebugFormat(
+//                "[MOCK INV DB]: Adding inventory item {0} {1} in {2} {3}", item.Name, item.ID, folder.Name, folder.ID);
             
             m_items[item.ID] = item;
         }

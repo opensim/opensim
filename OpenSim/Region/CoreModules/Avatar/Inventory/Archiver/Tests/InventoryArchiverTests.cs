@@ -343,6 +343,30 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         }        
         
         /// <summary>
+        /// Test that things work when the load path specified starts with a slash
+        /// </summary>
+        [Test]
+        public void TestLoadIarPathStartsWithSlash()
+        {
+            TestHelper.InMethod();            
+            log4net.Config.XmlConfigurator.Configure();
+            
+            SerialiserModule serialiserModule = new SerialiserModule();
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);           
+            Scene scene = SceneSetupHelpers.SetupScene("inventory");            
+            SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
+            
+            UserProfileTestUtils.CreateUserWithInventory(scene, m_ua1, "password");               
+            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "/Objects", "password", m_iarStream);
+
+            InventoryItemBase foundItem1
+                = InventoryArchiveUtils.FindItemByPath(
+                    scene.InventoryService, m_ua1.PrincipalID, "/Objects/" + m_item1Name);
+            
+            Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1 in TestLoadIarFolderStartsWithSlash()");            
+        }
+        
+        /// <summary>
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
         /// an account exists with the creator name.
         /// </summary>
