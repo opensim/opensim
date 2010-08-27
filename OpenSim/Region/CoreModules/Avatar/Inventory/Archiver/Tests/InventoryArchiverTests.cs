@@ -55,11 +55,57 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
     {
         protected ManualResetEvent mre = new ManualResetEvent(false);
         
+        /// <summary>
+        /// Stream of data representing a common IAR that can be reused in load tests.
+        /// </summary>
+        protected MemoryStream m_iarStream;       
+        
+        protected UserAccount m_ua1 
+            = new UserAccount { 
+                PrincipalID = UUID.Parse("00000000-0000-0000-0000-000000000555"),
+                FirstName = "Mr",
+                LastName = "Tiddles" };        
+        protected UserAccount m_ua2
+            = new UserAccount { 
+                PrincipalID = UUID.Parse("00000000-0000-0000-0000-000000000666"),
+                FirstName = "Lord",
+                LastName = "Lucan" };  
+        string m_item1Name = "b.lsl";
+        
         private void SaveCompleted(
             Guid id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream, 
             Exception reportedException)
         {
             mre.Set();
+        }
+        
+        [SetUp]
+        public void Init()
+        {
+            ConstructDefaultIarForTestLoad();
+        }
+        
+        protected void ConstructDefaultIarForTestLoad()
+        {            
+            string archiveItemName = InventoryArchiveWriteRequest.CreateArchiveItemName(m_item1Name, UUID.Random());
+
+            MemoryStream archiveWriteStream = new MemoryStream();
+            TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
+
+            InventoryItemBase item1 = new InventoryItemBase();
+            item1.Name = m_item1Name;
+            item1.AssetID = UUID.Random();
+            item1.GroupID = UUID.Random();
+            item1.CreatorId = OspResolver.MakeOspa(m_ua2.FirstName, m_ua2.LastName);
+            //item1.CreatorId = userUuid.ToString();
+            //item1.CreatorId = "00000000-0000-0000-0000-000000000444";
+            item1.Owner = UUID.Zero;
+            
+            string item1FileName 
+                = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, archiveItemName);
+            tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1));
+            tar.Close();   
+            m_iarStream = new MemoryStream(archiveWriteStream.ToArray());
         }
 
         /// <summary>
@@ -308,34 +354,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelper.InMethod();            
             //log4net.Config.XmlConfigurator.Configure();
             
-            string userFirstName = "Mr";
-            string userLastName = "Tiddles";
-            UUID userUuid = UUID.Parse("00000000-0000-0000-0000-000000000555");
-            string userItemCreatorFirstName = "Lord";
-            string userItemCreatorLastName = "Lucan";
-            UUID userItemCreatorUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
-            
-            string item1Name = "b.lsl";
-            string archiveItemName = InventoryArchiveWriteRequest.CreateArchiveItemName(item1Name, UUID.Random());
-
-            MemoryStream archiveWriteStream = new MemoryStream();
-            TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
-
-            InventoryItemBase item1 = new InventoryItemBase();
-            item1.Name = item1Name;
-            item1.AssetID = UUID.Random();
-            item1.GroupID = UUID.Random();
-            item1.CreatorId = OspResolver.MakeOspa(userItemCreatorFirstName, userItemCreatorLastName);
-            //item1.CreatorId = userUuid.ToString();
-            //item1.CreatorId = "00000000-0000-0000-0000-000000000444";
-            item1.Owner = UUID.Zero;
-            
-            string item1FileName 
-                = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, archiveItemName);
-            tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1));
-            tar.Close();
-
-            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
             SerialiserModule serialiserModule = new SerialiserModule();
             InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
             
@@ -344,15 +362,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
 			
-			UserProfileTestUtils.CreateUserWithInventory(
-			    scene, userFirstName, userLastName, userUuid, "meowfood");			
-			UserProfileTestUtils.CreateUserWithInventory(
-			    scene, userItemCreatorFirstName, userItemCreatorLastName, userItemCreatorUuid, "hampshire");
+			UserProfileTestUtils.CreateUserWithInventory(scene, m_ua1, "meowfood");			
+			UserProfileTestUtils.CreateUserWithInventory(scene, m_ua2, "hampshire");
             
-            archiverModule.DearchiveInventory(userFirstName, userLastName, "/", "meowfood", archiveReadStream);
+            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "/", "meowfood", m_iarStream);
 
             InventoryItemBase foundItem1
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userUuid, item1Name);
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, m_item1Name);
             
             Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");
 
@@ -362,31 +378,31 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //                foundItem1.CreatorId, Is.EqualTo(item1.CreatorId), 
 //                "Loaded item non-uuid creator doesn't match original");
             Assert.That(
-                foundItem1.CreatorId, Is.EqualTo(userItemCreatorUuid.ToString()), 
+                foundItem1.CreatorId, Is.EqualTo(m_ua2.PrincipalID.ToString()), 
                 "Loaded item non-uuid creator doesn't match original");
             
             Assert.That(
-                foundItem1.CreatorIdAsUuid, Is.EqualTo(userItemCreatorUuid), 
+                foundItem1.CreatorIdAsUuid, Is.EqualTo(m_ua2.PrincipalID), 
                 "Loaded item uuid creator doesn't match original");
-            Assert.That(foundItem1.Owner, Is.EqualTo(userUuid),
+            Assert.That(foundItem1.Owner, Is.EqualTo(m_ua1.PrincipalID),
                 "Loaded item owner doesn't match inventory reciever");
 
             // Now try loading to a root child folder
-            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, userUuid, "xA");
-            archiveReadStream = new MemoryStream(archiveReadStream.ToArray());
-            archiverModule.DearchiveInventory(userFirstName, userLastName, "xA", "meowfood", archiveReadStream);
+            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, m_ua1.PrincipalID, "xA");
+            MemoryStream archiveReadStream = new MemoryStream(m_iarStream.ToArray());
+            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "xA", "meowfood", archiveReadStream);
 
             InventoryItemBase foundItem2
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userUuid, "xA/" + item1Name);
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, "xA/" + m_item1Name);
             Assert.That(foundItem2, Is.Not.Null, "Didn't find loaded item 2");
 
             // Now try loading to a more deeply nested folder
-            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, userUuid, "xB/xC");
+            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, m_ua1.PrincipalID, "xB/xC");
             archiveReadStream = new MemoryStream(archiveReadStream.ToArray());
-            archiverModule.DearchiveInventory(userFirstName, userLastName, "xB/xC", "meowfood", archiveReadStream);
+            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "xB/xC", "meowfood", archiveReadStream);
 
             InventoryItemBase foundItem3
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userUuid, "xB/xC/" + item1Name);
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, "xB/xC/" + m_item1Name);
             Assert.That(foundItem3, Is.Not.Null, "Didn't find loaded item 3");
         }
 

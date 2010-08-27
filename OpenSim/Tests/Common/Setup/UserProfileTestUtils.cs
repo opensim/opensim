@@ -127,12 +127,19 @@ namespace OpenSim.Tests.Common.Setup
         {
             UserAccount ua 
                 = new UserAccount(userId) 
-                    { FirstName = firstName, LastName = lastName, ServiceURLs = new Dictionary<string, object>() };
+                    { FirstName = firstName, LastName = lastName };
+            CreateUserWithInventory(scene, ua, pw);
+            return ua;
+        }
+        
+        public static void CreateUserWithInventory(Scene scene, UserAccount ua, string pw)
+        {
+            // FIXME: This should really be set up by UserAccount itself
+            ua.ServiceURLs = new Dictionary<string, object>();
+                
             scene.UserAccountService.StoreUserAccount(ua);
             scene.InventoryService.CreateUserInventory(ua.PrincipalID);
             scene.AuthenticationService.SetPassword(ua.PrincipalID, pw);
-
-            return ua;
-        }        
+        }             
     }
 }
