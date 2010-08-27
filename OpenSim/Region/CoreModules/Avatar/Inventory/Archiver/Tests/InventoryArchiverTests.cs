@@ -349,7 +349,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         public void TestLoadIarPathStartsWithSlash()
         {
             TestHelper.InMethod();            
-            log4net.Config.XmlConfigurator.Configure();
+//            log4net.Config.XmlConfigurator.Configure();
             
             SerialiserModule serialiserModule = new SerialiserModule();
             InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);           

@@ -380,34 +380,35 @@ namespace OpenSim.Region.Framework.Scenes
                             part.Shape.Scale = scale;
                         }
                     }
-        
-                    sceneObject.AttachToScene(m_parentScene);
-
-                    if (sendClientUpdates)
-                        sceneObject.ScheduleGroupForFullUpdate();
-                                     
-                    Entities.Add(sceneObject);
-                    m_numPrim += sceneObject.Children.Count;
-    
-                    if (attachToBackup)
-                        sceneObject.AttachToBackup();
-    
-                    if (OnObjectCreate != null)
-                        OnObjectCreate(sceneObject);
                     
-                    lock (SceneObjectGroupsByFullID)
-                    {
-                        SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
-                        foreach (SceneObjectPart part in sceneObject.Children.Values)
-                            SceneObjectGroupsByFullID[part.UUID] = sceneObject;
-                    }
-                        
-                    lock (SceneObjectGroupsByLocalID)
-                    {
-                        SceneObjectGroupsByLocalID[sceneObject.LocalId] = sceneObject;
-                        foreach (SceneObjectPart part in sceneObject.Children.Values)
-                            SceneObjectGroupsByLocalID[part.LocalId] = sceneObject;
-                    }
+                    m_numPrim += sceneObject.Children.Count;
+                }
+        
+                sceneObject.AttachToScene(m_parentScene);
+
+                if (sendClientUpdates)
+                    sceneObject.ScheduleGroupForFullUpdate();
+                                 
+                Entities.Add(sceneObject);                    
+
+                if (attachToBackup)
+                    sceneObject.AttachToBackup();
+
+                if (OnObjectCreate != null)
+                    OnObjectCreate(sceneObject);
+                
+                lock (SceneObjectGroupsByFullID)
+                {
+                    SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
+                    foreach (SceneObjectPart part in sceneObject.Children.Values)
+                        SceneObjectGroupsByFullID[part.UUID] = sceneObject;
+                }
+                    
+                lock (SceneObjectGroupsByLocalID)
+                {
+                    SceneObjectGroupsByLocalID[sceneObject.LocalId] = sceneObject;
+                    foreach (SceneObjectPart part in sceneObject.Children.Values)
+                        SceneObjectGroupsByLocalID[part.LocalId] = sceneObject;
                 }
             }
 
