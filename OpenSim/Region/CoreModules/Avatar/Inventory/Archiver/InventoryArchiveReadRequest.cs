@@ -261,7 +261,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             while (archivePath.Length > 0)
             {
-                m_log.DebugFormat("[INVENTORY ARCHIVER]: Trying to resolve destination folder {0}", archivePath);
+//                m_log.DebugFormat("[INVENTORY ARCHIVER]: Trying to resolve destination folder {0}", archivePath);
                 
                 if (resolvedFolders.ContainsKey(archivePath))
                 {
