@@ -8977,7 +8977,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (handlerGodKickUser != null)
                 {
                     handlerGodKickUser(gkupack.UserInfo.GodID, gkupack.UserInfo.GodSessionID,
-                                       gkupack.UserInfo.AgentID, (uint)0, gkupack.UserInfo.Reason);
+                                       gkupack.UserInfo.AgentID, gkupack.UserInfo.KickFlags, gkupack.UserInfo.Reason);
                 }
             }
             else
