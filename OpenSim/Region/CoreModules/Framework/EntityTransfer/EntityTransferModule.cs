@@ -202,6 +202,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Final destination is x={0} y={1} uuid={2}",
                             finalDestination.RegionLocX / Constants.RegionSize, finalDestination.RegionLocY / Constants.RegionSize, finalDestination.RegionID);
 
+                        // Check that these are not the same coordinates
+                        if (finalDestination.RegionLocX == sp.Scene.RegionInfo.RegionLocX &&
+                            finalDestination.RegionLocY == sp.Scene.RegionInfo.RegionLocY)
+                        {
+                            // Can't do. Viewer crashes
+                            sp.ControllingClient.SendTeleportFailed("Space warp! You would crash. Move to a different region and try again.");
+                            return;
+                        }
+
                         //
                         // This is it
                         //
