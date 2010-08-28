@@ -168,6 +168,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             MemoryStream archiveWriteStream = new MemoryStream();
             archiverModule.OnInventoryArchiveSaved += SaveCompleted;
 
+            // Test saving a particular path
             mre.Reset();
             archiverModule.ArchiveInventory(
                 Guid.NewGuid(), userFirstName, userLastName, "Objects", userPassword, archiveWriteStream);
@@ -194,7 +195,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             while (tar.ReadEntry(out filePath, out tarEntryType) != null)
             {
-                Console.WriteLine("Got {0}", filePath);
+//                Console.WriteLine("Got {0}", filePath);
 
 //                if (ArchiveConstants.CONTROL_FILE_PATH == filePath)
 //                {

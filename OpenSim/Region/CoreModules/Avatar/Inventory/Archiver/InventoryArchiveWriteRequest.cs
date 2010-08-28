@@ -221,7 +221,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 InventoryItemBase inventoryItem = null;
                 InventoryFolderBase rootFolder = m_scene.InventoryService.GetRootFolder(m_userInfo.PrincipalID);
     
-                bool foundStar = false;
+                bool saveFolderContentsOnly = false;
     
                 // Eliminate double slashes and any leading / on the path.
                 string[] components
@@ -234,7 +234,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 // folder itself.  This may get more sophisicated later on
                 if (maxComponentIndex >= 0 && components[maxComponentIndex] == STAR_WILDCARD)
                 {
-                    foundStar = true;
+                    saveFolderContentsOnly = true;
                     maxComponentIndex--;
                 }
     
@@ -281,10 +281,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     m_log.DebugFormat(
                         "[INVENTORY ARCHIVER]: Found folder {0} {1} at {2}",
-                        inventoryFolder.Name, inventoryFolder.ID, m_invPath);
+                        inventoryFolder.Name, 
+                        inventoryFolder.ID, 
+                        m_invPath == String.Empty ? InventoryFolderImpl.PATH_DELIMITER : m_invPath );
     
                     //recurse through all dirs getting dirs and files
-                    SaveInvFolder(inventoryFolder, ArchiveConstants.INVENTORY_PATH, !foundStar);
+                    SaveInvFolder(inventoryFolder, ArchiveConstants.INVENTORY_PATH, !saveFolderContentsOnly);
                 }
                 else if (inventoryItem != null)
                 {
