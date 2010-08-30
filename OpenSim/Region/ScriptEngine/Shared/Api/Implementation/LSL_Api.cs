@@ -9137,8 +9137,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // we send to all
                     landData.MediaID = new UUID(texture);
                     landData.MediaAutoScale = autoAlign ? (byte)1 : (byte)0;
-                    landData.MediaSize[0] = width;
-                    landData.MediaSize[1] = height;
+                    landData.MediaWidth = width;
+                    landData.MediaHeight = height;
                     landData.MediaType = mediaType;
 
                     // do that one last, it will cause a ParcelPropertiesUpdate
@@ -9224,8 +9224,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaType));
                             break;
                         case ParcelMediaCommandEnum.Size:
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaSize[0]));
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaSize[1]));
+                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaWidth));
+                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaHeight));
                             break;
                         default:
                             ParcelMediaCommandEnum mediaCommandEnum = ParcelMediaCommandEnum.Url;

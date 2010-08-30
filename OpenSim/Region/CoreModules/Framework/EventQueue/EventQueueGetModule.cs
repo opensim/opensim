@@ -34,6 +34,7 @@ using System.Threading;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.Messages.Linden;
 using OpenMetaverse.Packets;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
@@ -137,10 +138,11 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             {
                 if (!queues.ContainsKey(agentId))
                 {
+					/*
                     m_log.DebugFormat(
                         "[EVENTQUEUE]: Adding new queue for agent {0} in region {1}", 
                         agentId, m_scene.RegionInfo.RegionName);
-                    
+                    */
                     queues[agentId] = new Queue<OSD>();
                 }
                 
@@ -200,7 +202,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
 
         private void ClientClosed(UUID AgentID, Scene scene)
         {
-            m_log.DebugFormat("[EVENTQUEUE]: Closed client {0} in region {1}", AgentID, m_scene.RegionInfo.RegionName);
+            //m_log.DebugFormat("[EVENTQUEUE]: Closed client {0} in region {1}", AgentID, m_scene.RegionInfo.RegionName);
 
             int count = 0;
             while (queues.ContainsKey(AgentID) && queues[AgentID].Count > 0 && count++ < 5)
@@ -284,7 +286,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
                 // Reuse open queues.  The client does!
                 if (m_AvatarQueueUUIDMapping.ContainsKey(agentID))
                 {
-                    m_log.DebugFormat("[EVENTQUEUE]: Found Existing UUID!");
+                    //m_log.DebugFormat("[EVENTQUEUE]: Found Existing UUID!");
                     EventQueueGetUUID = m_AvatarQueueUUIDMapping[agentID];
                 }
                 else
@@ -365,7 +367,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             {
                 // Send it a fake event to keep the client polling!   It doesn't like 502s like the proxys say!
                 array.Add(EventQueueHelper.KeepAliveEvent());
-                m_log.DebugFormat("[EVENTQUEUE]: adding fake event for {0} in region {1}", pAgentId, m_scene.RegionInfo.RegionName);
+                //m_log.DebugFormat("[EVENTQUEUE]: adding fake event for {0} in region {1}", pAgentId, m_scene.RegionInfo.RegionName);
             }
             else
             {
@@ -394,8 +396,8 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             responsedata["keepalive"] = false;
             responsedata["reusecontext"] = false;
             responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(events);
+            //m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", pAgentId, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
             return responsedata;
-            //m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
         }
 
         public Hashtable NoEvents(UUID requestID, UUID agentID)
@@ -461,7 +463,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             {
                 // Send it a fake event to keep the client polling!   It doesn't like 502s like the proxys say!
                 array.Add(EventQueueHelper.KeepAliveEvent());
-                m_log.DebugFormat("[EVENTQUEUE]: adding fake event for {0} in region {1}", agentID, m_scene.RegionInfo.RegionName);
+                //m_log.DebugFormat("[EVENTQUEUE]: adding fake event for {0} in region {1}", agentID, m_scene.RegionInfo.RegionName);
             }
             else
             {
@@ -697,9 +699,9 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             //m_log.InfoFormat("########### eq ChatterBoxSessionAgentListUpdates #############\n{0}", item);
         }
 
-        public void ParcelProperties(ParcelPropertiesPacket parcelPropertiesPacket, UUID avatarID)
+        public void ParcelProperties(ParcelPropertiesMessage parcelPropertiesMessage, UUID avatarID)
         {
-            OSD item = EventQueueHelper.ParcelProperties(parcelPropertiesPacket);
+			OSD item = EventQueueHelper.ParcelProperties(parcelPropertiesMessage);
             Enqueue(item, avatarID);
         }
 
