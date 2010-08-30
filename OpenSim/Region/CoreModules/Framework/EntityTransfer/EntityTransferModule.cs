@@ -200,6 +200,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Final destination is x={0} y={1} uuid={2}",
                             finalDestination.RegionLocX / Constants.RegionSize, finalDestination.RegionLocY / Constants.RegionSize, finalDestination.RegionID);
 
+                        // Check that these are not the same coordinates
+                        if (finalDestination.RegionLocX == sp.Scene.RegionInfo.RegionLocX &&
+                            finalDestination.RegionLocY == sp.Scene.RegionInfo.RegionLocY)
+                        {
+                            // Can't do. Viewer crashes
+                            sp.ControllingClient.SendTeleportFailed("Space warp! You would crash. Move to a different region and try again.");
+                            return;
+                        }
+
                         //
                         // This is it
                         //
@@ -445,6 +454,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 // Now let's make it officially a child agent
                 sp.MakeChildAgent();
+
+                sp.Scene.CleanDroppedAttachments();
 
                 // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 

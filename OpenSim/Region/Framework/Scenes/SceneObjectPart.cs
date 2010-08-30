@@ -4756,20 +4756,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup == null || ParentGroup.IsDeleted)
                 return;
 
-            Vector3 lPos = OffsetPosition;
-
-            if (IsAttachment)
-            {
-                if (ParentGroup.RootPart != this)
-                    return;
-
-                lPos = ParentGroup.RootPart.AttachedPos;
-            }
-            else
-            {
-                if (ParentGroup.RootPart == this)
-                    lPos = AbsolutePosition;
-            }
+            if (IsAttachment && ParentGroup.RootPart != this)                                    
+                return;
             
             // Causes this thread to dig into the Client Thread Data.
             // Remember your locking here!

@@ -70,7 +70,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// A user will arrive shortly, set up appropriate credentials so it can connect
         /// </summary>
-        public event ExpectUserDelegate OnExpectUser;
+//        public event ExpectUserDelegate OnExpectUser;
 
         /// <summary>
         /// A Prim will arrive shortly
@@ -80,7 +80,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// A new prim has arrived
         /// </summary>
-        public event PrimCrossing OnPrimCrossingIntoRegion;
+//        public event PrimCrossing OnPrimCrossingIntoRegion;
 
         ///// <summary>
         ///// A New Region is up and available
@@ -90,7 +90,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// We have a child agent for this avatar and we're getting a status update about it
         /// </summary>
-        public event ChildAgentUpdate OnChildAgentUpdate;
+//        public event ChildAgentUpdate OnChildAgentUpdate;
         //public event RemoveKnownRegionsFromAvatarList OnRemoveKnownRegionFromAvatar;
 
         /// <summary>

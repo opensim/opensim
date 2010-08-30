@@ -32,12 +32,10 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Text;
-
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors.Simulation;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
-
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using log4net;
@@ -243,7 +241,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             {
                 response = request.Send(m_ServerURL, 10000);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }
@@ -308,13 +306,12 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 }
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }
 
             return null;
-
         }
 
         public bool AgentIsComingHome(UUID sessionID, string thisGridExternalName)

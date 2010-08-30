@@ -122,7 +122,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 m_log.WarnFormat(
-                    "[AGENT INVENTORY]: Agent {1} could not add item {2} {3}",
+                    "[AGENT INVENTORY]: Agent {0} could not add item {1} {2}",
                     AgentID, item.Name, item.ID);
 
                 return;
@@ -984,7 +984,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private InventoryItemBase CreateAgentInventoryItemFromTask(UUID destAgent, SceneObjectPart part, UUID itemId)
         {
-            Console.WriteLine("CreateAgentInventoryItemFromTask");
             TaskInventoryItem taskItem = part.Inventory.GetInventoryItem(itemId);
 
             if (null == taskItem)
@@ -1055,7 +1054,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="itemID"></param>
         public InventoryItemBase MoveTaskInventoryItem(IClientAPI remoteClient, UUID folderId, SceneObjectPart part, UUID itemId)
         {
-            m_log.Info("Adding task inventory");
+            m_log.DebugFormat(
+                "[PRIM INVENTORY]: Adding item {0} from {1} to folder {2} for {3}", 
+                itemId, part.Name, folderId, remoteClient.Name);
+            
             InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(remoteClient.AgentId, part, itemId);
 
             if (agentItem == null)
@@ -1121,7 +1123,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <see>MoveTaskInventoryItem</see>
         /// </summary>
         /// <param name="remoteClient"></param>
-        /// <param name="folderID"></param>
+        /// <param name="folderID">
+        /// The user inventory folder to move (or copy) the item to.  If null, then the most
+        /// suitable system folder is used (e.g. the Objects folder for objects).  If there is no suitable folder, then
+        /// the item is placed in the user's root inventory folder
+        /// </param>
         /// <param name="part"></param>
         /// <param name="itemID"></param>
         public InventoryItemBase MoveTaskInventoryItem(UUID avatarId, UUID folderId, SceneObjectPart part, UUID itemId)
@@ -1846,53 +1852,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void UpdateKnownItem(IClientAPI remoteClient, SceneObjectGroup grp, UUID itemID, UUID agentID)
-        {
-            SceneObjectGroup objectGroup = grp;
-            if (objectGroup != null)
-            {
-                if (!grp.HasGroupChanged)
-                {
-                    m_log.InfoFormat("[ATTACHMENT]: Save request for {0} which is unchanged", grp.UUID);
-                    return;
-                }
-
-                m_log.InfoFormat(
-                    "[ATTACHMENT]: Updating asset for attachment {0}, attachpoint {1}",
-                    grp.UUID, grp.GetAttachmentPoint());
-
-                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(objectGroup);
-
-                InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
-                item = InventoryService.GetItem(item);
-
-                if (item != null)
-                {
-                    AssetBase asset = CreateAsset(
-                        objectGroup.GetPartName(objectGroup.LocalId),
-                        objectGroup.GetPartDescription(objectGroup.LocalId),
-                        (sbyte)AssetType.Object,
-                        Utils.StringToBytes(sceneObjectXml),
-                        remoteClient.AgentId);
-                    AssetService.Store(asset);
-
-                    item.AssetID = asset.FullID;
-                    item.Description = asset.Description;
-                    item.Name = asset.Name;
-                    item.AssetType = asset.Type;
-                    item.InvType = (int)InventoryType.Object;
-
-                    InventoryService.UpdateItem(item);
-
-                    // this gets called when the agent loggs off!
-                    if (remoteClient != null)
-                    {
-                        remoteClient.SendInventoryItemCreateUpdate(item, 0);
-                    }
-                }
-            }
-        }
-
         public UUID attachObjectAssetStore(IClientAPI remoteClient, SceneObjectGroup grp, UUID AgentId, out UUID itemID)
         {
             itemID = UUID.Zero;
@@ -1998,7 +1957,7 @@ namespace OpenSim.Region.Framework.Scenes
                     remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
                     RezSelected, RemoveItem, fromTaskID, false);
         }
-
+        
         /// <summary>
         /// Rez an object into the scene from a prim's inventory.
         /// </summary>
@@ -2013,95 +1972,32 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart sourcePart, TaskInventoryItem item,
             Vector3 pos, Quaternion rot, Vector3 vel, int param)
         {
-            // Rez object
-            if (item != null)
+            if (null == item)
+                return null;
+            
+            SceneObjectGroup group = sourcePart.Inventory.GetRezReadySceneObject(item);
+            
+            if (null == group)
+                return null;
+            
+            if (!Permissions.CanRezObject(group.PrimCount, item.OwnerID, pos))
+                return null;            
+
+            if (!Permissions.BypassPermissions())
             {
-                UUID ownerID = item.OwnerID;
-
-                AssetBase rezAsset = AssetService.Get(item.AssetID.ToString());
-
-                if (rezAsset != null)
-                {
-                    string xmlData = Utils.BytesToString(rezAsset.Data);
-                    SceneObjectGroup group = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
-
-                    if (!Permissions.CanRezObject(group.Children.Count, ownerID, pos))
-                    {
-                        return null;
-                    }
-                    group.ResetIDs();
-
-                    AddNewSceneObject(group, true);
-
-                    // we set it's position in world.
-                    group.AbsolutePosition = pos;
-
-                    SceneObjectPart rootPart = group.GetChildPart(group.UUID);
-
-                    // Since renaming the item in the inventory does not affect the name stored
-                    // in the serialization, transfer the correct name from the inventory to the
-                    // object itself before we rez.
-                    rootPart.Name = item.Name;
-                    rootPart.Description = item.Description;
-
-                    List<SceneObjectPart> partList = new List<SceneObjectPart>(group.Children.Values);
-
-                    group.SetGroup(sourcePart.GroupID, null);
-
-                    if ((rootPart.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0)
-                    {
-                        if (Permissions.PropagatePermissions())
-                        {
-                            foreach (SceneObjectPart part in partList)
-                            {
-                                part.EveryoneMask = item.EveryonePermissions;
-                                part.NextOwnerMask = item.NextPermissions;
-                            }
-                            group.ApplyNextOwnerPermissions();
-                        }
-                    }
-
-                    foreach (SceneObjectPart part in partList)
-                    {
-                        if ((part.OwnerID != item.OwnerID) || (item.CurrentPermissions & 16) != 0)
-                        {
-                            part.LastOwnerID = part.OwnerID;
-                            part.OwnerID = item.OwnerID;
-                            part.Inventory.ChangeInventoryOwner(item.OwnerID);
-                        }
-                        part.EveryoneMask = item.EveryonePermissions;
-                        part.NextOwnerMask = item.NextPermissions;
-                    }
-                    
-                    rootPart.TrimPermissions();
-                    
-                    if (group.RootPart.Shape.PCode == (byte)PCode.Prim)
-                    {
-                        group.ClearPartAttachmentData();
-                    }
-                    
-                    group.UpdateGroupRotationR(rot);
-                    
-                    //group.ApplyPhysics(m_physicalPrim);
-                    if (group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical && vel != Vector3.Zero)
-                    {
-                        group.RootPart.ApplyImpulse((vel * group.GetMass()), false);
-                        group.Velocity = vel;
-                        rootPart.ScheduleFullUpdate();
-                    }
-                    group.CreateScriptInstances(param, true, DefaultScriptEngine, 2);
-                    rootPart.ScheduleFullUpdate();
-
-                    if (!Permissions.BypassPermissions())
-                    {
-                        if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                            sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
-                    }
-                    return rootPart.ParentGroup;
-                }
+                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+                    sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
             }
-
-            return null;
+                        
+            AddNewSceneObject(group, true, pos, rot, vel);
+            
+            // We can only call this after adding the scene object, since the scene object references the scene
+            // to find out if scripts should be activated at all.
+            group.CreateScriptInstances(param, true, DefaultScriptEngine, 2);
+            
+            group.ScheduleGroupForFullUpdate();
+        
+            return group;
         }
 
         public virtual bool returnObjects(SceneObjectGroup[] returnobjects, UUID AgentId)
@@ -2161,7 +2057,11 @@ namespace OpenSim.Region.Framework.Scenes
                     sog.SetGroup(groupID, remoteClient);
                     sog.ScheduleGroupForFullUpdate();
 
-                    foreach (SceneObjectPart child in sog.Children.Values)
+                    List<SceneObjectPart> partList = null;
+                    lock (sog.Children)
+                        partList = new List<SceneObjectPart>(sog.Children.Values);                    
+                    
+                    foreach (SceneObjectPart child in partList)
                         child.Inventory.ChangeInventoryOwner(ownerID);
                 }
                 else
@@ -2171,8 +2071,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (sog.GroupID != groupID)
                         continue;
+                    
+                    List<SceneObjectPart> partList = null;
+                    lock (sog.Children)
+                        partList = new List<SceneObjectPart>(sog.Children.Values);                    
 
-                    foreach (SceneObjectPart child in sog.Children.Values)
+                    foreach (SceneObjectPart child in partList)
                     {
                         child.LastOwnerID = child.OwnerID;
                         child.Inventory.ChangeInventoryOwner(groupID);
@@ -2180,8 +2084,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     sog.SetOwnerId(groupID);
                     sog.ApplyNextOwnerPermissions();
-                }
-                
+                }                
             }
 
             foreach (uint localID in localIDs)

@@ -73,9 +73,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_ScriptEngine.Config.GetBoolean("AllowLightShareFunctions", false))
                 m_LSFunctionsEnabled = true;
 
-            if (m_ScriptEngine.Config.GetBoolean("AllowCareminsterFunctions", false))
-                m_LSFunctionsEnabled = true;
-            
             m_comms = m_ScriptEngine.World.RequestModuleInterface<IScriptModuleComms>();
             if (m_comms == null)
                 m_LSFunctionsEnabled = false;
@@ -250,22 +247,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (toadd.Length > 0)
                 {
-                    values.Add(new LSL_Integer(rule));
+                    values.Add(rule);
                     values.Add(toadd.Data[0]);
                 }
                 idx++;
             }
 
-
             return values;
-
         }
 
         private RegionLightShareData getWindlightProfileFromRules(LSL_List rules)
         {
             RegionLightShareData wl = (RegionLightShareData)m_host.ParentGroup.Scene.RegionInfo.WindlightSettings.Clone();
 
-            LSL_List values = new LSL_List();
+//            LSL_List values = new LSL_List();
             int idx = 0;
             while (idx < rules.Length)
             {

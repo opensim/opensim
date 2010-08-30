@@ -268,15 +268,22 @@ namespace OpenSim.Services.InventoryService
 
         public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
         {
+//            m_log.DebugFormat("[INVENTORY SERVICE]: Looking for folder type {0} for user {1}", type, userID);
+            
             InventoryFolderBase root = m_Database.getUserRootFolder(userID);
             if (root != null)
             {
                 List<InventoryFolderBase> folders = RequestSubFolders(root.ID);
 
                 foreach (InventoryFolderBase folder in folders)
-                {
+                {                   
                     if (folder.Type == (short)type)
+                    {
+//                        m_log.DebugFormat(
+//                            "[INVENTORY SERVICE]: Found folder {0} type {1}", folder.Name, (AssetType)folder.Type);                        
+                        
                         return folder;
+                    }
                 }
             }
 

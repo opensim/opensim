@@ -90,6 +90,78 @@ namespace OpenSim.Framework
         private Vector3 _userLookAt = new Vector3();
         private int _dwell = 0;
         private int _otherCleanTime = 0;
+		private string _mediaType = "none/none";
+		private string _mediaDescription = "";
+		private int _mediaHeight = 0;
+		private int _mediaWidth = 0;
+		private bool _mediaLoop = false;
+		private bool _obscureMusic = false;
+		private bool _obscureMedia = false;
+
+        /// <summary>
+        /// Whether to obscure parcel media URL
+        /// </summary>
+        [XmlIgnore]
+        public bool ObscureMedia {
+            get {
+                return _obscureMedia;
+            }
+            set {
+                _obscureMedia = value;
+            }
+        }
+
+        /// <summary>
+        /// Whether to obscure parcel music URL
+        /// </summary>
+        [XmlIgnore]
+        public bool ObscureMusic {
+            get {
+                return _obscureMusic;
+            }
+            set {
+                _obscureMusic = value;
+            }
+        }
+
+        /// <summary>
+        /// Whether to loop parcel media
+        /// </summary>
+        [XmlIgnore]
+        public bool MediaLoop {
+            get {
+                return _mediaLoop;
+            }
+            set {
+                _mediaLoop = value;
+            }
+        }
+
+        /// <summary>
+        /// Height of parcel media render
+        /// </summary>
+        [XmlIgnore]
+        public int MediaHeight {
+            get {
+                return _mediaHeight;
+            }
+            set {
+                _mediaHeight = value;
+            }
+        }
+
+        /// <summary>
+        /// Width of parcel media render
+        /// </summary>
+        [XmlIgnore]
+        public int MediaWidth {
+            get {
+                return _mediaWidth;
+            }
+            set {
+                _mediaWidth = value;
+            }
+        }
 
         /// <summary>
         /// Upper corner of the AABB for the parcel
@@ -358,20 +430,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private int[] _mediaSize = new int[2];
-        public int[] MediaSize
-        {
-            get
-            {
-                return _mediaSize;
-            }
-            set
-            {
-                _mediaSize = value;
-            }
-        }
-
-        private string _mediaType = "";
         public string MediaType
         {
             get
@@ -586,6 +644,17 @@ namespace OpenSim.Framework
             }
         }
 
+        /// <summary>
+        /// parcel media description
+        /// </summary>
+        public string MediaDescription {
+            get {
+                return _mediaDescription;
+            }
+            set {
+                _mediaDescription = value;
+            }
+        }
 
         public LandData()
         {
@@ -635,6 +704,13 @@ namespace OpenSim.Framework
             landData._userLookAt = _userLookAt;
             landData._otherCleanTime = _otherCleanTime;
             landData._dwell = _dwell;
+			landData._mediaType = _mediaType;
+			landData._mediaDescription = _mediaDescription;
+			landData._mediaWidth = _mediaWidth;
+			landData._mediaHeight = _mediaHeight;
+			landData._mediaLoop = _mediaLoop;
+			landData._obscureMusic = _obscureMusic;
+			landData._obscureMedia = _obscureMedia;
 
             landData._parcelAccessList.Clear();
             foreach (ParcelManager.ParcelAccessEntry entry in _parcelAccessList)

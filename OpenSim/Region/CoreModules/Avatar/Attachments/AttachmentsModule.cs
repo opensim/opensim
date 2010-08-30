@@ -427,7 +427,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
             {
                 if (!m_scene.Permissions.CanRezObject(
-                        part.ParentGroup.Children.Count, remoteClient.AgentId, presence.AbsolutePosition))
+                    part.ParentGroup.PrimCount, remoteClient.AgentId, presence.AbsolutePosition))
                     return;
 
                 presence.Appearance.DetachAttachment(itemID);
@@ -471,12 +471,86 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         SceneObjectSerializer.ToOriginalXmlFormat(group);
                         group.DetachToInventoryPrep();
                         m_log.Debug("[ATTACHMENTS MODULE]: Saving attachpoint: " + ((uint)group.GetAttachmentPoint()).ToString());
-                        m_scene.UpdateKnownItem(remoteClient, group,group.GetFromItemID(), group.OwnerID);
+                        UpdateKnownItem(remoteClient, group, group.GetFromItemID(), group.OwnerID);
                         m_scene.DeleteSceneObject(group, false);
                         return;
                     }
                 }
             }
         }
+        
+        public void UpdateAttachmentPosition(IClientAPI client, SceneObjectGroup sog, Vector3 pos)
+        {
+            // If this is an attachment, then we need to save the modified
+            // object back into the avatar's inventory. First we save the
+            // attachment point information, then we update the relative 
+            // positioning (which caused this method to get driven in the
+            // first place. Then we have to mark the object as NOT an
+            // attachment. This is necessary in order to correctly save
+            // and retrieve GroupPosition information for the attachment.
+            // Then we save the asset back into the appropriate inventory
+            // entry. Finally, we restore the object's attachment status.
+            byte attachmentPoint = sog.GetAttachmentPoint();
+            sog.UpdateGroupPosition(pos);
+            sog.RootPart.IsAttachment = false;
+            sog.AbsolutePosition = sog.RootPart.AttachedPos;
+            UpdateKnownItem(client, sog, sog.GetFromItemID(), sog.OwnerID);
+            sog.SetAttachmentPoint(attachmentPoint);            
+        }
+        
+        /// <summary>
+        /// Update the attachment asset for the new sog details if they have changed.
+        /// </summary>
+        /// 
+        /// This is essential for preserving attachment attributes such as permission.  Unlike normal scene objects,
+        /// these details are not stored on the region.
+        /// 
+        /// <param name="remoteClient"></param>
+        /// <param name="grp"></param>
+        /// <param name="itemID"></param>
+        /// <param name="agentID"></param>
+        protected void UpdateKnownItem(IClientAPI remoteClient, SceneObjectGroup grp, UUID itemID, UUID agentID)
+        {
+            if (grp != null)
+            {
+                if (!grp.HasGroupChanged)
+                {
+                    m_log.WarnFormat("[ATTACHMENTS MODULE]: Save request for {0} which is unchanged", grp.UUID);
+                    return;
+                }
+
+                m_log.DebugFormat(
+                    "[ATTACHMENTS MODULE]: Updating asset for attachment {0}, attachpoint {1}",
+                    grp.UUID, grp.GetAttachmentPoint());
+
+                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp);
+
+                InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
+                item = m_scene.InventoryService.GetItem(item);
+
+                if (item != null)
+                {
+                    AssetBase asset = m_scene.CreateAsset(
+                        grp.GetPartName(grp.LocalId),
+                        grp.GetPartDescription(grp.LocalId),
+                        (sbyte)AssetType.Object,
+                        Utils.StringToBytes(sceneObjectXml),
+                        remoteClient.AgentId);
+                    m_scene.AssetService.Store(asset);
+
+                    item.AssetID = asset.FullID;
+                    item.Description = asset.Description;
+                    item.Name = asset.Name;
+                    item.AssetType = asset.Type;
+                    item.InvType = (int)InventoryType.Object;
+
+                    m_scene.InventoryService.UpdateItem(item);
+
+                    // this gets called when the agent logs off!
+                    if (remoteClient != null)
+                        remoteClient.SendInventoryItemCreateUpdate(item, 0);
+                }
+            }
+        }        
     }
 }

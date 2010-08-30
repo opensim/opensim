@@ -801,9 +801,19 @@ ALTER TABLE `regionwindlight`  CHANGE COLUMN `cloud_scroll_x` `cloud_scroll_x` F
 COMMIT;
 
 :VERSION 35         #---------------------
--- Added post 0.7
 
 BEGIN;
 ALTER TABLE prims ADD COLUMN MediaURL varchar(255);
 ALTER TABLE primshapes ADD COLUMN Media TEXT;
+COMMIT;
+
+:VERSION 36         #---------------------
+
+BEGIN;
+ALTER TABLE `land` ADD COLUMN `MediaType` VARCHAR(32) NOT NULL DEFAULT 'none/none' ;
+ALTER TABLE `land` ADD COLUMN `MediaDescription` VARCHAR(255) NOT NULL DEFAULT '';
+ALTER TABLE `land` ADD COLUMN `MediaSize` VARCHAR(16) NOT NULL DEFAULT '0,0';
+ALTER TABLE `land` ADD COLUMN `MediaLoop` BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE `land` ADD COLUMN `ObscureMusic` BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE `land` ADD COLUMN `ObscureMedia` BOOLEAN NOT NULL DEFAULT FALSE;
 COMMIT;

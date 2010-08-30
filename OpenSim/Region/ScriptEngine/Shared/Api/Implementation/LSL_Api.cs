@@ -293,7 +293,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
             case ScriptBaseClass.LINK_SET:
                 if (m_host.ParentGroup != null)
-                    return new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                {
+                    lock (m_host.ParentGroup.Children)
+                        return new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                }
                 return ret;
 
             case ScriptBaseClass.LINK_ROOT:
@@ -308,7 +311,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             case ScriptBaseClass.LINK_ALL_OTHERS:
                 if (m_host.ParentGroup ==  null)
                     return new List<SceneObjectPart>();
-                ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                
+                lock (m_host.ParentGroup.Children)
+                    ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                
                 if (ret.Contains(m_host))
                     ret.Remove(m_host);
                 return ret;
@@ -316,7 +322,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             case ScriptBaseClass.LINK_ALL_CHILDREN:
                 if (m_host.ParentGroup ==  null)
                     return new List<SceneObjectPart>();
-                ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                
+                lock (m_host.ParentGroup.Children)
+                    ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                
                 if (ret.Contains(m_host.ParentGroup.RootPart))
                     ret.Remove(m_host.ParentGroup.RootPart);
                 return ret;
@@ -1272,12 +1281,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (group == null)
                         return;
                     bool allow = true;
-                    foreach (SceneObjectPart part in group.Children.Values)
+                    
+                    lock (group.Children)
                     {
-                        if (part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
+                        foreach (SceneObjectPart part in group.Children.Values)
                         {
-                            allow = false;
-                            break;
+                            if (part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
+                            {
+                                allow = false;
+                                break;
+                            }
                         }
                     }
 
@@ -2120,7 +2133,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (part.ParentGroup.RootPart == part)
             {
-                if ((targetPos.z < ground) && disable_underground_movement)
+                if ((targetPos.z < ground) && disable_underground_movement && m_host.AttachmentPoint == 0)
                     targetPos.z = ground;
                 SceneObjectGroup parent = part.ParentGroup;
                 LSL_Vector real_vec = SetPosAdjust(currentPos, targetPos);
@@ -2152,17 +2165,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected LSL_Vector GetPartLocalPos(SceneObjectPart part)
         {
             m_host.AddScriptLPS(1);
-            if (part.ParentID != 0)
-            {
-                return new LSL_Vector(part.OffsetPosition.X,
-                                      part.OffsetPosition.Y,
-                                      part.OffsetPosition.Z);
-            }
-            else
+            if (part.ParentID == 0)
             {
                 return new LSL_Vector(part.AbsolutePosition.X,
                                       part.AbsolutePosition.Y,
                                       part.AbsolutePosition.Z);
+            }
+            else
+            {
+                if (m_host.IsRoot)
+                {
+                    return new LSL_Vector(m_host.AttachedPos.X,
+                                          m_host.AttachedPos.Y,
+                                          m_host.AttachedPos.Z);
+                }
+                else
+                {
+                    return new LSL_Vector(part.OffsetPosition.X,
+                                          part.OffsetPosition.Y,
+                                          part.OffsetPosition.Z);
+                }
             }
         }
 
@@ -3748,7 +3770,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (m_host.ParentGroup.Children.Count > 1)
+            if (m_host.ParentGroup.PrimCount > 1)
             {
                 return m_host.LinkNum;
             }
@@ -3869,15 +3891,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 case ScriptBaseClass.LINK_ALL_OTHERS:
                 case ScriptBaseClass.LINK_ALL_CHILDREN:
                 case ScriptBaseClass.LINK_THIS:
-                    foreach (SceneObjectPart part in parentPrim.Children.Values)
+                    lock (parentPrim.Children)
                     {
-                        if (part.UUID != m_host.UUID)
+                        foreach (SceneObjectPart part in parentPrim.Children.Values)
                         {
-                            childPrim = part;
-                            break;
+                            if (part.UUID != m_host.UUID)
+                            {
+                                childPrim = part;
+                                break;
+                            }
                         }
+                        break;
                     }
-                    break;
                 default:
                     childPrim = parentPrim.GetLinkNumPart(linknum);
                     if (childPrim.UUID == m_host.UUID)
@@ -3953,26 +3978,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (parentPrim.RootPart.AttachmentPoint != 0)
                 return; // Fail silently if attached
 
-            List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Children.Values);
-            parts.Remove(parentPrim.RootPart);
-            if (parts.Count > 0)
+            lock (parentPrim.Children)
             {
-                try
+                List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Children.Values);
+                parts.Remove(parentPrim.RootPart);
+    
+                foreach (SceneObjectPart part in parts)
                 {
-                    parts[0].ParentGroup.areUpdatesSuspended = true;
-                    foreach (SceneObjectPart part in parts)
-                    {
-                        parentPrim.DelinkFromGroup(part.LocalId, true);
-                        parentPrim.TriggerScriptChangedEvent(Changed.LINK);
-                    }
+                    parentPrim.DelinkFromGroup(part.LocalId, true);
+                    parentPrim.TriggerScriptChangedEvent(Changed.LINK);
                 }
-                finally
-                {
-                    parts[0].ParentGroup.areUpdatesSuspended = false;
-                }
+                parentPrim.HasGroupChanged = true;
+                parentPrim.ScheduleGroupForFullUpdate();
             }
-            parentPrim.HasGroupChanged = true;
-            parentPrim.ScheduleGroupForFullUpdate();
         }
 
         public LSL_String llGetLinkKey(int linknum)
@@ -4179,8 +4197,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
 
                 // destination is an avatar
-                InventoryItemBase agentItem =
-                        World.MoveTaskInventoryItem(destId, UUID.Zero, m_host, objId);
+                InventoryItemBase agentItem = World.MoveTaskInventoryItem(destId, UUID.Zero, m_host, objId);
 
                 if (agentItem == null)
                     return;
@@ -4190,7 +4207,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 byte[] objBytes = agentItem.ID.GetBytes();
                 Array.Copy(objBytes, 0, bucket, 1, 16);
 
-                Console.WriteLine("Giving inventory");
                 GridInstantMessage msg = new GridInstantMessage(World,
                         m_host.UUID, m_host.Name+", an object owned by "+
                         resolveName(m_host.OwnerID)+",", destId,
@@ -4538,7 +4554,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         partItemID = item.ItemID;
                         int linkNumber = m_host.LinkNum;
-                        if (m_host.ParentGroup.Children.Count == 1)
+                        if (m_host.ParentGroup.PrimCount == 1)
                             linkNumber = 0;
 
                         object[] resobj = new object[]
@@ -9595,8 +9611,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // we send to all
                     landData.MediaID = new UUID(texture);
                     landData.MediaAutoScale = autoAlign ? (byte)1 : (byte)0;
-                    landData.MediaSize[0] = width;
-                    landData.MediaSize[1] = height;
+                    landData.MediaWidth = width;
+                    landData.MediaHeight = height;
                     landData.MediaType = mediaType;
 
                     // do that one last, it will cause a ParcelPropertiesUpdate
@@ -9682,8 +9698,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaType));
                             break;
                         case ParcelMediaCommandEnum.Size:
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaSize[0]));
-                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaSize[1]));
+                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaWidth));
+                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaHeight));
                             break;
                         default:
                             ParcelMediaCommandEnum mediaCommandEnum = ParcelMediaCommandEnum.Url;

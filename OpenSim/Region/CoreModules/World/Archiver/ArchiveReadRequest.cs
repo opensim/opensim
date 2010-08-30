@@ -243,7 +243,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // to the same scene (when this is possible).
                 sceneObject.ResetIDs();
 
-                foreach (SceneObjectPart part in sceneObject.Children.Values)
+                List<SceneObjectPart> partList = null;
+                lock (sceneObject.Children)
+                    partList = new List<SceneObjectPart>(sceneObject.Children.Values);
+                
+                foreach (SceneObjectPart part in partList)
                 {
                     if (!ResolveUserUuid(part.CreatorID))
                         part.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
@@ -261,11 +265,27 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     // Fix ownership/creator of inventory items
                     // Not doing so results in inventory items
                     // being no copy/no mod for everyone
-                    part.TaskInventory.LockItemsForRead(true);
-                    TaskInventoryDictionary inv = part.TaskInventory;
-                    foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv)
+                    lock (part.TaskInventory)
                     {
-                        if (!ResolveUserUuid(kvp.Value.OwnerID))
+                        if (!ResolveUserUuid(part.CreatorID))
+                            part.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+    
+                        if (!ResolveUserUuid(part.OwnerID))
+                            part.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+    
+                        if (!ResolveUserUuid(part.LastOwnerID))
+                            part.LastOwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+    
+                        // And zap any troublesome sit target information
+                        part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
+                        part.SitTargetPosition    = new Vector3(0, 0, 0);
+    
+                        // Fix ownership/creator of inventory items
+                        // Not doing so results in inventory items
+                        // being no copy/no mod for everyone
+                        part.TaskInventory.LockItemsForRead(true);
+                        TaskInventoryDictionary inv = part.TaskInventory;
+                        foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv)
                         {
                             if (!ResolveUserUuid(kvp.Value.OwnerID))
                             {
@@ -276,8 +296,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                                 kvp.Value.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                             }
                         }
+                        part.TaskInventory.LockItemsForRead(false);
                     }
-                    part.TaskInventory.LockItemsForRead(false);
                 }
 
                 if (m_scene.AddRestoredSceneObject(sceneObject, true, false))

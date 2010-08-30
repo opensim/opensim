@@ -156,21 +156,30 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         break;
                     }
-                   else 
-                   {
-                       // We also need to check the children of this prim as they
-                       // can be selected as well and send property information
-                       bool foundPrim = false;
-                       foreach (KeyValuePair<UUID, SceneObjectPart> child in ((SceneObjectGroup) ent).Children)
-                       {
-                           if (child.Value.LocalId == primLocalID) 
-                           {
-                               child.Value.GetProperties(remoteClient);
-                               foundPrim = true;
-                               break;
-                           }
-                       }
-                       if (foundPrim) break;
+                    else 
+                    {
+                        // We also need to check the children of this prim as they
+                        // can be selected as well and send property information
+                        bool foundPrim = false;
+                        
+                        SceneObjectGroup sog = ent as SceneObjectGroup;
+                        
+                        List<SceneObjectPart> partList = null;
+                        lock (sog.Children)
+                            partList = new List<SceneObjectPart>(sog.Children.Values);    
+
+                        foreach (SceneObjectPart part in partList)
+                        {
+                            if (part.LocalId == primLocalID) 
+                            {
+                                part.GetProperties(remoteClient);
+                                foundPrim = true;
+                                break;
+                            }
+                        }
+                            
+                        if (foundPrim) 
+                            break;
                    }
                 }
             }

@@ -81,12 +81,17 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 catch (Exception e)
                 {
-                    m_log.DebugFormat("[FORMS]: exception occured on sending request to {0}: {1}", requestUrl, e.Message);
+                    m_log.DebugFormat("[FORMS]: exception occured on sending request to {0}: " + e.ToString(), requestUrl);
                 }
                 finally
                 {
-                    if (requestStream != null)
-                        requestStream.Close();
+                    // If this is closed, it will be disposed internally,
+                    // but the above write is asynchronous and may hit after
+                    // we're through here. So the thread handling that will
+                    // throw and put us back into the catch above. Isn't 
+                    // .NET great?
+                    //if (requestStream != null)
+                    //    requestStream.Close();
                     // Let's not close this
                     //buffer.Close();
 
@@ -112,7 +117,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         }
                         catch (Exception e)
                         {
-                            m_log.DebugFormat("[FORMS]: exception occured on receiving reply {0}", e.Message);
+                            m_log.DebugFormat("[FORMS]: exception occured on receiving reply " + e.ToString());
                         }
                         finally
                         {

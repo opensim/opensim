@@ -1373,7 +1373,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 sdoc.LoadXml(xml);
             }
-            catch (System.Xml.XmlException e)
+            catch (System.Xml.XmlException)
             {
                 loadedState = false;
             }

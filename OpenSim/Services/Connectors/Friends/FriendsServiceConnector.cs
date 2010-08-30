@@ -156,8 +156,6 @@ namespace OpenSim.Services.Connectors
 
             sendData["METHOD"] = "storefriend";
 
-            string reqString = ServerUtils.BuildQueryString(sendData);
-
             string reply = string.Empty;
             try
             {
@@ -199,8 +197,6 @@ namespace OpenSim.Services.Connectors
             sendData["FRIEND"] = Friend;
             sendData["METHOD"] = "deletefriend";
 
-            string reqString = ServerUtils.BuildQueryString(sendData);
-
             string reply = string.Empty;
             try
             {
@@ -232,10 +228,8 @@ namespace OpenSim.Services.Connectors
                 m_log.DebugFormat("[FRIENDS CONNECTOR]: DeleteFriend received null reply");
 
             return false;
-
         }
 
         #endregion
-
     }
 }

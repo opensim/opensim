@@ -42,7 +42,6 @@ using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Communications;
-
 using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Scripting;
@@ -399,6 +398,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_firstHeartbeat = true;
 
         private object m_deleting_scene_object = new object();
+        private object m_cleaningAttachments = new object();
 
         // the minimum time that must elapse before a changed object will be considered for persisted
         public long m_dontPersistBefore = DEFAULT_MIN_TIME_FOR_PERSISTENCE * 10000000L;
@@ -1790,8 +1790,9 @@ namespace OpenSim.Region.Framework.Scenes
                 
                 if (group.RootPart == null)
                 {
-                    m_log.ErrorFormat("[SCENE]: Found a SceneObjectGroup with m_rootPart == null and {0} children",
-                                      group.Children == null ? 0 : group.Children.Count);
+                    m_log.ErrorFormat(
+                        "[SCENE]: Found a SceneObjectGroup with m_rootPart == null and {0} children",
+                        group.Children == null ? 0 : group.PrimCount);
                 }
 
                 AddRestoredSceneObject(group, true, true);
@@ -2050,7 +2051,24 @@ namespace OpenSim.Region.Framework.Scenes
         public bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
             return m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, sendClientUpdates);
-        }        
+        }
+        
+        /// <summary>
+        /// Add a newly created object to the scene.
+        /// </summary>
+        /// 
+        /// This method does not send updates to the client - callers need to handle this themselves.
+        /// <param name="sceneObject"></param>
+        /// <param name="attachToBackup"></param>
+        /// <param name="pos">Position of the object</param>
+        /// <param name="rot">Rotation of the object</param>
+        /// <param name="vel">Velocity of the object.  This parameter only has an effect if the object is physical</param>
+        /// <returns></returns>
+        public bool AddNewSceneObject(
+            SceneObjectGroup sceneObject, bool attachToBackup, Vector3 pos, Quaternion rot, Vector3 vel)
+        {            
+            return m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, pos, rot, vel);
+        }
 
         /// <summary>
         /// Delete every object from the scene.  This does not include attachments worn by avatars.
@@ -2113,7 +2131,11 @@ namespace OpenSim.Region.Framework.Scenes
                 group.RemoveScriptInstances(true);
             }
 
-            foreach (SceneObjectPart part in group.Children.Values)
+            List<SceneObjectPart> partList = null;
+            lock (group.Children)
+                partList = new List<SceneObjectPart>(group.Children.Values);
+
+            foreach (SceneObjectPart part in partList)
             {
                 if (part.IsJoint() && ((part.Flags & PrimFlags.Physics) != 0))
                 {
@@ -2125,6 +2147,7 @@ namespace OpenSim.Region.Framework.Scenes
                     part.PhysActor = null;
                 }
             }
+            
 //            if (rootPart.PhysActor != null)
 //            {
 //                PhysicsScene.RemovePrim(rootPart.PhysActor);
@@ -2481,14 +2504,16 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Force allocation of new LocalId
             //
-            foreach (SceneObjectPart p in sceneObject.Children.Values)
-                p.LocalId = 0;
+            lock (sceneObject.Children)
+            {
+                foreach (SceneObjectPart p in sceneObject.Children.Values)
+                    p.LocalId = 0;
+            }
 
             if (sceneObject.IsAttachmentCheckFull()) // Attachment
             {
                 sceneObject.RootPart.AddFlag(PrimFlags.TemporaryOnRez);
                 sceneObject.RootPart.AddFlag(PrimFlags.Phantom);
-
                       
                 // Don't sent a full update here because this will cause full updates to be sent twice for 
                 // attachments on region crossings, resulting in viewer glitches.                
@@ -2502,7 +2527,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (sp != null)
                 {
-
                     SceneObjectGroup grp = sceneObject;
 
                     m_log.DebugFormat(
@@ -3210,6 +3234,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.Debug("[Scene] Beginning OnRemovePresence");
                 m_eventManager.TriggerOnRemovePresence(agentID);
                 m_log.Debug("[Scene] Finished OnRemovePresence");
+
                 ForEachClient(
                     delegate(IClientAPI client)
                     {
@@ -3245,6 +3270,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 m_log.Debug("[Scene] Done. Firing RemoveCircuit");
                 m_authenticateHandler.RemoveCircuit(avatar.ControllingClient.CircuitCode);
+                CleanDroppedAttachments();
                 m_log.Debug("[Scene] The avatar has left the building");
                 //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
                 //m_log.InfoFormat("[SCENE] Memory post GC {0}", System.GC.GetTotalMemory(true));
@@ -3443,6 +3469,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (vialogin) 
             {
+                CleanDroppedAttachments();
+
                 if (TestBorderCross(agent.startpos, Cardinals.E))
                 {
                     Border crossedBorder = GetCrossedBorder(agent.startpos, Cardinals.E);
@@ -3692,18 +3720,6 @@ namespace OpenSim.Region.Framework.Scenes
             // }
 
             return true;
-        }
-
-        private ILandObject GetParcelAtPoint(float x, float y)
-        {
-            foreach (var parcel in AllParcels())
-            {
-                if (parcel.ContainsPoint((int)x,(int)y))
-                {
-                    return parcel;
-                }
-            }
-            return null;
         }
 
         /// <summary>
@@ -5039,6 +5055,46 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (error != String.Empty)
                     throw new Exception(error);
+            }
+        }
+
+        public void CleanDroppedAttachments()
+        {
+            List<SceneObjectGroup> objectsToDelete =
+                    new List<SceneObjectGroup>();
+
+            lock (m_cleaningAttachments)
+            {
+                ForEachSOG(delegate (SceneObjectGroup grp)
+                        {
+                            if (grp.RootPart.Shape.State != 0 && (!objectsToDelete.Contains(grp)))
+                            {
+                                UUID agentID = grp.OwnerID;
+                                if (agentID == UUID.Zero)
+                                {
+                                    objectsToDelete.Add(grp);
+                                    return;
+                                }
+
+                                ScenePresence sp = GetScenePresence(agentID);
+                                if (sp == null)
+                                {
+                                    objectsToDelete.Add(grp);
+                                    return;
+                                }
+                            }
+                        });
+            }
+
+            if (objectsToDelete.Count > 0)
+            {
+                m_log.DebugFormat("[SCENE]: Starting delete of {0} dropped attachments", objectsToDelete.Count);
+                foreach (SceneObjectGroup grp in objectsToDelete)
+                {
+                    m_log.InfoFormat("[SCENE]: Deleting dropped attachment {0} of user {1}", grp.UUID, grp.OwnerID);
+                    DeleteSceneObject(grp, true);
+                }
+                m_log.Debug("[SCENE]: Finished dropped attachment deletion");
             }
         }
     }
