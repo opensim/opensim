@@ -33,6 +33,8 @@ using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
+using OpenMetaverse.Messages.Linden;
 using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Servers;
@@ -1066,7 +1068,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 for (int y = 0; y < inc_y; y++)
                 {
-                    
                     ILandObject currentParcel = GetLandObject(start_x + x, start_y + y);
 
                     if (currentParcel != null)
@@ -1353,8 +1354,68 @@ namespace OpenSim.Region.CoreModules.World.Land
                                                            {
                                                                return RemoteParcelRequest(request, path, param, agentID, caps);
                                                            }));
+			UUID parcelCapID = UUID.Random();
+		    caps.RegisterHandler("ParcelPropertiesUpdate",
+		                         new RestStreamHandler("POST", "/CAPS/" + parcelCapID,
+		                                               delegate(string request, string path, string param,
+		                                                        OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+		                                                   {
+		                                                       return ProcessPropertiesUpdate(request, path, param, agentID, caps);
+		                                                   }));
         }
+		private string ProcessPropertiesUpdate(string request, string path, string param, UUID agentID, Caps caps)
+		{
+			IClientAPI client;
+			if ( ! m_scene.TryGetClient(agentID, out client) ) {
+				m_log.WarnFormat("[LAND] unable to retrieve IClientAPI for {0}", agentID.ToString() );
+				return LLSDHelpers.SerialiseLLSDReply(new LLSDEmpty());
+			}
+			
+			ParcelPropertiesUpdateMessage properties = new ParcelPropertiesUpdateMessage();
+			OpenMetaverse.StructuredData.OSDMap args = (OpenMetaverse.StructuredData.OSDMap) OSDParser.DeserializeLLSDXml(request);
 
+			properties.Deserialize(args);
+			
+			LandUpdateArgs land_update = new LandUpdateArgs();
+			int parcelID = properties.LocalID;
+			land_update.AuthBuyerID = properties.AuthBuyerID;
+            land_update.Category = properties.Category;
+            land_update.Desc = properties.Desc;
+            land_update.GroupID = properties.GroupID;
+            land_update.LandingType = (byte) properties.Landing;
+            land_update.MediaAutoScale = (byte) Convert.ToInt32(properties.MediaAutoScale);
+            land_update.MediaID = properties.MediaID;
+            land_update.MediaURL = properties.MediaURL;
+            land_update.MusicURL = properties.MusicURL;
+            land_update.Name = properties.Name;
+            land_update.ParcelFlags = (uint) properties.ParcelFlags;
+            land_update.PassHours = (int) properties.PassHours;
+            land_update.PassPrice = (int) properties.PassPrice;
+            land_update.SalePrice = (int) properties.SalePrice;
+            land_update.SnapshotID = properties.SnapshotID;
+            land_update.UserLocation = properties.UserLocation;
+            land_update.UserLookAt = properties.UserLookAt;
+			land_update.MediaDescription = properties.MediaDesc;
+			land_update.MediaType = properties.MediaType;
+			land_update.MediaWidth = properties.MediaWidth;
+			land_update.MediaHeight = properties.MediaHeight;
+			land_update.MediaLoop = properties.MediaLoop;
+			land_update.ObscureMusic = properties.ObscureMusic;
+			land_update.ObscureMedia = properties.ObscureMedia;
+			
+		    ILandObject land;
+            lock (m_landList)
+            {
+                m_landList.TryGetValue(parcelID, out land);
+            }
+
+            if (land != null) {
+				land.UpdateLandProperties(land_update, client);
+			} else {
+				m_log.WarnFormat("[LAND] unable to find parcelID {0}", parcelID);
+			} 
+            return LLSDHelpers.SerialiseLLSDReply(new LLSDEmpty());
+		}
         // we cheat here: As we don't have (and want) a grid-global parcel-store, we can't return the
         // "real" parcelID, because we wouldn't be able to map that to the region the parcel belongs to.
         // So, we create a "fake" parcelID by using the regionHandle (64 bit), and the local (integer) x

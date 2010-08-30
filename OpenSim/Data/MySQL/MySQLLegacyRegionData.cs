@@ -677,7 +677,8 @@ namespace OpenSim.Data.MySQL
                             "MusicURL, PassHours, PassPrice, SnapshotUUID, " +
                             "UserLocationX, UserLocationY, UserLocationZ, " +
                             "UserLookAtX, UserLookAtY, UserLookAtZ, " +
-                            "AuthbuyerID, OtherCleanTime, Dwell) values (" +
+                            "AuthbuyerID, OtherCleanTime, Dwell, MediaType, MediaDescription, " +
+							"MediaSize, MediaLoop, ObscureMusic, ObscureMedia) values (" +
                             "?UUID, ?RegionUUID, " +
                             "?LocalLandID, ?Bitmap, ?Name, ?Description, " +
                             "?OwnerUUID, ?IsGroupOwned, ?Area, ?AuctionID, " +
@@ -687,7 +688,8 @@ namespace OpenSim.Data.MySQL
                             "?MusicURL, ?PassHours, ?PassPrice, ?SnapshotUUID, " +
                             "?UserLocationX, ?UserLocationY, ?UserLocationZ, " +
                             "?UserLookAtX, ?UserLookAtY, ?UserLookAtZ, " +
-                            "?AuthbuyerID, ?OtherCleanTime, ?Dwell)";
+                            "?AuthbuyerID, ?OtherCleanTime, ?Dwell, ?MediaType, ?MediaDescription, "+
+							"CONCAT(?MediaWidth, ',', ?MediaHeight), ?MediaLoop, ?ObscureMusic, ?ObscureMedia)";
 
                         FillLandCommand(cmd, parcel.LandData, parcel.RegionUUID);
 
@@ -1347,6 +1349,14 @@ namespace OpenSim.Data.MySQL
                 m_log.ErrorFormat("[PARCEL]: unable to get parcel telehub settings for {1}", newData.Name);
             }
 
+			newData.MediaDescription = (string) row["MediaDescription"];
+			newData.MediaType = (string) row["MediaType"];
+			newData.MediaWidth = Convert.ToInt32((((string) row["MediaSize"]).Split(','))[0]);
+			newData.MediaHeight = Convert.ToInt32((((string) row["MediaSize"]).Split(','))[1]);
+			newData.MediaLoop = Convert.ToBoolean(row["MediaLoop"]);
+			newData.ObscureMusic = Convert.ToBoolean(row["ObscureMusic"]);
+			newData.ObscureMedia = Convert.ToBoolean(row["ObscureMedia"]);
+
             newData.ParcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
 
             return newData;
@@ -1651,6 +1661,14 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("AuthBuyerID", land.AuthBuyerID);
             cmd.Parameters.AddWithValue("OtherCleanTime", land.OtherCleanTime);
             cmd.Parameters.AddWithValue("Dwell", land.Dwell);
+            cmd.Parameters.AddWithValue("MediaDescription", land.MediaDescription);
+            cmd.Parameters.AddWithValue("MediaType", land.MediaType);
+            cmd.Parameters.AddWithValue("MediaWidth", land.MediaWidth);
+            cmd.Parameters.AddWithValue("MediaHeight", land.MediaHeight);
+            cmd.Parameters.AddWithValue("MediaLoop", land.MediaLoop);
+            cmd.Parameters.AddWithValue("ObscureMusic", land.ObscureMusic);
+            cmd.Parameters.AddWithValue("ObscureMedia", land.ObscureMedia);
+
         }
 
         /// <summary>
