@@ -99,7 +99,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected virtual void OnNewClient(IClientAPI client)
         {
-            client.OnTeleportHomeRequest += TeleportHome;
+            client.OnTeleportHomeRequest += TeleportHomeFired;
         }
 
         public virtual void Close()
@@ -552,7 +552,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         #region Teleport Home
 
-        public virtual void TeleportHome(UUID id, IClientAPI client)
+        public void TeleportHomeFired(UUID id, IClientAPI client)
+        {
+            TeleportHome(id, client);
+        }
+
+        public virtual bool TeleportHome(UUID id, IClientAPI client)
         {
             m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Request to teleport {0} {1} home", client.FirstName, client.LastName);
 
@@ -565,14 +570,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 {
                     // can't find the Home region: Tell viewer and abort
                     client.SendTeleportFailed("You don't have a home position set.");
-                    return;
+                    return false;
                 }
                 GridRegion regionInfo = m_aScene.GridService.GetRegionByUUID(UUID.Zero, uinfo.HomeRegionID);
                 if (regionInfo == null)
                 {
                     // can't find the Home region: Tell viewer and abort
                     client.SendTeleportFailed("Your home region could not be found.");
-                    return;
+                    return false;
                 }
                 m_log.DebugFormat("[ENTITY TRANSFER MODULE]: User's home region is {0} {1} ({2}-{3})",
                     regionInfo.RegionName, regionInfo.RegionID, regionInfo.RegionLocX / Constants.RegionSize, regionInfo.RegionLocY / Constants.RegionSize);
@@ -586,8 +591,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             {
                 // can't find the Home region: Tell viewer and abort
                 client.SendTeleportFailed("Your home region could not be found.");
-                return;
+                return false;
             }
+            return true;
         }
 
         #endregion

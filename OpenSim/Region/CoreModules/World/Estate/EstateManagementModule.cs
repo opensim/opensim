@@ -345,7 +345,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         {
                             if (!s.IsChildAgent)
                             {
-                                m_scene.TeleportClientHome(user, s.ControllingClient);
+                                if (!m_scene.TeleportClientHome(user, s.ControllingClient))
+                                {
+                                    s.ControllingClient.Kick("Your access to the region was revoked and TP home failed - you have been logged out.");
+                                    s.ControllingClient.Close();
+                                }
                             }
                         }
 
@@ -479,7 +483,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 ScenePresence s = m_scene.GetScenePresence(prey);
                 if (s != null)
                 {
-                    m_scene.TeleportClientHome(prey, s.ControllingClient);
+                    if (!m_scene.TeleportClientHome(prey, s.ControllingClient))
+                    {
+                        s.ControllingClient.Kick("You were teleported home by the region owner, but the TP failed - you have been logged out.");
+                        s.ControllingClient.Close();
+                    }
                 }
             }
         }
@@ -498,7 +506,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     // Also make sure they are actually in the region
                     if (p != null && !p.IsChildAgent)
                     {
-                        m_scene.TeleportClientHome(p.UUID, p.ControllingClient);
+                        if (!m_scene.TeleportClientHome(p.UUID, p.ControllingClient))
+                        {
+                            p.ControllingClient.Kick("You were teleported home by the region owner, but the TP failed - you have been logged out.");
+                            p.ControllingClient.Close();
+                        }
                     }
                 }
             });
