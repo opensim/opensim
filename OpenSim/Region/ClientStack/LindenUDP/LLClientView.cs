@@ -37,6 +37,7 @@ using System.Xml;
 using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
+using OpenMetaverse.Messages.Linden;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
@@ -4199,94 +4200,101 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendLandProperties(int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
         {
-            ParcelPropertiesPacket updatePacket = (ParcelPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ParcelProperties);
-            // TODO: don't create new blocks if recycling an old packet
+			ParcelPropertiesMessage updateMessage = new ParcelPropertiesMessage();
 
-            updatePacket.ParcelData.AABBMax = landData.AABBMax;
-            updatePacket.ParcelData.AABBMin = landData.AABBMin;
-            updatePacket.ParcelData.Area = landData.Area;
-            updatePacket.ParcelData.AuctionID = landData.AuctionID;
-            updatePacket.ParcelData.AuthBuyerID = landData.AuthBuyerID;
+            updateMessage.AABBMax = landData.AABBMax;
+            updateMessage.AABBMin = landData.AABBMin;
+            updateMessage.Area = landData.Area;
+            updateMessage.AuctionID = landData.AuctionID;
+            updateMessage.AuthBuyerID = landData.AuthBuyerID;
 
-            updatePacket.ParcelData.Bitmap = landData.Bitmap;
+            updateMessage.Bitmap = landData.Bitmap;
 
-            updatePacket.ParcelData.Desc = Utils.StringToBytes(landData.Description);
-            updatePacket.ParcelData.Category = (byte)landData.Category;
-            updatePacket.ParcelData.ClaimDate = landData.ClaimDate;
-            updatePacket.ParcelData.ClaimPrice = landData.ClaimPrice;
-            updatePacket.ParcelData.GroupID = landData.GroupID;
-            updatePacket.ParcelData.GroupPrims = landData.GroupPrims;
-            updatePacket.ParcelData.IsGroupOwned = landData.IsGroupOwned;
-            updatePacket.ParcelData.LandingType = landData.LandingType;
-            updatePacket.ParcelData.LocalID = landData.LocalID;
+            updateMessage.Desc = landData.Description;
+            updateMessage.Category = landData.Category;
+            updateMessage.ClaimDate = Util.ToDateTime(landData.ClaimDate);
+            updateMessage.ClaimPrice = landData.ClaimPrice;
+            updateMessage.GroupID = landData.GroupID;
+            updateMessage.GroupPrims = landData.GroupPrims;
+            updateMessage.IsGroupOwned = landData.IsGroupOwned;
+            updateMessage.LandingType = (LandingType) landData.LandingType;
+            updateMessage.LocalID = landData.LocalID;
 
             if (landData.Area > 0)
             {
-                updatePacket.ParcelData.MaxPrims = parcelObjectCapacity;
+                updateMessage.MaxPrims = parcelObjectCapacity;
             }
             else
             {
-                updatePacket.ParcelData.MaxPrims = 0;
+                updateMessage.MaxPrims = 0;
             }
 
-            updatePacket.ParcelData.MediaAutoScale = landData.MediaAutoScale;
-            updatePacket.ParcelData.MediaID = landData.MediaID;
-            updatePacket.ParcelData.MediaURL = Util.StringToBytes256(landData.MediaURL);
-            updatePacket.ParcelData.MusicURL = Util.StringToBytes256(landData.MusicURL);
-            updatePacket.ParcelData.Name = Util.StringToBytes256(landData.Name);
-            updatePacket.ParcelData.OtherCleanTime = landData.OtherCleanTime;
-            updatePacket.ParcelData.OtherCount = 0; //TODO: Unimplemented
-            updatePacket.ParcelData.OtherPrims = landData.OtherPrims;
-            updatePacket.ParcelData.OwnerID = landData.OwnerID;
-            updatePacket.ParcelData.OwnerPrims = landData.OwnerPrims;
-            updatePacket.ParcelData.ParcelFlags = landData.Flags;
-            updatePacket.ParcelData.ParcelPrimBonus = simObjectBonusFactor;
-            updatePacket.ParcelData.PassHours = landData.PassHours;
-            updatePacket.ParcelData.PassPrice = landData.PassPrice;
-            updatePacket.ParcelData.PublicCount = 0; //TODO: Unimplemented
+            updateMessage.MediaAutoScale = Convert.ToBoolean(landData.MediaAutoScale);
+            updateMessage.MediaID = landData.MediaID;
+            updateMessage.MediaURL = landData.MediaURL;
+            updateMessage.MusicURL = landData.MusicURL;
+            updateMessage.Name = landData.Name;
+            updateMessage.OtherCleanTime = landData.OtherCleanTime;
+            updateMessage.OtherCount = 0; //TODO: Unimplemented
+            updateMessage.OtherPrims = landData.OtherPrims;
+            updateMessage.OwnerID = landData.OwnerID;
+            updateMessage.OwnerPrims = landData.OwnerPrims;
+            updateMessage.ParcelFlags = (ParcelFlags) landData.Flags;
+            updateMessage.ParcelPrimBonus = simObjectBonusFactor;
+            updateMessage.PassHours = landData.PassHours;
+            updateMessage.PassPrice = landData.PassPrice;
+            updateMessage.PublicCount = 0; //TODO: Unimplemented
+			
+            updateMessage.RegionPushOverride = (regionFlags & (uint)RegionFlags.RestrictPushObject) > 0;
+            updateMessage.RegionDenyAnonymous = (regionFlags & (uint)RegionFlags.DenyAnonymous) > 0;
 
-            updatePacket.ParcelData.RegionDenyAnonymous = (regionFlags & (uint)RegionFlags.DenyAnonymous) > 0;
-            updatePacket.ParcelData.RegionDenyIdentified = (regionFlags & (uint)RegionFlags.DenyIdentified) > 0;
-            updatePacket.ParcelData.RegionDenyTransacted = (regionFlags & (uint)RegionFlags.DenyTransacted) > 0;
-            updatePacket.ParcelData.RegionPushOverride = (regionFlags & (uint)RegionFlags.RestrictPushObject) > 0;
+            //updateMessage.RegionDenyIdentified = (regionFlags & (uint)RegionFlags.DenyIdentified) > 0;
+            //updateMessage.RegionDenyTransacted = (regionFlags & (uint)RegionFlags.DenyTransacted) > 0;
 
-            updatePacket.ParcelData.RentPrice = 0;
-            updatePacket.ParcelData.RequestResult = request_result;
-            updatePacket.ParcelData.SalePrice = landData.SalePrice;
-            updatePacket.ParcelData.SelectedPrims = landData.SelectedPrims;
-            updatePacket.ParcelData.SelfCount = 0; //TODO: Unimplemented
-            updatePacket.ParcelData.SequenceID = sequence_id;
+            updateMessage.RentPrice = 0;
+            updateMessage.RequestResult = (ParcelResult) request_result;
+            updateMessage.SalePrice = landData.SalePrice;
+            updateMessage.SelectedPrims = landData.SelectedPrims;
+            updateMessage.SelfCount = 0; //TODO: Unimplemented
+            updateMessage.SequenceID = sequence_id;
             if (landData.SimwideArea > 0)
             {
-                updatePacket.ParcelData.SimWideMaxPrims = parcelObjectCapacity;
+                updateMessage.SimWideMaxPrims = parcelObjectCapacity;
             }
             else
             {
-                updatePacket.ParcelData.SimWideMaxPrims = 0;
+                updateMessage.SimWideMaxPrims = 0;
             }
-            updatePacket.ParcelData.SimWideTotalPrims = landData.SimwidePrims;
-            updatePacket.ParcelData.SnapSelection = snap_selection;
-            updatePacket.ParcelData.SnapshotID = landData.SnapshotID;
-            updatePacket.ParcelData.Status = (byte)landData.Status;
-            updatePacket.ParcelData.TotalPrims = landData.OwnerPrims + landData.GroupPrims + landData.OtherPrims +
+            updateMessage.SimWideTotalPrims = landData.SimwidePrims;
+            updateMessage.SnapSelection = snap_selection;
+            updateMessage.SnapshotID = landData.SnapshotID;
+            updateMessage.Status = (ParcelStatus) landData.Status;
+            updateMessage.TotalPrims = landData.OwnerPrims + landData.GroupPrims + landData.OtherPrims +
                                                  landData.SelectedPrims;
-            updatePacket.ParcelData.UserLocation = landData.UserLocation;
-            updatePacket.ParcelData.UserLookAt = landData.UserLookAt;
-            updatePacket.Header.Zerocoded = true;
+            updateMessage.UserLocation = landData.UserLocation;
+            updateMessage.UserLookAt = landData.UserLookAt;
+
+			updateMessage.MediaType = landData.MediaType;
+			updateMessage.MediaDesc = landData.MediaDescription;
+			updateMessage.MediaWidth = landData.MediaWidth;
+			updateMessage.MediaHeight = landData.MediaHeight;
+			updateMessage.MediaLoop = landData.MediaLoop;
+			updateMessage.ObscureMusic = landData.ObscureMusic;
+			updateMessage.ObscureMedia = landData.ObscureMedia;
 
             try
             {
                 IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
                 if (eq != null)
                 {
-                    eq.ParcelProperties(updatePacket, this.AgentId);
-                }
+                    eq.ParcelProperties(updateMessage, this.AgentId);
+                } else {
+					m_log.Warn("No EQ Interface when sending parcel data.");
+				}
             }
             catch (Exception ex)
             {
                 m_log.Error("Unable to send parcel data via eventqueue - exception: " + ex.ToString());
-                m_log.Warn("sending parcel data via UDP");
-                OutPacket(updatePacket, ThrottleOutPacketType.Task);
             }
         }
 
