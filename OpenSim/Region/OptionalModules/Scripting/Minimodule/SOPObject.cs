@@ -186,18 +186,20 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             {
                 SceneObjectPart my = GetSOP();
                 IObject[] rets = null;
-                
+
+                int total = my.ParentGroup.PrimCount;
+
+                rets = new IObject[total];
+
+                int i = 0;
+                    
+                List<SceneObjectPart> partList = null;
                 lock (my.ParentGroup.Children)
+                    partList = new List<SceneObjectPart>(my.ParentGroup.Children.Values);
+                    
+                foreach (SceneObjectPart part in partList)
                 {
-                    int total = my.ParentGroup.Children.Count;
-    
-                    rets = new IObject[total];
-    
-                    int i = 0;
-                    foreach (KeyValuePair<UUID, SceneObjectPart> pair in my.ParentGroup.Children)
-                    {
-                        rets[i++] = new SOPObject(m_rootScene, pair.Value.LocalId, m_security);
-                    }
+                    rets[i++] = new SOPObject(m_rootScene, part.LocalId, m_security);
                 }
 
                 return rets;

@@ -2668,15 +2668,15 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_perfMonMS = Util.EnvironmentTickCount();
 
-                PhysicsActor actor = m_physicsActor;
-                Vector3 velocity = (actor != null) ? actor.Velocity : Vector3.Zero;
-
                 Vector3 pos = m_pos;
                 pos.Z += m_appearance.HipOffset;
 
                 //m_log.DebugFormat("[SCENEPRESENCE]: TerseUpdate: Pos={0} Rot={1} Vel={2}", m_pos, m_bodyRot, m_velocity);
 
-                remoteClient.SendPrimUpdate(this, PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
+                remoteClient.SendPrimUpdate(
+                    this, 
+                    PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity 
+                    | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
 
                 m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
                 m_scene.StatsReporter.AddAgentUpdates(1);

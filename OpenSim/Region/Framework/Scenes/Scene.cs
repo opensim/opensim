@@ -2131,19 +2131,20 @@ namespace OpenSim.Region.Framework.Scenes
                 group.RemoveScriptInstances(true);
             }
 
+            List<SceneObjectPart> partList = null;
             lock (group.Children)
+                partList = new List<SceneObjectPart>(group.Children.Values);
+
+            foreach (SceneObjectPart part in partList)
             {
-                foreach (SceneObjectPart part in group.Children.Values)
+                if (part.IsJoint() && ((part.Flags & PrimFlags.Physics) != 0))
                 {
-                    if (part.IsJoint() && ((part.Flags & PrimFlags.Physics) != 0))
-                    {
-                        PhysicsScene.RequestJointDeletion(part.Name); // FIXME: what if the name changed?
-                    }
-                    else if (part.PhysActor != null)
-                    {
-                        PhysicsScene.RemovePrim(part.PhysActor);
-                        part.PhysActor = null;
-                    }
+                    PhysicsScene.RequestJointDeletion(part.Name); // FIXME: what if the name changed?
+                }
+                else if (part.PhysActor != null)
+                {
+                    PhysicsScene.RemovePrim(part.PhysActor);
+                    part.PhysActor = null;
                 }
             }
             
@@ -3718,18 +3719,6 @@ namespace OpenSim.Region.Framework.Scenes
             // }
 
             return true;
-        }
-
-        private ILandObject GetParcelAtPoint(float x, float y)
-        {
-            foreach (var parcel in AllParcels())
-            {
-                if (parcel.ContainsPoint((int)x,(int)y))
-                {
-                    return parcel;
-                }
-            }
-            return null;
         }
 
         /// <summary>

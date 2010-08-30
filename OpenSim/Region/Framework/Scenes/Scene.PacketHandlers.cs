@@ -164,16 +164,17 @@ namespace OpenSim.Region.Framework.Scenes
                         
                         SceneObjectGroup sog = ent as SceneObjectGroup;
                         
+                        List<SceneObjectPart> partList = null;
                         lock (sog.Children)
+                            partList = new List<SceneObjectPart>(sog.Children.Values);    
+
+                        foreach (SceneObjectPart part in partList)
                         {
-                            foreach (KeyValuePair<UUID, SceneObjectPart> child in (sog.Children))
+                            if (part.LocalId == primLocalID) 
                             {
-                                if (child.Value.LocalId == primLocalID) 
-                                {
-                                    child.Value.GetProperties(remoteClient);
-                                    foundPrim = true;
-                                    break;
-                                }
+                                part.GetProperties(remoteClient);
+                                foundPrim = true;
+                                break;
                             }
                         }
                             

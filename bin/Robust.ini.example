@@ -57,8 +57,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
     ; Realm = "regions"
     ; AllowDuplicateNames = "True"
-    ; Check4096 = "False"
-
+    
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegionName> = "<flags>"
     ;; or:            Region_<RegionID> = "<flags>"

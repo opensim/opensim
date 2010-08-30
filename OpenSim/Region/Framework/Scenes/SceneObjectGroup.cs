@@ -398,6 +398,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <value>
         /// The parts of this scene object group.  You must lock this property before using it.
+        /// If you're doing anything other than reading values, please take a copy of the values rather than locking
+        /// the dictionary for the entirety of the operation.  This increases liveness and reduces the danger of deadlock
         /// If you want to know the number of children, consider using the PrimCount property instead
         /// </value>
         public Dictionary<UUID, SceneObjectPart> Children
@@ -2306,29 +2308,29 @@ namespace OpenSim.Region.Framework.Scenes
             //    return;
 
             lockPartsForRead(true);
+
+            bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
+
+            if (UsePhysics && !AbsolutePosition.ApproxEquals(lastPhysGroupPos, 0.02f))
             {
-                bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
+                m_rootPart.UpdateFlag = 1;
+                lastPhysGroupPos = AbsolutePosition;
+            }
 
-                if (UsePhysics && !AbsolutePosition.ApproxEquals(lastPhysGroupPos, 0.02f))
-                {
-                    m_rootPart.UpdateFlag = 1;
-                    lastPhysGroupPos = AbsolutePosition;
-                }
+            if (UsePhysics && !GroupRotation.ApproxEquals(lastPhysGroupRot, 0.1f))
+            {
+                m_rootPart.UpdateFlag = 1;
+                lastPhysGroupRot = GroupRotation;
+            }
 
-                if (UsePhysics && !GroupRotation.ApproxEquals(lastPhysGroupRot, 0.1f))
-                {
-                    m_rootPart.UpdateFlag = 1;
-                    lastPhysGroupRot = GroupRotation;
-                }
-
-                foreach (SceneObjectPart part in m_parts.Values)
-                {
-                    if (!IsSelected)
-                        part.UpdateLookAt();
-
-                    part.SendScheduledUpdates();
-                    
-                }
+            List<SceneObjectPart> partList = null;
+            partList = new List<SceneObjectPart>(m_parts.Values);
+                
+            foreach (SceneObjectPart part in partList)
+            {
+                if (!IsSelected)
+                    part.UpdateLookAt();
+                part.SendScheduledUpdates();
             }
             lockPartsForRead(false);
         }
@@ -3161,11 +3163,12 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdatePermissions(UUID AgentID, byte field, uint localID,
                 uint mask, byte addRemTF)
         {
+            List<SceneObjectPart> partList = null;
             lock (m_parts)
-            {
-                foreach (SceneObjectPart part in m_parts.Values)
-                    part.UpdatePermissions(AgentID, field, localID, mask, addRemTF);
-            }
+                partList = new List<SceneObjectPart>(m_parts.Values);
+
+            foreach (SceneObjectPart part in partList)
+                part.UpdatePermissions(AgentID, field, localID, mask, addRemTF);
 
             HasGroupChanged = true;
         }

@@ -30,6 +30,7 @@ using System.Net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenMetaverse.StructuredData;
+using OpenMetaverse.Messages.Linden;
 
 namespace OpenSim.Region.CoreModules.Framework.EventQueue
 {
@@ -309,116 +310,6 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             return chatterBoxSessionAgentListUpdates;
         }
 
-        public static OSD ParcelProperties(ParcelPropertiesPacket parcelPropertiesPacket)
-        {
-            OSDMap parcelProperties = new OSDMap();
-            OSDMap body = new OSDMap();
-
-            OSDArray ageVerificationBlock = new OSDArray();
-            OSDMap ageVerificationMap = new OSDMap();
-            ageVerificationMap.Add("RegionDenyAgeUnverified",
-                OSD.FromBoolean(parcelPropertiesPacket.AgeVerificationBlock.RegionDenyAgeUnverified));
-            ageVerificationBlock.Add(ageVerificationMap);
-            body.Add("AgeVerificationBlock", ageVerificationBlock);
-
-            // LL sims send media info in this event queue message but it's not in the UDP
-            // packet we construct this event queue message from. This should be refactored in
-            // other areas of the code so it can all be send in the same message. Until then we will
-            // still send the media info via UDP
-
-            //OSDArray mediaData = new OSDArray();
-            //OSDMap mediaDataMap = new OSDMap();
-            //mediaDataMap.Add("MediaDesc", OSD.FromString(""));
-            //mediaDataMap.Add("MediaHeight", OSD.FromInteger(0));
-            //mediaDataMap.Add("MediaLoop", OSD.FromInteger(0));
-            //mediaDataMap.Add("MediaType", OSD.FromString("type/type"));
-            //mediaDataMap.Add("MediaWidth", OSD.FromInteger(0));
-            //mediaDataMap.Add("ObscureMedia", OSD.FromInteger(0));
-            //mediaDataMap.Add("ObscureMusic", OSD.FromInteger(0));
-            //mediaData.Add(mediaDataMap);
-            //body.Add("MediaData", mediaData);
-
-            OSDArray parcelData = new OSDArray();
-            OSDMap parcelDataMap = new OSDMap();
-            OSDArray AABBMax = new OSDArray(3);
-            AABBMax.Add(OSD.FromReal(parcelPropertiesPacket.ParcelData.AABBMax.X));
-            AABBMax.Add(OSD.FromReal(parcelPropertiesPacket.ParcelData.AABBMax.Y));
-            AABBMax.Add(OSD.FromReal(parcelPropertiesPacket.ParcelData.AABBMax.Z));
-            parcelDataMap.Add("AABBMax", AABBMax);
-
-            OSDArray AABBMin = new OSDArray(3);
-            AABBMin.Add(OSD.FromReal(parcelPropertiesPacket.ParcelData.AABBMin.X));
-            AABBMin.Add(OSD.FromReal(parcelPropertiesPacket.ParcelData.AABBMin.Y));
-            AABBMin.Add(OSD.FromReal(parcelPropertiesPacket.ParcelData.AABBMin.Z));
-            parcelDataMap.Add("AABBMin", AABBMin);
-
-            parcelDataMap.Add("Area", OSD.FromInteger(parcelPropertiesPacket.ParcelData.Area));
-            parcelDataMap.Add("AuctionID", OSD.FromBinary(uintToByteArray(parcelPropertiesPacket.ParcelData.AuctionID)));
-            parcelDataMap.Add("AuthBuyerID", OSD.FromUUID(parcelPropertiesPacket.ParcelData.AuthBuyerID));
-            parcelDataMap.Add("Bitmap", OSD.FromBinary(parcelPropertiesPacket.ParcelData.Bitmap));
-            parcelDataMap.Add("Category", OSD.FromInteger((int)parcelPropertiesPacket.ParcelData.Category));
-            parcelDataMap.Add("ClaimDate", OSD.FromInteger(parcelPropertiesPacket.ParcelData.ClaimDate));
-            parcelDataMap.Add("ClaimPrice", OSD.FromInteger(parcelPropertiesPacket.ParcelData.ClaimPrice));
-            parcelDataMap.Add("Desc", OSD.FromString(Utils.BytesToString(parcelPropertiesPacket.ParcelData.Desc)));
-            parcelDataMap.Add("GroupID", OSD.FromUUID(parcelPropertiesPacket.ParcelData.GroupID));
-            parcelDataMap.Add("GroupPrims", OSD.FromInteger(parcelPropertiesPacket.ParcelData.GroupPrims));
-            parcelDataMap.Add("IsGroupOwned", OSD.FromBoolean(parcelPropertiesPacket.ParcelData.IsGroupOwned));
-            parcelDataMap.Add("LandingType", OSD.FromInteger(parcelPropertiesPacket.ParcelData.LandingType));
-            parcelDataMap.Add("LocalID", OSD.FromInteger(parcelPropertiesPacket.ParcelData.LocalID));
-            parcelDataMap.Add("MaxPrims", OSD.FromInteger(parcelPropertiesPacket.ParcelData.MaxPrims));
-            parcelDataMap.Add("MediaAutoScale", OSD.FromInteger((int)parcelPropertiesPacket.ParcelData.MediaAutoScale));
-            parcelDataMap.Add("MediaID", OSD.FromUUID(parcelPropertiesPacket.ParcelData.MediaID));
-            parcelDataMap.Add("MediaURL", OSD.FromString(Utils.BytesToString(parcelPropertiesPacket.ParcelData.MediaURL)));
-            parcelDataMap.Add("MusicURL", OSD.FromString(Utils.BytesToString(parcelPropertiesPacket.ParcelData.MusicURL)));
-            parcelDataMap.Add("Name", OSD.FromString(Utils.BytesToString(parcelPropertiesPacket.ParcelData.Name)));
-            parcelDataMap.Add("OtherCleanTime", OSD.FromInteger(parcelPropertiesPacket.ParcelData.OtherCleanTime));
-            parcelDataMap.Add("OtherCount", OSD.FromInteger(parcelPropertiesPacket.ParcelData.OtherCount));
-            parcelDataMap.Add("OtherPrims", OSD.FromInteger(parcelPropertiesPacket.ParcelData.OtherPrims));
-            parcelDataMap.Add("OwnerID", OSD.FromUUID(parcelPropertiesPacket.ParcelData.OwnerID));
-            parcelDataMap.Add("OwnerPrims", OSD.FromInteger(parcelPropertiesPacket.ParcelData.OwnerPrims));
-            parcelDataMap.Add("ParcelFlags", OSD.FromBinary(uintToByteArray(parcelPropertiesPacket.ParcelData.ParcelFlags)));
-            parcelDataMap.Add("ParcelPrimBonus", OSD.FromReal(parcelPropertiesPacket.ParcelData.ParcelPrimBonus));
-            parcelDataMap.Add("PassHours", OSD.FromReal(parcelPropertiesPacket.ParcelData.PassHours));
-            parcelDataMap.Add("PassPrice", OSD.FromInteger(parcelPropertiesPacket.ParcelData.PassPrice));
-            parcelDataMap.Add("PublicCount", OSD.FromInteger(parcelPropertiesPacket.ParcelData.PublicCount));
-            parcelDataMap.Add("RegionDenyAnonymous", OSD.FromBoolean(parcelPropertiesPacket.ParcelData.RegionDenyAnonymous));
-            parcelDataMap.Add("RegionDenyIdentified", OSD.FromBoolean(parcelPropertiesPacket.ParcelData.RegionDenyIdentified));
-            parcelDataMap.Add("RegionDenyTransacted", OSD.FromBoolean(parcelPropertiesPacket.ParcelData.RegionDenyTransacted));
-
-            parcelDataMap.Add("RegionPushOverride", OSD.FromBoolean(parcelPropertiesPacket.ParcelData.RegionPushOverride));
-            parcelDataMap.Add("RentPrice", OSD.FromInteger(parcelPropertiesPacket.ParcelData.RentPrice));
-            parcelDataMap.Add("RequestResult", OSD.FromInteger(parcelPropertiesPacket.ParcelData.RequestResult));
-            parcelDataMap.Add("SalePrice", OSD.FromInteger(parcelPropertiesPacket.ParcelData.SalePrice));
-            parcelDataMap.Add("SelectedPrims", OSD.FromInteger(parcelPropertiesPacket.ParcelData.SelectedPrims));
-            parcelDataMap.Add("SelfCount", OSD.FromInteger(parcelPropertiesPacket.ParcelData.SelfCount));
-            parcelDataMap.Add("SequenceID", OSD.FromInteger(parcelPropertiesPacket.ParcelData.SequenceID));
-            parcelDataMap.Add("SimWideMaxPrims", OSD.FromInteger(parcelPropertiesPacket.ParcelData.SimWideMaxPrims));
-            parcelDataMap.Add("SimWideTotalPrims", OSD.FromInteger(parcelPropertiesPacket.ParcelData.SimWideTotalPrims));
-            parcelDataMap.Add("SnapSelection", OSD.FromBoolean(parcelPropertiesPacket.ParcelData.SnapSelection));
-            parcelDataMap.Add("SnapshotID", OSD.FromUUID(parcelPropertiesPacket.ParcelData.SnapshotID));
-            parcelDataMap.Add("Status", OSD.FromInteger((int)parcelPropertiesPacket.ParcelData.Status));
-            parcelDataMap.Add("TotalPrims", OSD.FromInteger(parcelPropertiesPacket.ParcelData.TotalPrims));
-
-            OSDArray UserLocation = new OSDArray(3);
-            UserLocation.Add(OSD.FromReal(parcelPropertiesPacket.ParcelData.UserLocation.X));
-            UserLocation.Add(OSD.FromReal(parcelPropertiesPacket.ParcelData.UserLocation.Y));
-            UserLocation.Add(OSD.FromReal(parcelPropertiesPacket.ParcelData.UserLocation.Z));
-            parcelDataMap.Add("UserLocation", UserLocation);
-
-            OSDArray UserLookAt = new OSDArray(3);
-            UserLookAt.Add(OSD.FromReal(parcelPropertiesPacket.ParcelData.UserLookAt.X));
-            UserLookAt.Add(OSD.FromReal(parcelPropertiesPacket.ParcelData.UserLookAt.Y));
-            UserLookAt.Add(OSD.FromReal(parcelPropertiesPacket.ParcelData.UserLookAt.Z));
-            parcelDataMap.Add("UserLookAt", UserLookAt);
-
-            parcelData.Add(parcelDataMap);
-            body.Add("ParcelData", parcelData);
-            parcelProperties.Add("body", body);
-            parcelProperties.Add("message", OSD.FromString("ParcelProperties"));
-
-            return parcelProperties;
-        }
-
         public static OSD GroupMembership(AgentGroupDataUpdatePacket groupUpdatePacket)
         {
             OSDMap groupUpdate = new OSDMap();
@@ -494,6 +385,15 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
 
             return placesReply;
         }
+
+		public static OSD ParcelProperties(ParcelPropertiesMessage parcelPropertiesMessage)
+		{
+			OSDMap message = new OSDMap();
+			message.Add("message", OSD.FromString("ParcelProperties"));
+			OSD message_body = parcelPropertiesMessage.Serialize();
+			message.Add("body", message_body);
+			return message;
+		}
 
     }
 }

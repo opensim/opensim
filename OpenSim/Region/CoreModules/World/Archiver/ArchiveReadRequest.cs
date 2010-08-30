@@ -243,9 +243,29 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // to the same scene (when this is possible).
                 sceneObject.ResetIDs();
 
+                List<SceneObjectPart> partList = null;
                 lock (sceneObject.Children)
+                    partList = new List<SceneObjectPart>(sceneObject.Children.Values);
+                
+                foreach (SceneObjectPart part in partList)
                 {
-                    foreach (SceneObjectPart part in sceneObject.Children.Values)
+                    if (!ResolveUserUuid(part.CreatorID))
+                        part.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+
+                    if (!ResolveUserUuid(part.OwnerID))
+                        part.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+
+                    if (!ResolveUserUuid(part.LastOwnerID))
+                        part.LastOwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+
+                    // And zap any troublesome sit target information
+                    part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
+                    part.SitTargetPosition    = new Vector3(0, 0, 0);
+
+                    // Fix ownership/creator of inventory items
+                    // Not doing so results in inventory items
+                    // being no copy/no mod for everyone
+                    lock (part.TaskInventory)
                     {
                         if (!ResolveUserUuid(part.CreatorID))
                             part.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;

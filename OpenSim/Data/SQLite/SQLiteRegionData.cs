@@ -1762,6 +1762,12 @@ namespace OpenSim.Data.SQLite
             row["AuthbuyerID"] = land.AuthBuyerID.ToString();
             row["OtherCleanTime"] = land.OtherCleanTime;
             row["Dwell"] = land.Dwell;
+			row["MediaType"] = land.MediaType;
+			row["MediaDescription"] = land.MediaDescription;
+			row["MediaSize"] = land.MediaWidth.ToString() + "," + land.MediaHeight.ToString();
+			row["MediaLoop"] = land.MediaLoop.ToString();
+			row["ObscureMusic"] = land.ObscureMusic.ToString();
+			row["ObscureMedia"] = land.ObscureMedia.ToString();
         }
 
         /// <summary>
