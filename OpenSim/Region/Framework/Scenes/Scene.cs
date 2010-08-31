@@ -3009,15 +3009,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="agentId">The avatar's Unique ID</param>
         /// <param name="client">The IClientAPI for the client</param>
-        public virtual void TeleportClientHome(UUID agentId, IClientAPI client)
+        public virtual bool TeleportClientHome(UUID agentId, IClientAPI client)
         {
             if (m_teleportModule != null)
-                m_teleportModule.TeleportHome(agentId, client);
+                return m_teleportModule.TeleportHome(agentId, client);
             else
             {
                 m_log.DebugFormat("[SCENE]: Unable to teleport user home: no AgentTransferModule is active");
                 client.SendTeleportFailed("Unable to perform teleports on this simulator.");
             }
+            return false;
         }
 
         /// <summary>
