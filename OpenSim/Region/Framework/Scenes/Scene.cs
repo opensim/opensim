@@ -2376,7 +2376,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
             
-            newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, 1);
+            newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, 2);
 
             newObject.ResumeScripts();
 
