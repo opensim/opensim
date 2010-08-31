@@ -173,16 +173,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 UUID itemID = UUID.Zero;
                 if (sp != null)
                 {
-                    foreach(SceneObjectGroup grp in sp.Attachments)
+                    foreach(SceneObjectGroup grp in sp.GetAttachments(AttachmentPt))
                     {
-                        if (grp.GetAttachmentPoint() == (byte)AttachmentPt)
-                        {
-                            itemID = grp.GetFromItemID();
-                            break;
-                        }
-                    }
-                    if (itemID != UUID.Zero)
-                        DetachSingleAttachmentToInv(itemID, remoteClient);
+                        itemID = grp.GetFromItemID();
+                        if (itemID != UUID.Zero)
+                            DetachSingleAttachmentToInv(itemID, remoteClient);
+                    }                    
                 }
 
                 if (group.GetFromItemID() == UUID.Zero)
