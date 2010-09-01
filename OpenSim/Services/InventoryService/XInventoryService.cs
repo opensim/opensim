@@ -309,7 +309,13 @@ namespace OpenSim.Services.InventoryService
                 return AddFolder(folder);
 
             if (check.Type != -1 || xFolder.type != -1)
-                return false;
+            {
+                if (xFolder.version > check.Version)
+                    return false;
+                check.Version = xFolder.version;
+                xFolder = ConvertFromOpenSim(check);
+                return m_Database.StoreFolder(xFolder);
+            }
 
             if (xFolder.version < check.Version)
                 xFolder.version = check.Version;
