@@ -293,13 +293,28 @@ namespace OpenSim.Services.InventoryService
 
         public virtual bool AddFolder(InventoryFolderBase folder)
         {
+            InventoryFolderBase check = GetFolder(folder);
+            if (check != null)
+                return false;
+
             XInventoryFolder xFolder = ConvertFromOpenSim(folder);
             return m_Database.StoreFolder(xFolder);
         }
 
         public virtual bool UpdateFolder(InventoryFolderBase folder)
         {
-            return AddFolder(folder);
+            XInventoryFolder xFolder = ConvertFromOpenSim(folder);
+            InventoryFolderBase check = GetFolder(folder);
+            if (check == null)
+                return AddFolder(folder);
+
+            if (check.Type != -1 || xFolder.type != -1)
+                return false;
+
+            xFolder.version = check.Version;
+            xFolder.folderID = check.ID;
+
+            return m_Database.StoreFolder(xFolder);
         }
 
         public virtual bool MoveFolder(InventoryFolderBase folder)
