@@ -5068,7 +5068,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 ForEachSOG(delegate (SceneObjectGroup grp)
                         {
-                            if (grp.RootPart.Shape.State != 0 && (!objectsToDelete.Contains(grp)))
+                            if (grp.RootPart.Shape.PCode == 0 && grp.RootPart.Shape.State != 0 && (!objectsToDelete.Contains(grp)))
                             {
                                 UUID agentID = grp.OwnerID;
                                 if (agentID == UUID.Zero)
