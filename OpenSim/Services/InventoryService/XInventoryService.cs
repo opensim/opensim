@@ -311,7 +311,8 @@ namespace OpenSim.Services.InventoryService
             if (check.Type != -1 || xFolder.type != -1)
                 return false;
 
-            xFolder.version = check.Version;
+            if (xFolder.version < check.Version)
+                xFolder.version = check.Version;
             xFolder.folderID = check.ID;
 
             return m_Database.StoreFolder(xFolder);
