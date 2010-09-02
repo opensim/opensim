@@ -2464,7 +2464,9 @@ namespace OpenSim.Region.Framework.Scenes
             m_controllingClient.SendAvatarDataImmediate(this);
 
             SendInitialFullUpdateToAllClients();
-            SendAppearanceToAllOtherAgents();
+            // Experimentally commenting this. We don't have bakes at this time
+            // and 1.23 will not display an avatar without bakes.
+            //SendAppearanceToAllOtherAgents();
         }
 
         /// <summary>
