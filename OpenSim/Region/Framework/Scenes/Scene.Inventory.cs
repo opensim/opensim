@@ -218,8 +218,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Update item with new asset
             item.AssetID = asset.FullID;
-            if (group.UpdateInventoryItem(item))
-                remoteClient.SendAgentAlertMessage("Script saved", false);                        
+            group.UpdateInventoryItem(item);
             
             part.GetProperties(remoteClient);
 
@@ -231,10 +230,6 @@ namespace OpenSim.Region.Framework.Scenes
                 // Needs to determine which engine was running it and use that
                 //
                 errors = part.Inventory.CreateScriptInstanceEr(item.ItemID, 0, false, DefaultScriptEngine, 0);
-            }
-            else
-            {
-                remoteClient.SendAgentAlertMessage("Script saved", false);
             }
             part.ParentGroup.ResumeScripts();
             return errors;
@@ -1401,13 +1396,6 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         agentTransactions.HandleTaskItemUpdateFromTransaction(
                             remoteClient, part, transactionID, currentItem);
-
-                        if ((InventoryType)itemInfo.InvType == InventoryType.Notecard) 
-                            remoteClient.SendAgentAlertMessage("Notecard saved", false);
-                        else if ((InventoryType)itemInfo.InvType == InventoryType.LSL)
-                            remoteClient.SendAgentAlertMessage("Script saved", false);
-                        else
-                            remoteClient.SendAgentAlertMessage("Item saved", false);
                     }
 
                     // Base ALWAYS has move
@@ -1993,7 +1981,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             // We can only call this after adding the scene object, since the scene object references the scene
             // to find out if scripts should be activated at all.
-            group.CreateScriptInstances(param, true, DefaultScriptEngine, 2);
+            group.CreateScriptInstances(param, true, DefaultScriptEngine, 3);
             
             group.ScheduleGroupForFullUpdate();
         

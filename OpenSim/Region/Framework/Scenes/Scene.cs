@@ -1160,6 +1160,7 @@ namespace OpenSim.Region.Framework.Scenes
             //m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
             if (HeartbeatThread != null)
             {
+                m_log.ErrorFormat("[SCENE]: Restarting heartbeat thread because it hasn't reported in in region {0}", RegionInfo.RegionName);
                 HeartbeatThread.Abort();
                 HeartbeatThread = null;
             }
@@ -2442,7 +2443,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
             
-            newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, 1);
+            newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, 2);
 
             newObject.ResumeScripts();
 
@@ -4555,7 +4556,7 @@ namespace OpenSim.Region.Framework.Scenes
             //
             int health=1; // Start at 1, means we're up
 
-            if ((Util.EnvironmentTickCountSubtract(m_lastUpdate)) < 1000)
+            if (m_firstHeartbeat || ((Util.EnvironmentTickCountSubtract(m_lastUpdate)) < 1000))
                 health+=1;
             else
                 return health;
@@ -5067,7 +5068,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 ForEachSOG(delegate (SceneObjectGroup grp)
                         {
-                            if (grp.RootPart.Shape.State != 0 && (!objectsToDelete.Contains(grp)))
+                            if (grp.RootPart.Shape.PCode == 0 && grp.RootPart.Shape.State != 0 && (!objectsToDelete.Contains(grp)))
                             {
                                 UUID agentID = grp.OwnerID;
                                 if (agentID == UUID.Zero)
