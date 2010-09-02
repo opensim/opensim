@@ -58,7 +58,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         private int m_animTickFall;
 //        private int m_animTickJump;
         public int m_animTickJump;		// ScenePresence has to see this to control +Z force
-        
+        public bool m_jumping = false;      // Add for jumping
+        public float m_jumpVelocity = 0f;   // Add for jumping
+        private int m_landing = 0;          // Add for jumping
+
         /// <value>
         /// The scene presence that this animator applies to
         /// </value>
@@ -141,9 +144,11 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// </summary>
         public string GetMovementAnimation()
         {
+//Console.WriteLine("GMA-------"); //##
             const float FALL_DELAY = 0.33f;
-            const float PREJUMP_DELAY = 0.25f;
-
+//rm for jumping            const float PREJUMP_DELAY = 0.25f;
+            const float PREJUMP_DELAY = 200f;           // mS add for jumping
+            const float JUMP_PERIOD = 800f;              // mS add for jumping
             #region Inputs
 
             AgentManager.ControlFlags controlFlags = (AgentManager.ControlFlags)m_scenePresence.AgentControlFlags;
@@ -177,8 +182,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             // Is the avatar trying to move?
 //            bool moving = (move != Vector3.Zero);
-            bool jumping = m_animTickJump != 0;
-
+// rm for jumping            bool jumping = m_animTickJump != 0;
             #endregion Inputs
 
             #region Flying
@@ -187,6 +191,9 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             {
                 m_animTickFall = 0;
                 m_animTickJump = 0;
+                m_jumping = false;           //add for jumping flag
+                m_jumpVelocity = 0f;         //add for jumping flag
+                actor.Selected = false;      //add for jumping flag
 
                 if (move.X != 0f || move.Y != 0f)
                 {
@@ -213,8 +220,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             #region Falling/Floating/Landing
 
-            if (actor == null || !actor.IsColliding)
+// rm for jumping            if (actor == null || !actor.IsColliding)
+            if ((actor == null || !actor.IsColliding) && !m_jumping)       // add for jumping
             {
+//Console.WriteLine("FFL");  //##
                 float fallElapsed = (float)(Environment.TickCount - m_animTickFall) / 1000f;
                 float fallVelocity = (actor != null) ? actor.Velocity.Z : 0.0f;
 
@@ -223,7 +232,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     // Just started falling
                     m_animTickFall = Environment.TickCount;
                 }
-                else if (!jumping && fallElapsed > FALL_DELAY)
+//                else if (!jumping && fallElapsed > FALL_DELAY)
+                else if (!m_jumping && fallElapsed > FALL_DELAY)        // add for jumping
                 {
                     // Falling long enough to trigger the animation
                     return "FALLDOWN";
@@ -233,6 +243,67 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             }
 
             #endregion Falling/Floating/Landing
+
+
+            #region Jumping     // section added for jumping...
+
+            Vector3 vj = Vector3.Zero;
+            int jumptime;
+            jumptime = Environment.TickCount - m_animTickJump;
+
+
+            if ((move.Z > 0f) && (!m_jumping))
+            {
+//Console.WriteLine("PJ {0}", jumptime); //##
+                // Start jumping, prejump
+                m_animTickFall = 0;
+                m_jumping = true;
+                actor.Selected = true;      // borrowed for jmping flag
+                m_animTickJump = Environment.TickCount;
+                vj.Z = 0.35f; 
+m_jumpVelocity = 0.35f;
+                vj += actor.Velocity;
+// #@                actor.Velocity = vj;
+                return "PREJUMP";
+            }
+
+            if(m_jumping)
+            {
+                if ( (jumptime > (JUMP_PERIOD * 1.5f)) && actor.IsColliding)
+                {
+//Console.WriteLine("LA {0}", jumptime); //##
+                    // end jumping
+                    m_jumping = false;
+                    actor.Selected = false;      // borrowed for jumping flag
+m_jumpVelocity = 0f;
+                    m_animTickFall = Environment.TickCount;
+                    return "LAND";
+                }
+                else if (jumptime > JUMP_PERIOD)
+                {
+//Console.WriteLine("JD {0}", jumptime); //##
+                    // jump down
+                    vj = actor.Velocity;
+                    vj.Z = 0f;
+m_jumpVelocity = 0f;
+// #@                       actor.Velocity = vj;
+                    return "JUMP";
+                }
+                else if (jumptime > PREJUMP_DELAY)
+                {
+//Console.WriteLine("JU {0}", jumptime); //##
+                    // jump up
+                    m_jumping = true;
+                    vj.Z = 10f; 
+m_jumpVelocity = 10f;
+                    vj.X = actor.Velocity.X;
+                    vj.Y = actor.Velocity.Y;
+// #@                     actor.Velocity = vj;
+                    return "JUMP";
+                }
+            }
+
+            #endregion Jumping          // end added section
 
             #region Ground Movement
 
@@ -245,11 +316,26 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             }
             else if (m_movementAnimation == "LAND")
             {
-                float landElapsed = (float)(Environment.TickCount - m_animTickFall) / 1000f;
-                if ((m_animTickFall != 0) && (landElapsed <= FALL_DELAY))
+// rm jumping                float landElapsed = (float)(Environment.TickCount - m_animTickFall) / 1000f;
+                int landElapsed = Environment.TickCount - m_animTickFall; // add for jumping
+// rm jumping                if ((m_animTickFall != 0) && (landElapsed <= FALL_DELAY))
+/* Try change ##
+                if ((m_animTickFall != 0) && (landElapsed <= 500))  // add for jumping
                     return "LAND";
+ */            
+                // NB if this is set too long a weird anim reset from some place prevents STAND from being sent to client
+                if ((m_animTickFall != 0) && (landElapsed <= 300))  // add for jumping 
+                {
+//Console.WriteLine("LAND");  //##
+                    return "LAND";
+                }
+                else
+                {
+//Console.WriteLine("STAND");  //##
+                    return "STAND";
+                }
             }
-
+/* This section removed, replaced by jumping section
             m_animTickFall = 0;
 
             if (move.Z > 0f)
@@ -279,27 +365,28 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             {
                 // Not jumping
                 m_animTickJump = 0;
-
-                if (move.X != 0f || move.Y != 0f)
-                {
-                    // Walking / crouchwalking / running
-                    if (move.Z < 0f)
-                        return "CROUCHWALK";
-                    else if (m_scenePresence.SetAlwaysRun)
-                        return "RUN";
-                    else
-                        return "WALK";
-                }
+  */
+            // next section moved outside paren. and realigned for jumping
+            if (move.X != 0f || move.Y != 0f)
+            {
+                // Walking / crouchwalking / running
+                if (move.Z < 0f)
+                    return "CROUCHWALK";
+                else if (m_scenePresence.SetAlwaysRun)
+                    return "RUN";
                 else
-                {
-                    // Not walking
-                    if (move.Z < 0f)
-                        return "CROUCH";
-                    else
-                        return "STAND";
-                }
+                    return "WALK";
             }
-
+// rm for jumping            else
+            else if (!m_jumping)    // add for jumping
+            {
+                // Not walking
+                if (move.Z < 0f)
+                    return "CROUCH";
+                else
+                    return "STAND";
+            }
+            // end section realign for jumping
             #endregion Ground Movement
 
             return m_movementAnimation;
@@ -311,15 +398,15 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         public void UpdateMovementAnimations()
         {
             m_movementAnimation = GetMovementAnimation();
-            if (m_movementAnimation == "PREJUMP" && !m_scenePresence.Scene.m_usePreJump)
+/*            if (m_movementAnimation == "PREJUMP" && !m_scenePresence.Scene.m_usePreJump)
             {
                 // This was the previous behavior before PREJUMP
                 TrySetMovementAnimation("JUMP");
             }
             else
-            {
+            {      removed for jumping */
                 TrySetMovementAnimation(m_movementAnimation);
-            }
+// rm for jumping            }
         }
 
         public UUID[] GetAnimationArray()

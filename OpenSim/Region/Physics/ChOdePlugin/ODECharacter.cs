@@ -90,6 +90,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public float walkDivisor = 1.3f;
         public float runDivisor = 0.8f;
         private bool flying = false;
+        private bool jumping = false;       // add for jumping
         private bool m_iscolliding = false;
         private bool m_iscollidingGround = false;
         private bool m_wascolliding = false;
@@ -229,7 +230,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override bool Selected
         {
-            set { return; }
+//            set { return; }
+            set { jumping = value; }    // add for jumping flag
         }
 
         public override float Buoyancy
@@ -1018,7 +1020,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {	// close, jump to lateral destination
                     	d.BodySetPosition(Body, _zeroPosition.X, _zeroPosition.Y, pos.Z);
                     }
-                    if (flying)
+//                    if (flying)
+                    if (flying || jumping)  // add for jumping
                     {
                         vec.Z = (_target_velocity.Z - vel.Z) * (PID_D) + (_zeroPosition.Z - pos.Z) * PID_P;
                     }
