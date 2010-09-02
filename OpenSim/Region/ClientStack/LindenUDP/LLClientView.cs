@@ -3382,6 +3382,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             avp.Sender.IsTrial = false;
             avp.Sender.ID = agentID;
+            m_log.DebugFormat("[CLIENT]: Sending appearance for {0} to {1}", agentID.ToString(), AgentId.ToString());
             OutPacket(avp, ThrottleOutPacketType.Task);
         }
 
