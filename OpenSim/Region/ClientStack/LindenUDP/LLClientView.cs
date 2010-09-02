@@ -37,6 +37,7 @@ using System.Xml;
 using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
+using OpenMetaverse.Messages.Linden;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
@@ -59,7 +60,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     public class LLClientView : IClientAPI, IClientCore, IClientIM, IClientChat, IClientIPEndpoint, IStatsCollector
     {
         /// <value>
-        /// Debug packet level.  At the moment, only 255 does anything (prints out all in and out packets).
+        /// Debug packet level.  See OpenSim.RegisterConsoleCommands() for more details.
         /// </value>
         protected int m_debugPacketLevel = 0;
         
@@ -3407,6 +3408,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             avp.Sender.IsTrial = false;
             avp.Sender.ID = agentID;
+            m_log.DebugFormat("[CLIENT]: Sending appearance for {0} to {1}", agentID.ToString(), AgentId.ToString());
             OutPacket(avp, ThrottleOutPacketType.Task);
         }
 
@@ -4199,94 +4201,101 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendLandProperties(int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
         {
-            ParcelPropertiesPacket updatePacket = (ParcelPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ParcelProperties);
-            // TODO: don't create new blocks if recycling an old packet
+			ParcelPropertiesMessage updateMessage = new ParcelPropertiesMessage();
 
-            updatePacket.ParcelData.AABBMax = landData.AABBMax;
-            updatePacket.ParcelData.AABBMin = landData.AABBMin;
-            updatePacket.ParcelData.Area = landData.Area;
-            updatePacket.ParcelData.AuctionID = landData.AuctionID;
-            updatePacket.ParcelData.AuthBuyerID = landData.AuthBuyerID;
+            updateMessage.AABBMax = landData.AABBMax;
+            updateMessage.AABBMin = landData.AABBMin;
+            updateMessage.Area = landData.Area;
+            updateMessage.AuctionID = landData.AuctionID;
+            updateMessage.AuthBuyerID = landData.AuthBuyerID;
 
-            updatePacket.ParcelData.Bitmap = landData.Bitmap;
+            updateMessage.Bitmap = landData.Bitmap;
 
-            updatePacket.ParcelData.Desc = Utils.StringToBytes(landData.Description);
-            updatePacket.ParcelData.Category = (byte)landData.Category;
-            updatePacket.ParcelData.ClaimDate = landData.ClaimDate;
-            updatePacket.ParcelData.ClaimPrice = landData.ClaimPrice;
-            updatePacket.ParcelData.GroupID = landData.GroupID;
-            updatePacket.ParcelData.GroupPrims = landData.GroupPrims;
-            updatePacket.ParcelData.IsGroupOwned = landData.IsGroupOwned;
-            updatePacket.ParcelData.LandingType = landData.LandingType;
-            updatePacket.ParcelData.LocalID = landData.LocalID;
+            updateMessage.Desc = landData.Description;
+            updateMessage.Category = landData.Category;
+            updateMessage.ClaimDate = Util.ToDateTime(landData.ClaimDate);
+            updateMessage.ClaimPrice = landData.ClaimPrice;
+            updateMessage.GroupID = landData.GroupID;
+            updateMessage.GroupPrims = landData.GroupPrims;
+            updateMessage.IsGroupOwned = landData.IsGroupOwned;
+            updateMessage.LandingType = (LandingType) landData.LandingType;
+            updateMessage.LocalID = landData.LocalID;
 
             if (landData.Area > 0)
             {
-                updatePacket.ParcelData.MaxPrims = parcelObjectCapacity;
+                updateMessage.MaxPrims = parcelObjectCapacity;
             }
             else
             {
-                updatePacket.ParcelData.MaxPrims = 0;
+                updateMessage.MaxPrims = 0;
             }
 
-            updatePacket.ParcelData.MediaAutoScale = landData.MediaAutoScale;
-            updatePacket.ParcelData.MediaID = landData.MediaID;
-            updatePacket.ParcelData.MediaURL = Util.StringToBytes256(landData.MediaURL);
-            updatePacket.ParcelData.MusicURL = Util.StringToBytes256(landData.MusicURL);
-            updatePacket.ParcelData.Name = Util.StringToBytes256(landData.Name);
-            updatePacket.ParcelData.OtherCleanTime = landData.OtherCleanTime;
-            updatePacket.ParcelData.OtherCount = 0; //TODO: Unimplemented
-            updatePacket.ParcelData.OtherPrims = landData.OtherPrims;
-            updatePacket.ParcelData.OwnerID = landData.OwnerID;
-            updatePacket.ParcelData.OwnerPrims = landData.OwnerPrims;
-            updatePacket.ParcelData.ParcelFlags = landData.Flags;
-            updatePacket.ParcelData.ParcelPrimBonus = simObjectBonusFactor;
-            updatePacket.ParcelData.PassHours = landData.PassHours;
-            updatePacket.ParcelData.PassPrice = landData.PassPrice;
-            updatePacket.ParcelData.PublicCount = 0; //TODO: Unimplemented
+            updateMessage.MediaAutoScale = Convert.ToBoolean(landData.MediaAutoScale);
+            updateMessage.MediaID = landData.MediaID;
+            updateMessage.MediaURL = landData.MediaURL;
+            updateMessage.MusicURL = landData.MusicURL;
+            updateMessage.Name = landData.Name;
+            updateMessage.OtherCleanTime = landData.OtherCleanTime;
+            updateMessage.OtherCount = 0; //TODO: Unimplemented
+            updateMessage.OtherPrims = landData.OtherPrims;
+            updateMessage.OwnerID = landData.OwnerID;
+            updateMessage.OwnerPrims = landData.OwnerPrims;
+            updateMessage.ParcelFlags = (ParcelFlags) landData.Flags;
+            updateMessage.ParcelPrimBonus = simObjectBonusFactor;
+            updateMessage.PassHours = landData.PassHours;
+            updateMessage.PassPrice = landData.PassPrice;
+            updateMessage.PublicCount = 0; //TODO: Unimplemented
+			
+            updateMessage.RegionPushOverride = (regionFlags & (uint)RegionFlags.RestrictPushObject) > 0;
+            updateMessage.RegionDenyAnonymous = (regionFlags & (uint)RegionFlags.DenyAnonymous) > 0;
 
-            updatePacket.ParcelData.RegionDenyAnonymous = (regionFlags & (uint)RegionFlags.DenyAnonymous) > 0;
-            updatePacket.ParcelData.RegionDenyIdentified = (regionFlags & (uint)RegionFlags.DenyIdentified) > 0;
-            updatePacket.ParcelData.RegionDenyTransacted = (regionFlags & (uint)RegionFlags.DenyTransacted) > 0;
-            updatePacket.ParcelData.RegionPushOverride = (regionFlags & (uint)RegionFlags.RestrictPushObject) > 0;
+            //updateMessage.RegionDenyIdentified = (regionFlags & (uint)RegionFlags.DenyIdentified) > 0;
+            //updateMessage.RegionDenyTransacted = (regionFlags & (uint)RegionFlags.DenyTransacted) > 0;
 
-            updatePacket.ParcelData.RentPrice = 0;
-            updatePacket.ParcelData.RequestResult = request_result;
-            updatePacket.ParcelData.SalePrice = landData.SalePrice;
-            updatePacket.ParcelData.SelectedPrims = landData.SelectedPrims;
-            updatePacket.ParcelData.SelfCount = 0; //TODO: Unimplemented
-            updatePacket.ParcelData.SequenceID = sequence_id;
+            updateMessage.RentPrice = 0;
+            updateMessage.RequestResult = (ParcelResult) request_result;
+            updateMessage.SalePrice = landData.SalePrice;
+            updateMessage.SelectedPrims = landData.SelectedPrims;
+            updateMessage.SelfCount = 0; //TODO: Unimplemented
+            updateMessage.SequenceID = sequence_id;
             if (landData.SimwideArea > 0)
             {
-                updatePacket.ParcelData.SimWideMaxPrims = parcelObjectCapacity;
+                updateMessage.SimWideMaxPrims = parcelObjectCapacity;
             }
             else
             {
-                updatePacket.ParcelData.SimWideMaxPrims = 0;
+                updateMessage.SimWideMaxPrims = 0;
             }
-            updatePacket.ParcelData.SimWideTotalPrims = landData.SimwidePrims;
-            updatePacket.ParcelData.SnapSelection = snap_selection;
-            updatePacket.ParcelData.SnapshotID = landData.SnapshotID;
-            updatePacket.ParcelData.Status = (byte)landData.Status;
-            updatePacket.ParcelData.TotalPrims = landData.OwnerPrims + landData.GroupPrims + landData.OtherPrims +
+            updateMessage.SimWideTotalPrims = landData.SimwidePrims;
+            updateMessage.SnapSelection = snap_selection;
+            updateMessage.SnapshotID = landData.SnapshotID;
+            updateMessage.Status = (ParcelStatus) landData.Status;
+            updateMessage.TotalPrims = landData.OwnerPrims + landData.GroupPrims + landData.OtherPrims +
                                                  landData.SelectedPrims;
-            updatePacket.ParcelData.UserLocation = landData.UserLocation;
-            updatePacket.ParcelData.UserLookAt = landData.UserLookAt;
-            updatePacket.Header.Zerocoded = true;
+            updateMessage.UserLocation = landData.UserLocation;
+            updateMessage.UserLookAt = landData.UserLookAt;
+
+			updateMessage.MediaType = landData.MediaType;
+			updateMessage.MediaDesc = landData.MediaDescription;
+			updateMessage.MediaWidth = landData.MediaWidth;
+			updateMessage.MediaHeight = landData.MediaHeight;
+			updateMessage.MediaLoop = landData.MediaLoop;
+			updateMessage.ObscureMusic = landData.ObscureMusic;
+			updateMessage.ObscureMedia = landData.ObscureMedia;
 
             try
             {
                 IEventQueue eq = Scene.RequestModuleInterface<IEventQueue>();
                 if (eq != null)
                 {
-                    eq.ParcelProperties(updatePacket, this.AgentId);
-                }
+                    eq.ParcelProperties(updateMessage, this.AgentId);
+                } else {
+					m_log.Warn("No EQ Interface when sending parcel data.");
+				}
             }
             catch (Exception ex)
             {
                 m_log.Error("Unable to send parcel data via eventqueue - exception: " + ex.ToString());
-                m_log.Warn("sending parcel data via UDP");
-                OutPacket(updatePacket, ThrottleOutPacketType.Task);
             }
         }
 
@@ -11166,8 +11175,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// handles splitting manually</param>
         protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType, bool doAutomaticSplitting)
         {
-            if (m_debugPacketLevel >= 255)
-                m_log.DebugFormat("[CLIENT]: Packet OUT {0}", packet.Type);
+            if (m_debugPacketLevel > 0)
+            {
+                bool outputPacket = true;
+                                
+                if (m_debugPacketLevel <= 255 
+                    && (packet.Type == PacketType.SimStats || packet.Type == PacketType.SimulatorViewerTimeMessage))
+                    outputPacket = false;
+                
+                if (m_debugPacketLevel <= 200 
+                    && 
+                    (packet.Type == PacketType.ImagePacket 
+                        || packet.Type == PacketType.ImageData
+                        || packet.Type == PacketType.LayerData
+                        || packet.Type == PacketType.CoarseLocationUpdate)) 
+                    outputPacket = false;
+                
+                if (m_debugPacketLevel <= 100 && (packet.Type == PacketType.AvatarAnimation || packet.Type == PacketType.ViewerEffect))
+                    outputPacket = false;                
+                
+                if (outputPacket)
+                    m_log.DebugFormat("[CLIENT]: Packet OUT {0}", packet.Type);
+            }
             
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, doAutomaticSplitting);
         }
@@ -11238,15 +11267,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Entryway from the client to the simulator.  All UDP packets from the client will end up here
         /// </summary>
         /// <param name="Pack">OpenMetaverse.packet</param>
-        public void ProcessInPacket(Packet Pack)
+        public void ProcessInPacket(Packet packet)
         {
-            if (m_debugPacketLevel >= 255)
-                m_log.DebugFormat("[CLIENT]: Packet IN {0}", Pack.Type);
+            if (m_debugPacketLevel > 0)
+            {
+                bool outputPacket = true;
+                                
+                if (m_debugPacketLevel <= 255 && packet.Type == PacketType.AgentUpdate)
+                    outputPacket = false;
+                
+                if (m_debugPacketLevel <= 200 && packet.Type == PacketType.RequestImage)
+                    outputPacket = false;
+                
+                if (m_debugPacketLevel <= 100 && (packet.Type == PacketType.ViewerEffect || packet.Type == PacketType.AgentAnimation))
+                    outputPacket = false;
+                
+                if (outputPacket)
+                    m_log.DebugFormat("[CLIENT]: Packet IN {0}", packet.Type);
+            }
 
-            if (!ProcessPacketMethod(Pack))
-                m_log.Warn("[CLIENT]: unhandled packet " + Pack.Type);
+            if (!ProcessPacketMethod(packet))
+                m_log.Warn("[CLIENT]: unhandled packet " + packet.Type);
 
-            PacketPool.Instance.ReturnPacket(Pack);
+            PacketPool.Instance.ReturnPacket(packet);
         }
 
         private static PrimitiveBaseShape GetShapeFromAddPacket(ObjectAddPacket addPacket)

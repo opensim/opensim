@@ -1940,7 +1940,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             // We can only call this after adding the scene object, since the scene object references the scene
             // to find out if scripts should be activated at all.
-            group.CreateScriptInstances(param, true, DefaultScriptEngine, 2);
+            group.CreateScriptInstances(param, true, DefaultScriptEngine, 3);
             
             group.ScheduleGroupForFullUpdate();
         

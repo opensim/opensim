@@ -1845,7 +1845,7 @@ namespace OpenSim.Region.Framework.Scenes
                         copy.UpdateGroupRotationR(rot);
                     }
 
-                    copy.CreateScriptInstances(0, false, m_parentScene.DefaultScriptEngine, 0);
+                    copy.CreateScriptInstances(0, false, m_parentScene.DefaultScriptEngine, 1);
                     copy.HasGroupChanged = true;
                     copy.ScheduleGroupForFullUpdate();
                     copy.ResumeScripts();

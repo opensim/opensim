@@ -2464,7 +2464,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_controllingClient.SendAvatarDataImmediate(this);
 
             SendInitialFullUpdateToAllClients();
-            SendAppearanceToAllOtherAgents();
         }
 
         /// <summary>
@@ -3382,6 +3381,27 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_attachments.Add(gobj);
             }
+        }
+        
+        /// <summary>
+        /// Get the scene object attached to the given point.
+        /// </summary>
+        /// <param name="attachmentPoint"></param>
+        /// <returns>Returns an empty list if there were no attachments at the point.</returns>
+        public List<SceneObjectGroup> GetAttachments(uint attachmentPoint)
+        {
+            List<SceneObjectGroup> attachments = new List<SceneObjectGroup>();
+            
+            lock (m_attachments)
+            {
+                foreach (SceneObjectGroup so in m_attachments)
+                {
+                    if (attachmentPoint == so.RootPart.AttachmentPoint)
+                        attachments.Add(so);
+                }
+            }
+            
+            return attachments;
         }
 
         public bool HasAttachments()
