@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -249,7 +249,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 if (password == simianGridCredential ||
                     "$1$" + password == simianGridCredential ||
                     "$1$" + Utils.MD5String(password) == simianGridCredential ||
-                    Utils.MD5String(password) == simianGridCredential)
+                    Utils.MD5String(password) == simianGridCredential ||
+                    "$1$" + Utils.MD5String(password + ":") == simianGridCredential)
                 {
                     authorizeResult = Authorize(userID);
                     return true;
