@@ -805,7 +805,7 @@ namespace OpenSim.Framework
             IConfig config = source.Configs[RegionName];
 
             if (config != null)
-                source.Configs.Remove(RegionName);
+                source.Configs.Remove(config);
 
             config = source.AddConfig(RegionName);
 
@@ -864,10 +864,15 @@ namespace OpenSim.Framework
 
                 return;
             }
-            configMember = new ConfigurationMember(filename, description, loadConfigurationOptionsFromMe,
-                                                   ignoreIncomingConfiguration, false);
-            configMember.performConfigurationRetrieve();
-            RegionFile = filename;
+            else if (filename.ToLower().EndsWith(".xml"))
+            {
+                configMember = new ConfigurationMember(filename, description, loadConfigurationOptionsFromMe,
+                                                       ignoreIncomingConfiguration, false);
+                configMember.performConfigurationRetrieve();
+                RegionFile = filename;
+            }
+            else
+                throw new Exception("Invalid file type for region persistence.");
         }
 
         public void loadConfigurationOptionsFromMe()
