@@ -305,94 +305,94 @@ namespace OpenSim.Client.MXP.ClientStack
 
         #region MXP Outgoing Message Processing
 
-        private void MXPSendPrimitive(uint localID, UUID ownerID, Vector3 acc, Vector3 rvel, PrimitiveBaseShape primShape, Vector3 pos, UUID objectID, Vector3 vel, Quaternion rotation, uint flags, string text, byte[] textColor, uint parentID, byte[] particleSystem, byte clickAction, byte material, byte[] textureanim)
-        {
-            String typeName = ToOmType(primShape.PCode);
-            m_log.Info("[MXP ClientStack] Transmitting Primitive" + typeName);
-
-            PerceptionEventMessage pe = new PerceptionEventMessage();
-            pe.ObjectFragment.ObjectId = objectID.Guid;
-
-            pe.ObjectFragment.ParentObjectId = Guid.Empty;
-
-            // Resolving parent UUID.
-            OpenSim.Region.Framework.Scenes.Scene scene = (OpenSim.Region.Framework.Scenes.Scene)Scene;
-            if (scene.Entities.ContainsKey(parentID))
-            {
-                pe.ObjectFragment.ParentObjectId = scene.Entities[parentID].UUID.Guid;
-            }
-
-            pe.ObjectFragment.ObjectIndex = localID;
-            pe.ObjectFragment.ObjectName = typeName + " Object";
-            pe.ObjectFragment.OwnerId = ownerID.Guid;
-            pe.ObjectFragment.TypeId = Guid.Empty;
-            pe.ObjectFragment.TypeName = typeName;
-            pe.ObjectFragment.Acceleration = ToOmVector(acc);
-            pe.ObjectFragment.AngularAcceleration=new MsdQuaternion4f();
-            pe.ObjectFragment.AngularVelocity = ToOmQuaternion(rvel);
-            pe.ObjectFragment.BoundingSphereRadius = primShape.Scale.Length();
-
-            pe.ObjectFragment.Location = ToOmVector(pos);
-
-            pe.ObjectFragment.Mass = 1.0f;
-            pe.ObjectFragment.Orientation =  ToOmQuaternion(rotation);
-            pe.ObjectFragment.Velocity =ToOmVector(vel);
-
-            OmSlPrimitiveExt ext = new OmSlPrimitiveExt();
-
-            if (!((primShape.PCode == (byte)PCode.NewTree) || (primShape.PCode == (byte)PCode.Tree) || (primShape.PCode == (byte)PCode.Grass)))
-            {
-
-                ext.PathBegin = primShape.PathBegin;
-                ext.PathEnd = primShape.PathEnd;
-                ext.PathScaleX = primShape.PathScaleX;
-                ext.PathScaleY = primShape.PathScaleY;
-                ext.PathShearX = primShape.PathShearX;
-                ext.PathShearY = primShape.PathShearY;
-                ext.PathSkew = primShape.PathSkew;
-                ext.ProfileBegin = primShape.ProfileBegin;
-                ext.ProfileEnd = primShape.ProfileEnd;
-                ext.PathCurve = primShape.PathCurve;
-                ext.ProfileCurve = primShape.ProfileCurve;
-                ext.ProfileHollow = primShape.ProfileHollow;
-                ext.PathRadiusOffset = primShape.PathRadiusOffset;
-                ext.PathRevolutions = primShape.PathRevolutions;
-                ext.PathTaperX = primShape.PathTaperX;
-                ext.PathTaperY = primShape.PathTaperY;
-                ext.PathTwist = primShape.PathTwist;
-                ext.PathTwistBegin = primShape.PathTwistBegin;
-
-
-            }
-
-            ext.UpdateFlags = flags;
-            ext.ExtraParams = primShape.ExtraParams;
-            ext.State = primShape.State;
-            ext.TextureEntry = primShape.TextureEntry;
-            ext.TextureAnim = textureanim;
-            ext.Scale = ToOmVector(primShape.Scale);
-            ext.Text = text;
-            ext.TextColor = ToOmColor(textColor);
-            ext.PSBlock = particleSystem;
-            ext.ClickAction = clickAction;
-            ext.Material = material;
-
-            pe.SetExtension<OmSlPrimitiveExt>(ext);
-
-            Session.Send(pe);
-
-            if (m_objectsSynchronized != -1)
-            {
-                m_objectsSynchronized++;
-
-                if (m_objectsToSynchronize >= m_objectsSynchronized)
-                {
-                    SynchronizationEndEventMessage synchronizationEndEventMessage = new SynchronizationEndEventMessage();
-                    Session.Send(synchronizationEndEventMessage);
-                    m_objectsSynchronized = -1;
-                }
-            }
-        }
+//        private void MXPSendPrimitive(uint localID, UUID ownerID, Vector3 acc, Vector3 rvel, PrimitiveBaseShape primShape, Vector3 pos, UUID objectID, Vector3 vel, Quaternion rotation, uint flags, string text, byte[] textColor, uint parentID, byte[] particleSystem, byte clickAction, byte material, byte[] textureanim)
+//        {
+//            String typeName = ToOmType(primShape.PCode);
+//            m_log.Info("[MXP ClientStack] Transmitting Primitive" + typeName);
+//
+//            PerceptionEventMessage pe = new PerceptionEventMessage();
+//            pe.ObjectFragment.ObjectId = objectID.Guid;
+//
+//            pe.ObjectFragment.ParentObjectId = Guid.Empty;
+//
+//            // Resolving parent UUID.
+//            OpenSim.Region.Framework.Scenes.Scene scene = (OpenSim.Region.Framework.Scenes.Scene)Scene;
+//            if (scene.Entities.ContainsKey(parentID))
+//            {
+//                pe.ObjectFragment.ParentObjectId = scene.Entities[parentID].UUID.Guid;
+//            }
+//
+//            pe.ObjectFragment.ObjectIndex = localID;
+//            pe.ObjectFragment.ObjectName = typeName + " Object";
+//            pe.ObjectFragment.OwnerId = ownerID.Guid;
+//            pe.ObjectFragment.TypeId = Guid.Empty;
+//            pe.ObjectFragment.TypeName = typeName;
+//            pe.ObjectFragment.Acceleration = ToOmVector(acc);
+//            pe.ObjectFragment.AngularAcceleration=new MsdQuaternion4f();
+//            pe.ObjectFragment.AngularVelocity = ToOmQuaternion(rvel);
+//            pe.ObjectFragment.BoundingSphereRadius = primShape.Scale.Length();
+//
+//            pe.ObjectFragment.Location = ToOmVector(pos);
+//
+//            pe.ObjectFragment.Mass = 1.0f;
+//            pe.ObjectFragment.Orientation =  ToOmQuaternion(rotation);
+//            pe.ObjectFragment.Velocity =ToOmVector(vel);
+//
+//            OmSlPrimitiveExt ext = new OmSlPrimitiveExt();
+//
+//            if (!((primShape.PCode == (byte)PCode.NewTree) || (primShape.PCode == (byte)PCode.Tree) || (primShape.PCode == (byte)PCode.Grass)))
+//            {
+//
+//                ext.PathBegin = primShape.PathBegin;
+//                ext.PathEnd = primShape.PathEnd;
+//                ext.PathScaleX = primShape.PathScaleX;
+//                ext.PathScaleY = primShape.PathScaleY;
+//                ext.PathShearX = primShape.PathShearX;
+//                ext.PathShearY = primShape.PathShearY;
+//                ext.PathSkew = primShape.PathSkew;
+//                ext.ProfileBegin = primShape.ProfileBegin;
+//                ext.ProfileEnd = primShape.ProfileEnd;
+//                ext.PathCurve = primShape.PathCurve;
+//                ext.ProfileCurve = primShape.ProfileCurve;
+//                ext.ProfileHollow = primShape.ProfileHollow;
+//                ext.PathRadiusOffset = primShape.PathRadiusOffset;
+//                ext.PathRevolutions = primShape.PathRevolutions;
+//                ext.PathTaperX = primShape.PathTaperX;
+//                ext.PathTaperY = primShape.PathTaperY;
+//                ext.PathTwist = primShape.PathTwist;
+//                ext.PathTwistBegin = primShape.PathTwistBegin;
+//
+//
+//            }
+//
+//            ext.UpdateFlags = flags;
+//            ext.ExtraParams = primShape.ExtraParams;
+//            ext.State = primShape.State;
+//            ext.TextureEntry = primShape.TextureEntry;
+//            ext.TextureAnim = textureanim;
+//            ext.Scale = ToOmVector(primShape.Scale);
+//            ext.Text = text;
+//            ext.TextColor = ToOmColor(textColor);
+//            ext.PSBlock = particleSystem;
+//            ext.ClickAction = clickAction;
+//            ext.Material = material;
+//
+//            pe.SetExtension<OmSlPrimitiveExt>(ext);
+//
+//            Session.Send(pe);
+//
+//            if (m_objectsSynchronized != -1)
+//            {
+//                m_objectsSynchronized++;
+//
+//                if (m_objectsToSynchronize >= m_objectsSynchronized)
+//                {
+//                    SynchronizationEndEventMessage synchronizationEndEventMessage = new SynchronizationEndEventMessage();
+//                    Session.Send(synchronizationEndEventMessage);
+//                    m_objectsSynchronized = -1;
+//                }
+//            }
+//        }
 
         public void MXPSendAvatarData(string participantName, UUID ownerID, UUID parentId, UUID avatarID, uint avatarLocalID, Vector3 position, Quaternion rotation)
         {
