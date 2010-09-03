@@ -54,12 +54,12 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             };
         }
 
-        private static byte[] uintToByteArray(uint uIntValue)
-        {   
-            byte[] result = new byte[4];
-            Utils.UIntToBytesBig(uIntValue, result, 0);
-            return result;
-        }
+//        private static byte[] uintToByteArray(uint uIntValue)
+//        {   
+//            byte[] result = new byte[4];
+//            Utils.UIntToBytesBig(uIntValue, result, 0);
+//            return result;
+//        }
 
         public static OSD buildEvent(string eventName, OSD eventBody)
         {
