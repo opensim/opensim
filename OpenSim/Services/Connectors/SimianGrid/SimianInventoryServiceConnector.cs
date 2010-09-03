@@ -92,38 +92,30 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            if (Simian.IsSimianEnabled(source, "InventoryServices", this.Name))
+            IConfig gridConfig = source.Configs["InventoryService"];
+            if (gridConfig != null)
             {
-                IConfig gridConfig = source.Configs["InventoryService"];
-                if (gridConfig == null)
-                {
-                    m_log.Error("[SIMIAN INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini");
-                    throw new Exception("Inventory connector init error");
-                }
-
                 string serviceUrl = gridConfig.GetString("InventoryServerURI");
-                if (String.IsNullOrEmpty(serviceUrl))
+                if (!String.IsNullOrEmpty(serviceUrl))
                 {
-                    m_log.Error("[SIMIAN INVENTORY CONNECTOR]: No Server URI named in section InventoryService");
-                    throw new Exception("Inventory connector init error");
-                }
+                    if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
+                        serviceUrl = serviceUrl + '/';
+                    m_serverUrl = serviceUrl;
 
-                m_serverUrl = serviceUrl;
-
-                gridConfig = source.Configs["UserAccountService"];
-                if (gridConfig != null)
-                {
-                    serviceUrl = gridConfig.GetString("UserAccountServerURI");
-                    if (!String.IsNullOrEmpty(serviceUrl))
-                        m_userServerUrl = serviceUrl;
-                    else
-                        m_log.Info("[SIMIAN INVENTORY CONNECTOR]: No Server URI named in section UserAccountService");
-                }
-                else
-                {
-                    m_log.Warn("[SIMIAN INVENTORY CONNECTOR]: UserAccountService missing from OpenSim.ini");
+                    gridConfig = source.Configs["UserAccountService"];
+                    if (gridConfig != null)
+                    {
+                        serviceUrl = gridConfig.GetString("UserAccountServerURI");
+                        if (!String.IsNullOrEmpty(serviceUrl))
+                            m_userServerUrl = serviceUrl;
+                    }
                 }
             }
+
+            if (String.IsNullOrEmpty(m_serverUrl))
+                m_log.Info("[SIMIAN INVENTORY CONNECTOR]: No InventoryServerURI specified, disabling connector");
+            else if (String.IsNullOrEmpty(m_userServerUrl))
+                m_log.Info("[SIMIAN INVENTORY CONNECTOR]: No UserAccountServerURI specified, disabling connector");
         }
 
         /// <summary>
