@@ -51,15 +51,16 @@ namespace OpenSim.Services.Connectors.Hypergrid
             MethodBase.GetCurrentMethod().DeclaringType);
 
         string m_ServerURL;
-        Uri m_Uri;
         public UserAgentServiceConnector(string url)
         {
             m_ServerURL = url;
+            // Doing this here, because XML-RPC or mono have some strong ideas about
+            // caching DNS translations.
             try
             {
-                m_Uri = new Uri(m_ServerURL);
+                Uri m_Uri = new Uri(m_ServerURL);
                 IPAddress ip = Util.GetHostFromDNS(m_Uri.Host);
-                m_ServerURL = "http://" + ip.ToString() + ":" + m_Uri.Port;
+                m_ServerURL = m_ServerURL.Replace(m_Uri.Host, ip.ToString()); ;
             }
             catch (Exception e)
             {
