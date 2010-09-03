@@ -278,7 +278,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (!m_part.ParentGroup.Scene.RegionInfo.RegionSettings.DisableScripts)
             {
-                if (stateSource == 1 && // Prim crossing
+                if (stateSource == 2 && // Prim crossing
                         m_part.ParentGroup.Scene.m_trustBinaries)
                 {
                     m_items.LockItemsForWrite(true);
