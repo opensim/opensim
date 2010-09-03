@@ -76,38 +76,29 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            bool isSimianEnabled = false;
-
-            if (source.Configs["Friends"] != null)
+            IConfig gridConfig = source.Configs["FriendsService"];
+            if (gridConfig != null)
             {
-                string module = source.Configs["Friends"].GetString("Connector");
-                isSimianEnabled = !String.IsNullOrEmpty(module) && module.EndsWith(this.Name);
+                string serviceUrl = gridConfig.GetString("FriendsServerURI");
+                if (!String.IsNullOrEmpty(serviceUrl))
+                {
+                    if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
+                        serviceUrl = serviceUrl + '/';
+                    m_serverUrl = serviceUrl;
+                }
             }
 
-            if (isSimianEnabled)
-            {
-                IConfig assetConfig = source.Configs["FriendsService"];
-                if (assetConfig == null)
-                {
-                    m_log.Error("[SIMIAN FRIENDS CONNECTOR]: FriendsService missing from OpenSim.ini");
-                    throw new Exception("Friends connector init error");
-                }
-
-                string serviceURI = assetConfig.GetString("FriendsServerURI");
-                if (String.IsNullOrEmpty(serviceURI))
-                {
-                    m_log.Error("[SIMIAN FRIENDS CONNECTOR]: No Server URI named in section FriendsService");
-                    throw new Exception("Friends connector init error");
-                }
-
-                m_serverUrl = serviceURI;
-            }
+            if (String.IsNullOrEmpty(m_serverUrl))
+                m_log.Info("[SIMIAN FRIENDS CONNECTOR]: No FriendsServerURI specified, disabling connector");
         }
 
         #region IFriendsService
 
         public FriendInfo[] GetFriends(UUID principalID)
         {
+            if (String.IsNullOrEmpty(m_serverUrl))
+                return new FriendInfo[0];
+
             Dictionary<UUID, FriendInfo> friends = new Dictionary<UUID, FriendInfo>();
 
             OSDArray friendsArray = GetFriended(principalID);
@@ -156,6 +147,9 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public bool StoreFriend(UUID principalID, string friend, int flags)
         {
+            if (String.IsNullOrEmpty(m_serverUrl))
+                return true;
+
             NameValueCollection requestArgs = new NameValueCollection
             {
                 { "RequestMethod", "AddGeneric" },
@@ -176,6 +170,9 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public bool Delete(UUID principalID, string friend)
         {
+            if (String.IsNullOrEmpty(m_serverUrl))
+                return true;
+
             NameValueCollection requestArgs = new NameValueCollection
             {
                 { "RequestMethod", "RemoveGeneric" },
