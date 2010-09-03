@@ -104,17 +104,23 @@ namespace OpenSim.Services.Connectors.Simulation
                 return false;
             }
 
-            // Eventually, we want to use a caps url instead of the agentID
             string uri = string.Empty;
-            try
+
+            // HACK -- Simian grid make it work!!!
+            if (destination.ServerURI != null && destination.ServerURI != string.Empty && !destination.ServerURI.StartsWith("http:"))
+                uri = "http://" + destination.ServerURI + AgentPath() + aCircuit.AgentID + "/";
+            else
             {
-                uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + AgentPath() + aCircuit.AgentID + "/";
-            }
-            catch (Exception e)
-            {
-                m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Unable to resolve external endpoint on agent create. Reason: " + e.Message);
-                reason = e.Message;
-                return false;
+                try
+                {
+                    uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + AgentPath() + aCircuit.AgentID + "/";
+                }
+                catch (Exception e)
+                {
+                    m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Unable to resolve external endpoint on agent create. Reason: " + e.Message);
+                    reason = e.Message;
+                    return false;
+                }
             }
 
             //Console.WriteLine("   >>> DoCreateChildAgentCall <<< " + uri);
