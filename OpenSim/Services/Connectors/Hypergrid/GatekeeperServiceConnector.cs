@@ -86,13 +86,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
             paramList.Add(hash);
 
             XmlRpcRequest request = new XmlRpcRequest("link_region", paramList);
-            IPEndPoint ext = info.ExternalEndPoint;
-            string uri = "";
-            if (ext != null)
-            {
-                uri = "http://" + ext.Address + ":" + info.HttpPort + "/";
-            }
-            //m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: Linking to " + uri);
+            string uri = "http://" + ((info.ServerURI == string.Empty) ? info.ExternalEndPoint.Address + ":" + info.HttpPort + "/" : info.ServerURI);
+            m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: Linking to " + uri);
             XmlRpcResponse response = null;
             try
             {
@@ -193,12 +188,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             paramList.Add(hash);
 
             XmlRpcRequest request = new XmlRpcRequest("get_region", paramList);
-            IPEndPoint ext = gatekeeper.ExternalEndPoint;
-            string uri = "";
-            if (ext != null)
-            {
-                uri = "http://" + ext.Address + ":" + gatekeeper.HttpPort + "/";
-            }
+            string uri = "http://" + ((gatekeeper.ServerURI == string.Empty) ? gatekeeper.ExternalEndPoint.Address + ":" + gatekeeper.HttpPort + "/" : gatekeeper.ServerURI);
             m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: contacting " + uri);
             XmlRpcResponse response = null;
             try

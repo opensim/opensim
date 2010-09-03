@@ -158,7 +158,7 @@ namespace OpenSim.Services.GridService
             string host = "127.0.0.1";
             string portstr;
             string regionName = "";
-            uint port = 9000;
+            uint port = 0;
             string[] parts = mapName.Split(new char[] { ':' });
             if (parts.Length >= 1)
             {
@@ -177,18 +177,16 @@ namespace OpenSim.Services.GridService
                 regionName = parts[2];
             }
 
-            // Sanity check. 
-            //IPAddress ipaddr = null;
-            try
-            {
-                //ipaddr = Util.GetHostFromDNS(host);
-                Util.GetHostFromDNS(host);
-            }
-            catch 
-            {
-                reason = "Malformed hostname";
-                return null;
-            }
+            //// Sanity check. 
+            //try
+            //{
+            //    Util.GetHostFromDNS(host);
+            //}
+            //catch 
+            //{
+            //    reason = "Malformed hostname";
+            //    return null;
+            //}
 
             GridRegion regInfo;
             bool success = TryCreateLink(scopeID, xloc, yloc, regionName, port, host, out regInfo, out reason);
@@ -216,6 +214,11 @@ namespace OpenSim.Services.GridService
             regInfo.RegionLocX = xloc;
             regInfo.RegionLocY = yloc;
             regInfo.ScopeID = scopeID;
+
+            // Big HACK for Simian Grid !!!
+            // We need to clean up all URLs used in OpenSim !!!
+            if (externalHostName.Contains("/"))
+                regInfo.ServerURI = externalHostName;
 
             try
             {

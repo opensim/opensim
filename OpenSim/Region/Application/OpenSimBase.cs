@@ -36,7 +36,6 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
@@ -403,7 +402,9 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[STARTUP]: Registration of region with grid failed, aborting startup - {0}", e.StackTrace);
+                m_log.ErrorFormat(
+                    "[STARTUP]: Registration of region with grid failed, aborting startup due to {0} {1}", 
+                    e.Message, e.StackTrace);
 
                 if (scene.SnmpService != null)
                 {
