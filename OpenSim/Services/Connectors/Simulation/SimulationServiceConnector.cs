@@ -107,7 +107,7 @@ namespace OpenSim.Services.Connectors.Simulation
             string uri = string.Empty;
 
             // HACK -- Simian grid make it work!!!
-            if (destination.ServerURI != string.Empty && !destination.ServerURI.StartsWith("http:"))
+            if (destination != null && destination.ServerURI != string.Empty && !destination.ServerURI.StartsWith("http:"))
                 uri = "http://" + destination.ServerURI + AgentPath() + aCircuit.AgentID + "/";
             else
             {
