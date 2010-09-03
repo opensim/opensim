@@ -92,25 +92,44 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void AddInventoryItem(UUID AgentID, InventoryItemBase item)
+        /// <summary>
+        /// Add the given inventory item to a user's inventory.
+        /// </summary>
+        /// <param name="item"></param>
+        public void AddInventoryItem(InventoryItemBase item)
         {
             if (InventoryService.AddItem(item))
             {
                 int userlevel = 0;
-                if (Permissions.IsGod(AgentID))
+                if (Permissions.IsGod(item.Owner))
                 {
                     userlevel = 1;
                 }
-                EventManager.TriggerOnNewInventoryItemUploadComplete(AgentID, item.AssetID, item.Name, userlevel);
+                EventManager.TriggerOnNewInventoryItemUploadComplete(item.Owner, item.AssetID, item.Name, userlevel);
             }
             else
             {
                 m_log.WarnFormat(
                     "[AGENT INVENTORY]: Agent {0} could not add item {1} {2}",
-                    AgentID, item.Name, item.ID);
+                    item.Owner, item.Name, item.ID);
 
                 return;
-            }
+            }            
+        }
+        
+        /// <summary>
+        /// Add the given inventory item to a user's inventory.
+        /// </summary>
+        /// <param name="AgentID">
+        /// A <see cref="UUID"/>
+        /// </param>
+        /// <param name="item">
+        /// A <see cref="InventoryItemBase"/>
+        /// </param>
+        [Obsolete("Use AddInventoryItem(InventoryItemBase item) instead.  This was deprecated in OpenSim 0.7.1")]
+        public void AddInventoryItem(UUID AgentID, InventoryItemBase item)
+        {
+            AddInventoryItem(item);
         }
 
         /// <summary>
@@ -121,7 +140,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// in which the item is to be placed.</param>
         public void AddInventoryItem(IClientAPI remoteClient, InventoryItemBase item)
         {
-            AddInventoryItem(remoteClient.AgentId, item);
+            AddInventoryItem(item);
             remoteClient.SendInventoryItemCreateUpdate(item, 0);
         }
 
@@ -1108,7 +1127,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 agentItem.Folder = folderId;
 
-                AddInventoryItem(avatarId, agentItem);
+                AddInventoryItem(agentItem);
 
                 return agentItem;
             }
@@ -1232,7 +1251,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     agentItem.Folder = newFolderID;
 
-                    AddInventoryItem(destID, agentItem);
+                    AddInventoryItem(agentItem);
                 }
             }
 

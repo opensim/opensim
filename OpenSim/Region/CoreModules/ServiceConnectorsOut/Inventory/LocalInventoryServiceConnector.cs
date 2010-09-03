@@ -242,9 +242,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     }
                     else
                     {
-//                        m_log.WarnFormat(
-//                            "[LOCAL INVENTORY SERVICES CONNECTOR]: Could not find root folder for {0} when trying to add item {1} with no parent folder specified",
-//                            item.Owner, item.Name);
+                        m_log.WarnFormat(
+                            "[LOCAL INVENTORY SERVICES CONNECTOR]: Could not find root folder for {0} when trying to add item {1} with no parent folder specified",
+                            item.Owner, item.Name);
                         return false;
                     }
                 }
