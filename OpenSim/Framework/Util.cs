@@ -1495,5 +1495,33 @@ namespace OpenSim.Framework
             }
         }
 
+        /// <summary>
+        /// Gets the client IP address
+        /// </summary>
+        /// <param name="xff"></param>
+        /// <returns></returns>
+        public static IPEndPoint GetClientIPFromXFF(string xff)
+        {
+            if (xff == string.Empty)
+                return null;
+
+            string[] parts = xff.Split(new char[] { ',' });
+            if (parts.Length > 0)
+            {
+                try
+                {
+                    return new IPEndPoint(IPAddress.Parse(parts[0]), 0);
+                }
+                catch (Exception e)
+                {
+                    m_log.WarnFormat("[UTIL]: Exception parsing XFF header {0}: {1}", xff, e.Message);
+                }
+            }
+
+            return null;
+        }
+
+
+
     }
 }
