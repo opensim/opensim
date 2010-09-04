@@ -1521,7 +1521,23 @@ namespace OpenSim.Framework
             return null;
         }
 
-
+        public static string GetCallerIP(Hashtable req)
+        {
+            if (req.ContainsKey("headers"))
+            {
+                try
+                {
+                    Hashtable headers = (Hashtable)req["headers"];
+                    if (headers.ContainsKey("remote_addr") && headers["remote_addr"] != null)
+                        return headers["remote_addr"].ToString();
+                }
+                catch (Exception e)
+                {
+                    m_log.WarnFormat("[UTIL]: exception in GetCallerIP: {0}", e.Message);
+                }
+            }
+            return string.Empty;
+        }
 
     }
 }

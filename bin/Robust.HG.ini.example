@@ -219,6 +219,10 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     GridUserService = "OpenSim.Services.UserAccountService.dll:GridUserService"
     GridService = "OpenSim.Services.GridService.dll:GridService"
     GatekeeperService = "OpenSim.Services.HypergridService.dll:GatekeeperService"
+    
+    ;; If you separate the UserAgentService from the LoginService, set this to
+    ;; the IP address of the machine where your LoginService is
+    ;LoginServerIP = "127.0.0.1"
 
 ; * The interface that local users get when they are in other grids.
 ; * This restricts the inventory operations while in other grids.
