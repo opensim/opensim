@@ -1602,8 +1602,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         destinationItem.CreationDate = item.CreationDate;
                         destinationItem.Folder = destinationFolder.ID;
 
-                        inventoryService.AddItem(destinationItem);
-                        m_log.DebugFormat("[RADMIN] Added item {0} to folder {1}", destinationItem.ID, destinationFolder.ID);
+                        m_application.SceneManager.CurrentOrFirstScene.AddInventoryItem(destinationItem);
+                        m_log.DebugFormat("[RADMIN]: Added item {0} to folder {1}", destinationItem.ID, destinationFolder.ID);
 
                         // Wear item
                         AvatarWearable newWearable = new AvatarWearable();
@@ -1613,7 +1613,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     }
                     else
                     {
-                        m_log.WarnFormat("[RADMIN] Error transferring {0} to folder {1}", wearable.ItemID, destinationFolder.ID);
+                        m_log.WarnFormat("[RADMIN]: Error transferring {0} to folder {1}", wearable.ItemID, destinationFolder.ID);
                     }
                 }
             }
@@ -1655,16 +1655,16 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         destinationItem.CreationDate = item.CreationDate;
                         destinationItem.Folder = destinationFolder.ID;
 
-                        inventoryService.AddItem(destinationItem);
-                        m_log.DebugFormat("[RADMIN] Added item {0} to folder {1}", destinationItem.ID, destinationFolder.ID);
+                        m_application.SceneManager.CurrentOrFirstScene.AddInventoryItem(destinationItem);
+                        m_log.DebugFormat("[RADMIN]: Added item {0} to folder {1}", destinationItem.ID, destinationFolder.ID);
 
                         // Attach item
                         avatarAppearance.SetAttachment(attachpoint, destinationItem.ID, destinationItem.AssetID);
-                        m_log.DebugFormat("[RADMIN] Attached {0}", destinationItem.ID);
+                        m_log.DebugFormat("[RADMIN]: Attached {0}", destinationItem.ID);
                     }
                     else
                     {
-                        m_log.WarnFormat("[RADMIN] Error transferring {0} to folder {1}", itemID, destinationFolder.ID);
+                        m_log.WarnFormat("[RADMIN]: Error transferring {0} to folder {1}", itemID, destinationFolder.ID);
                     }
                 }
             }
@@ -1762,16 +1762,16 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     destinationItem.CreationDate = item.CreationDate;
                     destinationItem.Folder = extraFolder.ID;
 
-                    inventoryService.AddItem(destinationItem);
+                    m_application.SceneManager.CurrentOrFirstScene.AddInventoryItem(destinationItem);
                     inventoryMap.Add(item.ID, destinationItem.ID);
-                    m_log.DebugFormat("[RADMIN] Added item {0} to folder {1}", destinationItem.ID, extraFolder.ID);
+                    m_log.DebugFormat("[RADMIN]: Added item {0} to folder {1}", destinationItem.ID, extraFolder.ID);
 
                     // Attach item, if original is attached
                     int attachpoint = avatarAppearance.GetAttachpoint(item.ID);
                     if (attachpoint != 0)
                     {
                         avatarAppearance.SetAttachment(attachpoint, destinationItem.ID, destinationItem.AssetID);
-                        m_log.DebugFormat("[RADMIN] Attached {0}", destinationItem.ID);
+                        m_log.DebugFormat("[RADMIN]: Attached {0}", destinationItem.ID);
                     }
                 }
             }
@@ -1790,7 +1790,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         private bool CreateDefaultAvatars()
         {
             // Only load once
-
             if (m_defaultAvatarsLoaded)
             {
                 return false;
@@ -2048,7 +2047,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                             inventoryItem.CreationDate = GetIntegerAttribute(item,"creationdate",Util.UnixTimeSinceEpoch());
                                             inventoryItem.Folder = extraFolder.ID; // Parent folder
 
-                                            inventoryService.AddItem(inventoryItem);
+                                            m_application.SceneManager.CurrentOrFirstScene.AddInventoryItem(inventoryItem);
                                             m_log.DebugFormat("[RADMIN] Added item {0} to folder {1}", inventoryItem.ID, extraFolder.ID);
                                         }
 

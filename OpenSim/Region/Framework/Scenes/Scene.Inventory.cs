@@ -70,18 +70,18 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AddUploadedInventoryItem(UUID agentID, InventoryItemBase item)
         {
-            IMoneyModule money=RequestModuleInterface<IMoneyModule>();
+            IMoneyModule money = RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
                 money.ApplyUploadCharge(agentID, money.UploadCharge, "Asset upload");
             }
 
-            AddInventoryItem(agentID, item);
+            AddInventoryItem(item);
         }
 
         public bool AddInventoryItemReturned(UUID AgentId, InventoryItemBase item)
         {
-            if (InventoryService.AddItem(item))
+            if (AddInventoryItem(item))
                 return true;
             else
             {
@@ -96,8 +96,36 @@ namespace OpenSim.Region.Framework.Scenes
         /// Add the given inventory item to a user's inventory.
         /// </summary>
         /// <param name="item"></param>
-        public void AddInventoryItem(InventoryItemBase item)
+        public bool AddInventoryItem(InventoryItemBase item)
         {
+            if (UUID.Zero == item.Folder)
+            {
+                InventoryFolderBase f = InventoryService.GetFolderForType(item.Owner, (AssetType)item.AssetType);
+                if (f != null)
+                {
+//                    m_log.DebugFormat(
+//                        "[LOCAL INVENTORY SERVICES CONNECTOR]: Found folder {0} type {1} for item {2}", 
+//                        f.Name, (AssetType)f.Type, item.Name);
+                    
+                    item.Folder = f.ID;
+                }
+                else
+                {
+                    f = InventoryService.GetRootFolder(item.Owner);
+                    if (f != null)
+                    {
+                        item.Folder = f.ID;
+                    }
+                    else
+                    {
+                        m_log.WarnFormat(
+                            "[AGENT INVENTORY]: Could not find root folder for {0} when trying to add item {1} with no parent folder specified",
+                            item.Owner, item.Name);
+                        return false;
+                    }
+                }
+            }
+            
             if (InventoryService.AddItem(item))
             {
                 int userlevel = 0;
@@ -106,6 +134,8 @@ namespace OpenSim.Region.Framework.Scenes
                     userlevel = 1;
                 }
                 EventManager.TriggerOnNewInventoryItemUploadComplete(item.Owner, item.AssetID, item.Name, userlevel);
+                
+                return true;
             }
             else
             {
@@ -113,7 +143,7 @@ namespace OpenSim.Region.Framework.Scenes
                     "[AGENT INVENTORY]: Agent {0} could not add item {1} {2}",
                     item.Owner, item.Name, item.ID);
 
-                return;
+                return false;
             }            
         }
         
@@ -538,7 +568,7 @@ namespace OpenSim.Region.Framework.Scenes
                 itemCopy.SalePrice = item.SalePrice;
                 itemCopy.SaleType = item.SaleType;
 
-                if (InventoryService.AddItem(itemCopy))
+                if (AddInventoryItem(itemCopy))
                 {
                     IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
                     if (invAccess != null)
@@ -764,8 +794,10 @@ namespace OpenSim.Region.Framework.Scenes
             item.BasePermissions = baseMask;
             item.CreationDate = creationDate;
 
-            if (InventoryService.AddItem(item))
+            if (AddInventoryItem(item))
+            {
                 remoteClient.SendInventoryItemCreateUpdate(item, callbackID);
+            }
             else
             {
                 m_dialogModule.SendAlertToUser(remoteClient, "Failed to create item");
@@ -1886,7 +1918,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // sets itemID so client can show item as 'attached' in inventory
                 grp.SetFromItemID(item.ID);
 
-                if (InventoryService.AddItem(item))
+                if (AddInventoryItem(item))
                     remoteClient.SendInventoryItemCreateUpdate(item, 0);
                 else
                     m_dialogModule.SendAlertToUser(remoteClient, "Operation failed");

@@ -214,8 +214,6 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         {
             m_userTransactions.Manager.MyScene.AssetService.Store(m_asset);
 
-            IInventoryService invService = m_userTransactions.Manager.MyScene.InventoryService;
-
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = ourClient.AgentId;
             item.CreatorId = ourClient.AgentId.ToString();
@@ -234,7 +232,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             item.Flags = (uint) wearableType;
             item.CreationDate = Util.UnixTimeSinceEpoch();
 
-            if (invService.AddItem(item))
+            if (m_userTransactions.Manager.MyScene.AddInventoryItem(item))
                 ourClient.SendInventoryItemCreateUpdate(item, callbackID);
             else
                 ourClient.SendAlertMessage("Unable to create inventory item");
