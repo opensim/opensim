@@ -171,7 +171,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelGodForceOwner += ClientOnParcelGodForceOwner;
             client.OnParcelReclaim += ClientOnParcelReclaim;
             client.OnParcelInfoRequest += ClientOnParcelInfoRequest;
-//            client.OnParcelDwellRequest += ClientOnParcelDwellRequest;
             client.OnParcelDeedToGroup += ClientOnParcelDeedToGroup;
             client.OnPreAgentUpdate += ClientOnPreAgentUpdate;
 
@@ -1511,18 +1510,6 @@ namespace OpenSim.Region.CoreModules.World.Land
         }
 
         #endregion
-
-        private void ClientOnParcelDwellRequest(int localID, IClientAPI remoteClient)
-        {
-            ILandObject selectedParcel = null;
-            lock (m_landList)
-            {
-                if (!m_landList.TryGetValue(localID, out selectedParcel))
-                    return;
-            }
-            
-            remoteClient.SendParcelDwellReply(localID, selectedParcel.LandData.GlobalID,  selectedParcel.LandData.Dwell);
-        }
 
         private void ClientOnParcelInfoRequest(IClientAPI remoteClient, UUID parcelID)
         {
