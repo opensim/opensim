@@ -94,11 +94,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 try
                 {
-<<<<<<< HEAD:OpenSim/Framework/Servers/HttpServer/SynchronousRestFormsRequester.cs
-                    if (resp.ContentLength > 0)
-=======
                     using (WebResponse resp = request.GetResponse())
->>>>>>> e593607... Remove "Dwell" support from core and replace it with calls to methods:OpenSim/Framework/Servers/HttpServer/SynchronousRestFormsRequester.cs
                     {
                         if (resp.ContentLength != 0)
                         {
