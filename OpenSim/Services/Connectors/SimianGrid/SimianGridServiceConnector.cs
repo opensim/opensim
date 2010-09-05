@@ -60,6 +60,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         private string m_serverUrl = String.Empty;
         private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
+        private bool m_Enabled = false;
 
         #region ISharedRegionModule
 
@@ -72,21 +73,25 @@ namespace OpenSim.Services.Connectors.SimianGrid
         public string Name { get { return "SimianGridServiceConnector"; } }
         public void AddRegion(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
             // Every shared region module has to maintain an indepedent list of
             // currently running regions
             lock (m_scenes)
                 m_scenes[scene.RegionInfo.RegionID] = scene;
 
-            if (!String.IsNullOrEmpty(m_serverUrl))
-                scene.RegisterModuleInterface<IGridService>(this);
+            scene.RegisterModuleInterface<IGridService>(this);
         }
         public void RemoveRegion(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
             lock (m_scenes)
                 m_scenes.Remove(scene.RegionInfo.RegionID);
 
-            if (!String.IsNullOrEmpty(m_serverUrl))
-                scene.UnregisterModuleInterface<IGridService>(this);
+            scene.UnregisterModuleInterface<IGridService>(this);
         }
 
         #endregion ISharedRegionModule
@@ -98,20 +103,29 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            IConfig gridConfig = source.Configs["GridService"];
-            if (gridConfig != null)
+            IConfig moduleConfig = source.Configs["Modules"];
+            if (moduleConfig != null)
             {
-                string serviceUrl = gridConfig.GetString("GridServerURI");
-                if (!String.IsNullOrEmpty(serviceUrl))
+                string name = moduleConfig.GetString("GridServices", "");
+                if (name == Name)
                 {
-                    if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
-                        serviceUrl = serviceUrl + '/';
-                    m_serverUrl = serviceUrl;
+                    IConfig gridConfig = source.Configs["GridService"];
+                    if (gridConfig != null)
+                    {
+                        string serviceUrl = gridConfig.GetString("GridServerURI");
+                        if (!String.IsNullOrEmpty(serviceUrl))
+                        {
+                            if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
+                                serviceUrl = serviceUrl + '/';
+                            m_serverUrl = serviceUrl;
+                            m_Enabled = true;
+                        }
+                    }
+
+                    if (String.IsNullOrEmpty(m_serverUrl))
+                        m_log.Info("[SIMIAN GRID CONNECTOR]: No GridServerURI specified, disabling connector");
                 }
             }
-
-            if (String.IsNullOrEmpty(m_serverUrl))
-                m_log.Info("[SIMIAN GRID CONNECTOR]: No GridServerURI specified, disabling connector");
         }
 
         #region IGridService

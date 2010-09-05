@@ -55,6 +55,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         private string m_serverUrl = String.Empty;
         private ExpiringCache<UUID, UserAccount> m_accountCache;
+        private bool m_Enabled = false;
 
         #region ISharedRegionModule
 
@@ -65,8 +66,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianUserAccountServiceConnector() { }
         public string Name { get { return "SimianUserAccountServiceConnector"; } }
-        public void AddRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.RegisterModuleInterface<IUserAccountService>(this); } }
-        public void RemoveRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.UnregisterModuleInterface<IUserAccountService>(this); } }
+        public void AddRegion(Scene scene) { if (m_Enabled) { scene.RegisterModuleInterface<IUserAccountService>(this); } }
+        public void RemoveRegion(Scene scene) { if (m_Enabled) { scene.UnregisterModuleInterface<IUserAccountService>(this); } }
 
         #endregion ISharedRegionModule
 
@@ -77,20 +78,29 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            IConfig gridConfig = source.Configs["UserAccountService"];
-            if (gridConfig != null)
+            IConfig moduleConfig = source.Configs["Modules"];
+            if (moduleConfig != null)
             {
-                string serviceUrl = gridConfig.GetString("UserAccountServerURI");
-                if (!String.IsNullOrEmpty(serviceUrl))
+                string name = moduleConfig.GetString("UserAccountServices", "");
+                if (name == Name)
                 {
-                    if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
-                        serviceUrl = serviceUrl + '/';
-                    m_serverUrl = serviceUrl;
+                    IConfig gridConfig = source.Configs["UserAccountService"];
+                    if (gridConfig != null)
+                    {
+                        string serviceUrl = gridConfig.GetString("UserAccountServerURI");
+                        if (!String.IsNullOrEmpty(serviceUrl))
+                        {
+                            if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
+                                serviceUrl = serviceUrl + '/';
+                            m_serverUrl = serviceUrl;
+                            m_Enabled = true;
+                        }
+                    }
+
+                    if (String.IsNullOrEmpty(m_serverUrl))
+                        m_log.Info("[SIMIAN ACCOUNT CONNECTOR]: No UserAccountServerURI specified, disabling connector");
                 }
             }
-
-            if (String.IsNullOrEmpty(m_serverUrl))
-                m_log.Info("[SIMIAN ACCOUNT CONNECTOR]: No UserAccountServerURI specified, disabling connector");
         }
 
         public UserAccount GetUserAccount(UUID scopeID, string firstName, string lastName)

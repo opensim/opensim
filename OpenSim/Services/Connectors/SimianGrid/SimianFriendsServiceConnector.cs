@@ -46,28 +46,13 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// <summary>
     /// Stores and retrieves friend lists from the SimianGrid backend
     /// </summary>
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianFriendsServiceConnector : IFriendsService, ISharedRegionModule
+    public class SimianFriendsServiceConnector : IFriendsService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_serverUrl = String.Empty;
-
-        #region ISharedRegionModule
-
-        public Type ReplaceableInterface { get { return null; } }
-        public void RegionLoaded(Scene scene) { }
-        public void PostInitialise() { }
-        public void Close() { }
-
-        public SimianFriendsServiceConnector() { }
-        public string Name { get { return "SimianFriendsServiceConnector"; } }
-        public void AddRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.RegisterModuleInterface<IFriendsService>(this); } }
-        public void RemoveRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.UnregisterModuleInterface<IFriendsService>(this); } }
-
-        #endregion ISharedRegionModule
 
         public SimianFriendsServiceConnector(IConfigSource source)
         {
