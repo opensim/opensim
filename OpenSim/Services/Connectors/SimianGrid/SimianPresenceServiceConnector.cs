@@ -59,6 +59,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         private string m_serverUrl = String.Empty;
         private SimianActivityDetector m_activityDetector;
+        private bool m_Enabled = false;
 
         #region ISharedRegionModule
 
@@ -71,7 +72,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         public string Name { get { return "SimianPresenceServiceConnector"; } }
         public void AddRegion(Scene scene)
         {
-            if (!String.IsNullOrEmpty(m_serverUrl))
+            if (m_Enabled)
             {
                 scene.RegisterModuleInterface<IPresenceService>(this);
                 scene.RegisterModuleInterface<IGridUserService>(this);
@@ -83,7 +84,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         }
         public void RemoveRegion(Scene scene)
         {
-            if (!String.IsNullOrEmpty(m_serverUrl))
+            if (m_Enabled)
             {
                 scene.UnregisterModuleInterface<IPresenceService>(this);
                 scene.UnregisterModuleInterface<IGridUserService>(this);
@@ -103,20 +104,29 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            IConfig gridConfig = source.Configs["PresenceService"];
-            if (gridConfig != null)
+            IConfig moduleConfig = source.Configs["Modules"];
+            if (moduleConfig != null)
             {
-                string serviceUrl = gridConfig.GetString("PresenceServerURI");
-                if (!String.IsNullOrEmpty(serviceUrl))
+                string name = moduleConfig.GetString("AssetServices", "");
+                if (name == Name)
                 {
-                    if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
-                        serviceUrl = serviceUrl + '/';
-                    m_serverUrl = serviceUrl;
+                    IConfig gridConfig = source.Configs["PresenceService"];
+                    if (gridConfig != null)
+                    {
+                        string serviceUrl = gridConfig.GetString("PresenceServerURI");
+                        if (!String.IsNullOrEmpty(serviceUrl))
+                        {
+                            if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
+                                serviceUrl = serviceUrl + '/';
+                            m_serverUrl = serviceUrl;
+                            m_Enabled = true;
+                        }
+                    }
+
+                    if (String.IsNullOrEmpty(m_serverUrl))
+                        m_log.Info("[SIMIAN PRESENCE CONNECTOR]: No PresenceServerURI specified, disabling connector");
                 }
             }
-
-            if (String.IsNullOrEmpty(m_serverUrl))
-                m_log.Info("[SIMIAN PRESENCE CONNECTOR]: No PresenceServerURI specified, disabling connector");
         }
 
         #region IPresenceService
