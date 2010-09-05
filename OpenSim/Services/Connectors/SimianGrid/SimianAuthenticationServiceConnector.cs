@@ -51,6 +51,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_serverUrl = String.Empty;
+        private bool m_Enabled = false;
 
         #region ISharedRegionModule
 
@@ -61,8 +62,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianAuthenticationServiceConnector() { }
         public string Name { get { return "SimianAuthenticationServiceConnector"; } }
-        public void AddRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.RegisterModuleInterface<IAuthenticationService>(this); } }
-        public void RemoveRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.UnregisterModuleInterface<IAuthenticationService>(this); } }
+        public void AddRegion(Scene scene) { if (m_Enabled) { scene.RegisterModuleInterface<IAuthenticationService>(this); } }
+        public void RemoveRegion(Scene scene) { if (m_Enabled) { scene.UnregisterModuleInterface<IAuthenticationService>(this); } }
 
         #endregion ISharedRegionModule
 
@@ -73,20 +74,29 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            IConfig gridConfig = source.Configs["AuthenticationService"];
-            if (gridConfig != null)
+            IConfig moduleConfig = source.Configs["Modules"];
+            if (moduleConfig != null)
             {
-                string serviceUrl = gridConfig.GetString("AuthenticationServerURI");
-                if (!String.IsNullOrEmpty(serviceUrl))
+                string name = moduleConfig.GetString("AssetServices", "");
+                if (name == Name)
                 {
-                    if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
-                        serviceUrl = serviceUrl + '/';
-                    m_serverUrl = serviceUrl;
+                    IConfig gridConfig = source.Configs["AuthenticationService"];
+                    if (gridConfig != null)
+                    {
+                        string serviceUrl = gridConfig.GetString("AuthenticationServerURI");
+                        if (!String.IsNullOrEmpty(serviceUrl))
+                        {
+                            if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
+                                serviceUrl = serviceUrl + '/';
+                            m_serverUrl = serviceUrl;
+                            m_Enabled = true;
+                        }
+                    }
+
+                    if (String.IsNullOrEmpty(m_serverUrl))
+                        m_log.Info("[SIMIAN AUTH CONNECTOR]: No AuthenticationServerURI specified, disabling connector");
                 }
             }
-
-            if (String.IsNullOrEmpty(m_serverUrl))
-                m_log.Info("[SIMIAN AUTH CONNECTOR]: No AuthenticationServerURI specified, disabling connector");
         }
 
         public string Authenticate(UUID principalID, string password, int lifetime)
