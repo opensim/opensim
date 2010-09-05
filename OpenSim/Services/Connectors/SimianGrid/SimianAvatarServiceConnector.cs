@@ -82,7 +82,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("AssetServices", "");
+                string name = moduleConfig.GetString("AvatarServices", "");
                 if (name == Name)
                 {
                     IConfig gridConfig = source.Configs["AvatarService"];

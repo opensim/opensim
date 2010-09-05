@@ -107,7 +107,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("AssetServices", "");
+                string name = moduleConfig.GetString("PresenceServices", "");
                 if (name == Name)
                 {
                     IConfig gridConfig = source.Configs["PresenceService"];
