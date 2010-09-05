@@ -638,9 +638,9 @@ ELSE
 
             //Insert new values
             string sql = @"INSERT INTO [land] 
-([UUID],[RegionUUID],[LocalLandID],[Bitmap],[Name],[Description],[OwnerUUID],[IsGroupOwned],[Area],[AuctionID],[Category],[ClaimDate],[ClaimPrice],[GroupUUID],[SalePrice],[LandStatus],[LandFlags],[LandingType],[MediaAutoScale],[MediaTextureUUID],[MediaURL],[MusicURL],[PassHours],[PassPrice],[SnapshotUUID],[UserLocationX],[UserLocationY],[UserLocationZ],[UserLookAtX],[UserLookAtY],[UserLookAtZ],[AuthbuyerID],[OtherCleanTime],[Dwell])
+([UUID],[RegionUUID],[LocalLandID],[Bitmap],[Name],[Description],[OwnerUUID],[IsGroupOwned],[Area],[AuctionID],[Category],[ClaimDate],[ClaimPrice],[GroupUUID],[SalePrice],[LandStatus],[LandFlags],[LandingType],[MediaAutoScale],[MediaTextureUUID],[MediaURL],[MusicURL],[PassHours],[PassPrice],[SnapshotUUID],[UserLocationX],[UserLocationY],[UserLocationZ],[UserLookAtX],[UserLookAtY],[UserLookAtZ],[AuthbuyerID],[OtherCleanTime])
 VALUES
-(@UUID,@RegionUUID,@LocalLandID,@Bitmap,@Name,@Description,@OwnerUUID,@IsGroupOwned,@Area,@AuctionID,@Category,@ClaimDate,@ClaimPrice,@GroupUUID,@SalePrice,@LandStatus,@LandFlags,@LandingType,@MediaAutoScale,@MediaTextureUUID,@MediaURL,@MusicURL,@PassHours,@PassPrice,@SnapshotUUID,@UserLocationX,@UserLocationY,@UserLocationZ,@UserLookAtX,@UserLookAtY,@UserLookAtZ,@AuthbuyerID,@OtherCleanTime,@Dwell)";
+(@UUID,@RegionUUID,@LocalLandID,@Bitmap,@Name,@Description,@OwnerUUID,@IsGroupOwned,@Area,@AuctionID,@Category,@ClaimDate,@ClaimPrice,@GroupUUID,@SalePrice,@LandStatus,@LandFlags,@LandingType,@MediaAutoScale,@MediaTextureUUID,@MediaURL,@MusicURL,@PassHours,@PassPrice,@SnapshotUUID,@UserLocationX,@UserLocationY,@UserLocationZ,@UserLookAtX,@UserLookAtY,@UserLookAtZ,@AuthbuyerID,@OtherCleanTime)";
 
             using (SqlConnection conn = new SqlConnection(m_connectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
@@ -954,7 +954,6 @@ VALUES
             newData.SnapshotID = new UUID((Guid)row["SnapshotUUID"]);
 
             newData.OtherCleanTime = Convert.ToInt32(row["OtherCleanTime"]);
-            newData.Dwell = Convert.ToInt32(row["Dwell"]);
 
             try
             {
@@ -1357,7 +1356,6 @@ VALUES
             parameters.Add(_Database.CreateParameter("UserLookAtZ", land.UserLookAt.Z));
             parameters.Add(_Database.CreateParameter("AuthBuyerID", land.AuthBuyerID));
             parameters.Add(_Database.CreateParameter("OtherCleanTime", land.OtherCleanTime));
-            parameters.Add(_Database.CreateParameter("Dwell", land.Dwell));
 
             return parameters.ToArray();
         }

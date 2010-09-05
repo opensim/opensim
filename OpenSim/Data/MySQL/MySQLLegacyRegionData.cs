@@ -677,7 +677,7 @@ namespace OpenSim.Data.MySQL
                             "MusicURL, PassHours, PassPrice, SnapshotUUID, " +
                             "UserLocationX, UserLocationY, UserLocationZ, " +
                             "UserLookAtX, UserLookAtY, UserLookAtZ, " +
-                            "AuthbuyerID, OtherCleanTime, Dwell, MediaType, MediaDescription, " +
+                            "AuthbuyerID, OtherCleanTime, MediaType, MediaDescription, " +
 							"MediaSize, MediaLoop, ObscureMusic, ObscureMedia) values (" +
                             "?UUID, ?RegionUUID, " +
                             "?LocalLandID, ?Bitmap, ?Name, ?Description, " +
@@ -688,7 +688,7 @@ namespace OpenSim.Data.MySQL
                             "?MusicURL, ?PassHours, ?PassPrice, ?SnapshotUUID, " +
                             "?UserLocationX, ?UserLocationY, ?UserLocationZ, " +
                             "?UserLookAtX, ?UserLookAtY, ?UserLookAtZ, " +
-                            "?AuthbuyerID, ?OtherCleanTime, ?Dwell, ?MediaType, ?MediaDescription, "+
+                            "?AuthbuyerID, ?OtherCleanTime, ?MediaType, ?MediaDescription, "+
 							"CONCAT(?MediaWidth, ',', ?MediaHeight), ?MediaLoop, ?ObscureMusic, ?ObscureMedia)";
 
                         FillLandCommand(cmd, parcel.LandData, parcel.RegionUUID);
@@ -1329,7 +1329,6 @@ namespace OpenSim.Data.MySQL
             UUID.TryParse((string)row["AuthBuyerID"], out authedbuyer);
             UUID.TryParse((string)row["SnapshotUUID"], out snapshotID);
             newData.OtherCleanTime = Convert.ToInt32(row["OtherCleanTime"]);
-            newData.Dwell = Convert.ToInt32(row["Dwell"]);
 
             newData.AuthBuyerID = authedbuyer;
             newData.SnapshotID = snapshotID;
@@ -1660,7 +1659,6 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("UserLookAtZ", land.UserLookAt.Z);
             cmd.Parameters.AddWithValue("AuthBuyerID", land.AuthBuyerID);
             cmd.Parameters.AddWithValue("OtherCleanTime", land.OtherCleanTime);
-            cmd.Parameters.AddWithValue("Dwell", land.Dwell);
             cmd.Parameters.AddWithValue("MediaDescription", land.MediaDescription);
             cmd.Parameters.AddWithValue("MediaType", land.MediaType);
             cmd.Parameters.AddWithValue("MediaWidth", land.MediaWidth);

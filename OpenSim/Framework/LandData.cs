@@ -88,7 +88,6 @@ namespace OpenSim.Framework
         private UUID _snapshotID = UUID.Zero;
         private Vector3 _userLocation = new Vector3();
         private Vector3 _userLookAt = new Vector3();
-        private int _dwell = 0;
         private int _otherCleanTime = 0;
 		private string _mediaType = "none/none";
 		private string _mediaDescription = "";
@@ -620,18 +619,6 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Deprecated idea.  Number of visitors ~= free money
-        /// </summary>
-        public int Dwell {
-            get {
-                return _dwell;
-            }
-            set {
-                _dwell = value;
-            }
-        }
-
-        /// <summary>
         /// Number of minutes to return SceneObjectGroup that are owned by someone who doesn't own 
         /// the parcel and isn't set to the same 'group' as the parcel.
         /// </summary>
@@ -703,7 +690,6 @@ namespace OpenSim.Framework
             landData._userLocation = _userLocation;
             landData._userLookAt = _userLookAt;
             landData._otherCleanTime = _otherCleanTime;
-            landData._dwell = _dwell;
 			landData._mediaType = _mediaType;
 			landData._mediaDescription = _mediaDescription;
 			landData._mediaWidth = _mediaWidth;
