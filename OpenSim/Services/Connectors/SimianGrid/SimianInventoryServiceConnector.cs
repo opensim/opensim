@@ -70,6 +70,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         private string m_serverUrl = String.Empty;
         private string m_userServerUrl = String.Empty;
 //        private object m_gestureSyncRoot = new object();
+        private bool m_Enabled = false;
 
         #region ISharedRegionModule
 
@@ -80,8 +81,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianInventoryServiceConnector() { }
         public string Name { get { return "SimianInventoryServiceConnector"; } }
-        public void AddRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.RegisterModuleInterface<IInventoryService>(this); } }
-        public void RemoveRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.UnregisterModuleInterface<IInventoryService>(this); } }
+        public void AddRegion(Scene scene) { if (m_Enabled) { scene.RegisterModuleInterface<IInventoryService>(this); } }
+        public void RemoveRegion(Scene scene) { if (m_Enabled) { scene.UnregisterModuleInterface<IInventoryService>(this); } }
 
         #endregion ISharedRegionModule
 
@@ -92,30 +93,41 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            IConfig gridConfig = source.Configs["InventoryService"];
-            if (gridConfig != null)
+            IConfig moduleConfig = source.Configs["Modules"];
+            if (moduleConfig != null)
             {
-                string serviceUrl = gridConfig.GetString("InventoryServerURI");
-                if (!String.IsNullOrEmpty(serviceUrl))
+                string name = moduleConfig.GetString("AssetServices", "");
+                if (name == Name)
                 {
-                    if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
-                        serviceUrl = serviceUrl + '/';
-                    m_serverUrl = serviceUrl;
-
-                    gridConfig = source.Configs["UserAccountService"];
+                    IConfig gridConfig = source.Configs["InventoryService"];
                     if (gridConfig != null)
                     {
-                        serviceUrl = gridConfig.GetString("UserAccountServerURI");
+                        string serviceUrl = gridConfig.GetString("InventoryServerURI");
                         if (!String.IsNullOrEmpty(serviceUrl))
-                            m_userServerUrl = serviceUrl;
+                        {
+                            if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
+                                serviceUrl = serviceUrl + '/';
+                            m_serverUrl = serviceUrl;
+
+                            gridConfig = source.Configs["UserAccountService"];
+                            if (gridConfig != null)
+                            {
+                                serviceUrl = gridConfig.GetString("UserAccountServerURI");
+                                if (!String.IsNullOrEmpty(serviceUrl))
+                                {
+                                    m_userServerUrl = serviceUrl;
+                                    m_Enabled = true;
+                                }
+                            }
+                        }
                     }
+
+                    if (String.IsNullOrEmpty(m_serverUrl))
+                        m_log.Info("[SIMIAN INVENTORY CONNECTOR]: No InventoryServerURI specified, disabling connector");
+                    else if (String.IsNullOrEmpty(m_userServerUrl))
+                        m_log.Info("[SIMIAN INVENTORY CONNECTOR]: No UserAccountServerURI specified, disabling connector");
                 }
             }
-
-            if (String.IsNullOrEmpty(m_serverUrl))
-                m_log.Info("[SIMIAN INVENTORY CONNECTOR]: No InventoryServerURI specified, disabling connector");
-            else if (String.IsNullOrEmpty(m_userServerUrl))
-                m_log.Info("[SIMIAN INVENTORY CONNECTOR]: No UserAccountServerURI specified, disabling connector");
         }
 
         /// <summary>
