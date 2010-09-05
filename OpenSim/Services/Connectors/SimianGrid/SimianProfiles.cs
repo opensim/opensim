@@ -67,6 +67,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_serverUrl = String.Empty;
+        private bool m_Enabled = false;
 
         #region INonSharedRegionModule
         
@@ -76,8 +77,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianProfiles() { }
         public string Name { get { return "SimianProfiles"; } }
-        public void AddRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { CheckEstateManager(scene); scene.EventManager.OnClientConnect += ClientConnectHandler; } }
-        public void RemoveRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.EventManager.OnClientConnect -= ClientConnectHandler; } }
+        public void AddRegion(Scene scene) { if (m_Enabled) { CheckEstateManager(scene); scene.EventManager.OnClientConnect += ClientConnectHandler; } }
+        public void RemoveRegion(Scene scene) { if (m_Enabled) { scene.EventManager.OnClientConnect -= ClientConnectHandler; } }
 
         #endregion INonSharedRegionModule
 
@@ -88,6 +89,13 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
+            IConfig profileConfig = source.Configs["Profile"];
+            if (profileConfig == null)
+                return;
+
+            if (profileConfig.GetString("Module", String.Empty) != Name)
+                return;
+
             IConfig gridConfig = source.Configs["UserAccountService"];
             if (gridConfig != null)
             {
