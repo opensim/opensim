@@ -134,5 +134,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
         #endregion
 
+        [Test]
+        // llRot2Euler test.
+        public void TestllRot2Euler()
+        {
+            // 180, 90 and zero degree rotations.
+            CheckllRot2Euler(new LSL_Types.Quaternion(1.0f, 0.0f, 0.0f, 0.0f), new LSL_Types.Vector3(Math.PI, 0.0f, 0.0f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, 1.0f, 0.0f, 0.0f), new LSL_Types.Vector3(Math.PI, 0.0f, Math.PI));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, 0.0f, 1.0f, 0.0f), new LSL_Types.Vector3(0.0f, 0.0f, Math.PI));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.0f, 0.0f, 0.0f, 1.0f), new LSL_Types.Vector3(0.0f, 0.0f, 0.0f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.5f, -0.5f, 0.5f, 0.5f), new LSL_Types.Vector3(0, -Math.PI / 2.0f, Math.PI / 2.0f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(-0.707107f, 0.0f, 0.0f, -0.707107f), new LSL_Types.Vector3(Math.PI / 2.0f, 0.0f, 0.0f));
+            // A couple of messy rotations.
+            CheckllRot2Euler(new LSL_Types.Quaternion(1.0f, 5.651f, -3.1f, 67.023f), new LSL_Types.Vector3(0.037818f, 0.166447f, -0.095595f));
+            CheckllRot2Euler(new LSL_Types.Quaternion(0.719188f, -0.408934f, -0.363998f, -0.427841f), new LSL_Types.Vector3(-1.954769f, -0.174533f, 1.151917f));
+        }
+
+        private void CheckllRot2Euler(LSL_Types.Quaternion rot, LSL_Types.Vector3 eulerCheck)
+        {
+            // Call LSL function to convert quaternion rotaion to euler radians.
+            LSL_Types.Vector3 eulerCalc = m_lslApi.llRot2Euler(rot);
+            // Check upper and lower bounds of x, y and z.
+            // This type of check is performed as opposed to comparing for equal numbers, in order to allow slight
+            // differences in accuracy.
+            Assert.Greater(eulerCalc.x, eulerCheck.x - ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler X lower bounds check fail");
+            Assert.Less(eulerCalc.x, eulerCheck.x + ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler X upper bounds check fail");
+            Assert.Greater(eulerCalc.y, eulerCheck.y - ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler Y lower bounds check fail");
+            Assert.Less(eulerCalc.y, eulerCheck.y + ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler Y upper bounds check fail");
+            Assert.Greater(eulerCalc.z, eulerCheck.z - ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler Z lower bounds check fail");
+            Assert.Less(eulerCalc.z, eulerCheck.z + ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler Z upper bounds check fail");
+        }
     }
 }

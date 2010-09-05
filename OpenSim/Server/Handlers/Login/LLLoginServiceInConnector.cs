@@ -43,6 +43,7 @@ namespace OpenSim.Server.Handlers.Login
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private ILoginService m_LoginService;
+        private bool m_Proxy;
 
         public LLLoginServiceInConnector(IConfigSource config, IHttpServer server, IScene scene) :
                 base(config, server, String.Empty)
@@ -81,12 +82,14 @@ namespace OpenSim.Server.Handlers.Login
             if (loginService == string.Empty)
                 throw new Exception(String.Format("No LocalServiceModule for LoginService in config file"));
 
+            m_Proxy = serverConfig.GetBoolean("HasProxy", false);
+
             return loginService;
         }
 
         private void InitializeHandlers(IHttpServer server)
         {
-            LLLoginHandlers loginHandlers = new LLLoginHandlers(m_LoginService);
+            LLLoginHandlers loginHandlers = new LLLoginHandlers(m_LoginService, m_Proxy);
             server.AddXmlRPCHandler("login_to_simulator", loginHandlers.HandleXMLRPCLogin, false);
             server.AddXmlRPCHandler("set_login_level", loginHandlers.HandleXMLRPCSetLoginLevel, false);
             server.SetDefaultLLSDHandler(loginHandlers.HandleLLSDLogin);

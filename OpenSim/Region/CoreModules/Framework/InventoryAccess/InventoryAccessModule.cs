@@ -430,7 +430,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 item.Name = asset.Name;
                 item.AssetType = asset.Type;
 
-                m_Scene.InventoryService.AddItem(item);
+                m_Scene.AddInventoryItem(item);
 
                 if (remoteClient != null && item.Owner == remoteClient.AgentId)
                 {

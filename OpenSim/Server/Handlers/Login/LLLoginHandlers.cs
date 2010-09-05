@@ -52,15 +52,24 @@ namespace OpenSim.Server.Handlers.Login
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private ILoginService m_LocalService;
+        private bool m_Proxy;
 
-        public LLLoginHandlers(ILoginService service)
+        public LLLoginHandlers(ILoginService service, bool hasProxy)
         {
             m_LocalService = service;
+            m_Proxy = hasProxy;
         }
 
         public XmlRpcResponse HandleXMLRPCLogin(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
+            if (m_Proxy && request.Params[3] != null)
+            {
+                IPEndPoint ep = Util.GetClientIPFromXFF((string)request.Params[3]);
+                if (ep != null)
+                    // Bang!
+                    remoteClient = ep;
+            }
 
             if (requestData != null)
             {
@@ -189,6 +198,7 @@ namespace OpenSim.Server.Handlers.Login
 
             return map;
         }
+
     }
 
 }

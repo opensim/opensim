@@ -77,25 +77,20 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            if (Simian.IsSimianEnabled(source, "UserAccountServices", this.Name))
+            IConfig gridConfig = source.Configs["UserAccountService"];
+            if (gridConfig != null)
             {
-                IConfig assetConfig = source.Configs["UserAccountService"];
-                if (assetConfig == null)
+                string serviceUrl = gridConfig.GetString("UserAccountServerURI");
+                if (!String.IsNullOrEmpty(serviceUrl))
                 {
-                    m_log.Error("[SIMIAN ACCOUNT CONNECTOR]: UserAccountService missing from OpenSim.ini");
-                    throw new Exception("User account connector init error");
+                    if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
+                        serviceUrl = serviceUrl + '/';
+                    m_serverUrl = serviceUrl;
                 }
-
-                string serviceURI = assetConfig.GetString("UserAccountServerURI");
-                if (String.IsNullOrEmpty(serviceURI))
-                {
-                    m_log.Error("[SIMIAN ACCOUNT CONNECTOR]: No UserAccountServerURI in section UserAccountService, skipping SimianUserAccountServiceConnector");
-                    throw new Exception("User account connector init error");
-                }
-
-                m_accountCache = new ExpiringCache<UUID, UserAccount>();
-                m_serverUrl = serviceURI;
             }
+
+            if (String.IsNullOrEmpty(m_serverUrl))
+                m_log.Info("[SIMIAN ACCOUNT CONNECTOR]: No UserAccountServerURI specified, disabling connector");
         }
 
         public UserAccount GetUserAccount(UUID scopeID, string firstName, string lastName)

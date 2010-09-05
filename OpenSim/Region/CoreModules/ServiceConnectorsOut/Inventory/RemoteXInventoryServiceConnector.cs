@@ -227,31 +227,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         public  bool AddItem(InventoryItemBase item)
         {
             if (item == null)
-                return false;
-            
-            if (UUID.Zero == item.Folder)
-            {
-                InventoryFolderBase f = m_RemoteConnector.GetFolderForType(item.Owner, (AssetType)item.AssetType);
-                if (f != null)
-                {
-                    item.Folder = f.ID;
-                }
-                else
-                {
-                    f = m_RemoteConnector.GetRootFolder(item.Owner);
-                    if (f != null)
-                    {
-                        item.Folder = f.ID;
-                    }
-                    else
-                    {
-                        m_log.WarnFormat(
-                            "[LOCAL INVENTORY SERVICES CONNECTOR]: Could not find root folder for {0} when trying to add item {1} with no parent folder specified",
-                            item.Owner, item.Name);                        
-                        return false;
-                    }
-                }
-            }            
+                return false;         
 
             return m_RemoteConnector.AddItem(item);
         }

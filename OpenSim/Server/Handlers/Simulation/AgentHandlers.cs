@@ -184,7 +184,7 @@ namespace OpenSim.Server.Handlers.Simulation
             resp["reason"] = OSD.FromString(reason);
             resp["success"] = OSD.FromBoolean(result);
             // Let's also send out the IP address of the caller back to the caller (HG 1.5)
-            resp["your_ip"] = OSD.FromString(GetCallerIP(request));
+            resp["your_ip"] = OSD.FromString(Util.GetCallerIP(request));
 
             // TODO: add reason if not String.Empty?
             responsedata["int_response_code"] = HttpStatusCode.OK;
@@ -378,23 +378,6 @@ namespace OpenSim.Server.Handlers.Simulation
             m_SimulationService.ReleaseAgent(regionID, id, "");
         }
 
-        private string GetCallerIP(Hashtable req)
-        {
-            if (req.ContainsKey("headers"))
-            {
-                try
-                {
-                    Hashtable headers = (Hashtable)req["headers"];
-                    if (headers.ContainsKey("remote_addr") && headers["remote_addr"] != null)
-                        return headers["remote_addr"].ToString();
-                }
-                catch (Exception e)
-                {
-                    m_log.WarnFormat("[AGENT HANDLER]: exception in GetCallerIP: {0}", e.Message);
-                }
-            }
-            return string.Empty;
-        }
     }
 
 }
