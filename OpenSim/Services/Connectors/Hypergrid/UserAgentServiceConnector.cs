@@ -66,6 +66,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             {
                 m_log.DebugFormat("[USER AGENT CONNECTOR]: Malformed Uri {0}: {1}", m_ServerURL, e.Message);
             }
+            m_log.DebugFormat("[USER AGENT CONNECTOR]: new connector to {0} ({1})", url, m_ServerURL);
         }
 
         public UserAgentServiceConnector(IConfigSource config)
