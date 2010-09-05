@@ -461,7 +461,8 @@ namespace OpenSim.Framework.Console
                         SetCursorLeft(0);
                         y = SetCursorTop(y);
 
-                        System.Console.WriteLine("{0}{1}", prompt, cmdline);
+                        System.Console.WriteLine();
+                        //Show();
 
                         lock (cmdline)
                         {
@@ -486,7 +487,7 @@ namespace OpenSim.Framework.Console
                             }
                         }
 
-                        AddToHistory(cmdline.ToString());
+                        //AddToHistory(cmdline.ToString());
                         return cmdline.ToString();
                     default:
                         break;

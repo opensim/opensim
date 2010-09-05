@@ -296,13 +296,15 @@ namespace OpenSim.Services.UserAccountService
             string lastName;
             string password;
             string email;
+            
+            List<char> excluded = new List<char>(new char[]{' '});
 
             if (cmdparams.Length < 3)
-                firstName = MainConsole.Instance.CmdPrompt("First name", "Default");
+                firstName = MainConsole.Instance.CmdPrompt("First name", "Default", excluded);
             else firstName = cmdparams[2];
 
             if (cmdparams.Length < 4)
-                lastName = MainConsole.Instance.CmdPrompt("Last name", "User");
+                lastName = MainConsole.Instance.CmdPrompt("Last name", "User", excluded);
             else lastName = cmdparams[3];
 
             if (cmdparams.Length < 5)

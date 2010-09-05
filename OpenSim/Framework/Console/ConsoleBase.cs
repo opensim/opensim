@@ -89,6 +89,57 @@ namespace OpenSim.Framework.Console
 
             return ret;
         }
+                
+        public string CmdPrompt(string p, List<char> excludedCharacters)
+        {
+            bool itisdone = false;
+            string ret = String.Empty;
+            while (!itisdone)
+            {
+                itisdone = true;
+                ret = CmdPrompt(p);
+                
+                foreach (char c in excludedCharacters)
+                {
+                    if (ret.Contains(c.ToString()))
+                    {
+                        System.Console.WriteLine("The character \"" + c.ToString() + "\" is not permitted.");
+                        itisdone = false;
+                    }
+                }
+            }
+
+            return ret;
+        }
+
+        public string CmdPrompt(string p, string def, List<char> excludedCharacters)
+        {
+            bool itisdone = false;
+            string ret = String.Empty;
+            while (!itisdone)
+            {
+                itisdone = true;
+                ret = CmdPrompt(p, def);
+                
+                if (ret == String.Empty)
+                {
+                    ret = def;
+                }
+                else
+                {
+                    foreach (char c in excludedCharacters)
+                    {
+                        if (ret.Contains(c.ToString()))
+                        {
+                            System.Console.WriteLine("The character \"" + c.ToString() + "\" is not permitted.");
+                            itisdone = false;
+                        }
+                    }
+                }
+            }
+
+            return ret;
+        }
 
         // Displays a command prompt and returns a default value, user may only enter 1 of 2 options
         public string CmdPrompt(string prompt, string defaultresponse, List<string> options)
