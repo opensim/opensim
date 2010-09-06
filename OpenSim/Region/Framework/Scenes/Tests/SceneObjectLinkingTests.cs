@@ -293,10 +293,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             scene.Backup(true);
             
             List<SceneObjectGroup> storedObjects = scene.StorageManager.DataStore.LoadObjects(scene.RegionInfo.RegionID);
+            
             Assert.That(storedObjects.Count, Is.EqualTo(1));
             Assert.That(storedObjects[0].Children.Count, Is.EqualTo(2));
-            Assert.That(storedObjects[0].RootPart.UUID, Is.EqualTo(rootPartUuid));
-            // TODO: assertion for child prim            
+            Assert.That(storedObjects[0].Children.ContainsKey(rootPartUuid));
+            Assert.That(storedObjects[0].Children.ContainsKey(linkPartUuid));
         }
         
         /// <summary>
