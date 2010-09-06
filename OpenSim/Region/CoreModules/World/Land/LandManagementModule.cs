@@ -1115,7 +1115,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_landList.TryGetValue(localID, out land);
             }
 
-            if (land != null) land.UpdateLandProperties(args, remote_client);
+            if (land != null)
+            {
+                land.UpdateLandProperties(args, remote_client);
+                m_scene.EventManager.TriggerOnParcelPropertiesUpdateRequest(args, localID, remote_client);
+            }
         }
 
         public void ClientOnParcelDivideRequest(int west, int south, int east, int north, IClientAPI remote_client)
@@ -1433,9 +1437,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_landList.TryGetValue(parcelID, out land);
             }
 
-            if (land != null) {
+            if (land != null)
+            {
 				land.UpdateLandProperties(land_update, client);
-			} else {
+                m_scene.EventManager.TriggerOnParcelPropertiesUpdateRequest(land_update, parcelID, client);
+			}
+            else
+            {
 				m_log.WarnFormat("[LAND] unable to find parcelID {0}", parcelID);
 			} 
             return LLSDHelpers.SerialiseLLSDReply(new LLSDEmpty());
