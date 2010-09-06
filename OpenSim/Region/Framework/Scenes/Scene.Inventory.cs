@@ -1720,7 +1720,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void DeRezObject(IClientAPI remoteClient, uint localID,
                 UUID groupID, DeRezAction action, UUID destinationID)
         {
-            DeRezObjects(remoteClient, new List<uint>() { localID} , groupID, action, destinationID);
+            DeRezObjects(remoteClient, new List<uint>() { localID }, groupID, action, destinationID);
         }
 
         public virtual void DeRezObjects(IClientAPI remoteClient, List<uint> localIDs,
@@ -1756,11 +1756,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 deleteIDs.Add(localID);
                 deleteGroups.Add(grp);
-
-                // Force a database backup/update on this SceneObjectGroup
-                // So that we know the database is upto date,
-                // for when deleting the object from it
-                ForceSceneObjectBackup(grp);
 
                 if (remoteClient == null)
                 {

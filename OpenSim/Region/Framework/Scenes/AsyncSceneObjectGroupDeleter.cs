@@ -111,11 +111,11 @@ namespace OpenSim.Region.Framework.Scenes
         
         private void InventoryRunDeleteTimer(object sender, ElapsedEventArgs e)
         {
-            m_log.Debug("[SCENE]: Starting send to inventory loop");
+            m_log.Debug("[ASYNC DELETER]: Starting send to inventory loop");
             
             while (InventoryDeQueueAndDelete())
             {
-                //m_log.Debug("[SCENE]: Sent item successfully to inventory, continuing...");
+                //m_log.Debug("[ASYNC DELETER]: Sent item successfully to inventory, continuing...");
             }
         }
 
@@ -137,7 +137,7 @@ namespace OpenSim.Region.Framework.Scenes
                         x = m_inventoryDeletes.Dequeue();
 
                         m_log.DebugFormat(
-                            "[SCENE]: Sending object to user's inventory, {0} item(s) remaining.", left);
+                            "[ASYNC DELETER]: Sending object to user's inventory, {0} item(s) remaining.", left);
                         
                         try
                         {
@@ -152,7 +152,8 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         catch (Exception e)
                         {
-                            m_log.DebugFormat("Exception background sending object: " + e);
+                            m_log.ErrorFormat(
+                                "[ASYNC DELETER]: Exception background sending object: {0}{1}", e.Message, e.StackTrace);
                         }
                         
                         return true;
@@ -164,11 +165,15 @@ namespace OpenSim.Region.Framework.Scenes
                 // We can't put the object group details in here since the root part may have disappeared (which is where these sit).
                 // FIXME: This needs to be fixed.
                 m_log.ErrorFormat(
-                    "[SCENE]: Queued sending of scene object to agent {0} {1} failed: {2}",
-                    (x != null ? x.remoteClient.Name : "unavailable"), (x != null ? x.remoteClient.AgentId.ToString() : "unavailable"), e.ToString());
+                    "[ASYNC DELETER]: Queued sending of scene object to agent {0} {1} failed: {2} {3}",
+                    (x != null ? x.remoteClient.Name : "unavailable"), 
+                    (x != null ? x.remoteClient.AgentId.ToString() : "unavailable"), 
+                    e.Message, 
+                    e.StackTrace);
             }
 
-            m_log.Debug("[SCENE]: No objects left in inventory send queue.");
+            m_log.Debug("[ASYNC DELETER]: No objects left in inventory send queue.");
+            
             return false;
         }
     }

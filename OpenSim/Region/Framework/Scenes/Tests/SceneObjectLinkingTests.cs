@@ -303,11 +303,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// <summary>
         /// Test that a delink of a previously linked object is correctly persisted to the database
         /// </summary>
-        //[Test]
+        [Test]
         public void TestDelinkPersistence()
         {
             TestHelper.InMethod();
-            //log4net.Config.XmlConfigurator.Configure();
+            log4net.Config.XmlConfigurator.Configure();
             
             TestScene scene = SceneSetupHelpers.SetupScene();            
             

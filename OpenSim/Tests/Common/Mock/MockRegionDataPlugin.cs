@@ -44,7 +44,7 @@ namespace OpenSim.Data.Null
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Dictionary<UUID, RegionSettings> m_regionSettings = new Dictionary<UUID, RegionSettings>();
-        protected Dictionary<UUID, SceneObjectGroup> m_sceneObjects = new Dictionary<UUID, SceneObjectGroup>();
+        protected Dictionary<UUID, SceneObjectPart> m_sceneObjectParts = new Dictionary<UUID, SceneObjectPart>();
         protected Dictionary<UUID, ICollection<TaskInventoryItem>> m_primItems 
             = new Dictionary<UUID, ICollection<TaskInventoryItem>>();
         protected Dictionary<UUID, double[,]> m_terrains = new Dictionary<UUID, double[,]>();
@@ -85,18 +85,33 @@ namespace OpenSim.Data.Null
 
         public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
-            m_log.DebugFormat(
-                "[MOCK REGION DATA PLUGIN]: Storing object {0} {1} in {2}", obj.Name, obj.UUID, regionUUID);
-            m_sceneObjects[obj.UUID] = obj;
+            // We can't simply store groups here because on delinking, OpenSim will not update the original group
+            // directly.  Rather, the newly delinked parts will be updated to be in their own scene object group
+            // Therefore, we need to store parts rather than groups.
+            foreach (SceneObjectPart prim in obj.Children.Values)
+            {
+                m_log.DebugFormat(
+                    "[MOCK REGION DATA PLUGIN]: Storing part {0} {1} in object {2} {3} in region {4}", 
+                    prim.Name, prim.UUID, obj.Name, obj.UUID, regionUUID);
+                            
+                m_sceneObjectParts[prim.UUID] = prim;
+            }
         }
 
         public void RemoveObject(UUID obj, UUID regionUUID)
-        {
-            m_log.DebugFormat(
-                "[MOCK REGION DATA PLUGIN]: Removing object {0} from {1}", obj, regionUUID);
-            
-            if (m_sceneObjects.ContainsKey(obj))
-                m_sceneObjects.Remove(obj);
+        {           
+            // All parts belonging to the object with the uuid are removed.
+            List<SceneObjectPart> parts = new List<SceneObjectPart>(m_sceneObjectParts.Values);
+            foreach (SceneObjectPart part in parts)
+            {
+                if (part.ParentGroup.UUID == obj)
+                {
+                    m_log.DebugFormat(
+                        "[MOCK REGION DATA PLUGIN]: Removing part {0} {1} as part of object {2} from {3}", 
+                        part.Name, part.UUID, obj, regionUUID);                    
+                    m_sceneObjectParts.Remove(part.UUID);
+                }
+            }
         }
 
         // see IRegionDatastore
@@ -107,10 +122,49 @@ namespace OpenSim.Data.Null
 
         public List<SceneObjectGroup> LoadObjects(UUID regionUUID)
         {
-            m_log.DebugFormat(
-                "[MOCK REGION DATA PLUGIN]: Loading objects from {0}", regionUUID);
+            Dictionary<UUID, SceneObjectGroup> objects = new Dictionary<UUID, SceneObjectGroup>();
             
-            return new List<SceneObjectGroup>(m_sceneObjects.Values);
+            // Create all of the SOGs from the root prims first
+            foreach (SceneObjectPart prim in m_sceneObjectParts.Values)
+            {
+                if (prim.IsRoot)
+                {
+                    m_log.DebugFormat(
+                        "[MOCK REGION DATA PLUGIN]: Loading root part {0} {1} in {2}", prim.Name, prim.UUID, regionUUID);                               
+                    objects[prim.UUID] = new SceneObjectGroup(prim);
+                }
+            }
+
+            // Add all of the children objects to the SOGs
+            foreach (SceneObjectPart prim in m_sceneObjectParts.Values)
+            {
+                SceneObjectGroup sog;
+                if (prim.UUID != prim.ParentUUID)
+                {
+                    if (objects.TryGetValue(prim.ParentUUID, out sog))
+                    {
+                        int originalLinkNum = prim.LinkNum;
+
+                        sog.AddPart(prim);
+
+                        // SceneObjectGroup.AddPart() tries to be smart and automatically set the LinkNum.
+                        // We override that here
+                        if (originalLinkNum != 0)
+                            prim.LinkNum = originalLinkNum;
+                    }
+                    else
+                    {
+                        m_log.WarnFormat(
+                            "[MOCK REGION DATA PLUGIN]: Database contains an orphan child prim {0} {1} in region {2} pointing to missing parent {3}.  This prim will not be loaded.",
+                            prim.Name, prim.UUID, regionUUID, prim.ParentUUID);
+                    }
+                }
+            }
+            
+            // TODO: Load items.  This is assymetric - we store items as a separate method but don't retrieve them that
+            // way!
+            
+            return new List<SceneObjectGroup>(objects.Values);
         }
 
         public void StoreTerrain(double[,] ter, UUID regionID)
