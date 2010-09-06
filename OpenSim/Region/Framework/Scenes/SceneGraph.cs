@@ -1619,11 +1619,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if (child != null)
                         {
-                            // Make sure no child prim is set for sale
-                            // So that, on delink, no prims are unwittingly
-                            // left for sale and sold off
-                            child.RootPart.ObjectSaleType = 0;
-                            child.RootPart.SalePrice = 10;
                             childGroups.Add(child);
                         }
                     }
@@ -1907,9 +1902,6 @@ namespace OpenSim.Region.Framework.Scenes
                                 child.ApplyNextOwnerPermissions();
                             }
                         }
-
-                        copy.RootPart.ObjectSaleType = 0;
-                        copy.RootPart.SalePrice = 10;
                     }
 
                     Entities.Add(copy);
