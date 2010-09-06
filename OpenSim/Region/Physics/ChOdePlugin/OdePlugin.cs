@@ -713,7 +713,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // Test if we're colliding a geom with a space.
             // If so we have to drill down into the space recursively
-
+//Console.WriteLine("near -----------");  //##
             if (d.GeomIsSpace(g1) || d.GeomIsSpace(g2))
             {
                 if (g1 == IntPtr.Zero || g2 == IntPtr.Zero)
@@ -844,11 +844,21 @@ namespace OpenSim.Region.Physics.OdePlugin
                     // Testing if the collision is at the feet of the avatar
 
                     //m_log.DebugFormat("[PHYSICS]: {0} - {1} - {2} - {3}", curContact.pos.Z, p2.Position.Z, (p2.Position.Z - curContact.pos.Z), (p2.Size.Z * 0.6f));
-                    if ((p2.Position.Z - curContact.pos.Z) > (p2.Size.Z * 0.6f))
-                        p2.IsColliding = true;
-                }
+//#@                    if ((p2.Position.Z - curContact.pos.Z) > (p2.Size.Z * 0.6f))
+//#@                        p2.IsColliding = true;
+                    if ((p2.Position.Z - curContact.pos.Z) > (p2.Size.Z * 0.6f)){       //##
+//Console.WriteLine("AvColl 1  {0} - {1} - {2} - {3}",        //##
+//                    curContact.pos.Z, p2.Position.Z, (p2.Position.Z - curContact.pos.Z), (p2.Size.Z * 0.6f));                              //##
+                        p2.IsColliding = true;       //##
+                    }else{
+//Console.WriteLine("AvColl 2  {0} - {1} - {2} - {3}",        //##
+//                    curContact.pos.Z, p2.Position.Z, (p2.Position.Z - curContact.pos.Z), (p2.Size.Z * 0.6f));                              //##
+
+                    }  //##   
+                 }
                 else
                 {
+//Console.WriteLine("AvColl 3 {0}", p2.PhysicsActorType); //##
                     p2.IsColliding = true;
                 }
                 

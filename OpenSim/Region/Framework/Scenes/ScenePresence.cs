@@ -2568,9 +2568,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (actor != null)
             {
-                if (actor.Flying)
+// rm falling                if (actor.Flying)
+                if ((actor.Flying) || Animator.m_falling)    // add for falling lateral speed
                 {
-                    direc *= 4.0f;
+// rm speed mod                    direc *= 4.0f;
+                    direc *= 5.2f;      // for speed mod
                     //bool controlland = (((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) || ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
                     //bool colliding = (m_physicsActor.IsColliding==true);
                     //if (controlland)

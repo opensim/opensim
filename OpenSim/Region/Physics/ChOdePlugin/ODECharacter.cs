@@ -269,7 +269,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// </summary>
         public override bool IsColliding
         {
-            get { return m_iscolliding; }
+//#@            get { return m_iscolliding; }
+            get {  //##
+//Console.WriteLine(">>>>>>>>>>>> IC get = {0}", m_iscolliding);  //##
+                return m_iscolliding; }  //##
             set
             {
                 int i;
@@ -307,6 +310,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     m_iscolliding = true;
                 }
+// ## Console.WriteLine("IC SET = {0}   t{1}  f{2}  i {3}", value, truecount, falsecount, m_iscolliding);
                 if (m_wascolliding != m_iscolliding)
                 {
                     //base.SendCollisionUpdate(new CollisionEventUpdate());
@@ -589,7 +593,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
             _parent_scene.geom_name_map[Shell] = m_name;
             _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
-//Console.WriteLine("**** Create {2}    Dicts: actor={0}   name={1}", _parent_scene.actor_name_map.Count, _parent_scene.geom_name_map.Count, m_name);
+Console.WriteLine("**** Create {2}    Dicts: actor={0}   name={1}  height={3} rad={4}", _parent_scene.actor_name_map.Count, _parent_scene.geom_name_map.Count, m_name, CAPSULE_LENGTH, CAPSULE_RADIUS);
 
             d.GeomSetCategoryBits(Shell, (int)m_collisionCategories);
             d.GeomSetCollideBits(Shell, (int)m_collisionFlags);
@@ -857,7 +861,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     m_pidControllerActive = false;
                     force *= 100f;
-                    doForce(force);
+//Console.WriteLine("DF 1"); // ##
+                    if (!force.ApproxEquals(Vector3.Zero, 0.01f))
+                        doForce(force);
                     // If uncommented, things get pushed off world
                     //
                     // m_log.Debug("Push!");
@@ -896,7 +902,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.BodyAddForce(Body, force.X, force.Y, force.Z);
                 //d.BodySetRotation(Body, ref m_StandUpRotation);
                 //standupStraight();
-
+           d.Vector3 vel = d.BodyGetLinearVel(Body);  //##
+//Console.WriteLine("AvVel <{0},{1},{2}>", vel.X, vel.Y, vel.Z); //##
             }
         }
 
@@ -1103,12 +1110,14 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             if (vec.IsFinite())
             {
-            	if (!vec.ApproxEquals(Vector3.Zero, 0.01f))
+            	if (!vec.ApproxEquals(Vector3.Zero, 0.02f))     // 0.01 allows 0.002 !!
             	{
+//Console.WriteLine("DF 2"); // ##
+
 	                doForce(vec);
 	                if (!_zeroFlag)
 	                {
-	                  AlignAvatarTiltWithCurrentDirectionOfMovement(vec);
+//	                  AlignAvatarTiltWithCurrentDirectionOfMovement(vec);
 	                }
 	            }
             }
