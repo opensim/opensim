@@ -174,16 +174,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 UUID itemID = UUID.Zero;
                 if (sp != null)
                 {
-                    foreach(SceneObjectGroup grp in sp.Attachments)
+                    foreach(SceneObjectGroup grp in sp.GetAttachments(AttachmentPt))
                     {
-                        if (grp.GetAttachmentPoint() == (byte)AttachmentPt)
-                        {
-                            itemID = grp.GetFromItemID();
-                            break;
-                        }
-                    }
-                    if (itemID != UUID.Zero)
-                        DetachSingleAttachmentToInv(itemID, remoteClient);
+                        itemID = grp.GetFromItemID();
+                        if (itemID != UUID.Zero)
+                            DetachSingleAttachmentToInv(itemID, remoteClient);
+                    }                    
                 }
 
                 if (group.GetFromItemID() == UUID.Zero)
@@ -197,12 +193,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                 SetAttachmentInventoryStatus(remoteClient, AttachmentPt, itemID, group);
 
-                group.AttachToAgent(remoteClient.AgentId, AttachmentPt, attachPos, silent);
-                
-                // In case it is later dropped again, don't let
-                // it get cleaned up
-                group.RootPart.RemFlag(PrimFlags.TemporaryOnRez);
-                group.HasGroupChanged = false;
+                AttachToAgent(sp, group, AttachmentPt, attachPos, silent);
             }
             else
             {
@@ -280,8 +271,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     if (AttachmentPt != 0 && AttachmentPt != objatt.GetAttachmentPoint())
                         tainted = true;
 
-                    AttachObject(remoteClient, objatt, AttachmentPt, false);
-                    //objatt.ScheduleGroupForFullUpdate();
+                    // This will throw if the attachment fails
+                    try
+                    {
+                        AttachObject(remoteClient, objatt, AttachmentPt, false);
+                    }
+                    catch
+                    {
+                        // Make sure the object doesn't stick around and bail
+                        m_scene.DeleteSceneObject(objatt, false);
+                        return null;
+                    }
                     
                     if (tainted)
                         objatt.HasGroupChanged = true;
@@ -551,6 +551,78 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         remoteClient.SendInventoryItemCreateUpdate(item, 0);
                 }
             }
-        }        
+        } 
+        
+        /// <summary>
+        /// Attach this scene object to the given avatar.
+        /// </summary>
+        /// 
+        /// This isn't publicly available since attachments should always perform the corresponding inventory 
+        /// operation (to show the attach in user inventory and update the asset with positional information).
+        /// 
+        /// <param name="sp"></param>
+        /// <param name="so"></param>
+        /// <param name="attachmentpoint"></param>
+        /// <param name="AttachOffset"></param>
+        /// <param name="silent"></param>
+        protected void AttachToAgent(ScenePresence avatar, SceneObjectGroup so, uint attachmentpoint, Vector3 AttachOffset, bool silent)
+        {
+            // don't attach attachments to child agents
+            if (avatar.IsChildAgent) return;
+
+//                m_log.DebugFormat("[ATTACHMENTS MODULE]: Adding attachment {0} to avatar {1}", Name, avatar.Name);
+                              
+            so.DetachFromBackup();
+
+            // Remove from database and parcel prim count
+            m_scene.DeleteFromStorage(so.UUID);
+            m_scene.EventManager.TriggerParcelPrimCountTainted();
+
+            so.RootPart.AttachedAvatar = avatar.UUID;
+
+            //Anakin Lohner bug #3839 
+            lock (so.Children)
+            {
+                foreach (SceneObjectPart p in so.Children.Values)
+                {
+                    p.AttachedAvatar = avatar.UUID;
+                }
+            }
+
+            if (so.RootPart.PhysActor != null)
+            {
+                m_scene.PhysicsScene.RemovePrim(so.RootPart.PhysActor);
+                so.RootPart.PhysActor = null;
+            }
+
+            so.AbsolutePosition = AttachOffset;
+            so.RootPart.AttachedPos = AttachOffset;
+            so.RootPart.IsAttachment = true;
+
+            so.RootPart.SetParentLocalId(avatar.LocalId);
+            so.SetAttachmentPoint(Convert.ToByte(attachmentpoint));
+
+            avatar.AddAttachment(so);
+
+            if (!silent)
+            {
+                // Killing it here will cause the client to deselect it
+                // It then reappears on the avatar, deselected
+                // through the full update below
+                //
+                if (so.IsSelected)
+                {
+                    m_scene.SendKillObject(so.RootPart.LocalId);
+                }
+
+                so.IsSelected = false; // fudge....
+                so.ScheduleGroupForFullUpdate();
+            }
+                            
+            // In case it is later dropped again, don't let
+            // it get cleaned up
+            so.RootPart.RemFlag(PrimFlags.TemporaryOnRez);
+            so.HasGroupChanged = false;            
+        }
     }
 }

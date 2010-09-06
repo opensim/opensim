@@ -113,6 +113,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event OnSetRootAgentSceneDelegate OnSetRootAgentScene;
 
+        public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
+
         /// <summary>
         /// Fired when an object is touched/grabbed.
         /// </summary>
@@ -2118,6 +2120,28 @@ namespace OpenSim.Region.Framework.Scenes
                     try
                     {
                         d(copy, original, userExposed);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnSceneObjectPartCopy failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }   
+
+        public void TriggerOnParcelPropertiesUpdateRequest(LandUpdateArgs args,
+                        int local_id, IClientAPI remote_client)
+        {
+            ParcelPropertiesUpdateRequest handler = OnParcelPropertiesUpdateRequest;
+            if (handler != null)
+            {
+                foreach (ParcelPropertiesUpdateRequest d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(args, local_id, remote_client);
                     }
                     catch (Exception e)
                     {

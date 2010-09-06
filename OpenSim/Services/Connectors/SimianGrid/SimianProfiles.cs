@@ -67,6 +67,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_serverUrl = String.Empty;
+        private bool m_Enabled = false;
 
         #region INonSharedRegionModule
         
@@ -76,8 +77,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianProfiles() { }
         public string Name { get { return "SimianProfiles"; } }
-        public void AddRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { CheckEstateManager(scene); scene.EventManager.OnClientConnect += ClientConnectHandler; } }
-        public void RemoveRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.EventManager.OnClientConnect -= ClientConnectHandler; } }
+        public void AddRegion(Scene scene) { if (m_Enabled) { CheckEstateManager(scene); scene.EventManager.OnClientConnect += ClientConnectHandler; } }
+        public void RemoveRegion(Scene scene) { if (m_Enabled) { scene.EventManager.OnClientConnect -= ClientConnectHandler; } }
 
         #endregion INonSharedRegionModule
 
@@ -88,44 +89,27 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            if (Simian.IsSimianEnabled(source, "UserAccountServices", "SimianUserAccountServiceConnector"))
+            IConfig profileConfig = source.Configs["Profile"];
+            if (profileConfig == null)
+                return;
+
+            if (profileConfig.GetString("Module", String.Empty) != Name)
+                return;
+
+            IConfig gridConfig = source.Configs["UserAccountService"];
+            if (gridConfig != null)
             {
-                IConfig gridConfig = source.Configs["UserAccountService"];
-                if (gridConfig == null)
-                {
-                    m_log.Error("[SIMIAN PROFILES]: UserAccountService missing from OpenSim.ini");
-                    throw new Exception("Profiles init error");
-                }
-
                 string serviceUrl = gridConfig.GetString("UserAccountServerURI");
-                if (String.IsNullOrEmpty(serviceUrl))
+                if (!String.IsNullOrEmpty(serviceUrl))
                 {
-                    m_log.Error("[SIMIAN PROFILES]: No UserAccountServerURI in section UserAccountService");
-                    throw new Exception("Profiles init error");
-                }
-
-                if (!serviceUrl.EndsWith("/"))
-                    serviceUrl = serviceUrl + '/';
-
-                m_serverUrl = serviceUrl;
-                IConfig profilesConfig = source.Configs["Profiles"];
-                if (profilesConfig == null)
-                {
-                    // Do not run this module by default.
-                    return;
-                }
-                else
-                {
-                    // if profiles aren't enabled, we're not needed.
-                    // if we're not specified as the connector to use, then we're not wanted
-                    if (profilesConfig.GetString("Module", String.Empty) != Name)
-                    {
-
-                        return;
-                    }
-                    m_log.InfoFormat("[SIMIAN ACCOUNT CONNECTOR]: Initializing {0}", this.Name);
+                    if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
+                        serviceUrl = serviceUrl + '/';
+                    m_serverUrl = serviceUrl;
                 }
             }
+
+            if (String.IsNullOrEmpty(m_serverUrl))
+                m_log.Info("[SIMIAN PROFILES]: No UserAccountServerURI specified, disabling connector");
         }
 
         private void ClientConnectHandler(IClientCore clientCore)

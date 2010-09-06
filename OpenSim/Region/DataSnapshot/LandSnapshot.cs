@@ -123,6 +123,8 @@ namespace OpenSim.Region.DataSnapshot.Providers
             ILandChannel landChannel = m_scene.LandChannel;
             List<ILandObject> parcels = landChannel.AllParcels();
 
+            IDwellModule dwellModule = m_scene.RequestModuleInterface<IDwellModule>();
+
             XmlNode parent = nodeFactory.CreateNode(XmlNodeType.Element, "parceldata", "");
             if (parcels != null)
             {
@@ -208,7 +210,10 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         xmlparcel.AppendChild(infouuid);
 
                         XmlNode dwell = nodeFactory.CreateNode(XmlNodeType.Element, "dwell", "");
-                        dwell.InnerText = parcel.Dwell.ToString();
+                        if (dwellModule != null)
+                            dwell.InnerText = dwellModule.GetDwell(parcel.GlobalID).ToString();
+                        else
+                            dwell.InnerText = "0";
                         xmlparcel.AppendChild(dwell);
 
                         //TODO: figure how to figure out teleport system landData.landingType

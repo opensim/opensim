@@ -1111,7 +1111,6 @@ namespace OpenSim.Data.SQLite
             createCol(land, "UserLookAtZ", typeof (Double));
             createCol(land, "AuthbuyerID", typeof(String));
             createCol(land, "OtherCleanTime", typeof(Int32));
-            createCol(land, "Dwell", typeof(Int32));
 
             land.PrimaryKey = new DataColumn[] {land.Columns["UUID"]};
 
@@ -1449,7 +1448,6 @@ namespace OpenSim.Data.SQLite
             UUID.TryParse((string)row["AuthbuyerID"], out authBuyerID);
 
             newData.OtherCleanTime = Convert.ToInt32(row["OtherCleanTime"]);
-            newData.Dwell = Convert.ToInt32(row["Dwell"]);
 
             return newData;
         }
@@ -1761,7 +1759,6 @@ namespace OpenSim.Data.SQLite
             row["UserLookAtZ"] = land.UserLookAt.Z;
             row["AuthbuyerID"] = land.AuthBuyerID.ToString();
             row["OtherCleanTime"] = land.OtherCleanTime;
-            row["Dwell"] = land.Dwell;
 			row["MediaType"] = land.MediaType;
 			row["MediaDescription"] = land.MediaDescription;
 			row["MediaSize"] = land.MediaWidth.ToString() + "," + land.MediaHeight.ToString();

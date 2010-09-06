@@ -588,6 +588,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         /// <item><term>estate_name</term>
         ///       <description>the name of the estate to join (or to create if it doesn't
         ///       already exist)</description></item>
+        /// <item><term>region_file</term>
+        ///       <description>The name of the file to persist the region specifications to.
+        /// If omitted, the region_file_template setting from OpenSim.ini will be used. (optional)</description></item>
         /// </list>
         ///
         /// XmlRpcCreateRegionMethod returns
@@ -701,7 +704,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     bool persist = Convert.ToBoolean((string) requestData["persist"]);
                     if (persist)
                     {
-                        // default place for region XML files is in the
+                        // default place for region configuration files is in the
                         // Regions directory of the config dir (aka /bin)
                         string regionConfigPath = Path.Combine(Util.configDir(), "Regions");
                         try
@@ -714,19 +717,36 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         {
                             // No INI setting recorded.
                         }
-                        string regionXmlPath = Path.Combine(regionConfigPath,
+                        
+                        string regionIniPath;
+                        
+                        if (requestData.Contains("region_file"))
+                        {
+                            // Make sure that the file to be created is in a subdirectory of the region storage directory.
+                            string requestedFilePath = Path.Combine(regionConfigPath, (string) requestData["region_file"]);
+                            string requestedDirectory = Path.GetDirectoryName(Path.GetFullPath(requestedFilePath));
+                            if (requestedDirectory.StartsWith(Path.GetFullPath(regionConfigPath)))
+                                regionIniPath = requestedFilePath;
+                            else
+                                throw new Exception("Invalid location for region file.");
+                        }
+                        else
+                        {
+                            regionIniPath = Path.Combine(regionConfigPath,
                                                             String.Format(
                                                                 m_config.GetString("region_file_template",
-                                                                                   "{0}x{1}-{2}.xml"),
+                                                                                   "{0}x{1}-{2}.ini"),
                                                                 region.RegionLocX.ToString(),
                                                                 region.RegionLocY.ToString(),
                                                                 regionID.ToString(),
                                                                 region.InternalEndPoint.Port.ToString(),
                                                                 region.RegionName.Replace(" ", "_").Replace(":", "_").
                                                                     Replace("/", "_")));
+                        }
+                        
                         m_log.DebugFormat("[RADMIN] CreateRegion: persisting region {0} to {1}",
-                                          region.RegionID, regionXmlPath);
-                        region.SaveRegionToFile("dynamic region", regionXmlPath);
+                                          region.RegionID, regionIniPath);
+                        region.SaveRegionToFile("dynamic region", regionIniPath);
                     }
                     else
                     {
@@ -1700,8 +1720,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         destinationItem.CreationDate = item.CreationDate;
                         destinationItem.Folder = destinationFolder.ID;
 
-                        inventoryService.AddItem(destinationItem);
-                        m_log.DebugFormat("[RADMIN] Added item {0} to folder {1}", destinationItem.ID, destinationFolder.ID);
+                        m_application.SceneManager.CurrentOrFirstScene.AddInventoryItem(destinationItem);
+                        m_log.DebugFormat("[RADMIN]: Added item {0} to folder {1}", destinationItem.ID, destinationFolder.ID);
 
                         // Wear item
                         AvatarWearable newWearable = new AvatarWearable();
@@ -1711,7 +1731,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     }
                     else
                     {
-                        m_log.WarnFormat("[RADMIN] Error transferring {0} to folder {1}", wearable.ItemID, destinationFolder.ID);
+                        m_log.WarnFormat("[RADMIN]: Error transferring {0} to folder {1}", wearable.ItemID, destinationFolder.ID);
                     }
                 }
             }
@@ -1753,16 +1773,16 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         destinationItem.CreationDate = item.CreationDate;
                         destinationItem.Folder = destinationFolder.ID;
 
-                        inventoryService.AddItem(destinationItem);
-                        m_log.DebugFormat("[RADMIN] Added item {0} to folder {1}", destinationItem.ID, destinationFolder.ID);
+                        m_application.SceneManager.CurrentOrFirstScene.AddInventoryItem(destinationItem);
+                        m_log.DebugFormat("[RADMIN]: Added item {0} to folder {1}", destinationItem.ID, destinationFolder.ID);
 
                         // Attach item
                         avatarAppearance.SetAttachment(attachpoint, destinationItem.ID, destinationItem.AssetID);
-                        m_log.DebugFormat("[RADMIN] Attached {0}", destinationItem.ID);
+                        m_log.DebugFormat("[RADMIN]: Attached {0}", destinationItem.ID);
                     }
                     else
                     {
-                        m_log.WarnFormat("[RADMIN] Error transferring {0} to folder {1}", itemID, destinationFolder.ID);
+                        m_log.WarnFormat("[RADMIN]: Error transferring {0} to folder {1}", itemID, destinationFolder.ID);
                     }
                 }
             }
@@ -1860,16 +1880,16 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     destinationItem.CreationDate = item.CreationDate;
                     destinationItem.Folder = extraFolder.ID;
 
-                    inventoryService.AddItem(destinationItem);
+                    m_application.SceneManager.CurrentOrFirstScene.AddInventoryItem(destinationItem);
                     inventoryMap.Add(item.ID, destinationItem.ID);
-                    m_log.DebugFormat("[RADMIN] Added item {0} to folder {1}", destinationItem.ID, extraFolder.ID);
+                    m_log.DebugFormat("[RADMIN]: Added item {0} to folder {1}", destinationItem.ID, extraFolder.ID);
 
                     // Attach item, if original is attached
                     int attachpoint = avatarAppearance.GetAttachpoint(item.ID);
                     if (attachpoint != 0)
                     {
                         avatarAppearance.SetAttachment(attachpoint, destinationItem.ID, destinationItem.AssetID);
-                        m_log.DebugFormat("[RADMIN] Attached {0}", destinationItem.ID);
+                        m_log.DebugFormat("[RADMIN]: Attached {0}", destinationItem.ID);
                     }
                 }
             }
@@ -1888,7 +1908,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         private bool CreateDefaultAvatars()
         {
             // Only load once
-
             if (m_defaultAvatarsLoaded)
             {
                 return false;
@@ -2146,7 +2165,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                             inventoryItem.CreationDate = GetIntegerAttribute(item,"creationdate",Util.UnixTimeSinceEpoch());
                                             inventoryItem.Folder = extraFolder.ID; // Parent folder
 
-                                            inventoryService.AddItem(inventoryItem);
+                                            m_application.SceneManager.CurrentOrFirstScene.AddInventoryItem(inventoryItem);
                                             m_log.DebugFormat("[RADMIN] Added item {0} to folder {1}", inventoryItem.ID, extraFolder.ID);
                                         }
 

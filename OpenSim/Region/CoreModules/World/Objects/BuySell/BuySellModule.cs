@@ -219,7 +219,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 item.CurrentPermissions |= 16; // Slam!
                 item.CreationDate = Util.UnixTimeSinceEpoch();
 
-                if (m_scene.InventoryService.AddItem(item))
+                if (m_scene.AddInventoryItem(item))
                 {
                     remoteClient.SendInventoryItemCreateUpdate(item, 0);
                 }

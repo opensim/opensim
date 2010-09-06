@@ -104,7 +104,7 @@ namespace OpenSim.Services.LLLoginService
             m_GatekeeperURL = m_LoginServerConfig.GetString("GatekeeperURI", string.Empty);
             m_MapTileURL = m_LoginServerConfig.GetString("MapTileURL", string.Empty);
             m_SearchURL = m_LoginServerConfig.GetString("SearchURL", string.Empty);
-
+            
             // These are required; the others aren't
             if (accountService == string.Empty || authService == string.Empty)
                 throw new Exception("LoginService is missing service specifications");

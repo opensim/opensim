@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -338,19 +339,25 @@ namespace OpenSim.Framework.Servers.HttpServer
         //     HandleRequest(request,resp);
         // }
 
+        /// <summary>
+        /// This methods is the start of incoming HTTP request handling.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="response"></param>
         public virtual void HandleRequest(OSHttpRequest request, OSHttpResponse response)
         {
             try
             {
+//                m_log.Debug("[BASE HTTP SERVER]: Handling request to " + request.RawUrl);                
+                
                 Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US", true);
+                
                 //  This is the REST agent interface. We require an agent to properly identify
                 //  itself. If the REST handler recognizes the prefix it will attempt to
                 //  satisfy the request. If it is not recognizable, and no damage has occurred
                 //  the request can be passed through to the other handlers. This is a low
                 //  probability event; if a request is matched it is normally expected to be
                 //  handled
-//                m_log.Debug("[BASE HTTP SERVER]: Handling request to " + request.RawUrl);
-
                 IHttpAgentHandler agentHandler;
 
                 if (TryGetAgentHandler(request, response, out agentHandler))
@@ -731,6 +738,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     if (methodWasFound)
                     {
                         xmlRprcRequest.Params.Add(request.Url); // Param[2]
+                        xmlRprcRequest.Params.Add(request.Headers.Get("X-Forwarded-For")); // Param[3]
 
                         try
                         {

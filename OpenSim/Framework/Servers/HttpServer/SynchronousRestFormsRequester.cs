@@ -57,80 +57,73 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
-
-            if ((verb == "POST") || (verb == "PUT"))
-            {
-                request.ContentType = "text/www-form-urlencoded";
-
-                MemoryStream buffer = new MemoryStream();
-                int length = 0;
-                using (StreamWriter writer = new StreamWriter(buffer))
-                {
-                    writer.Write(obj);
-                    writer.Flush();
-                }
-
-                length = (int)obj.Length;
-                request.ContentLength = length;
-
-                Stream requestStream = null;
-                try
-                {
-                    requestStream = request.GetRequestStream();
-                    requestStream.Write(buffer.ToArray(), 0, length);
-                }
-                catch (Exception e)
-                {
-                    m_log.DebugFormat("[FORMS]: exception occured on sending request to {0}: " + e.ToString(), requestUrl);
-                }
-                finally
-                {
-                    // If this is closed, it will be disposed internally,
-                    // but the above write is asynchronous and may hit after
-                    // we're through here. So the thread handling that will
-                    // throw and put us back into the catch above. Isn't 
-                    // .NET great?
-                    //if (requestStream != null)
-                    //    requestStream.Close();
-                    // Let's not close this
-                    //buffer.Close();
-
-                }
-            }
-
             string respstring = String.Empty;
 
-            try
+            using (MemoryStream buffer = new MemoryStream())
             {
-                using (WebResponse resp = request.GetResponse())
+                if ((verb == "POST") || (verb == "PUT"))
                 {
-                    if (resp.ContentLength != 0)
+                    request.ContentType = "text/www-form-urlencoded";
+
+                    int length = 0;
+                    using (StreamWriter writer = new StreamWriter(buffer))
                     {
-                        Stream respStream = null;
-                        try
+                        writer.Write(obj);
+                        writer.Flush();
+                    }
+
+                    length = (int)obj.Length;
+                    request.ContentLength = length;
+
+                    Stream requestStream = null;
+                    try
+                    {
+                        requestStream = request.GetRequestStream();
+                        requestStream.Write(buffer.ToArray(), 0, length);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.DebugFormat("[FORMS]: exception occured on sending request to {0}: " + e.ToString(), requestUrl);
+                    }
+                    finally
+                    {
+                        if (requestStream != null)
+                            requestStream.Close();
+                    }
+                }
+
+                try
+                {
+                    using (WebResponse resp = request.GetResponse())
+                    {
+                        if (resp.ContentLength != 0)
                         {
-                            respStream = resp.GetResponseStream();
-                            using (StreamReader reader = new StreamReader(respStream))
+                            Stream respStream = null;
+                            try
                             {
-                                respstring = reader.ReadToEnd();
+                                respStream = resp.GetResponseStream();
+                                using (StreamReader reader = new StreamReader(respStream))
+                                {
+                                    respstring = reader.ReadToEnd();
+                                }
                             }
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.DebugFormat("[FORMS]: exception occured on receiving reply " + e.ToString());
-                        }
-                        finally
-                        {
-                            if (respStream != null)
-                                respStream.Close();
+                            catch (Exception e)
+                            {
+                                m_log.DebugFormat("[FORMS]: exception occured on receiving reply " + e.ToString());
+                            }
+                            finally
+                            {
+                                if (respStream != null)
+                                    respStream.Close();
+                            }
                         }
                     }
                 }
-            }
-            catch (System.InvalidOperationException)
-            {
-                // This is what happens when there is invalid XML
-                m_log.DebugFormat("[FORMS]: InvalidOperationException on receiving request");
+                catch (System.InvalidOperationException)
+                {
+                    // This is what happens when there is invalid XML
+                    m_log.DebugFormat("[FORMS]: InvalidOperationException on receiving request");
+                }
             }
             return respstring;
         }

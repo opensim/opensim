@@ -646,7 +646,7 @@
     ;     {2} - region UUID
     ;     {3} - region port
     ;     {4} - region name with " ", ":", "/" mapped to  "_"
-    region_file_template = "{0}x{1}-{2}.xml"
+    region_file_template = "{0}x{1}-{2}.ini"
 
     ; we can limit the number of regions that XmlRpcCreateRegion will
     ; allow by setting this to a positive, non-0 number: as long as the
@@ -1325,11 +1325,12 @@ Message = "The MOTD module is working!"
 [Architecture]
     ; Choose exactly one and only one of the architectures below.
 
-    Include-Standalone    = "config-include/Standalone.ini"
-    ;Include-HGStandalone = "config-include/StandaloneHypergrid.ini"
-    ;Include-Grid         = "config-include/Grid.ini"
-    ;Include-HGGrid       = "config-include/GridHypergrid.ini"
-    ;Include-SimianGrid   = "config-include/SimianGrid.ini"
+    Include-Standalone      = "config-include/Standalone.ini"
+    ;Include-HGStandalone    = "config-include/StandaloneHypergrid.ini"
+    ;Include-Grid            = "config-include/Grid.ini"
+    ;Include-HGGrid          = "config-include/GridHypergrid.ini"
+    ;Include-SimianGrid      = "config-include/SimianGrid.ini"
+    ;Include-HyperSimianGrid = "config-include/HyperSimianGrid.ini"
 
     ; Then choose
     ; config-include/StandaloneCommon.ini.example (if you're in standlone) OR

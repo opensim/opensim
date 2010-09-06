@@ -118,7 +118,8 @@ namespace OpenSim.Framework.Serialization.External
             landData.SnapshotID     = UUID.Parse(                          xtr.ReadElementString("SnapshotID"));
             landData.UserLocation   = Vector3.Parse(                       xtr.ReadElementString("UserLocation"));
             landData.UserLookAt     = Vector3.Parse(                       xtr.ReadElementString("UserLookAt"));
-            landData.Dwell          = Convert.ToInt32(                     xtr.ReadElementString("Dwell"));
+            // No longer used here
+            xtr.ReadElementString("Dwell");
             landData.OtherCleanTime = Convert.ToInt32(                     xtr.ReadElementString("OtherCleanTime"));
 
             xtr.ReadEndElement();
@@ -177,7 +178,7 @@ namespace OpenSim.Framework.Serialization.External
             xtw.WriteElementString("SnapshotID",      landData.SnapshotID.ToString());
             xtw.WriteElementString("UserLocation",    landData.UserLocation.ToString());
             xtw.WriteElementString("UserLookAt",      landData.UserLookAt.ToString());
-            xtw.WriteElementString("Dwell",           Convert.ToString(landData.Dwell));
+            xtw.WriteElementString("Dwell",           "0");
             xtw.WriteElementString("OtherCleanTime",  Convert.ToString(landData.OtherCleanTime));
 
             xtw.WriteEndElement();

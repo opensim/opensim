@@ -406,8 +406,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             // Reset folder ID to the one in which we want to load it
             item.Folder = loadFolder.ID;
 
-            //m_userInfo.AddItem(item);
-            m_scene.InventoryService.AddItem(item);
+            m_scene.AddInventoryItem(item);
         
             return item;
         }

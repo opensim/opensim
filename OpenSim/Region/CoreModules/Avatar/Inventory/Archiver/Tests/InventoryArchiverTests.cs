@@ -163,7 +163,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             InventoryFolderBase objsFolder 
                 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
-            scene.AddInventoryItem(userId, item1);
+            scene.AddInventoryItem(item1);
 
             MemoryStream archiveWriteStream = new MemoryStream();
             archiverModule.OnInventoryArchiveSaved += SaveCompleted;
@@ -282,7 +282,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             InventoryFolderBase objsFolder 
                 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
-            scene.AddInventoryItem(userId, item1);
+            scene.AddInventoryItem(item1);
 
             MemoryStream archiveWriteStream = new MemoryStream();
             archiverModule.OnInventoryArchiveSaved += SaveCompleted;
@@ -485,7 +485,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             InventoryFolderBase objsFolder 
                 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
-            scene.AddInventoryItem(userId, item1);
+            scene.AddInventoryItem(item1);
 
             MemoryStream archiveWriteStream = new MemoryStream();
             archiverModule.OnInventoryArchiveSaved += SaveCompleted;

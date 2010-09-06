@@ -44,7 +44,7 @@ namespace OpenSim.Services.InventoryService
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected IXInventoryData m_Database;
+        protected new IXInventoryData m_Database;
 
         public HGInventoryService(IConfigSource config)
             : base(config)

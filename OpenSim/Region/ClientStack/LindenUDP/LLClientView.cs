@@ -60,7 +60,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     public class LLClientView : IClientAPI, IClientCore, IClientIM, IClientChat, IClientIPEndpoint, IStatsCollector
     {
         /// <value>
-        /// Debug packet level.  At the moment, only 255 does anything (prints out all in and out packets).
+        /// Debug packet level.  See OpenSim.RegisterConsoleCommands() for more details.
         /// </value>
         protected int m_debugPacketLevel = 0;
         
@@ -2687,6 +2687,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendParcelInfo(RegionInfo info, LandData land, UUID parcelID, uint x, uint y)
         {
+            float dwell = 0.0f;
+            IDwellModule dwellModule = m_scene.RequestModuleInterface<IDwellModule>();
+            if (dwellModule != null)
+                dwell = dwellModule.GetDwell(land.GlobalID);
             ParcelInfoReplyPacket reply = (ParcelInfoReplyPacket)PacketPool.Instance.GetPacket(PacketType.ParcelInfoReply);
             reply.AgentData.AgentID = m_agentId;
             reply.Data.ParcelID = parcelID;
@@ -2711,7 +2715,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             reply.Data.GlobalZ = pos.Z;
             reply.Data.SimName = Utils.StringToBytes(info.RegionName);
             reply.Data.SnapshotID = land.SnapshotID;
-            reply.Data.Dwell = land.Dwell;
+            reply.Data.Dwell = dwell;
             reply.Data.SalePrice = land.SalePrice;
             reply.Data.AuctionID = (int)land.AuctionID;
 
@@ -11229,8 +11233,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// handles splitting manually</param>
         protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType, bool doAutomaticSplitting)
         {
-            if (m_debugPacketLevel >= 255)
-                m_log.DebugFormat("[CLIENT]: Packet OUT {0}", packet.Type);
+            if (m_debugPacketLevel > 0)
+            {
+                bool outputPacket = true;
+                                
+                if (m_debugPacketLevel <= 255 
+                    && (packet.Type == PacketType.SimStats || packet.Type == PacketType.SimulatorViewerTimeMessage))
+                    outputPacket = false;
+                
+                if (m_debugPacketLevel <= 200 
+                    && 
+                    (packet.Type == PacketType.ImagePacket 
+                        || packet.Type == PacketType.ImageData
+                        || packet.Type == PacketType.LayerData
+                        || packet.Type == PacketType.CoarseLocationUpdate)) 
+                    outputPacket = false;
+                
+                if (m_debugPacketLevel <= 100 && (packet.Type == PacketType.AvatarAnimation || packet.Type == PacketType.ViewerEffect))
+                    outputPacket = false;                
+                
+                if (outputPacket)
+                    m_log.DebugFormat("[CLIENT]: Packet OUT {0}", packet.Type);
+            }
             
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, doAutomaticSplitting);
         }
@@ -11316,26 +11340,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Entryway from the client to the simulator.  All UDP packets from the client will end up here
         /// </summary>
         /// <param name="Pack">OpenMetaverse.packet</param>
-        public void ProcessInPacket(Packet Pack)
+        public void ProcessInPacket(Packet packet)
         {
-            if (!m_IsPresenceReady)
+            if (m_debugPacketLevel > 0)
             {
-                if (m_pendingPackets == null)
-                {
-                    m_pendingPackets = new List<Packet>();
-                }
-                m_pendingPackets.Add(Pack);
+                bool outputPacket = true;
+                                
+                if (m_debugPacketLevel <= 255 && packet.Type == PacketType.AgentUpdate)
+                    outputPacket = false;
+                
+                if (m_debugPacketLevel <= 200 && packet.Type == PacketType.RequestImage)
+                    outputPacket = false;
+                
+                if (m_debugPacketLevel <= 100 && (packet.Type == PacketType.ViewerEffect || packet.Type == PacketType.AgentAnimation))
+                    outputPacket = false;
+                
+                if (outputPacket)
+                    m_log.DebugFormat("[CLIENT]: Packet IN {0}", packet.Type);
             }
-            else
-            {
-                if (m_debugPacketLevel >= 255)
-                    m_log.DebugFormat("[CLIENT]: Packet IN {0}", Pack.Type);
 
-                if (!ProcessPacketMethod(Pack))
-                    m_log.Warn("[CLIENT]: unhandled packet " + Pack.Type);
+            if (!ProcessPacketMethod(packet))
+                m_log.Warn("[CLIENT]: unhandled packet " + packet.Type);
 
-                PacketPool.Instance.ReturnPacket(Pack);
-            }
+            PacketPool.Instance.ReturnPacket(packet);
         }
 
         private static PrimitiveBaseShape GetShapeFromAddPacket(ObjectAddPacket addPacket)
