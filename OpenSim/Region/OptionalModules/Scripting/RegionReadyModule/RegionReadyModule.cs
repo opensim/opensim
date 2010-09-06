@@ -133,7 +133,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 m_firstEmptyCompileQueue = false;
                 m_oarFileLoading = false;
 
-                m_scene.Backup();
+                m_scene.Backup(false);
 
                 c.From = "RegionReady";
                 if (m_lastOarLoadedOk) 

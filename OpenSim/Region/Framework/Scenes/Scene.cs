@@ -1528,11 +1528,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private void BackupWaitCallback(object o)
         {
-            Backup();
-        }
-
-        public void Backup()
-        {
             Backup(false);
         }
         
