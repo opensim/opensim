@@ -1226,16 +1226,16 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Delete this group from its scene and tell all the scene presences about that deletion.
+        /// Delete this group from its scene.  
         /// </summary>
-        /// <param name="silent">Broadcast deletions to all clients.</param>
+        /// 
+        /// This only handles the in-world consequences of deletion (e.g. any avatars sitting on it are forcibly stood
+        /// up and all avatars receive notification of its removal.  Removal of the scene object from database backup
+        /// must be handled by the caller.
+        /// 
+        /// <param name="silent">If true then deletion is not broadcast to clients</param>
         public void DeleteGroup(bool silent)
         {
-            // We need to keep track of this state in case this group is still queued for backup.
-            m_isDeleted = true;
-
-            DetachFromBackup();
-
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
@@ -1381,10 +1381,18 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void ProcessBackup(IRegionDataStore datastore, bool forcedBackup)
         {
             if (!m_isBackedUp)
+            {
+//                m_log.DebugFormat(
+//                    "[WATER WARS]: Ignoring backup of {0} {1} since object is not marked to be backed up", Name, UUID);                
                 return;
+            }
 
             if (IsDeleted || UUID == UUID.Zero)
+            {
+//                m_log.DebugFormat(
+//                    "[WATER WARS]: Ignoring backup of {0} {1} since object is marked as already deleted", Name, UUID);
                 return;
+            }
 
             // Since this is the top of the section of call stack for backing up a particular scene object, don't let
             // any exception propogate upwards.            
@@ -1420,7 +1428,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (HasGroupChanged)
                 {
                     // don't backup while it's selected or you're asking for changes mid stream.
-                    if ((isTimeToPersist()) || (forcedBackup))
+                    if (isTimeToPersist() || forcedBackup)
                     {
                         m_log.DebugFormat(
                             "[SCENE]: Storing {0}, {1} in {2}",
@@ -1443,19 +1451,19 @@ namespace OpenSim.Region.Framework.Scenes
 
                         backup_group = null;
                     }
-    //                else
-    //                {
-    //                    m_log.DebugFormat(
-    //                        "[SCENE]: Did not update persistence of object {0} {1}, selected = {2}",
-    //                        Name, UUID, IsSelected);
-    //                }
+//                    else
+//                    {
+//                        m_log.DebugFormat(
+//                            "[SCENE]: Did not update persistence of object {0} {1}, selected = {2}",
+//                            Name, UUID, IsSelected);
+//                    }
                 }
             }
             catch (Exception e)
             {
                 m_log.ErrorFormat(
-                    "[SCENE]: Storing of {0}, {1} in {2} failed with exception {3}\n\t{4}", 
-                    Name, UUID, m_scene.RegionInfo.RegionName, e, e.StackTrace);
+                    "[SCENE]: Storing of {0}, {1} in {2} failed with exception {3}{4}", 
+                    Name, UUID, m_scene.RegionInfo.RegionName, e.Message, e.StackTrace);
             }
         }
 
@@ -2245,7 +2253,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            m_scene.UnlinkSceneObject(objectGroup.UUID, true);
+            m_scene.UnlinkSceneObject(objectGroup, true);
             objectGroup.m_isDeleted = true;
             
             lock (objectGroup.m_parts)
