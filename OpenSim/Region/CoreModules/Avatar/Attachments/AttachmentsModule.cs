@@ -271,8 +271,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     if (AttachmentPt != 0 && AttachmentPt != objatt.GetAttachmentPoint())
                         tainted = true;
 
-                    AttachObject(remoteClient, objatt, AttachmentPt, false);
-                    //objatt.ScheduleGroupForFullUpdate();
+                    // This will throw if the attachment fails
+                    try
+                    {
+                        AttachObject(remoteClient, objatt, AttachmentPt, false);
+                    }
+                    catch
+                    {
+                        // Make sure the object doesn't stick around and bail
+                        m_scene.DeleteSceneObject(objatt, false);
+                        return null;
+                    }
                     
                     if (tainted)
                         objatt.HasGroupChanged = true;
