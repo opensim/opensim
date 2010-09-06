@@ -64,7 +64,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 if ((verb == "POST") || (verb == "PUT"))
                 {
                     request.ContentType = "text/www-form-urlencoded";
-                    request.KeepAlive = true;
 
                     int length = 0;
                     using (StreamWriter writer = new StreamWriter(buffer))
