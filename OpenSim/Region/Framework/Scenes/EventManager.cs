@@ -684,7 +684,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerOnBackup(IRegionDataStore dstore)
+        public void TriggerOnBackup(IRegionDataStore dstore, bool forced)
         {
             OnBackupDelegate handlerOnAttach = OnBackup;
             if (handlerOnAttach != null)
@@ -693,7 +693,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        d(dstore, false);
+                        d(dstore, forced);
                     }
                     catch (Exception e)
                     {

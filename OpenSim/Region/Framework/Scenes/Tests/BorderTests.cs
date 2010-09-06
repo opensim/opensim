@@ -28,20 +28,21 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Region.Framework.Scenes;
-
-using NUnit.Framework;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
     [TestFixture]
     public class BorderTests
     {
-
         [Test]
         public void TestCross()
         {
+            TestHelper.InMethod();
+            
             List<Border> testborders = new List<Border>();
 
             Border NorthBorder = new Border();
@@ -75,8 +76,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             position = new Vector3(200,280,21);
             Assert.That(NorthBorder.TestCross(position));
 
-
-
             // Test automatic border crossing
             // by setting the border crossing aabb to be the whole region
             position = new Vector3(25,25,21); // safely within one 256m region
@@ -95,12 +94,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             WestBorder.BorderLine = new Vector3(0, 256, 255); // automatic border cross in the region
             Assert.That(WestBorder.TestCross(position));
-
         }
 
         [Test]
         public void TestCrossSquare512()
         {
+            TestHelper.InMethod();
+            
             List<Border> testborders = new List<Border>();
 
             Border NorthBorder = new Border();
@@ -174,12 +174,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                     Assert.That(!b.TestCross(position));
 
             }
-
         }
 
         [Test]
         public void TestCrossRectangle512x256()
         {
+            TestHelper.InMethod();
+            
             List<Border> testborders = new List<Border>();
 
             Border NorthBorder = new Border();
@@ -258,6 +259,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestCrossOdd512x512w256hole()
         {
+            TestHelper.InMethod();
+            
             List<Border> testborders = new List<Border>();
             //   512____
             //      |  |

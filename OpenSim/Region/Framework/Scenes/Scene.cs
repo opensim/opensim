@@ -1531,15 +1531,24 @@ namespace OpenSim.Region.Framework.Scenes
             Backup();
         }
 
+        public void Backup()
+        {
+            Backup(false);
+        }
+        
         /// <summary>
         /// Backup the scene.  This acts as the main method of the backup thread.
         /// </summary>
+        /// <param name="forced">
+        /// If true, then any changes that have not yet been persisted are persisted.  If false,
+        /// then the persistence decision is left to the backup code (in some situations, such as object persistence,
+        /// it's much more efficient to backup multiple changes at once rather than every single one).
         /// <returns></returns>
-        public void Backup()
+        public void Backup(bool forced)
         {
             lock (m_returns)
             {
-                EventManager.TriggerOnBackup(m_storageManager.DataStore);
+                EventManager.TriggerOnBackup(m_storageManager.DataStore, forced);
                 m_backingup = false;
 
                 foreach (KeyValuePair<UUID, ReturnInfo> ret in m_returns)

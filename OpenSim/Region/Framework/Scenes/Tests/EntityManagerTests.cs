@@ -53,7 +53,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void T010_AddObjects()
         {
             TestHelper.InMethod();
-            // Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
             
             random = new Random();
             SceneObjectGroup found;
@@ -89,7 +88,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void T011_ThreadAddRemoveTest()
         {
             TestHelper.InMethod();
-            // Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
             
             // This test adds and removes with mutiple threads, attempting to break the 
             // uuid and localid dictionary coherence.
