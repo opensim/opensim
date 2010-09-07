@@ -1678,28 +1678,23 @@ namespace OpenSim.Region.Framework.Scenes
 
                             SceneObjectGroup group = part.ParentGroup;
                             if (!affectedGroups.Contains(group))
+                            {
+                                group.areUpdatesSuspended = true;
                                 affectedGroups.Add(group);
+                            }
                         }
                     }
                 }
 
                 if (childParts.Count > 0)
                 {
-                    try
+                    foreach (SceneObjectPart child in childParts)
                     {
-                        childParts[0].ParentGroup.areUpdatesSuspended = true;
-                        foreach (SceneObjectPart child in childParts)
-                        {
-                            // Unlink all child parts from their groups
-                            //
-                            child.ParentGroup.DelinkFromGroup(child, true);
-                            child.ParentGroup.HasGroupChanged = true;
-                            child.ParentGroup.ScheduleGroupForFullUpdate();
-                        }
-                    }
-                    finally
-                    {
-                        childParts[0].ParentGroup.areUpdatesSuspended = false;
+                        // Unlink all child parts from their groups
+                        //
+                        child.ParentGroup.DelinkFromGroup(child, true);
+                        child.ParentGroup.HasGroupChanged = true;
+                        child.ParentGroup.ScheduleGroupForFullUpdate();
                     }
                 }
 
@@ -1710,9 +1705,10 @@ namespace OpenSim.Region.Framework.Scenes
                     // However, editing linked parts and unlinking may be different
                     //
                     SceneObjectGroup group = root.ParentGroup;
+                    group.areUpdatesSuspended = true;
                     
                     List<SceneObjectPart> newSet = null;
-                    int numChildren = -1;
+                    int numChildren;
                     
                     lock (group.Children)
                     {
@@ -1720,63 +1716,63 @@ namespace OpenSim.Region.Framework.Scenes
                         numChildren = group.PrimCount;
                     }
 
+                    if (numChildren == 1)
+                        break;
+
                     // If there are prims left in a link set, but the root is
                     // slated for unlink, we need to do this
+                    // Unlink the remaining set
                     //
-                    if (numChildren != 1)
+                    bool sendEventsToRemainder = true;
+                    if (numChildren > 1)
+                        sendEventsToRemainder = false;
+
+                    foreach (SceneObjectPart p in newSet)
                     {
-                        // Unlink the remaining set
-                        //
-                        bool sendEventsToRemainder = true;
-                        if (numChildren > 1)
-                            sendEventsToRemainder = false;
-
-                        if (newSet.Count > 0)
+                        if (p != group.RootPart)
                         {
-                            try
+                            group.DelinkFromGroup(p, sendEventsToRemainder);
+                            if (numChildren > 2)
                             {
-                                newSet[0].ParentGroup.areUpdatesSuspended = true;
-                                foreach (SceneObjectPart p in newSet)
-                                {
-                                    if (p != group.RootPart)
-                                        group.DelinkFromGroup(p, sendEventsToRemainder);
-                                }
+                                p.ParentGroup.areUpdatesSuspended = true;
                             }
-                            finally
+                            else
                             {
-                                newSet[0].ParentGroup.areUpdatesSuspended = false;
+                                p.ParentGroup.HasGroupChanged = true;
+                                p.ParentGroup.ScheduleGroupForFullUpdate();
                             }
                         }
+                    }
 
-                        // If there is more than one prim remaining, we
-                        // need to re-link
+                    // If there is more than one prim remaining, we
+                    // need to re-link
+                    //
+                    if (numChildren > 2)
+                    {
+                        // Remove old root
                         //
-                        if (numChildren > 2)
+                        if (newSet.Contains(root))
+                            newSet.Remove(root);
+
+                        // Preserve link ordering
+                        //
+                        newSet.Sort(delegate (SceneObjectPart a, SceneObjectPart b)
                         {
-                            // Remove old root
-                            //
-                            if (newSet.Contains(root))
-                                newSet.Remove(root);
+                            return a.LinkNum.CompareTo(b.LinkNum);
+                        });
 
-                            // Preserve link ordering
-                            //
-                            newSet.Sort(delegate (SceneObjectPart a, SceneObjectPart b)
-                            {
-                                return a.LinkNum.CompareTo(b.LinkNum);
-                            });
+                        // Determine new root
+                        //
+                        SceneObjectPart newRoot = newSet[0];
+                        newSet.RemoveAt(0);
 
-                            // Determine new root
-                            //
-                            SceneObjectPart newRoot = newSet[0];
-                            newSet.RemoveAt(0);
+                        foreach (SceneObjectPart newChild in newSet)
+                            newChild.UpdateFlag = 0;
 
-                            foreach (SceneObjectPart newChild in newSet)
-                                newChild.UpdateFlag = 0;
-
-                            LinkObjects(newRoot, newSet);
-                            if (!affectedGroups.Contains(newRoot.ParentGroup))
-                                affectedGroups.Add(newRoot.ParentGroup);
-                        }
+                        newRoot.ParentGroup.areUpdatesSuspended = true;
+                        LinkObjects(newRoot, newSet);
+                        if (!affectedGroups.Contains(newRoot.ParentGroup))
+                            affectedGroups.Add(newRoot.ParentGroup);
                     }
                 }
 
@@ -1786,6 +1782,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     g.TriggerScriptChangedEvent(Changed.LINK);
                     g.HasGroupChanged = true; // Persist
+                    g.areUpdatesSuspended = false;
                     g.ScheduleGroupForFullUpdate();
                 }
             }
