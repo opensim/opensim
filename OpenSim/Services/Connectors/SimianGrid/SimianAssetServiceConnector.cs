@@ -81,7 +81,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianAssetServiceConnector(IConfigSource source)
         {
-            Initialise(source);
+            CommonInit(source);
         }
 
         public void Initialise(IConfigSource source)
@@ -91,25 +91,28 @@ namespace OpenSim.Services.Connectors.SimianGrid
             {
                 string name = moduleConfig.GetString("AssetServices", "");
                 if (name == Name)
-                {
-                    IConfig gridConfig = source.Configs["AssetService"];
-                    if (gridConfig != null)
-                    {
-                        string serviceUrl = gridConfig.GetString("AssetServerURI");
-                        if (!String.IsNullOrEmpty(serviceUrl))
-                        {
-                            if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
-                                serviceUrl = serviceUrl + '/';
-                            m_serverUrl = serviceUrl;
-                        }
-                    }
+                    CommonInit(source);
+            }
+        }
 
-                    if (String.IsNullOrEmpty(m_serverUrl))
-                        m_log.Info("[SIMIAN ASSET CONNECTOR]: No AssetServerURI specified, disabling connector");
-                    else
-                        m_Enabled = true;
+        private void CommonInit(IConfigSource source)
+        {
+            IConfig gridConfig = source.Configs["AssetService"];
+            if (gridConfig != null)
+            {
+                string serviceUrl = gridConfig.GetString("AssetServerURI");
+                if (!String.IsNullOrEmpty(serviceUrl))
+                {
+                    if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
+                        serviceUrl = serviceUrl + '/';
+                    m_serverUrl = serviceUrl;
                 }
             }
+
+            if (String.IsNullOrEmpty(m_serverUrl))
+                m_log.Info("[SIMIAN ASSET CONNECTOR]: No AssetServerURI specified, disabling connector");
+            else
+                m_Enabled = true;
         }
 
         #region IAssetService
