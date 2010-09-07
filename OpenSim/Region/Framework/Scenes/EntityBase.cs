@@ -69,6 +69,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool IsDeleted
         {
             get { return m_isDeleted; }
+            set { m_isDeleted = value; }
         }
         protected bool m_isDeleted;
 

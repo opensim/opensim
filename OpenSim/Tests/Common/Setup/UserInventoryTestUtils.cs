@@ -52,7 +52,7 @@ namespace OpenSim.Tests.Common
             InventoryFolderBase objsFolder = scene.InventoryService.GetFolderForType(userId, AssetType.Object);
             
             item.Folder = objsFolder.ID;
-            scene.AddInventoryItem(userId, item);            
+            scene.AddInventoryItem(item);            
             
             return item;
         }

@@ -300,7 +300,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                 }
             }
             m_log.Info("[CMMODEL]: Scheduling a backup of new scene object groups to backup.");
-            scene.Backup();
+            scene.Backup(true);
         }
 
         /// <summary>

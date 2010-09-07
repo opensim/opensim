@@ -1562,18 +1562,22 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private void BackupWaitCallback(object o)
         {
-            Backup();
+            Backup(false);
         }
-
+        
         /// <summary>
         /// Backup the scene.  This acts as the main method of the backup thread.
         /// </summary>
+        /// <param name="forced">
+        /// If true, then any changes that have not yet been persisted are persisted.  If false,
+        /// then the persistence decision is left to the backup code (in some situations, such as object persistence,
+        /// it's much more efficient to backup multiple changes at once rather than every single one).
         /// <returns></returns>
-        public void Backup()
+        public void Backup(bool forced)
         {
             lock (m_returns)
             {
-                EventManager.TriggerOnBackup(m_storageManager.DataStore);
+                EventManager.TriggerOnBackup(m_storageManager.DataStore, forced);
                 m_backingup = false;
 
                 foreach (KeyValuePair<UUID, ReturnInfo> ret in m_returns)
@@ -2155,7 +2159,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                rootPart.PhysActor = null;
 //            }
 
-            if (UnlinkSceneObject(group.UUID, false))
+            if (UnlinkSceneObject(group, false))
             {
                 EventManager.TriggerObjectBeingRemovedFromScene(group);
                 EventManager.TriggerParcelPrimCountTainted();
@@ -2170,18 +2174,25 @@ namespace OpenSim.Region.Framework.Scenes
         /// Unlink the given object from the scene.  Unlike delete, this just removes the record of the object - the
         /// object itself is not destroyed.
         /// </summary>
-        /// <param name="uuid">Id of object.</param>
+        /// <param name="so">The scene object.</param>
+        /// <param name="softDelete">If true, only deletes from scene, but keeps the object in the database.</param>
         /// <returns>true if the object was in the scene, false if it was not</returns>
-        /// <param name="softDelete">If true, only deletes from scene, but keeps object in database.</param>
-        public bool UnlinkSceneObject(UUID uuid, bool softDelete)
+        public bool UnlinkSceneObject(SceneObjectGroup so, bool softDelete)
         {
-            if (m_sceneGraph.DeleteSceneObject(uuid, softDelete))
+            if (m_sceneGraph.DeleteSceneObject(so.UUID, softDelete))
             {
                 if (!softDelete)
                 {
-                    m_storageManager.DataStore.RemoveObject(uuid,
-                                                            m_regInfo.RegionID);
+                    // Force a database update so that the scene object group ID is accurate.  It's possible that the
+                    // group has recently been delinked from another group but that this change has not been persisted
+                    // to the DB.
+                    ForceSceneObjectBackup(so);
+                    so.DetachFromBackup();                                
+                    m_storageManager.DataStore.RemoveObject(so.UUID, m_regInfo.RegionID);
                 }
+                                    
+                // We need to keep track of this state in case this group is still queued for further backup.
+                so.IsDeleted = true;                
 
                 return true;
             }
@@ -2212,7 +2223,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 catch (Exception)
                 {
-                    m_log.Warn("[DATABASE]: exception when trying to remove the prim that crossed the border.");
+                    m_log.Warn("[SCENE]: exception when trying to remove the prim that crossed the border.");
                 }
                 return;
             }
@@ -2229,7 +2240,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 catch (Exception)
                 {
-                    m_log.Warn("[DATABASE]: exception when trying to return the prim that crossed the border.");
+                    m_log.Warn("[SCENE]: exception when trying to return the prim that crossed the border.");
                 }
                 return;
             }

@@ -300,7 +300,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void BackupCurrentScene()
         {
-            ForEachCurrentScene(delegate(Scene scene) { scene.Backup(); });
+            ForEachCurrentScene(delegate(Scene scene) { scene.Backup(true); });
         }
 
         public bool TrySetCurrentScene(string regionName)

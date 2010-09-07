@@ -173,6 +173,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             Assert.That(neighbours.Count, Is.EqualTo(2));
         }
+        
         public void fixNullPresence()
         {
             string firstName = "testfirstname";
@@ -389,8 +390,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
         public static string GetRandomCapsObjectPath()
         {
-            TestHelper.InMethod();
-
             UUID caps = UUID.Random();
             string capsPath = caps.ToString();
             capsPath = capsPath.Remove(capsPath.Length - 4, 4);

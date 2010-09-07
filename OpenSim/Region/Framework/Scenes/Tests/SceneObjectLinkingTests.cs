@@ -26,13 +26,13 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
@@ -259,6 +259,87 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 && (part4.RotationOffset.Z - compareQuaternion.Z < 0.00003) 
                 && (part4.RotationOffset.W - compareQuaternion.W < 0.00003),
                 "Badness 3");
+        }
+        
+        /// <summary>
+        /// Test that a new scene object which is already linked is correctly persisted to the persistence layer.
+        /// </summary>
+        [Test]
+        public void TestNewSceneObjectLinkPersistence()
+        {
+            TestHelper.InMethod();
+            //log4net.Config.XmlConfigurator.Configure();
+            
+            TestScene scene = SceneSetupHelpers.SetupScene();            
+            
+            string rootPartName = "rootpart";
+            UUID rootPartUuid = new UUID("00000000-0000-0000-0000-000000000001");
+            string linkPartName = "linkpart";
+            UUID linkPartUuid = new UUID("00000000-0000-0000-0001-000000000000");
+
+            SceneObjectPart rootPart
+                = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                    { Name = rootPartName, UUID = rootPartUuid };
+            SceneObjectPart linkPart
+                = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                    { Name = linkPartName, UUID = linkPartUuid };            
+
+            SceneObjectGroup sog = new SceneObjectGroup(rootPart);
+            sog.AddPart(linkPart);            
+            scene.AddNewSceneObject(sog, true);           
+            
+            // In a test, we have to crank the backup handle manually.  Normally this would be done by the timer invoked
+            // scene backup thread.
+            scene.Backup(true);
+            
+            List<SceneObjectGroup> storedObjects = scene.StorageManager.DataStore.LoadObjects(scene.RegionInfo.RegionID);
+            
+            Assert.That(storedObjects.Count, Is.EqualTo(1));
+            Assert.That(storedObjects[0].Children.Count, Is.EqualTo(2));
+            Assert.That(storedObjects[0].Children.ContainsKey(rootPartUuid));
+            Assert.That(storedObjects[0].Children.ContainsKey(linkPartUuid));
+        }
+        
+        /// <summary>
+        /// Test that a delink of a previously linked object is correctly persisted to the database
+        /// </summary>
+        [Test]
+        public void TestDelinkPersistence()
+        {
+            TestHelper.InMethod();
+            //log4net.Config.XmlConfigurator.Configure();
+            
+            TestScene scene = SceneSetupHelpers.SetupScene();            
+            
+            string rootPartName = "rootpart";
+            UUID rootPartUuid = new UUID("00000000-0000-0000-0000-000000000001");
+            string linkPartName = "linkpart";
+            UUID linkPartUuid = new UUID("00000000-0000-0000-0001-000000000000");
+
+            SceneObjectPart rootPart
+                = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                    { Name = rootPartName, UUID = rootPartUuid };
+            SceneObjectPart linkPart
+                = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                    { Name = linkPartName, UUID = linkPartUuid };            
+
+            SceneObjectGroup sog = new SceneObjectGroup(rootPart);
+            sog.AddPart(linkPart);            
+            scene.AddNewSceneObject(sog, true);           
+            
+            // In a test, we have to crank the backup handle manually.  Normally this would be done by the timer invoked
+            // scene backup thread.
+            scene.Backup(true);
+                        
+            // These changes should occur immediately without waiting for a backup pass
+            SceneObjectGroup groupToDelete = sog.DelinkFromGroup(linkPart, false);
+            scene.DeleteSceneObject(groupToDelete, false);  
+            
+            List<SceneObjectGroup> storedObjects = scene.StorageManager.DataStore.LoadObjects(scene.RegionInfo.RegionID);
+            
+            Assert.That(storedObjects.Count, Is.EqualTo(1));
+            Assert.That(storedObjects[0].Children.Count, Is.EqualTo(1));
+            Assert.That(storedObjects[0].Children.ContainsKey(rootPartUuid));
         }
     }
 }

@@ -157,7 +157,7 @@ namespace OpenSim.Tests.Common.Setup
             AgentCircuitManager acm = new AgentCircuitManager();
             SceneCommunicationService scs = new SceneCommunicationService();
 
-            StorageManager sm = new StorageManager("OpenSim.Data.Null.dll", "", "");
+            StorageManager sm = new StorageManager("OpenSim.Tests.Common.dll", "", "");
             IConfigSource configSource = new IniConfigSource();
 
             TestScene testScene = new TestScene(

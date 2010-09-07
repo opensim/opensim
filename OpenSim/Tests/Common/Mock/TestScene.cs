@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -29,7 +29,6 @@ using System;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Scenes;
@@ -47,6 +46,11 @@ namespace OpenSim.Tests.Common.Mock
                    dumpAssetsToFile, physicalPrim, SeeIntoRegionFromNeighbor, config, simulatorVersion)
         {
         }
+        
+        /// <summary>
+        /// Allow retrieval for test check purposes
+        /// </summary>
+        public StorageManager StorageManager { get { return m_storageManager; } }
         
         /// <summary>
         /// Temporarily override session authentication for tests (namely teleport).
