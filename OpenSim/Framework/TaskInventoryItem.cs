@@ -348,15 +348,15 @@ namespace OpenSim.Framework
         /// <param name="partID">The new part ID to which this item belongs</param>
         public void ResetIDs(UUID partID)
         {
-            _oldID  = _itemID;
-            _itemID = UUID.Random();
-            _parentPartID = partID;
-            _parentID = partID;
+            OldItemID = ItemID;
+            ItemID = UUID.Random();
+            ParentPartID = partID;
+            ParentID = partID;
         }
 
         public TaskInventoryItem()
         {
-            _creationDate = (uint)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            CreationDate = (uint)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
         }
     }
 }

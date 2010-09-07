@@ -215,7 +215,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         public void TestLoadOarV0_2()
         {
             TestHelper.InMethod();
-            //log4net.Config.XmlConfigurator.Configure();
+//            log4net.Config.XmlConfigurator.Configure();
 
             MemoryStream archiveWriteStream = new MemoryStream();
             TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);

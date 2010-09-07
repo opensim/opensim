@@ -119,6 +119,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="linkNum">Link number for the part</param>
         public void ResetInventoryIDs()
         {
+            if (null == m_part || null == m_part.ParentGroup)
+                return;
+            
             lock (m_items)
             {
                 if (0 == m_items.Count)
