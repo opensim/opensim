@@ -75,7 +75,9 @@ namespace OpenSim.Region.Framework.Tests
         
         protected TaskInventoryItem CreateSOItem1(Scene scene, SceneObjectPart part)
         {
-            AssetNotecard nc = new AssetNotecard("Hello World!");
+            AssetNotecard nc = new AssetNotecard();
+            nc.BodyText = "Hello World!";
+            nc.Encode();
             UUID ncAssetUuid = new UUID("00000000-0000-0000-1000-000000000000");
             UUID ncItemUuid = new UUID("00000000-0000-0000-1100-000000000000");            
             AssetBase ncAsset 

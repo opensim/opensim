@@ -140,13 +140,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // Process all the pending adds
             OutgoingPacket pendingAdd;
-            while (m_pendingAdds.Dequeue(out pendingAdd))
+            while (m_pendingAdds.TryDequeue(out pendingAdd))
                 m_packets[pendingAdd.SequenceNumber] = pendingAdd;
 
             // Process all the pending removes, including updating statistics and round-trip times
             PendingAck pendingRemove;
             OutgoingPacket ackedPacket;
-            while (m_pendingRemoves.Dequeue(out pendingRemove))
+            while (m_pendingRemoves.TryDequeue(out pendingRemove))
             {
                 if (m_packets.TryGetValue(pendingRemove.SequenceNumber, out ackedPacket))
                 {

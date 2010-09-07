@@ -49,6 +49,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class SimianUserAccountServiceConnector : IUserAccountService, ISharedRegionModule
     {
+        private const double CACHE_EXPIRATION_SECONDS = 120.0;
+
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
@@ -141,7 +143,15 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "UserID", userID.ToString() }
             };
 
-            return GetUser(requestArgs);
+            account = GetUser(requestArgs);
+
+            if (account == null)
+            {
+                // Store null responses too, to avoid repeated lookups for missing accounts
+                m_accountCache.AddOrUpdate(userID, null, CACHE_EXPIRATION_SECONDS);
+            }
+
+            return account;
         }
 
         public List<UserAccount> GetUserAccounts(UUID scopeID, string query)
@@ -216,7 +226,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 if (success)
                 {
                     // Cache the user account info
-                    m_accountCache.AddOrUpdate(data.PrincipalID, data, DateTime.Now + TimeSpan.FromMinutes(2.0d));
+                    m_accountCache.AddOrUpdate(data.PrincipalID, data, CACHE_EXPIRATION_SECONDS);
                 }
                 else
                 {
@@ -281,7 +291,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             GetFirstLastName(response["Name"].AsString(), out account.FirstName, out account.LastName);
 
             // Cache the user account info
-            m_accountCache.AddOrUpdate(account.PrincipalID, account, DateTime.Now + TimeSpan.FromMinutes(2.0d));
+            m_accountCache.AddOrUpdate(account.PrincipalID, account, CACHE_EXPIRATION_SECONDS);
 
             return account;
         }
