@@ -1693,6 +1693,8 @@ namespace OpenSim.Region.Framework.Scenes
                             // Unlink all child parts from their groups
                             //
                             child.ParentGroup.DelinkFromGroup(child, true);
+                            child.ParentGroup.HasGroupChanged = true;
+                            child.ParentGroup.ScheduleGroupForFullUpdate();
                         }
                     }
                     finally
