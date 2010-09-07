@@ -99,7 +99,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianPresenceServiceConnector(IConfigSource source)
         {
-            Initialise(source);
+            CommonInit(source);
         }
 
         public void Initialise(IConfigSource source)
@@ -109,24 +109,27 @@ namespace OpenSim.Services.Connectors.SimianGrid
             {
                 string name = moduleConfig.GetString("PresenceServices", "");
                 if (name == Name)
-                {
-                    IConfig gridConfig = source.Configs["PresenceService"];
-                    if (gridConfig != null)
-                    {
-                        string serviceUrl = gridConfig.GetString("PresenceServerURI");
-                        if (!String.IsNullOrEmpty(serviceUrl))
-                        {
-                            if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
-                                serviceUrl = serviceUrl + '/';
-                            m_serverUrl = serviceUrl;
-                            m_Enabled = true;
-                        }
-                    }
+                    CommonInit(source);
+            }
+        }
 
-                    if (String.IsNullOrEmpty(m_serverUrl))
-                        m_log.Info("[SIMIAN PRESENCE CONNECTOR]: No PresenceServerURI specified, disabling connector");
+        private void CommonInit(IConfigSource source)
+        {
+            IConfig gridConfig = source.Configs["PresenceService"];
+            if (gridConfig != null)
+            {
+                string serviceUrl = gridConfig.GetString("PresenceServerURI");
+                if (!String.IsNullOrEmpty(serviceUrl))
+                {
+                    if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
+                        serviceUrl = serviceUrl + '/';
+                    m_serverUrl = serviceUrl;
+                    m_Enabled = true;
                 }
             }
+
+            if (String.IsNullOrEmpty(m_serverUrl))
+                m_log.Info("[SIMIAN PRESENCE CONNECTOR]: No PresenceServerURI specified, disabling connector");
         }
 
         #region IPresenceService
