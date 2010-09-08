@@ -498,9 +498,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             if (lookupAgent)
             {
                 // Non-cached user agent lookup.
-                PresenceInfo[] presences = PresenceService.GetAgents(new string[] { toAgentID.ToString() }); 
-                if (presences != null && presences.Length > 0)
-                    upd = presences[0];
+                upd = PresenceService.GetAgent(toAgentID); 
 
                 if (upd != null)
                 {

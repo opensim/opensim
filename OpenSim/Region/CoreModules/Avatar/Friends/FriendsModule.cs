@@ -348,10 +348,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                         UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(client.Scene.RegionInfo.ScopeID, new UUID(im.fromAgentID));
                         im.fromAgentName = account.FirstName + " " + account.LastName;
 
-                        PresenceInfo presence = null;
-                        PresenceInfo[] presences = PresenceService.GetAgents(new string[] { fid });
-                        if (presences != null && presences.Length > 0)
-                            presence = presences[0];
+                        PresenceInfo presence = PresenceService.GetAgent(new UUID(im.fromAgentID));
                         if (presence != null)
                             im.offline = 0;
 
@@ -470,26 +467,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     return;
 
                 // The friend is not here [as root]. Let's forward.
-                PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
-                if (friendSessions != null && friendSessions.Length > 0)
+                PresenceInfo friendSession = PresenceService.GetAgent(friendID);
+                if (friendSession != null && friendSession.RegionID != UUID.Zero) // let's guard against sessions-gone-bad with the RegionID check
                 {
-                    PresenceInfo friendSession = null; 
-                    foreach (PresenceInfo pinfo in friendSessions)
-                        if (pinfo.RegionID != UUID.Zero) // let's guard against sessions-gone-bad
-                        {
-                            friendSession = pinfo;
-                            break;
-                        }
-
-                    if (friendSession != null)
-                    {
-                        GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-                        //m_log.DebugFormat("[FRIENDS]: Remote Notify to region {0}", region.RegionName);
-                        m_FriendsSimConnector.StatusNotify(region, userID, friendID, online);
-                    }
+                    GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                    //m_log.DebugFormat("[FRIENDS]: Remote Notify to region {0}", region.RegionName);
+                    m_FriendsSimConnector.StatusNotify(region, userID, friendID, online);
                 }
-
-                // Friend is not online. Ignore.
             }
             else
                 m_log.WarnFormat("[FRIENDS]: Error parsing friend ID {0}", friend.Friend);
@@ -528,15 +512,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 return;
 
             // The prospective friend is not here [as root]. Let's forward.
-            PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
-            if (friendSessions != null && friendSessions.Length > 0)
+            PresenceInfo friendSession = PresenceService.GetAgent(friendID);
+            if (friendSession != null)
             {
-                PresenceInfo friendSession = friendSessions[0];
-                if (friendSession != null)
-                {
-                    GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-                    m_FriendsSimConnector.FriendshipOffered(region, agentID, friendID, im.message);
-                }
+                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                m_FriendsSimConnector.FriendshipOffered(region, agentID, friendID, im.message);
             }
             // If the prospective friend is not online, he'll get the message upon login.
         }
@@ -563,16 +543,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
 
             // The friend is not here
-            PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
-            if (friendSessions != null && friendSessions.Length > 0)
+            PresenceInfo friendSession = PresenceService.GetAgent(friendID);
+            if (friendSession != null)
             {
-                PresenceInfo friendSession = friendSessions[0];
-                if (friendSession != null)
-                {
-                    GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-                    m_FriendsSimConnector.FriendshipApproved(region, agentID, client.Name, friendID);
-                    client.SendAgentOnline(new UUID[] { friendID });
-                }
+                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                m_FriendsSimConnector.FriendshipApproved(region, agentID, client.Name, friendID);
+                client.SendAgentOnline(new UUID[] { friendID });
             }
         }
 
@@ -591,18 +567,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (LocalFriendshipDenied(agentID, client.Name, friendID))
                 return;
 
-            PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
-            if (friendSessions != null && friendSessions.Length > 0)
+            PresenceInfo friendSession = PresenceService.GetAgent(friendID);
+            if (friendSession != null)
             {
-                PresenceInfo friendSession = friendSessions[0];
-                if (friendSession != null)
-                {
-                    GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-                    if (region != null)
-                        m_FriendsSimConnector.FriendshipDenied(region, agentID, client.Name, friendID);
-                    else
-                        m_log.WarnFormat("[FRIENDS]: Could not find region {0} in locating {1}", friendSession.RegionID, friendID);
-                }
+                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                if (region != null)
+                    m_FriendsSimConnector.FriendshipDenied(region, agentID, client.Name, friendID);
+                else
+                    m_log.WarnFormat("[FRIENDS]: Could not find region {0} in locating {1}", friendSession.RegionID, friendID);
             }
         }
 
@@ -624,15 +596,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (LocalFriendshipTerminated(exfriendID))
                 return;
 
-            PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { exfriendID.ToString() });
-            if (friendSessions != null && friendSessions.Length > 0)
+            PresenceInfo friendSession = PresenceService.GetAgent(exfriendID);
+            if (friendSession != null)
             {
-                PresenceInfo friendSession = friendSessions[0];
-                if (friendSession != null)
-                {
-                    GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-                    m_FriendsSimConnector.FriendshipTerminated(region, agentID, exfriendID);
-                }
+                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                m_FriendsSimConnector.FriendshipTerminated(region, agentID, exfriendID);
             }
         }
 
@@ -669,17 +637,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 if (LocalGrantRights(requester, target, myFlags, rights))
                     return;
 
-                PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { target.ToString() });
-                if (friendSessions != null && friendSessions.Length > 0)
+                PresenceInfo friendSession = PresenceService.GetAgent(target);
+                if (friendSession != null)
                 {
-                    PresenceInfo friendSession = friendSessions[0];
-                    if (friendSession != null)
-                    {
-                        GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-                        // TODO: You might want to send the delta to save the lookup
-                        // on the other end!!
-                        m_FriendsSimConnector.GrantRights(region, requester, target, myFlags, rights);
-                    }
+                    GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                    // TODO: You might want to send the delta to save the lookup
+                    // on the other end!!
+                    m_FriendsSimConnector.GrantRights(region, requester, target, myFlags, rights);
                 }
             }
         }
