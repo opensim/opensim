@@ -41,17 +41,10 @@ namespace OpenSim.Server.Handlers.Hypergrid
 {
     public class HeloServiceConnector : ServiceConnector
     {
-        private string m_ConfigName = "HeloService";
-
         public HeloServiceConnector(IConfigSource config, IHttpServer server, string configName) :
                 base(config, server, configName)
         {
-            IConfig serverConfig = config.Configs[m_ConfigName];
-            if (serverConfig == null)
-                throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
-
-            string handlers = serverConfig.GetString("Handlers", "opensim-robust");
-            server.AddStreamHandler(new HeloServerGetHandler(handlers));
+            server.AddStreamHandler(new HeloServerGetHandler("opensim-robust"));
         }
     }
 
