@@ -91,6 +91,11 @@ namespace OpenSim.Services.Connectors.SimianGrid
             CommonInit(source);
         }
 
+        public SimianInventoryServiceConnector(string url)
+        {
+            m_serverUrl = url;
+        }
+
         public void Initialise(IConfigSource source)
         {
             IConfig moduleConfig = source.Configs["Modules"];
