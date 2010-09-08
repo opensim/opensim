@@ -46,7 +46,7 @@ namespace OpenSim.Framework
                 case AssetType.Texture:
                     return "image/x-j2c";
                 case AssetType.Sound:
-                    return "application/ogg";
+                    return "audio/ogg";
                 case AssetType.CallingCard:
                     return "application/vnd.ll.callingcard";
                 case AssetType.Landmark:
@@ -98,8 +98,6 @@ namespace OpenSim.Framework
                     return "application/vnd.ll.outfitfolder";
                 case AssetType.MyOutfitsFolder:
                     return "application/vnd.ll.myoutfitsfolder";
-                case AssetType.InboxFolder:
-                    return "application/vnd.ll.inboxfolder";
                 case AssetType.Unknown:
                 default:
                     return "application/octet-stream";
@@ -128,7 +126,7 @@ namespace OpenSim.Framework
                 case InventoryType.Object:
                     return "application/vnd.ll.primitive";
                 case InventoryType.Sound:
-                    return "application/ogg";
+                    return "audio/ogg";
                 case InventoryType.Snapshot:
                 case InventoryType.Texture:
                     return "image/x-j2c";
@@ -147,6 +145,7 @@ namespace OpenSim.Framework
                 case "image/jp2":
                     return (sbyte)AssetType.Texture;
                 case "application/ogg":
+                case "audio/ogg":
                     return (sbyte)AssetType.Sound;
                 case "application/vnd.ll.callingcard":
                 case "application/x-metaverse-callingcard":
@@ -209,8 +208,6 @@ namespace OpenSim.Framework
                     return (sbyte)AssetType.OutfitFolder;
                 case "application/vnd.ll.myoutfitsfolder":
                     return (sbyte)AssetType.MyOutfitsFolder;
-                case "application/vnd.ll.inboxfolder":
-                    return (sbyte)AssetType.InboxFolder;
                 case "application/octet-stream":
                 default:
                     return (sbyte)AssetType.Unknown;
@@ -227,6 +224,7 @@ namespace OpenSim.Framework
                 case "image/jpeg":
                     return (sbyte)InventoryType.Texture;
                 case "application/ogg":
+                case "audio/ogg":
                 case "audio/x-wav":
                     return (sbyte)InventoryType.Sound;
                 case "application/vnd.ll.callingcard":

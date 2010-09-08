@@ -48,6 +48,7 @@ using OpenSim.Tests.Common.Setup;
 using ArchiveConstants = OpenSim.Framework.Serialization.ArchiveConstants;
 using TarArchiveReader = OpenSim.Framework.Serialization.TarArchiveReader;
 using TarArchiveWriter = OpenSim.Framework.Serialization.TarArchiveWriter;
+using RegionSettings = OpenSim.Framework.RegionSettings;
 
 namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 {
@@ -135,7 +136,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             SceneObjectPart part2 = CreateSceneObjectPart2();
             
-            AssetNotecard nc = new AssetNotecard("Hello World!");
+            AssetNotecard nc = new AssetNotecard();
+            nc.BodyText = "Hello World!";
+            nc.Encode();
             UUID ncAssetUuid = new UUID("00000000-0000-0000-1000-000000000000");
             UUID ncItemUuid = new UUID("00000000-0000-0000-1100-000000000000");
             AssetBase ncAsset 

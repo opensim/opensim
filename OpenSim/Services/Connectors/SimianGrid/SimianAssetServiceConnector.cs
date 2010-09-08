@@ -81,7 +81,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianAssetServiceConnector(IConfigSource source)
         {
-            Initialise(source);
+            CommonInit(source);
         }
 
         public void Initialise(IConfigSource source)
@@ -91,31 +91,40 @@ namespace OpenSim.Services.Connectors.SimianGrid
             {
                 string name = moduleConfig.GetString("AssetServices", "");
                 if (name == Name)
-                {
-                    IConfig gridConfig = source.Configs["AssetService"];
-                    if (gridConfig != null)
-                    {
-                        string serviceUrl = gridConfig.GetString("AssetServerURI");
-                        if (!String.IsNullOrEmpty(serviceUrl))
-                        {
-                            if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
-                                serviceUrl = serviceUrl + '/';
-                            m_serverUrl = serviceUrl;
-                        }
-                    }
+                    CommonInit(source);
+            }
+        }
 
-                    if (String.IsNullOrEmpty(m_serverUrl))
-                        m_log.Info("[SIMIAN ASSET CONNECTOR]: No AssetServerURI specified, disabling connector");
-                    else
-                        m_Enabled = true;
+        private void CommonInit(IConfigSource source)
+        {
+            IConfig gridConfig = source.Configs["AssetService"];
+            if (gridConfig != null)
+            {
+                string serviceUrl = gridConfig.GetString("AssetServerURI");
+                if (!String.IsNullOrEmpty(serviceUrl))
+                {
+                    if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
+                        serviceUrl = serviceUrl + '/';
+                    m_serverUrl = serviceUrl;
                 }
             }
+
+            if (String.IsNullOrEmpty(m_serverUrl))
+                m_log.Info("[SIMIAN ASSET CONNECTOR]: No AssetServerURI specified, disabling connector");
+            else
+                m_Enabled = true;
         }
 
         #region IAssetService
 
         public AssetBase Get(string id)
         {
+            if (String.IsNullOrEmpty(m_serverUrl))
+            {
+                m_log.Error("[SIMIAN ASSET CONNECTOR]: No AssetServerURI configured");
+                throw new InvalidOperationException();
+            }
+
             // Cache fetch
             if (m_cache != null)
             {
@@ -142,6 +151,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
         /// <returns></returns>
         public AssetMetadata GetMetadata(string id)
         {
+            if (String.IsNullOrEmpty(m_serverUrl))
+            {
+                m_log.Error("[SIMIAN ASSET CONNECTOR]: No AssetServerURI configured");
+                throw new InvalidOperationException();
+            }
+
             AssetMetadata metadata = null;
 
             // Cache fetch
@@ -213,6 +228,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
         /// <returns>True if the id was parseable, false otherwise</returns>
         public bool Get(string id, Object sender, AssetRetrieved handler)
         {
+            if (String.IsNullOrEmpty(m_serverUrl))
+            {
+                m_log.Error("[SIMIAN ASSET CONNECTOR]: No AssetServerURI configured");
+                throw new InvalidOperationException();
+            }
+
             // Cache fetch
             if (m_cache != null)
             {
@@ -243,6 +264,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
         /// <returns></returns>
         public string Store(AssetBase asset)
         {
+            if (String.IsNullOrEmpty(m_serverUrl))
+            {
+                m_log.Error("[SIMIAN ASSET CONNECTOR]: No AssetServerURI configured");
+                throw new InvalidOperationException();
+            }
+
             bool storedInCache = false;
             string errorMessage = null;
 
@@ -375,6 +402,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
         /// <returns></returns>
         public bool Delete(string id)
         {
+            if (String.IsNullOrEmpty(m_serverUrl))
+            {
+                m_log.Error("[SIMIAN ASSET CONNECTOR]: No AssetServerURI configured");
+                throw new InvalidOperationException();
+            }
+
             //string errorMessage = String.Empty;
             string url = m_serverUrl + id;
 

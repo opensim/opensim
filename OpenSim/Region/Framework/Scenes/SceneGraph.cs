@@ -1632,6 +1632,11 @@ namespace OpenSim.Region.Framework.Scenes
                     // Unlink all child parts from their groups
                     //
                     child.ParentGroup.DelinkFromGroup(child, true);
+
+                    // These are not in affected groups and will not be
+                    // handled further. Do the honors here.
+                    child.ParentGroup.HasGroupChanged = true;
+                    child.ParentGroup.ScheduleGroupForFullUpdate();
                 }
 
                 foreach (SceneObjectPart root in rootParts)

@@ -307,7 +307,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestDelinkPersistence()
         {
             TestHelper.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+            //log4net.Config.XmlConfigurator.Configure();
             
             TestScene scene = SceneSetupHelpers.SetupScene();            
             

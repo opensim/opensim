@@ -3529,9 +3529,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void ProcessEntityUpdates(int maxUpdates)
         {
-            Lazy<List<ObjectUpdatePacket.ObjectDataBlock>> objectUpdateBlocks = new Lazy<List<ObjectUpdatePacket.ObjectDataBlock>>();
-            Lazy<List<ObjectUpdateCompressedPacket.ObjectDataBlock>> compressedUpdateBlocks = new Lazy<List<ObjectUpdateCompressedPacket.ObjectDataBlock>>();
-            Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>> terseUpdateBlocks = new Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>>();
+            OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>> objectUpdateBlocks = new OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>>();
+            OpenSim.Framework.Lazy<List<ObjectUpdateCompressedPacket.ObjectDataBlock>> compressedUpdateBlocks = new OpenSim.Framework.Lazy<List<ObjectUpdateCompressedPacket.ObjectDataBlock>>();
+            OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>> terseUpdateBlocks = new OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>>();
 
             if (maxUpdates <= 0) maxUpdates = Int32.MaxValue;
             int updatesThisCall = 0;
