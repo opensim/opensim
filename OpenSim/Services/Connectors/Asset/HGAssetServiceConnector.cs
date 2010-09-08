@@ -32,6 +32,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
+using OpenSim.Services.Connectors.Hypergrid;
+using OpenSim.Services.Connectors.SimianGrid;
 
 namespace OpenSim.Services.Connectors
 {
@@ -41,7 +43,7 @@ namespace OpenSim.Services.Connectors
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<string, AssetServicesConnector> m_connectors = new Dictionary<string, AssetServicesConnector>();
+        private Dictionary<string, IAssetService> m_connectors = new Dictionary<string, IAssetService>();
 
         public HGAssetServiceConnector(IConfigSource source)
         {
@@ -81,7 +83,7 @@ namespace OpenSim.Services.Connectors
 
         private IAssetService GetConnector(string url)
         {
-            AssetServicesConnector connector = null;
+            IAssetService connector = null;
             lock (m_connectors)
             {
                 if (m_connectors.ContainsKey(url))
@@ -90,12 +92,17 @@ namespace OpenSim.Services.Connectors
                 }
                 else
                 {
-                    // We're instantiating this class explicitly, but this won't
-                    // work in general, because the remote grid may be running
-                    // an asset server that has a different protocol.
-                    // Eventually we will want a piece of protocol asking
-                    // the remote server about its kind. Definitely cool thing to do!
-                    connector = new AssetServicesConnector(url);
+                    // Still not as flexible as I would like this to be,
+                    // but good enough for now
+                    string connectorType = new HeloServicesConnector(url).Helo();
+                    m_log.DebugFormat("[HG ASSET SERVICE]: HELO returned {0}", connectorType);
+                    if (connectorType == "opensim-simian")
+                    {
+                        connector = new SimianAssetServiceConnector(url);
+                    }
+                    else
+                        connector = new AssetServicesConnector(url);
+
                     m_connectors.Add(url, connector);
                 }
             }
