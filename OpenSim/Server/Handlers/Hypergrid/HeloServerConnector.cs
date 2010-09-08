@@ -39,9 +39,9 @@ using OpenSim.Server.Handlers.Base;
 
 namespace OpenSim.Server.Handlers.Hypergrid
 {
-    public class HeloServiceConnector : ServiceConnector
+    public class HeloServiceInConnector : ServiceConnector
     {
-        public HeloServiceConnector(IConfigSource config, IHttpServer server, string configName) :
+        public HeloServiceInConnector(IConfigSource config, IHttpServer server, string configName) :
                 base(config, server, configName)
         {
             server.AddStreamHandler(new HeloServerGetHandler("opensim-robust"));
@@ -68,6 +68,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         private byte[] OKResponse(OSHttpResponse httpResponse)
         {
+            m_log.Debug("[HELO]: hi, I was called");
             httpResponse.AddHeader("X-Handlers-Provided", m_HandlersType);
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
             httpResponse.StatusDescription = "OK";
