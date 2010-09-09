@@ -26,11 +26,9 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 using log4net;
 
@@ -107,7 +105,11 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         void OnEnteringNewParcel(ScenePresence sp, int localLandID, UUID regionID)
         {
-            m_GridUserService.SetLastPosition(sp.UUID.ToString(), sp.ControllingClient.SessionId, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
+            // Asynchronously update the position stored in the session table for this agent
+            Util.FireAndForget(delegate(object o)
+            {
+                m_GridUserService.SetLastPosition(sp.UUID.ToString(), sp.ControllingClient.SessionId, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
+            });
         }
     }
 }

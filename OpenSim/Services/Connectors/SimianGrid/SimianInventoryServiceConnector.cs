@@ -37,7 +37,6 @@ using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Services.Connectors.SimianGrid

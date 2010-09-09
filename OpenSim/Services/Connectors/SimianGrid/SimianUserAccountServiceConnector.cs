@@ -28,7 +28,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.IO;
 using System.Reflection;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
