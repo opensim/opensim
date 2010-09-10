@@ -316,7 +316,7 @@ namespace OpenSim
             m_console.Commands.AddCommand("region", false, "create region",
                                           "create region [\"region name\"] <region_file.ini>",
                                           "Create a new region.",
-                                          "The settings for \"region name\" are read from <region_file.ini>."
+                                          "The settings for \"region name\" are read from <region_file.ini> in your Regions directory."
                                           + " If \"region name\" does not exist in <region_file.ini>, it will be added." + Environment.NewLine
                                           + "Without \"region name\", the first region found in <region_file.ini> will be created." + Environment.NewLine
                                           + "If <region_file.ini> does not exist, it will be created.",
@@ -552,17 +552,18 @@ namespace OpenSim
                 regionFile = Path.Combine(regionsDir, regionFile);
             }
 
-	    RegionInfo regInfo;
+            RegionInfo regInfo;
             if (isXml)
             {
-		regInfo = new RegionInfo(regionName, regionFile, false, ConfigSource.Source);
+                regInfo = new RegionInfo(regionName, regionFile, false, ConfigSource.Source);
             }
             else
             {
-		regInfo = new RegionInfo(regionName, regionFile, false, ConfigSource.Source, regionName);
+                regInfo = new RegionInfo(regionName, regionFile, false, ConfigSource.Source, regionName);
             }
+            
             IScene scene;
-	    PopulateRegionEstateInfo(regInfo);
+            PopulateRegionEstateInfo(regInfo);
     	    CreateRegion(regInfo, true, out scene);
     	    regInfo.EstateSettings.Save();
         }
