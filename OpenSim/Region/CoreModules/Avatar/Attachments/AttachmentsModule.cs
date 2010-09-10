@@ -436,7 +436,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             // We can NOT use the dictionries here, as we are looking
             // for an entity by the fromAssetID, which is NOT the prim UUID
-            List<EntityBase> detachEntities = m_scene.GetEntities();
+            EntityBase[] detachEntities = m_scene.GetEntities();
             SceneObjectGroup group;
 
             foreach (EntityBase entity in detachEntities)

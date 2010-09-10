@@ -84,9 +84,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             int primCount = 0;
             stream.WriteLine("<scene>\n");
 
-            List<EntityBase> EntityList = scene.GetEntities();
-
-            foreach (EntityBase ent in EntityList)
+            EntityBase[] entityList = scene.GetEntities();
+            foreach (EntityBase ent in entityList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -204,16 +203,14 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         public static void SavePrimsToXml2(Scene scene, string fileName)
         {
-            List<EntityBase> EntityList = scene.GetEntities();
-
-            SavePrimListToXml2(EntityList, fileName);
+            EntityBase[] entityList = scene.GetEntities();
+            SavePrimListToXml2(entityList, fileName);
         }
 
         public static void SavePrimsToXml2(Scene scene, TextWriter stream, Vector3 min, Vector3 max)
         {
-            List<EntityBase> EntityList = scene.GetEntities();
-
-            SavePrimListToXml2(EntityList, stream, min, max);
+            EntityBase[] entityList = scene.GetEntities();
+            SavePrimListToXml2(entityList, stream, min, max);
         }
         
         public static void SaveNamedPrimsToXml2(Scene scene, string primName, string fileName)
@@ -222,7 +219,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 "[SERIALISER]: Saving prims with name {0} in xml2 format for region {1} to {2}", 
                 primName, scene.RegionInfo.RegionName, fileName);
 
-            List<EntityBase> entityList = scene.GetEntities();
+            EntityBase[] entityList = scene.GetEntities();
             List<EntityBase> primList = new List<EntityBase>();
 
             foreach (EntityBase ent in entityList)
@@ -236,10 +233,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 }
             }
 
-            SavePrimListToXml2(primList, fileName);
+            SavePrimListToXml2(primList.ToArray(), fileName);
         }
 
-        public static void SavePrimListToXml2(List<EntityBase> entityList, string fileName)
+        public static void SavePrimListToXml2(EntityBase[] entityList, string fileName)
         {
             FileStream file = new FileStream(fileName, FileMode.Create);
             try
@@ -260,7 +257,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             }
         }
 
-        public static void SavePrimListToXml2(List<EntityBase> entityList, TextWriter stream, Vector3 min, Vector3 max)
+        public static void SavePrimListToXml2(EntityBase[] entityList, TextWriter stream, Vector3 min, Vector3 max)
         {
             int primCount = 0;
             stream.WriteLine("<scene>\n");

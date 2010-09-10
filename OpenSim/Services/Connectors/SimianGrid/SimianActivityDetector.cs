@@ -69,7 +69,10 @@ namespace OpenSim.Services.Connectors.SimianGrid
         public void OnMakeRootAgent(ScenePresence sp)
         {
             m_log.DebugFormat("[SIMIAN ACTIVITY DETECTOR]: Detected root presence {0} in {1}", sp.UUID, sp.Scene.RegionInfo.RegionName);
-            m_GridUserService.SetLastPosition(sp.UUID.ToString(), sp.ControllingClient.SessionId, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
+            Util.FireAndForget(delegate(object o)
+            {
+                m_GridUserService.SetLastPosition(sp.UUID.ToString(), sp.ControllingClient.SessionId, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
+            });
         }
 
         public void OnNewClient(IClientAPI client)

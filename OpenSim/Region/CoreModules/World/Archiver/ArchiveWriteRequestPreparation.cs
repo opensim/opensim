@@ -102,7 +102,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             Dictionary<UUID, AssetType> assetUuids = new Dictionary<UUID, AssetType>();
 
-            List<EntityBase> entities = m_scene.GetEntities();
+            EntityBase[] entities = m_scene.GetEntities();
             List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
 
             /*

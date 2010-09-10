@@ -286,7 +286,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
             else
             {
-                Entities = m_CmdManager.m_ScriptEngine.World.GetEntities();
+                Entities = new List<EntityBase>(m_CmdManager.m_ScriptEngine.World.GetEntities());
             }
             SceneObjectPart SensePoint = ts.host;
 

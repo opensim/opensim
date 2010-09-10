@@ -34,187 +34,89 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Scenes
 {
-    public class EntityManager : IEnumerable<EntityBase>
+    public class EntityManager //: IEnumerable<EntityBase>
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly Dictionary<UUID,EntityBase> m_eb_uuid = new Dictionary<UUID, EntityBase>();
-        private readonly Dictionary<uint, EntityBase> m_eb_localID = new Dictionary<uint, EntityBase>();
-        //private readonly Dictionary<UUID, ScenePresence> m_pres_uuid = new Dictionary<UUID, ScenePresence>();
-        private readonly Object m_lock = new Object();
+        private readonly DoubleDictionary<UUID, uint, EntityBase> m_entities = new DoubleDictionary<UUID, uint, EntityBase>();
 
-        [Obsolete("Use Add() instead.")]
-        public void Add(UUID id, EntityBase eb)
+        public int Count
         {
-            Add(eb);
+            get { return m_entities.Count; }
         }
 
         public void Add(EntityBase entity)
         {
-            lock (m_lock)
-            {
-                try
-                {
-                    m_eb_uuid.Add(entity.UUID, entity);
-                    m_eb_localID.Add(entity.LocalId, entity);
-                }
-                catch(Exception e)
-                {
-                    m_log.ErrorFormat("Add Entity failed: {0}", e.Message);
-                }
-            }
-        }
-
-        public void InsertOrReplace(EntityBase entity)
-        {
-            lock (m_lock)
-            {
-                try
-                {
-                    m_eb_uuid[entity.UUID] = entity;
-                    m_eb_localID[entity.LocalId] = entity;
-                }
-                catch(Exception e)
-                {
-                    m_log.ErrorFormat("Insert or Replace Entity failed: {0}", e.Message);
-                }
-            }
+            m_entities.Add(entity.UUID, entity.LocalId, entity);
         }
 
         public void Clear()
         {
-            lock (m_lock)
-            {
-                m_eb_uuid.Clear();
-                m_eb_localID.Clear();
-            }
-        }
-
-        public int Count
-        {
-            get
-            {
-                return m_eb_uuid.Count;
-            }
+            m_entities.Clear();
         }
 
         public bool ContainsKey(UUID id)
         {
-            try
-            {
-                return m_eb_uuid.ContainsKey(id);
-            }
-            catch
-            {
-                return false;
-            }
+            return m_entities.ContainsKey(id);
         }
 
         public bool ContainsKey(uint localID)
         {
-            try
-            {
-                return m_eb_localID.ContainsKey(localID);
-            }
-            catch
-            {
-                return false;
-            }
+            return m_entities.ContainsKey(localID);
         }
 
         public bool Remove(uint localID)
         {
-            lock (m_lock)
-            {
-                try
-                {
-                    bool a = false;
-                    EntityBase entity;
-                    if (m_eb_localID.TryGetValue(localID, out entity))
-                        a = m_eb_uuid.Remove(entity.UUID);
-
-                    bool b = m_eb_localID.Remove(localID);
-                    return a && b;
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("Remove Entity failed for {0}", localID, e);
-                    return false;
-                }
-            }
+            return m_entities.Remove(localID);
         }
 
         public bool Remove(UUID id)
         {
-            lock (m_lock)
-            {
-                try 
-                {
-                    bool a = false;
-                    EntityBase entity;
-                    if (m_eb_uuid.TryGetValue(id, out entity))
-                        a = m_eb_localID.Remove(entity.LocalId);
-
-                    bool b = m_eb_uuid.Remove(id);
-                    return a && b;
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("Remove Entity failed for {0}", id, e);
-                    return false;
-                }
-            }
+            return m_entities.Remove(id);
         }
 
-        public List<EntityBase> GetAllByType<T>()
+        public EntityBase[] GetAllByType<T>()
         {
             List<EntityBase> tmp = new List<EntityBase>();
 
-            lock (m_lock)
-            {
-                try
+            m_entities.ForEach(
+                delegate(EntityBase entity)
                 {
-                    foreach (KeyValuePair<UUID, EntityBase> pair in m_eb_uuid)
-                    {
-                        if (pair.Value is T)
-                        {
-                            tmp.Add(pair.Value);
-                        }
-                    }
+                    if (entity is T)
+                        tmp.Add(entity);
                 }
-                catch (Exception e) 
-                {
-                    m_log.ErrorFormat("GetAllByType failed for {0}", e);
-                    tmp = null;
-                }
-            }
+            );
 
-            return tmp;
+            return tmp.ToArray();
         }
 
-        public List<EntityBase> GetEntities()
+        public EntityBase[] GetEntities()
         {
-            lock (m_lock)
-            {
-                return new List<EntityBase>(m_eb_uuid.Values);
-            }
+            List<EntityBase> tmp = new List<EntityBase>(m_entities.Count);
+            m_entities.ForEach(delegate(EntityBase entity) { tmp.Add(entity); });
+            return tmp.ToArray();
+        }
+
+        public void ForEach(Action<EntityBase> action)
+        {
+            m_entities.ForEach(action);
+        }
+
+        public EntityBase Find(Predicate<EntityBase> predicate)
+        {
+            return m_entities.FindValue(predicate);
         }
 
         public EntityBase this[UUID id]
         {
             get
             {
-                lock (m_lock)
-                {
-                    EntityBase entity;
-                    if (m_eb_uuid.TryGetValue(id, out entity))
-                        return entity;
-                    else
-                        return null;
-                }
+                EntityBase entity;
+                m_entities.TryGetValue(id, out entity);
+                return entity;
             }
             set
             {
-                InsertOrReplace(value);
+                Add(value);
             }
         }
 
@@ -222,50 +124,38 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                lock (m_lock)
-                {
-                    EntityBase entity;
-                    if (m_eb_localID.TryGetValue(localID, out entity))
-                        return entity;
-                    else
-                        return null;
-                }
+                EntityBase entity;
+                m_entities.TryGetValue(localID, out entity);
+                return entity;
             }
             set
             {
-                InsertOrReplace(value);
+                Add(value);
             }
         }
 
         public bool TryGetValue(UUID key, out EntityBase obj)
         {
-            lock (m_lock)
-            {
-                return m_eb_uuid.TryGetValue(key, out obj);
-            }
+            return m_entities.TryGetValue(key, out obj);
         }
 
         public bool TryGetValue(uint key, out EntityBase obj)
         {
-            lock (m_lock)
-            {
-                return m_eb_localID.TryGetValue(key, out obj);
-            }
+            return m_entities.TryGetValue(key, out obj);
         }
 
         /// <summary>
         /// This could be optimised to work on the list 'live' rather than making a safe copy and iterating that.
         /// </summary>
         /// <returns></returns>
-        public IEnumerator<EntityBase> GetEnumerator()
-        {
-            return GetEntities().GetEnumerator();
-        }
+        //public IEnumerator<EntityBase> GetEnumerator()
+        //{
+        //    return GetEntities().GetEnumerator();
+        //}
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
+        //IEnumerator IEnumerable.GetEnumerator()
+        //{
+        //    return GetEnumerator();
+        //}
     }
 }
