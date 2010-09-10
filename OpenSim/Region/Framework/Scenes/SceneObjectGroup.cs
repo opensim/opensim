@@ -2091,16 +2091,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if a child part with the primID was not found</returns>
         public SceneObjectPart GetChildPart(UUID primID)
         {
-            SceneObjectPart childPart = null;
-            
+            SceneObjectPart childPart;
             lock (m_parts)
-            {
-                if (m_parts.ContainsKey(primID))
-                {
-                    childPart = m_parts[primID];
-                }
-            }
-            
+                m_parts.TryGetValue(primID, out childPart);
             return childPart;
         }
 

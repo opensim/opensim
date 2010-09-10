@@ -72,10 +72,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected Dictionary<UUID, ScenePresence> m_scenePresenceMap = new Dictionary<UUID, ScenePresence>();
         protected List<ScenePresence> m_scenePresenceArray = new List<ScenePresence>();
 
-        // SceneObjects is not currently populated or used.
-        //public Dictionary<UUID, SceneObjectGroup> SceneObjects;
         protected internal EntityManager Entities = new EntityManager();
-//        protected internal Dictionary<UUID, EntityBase> Entities = new Dictionary<UUID, EntityBase>();
         protected internal Dictionary<UUID, ScenePresence> RestorePresences = new Dictionary<UUID, ScenePresence>();
 
         protected RegionInfo m_regInfo;
@@ -351,28 +348,28 @@ namespace OpenSim.Region.Framework.Scenes
             if (Entities.ContainsKey(sceneObject.UUID))
                 return false;
 
-            // Clamp child prim sizes and add child prims to the m_numPrim count
+            List<SceneObjectPart> children;
             lock (sceneObject.Children)
+                children = new List<SceneObjectPart>(sceneObject.Children.Values);
+
+            // Clamp child prim sizes and add child prims to the m_numPrim count
+            if (m_parentScene.m_clampPrimSize)
             {
-                if (m_parentScene.m_clampPrimSize)
+                foreach (SceneObjectPart part in children)
                 {
-                    foreach (SceneObjectPart part in sceneObject.Children.Values)
-                    {
-                        Vector3 scale = part.Shape.Scale;
+                    Vector3 scale = part.Shape.Scale;
 
-                        if (scale.X > m_parentScene.m_maxNonphys)
-                            scale.X = m_parentScene.m_maxNonphys;
-                        if (scale.Y > m_parentScene.m_maxNonphys)
-                            scale.Y = m_parentScene.m_maxNonphys;
-                        if (scale.Z > m_parentScene.m_maxNonphys)
-                            scale.Z = m_parentScene.m_maxNonphys;
+                    if (scale.X > m_parentScene.m_maxNonphys)
+                        scale.X = m_parentScene.m_maxNonphys;
+                    if (scale.Y > m_parentScene.m_maxNonphys)
+                        scale.Y = m_parentScene.m_maxNonphys;
+                    if (scale.Z > m_parentScene.m_maxNonphys)
+                        scale.Z = m_parentScene.m_maxNonphys;
 
-                        part.Shape.Scale = scale;
-                    }
+                    part.Shape.Scale = scale;
                 }
-
-                m_numPrim += sceneObject.Children.Count;
             }
+            m_numPrim += children.Count;
 
             sceneObject.AttachToScene(m_parentScene);
 
@@ -390,14 +387,14 @@ namespace OpenSim.Region.Framework.Scenes
             lock (SceneObjectGroupsByFullID)
             {
                 SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
-                foreach (SceneObjectPart part in sceneObject.Children.Values)
+                foreach (SceneObjectPart part in children)
                     SceneObjectGroupsByFullID[part.UUID] = sceneObject;
             }
 
             lock (SceneObjectGroupsByLocalID)
             {
                 SceneObjectGroupsByLocalID[sceneObject.LocalId] = sceneObject;
-                foreach (SceneObjectPart part in sceneObject.Children.Values)
+                foreach (SceneObjectPart part in children)
                     SceneObjectGroupsByLocalID[part.LocalId] = sceneObject;
             }
 
@@ -859,13 +856,13 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat("Entered GetGroupByPrim with localID {0}", localID);
             SceneObjectGroup sog;
             lock (SceneObjectGroupsByLocalID)
+                SceneObjectGroupsByLocalID.TryGetValue(localID, out sog);
+
+            if (sog != null)
             {
-                if (SceneObjectGroupsByLocalID.TryGetValue(localID, out sog))
-                {
-                    if (sog.HasChildPrim(localID))
-                        return sog;
-                    SceneObjectGroupsByLocalID.Remove(localID);
-                }
+                if (sog.HasChildPrim(localID))
+                    return sog;
+                SceneObjectGroupsByLocalID.Remove(localID);
             }
 
             EntityBase[] entityList = GetEntities();
@@ -896,17 +893,18 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectGroup sog;
             lock (SceneObjectGroupsByFullID)
+                SceneObjectGroupsByFullID.TryGetValue(fullID, out sog);
+
+            if (sog != null)
             {
-                if (SceneObjectGroupsByFullID.TryGetValue(fullID, out sog))
+                lock (sog.Children)
                 {
-                    lock (sog.Children)
-                    {
-                        if (sog.Children.ContainsKey(fullID))
-                            return sog;
-                    }
-                    
-                    SceneObjectGroupsByFullID.Remove(fullID);
+                    if (sog.Children.ContainsKey(fullID))
+                        return sog;
                 }
+
+                lock (SceneObjectGroupsByFullID)
+                    SceneObjectGroupsByFullID.Remove(fullID);
             }
 
             EntityBase[] entityList = GetEntities();

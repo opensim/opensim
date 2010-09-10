@@ -34,7 +34,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Scenes
 {
-    public class EntityManager //: IEnumerable<EntityBase>
+    public class EntityManager
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly DoubleDictionary<UUID, uint, EntityBase> m_entities = new DoubleDictionary<UUID, uint, EntityBase>();
@@ -143,19 +143,5 @@ namespace OpenSim.Region.Framework.Scenes
         {
             return m_entities.TryGetValue(key, out obj);
         }
-
-        /// <summary>
-        /// This could be optimised to work on the list 'live' rather than making a safe copy and iterating that.
-        /// </summary>
-        /// <returns></returns>
-        //public IEnumerator<EntityBase> GetEnumerator()
-        //{
-        //    return GetEntities().GetEnumerator();
-        //}
-
-        //IEnumerator IEnumerable.GetEnumerator()
-        //{
-        //    return GetEnumerator();
-        //}
     }
 }
