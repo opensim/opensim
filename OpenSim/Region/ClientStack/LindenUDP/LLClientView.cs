@@ -1519,10 +1519,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             kill.Header.Reliable = true;
             kill.Header.Zerocoded = true;
 
-            lock (m_entityUpdates.SyncRoot)
+            if (m_scene.GetScenePresence(localID) == null)
             {
-                m_killRecord.Add(localID);
-                OutPacket(kill, ThrottleOutPacketType.State);
+                lock (m_entityUpdates.SyncRoot)
+                {
+                    m_killRecord.Add(localID);
+                    OutPacket(kill, ThrottleOutPacketType.State);
+                }
             }
         }
 
