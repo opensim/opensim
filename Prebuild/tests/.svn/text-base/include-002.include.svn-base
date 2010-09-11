@@ -1,0 +1,14 @@
+<Project name="Prebuild"
+	 path="src"
+	 language="C#"
+	 assemblyName="include-001"
+	 type="Exe"
+	 version="1.2.3"
+	 xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd"
+	 >
+  <?include file="include-002-2.include"?>
+  <Reference name="System" />
+  <Files>
+    <Match pattern="*.cs" recurse="true"/>			
+  </Files>
+</Project>

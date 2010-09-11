@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svnroot/dnpb/!svn/ver/295/trunk/Prebuild/src/Core/Interfaces
+END
+ITarget.cs
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svnroot/dnpb/!svn/ver/295/trunk/Prebuild/src/Core/Interfaces/ITarget.cs
+END
+IDataNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svnroot/dnpb/!svn/ver/295/trunk/Prebuild/src/Core/Interfaces/IDataNode.cs
+END

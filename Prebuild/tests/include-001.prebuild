@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<Prebuild xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.7.xsd" version="1.7">
+  <Solution name="include-001" version="1.2.3">
+    <Configuration name="Debug">
+      <Options>
+	<CompilerDefines>DEBUG;TRACE</CompilerDefines>
+	<OptimizeCode>false</OptimizeCode>
+	<OutputPath>bin/Debug</OutputPath>
+	<DebugInformation>true</DebugInformation>
+      </Options>
+    </Configuration>
+    <Configuration name="Release">
+      <Options>
+	<CompilerDefines>TRACE</CompilerDefines>
+	<OutputPath>bin/Release</OutputPath>
+	<OptimizeCode>true</OptimizeCode>
+	<DebugInformation>false</DebugInformation>
+      </Options>
+    </Configuration>
+    <?include file="include-001.include"?>
+  </Solution>
+</Prebuild>

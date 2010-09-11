@@ -1,0 +1,101 @@
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svnroot/dnpb/!svn/ver/323/trunk/Prebuild/src/Core/Targets
+END
+MakefileTarget.cs
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svnroot/dnpb/!svn/ver/307/trunk/Prebuild/src/Core/Targets/MakefileTarget.cs
+END
+SharpDevelop2Target.cs
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svnroot/dnpb/!svn/ver/295/trunk/Prebuild/src/Core/Targets/SharpDevelop2Target.cs
+END
+ToolInfo.cs
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svnroot/dnpb/!svn/ver/290/trunk/Prebuild/src/Core/Targets/ToolInfo.cs
+END
+VSGenericTarget.cs
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svnroot/dnpb/!svn/ver/316/trunk/Prebuild/src/Core/Targets/VSGenericTarget.cs
+END
+DebugTarget.cs
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svnroot/dnpb/!svn/ver/164/trunk/Prebuild/src/Core/Targets/DebugTarget.cs
+END
+VSVersion.cs
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svnroot/dnpb/!svn/ver/316/trunk/Prebuild/src/Core/Targets/VSVersion.cs
+END
+MonoDevelopTarget.cs
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svnroot/dnpb/!svn/ver/307/trunk/Prebuild/src/Core/Targets/MonoDevelopTarget.cs
+END
+AutotoolsTarget.cs
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svnroot/dnpb/!svn/ver/298/trunk/Prebuild/src/Core/Targets/AutotoolsTarget.cs
+END
+VS2010Target.cs
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svnroot/dnpb/!svn/ver/317/trunk/Prebuild/src/Core/Targets/VS2010Target.cs
+END
+VS2002Target.cs
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svnroot/dnpb/!svn/ver/295/trunk/Prebuild/src/Core/Targets/VS2002Target.cs
+END
+SharpDevelopTarget.cs
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svnroot/dnpb/!svn/ver/307/trunk/Prebuild/src/Core/Targets/SharpDevelopTarget.cs
+END
+VS2003Target.cs
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svnroot/dnpb/!svn/ver/307/trunk/Prebuild/src/Core/Targets/VS2003Target.cs
+END
+VS2005Target.cs
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svnroot/dnpb/!svn/ver/307/trunk/Prebuild/src/Core/Targets/VS2005Target.cs
+END
+NAntTarget.cs
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svnroot/dnpb/!svn/ver/323/trunk/Prebuild/src/Core/Targets/NAntTarget.cs
+END
+XcodeTarget.cs
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svnroot/dnpb/!svn/ver/307/trunk/Prebuild/src/Core/Targets/XcodeTarget.cs
+END
+VS2008Target.cs
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svnroot/dnpb/!svn/ver/307/trunk/Prebuild/src/Core/Targets/VS2008Target.cs
+END

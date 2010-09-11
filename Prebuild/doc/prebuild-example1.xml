@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Prebuild version="1.6" xmlns="http://dnpb.sourceforge.net/schemas/prebuild-1.6.xsd">
+	<Solution name="RealmForge">
+		<Configuration name="Debug">
+			<Options>
+				<CompilerDefines>TRACE;DEBUG</CompilerDefines>
+				<OptimizeCode>false</OptimizeCode>
+				<CheckUnderflowOverflow>false</CheckUnderflowOverflow>
+				<AllowUnsafe>false</AllowUnsafe>
+				<WarningLevel>4</WarningLevel>
+				<WarningsAsErrors>false</WarningsAsErrors>
+				<SuppressWarnings>1591;219;1573;1572;168</SuppressWarnings>
+				<OutputPath>..\bin</OutputPath>
+				<DebugInformation>true</DebugInformation>
+				<RegisterComInterop>false</RegisterComInterop>
+				<IncrementalBuild>true</IncrementalBuild>
+				<BaseAddress>285212672</BaseAddress>
+				<FileAlignment>4096</FileAlignment>
+				<NoStdLib>false</NoStdLib>
+				<XmlDocFile>Docs.xml</XmlDocFile>
+			</Options>
+		</Configuration>
+		<Configuration name="Release">
+			<Options>
+				<CompilerDefines>TRACE</CompilerDefines>
+				<OptimizeCode>true</OptimizeCode>
+				<CheckUnderflowOverflow>false</CheckUnderflowOverflow>
+				<AllowUnsafe>false</AllowUnsafe>
+				<WarningLevel>4</WarningLevel>
+				<WarningsAsErrors>false</WarningsAsErrors>
+				<SuppressWarnings>1591;219;1573;1572;168</SuppressWarnings>
+				<OutputPath>..\bin</OutputPath>
+				<DebugInformation>false</DebugInformation>
+				<RegisterComInterop>false</RegisterComInterop>
+				<IncrementalBuild>true</IncrementalBuild>
+				<BaseAddress>285212672</BaseAddress>
+				<FileAlignment>4096</FileAlignment>
+				<NoStdLib>false</NoStdLib>
+				<XmlDocFile>Docs.xml</XmlDocFile>				
+			</Options>
+		</Configuration>
+
+		<Project name="RealmForge.Utility" path="Utility" type="Library" assemblyName="RealmForge.Utility" rootNamespace="RealmForge">
+			<Configuration name="Debug">
+				<Options>
+					<OutputPath>..\bin\lib\Utility</OutputPath>
+					<XmlDocFile>RealmForge.Utility.xml</XmlDocFile>
+				</Options>
+			</Configuration>
+			<Configuration name="Release">
+				<Options>
+					<OutputPath>..\bin\lib\Utility</OutputPath>
+					<XmlDocFile>RealmForge.Utility.xml</XmlDocFile>
+				</Options>
+			</Configuration>
+			<ReferencePath>../bin</ReferencePath>
+			<Reference name="System"/>
+			<Reference name="System.Data"/> 
+			<Reference name="System.Drawing"/>
+			<Reference name="System.Xml"/>
+			<Reference name="System.Runtime.Serialization.Formatters.Soap"/>
+			<Reference name="ICSharpCode.SharpZipLib"/>
+			<Files>
+				<Match pattern="*.cs" recurse="true"/>
+			</Files>
+		</Project>
+
+		<Project name="RealmForge.Framework" path="Framework" type="Library" assemblyName="RealmForge.Framework" rootNamespace="RealmForge">
+			<Configuration name="Debug">
+				<Options>
+					<OutputPath>..\bin\lib\Framework</OutputPath>
+					<XmlDocFile>RealmForge.Framework.xml</XmlDocFile>
+				</Options>
+			</Configuration>
+			<Configuration name="Release">
+				<Options>
+					<OutputPath>..\bin\lib\Framework</OutputPath>
+					<XmlDocFile>RealmForge.Framework.xml</XmlDocFile>
+				</Options>
+			</Configuration>
+			<ReferencePath>../bin</ReferencePath>
+			<Reference name="System"/>
+			<Reference name="System.Data"/> 
+			<Reference name="System.Xml"/>
+			<Reference name="System.Windows.Forms"/>
+			<Reference name="System.Drawing"/>
+			<Reference name="Axiom.MathLib"/>
+			<Reference name="RealmForge.Utility"/>
+			<Reference name="Tao.OpenAl"/>
+			<Reference name="ICSharpCode.SharpZipLib"/>
+			<Reference name="csogg"/>
+			<Reference name="csvorbis"/>
+			<Files>
+				<Match pattern="*.cs" recurse="true"/>
+				<Match pattern="*.txt" recurse="true"/>
+			</Files>
+		</Project>
+
+		<Project name="RealmForge.Genres" path="Genres" type="Library" assemblyName="RealmForge.Genres" rootNamespace="RealmForge">
+			<Configuration name="Debug">
+				<Options>
+					<OutputPath>..\bin\lib\Genres</OutputPath>
+					<XmlDocFile>RealmForge.Genres.xml</XmlDocFile>
+				</Options>
+			</Configuration>
+			<Configuration name="Release">
+				<Options>
+					<OutputPath>..\bin\lib\Genres</OutputPath>
+					<XmlDocFile>RealmForge.Genres.xml</XmlDocFile>
+				</Options>
+			</Configuration>
+			<ReferencePath>../bin</ReferencePath>
+			<Reference name="System"/>
+			<Reference name="System.Data"/> 
+			<Reference name="System.Xml"/>
+			<Reference name="System.Windows.Forms"/>
+			<Reference name="System.Drawing"/>
+			<Reference name="Axiom.MathLib"/>
+			<Reference name="RealmForge.Utility"/>
+			<Reference name="RealmForge.Framework"/>
+			<Files>
+				<Match pattern="*.cs" recurse="true"/>
+			</Files>
+		</Project>
+				
+		<Project name="RealmForge.UI.Forms" path="Forms" type="Library" assemblyName="RealmForge.UI.Forms" rootNamespace="RealmForge">
+			<Configuration name="Debug">
+				<Options>
+					<OutputPath>..\bin\lib\Forms</OutputPath>	
+					<XmlDocFile>RealmForge.UI.Forms.xml</XmlDocFile>
+					<AllowUnsafe>true</AllowUnsafe>
+				</Options>
+			</Configuration>
+			<Configuration name="Release">
+				<Options>
+					<OutputPath>..\bin\lib\Forms</OutputPath>
+					<XmlDocFile>RealmForge.UI.Forms.xml</XmlDocFile>
+					<AllowUnsafe>true</AllowUnsafe>
+				</Options>
+			</Configuration>
+			<ReferencePath>../bin</ReferencePath>
+			<Reference name="System"/>
+			<Reference name="System.Drawing"/>
+			<Reference name="System.Data"/>
+			<Reference name="System.Design"/>
+			<Reference name="System.Windows.Forms"/>
+			<Reference name="System.Xml"/>
+			<Reference name="Axiom.MathLib"/>
+			<Reference name="wx.NET"/>
+			<Reference name="RealmForge.Framework"/>
+			<Reference name="RealmForge.Utility"/>
+			<Files>
+				<File buildAction="EmbeddedResource">IDE\Resources\ImagesCaptionIDE.bmp</File>
+				<File buildAction="EmbeddedResource">IDE\Resources\ImagesCaptionPlain.bmp</File>
+				<File buildAction="EmbeddedResource">IDE\Resources\ImagesMenuControl.bmp</File>
+				<File buildAction="EmbeddedResource">IDE\Resources\ImagesPopupMenu.bmp</File>
+				<File buildAction="EmbeddedResource">IDE\Resources\ImagesTabbedGroups.bmp</File>
+				<File buildAction="EmbeddedResource">IDE\Resources\ImagesTabControl.bmp</File>
+				<File buildAction="EmbeddedResource">IDE\Resources\LibraryIcon.ico</File>
+				<File buildAction="EmbeddedResource">IDE\Resources\TabbedInvalid.cur</File>
+				<File buildAction="EmbeddedResource">IDE\Resources\TabbedValid.cur</File>
+				<File buildAction="EmbeddedResource">IDE\Resources\WizardPicture.bmp</File>
+				<File buildAction="EmbeddedResource">Controls\Trees\tv_minus.bmp</File>
+				<File buildAction="EmbeddedResource">Controls\Trees\tv_plus.bmp</File>
+				<File buildAction="EmbeddedResource">Controls\Trees\treeview.bmp</File>
+				<File buildAction="EmbeddedResource">Controls\Trees\listview.bmp</File>
+				<File buildAction="EmbeddedResource">IDE\Menus\MenuControl.bmp</File>
+				<File buildAction="EmbeddedResource">IDE\Controls\InertButton.bmp</File>
+				<File buildAction="EmbeddedResource">IDE\Controls\TabbedGroups.bmp</File>
+				<File buildAction="EmbeddedResource">IDE\Controls\TabCOntrol.bmp</File>
+				<File buildAction="EmbeddedResource">IDE\Controls\WizardControl.bmp</File>
+				<File buildAction="EmbeddedResource">Forms\IDETest.resx</File>
+				<File buildAction="EmbeddedResource">Forms\IDEWindow.resx</File>
+				<File buildAction="EmbeddedResource">Forms\Launcher.resx</File>
+				<File buildAction="EmbeddedResource">Forms\MainRenderFrame.resx</File>
+				<Match pattern="*.cs" recurse="true"/>
+			</Files>
+		</Project>
+		
+		<Project name="RealmForge.RAGE" path="RAGE" type="Library" assemblyName="RealmForge.RAGE" rootNamespace="RealmForge">
+			<Configuration name="Debug">
+				<Options>
+					<OutputPath>..\bin\lib\RAGE</OutputPath>	
+					<XmlDocFile>RealmForge.RAGE.xml</XmlDocFile>
+				</Options>
+			</Configuration>
+			<Configuration name="Release">
+				<Options>
+					<OutputPath>..\bin\lib\RAGE</OutputPath>
+					<XmlDocFile>RealmForge.RAGE.xml</XmlDocFile>
+				</Options>
+			</Configuration>
+				<ReferencePath>../bin</ReferencePath>
+				<ReferencePath>../bin</ReferencePath>
+				<Reference name="System"/>
+				<Reference name="System.XML"/>
+				<Reference name="System.Windows.Forms"/>
+				<Reference name="System.Drawing"/>
+				<Reference name="Axiom.Plugins.CgProgramManager"/>
+				<Reference name="Axiom.Engine"/>
+				<Reference name="Axiom.MathLib"/>
+				<Reference name="Axiom.Plugins.ParticleFX"/>
+				<Reference name="Axiom.Platforms.Win32"/>
+				<Reference name="Axiom.RenderSystems.DirectX9"/>
+				<Reference localCopy="false" name="Axiom.RenderSystems.OpenGL"/>
+				<Reference name="Axiom.SceneManagers.Octree"/>
+				<Reference name="ICSharpCode.SharpZipLib"/>
+				<Reference name="System.Data"/>
+				<Reference name="RealmForge.Framework"/>
+				<Reference name="RealmForge.Utility"/>
+				<Reference name="ode"/>
+			<Files>
+				<Match pattern="*.cs" recurse="true"/>
+			</Files>
+		</Project>
+
+
+		<Project name="RealmForge.ScriptLibrary" path="ScriptLibrary" type="Library" assemblyName="RealmForge.ScriptLibrary" rootNamespace="RSL">
+			<Configuration name="Debug">
+				<Options>
+					<OutputPath>..\bin\ScriptLibrary</OutputPath>
+					<XmlDocFile>RealmForge.ScriptLibrary.xml</XmlDocFile>
+				</Options>
+			</Configuration>
+			<Configuration name="Release">
+				<Options>
+					<OutputPath>..\bin\ScriptLibrary</OutputPath>
+					<XmlDocFile>RealmForge.ScriptLibrary.xml</XmlDocFile>	
+				</Options>
+			</Configuration>
+			<ReferencePath>../bin</ReferencePath>
+			<Reference name="System"/>
+			<Reference name="System.XML"/>
+			<Reference name="System.Windows.Forms"/>
+			<Reference name="System.Drawing"/>
+			<Reference name="Axiom.MathLib"/>
+			<Reference name="wx.NET"/>
+			<Reference name="RealmForge.UI.Forms"/>
+			<Reference name="RealmForge.RAGE"/>
+			<Reference name="RealmForge.Framework"/>
+			<Reference name="RealmForge.Utility"/>
+			<Files>
+				<Match pattern="*.cs" recurse="true"/>
+			</Files>
+		</Project>
+
+		
+		<Project name="Updater" path="Updater" type="WinExe" icon="..\bin\Updater.ico" assemblyName="Updater" rootNamespace="RealmForge">
+			<Configuration name="Debug">
+				<Options>
+					<OutputPath>..\bin\lib\Updater</OutputPath>
+					<XmlDocFile>Updater.xml</XmlDocFile>	
+				</Options>
+			</Configuration>
+			<Configuration name="Release">
+				<Options>
+					<OutputPath>..\bin\lib\Updater</OutputPath>
+					<XmlDocFile>Updater.xml</XmlDocFile>		
+				</Options>
+			</Configuration>
+			<ReferencePath>../bin</ReferencePath>
+			<Reference name="System"/>
+			<Reference name="RealmForge.UI.Forms"/>
+			<Reference name="RealmForge.Framework"/>
+			<Reference name="RealmForge.Utility"/>
+			<Files>
+				<Match pattern="*.cs" recurse="true"/>
+			</Files>
+		</Project>
+
+
+		<Project name="DemoGame" path="DemoGame" type="WinExe" icon="..\bin\RealmForge.ico" assemblyName="DemoGame" rootNamespace="RealmForge">
+			<Configuration name="Debug">
+				<Options>
+					<OutputPath>..\bin</OutputPath>
+					<XmlDocFile>DemoGame.xml</XmlDocFile>
+				</Options>
+			</Configuration>
+			<Configuration name="Release">
+				<Options>
+					<OutputPath>..\bin</OutputPath>
+					<XmlDocFile>DemoGame.xml</XmlDocFile>		
+				</Options>
+			</Configuration>
+			<ReferencePath>../bin</ReferencePath>
+			<Reference name="System"/>
+			<Reference name="RealmForge.UI.Forms"/>
+			<Reference name="RealmForge.ScriptLibrary"/>
+			<Reference name="RealmForge.RAGE"/>
+			<Reference name="RealmForge.Framework"/>
+			<Reference name="RealmForge.Utility"/>
+			<Files>
+				<Match pattern="*.cs" recurse="true"/>
+			</Files>
+		</Project>
+		
+	</Solution>
+</Prebuild>
+
+	

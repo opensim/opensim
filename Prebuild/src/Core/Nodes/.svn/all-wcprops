@@ -1,0 +1,119 @@
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svnroot/dnpb/!svn/ver/321/trunk/Prebuild/src/Core/Nodes
+END
+CleanFilesNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svnroot/dnpb/!svn/ver/307/trunk/Prebuild/src/Core/Nodes/CleanFilesNode.cs
+END
+ProjectNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svnroot/dnpb/!svn/ver/319/trunk/Prebuild/src/Core/Nodes/ProjectNode.cs
+END
+ConfigurationNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svnroot/dnpb/!svn/ver/316/trunk/Prebuild/src/Core/Nodes/ConfigurationNode.cs
+END
+DataNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svnroot/dnpb/!svn/ver/321/trunk/Prebuild/src/Core/Nodes/DataNode.cs
+END
+ReferencePathNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svnroot/dnpb/!svn/ver/307/trunk/Prebuild/src/Core/Nodes/ReferencePathNode.cs
+END
+SolutionNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svnroot/dnpb/!svn/ver/315/trunk/Prebuild/src/Core/Nodes/SolutionNode.cs
+END
+ProcessNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svnroot/dnpb/!svn/ver/307/trunk/Prebuild/src/Core/Nodes/ProcessNode.cs
+END
+FileNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svnroot/dnpb/!svn/ver/316/trunk/Prebuild/src/Core/Nodes/FileNode.cs
+END
+DescriptionNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svnroot/dnpb/!svn/ver/307/trunk/Prebuild/src/Core/Nodes/DescriptionNode.cs
+END
+DatabaseReferenceNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svnroot/dnpb/!svn/ver/295/trunk/Prebuild/src/Core/Nodes/DatabaseReferenceNode.cs
+END
+ConfigurationNodeCollection.cs
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svnroot/dnpb/!svn/ver/315/trunk/Prebuild/src/Core/Nodes/ConfigurationNodeCollection.cs
+END
+CleanupNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svnroot/dnpb/!svn/ver/307/trunk/Prebuild/src/Core/Nodes/CleanupNode.cs
+END
+ExcludeNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svnroot/dnpb/!svn/ver/295/trunk/Prebuild/src/Core/Nodes/ExcludeNode.cs
+END
+OptionsNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svnroot/dnpb/!svn/ver/315/trunk/Prebuild/src/Core/Nodes/OptionsNode.cs
+END
+DatabaseProjectNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svnroot/dnpb/!svn/ver/307/trunk/Prebuild/src/Core/Nodes/DatabaseProjectNode.cs
+END
+MatchNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svnroot/dnpb/!svn/ver/318/trunk/Prebuild/src/Core/Nodes/MatchNode.cs
+END
+ReferenceNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svnroot/dnpb/!svn/ver/295/trunk/Prebuild/src/Core/Nodes/ReferenceNode.cs
+END
+FilesNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svnroot/dnpb/!svn/ver/307/trunk/Prebuild/src/Core/Nodes/FilesNode.cs
+END
+AuthorNode.cs
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svnroot/dnpb/!svn/ver/307/trunk/Prebuild/src/Core/Nodes/AuthorNode.cs
+END
