@@ -316,7 +316,7 @@ namespace OpenSim
             m_console.Commands.AddCommand("region", false, "create region",
                                           "create region [\"region name\"] <region_file.ini>",
                                           "Create a new region.",
-                                          "The settings for \"region name\" are read from <region_file.ini> in your Regions directory."
+                                          "The settings for \"region name\" are read from <region_file.ini>. Paths specified with <region_file.ini> are relative to your Regions directory, unless an absolute path is given."
                                           + " If \"region name\" does not exist in <region_file.ini>, it will be added." + Environment.NewLine
                                           + "Without \"region name\", the first region found in <region_file.ini> will be created." + Environment.NewLine
                                           + "If <region_file.ini> does not exist, it will be created.",
