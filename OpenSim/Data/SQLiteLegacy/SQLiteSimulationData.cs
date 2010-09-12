@@ -78,7 +78,6 @@ namespace OpenSim.Data.SQLiteLegacy
          **********************************************************************/
 
         /// <summary>
-        /// See IRegionDataStore
         /// <list type="bullet">
         /// <item>Initialises RegionData Interface</item>
         /// <item>Loads and initialises a new SQLite connection and maintains it.</item>
@@ -1888,7 +1887,6 @@ namespace OpenSim.Data.SQLiteLegacy
         }
 
         /// <summary>
-        /// see IRegionDatastore
         /// </summary>
         /// <param name="primID"></param>
         /// <param name="items"></param>

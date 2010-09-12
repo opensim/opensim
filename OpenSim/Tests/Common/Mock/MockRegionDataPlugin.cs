@@ -114,7 +114,6 @@ namespace OpenSim.Data.Null
             }
         }
 
-        // see IRegionDatastore
         public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
         {
             m_primItems[primID] = items;
