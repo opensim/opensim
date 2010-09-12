@@ -55,7 +55,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
         }
 
 //        private static byte[] uintToByteArray(uint uIntValue)
-//        {   
+//        {
 //            byte[] result = new byte[4];
 //            Utils.UIntToBytesBig(uIntValue, result, 0);
 //            return result;
@@ -386,14 +386,14 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             return placesReply;
         }
 
-		public static OSD ParcelProperties(ParcelPropertiesMessage parcelPropertiesMessage)
-		{
-			OSDMap message = new OSDMap();
-			message.Add("message", OSD.FromString("ParcelProperties"));
-			OSD message_body = parcelPropertiesMessage.Serialize();
-			message.Add("body", message_body);
-			return message;
-		}
+        public static OSD ParcelProperties(ParcelPropertiesMessage parcelPropertiesMessage)
+        {
+            OSDMap message = new OSDMap();
+            message.Add("message", OSD.FromString("ParcelProperties"));
+            OSD message_body = parcelPropertiesMessage.Serialize();
+            message.Add("body", message_body);
+            return message;
+        }
 
     }
 }

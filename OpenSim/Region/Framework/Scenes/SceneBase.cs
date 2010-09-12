@@ -521,7 +521,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="shorthelp"></param>
         /// <param name="longhelp"></param>
         /// <param name="descriptivehelp"></param>
-        /// <param name="callback"></param>        
+        /// <param name="callback"></param>
         public void AddCommand(
             object mod, string command, string shorthelp, string longhelp, string descriptivehelp, CommandDelegate callback)
         {

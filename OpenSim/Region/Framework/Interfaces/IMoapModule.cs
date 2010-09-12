@@ -63,5 +63,5 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="part"></param>
         /// <param name="face">/param>
         void ClearMediaEntry(SceneObjectPart part, int face);
-    }        
+    }
 }

@@ -225,7 +225,7 @@ namespace OpenSim
                         }
                 }
                 MainConsole.Instance = null;
-            }      
+            }
             */
             configSource.Alias.AddAlias("On", true);
             configSource.Alias.AddAlias("Off", false);

@@ -1190,7 +1190,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             World.LandChannel.Join(startx,starty,endx,endy,m_host.OwnerID);
         }
-          
+
         public void osParcelSubdivide(LSL_Vector pos1, LSL_Vector pos2)
         {
             CheckThreatLevel(ThreatLevel.High, "osParcelSubdivide");
@@ -1213,7 +1213,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // can modify it
 
             ILandObject startLandObject = World.LandChannel.GetLandObject((int)pos.x, (int)pos.y);
-	    if (startLandObject == null)
+            if (startLandObject == null)
             {
                 OSSLShoutError("There is no land at that location");
                 return;
@@ -1230,7 +1230,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID uuid;
 
             // Process the rules, not sure what the impact would be of changing owner or group
-            for (int idx = 0; idx < rules.Length; )
+            for (int idx = 0; idx < rules.Length;)
             {
                 int code = rules.GetLSLIntegerItem(idx++);
                 string arg = rules.GetLSLStringItem(idx++);

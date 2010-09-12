@@ -308,7 +308,7 @@ namespace OpenSim.Services.LLLoginService
                 {
                     // something went wrong, make something up, so that we don't have to test this anywhere else
                     guinfo = new GridUserInfo();
-                    guinfo.LastPosition = guinfo.HomePosition = new Vector3(128, 128, 30);               
+                    guinfo.LastPosition = guinfo.HomePosition = new Vector3(128, 128, 30);
                 }
                 
                 //

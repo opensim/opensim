@@ -99,7 +99,7 @@ namespace OpenSim.Data.Null
         }
 
         public void RemoveObject(UUID obj, UUID regionUUID)
-        {           
+        {
             // All parts belonging to the object with the uuid are removed.
             List<SceneObjectPart> parts = new List<SceneObjectPart>(m_sceneObjectParts.Values);
             foreach (SceneObjectPart part in parts)
@@ -108,7 +108,7 @@ namespace OpenSim.Data.Null
                 {
                     m_log.DebugFormat(
                         "[MOCK REGION DATA PLUGIN]: Removing part {0} {1} as part of object {2} from {3}", 
-                        part.Name, part.UUID, obj, regionUUID);                    
+                        part.Name, part.UUID, obj, regionUUID);
                     m_sceneObjectParts.Remove(part.UUID);
                 }
             }
@@ -129,7 +129,7 @@ namespace OpenSim.Data.Null
                 if (prim.IsRoot)
                 {
                     m_log.DebugFormat(
-                        "[MOCK REGION DATA PLUGIN]: Loading root part {0} {1} in {2}", prim.Name, prim.UUID, regionUUID);                               
+                        "[MOCK REGION DATA PLUGIN]: Loading root part {0} {1} in {2}", prim.Name, prim.UUID, regionUUID);
                     objects[prim.UUID] = new SceneObjectGroup(prim);
                 }
             }

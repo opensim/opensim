@@ -73,7 +73,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_pendingObjects = new Queue<SceneObjectGroup>();
 
-                    lock(m_pendingObjects)
+                    lock (m_pendingObjects)
                     {
                         EntityBase[] entities = m_presence.Scene.Entities.GetEntities();
                         foreach (EntityBase e in entities)
@@ -85,7 +85,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            lock(m_pendingObjects)
+            lock (m_pendingObjects)
             {
                 while (m_pendingObjects != null && m_pendingObjects.Count > 0)
                 {

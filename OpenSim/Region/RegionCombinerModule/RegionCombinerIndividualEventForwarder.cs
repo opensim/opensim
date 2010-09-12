@@ -49,7 +49,7 @@ namespace OpenSim.Region.RegionCombinerModule
         public void ClientConnect(IClientAPI client)
         {
             m_virtScene.UnSubscribeToClientPrimEvents(client);
-            m_virtScene.UnSubscribeToClientPrimRezEvents(client);            
+            m_virtScene.UnSubscribeToClientPrimRezEvents(client);
             m_virtScene.UnSubscribeToClientInventoryEvents(client);
             ((AttachmentsModule)m_virtScene.AttachmentsModule).UnsubscribeFromClientEvents(client);
             //m_virtScene.UnSubscribeToClientTeleportEvents(client);
@@ -66,7 +66,7 @@ namespace OpenSim.Region.RegionCombinerModule
             client.OnRezObject += LocalRezObject;
             
             m_rootScene.SubscribeToClientInventoryEvents(client);
-            ((AttachmentsModule)m_rootScene.AttachmentsModule).SubscribeToClientEvents(client);            
+            ((AttachmentsModule)m_rootScene.AttachmentsModule).SubscribeToClientEvents(client);
             //m_rootScene.SubscribeToClientTeleportEvents(client);
             m_rootScene.SubscribeToClientScriptEvents(client);
             

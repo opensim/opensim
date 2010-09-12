@@ -332,7 +332,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// If the object is being attached, then the avatarID will be present.  If the object is being detached then
         /// the avatarID is UUID.Zero (I know, this doesn't make much sense but now it's historical).
         public delegate void Attach(uint localID, UUID itemID, UUID avatarID);
-        public event Attach OnAttach;                
+        public event Attach OnAttach;
         
         /// <summary>
         /// Called immediately after an object is loaded from storage.
@@ -344,7 +344,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Called immediately before an object is saved to storage.
         /// </summary>
         /// <param name="persistingSo">
-        /// The scene object being persisted.  
+        /// The scene object being persisted.
         /// This is actually a copy of the original scene object so changes made here will be saved to storage but will not be kept in memory.
         /// </param>
         /// <param name="originalSo">
@@ -363,7 +363,7 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void SceneObjectPartCopyDelegate(SceneObjectPart copy, SceneObjectPart original, bool userExposed);
 
         public delegate void RegionUp(GridRegion region);
-        public event RegionUp OnRegionUp;       
+        public event RegionUp OnRegionUp;
 
         public class MoneyTransferArgs : EventArgs
         {
@@ -2063,7 +2063,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-        }  
+        }
         
         public void TriggerOnSceneObjectPreSave(SceneObjectGroup persistingSo, SceneObjectGroup originalSo)
         {
@@ -2105,7 +2105,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-        }   
+        }
 
         public void TriggerOnParcelPropertiesUpdateRequest(LandUpdateArgs args,
                         int local_id, IClientAPI remote_client)
@@ -2127,6 +2127,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-        }   
+        }
     }
 }

@@ -151,7 +151,7 @@ namespace OpenSim.Framework.Console
                 help.Add(commandInfo.descriptive_help);
 
                 if (descriptiveHelp != string.Empty)
-                    help.Add(string.Empty);                
+                    help.Add(string.Empty);
             }
             else
             {

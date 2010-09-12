@@ -286,7 +286,7 @@ namespace OpenSim.Data.MySQL
                 InventoryItemBase item = new InventoryItemBase();
 
                 // TODO: this is to handle a case where NULLs creep in there, which we are not sure is endemic to the system, or legacy.  It would be nice to live fix these.
-                // ( DBGuid.FromDB() reads db NULLs as well, returns UUID.Zero )
+                // (DBGuid.FromDB() reads db NULLs as well, returns UUID.Zero)
                 item.CreatorId = reader["creatorID"].ToString();
                 
                 // Be a bit safer in parsing these because the

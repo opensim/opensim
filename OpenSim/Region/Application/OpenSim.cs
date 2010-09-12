@@ -152,7 +152,7 @@ namespace OpenSim
             RegisterConsoleCommands();
 
             base.StartupSpecific();
-            
+
             MainServer.Instance.AddStreamHandler(new OpenSim.SimStatusHandler());
             MainServer.Instance.AddStreamHandler(new OpenSim.XSimStatusHandler(this));
             if (userStatsURI != String.Empty)
@@ -192,7 +192,7 @@ namespace OpenSim
             // Hook up to the watchdog timer
             Watchdog.OnWatchdogTimeout += WatchdogTimeoutHandler;
 
-            PrintFileToConsole("startuplogo.txt");            
+            PrintFileToConsole("startuplogo.txt");
 
             // For now, start at the 'root' level by default
             if (m_sceneManager.Scenes.Count == 1) // If there is only one region, select it
@@ -218,8 +218,8 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("region", false, "debug packet",
                                           "debug packet <level>",
-                                          "Turn on packet debugging", 
-                                          "If level > 255 then all incoming and outgoing packets are logged.\n" 
+                                          "Turn on packet debugging",
+                                          "If level > 255 then all incoming and outgoing packets are logged.\n"
                                           + "If level <= 255 then incoming AgentUpdate and outgoing SimStats and SimulatorViewerTimeMessage packets are not logged.\n"
                                           + "If level <= 200 then incoming RequestImage and outgoing ImagePacket, ImageData, LayerData and CoarseLocationUpdate packets are not logged.\n"
                                           + "If level <= 100 then incoming ViewerEffect and AgentAnimation and outgoing ViewerEffect and AvatarAnimation packets are not logged.\n"
@@ -561,11 +561,11 @@ namespace OpenSim
             {
                 regInfo = new RegionInfo(regionName, regionFile, false, ConfigSource.Source, regionName);
             }
-            
+
             IScene scene;
             PopulateRegionEstateInfo(regInfo);
-    	    CreateRegion(regInfo, true, out scene);
-    	    regInfo.EstateSettings.Save();
+            CreateRegion(regInfo, true, out scene);
+            regInfo.EstateSettings.Save();
         }
 
         /// <summary>
@@ -943,7 +943,7 @@ namespace OpenSim
                         delegate(Scene scene)
                             {
                                 MainConsole.Instance.Output(String.Format(
-                                           "Region Name: {0}, Region XLoc: {1}, Region YLoc: {2}, Region Port: {3}", 
+                                           "Region Name: {0}, Region XLoc: {1}, Region YLoc: {2}, Region Port: {3}",
                                            scene.RegionInfo.RegionName,
                                            scene.RegionInfo.RegionLocX,
                                            scene.RegionInfo.RegionLocY,

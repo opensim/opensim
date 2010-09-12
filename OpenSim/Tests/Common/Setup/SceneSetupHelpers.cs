@@ -58,7 +58,7 @@ namespace OpenSim.Tests.Common.Setup
     public class SceneSetupHelpers
     {
         // These static variables in order to allow regions to be linked by shared modules and same
-        // CommunicationsManager. 
+        // CommunicationsManager.
         private static ISharedRegionModule m_assetService = null;
 //        private static ISharedRegionModule m_authenticationService = null;
         private static ISharedRegionModule m_inventoryService = null;
@@ -69,19 +69,19 @@ namespace OpenSim.Tests.Common.Setup
         /// <summary>
         /// Set up a test scene
         /// </summary>
-        /// 
+        ///
         /// Automatically starts service threads, as would the normal runtime.
-        /// 
+        ///
         /// <returns></returns>
         public static TestScene SetupScene()
         {
             return SetupScene("");
         }
-        
+
         /// <summary>
         /// Set up a test scene
         /// </summary>
-        /// 
+        ///
         /// <param name="realServices">Starts real inventory and asset services, as opposed to mock ones, if true</param>
         /// <returns></returns>
         public static TestScene SetupScene(String realServices)
@@ -94,7 +94,7 @@ namespace OpenSim.Tests.Common.Setup
         ///// <summary>
         ///// Set up a test scene
         ///// </summary>
-        ///// 
+        /////
         ///// <param name="realServices">Starts real inventory and asset services, as opposed to mock ones, if true</param>
         ///// <param name="cm">This should be the same if simulating two scenes within a standalone</param>
         ///// <returns></returns>
@@ -168,13 +168,13 @@ namespace OpenSim.Tests.Common.Setup
             capsModule.Initialise(new IniConfigSource());
             testScene.AddRegionModule(capsModule.Name, capsModule);
             capsModule.AddRegion(testScene);
-            
+
             IRegionModule godsModule = new GodsModule();
             godsModule.Initialise(testScene, new IniConfigSource());
             testScene.AddModule(godsModule.Name, godsModule);
             realServices = realServices.ToLower();
             // IConfigSource config = new IniConfigSource();
-            
+
             // If we have a brand new scene, need to initialize shared region modules
             if ((m_assetService == null && m_inventoryService == null) || newScene)
             {
@@ -185,13 +185,13 @@ namespace OpenSim.Tests.Common.Setup
 
                 // For now, always started a 'real' authentication service
                 StartAuthenticationService(testScene, true);
-                
+
                 if (realServices.Contains("inventory"))
                     StartInventoryService(testScene, true);
                 else
                     StartInventoryService(testScene, false);
-                
-                StartGridService(testScene, true);                
+
+                StartGridService(testScene, true);
                 StartUserAccountService(testScene);
                 StartPresenceService(testScene);
             }
@@ -208,7 +208,7 @@ namespace OpenSim.Tests.Common.Setup
                 m_presenceService.RegionLoaded(testScene);
 
             }
-            
+
             m_inventoryService.PostInitialise();
             m_assetService.PostInitialise();
             m_userAccountService.PostInitialise();
@@ -251,7 +251,7 @@ namespace OpenSim.Tests.Common.Setup
             else
                 config.Configs["AssetService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:MockAssetService");
             config.Configs["AssetService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
-            assetService.Initialise(config);           
+            assetService.Initialise(config);
             assetService.AddRegion(testScene);
             assetService.RegionLoaded(testScene);
             testScene.AddRegionModule(assetService.Name, assetService);
@@ -278,7 +278,7 @@ namespace OpenSim.Tests.Common.Setup
             testScene.AddRegionModule(service.Name, service);
             //m_authenticationService = service;
         }
-        
+
         private static void StartInventoryService(Scene testScene, bool real)
         {
             ISharedRegionModule inventoryService = new LocalInventoryServicesConnector();
@@ -286,7 +286,7 @@ namespace OpenSim.Tests.Common.Setup
             config.AddConfig("Modules");
             config.AddConfig("InventoryService");
             config.Configs["Modules"].Set("InventoryServices", "LocalInventoryServicesConnector");
-            
+
             if (real)
             {
                 config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Services.InventoryService.dll:InventoryService");
@@ -295,7 +295,7 @@ namespace OpenSim.Tests.Common.Setup
             {
                 config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:MockInventoryService");
             }
-            
+
             config.Configs["InventoryService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
             inventoryService.Initialise(config);
             inventoryService.AddRegion(testScene);
@@ -339,14 +339,14 @@ namespace OpenSim.Tests.Common.Setup
             config.Configs["UserAccountService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
             config.Configs["UserAccountService"].Set(
                 "LocalServiceModule", "OpenSim.Services.UserAccountService.dll:UserAccountService");
-            
+
             if (m_userAccountService == null)
             {
                 ISharedRegionModule userAccountService = new LocalUserAccountServicesConnector();
                 userAccountService.Initialise(config);
                 m_userAccountService = userAccountService;
             }
-			
+
             m_userAccountService.AddRegion(testScene);
             m_userAccountService.RegionLoaded(testScene);
             testScene.AddRegionModule(m_userAccountService.Name, m_userAccountService);
@@ -560,5 +560,4 @@ namespace OpenSim.Tests.Common.Setup
             sogd.InventoryDeQueueAndDelete();
         }
     }
-    
 }

@@ -276,11 +276,11 @@ namespace OpenSim.Services.InventoryService
                 List<InventoryFolderBase> folders = RequestSubFolders(root.ID);
 
                 foreach (InventoryFolderBase folder in folders)
-                {                   
+                {
                     if (folder.Type == (short)type)
                     {
 //                        m_log.DebugFormat(
-//                            "[INVENTORY SERVICE]: Found folder {0} type {1}", folder.Name, (AssetType)folder.Type);                        
+//                            "[INVENTORY SERVICE]: Found folder {0} type {1}", folder.Name, (AssetType)folder.Type);
                         
                         return folder;
                     }

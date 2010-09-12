@@ -1952,7 +1952,7 @@ namespace OpenSim.Region.Framework.Scenes
             sceneObject.ScheduleGroupForFullUpdate();
 
             return sceneObject;
-        }    
+        }
         
         /// <summary>
         /// Add an object into the scene that has come from storage
@@ -2045,7 +2045,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public bool AddNewSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, Vector3 pos, Quaternion rot, Vector3 vel)
-        {            
+        {
             return m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, pos, rot, vel);
         }
 
@@ -2430,7 +2430,7 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence sp = GetScenePresence(userID);
             if (sp != null && AttachmentsModule != null)
             {
-                uint attPt = (uint)sp.Appearance.GetAttachpoint(itemID);                
+                uint attPt = (uint)sp.Appearance.GetAttachpoint(itemID);
                 AttachmentsModule.RezSingleAttachmentFromInventory(sp.ControllingClient, itemID, attPt);
             }
 
@@ -2473,7 +2473,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sceneObject.RootPart.AddFlag(PrimFlags.Phantom);
                       
                 // Don't sent a full update here because this will cause full updates to be sent twice for 
-                // attachments on region crossings, resulting in viewer glitches.                
+                // attachments on region crossings, resulting in viewer glitches.
                 AddRestoredSceneObject(sceneObject, false, false, false);
 
                 // Handle attachment special case
@@ -2717,7 +2717,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
         
         public virtual void SubscribeToClientPrimEvents(IClientAPI client)
-        {            
+        {
             client.OnUpdatePrimGroupPosition += m_sceneGraph.UpdatePrimPosition;
             client.OnUpdatePrimSinglePosition += m_sceneGraph.UpdatePrimSinglePosition;
             client.OnUpdatePrimGroupRotation += m_sceneGraph.UpdatePrimRotation;
@@ -2753,7 +2753,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnUndo += m_sceneGraph.HandleUndo;
             client.OnRedo += m_sceneGraph.HandleRedo;
             client.OnObjectDescription += m_sceneGraph.PrimDescription;
-            client.OnObjectDrop += m_sceneGraph.DropObject;            
+            client.OnObjectDrop += m_sceneGraph.DropObject;
             client.OnObjectIncludeInSearch += m_sceneGraph.MakeObjectSearchable;
             client.OnObjectOwner += ObjectOwner;
         }
@@ -3705,7 +3705,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void AgentCrossing(UUID agentID, Vector3 position, bool isFlying)
         {
             ScenePresence presence = GetScenePresence(agentID);
-            if(presence != null)
+            if (presence != null)
             {
                 try
                 {

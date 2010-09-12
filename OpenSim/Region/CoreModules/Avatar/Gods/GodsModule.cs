@@ -58,13 +58,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
         public void SubscribeToClientEvents(IClientAPI client)
         {
             client.OnGodKickUser += KickUser;
-            client.OnRequestGodlikePowers += RequestGodlikePowers;             
-        }        
+            client.OnRequestGodlikePowers += RequestGodlikePowers;
+        }
         
         public void UnsubscribeFromClientEvents(IClientAPI client)
         {
             client.OnGodKickUser -= KickUser;
-            client.OnRequestGodlikePowers -= RequestGodlikePowers;       
+            client.OnRequestGodlikePowers -= RequestGodlikePowers;
         }
         
         public void RequestGodlikePowers(

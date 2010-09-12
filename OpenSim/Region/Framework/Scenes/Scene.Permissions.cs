@@ -997,6 +997,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             return true;
-        }    
+        }
     }
 }

@@ -307,7 +307,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             lock (m_rootAgents)
             {
                 m_rootAgents.Remove(AgentId);
-                if(m_rootAgents.Count == 0)
+                if (m_rootAgents.Count == 0)
                     StopThread();
             }
         }

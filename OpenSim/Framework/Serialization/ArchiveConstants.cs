@@ -157,9 +157,9 @@ namespace OpenSim.Framework.Serialization
         public static string CreateOarObjectFilename(string objectName, UUID uuid, Vector3 pos)
         {
             return string.Format(
-                OAR_OBJECT_FILENAME_TEMPLATE, objectName, 
+                OAR_OBJECT_FILENAME_TEMPLATE, objectName,
                 Math.Round(pos.X), Math.Round(pos.Y), Math.Round(pos.Z),
-                uuid);            
+                uuid);
         }
 
         /// <summary>
@@ -171,9 +171,9 @@ namespace OpenSim.Framework.Serialization
         /// <returns></returns>
         public static string CreateOarObjectPath(string objectName, UUID uuid, Vector3 pos)
         {
-            return OBJECTS_PATH + CreateOarObjectFilename(objectName, uuid, pos);          
-        }  
-        
+            return OBJECTS_PATH + CreateOarObjectFilename(objectName, uuid, pos);
+        }
+
         /// <summary>
         /// Extract a plain path from an IAR path
         /// </summary>
@@ -184,18 +184,18 @@ namespace OpenSim.Framework.Serialization
             List<string> plainDirs = new List<string>();
 
             string[] iarDirs = iarPath.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-            
+
             foreach (string iarDir in iarDirs)
             {
                 if (!iarDir.Contains(ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR))
                     plainDirs.Add(iarDir);
-                
+
                 int i = iarDir.LastIndexOf(ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR);
 
                 plainDirs.Add(iarDir.Remove(i));
             }
-            
-            return string.Join("/", plainDirs.ToArray());          
+
+            return string.Join("/", plainDirs.ToArray());
         }
     }
 }

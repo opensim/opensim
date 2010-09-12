@@ -1136,7 +1136,7 @@ VALUES
             prim.LinkNum = Convert.ToInt32(primRow["LinkNumber"]);
             
             if (!(primRow["MediaURL"] is System.DBNull))
-                prim.MediaUrl = (string)primRow["MediaURL"];            
+                prim.MediaUrl = (string)primRow["MediaURL"];
 
             return prim;
         }
@@ -1190,7 +1190,7 @@ VALUES
             {
             }
 
-            if (!(shapeRow["Media"] is System.DBNull))  
+            if (!(shapeRow["Media"] is System.DBNull))
                 baseShape.Media = PrimitiveBaseShape.MediaList.FromXml((string)shapeRow["Media"]);
 
             return baseShape;
@@ -1521,7 +1521,7 @@ VALUES
                 parameters.Add(_Database.CreateParameter("PassTouches", 1));
             else
                 parameters.Add(_Database.CreateParameter("PassTouches", 0));
-            parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));            
+            parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));
             parameters.Add(_Database.CreateParameter("MediaURL", prim.MediaUrl));
 
             return parameters.ToArray();

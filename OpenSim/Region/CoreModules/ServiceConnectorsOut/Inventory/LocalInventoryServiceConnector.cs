@@ -220,7 +220,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
 //            m_log.DebugFormat(
 //                "[LOCAL INVENTORY SERVICES CONNECTOR]: Adding inventory item {0} to user {1} folder {2}", 
-//                item.Name, item.Owner, item.Folder);            
+//                item.Name, item.Owner, item.Folder);
             
             return m_InventoryService.AddItem(item);
         }

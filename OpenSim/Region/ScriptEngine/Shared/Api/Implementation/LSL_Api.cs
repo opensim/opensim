@@ -7977,7 +7977,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Integer((int)me.ControlPermissions));
                         break;
                 }
-            }            
+            }
             
             return res;
         }
@@ -7993,7 +7993,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (face < 0 || face > m_host.GetNumberOfSides() - 1)
                 return ScriptBaseClass.LSL_STATUS_OK;
             
-            return SetPrimMediaParams(face, rules);            
+            return SetPrimMediaParams(face, rules);
         }
         
         private LSL_Integer SetPrimMediaParams(int face, LSL_List rules)
@@ -8082,7 +8082,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         me.ControlPermissions = (MediaPermission)(byte)(int)rules.GetLSLIntegerItem(i++);
                         break;
                 }
-            }       
+            }
                         
             module.SetMediaEntry(m_host, face, me);
             
@@ -8102,7 +8102,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             IMoapModule module = m_ScriptEngine.World.RequestModuleInterface<IMoapModule>();
             if (null == module)
-                throw new Exception("Media on a prim functions not available");            
+                throw new Exception("Media on a prim functions not available");
             
             module.ClearMediaEntry(m_host, face);
             

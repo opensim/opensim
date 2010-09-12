@@ -270,7 +270,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelper.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
             
-            TestScene scene = SceneSetupHelpers.SetupScene();            
+            TestScene scene = SceneSetupHelpers.SetupScene();
             
             string rootPartName = "rootpart";
             UUID rootPartUuid = new UUID("00000000-0000-0000-0000-000000000001");
@@ -282,11 +282,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                     { Name = rootPartName, UUID = rootPartUuid };
             SceneObjectPart linkPart
                 = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
-                    { Name = linkPartName, UUID = linkPartUuid };            
+                    { Name = linkPartName, UUID = linkPartUuid };
 
             SceneObjectGroup sog = new SceneObjectGroup(rootPart);
-            sog.AddPart(linkPart);            
-            scene.AddNewSceneObject(sog, true);           
+            sog.AddPart(linkPart);
+            scene.AddNewSceneObject(sog, true);
             
             // In a test, we have to crank the backup handle manually.  Normally this would be done by the timer invoked
             // scene backup thread.
@@ -309,7 +309,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelper.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
             
-            TestScene scene = SceneSetupHelpers.SetupScene();            
+            TestScene scene = SceneSetupHelpers.SetupScene();
             
             string rootPartName = "rootpart";
             UUID rootPartUuid = new UUID("00000000-0000-0000-0000-000000000001");
@@ -321,11 +321,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                     { Name = rootPartName, UUID = rootPartUuid };
             SceneObjectPart linkPart
                 = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
-                    { Name = linkPartName, UUID = linkPartUuid };            
+                    { Name = linkPartName, UUID = linkPartUuid };
 
             SceneObjectGroup sog = new SceneObjectGroup(rootPart);
-            sog.AddPart(linkPart);            
-            scene.AddNewSceneObject(sog, true);           
+            sog.AddPart(linkPart);
+            scene.AddNewSceneObject(sog, true);
             
             // In a test, we have to crank the backup handle manually.  Normally this would be done by the timer invoked
             // scene backup thread.
@@ -333,7 +333,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                         
             // These changes should occur immediately without waiting for a backup pass
             SceneObjectGroup groupToDelete = sog.DelinkFromGroup(linkPart, false);
-            scene.DeleteSceneObject(groupToDelete, false);  
+            scene.DeleteSceneObject(groupToDelete, false);
             
             List<SceneObjectGroup> storedObjects = scene.SimulationDataService.LoadObjects(scene.RegionInfo.RegionID);
             
