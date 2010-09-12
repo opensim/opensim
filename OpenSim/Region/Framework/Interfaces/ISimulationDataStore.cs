@@ -32,7 +32,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface IRegionDataStore
+    public interface ISimulationDataStore
     {
         /// <summary>
         /// Initialises the data storage engine

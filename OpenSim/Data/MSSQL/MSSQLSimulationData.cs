@@ -43,7 +43,7 @@ namespace OpenSim.Data.MSSQL
     /// <summary>
     /// A MSSQL Interface for the Region Server.
     /// </summary>
-    public class MSSQLRegionDataStore : IRegionDataStore
+    public class MSSQLSimulationData : ISimulationDataStore
     {
         private const string _migrationStore = "RegionStore";
 

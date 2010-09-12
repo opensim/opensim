@@ -36,9 +36,9 @@ namespace OpenSim.Region.Framework
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected IRegionDataStore m_dataStore;
+        protected ISimulationDataStore m_dataStore;
 
-        public IRegionDataStore DataStore
+        public ISimulationDataStore DataStore
         {
             get { return m_dataStore; }
         }
@@ -50,7 +50,7 @@ namespace OpenSim.Region.Framework
             get { return m_estateDataStore; }
         }
 
-        public StorageManager(IRegionDataStore storage)
+        public StorageManager(ISimulationDataStore storage)
         {
             m_dataStore = storage;
         }
@@ -68,8 +68,8 @@ namespace OpenSim.Region.Framework
 
                     if (typeInterface != null)
                     {
-                        IRegionDataStore plug =
-                            (IRegionDataStore) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                        ISimulationDataStore plug =
+                            (ISimulationDataStore)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise(connectionstring);
 
                         m_dataStore = plug;

@@ -43,7 +43,7 @@ namespace OpenSim.Data.SQLiteLegacy
     /// <summary>
     /// A RegionData Interface to the SQLite database
     /// </summary>
-    public class SQLiteRegionData : IRegionDataStore
+    public class SQLiteSimulationData : ISimulationDataStore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

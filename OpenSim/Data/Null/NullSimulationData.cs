@@ -36,7 +36,7 @@ namespace OpenSim.Data.Null
     /// <summary>
     /// NULL DataStore, do not store anything
     /// </summary>
-    public class NullDataStore : IRegionDataStore
+    public class NullSimulationData : ISimulationDataStore
     {
         public void Initialise(string dbfile)
         {

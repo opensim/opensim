@@ -45,7 +45,7 @@ namespace OpenSim.Data.MySQL
     /// <summary>
     /// A MySQL Interface for the Region Server
     /// </summary>
-    public class MySQLDataStore : IRegionDataStore
+    public class MySQLSimulationData : ISimulationDataStore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

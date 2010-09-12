@@ -39,7 +39,7 @@ namespace OpenSim.Data.Null
     /// Mock region data plugin.  This obeys the api contract for persistence but stores everything in memory, so that
     /// tests can check correct persistence.
     /// </summary>
-    public class NullDataStore : IRegionDataStore
+    public class NullDataStore : ISimulationDataStore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
