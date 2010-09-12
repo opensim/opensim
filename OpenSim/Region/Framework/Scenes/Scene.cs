@@ -57,55 +57,21 @@ namespace OpenSim.Region.Framework.Scenes
 
     public partial class Scene : SceneBase
     {
-        public delegate void SynchronizeSceneHandler(Scene scene);
-        public SynchronizeSceneHandler SynchronizeScene = null;
-
-        /* Used by the loadbalancer plugin on GForge */
-        protected int m_splitRegionID = 0;
-        public int SplitRegionID
-        {
-            get { return m_splitRegionID; }
-            set { m_splitRegionID = value; }
-        }
-
         private const long DEFAULT_MIN_TIME_FOR_PERSISTENCE = 60L;
         private const long DEFAULT_MAX_TIME_FOR_PERSISTENCE = 600L;
 
+        public delegate void SynchronizeSceneHandler(Scene scene);
+
         #region Fields
 
-        protected Timer m_restartWaitTimer = new Timer();
-
+        public SynchronizeSceneHandler SynchronizeScene;
         public SimStatsReporter StatsReporter;
-
-        protected List<RegionInfo> m_regionRestartNotifyList = new List<RegionInfo>();
-        protected List<RegionInfo> m_neighbours = new List<RegionInfo>();
-
-        private volatile int m_bordersLocked = 0;
-        public bool BordersLocked
-        {
-            get { return m_bordersLocked == 1; }
-            set
-            {
-                if (value == true)
-                    m_bordersLocked = 1;
-                else
-                    m_bordersLocked = 0;
-            }
-        }
         public List<Border> NorthBorders = new List<Border>();
         public List<Border> EastBorders = new List<Border>();
         public List<Border> SouthBorders = new List<Border>();
         public List<Border> WestBorders = new List<Border>();
 
-        /// <value>
-        /// The scene graph for this scene
-        /// </value>
-        /// TODO: Possibly stop other classes being able to manipulate this directly.
-        private SceneGraph m_sceneGraph;
-
-        /// <summary>
-        /// Are we applying physics to any of the prims in this scene?
-        /// </summary>
+        /// <summary>Are we applying physics to any of the prims in this scene?</summary>
         public bool m_physicalPrim;
         public float m_maxNonphys = 256;
         public float m_maxPhys = 10;
@@ -119,24 +85,127 @@ namespace OpenSim.Region.Framework.Scenes
         // root agents when ACL denies access to root agent
         public bool m_strictAccessControl = true;
         public int MaxUndoCount = 5;
+        public bool LoginsDisabled = true;
+        public bool LoadingPrims;
+        public IXfer XferManager;
+
+        // the minimum time that must elapse before a changed object will be considered for persisted
+        public long m_dontPersistBefore = DEFAULT_MIN_TIME_FOR_PERSISTENCE * 10000000L;
+        // the maximum time that must elapse before a changed object will be considered for persisted
+        public long m_persistAfter = DEFAULT_MAX_TIME_FOR_PERSISTENCE * 10000000L;
+
+        protected int m_splitRegionID;
+        protected Timer m_restartWaitTimer = new Timer();
+        protected List<RegionInfo> m_regionRestartNotifyList = new List<RegionInfo>();
+        protected List<RegionInfo> m_neighbours = new List<RegionInfo>();
+        protected string m_simulatorVersion = "OpenSimulator Server";
+        protected ModuleLoader m_moduleLoader;
+        protected StorageManager m_storageManager;
+        protected AgentCircuitManager m_authenticateHandler;
+        protected SceneCommunicationService m_sceneGridService;
+
+        protected IAssetService m_AssetService;
+        protected IAuthorizationService m_AuthorizationService;
+        protected IInventoryService m_InventoryService;
+        protected IGridService m_GridService;
+        protected ILibraryService m_LibraryService;
+        protected ISimulationService m_simulationService;
+        protected IAuthenticationService m_AuthenticationService;
+        protected IPresenceService m_PresenceService;
+        protected IUserAccountService m_UserAccountService;
+        protected IAvatarService m_AvatarService;
+        protected IGridUserService m_GridUserService;
+
+        protected IXMLRPC m_xmlrpcModule;
+        protected IWorldComm m_worldCommModule;
+        protected IAvatarFactory m_AvatarFactory;
+        protected IConfigSource m_config;
+        protected IRegionSerialiserModule m_serialiser;
+        protected IDialogModule m_dialogModule;
+        protected IEntityTransferModule m_teleportModule;
+        protected ICapabilitiesModule m_capsModule;
+        // Central Update Loop
+        protected int m_fps = 10;
+        protected uint m_frame;
+        protected float m_timespan = 0.089f;
+        protected DateTime m_lastupdate = DateTime.UtcNow;
+
+        // TODO: Possibly stop other classes being able to manipulate this directly.
+        private SceneGraph m_sceneGraph;
+        private volatile int m_bordersLocked;
         private int m_RestartTimerCounter;
         private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
         private int m_incrementsof15seconds;
         private volatile bool m_backingup;
-
         private Dictionary<UUID, ReturnInfo> m_returns = new Dictionary<UUID, ReturnInfo>();
         private Dictionary<UUID, SceneObjectGroup> m_groupsWithTargets = new Dictionary<UUID, SceneObjectGroup>();
+        private Object m_heartbeatLock = new Object();
 
-        protected string m_simulatorVersion = "OpenSimulator Server";
+        private int m_update_physics = 1;
+        private int m_update_entitymovement = 1;
+        private int m_update_objects = 1; // Update objects which have scheduled themselves for updates
+        private int m_update_presences = 1; // Update scene presence movements
+        private int m_update_events = 1;
+        private int m_update_backup = 200;
+        private int m_update_terrain = 50;
+        private int m_update_land = 1;
+        private int m_update_coarse_locations = 50;
 
-        protected ModuleLoader m_moduleLoader;
-        protected StorageManager m_storageManager;
-        protected AgentCircuitManager m_authenticateHandler;
+        private int frameMS;
+        private int physicsMS2;
+        private int physicsMS;
+        private int otherMS;
+        private int tempOnRezMS;
+        private int eventMS;
+        private int backupMS;
+        private int terrainMS;
+        private int landMS;
+        private int lastCompletedFrame;
 
-        protected SceneCommunicationService m_sceneGridService;
-        public bool LoginsDisabled = true;
-        public bool LoadingPrims = false;
+        private bool m_physics_enabled = true;
+        private bool m_scripts_enabled = true;
+        private string m_defaultScriptEngine;
+        private int m_LastLogin;
+        private Thread HeartbeatThread;
+        private volatile bool shuttingdown;
 
+        private int m_lastUpdate;
+        private bool m_firstHeartbeat = true;
+
+        private object m_deleting_scene_object = new object();
+
+        private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
+        private bool m_reprioritizationEnabled = true;
+        private double m_reprioritizationInterval = 5000.0;
+        private double m_rootReprioritizationDistance = 10.0;
+        private double m_childReprioritizationDistance = 20.0;
+
+        private Timer m_mapGenerationTimer = new Timer();
+        private bool m_generateMaptiles;
+
+        #endregion Fields
+
+        #region Properties
+
+        /* Used by the loadbalancer plugin on GForge */
+        public int SplitRegionID
+        {
+            get { return m_splitRegionID; }
+            set { m_splitRegionID = value; }
+        }
+
+        public bool BordersLocked
+        {
+            get { return m_bordersLocked == 1; }
+            set
+            {
+                if (value == true)
+                    m_bordersLocked = 1;
+                else
+                    m_bordersLocked = 0;
+            }
+        }
+        
         public new float TimeDilation
         {
             get { return m_sceneGraph.PhysicsScene.TimeDilation; }
@@ -146,13 +215,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_sceneGridService; }
         }
-
-        public IXfer XferManager;
-
-        protected IAssetService m_AssetService;
-        protected IAuthorizationService m_AuthorizationService;
-
-        private Object m_heartbeatLock = new Object();
 
         public IAssetService AssetService
         {
@@ -191,8 +253,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected IInventoryService m_InventoryService;
-
         public IInventoryService InventoryService
         {
             get
@@ -210,8 +270,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return m_InventoryService;
             }
         }
-
-        protected IGridService m_GridService;
 
         public IGridService GridService
         {
@@ -231,8 +289,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected ILibraryService m_LibraryService;
-
         public ILibraryService LibraryService
         {
             get
@@ -244,7 +300,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected ISimulationService m_simulationService;
         public ISimulationService SimulationService
         {
             get
@@ -255,7 +310,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected IAuthenticationService m_AuthenticationService;
         public IAuthenticationService AuthenticationService
         {
             get
@@ -266,7 +320,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected IPresenceService m_PresenceService;
         public IPresenceService PresenceService
         {
             get
@@ -276,7 +329,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return m_PresenceService;
             }
         }
-        protected IUserAccountService m_UserAccountService;
+
         public IUserAccountService UserAccountService
         {
             get
@@ -287,8 +340,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected OpenSim.Services.Interfaces.IAvatarService m_AvatarService;
-        public OpenSim.Services.Interfaces.IAvatarService AvatarService
+        public IAvatarService AvatarService
         {
             get
             {
@@ -298,7 +350,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected IGridUserService m_GridUserService;
         public IGridUserService GridUserService
         {
             get
@@ -309,57 +360,17 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected IXMLRPC m_xmlrpcModule;
-        protected IWorldComm m_worldCommModule;
         public IAttachmentsModule AttachmentsModule { get; set; }
-        protected IAvatarFactory m_AvatarFactory;
+
         public IAvatarFactory AvatarFactory
         {
             get { return m_AvatarFactory; }
         }
-        protected IConfigSource m_config;
-        protected IRegionSerialiserModule m_serialiser;
-        protected IDialogModule m_dialogModule;
-        protected IEntityTransferModule m_teleportModule;
 
-        protected ICapabilitiesModule m_capsModule;
         public ICapabilitiesModule CapsModule
         {
             get { return m_capsModule; }
         }
-
-        protected override IConfigSource GetConfig()
-        {
-            return m_config;
-        }
-
-        // Central Update Loop
-
-        protected int m_fps = 10;
-        protected uint m_frame;
-        protected float m_timespan = 0.089f;
-        protected DateTime m_lastupdate = DateTime.UtcNow;
-
-        private int m_update_physics = 1;
-        private int m_update_entitymovement = 1;
-        private int m_update_objects = 1; // Update objects which have scheduled themselves for updates
-        private int m_update_presences = 1; // Update scene presence movements
-        private int m_update_events = 1;
-        private int m_update_backup = 200;
-        private int m_update_terrain = 50;
-        private int m_update_land = 1;
-        private int m_update_coarse_locations = 50;
-
-        private int frameMS;
-        private int physicsMS2;
-        private int physicsMS;
-        private int otherMS;
-        private int tempOnRezMS;
-        private int eventMS;
-        private int backupMS;
-        private int terrainMS;
-        private int landMS;
-        private int lastCompletedFrame;
 
         public int MonitorFrameTime { get { return frameMS; } }
         public int MonitorPhysicsUpdateTime { get { return physicsMS; } }
@@ -371,36 +382,6 @@ namespace OpenSim.Region.Framework.Scenes
         public int MonitorTerrainTime { get { return terrainMS; } }
         public int MonitorLandTime { get { return landMS; } }
         public int MonitorLastFrameTick { get { return lastCompletedFrame; } }
-
-        private bool m_physics_enabled = true;
-        private bool m_scripts_enabled = true;
-        private string m_defaultScriptEngine;
-        private int m_LastLogin;
-        private Thread HeartbeatThread;
-        private volatile bool shuttingdown;
-
-        private int m_lastUpdate;
-        private bool m_firstHeartbeat = true;
-
-        private object m_deleting_scene_object = new object();
-
-        // the minimum time that must elapse before a changed object will be considered for persisted
-        public long m_dontPersistBefore = DEFAULT_MIN_TIME_FOR_PERSISTENCE * 10000000L;
-        // the maximum time that must elapse before a changed object will be considered for persisted
-        public long m_persistAfter = DEFAULT_MAX_TIME_FOR_PERSISTENCE * 10000000L;
-
-        private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
-        private bool m_reprioritizationEnabled = true;
-        private double m_reprioritizationInterval = 5000.0;
-        private double m_rootReprioritizationDistance = 10.0;
-        private double m_childReprioritizationDistance = 20.0;
-
-        private Timer m_mapGenerationTimer = new Timer();
-        bool m_generateMaptiles = false;
-
-        #endregion
-
-        #region Properties
 
         public UpdatePrioritizationSchemes UpdatePrioritizationScheme { get { return m_priorityScheme; } }
         public bool IsReprioritizationEnabled { get { return m_reprioritizationEnabled; } }
@@ -481,7 +462,7 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_sceneGraph.RestorePresences = value; }
         }
 
-        #endregion
+        #endregion Properties
 
         #region Constructors
 
@@ -3953,6 +3934,11 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region Other Methods
+
+        protected override IConfigSource GetConfig()
+        {
+            return m_config;
+        }
 
         #endregion
 
