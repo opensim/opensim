@@ -52,6 +52,15 @@ namespace OpenSim.Data.MySQL
         private string m_connectionString;
         private object m_dbLock = new object();
 
+        public MySQLSimulationData()
+        {
+        }
+
+        public MySQLSimulationData(string connectionString)
+        {
+            Initialise(connectionString);
+        }
+
         public void Initialise(string connectionString)
         {
             m_connectionString = connectionString;

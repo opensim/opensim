@@ -157,11 +157,12 @@ namespace OpenSim.Tests.Common.Setup
             AgentCircuitManager acm = new AgentCircuitManager();
             SceneCommunicationService scs = new SceneCommunicationService();
 
-            StorageManager sm = new StorageManager("OpenSim.Tests.Common.dll", "", "");
+            ISimulationDataService simDataService = null;
+            IEstateDataService estateDataService = null;
             IConfigSource configSource = new IniConfigSource();
 
             TestScene testScene = new TestScene(
-                regInfo, acm, scs, sm, null, false, false, false, configSource, null);
+                regInfo, acm, scs, simDataService, estateDataService, null, false, false, false, configSource, null);
 
             INonSharedRegionModule capsModule = new CapabilitiesModule();
             capsModule.Initialise(new IniConfigSource());

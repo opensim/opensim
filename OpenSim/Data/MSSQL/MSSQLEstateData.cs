@@ -50,6 +50,15 @@ namespace OpenSim.Data.MSSQL
 
         #region Public methods
 
+        public MSSQLEstateStore()
+        {
+        }
+
+        public MSSQLEstateStore(string connectionString)
+        {
+            Initialise(connectionString);
+        }
+
         /// <summary>
         /// Initialises the estatedata class.
         /// </summary>

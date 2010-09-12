@@ -638,7 +638,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     // Set the estate
                     
                     // Check for an existing estate
-                    List<int> estateIDs = m_application.StorageManager.EstateDataStore.GetEstates((string) requestData["estate_name"]);
+                    List<int> estateIDs = m_application.EstateDataService.GetEstates((string) requestData["estate_name"]);
                     if (estateIDs.Count < 1)
                     {
                         UUID userID = UUID.Zero;
@@ -666,7 +666,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         }
                         
                         // Create a new estate with the name provided
-                        region.EstateSettings = m_application.StorageManager.EstateDataStore.LoadEstateSettings(region.RegionID, true);
+                        region.EstateSettings = m_application.EstateDataService.LoadEstateSettings(region.RegionID, true);
 
                         region.EstateSettings.EstateName = (string) requestData["estate_name"];
                         region.EstateSettings.EstateOwner = userID;
@@ -676,10 +676,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     else
                     {
                         int estateID = estateIDs[0];
-    
-                        region.EstateSettings = m_application.StorageManager.EstateDataStore.LoadEstateSettings(estateID);
-    
-                        if (!m_application.StorageManager.EstateDataStore.LinkRegion(region.RegionID, estateID))
+
+                        region.EstateSettings = m_application.EstateDataService.LoadEstateSettings(estateID);
+
+                        if (!m_application.EstateDataService.LinkRegion(region.RegionID, estateID))
                             throw new Exception("Failed to join estate.");
                     }
                     

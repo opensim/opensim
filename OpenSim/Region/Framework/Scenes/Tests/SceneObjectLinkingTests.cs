@@ -292,7 +292,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // scene backup thread.
             scene.Backup(true);
             
-            List<SceneObjectGroup> storedObjects = scene.StorageManager.DataStore.LoadObjects(scene.RegionInfo.RegionID);
+            List<SceneObjectGroup> storedObjects = scene.SimulationDataService.LoadObjects(scene.RegionInfo.RegionID);
             
             Assert.That(storedObjects.Count, Is.EqualTo(1));
             Assert.That(storedObjects[0].Children.Count, Is.EqualTo(2));
@@ -335,7 +335,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             SceneObjectGroup groupToDelete = sog.DelinkFromGroup(linkPart, false);
             scene.DeleteSceneObject(groupToDelete, false);  
             
-            List<SceneObjectGroup> storedObjects = scene.StorageManager.DataStore.LoadObjects(scene.RegionInfo.RegionID);
+            List<SceneObjectGroup> storedObjects = scene.SimulationDataService.LoadObjects(scene.RegionInfo.RegionID);
             
             Assert.That(storedObjects.Count, Is.EqualTo(1));
             Assert.That(storedObjects[0].Children.Count, Is.EqualTo(1));

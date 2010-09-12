@@ -54,6 +54,15 @@ namespace OpenSim.Data.MySQL
         private Dictionary<string, FieldInfo> m_FieldMap =
                 new Dictionary<string, FieldInfo>();
 
+        public MySQLEstateStore()
+        {
+        }
+
+        public MySQLEstateStore(string connectionString)
+        {
+            Initialise(connectionString);
+        }
+
         public void Initialise(string connectionString)
         {
             m_connectionString = connectionString;

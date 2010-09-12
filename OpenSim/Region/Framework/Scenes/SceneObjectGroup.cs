@@ -1378,7 +1378,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Processes backup.
         /// </summary>
         /// <param name="datastore"></param>
-        public virtual void ProcessBackup(ISimulationDataStore datastore, bool forcedBackup)
+        public virtual void ProcessBackup(ISimulationDataService datastore, bool forcedBackup)
         {
             if (!m_isBackedUp)
             {

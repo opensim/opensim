@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -26,45 +26,20 @@
  */
 
 using System;
-using Nini.Config;
+using System.Collections.Generic;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Servers;
-using OpenSim.Region.Framework;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
+using OpenMetaverse;
 
-namespace OpenSim.Tests.Common.Mock
+namespace OpenSim.Region.Framework.Interfaces
 {
-    public class TestScene : Scene
+    public interface IEstateDataService
     {
-        public TestScene(
-            RegionInfo regInfo, AgentCircuitManager authen,
-            SceneCommunicationService sceneGridService, ISimulationDataService simDataService, IEstateDataService estateDataService,
-            ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
-            bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
-            : base(regInfo, authen, sceneGridService, simDataService, estateDataService, moduleLoader,
-                   dumpAssetsToFile, physicalPrim, SeeIntoRegionFromNeighbor, config, simulatorVersion)
-        {
-        }
-        
-        /// <summary>
-        /// Temporarily override session authentication for tests (namely teleport).
-        /// </summary>
-        /// 
-        /// TODO: This needs to be mocked out properly.
-        /// 
-        /// <param name="agent"></param>
-        /// <returns></returns>
-        public override bool VerifyUserPresence(AgentCircuitData agent, out string reason)
-        {
-            reason = String.Empty;
-            return true;
-        }
-            
-        public AsyncSceneObjectGroupDeleter SceneObjectGroupDeleter
-        {
-            get { return m_asyncSceneObjectDeleter; }
-        }      
+        EstateSettings LoadEstateSettings(UUID regionID, bool create);
+        EstateSettings LoadEstateSettings(int estateID);
+        void StoreEstateSettings(EstateSettings es);
+        List<int> GetEstates(string search);
+        bool LinkRegion(UUID regionID, int estateID);
+        List<UUID> GetRegions(int estateID);
+        bool DeleteEstate(int estateID);
     }
 }

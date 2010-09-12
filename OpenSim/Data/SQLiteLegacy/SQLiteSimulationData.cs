@@ -69,6 +69,15 @@ namespace OpenSim.Data.SQLiteLegacy
 
         private String m_connectionString;
 
+        public SQLiteSimulationData()
+        {
+        }
+
+        public SQLiteSimulationData(string connectionString)
+        {
+            Initialise(connectionString);
+        }
+
         // Temporary attribute while this is experimental
 
         /***********************************************************************

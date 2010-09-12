@@ -45,6 +45,7 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Physics.Manager;
+using OpenSim.Server.Base;
 
 namespace OpenSim
 {
@@ -185,6 +186,24 @@ namespace OpenSim
                 
                 userStatsURI = startupConfig.GetString("Stats_URI", String.Empty);
             }
+
+            // Load the simulation data service
+            IConfig simDataConfig = m_config.Source.Configs["SimulationDataStore"];
+            if (simDataConfig == null)
+                throw new Exception("Configuration file is missing the [SimulationDataStore] section");
+            string module = simDataConfig.GetString("LocalServiceModule", String.Empty);
+            if (String.IsNullOrEmpty(module))
+                throw new Exception("Configuration file is missing the LocalServiceModule parameter in the [SimulationDataStore] section");
+            m_simulationDataService = ServerUtils.LoadPlugin<ISimulationDataService>(module, new object[] { m_config.Source });
+
+            // Load the estate data service
+            IConfig estateDataConfig = m_config.Source.Configs["EstateDataStore"];
+            if (estateDataConfig == null)
+                throw new Exception("Configuration file is missing the [EstateDataStore] section");
+            module = estateDataConfig.GetString("LocalServiceModule", String.Empty);
+            if (String.IsNullOrEmpty(module))
+                throw new Exception("Configuration file is missing the LocalServiceModule parameter in the [EstateDataStore] section");
+            m_estateDataService = ServerUtils.LoadPlugin<IEstateDataService>(module, new object[] { m_config.Source });
 
             base.StartupSpecific();
 
@@ -536,7 +555,7 @@ namespace OpenSim
 
             regionInfo.InternalEndPoint.Port = (int) port;
 
-            Scene scene = CreateScene(regionInfo, m_storageManager, circuitManager);
+            Scene scene = CreateScene(regionInfo, m_simulationDataService, m_estateDataService, circuitManager);
 
             if (m_autoCreateClientStack)
             {
@@ -552,30 +571,19 @@ namespace OpenSim
             return scene;
         }
 
-        protected override StorageManager CreateStorageManager()
-        {
-            return
-                CreateStorageManager(m_configSettings.StorageConnectionString, m_configSettings.EstateConnectionString);
-        }
-
-        protected StorageManager CreateStorageManager(string connectionstring, string estateconnectionstring)
-        {
-            return new StorageManager(m_configSettings.StorageDll, connectionstring, estateconnectionstring);
-        }
-
         protected override ClientStackManager CreateClientStackManager()
         {
             return new ClientStackManager(m_configSettings.ClientstackDll);
         }
 
-        protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
-                                             AgentCircuitManager circuitManager)
+        protected override Scene CreateScene(RegionInfo regionInfo, ISimulationDataService simDataService,
+            IEstateDataService estateDataService, AgentCircuitManager circuitManager)
         {
             SceneCommunicationService sceneGridService = new SceneCommunicationService();
 
             return new Scene(
                 regionInfo, circuitManager, sceneGridService,
-                storageManager, m_moduleLoader, false, m_configSettings.PhysicalPrim,
+                simDataService, estateDataService, m_moduleLoader, false, m_configSettings.PhysicalPrim,
                 m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
         }
         
@@ -792,21 +800,23 @@ namespace OpenSim
         /// </param>
         public void PopulateRegionEstateInfo(RegionInfo regInfo)
         {
-            if (m_storageManager.EstateDataStore != null)
+            IEstateDataService estateDataService = EstateDataService;
+
+            if (estateDataService != null)
             {
-                regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(regInfo.RegionID, false);
+                regInfo.EstateSettings = estateDataService.LoadEstateSettings(regInfo.RegionID, false);
             }
-            
+
             if (regInfo.EstateSettings.EstateID == 0) // No record at all
             {
                 MainConsole.Instance.Output("Your region is not part of an estate.");
                 while (true)
                 {
-                    string response = MainConsole.Instance.CmdPrompt("Do you wish to join an existing estate?", "no", new List<string>() {"yes", "no"});
+                    string response = MainConsole.Instance.CmdPrompt("Do you wish to join an existing estate?", "no", new List<string>() { "yes", "no" });
                     if (response == "no")
                     {
                         // Create a new estate
-                        regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(regInfo.RegionID, true);
+                        regInfo.EstateSettings = estateDataService.LoadEstateSettings(regInfo.RegionID, true);
 
                         regInfo.EstateSettings.EstateName = MainConsole.Instance.CmdPrompt("New estate name", regInfo.EstateSettings.EstateName);
                         //regInfo.EstateSettings.Save();
@@ -818,7 +828,7 @@ namespace OpenSim
                         if (response == "None")
                             continue;
 
-                        List<int> estateIDs = m_storageManager.EstateDataStore.GetEstates(response);
+                        List<int> estateIDs = estateDataService.GetEstates(response);
                         if (estateIDs.Count < 1)
                         {
                             MainConsole.Instance.Output("The name you have entered matches no known estate. Please try again");
@@ -827,9 +837,9 @@ namespace OpenSim
 
                         int estateID = estateIDs[0];
 
-                        regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(estateID);
+                        regInfo.EstateSettings = estateDataService.LoadEstateSettings(estateID);
 
-                        if (m_storageManager.EstateDataStore.LinkRegion(regInfo.RegionID, estateID))
+                        if (estateDataService.LinkRegion(regInfo.RegionID, estateID))
                             break;
 
                         MainConsole.Instance.Output("Joining the estate failed. Please try again.");

@@ -57,7 +57,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event OnTerrainTickDelegate OnTerrainTick;
 
-        public delegate void OnBackupDelegate(ISimulationDataStore datastore, bool forceBackup);
+        public delegate void OnBackupDelegate(ISimulationDataService datastore, bool forceBackup);
 
         public event OnBackupDelegate OnBackup;
 
@@ -684,7 +684,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerOnBackup(ISimulationDataStore dstore, bool forced)
+        public void TriggerOnBackup(ISimulationDataService dstore, bool forced)
         {
             OnBackupDelegate handlerOnAttach = OnBackup;
             if (handlerOnAttach != null)
