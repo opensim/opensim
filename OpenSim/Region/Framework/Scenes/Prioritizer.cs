@@ -62,7 +62,7 @@ namespace OpenSim.Region.Framework.Scenes
         
         /// <summary>
         /// This is added to the priority of all child prims, to make sure that the root prim update is sent to the
-        /// viewer before child prim updates.  
+        /// viewer before child prim updates.
         /// The adjustment is added to child prims and subtracted from root prims, so the gap ends up
         /// being double.  We do it both ways so that there is a still a priority delta even if the priority is already
         /// double.MinValue or double.MaxValue.
@@ -150,9 +150,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (entity is SceneObjectPart)
                 {
                     // Can't use Scene.GetGroupByPrim() here, since the entity may have been delete from the scene
-                    // before its scheduled update was triggered                    
+                    // before its scheduled update was triggered
                     //entityPos = m_scene.GetGroupByPrim(entity.LocalId).AbsolutePosition;
-                    entityPos = ((SceneObjectPart)entity).ParentGroup.AbsolutePosition;                    
+                    entityPos = ((SceneObjectPart)entity).ParentGroup.AbsolutePosition;
                 }
                 else
                 {
@@ -177,11 +177,11 @@ namespace OpenSim.Region.Framework.Scenes
                 // Use group position for child prims
                 Vector3 entityPos = entity.AbsolutePosition;
                 if (entity is SceneObjectPart)
-                {                                                           
+                {
                     // Can't use Scene.GetGroupByPrim() here, since the entity may have been delete from the scene
                     // before its scheduled update was triggered
                     //entityPos = m_scene.GetGroupByPrim(entity.LocalId).AbsolutePosition;
-                    entityPos = ((SceneObjectPart)entity).ParentGroup.AbsolutePosition;                    
+                    entityPos = ((SceneObjectPart)entity).ParentGroup.AbsolutePosition;
                 }
                 else
                 {

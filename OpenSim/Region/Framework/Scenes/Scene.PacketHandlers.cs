@@ -164,7 +164,7 @@ namespace OpenSim.Region.Framework.Scenes
                         
                         List<SceneObjectPart> partList = null;
                         lock (sog.Children)
-                            partList = new List<SceneObjectPart>(sog.Children.Values);    
+                            partList = new List<SceneObjectPart>(sog.Children.Values);
 
                         foreach (SceneObjectPart part in partList)
                         {

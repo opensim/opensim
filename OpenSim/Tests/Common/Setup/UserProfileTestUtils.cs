@@ -53,7 +53,7 @@ namespace OpenSim.Tests.Common.Setup
 //            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000099");
 //            return CreateUserWithInventory(commsManager, userId, callback);
 //        }
-//        
+//
 //        /// <summary>
 //        /// Create a test user with a standard inventory
 //        /// </summary>
@@ -108,11 +108,11 @@ namespace OpenSim.Tests.Common.Setup
 //        {
 //            LocalUserServices lus = (LocalUserServices)commsManager.UserService;
 //            lus.AddUser(firstName, lastName, password, "bill@bailey.com", 1000, 1000, userId);
-//            
+//
 //            CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
 //            userInfo.OnInventoryReceived += callback;
 //            userInfo.FetchInventory();
-//            
+//
 //            return userInfo;
 //        }
 
@@ -140,6 +140,6 @@ namespace OpenSim.Tests.Common.Setup
             scene.UserAccountService.StoreUserAccount(ua);
             scene.InventoryService.CreateUserInventory(ua.PrincipalID);
             scene.AuthenticationService.SetPassword(ua.PrincipalID, pw);
-        }             
+        }
     }
 }

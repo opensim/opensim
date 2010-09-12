@@ -814,7 +814,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         {
             //m_log.Debug("Terrain packet unacked, resending patch: " + patchX + " , " + patchY);
              client.SendLayerData(patchX, patchY, m_scene.Heightmap.GetFloatsSerialised());
-        }        
+        }
 
         private void StoreUndoState()
         {

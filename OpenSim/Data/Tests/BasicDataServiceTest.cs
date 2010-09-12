@@ -68,13 +68,13 @@ namespace OpenSim.Data.Tests
         {
             m_connStr = !String.IsNullOrEmpty(conn) ? conn : DefaultTestConns.Get(typeof(TConn));
 
-            m_log = LogManager.GetLogger(this.GetType());       
+            m_log = LogManager.GetLogger(this.GetType());
             OpenSim.Tests.Common.TestLogging.LogToConsole();    // TODO: Is that right?
         }
 
         /// <summary>
         /// To be overridden in derived classes. Do whatever init with the m_service, like setting the conn string to it.
-        /// You'd probably want to to cast the 'service' to a more specific type and store it in a member var.  
+        /// You'd probably want to to cast the 'service' to a more specific type and store it in a member var.
         /// This framework takes care of disposing it, if it's disposable.
         /// </summary>
         /// <param name="service">The service being tested</param>
@@ -145,12 +145,12 @@ namespace OpenSim.Data.Tests
         {
             if (m_service != null)
             {
-                if( m_service is IDisposable)
+                if (m_service is IDisposable)
                     ((IDisposable)m_service).Dispose();
                 m_service = null;
             }
 
-            if( !String.IsNullOrEmpty(m_file) && File.Exists(m_file) )
+            if (!String.IsNullOrEmpty(m_file) && File.Exists(m_file))
                 File.Delete(m_file);
         }
 
@@ -231,7 +231,7 @@ namespace OpenSim.Data.Tests
                     lst += ", " + s;
             }
 
-            string sCond = stores.Length > 1 ? ("in (" + lst + ")") : ("=" + lst);  
+            string sCond = stores.Length > 1 ? ("in (" + lst + ")") : ("=" + lst);
             try
             {
                 ExecuteSql("DELETE FROM migrations where name " + sCond);

@@ -122,7 +122,7 @@ namespace OpenSim.Data
             int ver = FindVersion(_conn, "migrations");
             if (ver <= 0)   // -1 = no table, 0 = no version record
             {
-                if( ver < 0 )
+                if (ver < 0)
                     ExecuteScript("create table migrations(name varchar(100), version int)");
                 InsertVersion("migrations", 1);
             }
@@ -288,7 +288,7 @@ namespace OpenSim.Data
             SortedList<int, string[]> migrations = new SortedList<int, string[]>();
 
             string[] names = _assem.GetManifestResourceNames();
-            if( names.Length == 0 )     // should never happen
+            if (names.Length == 0)     // should never happen
                 return migrations;
 
             Array.Sort(names);  // we want all the migrations ordered
@@ -297,7 +297,7 @@ namespace OpenSim.Data
             Match m = null;
             string sFile = Array.FindLast(names, nm => { m = _match_new.Match(nm); return m.Success; });  // ; nm.StartsWith(sPrefix, StringComparison.InvariantCultureIgnoreCase
 
-            if( (m != null) && !String.IsNullOrEmpty(sFile) )
+            if ((m != null) && !String.IsNullOrEmpty(sFile))
             {
                 /* The filename should be '<StoreName>.migrations[.NNN]' where NNN
                  * is the last version number defined in the file. If the '.NNN' part is recognized, the code can skip
@@ -312,7 +312,7 @@ namespace OpenSim.Data
 
                 if (m.Groups.Count > 1 && int.TryParse(m.Groups[1].Value, out nLastVerFound))
                 {
-                    if( nLastVerFound <= after )
+                    if (nLastVerFound <= after)
                         goto scan_old_style;
                 }
 
@@ -329,7 +329,7 @@ namespace OpenSim.Data
                         sb.Length = 0;
                     }
 
-                    if ( (nVersion > 0) && (nVersion > after) && (script.Count > 0) && !migrations.ContainsKey(nVersion))   // script to the versioned script list
+                    if ((nVersion > 0) && (nVersion > after) && (script.Count > 0) && !migrations.ContainsKey(nVersion))   // script to the versioned script list
                     {
                         migrations[nVersion] = script.ToArray();
                     }
@@ -345,7 +345,7 @@ namespace OpenSim.Data
                         string sLine = resourceReader.ReadLine();
                         nLineNo++;
 
-                        if( String.IsNullOrEmpty(sLine) || sLine.StartsWith("#") )  // ignore a comment or empty line
+                        if (String.IsNullOrEmpty(sLine) || sLine.StartsWith("#"))  // ignore a comment or empty line
                             continue;
 
                         if (sLine.Trim().Equals(":GO", StringComparison.InvariantCultureIgnoreCase))
@@ -392,7 +392,7 @@ scan_old_style:
                 if (m.Success)
                 {
                     int version = int.Parse(m.Groups[1].ToString());
-                    if ( (version > after) && !migrations.ContainsKey(version) )
+                    if ((version > after) && !migrations.ContainsKey(version))
                     {
                         using (Stream resource = _assem.GetManifestResourceStream(s))
                         {

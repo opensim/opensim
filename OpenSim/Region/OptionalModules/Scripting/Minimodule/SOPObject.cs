@@ -432,7 +432,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 return;
             }
 
-            foreach(string button in buttons)
+            foreach (string button in buttons)
             {
                 if (button == String.Empty)
                 {
@@ -448,7 +448,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
             dm.SendDialogToUser(
                 avatar, GetSOP().Name, GetSOP().UUID, GetSOP().OwnerID,
-                message, new UUID("00000000-0000-2222-3333-100000001000"), chat_channel, buttons);         
+                message, new UUID("00000000-0000-2222-3333-100000001000"), chat_channel, buttons);
             
         }
         

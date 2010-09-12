@@ -298,7 +298,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="pos">Position of the object</param>
         /// <param name="rot">Rotation of the object</param>
         /// <param name="vel">Velocity of the object.  This parameter only has an effect if the object is physical</param>
-        /// <returns></returns>        
+        /// <returns></returns>
         public bool AddNewSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, Vector3 pos, Quaternion rot, Vector3 vel)
         {
@@ -322,7 +322,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         
             return true;
-        }        
+        }
 
         /// <summary>
         /// Add an object to the scene.  This will both update the scene, and send information about the
@@ -1284,7 +1284,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             
             if (group != null)
-            {                
+            {
                 if (group.IsAttachment || (group.RootPart.Shape.PCode == 9 && group.RootPart.Shape.State != 0))
                 {
                     if (m_parentScene.AttachmentsModule != null)

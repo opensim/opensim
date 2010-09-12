@@ -31,7 +31,7 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         /// <summary>
         /// Generate a map tile for the scene. a terrain texture for this scene
-        /// </summary>        
+        /// </summary>
         void GenerateMaptile();
     }
 }

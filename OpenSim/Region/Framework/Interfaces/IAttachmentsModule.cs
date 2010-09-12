@@ -55,7 +55,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="rot"></param>
         /// <param name="attachPos"></param>
         /// <param name="silent"></param>
-        /// <returns>true if the object was successfully attached, false otherwise</returns>        
+        /// <returns>true if the object was successfully attached, false otherwise</returns>
         bool AttachObject(
             IClientAPI remoteClient, SceneObjectGroup grp, uint AttachmentPt, bool silent);
 

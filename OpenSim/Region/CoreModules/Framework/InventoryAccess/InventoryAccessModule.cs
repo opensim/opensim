@@ -594,7 +594,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     rootPart.Name = item.Name;
                     rootPart.Description = item.Description;
 
-                    List<SceneObjectPart> partList = null;                    
+                    List<SceneObjectPart> partList = null;
                     lock (group.Children)
                         partList = new List<SceneObjectPart>(group.Children.Values);
 

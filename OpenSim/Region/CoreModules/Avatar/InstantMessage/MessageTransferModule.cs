@@ -137,7 +137,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             {
                 if (scene.Entities.ContainsKey(toAgentID) &&
                         scene.Entities[toAgentID] is ScenePresence)
-                {                    
+                {
 //                    m_log.DebugFormat(
 //                        "[INSTANT MESSAGE]: Looking for root agent {0} in {1}", 
 //                        toAgentID.ToString(), scene.RegionInfo.RegionName);

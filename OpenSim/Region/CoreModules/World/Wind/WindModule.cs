@@ -425,7 +425,7 @@ namespace OpenSim.Region.CoreModules
         {
             if (m_ready)
             {
-                if(m_scene.GetRootAgentCount() > 0)
+                if (m_scene.GetRootAgentCount() > 0)
                 {
                     // Ask wind plugin to generate a LL wind array to be cached locally
                     // Try not to update this too often, as it may involve array copies

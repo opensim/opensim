@@ -33,7 +33,7 @@ using OpenSim.Framework.Serialization;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
-{        
+{
     /// <summary>
     /// Helper methods for archive manipulation
     /// </summary>
@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public static string CreateObjectFilename(SceneObjectGroup sog)
         {
             return ArchiveConstants.CreateOarObjectFilename(sog.Name, sog.UUID, sog.AbsolutePosition);
-        }        
+        }
 
         /// <summary>
         /// Create the path used to store an object in an OpenSim Archive.
@@ -62,7 +62,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public static string CreateObjectPath(SceneObjectGroup sog)
         {
             return ArchiveConstants.CreateOarObjectPath(sog.Name, sog.UUID, sog.AbsolutePosition);
-        }             
+        }
 
         /// <summary>
         /// Resolve path to a working FileStream
@@ -123,6 +123,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             // return new BufferedStream(file, (int) response.ContentLength);
             return new BufferedStream(file, 1000000);
-        }        
+        }
     }
 }

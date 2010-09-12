@@ -132,7 +132,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
             try
             {
                 deadAvatar.ControllingClient.SendAgentAlertMessage(deadAvatarMessage, true);
-                if(killingAvatar != null)
+                if (killingAvatar != null)
                     killingAvatar.ControllingClient.SendAlertMessage("You fragged " + deadAvatar.Firstname + " " + deadAvatar.Lastname);
             }
             catch (InvalidOperationException)
@@ -143,7 +143,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
         }
 
         private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, UUID regionID)
-        {            
+        {
             try
             {
                 ILandObject obj = avatar.Scene.LandChannel.GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);

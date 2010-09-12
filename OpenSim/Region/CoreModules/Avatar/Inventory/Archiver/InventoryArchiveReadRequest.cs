@@ -179,14 +179,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 m_log.DebugFormat(
                     "[INVENTORY ARCHIVER]: Successfully loaded {0} assets with {1} failures", 
                     successfulAssetRestores, failedAssetRestores);
-                m_log.InfoFormat("[INVENTORY ARCHIVER]: Successfully loaded {0} items", successfulItemRestores);                
+                m_log.InfoFormat("[INVENTORY ARCHIVER]: Successfully loaded {0} items", successfulItemRestores);
                 
                 return loadedNodes;
             }
             finally
             {
                 m_loadStream.Close();
-            }            
+            }
         }
 
         public void Close()
@@ -201,7 +201,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="iarPath">The item archive path to replicate</param>
         /// <param name="rootDestinationFolder">The root folder for the inventory load</param>
         /// <param name="resolvedFolders">
-        /// The folders that we have resolved so far for a given archive path.  
+        /// The folders that we have resolved so far for a given archive path.
         /// This method will add more folders if necessary
         /// </param>
         /// <param name="loadedNodes">
@@ -246,17 +246,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// The root folder for the inventory load
         /// </param>
         /// <param name="resolvedFolders">
-        /// The folders that we have resolved so far for a given archive path.  
+        /// The folders that we have resolved so far for a given archive path.
         /// </param>
         /// <returns>
         /// The folder in the user's inventory that matches best the archive path given.  If no such folder was found
         /// then the passed in root destination folder is returned.
-        /// </returns>        
+        /// </returns>
         protected InventoryFolderBase ResolveDestinationFolder(
-            InventoryFolderBase rootDestFolder,                                                             
-            ref string archivePath,             
+            InventoryFolderBase rootDestFolder,
+            ref string archivePath,
             Dictionary <string, InventoryFolderBase> resolvedFolders)
-        {                       
+        {
 //            string originalArchivePath = archivePath;
 
             while (archivePath.Length > 0)
@@ -370,7 +370,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                 if (0 == i)
                     loadedNodes.Add(destFolder);
-            }            
+            }
         }
         
         /// <summary>

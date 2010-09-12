@@ -69,6 +69,6 @@ namespace OpenSim.Tests.Common.Mock
         public AsyncSceneObjectGroupDeleter SceneObjectGroupDeleter
         {
             get { return m_asyncSceneObjectDeleter; }
-        }      
+        }
     }
 }

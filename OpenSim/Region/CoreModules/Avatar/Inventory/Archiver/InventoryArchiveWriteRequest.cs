@@ -119,7 +119,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         protected void ReceivedAllAssets(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids)
         {
             Exception reportedException = null;
-            bool succeeded = true;            
+            bool succeeded = true;
              
             try
             {
@@ -136,7 +136,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             finally
             {
                 m_saveStream.Close();
-            }            
+            }
 
             m_module.TriggerInventoryArchiveSaved(
                 m_id, succeeded, m_userInfo, m_invPath, m_saveStream, reportedException);
@@ -270,7 +270,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     // We couldn't find the path indicated 
                     string errorMessage = string.Format("Aborted save.  Could not find inventory path {0}", m_invPath);
-                    Exception e = new InventoryArchiverException(errorMessage);                
+                    Exception e = new InventoryArchiverException(errorMessage);
                     m_module.TriggerInventoryArchiveSaved(m_id, false, m_userInfo, m_invPath, m_saveStream, e);
                     throw e;
                 }
@@ -283,7 +283,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         "[INVENTORY ARCHIVER]: Found folder {0} {1} at {2}",
                         inventoryFolder.Name, 
                         inventoryFolder.ID, 
-                        m_invPath == String.Empty ? InventoryFolderImpl.PATH_DELIMITER : m_invPath );
+                        m_invPath == String.Empty ? InventoryFolderImpl.PATH_DELIMITER : m_invPath);
     
                     //recurse through all dirs getting dirs and files
                     SaveInvFolder(inventoryFolder, ArchiveConstants.INVENTORY_PATH, !saveFolderContentsOnly);
@@ -301,7 +301,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 //SaveUsers();
                             
                 new AssetsRequest(
-                    new AssetsArchiver(m_archiveWriter), m_assetUuids, m_scene.AssetService, ReceivedAllAssets).Execute();                
+                    new AssetsArchiver(m_archiveWriter), m_assetUuids, m_scene.AssetService, ReceivedAllAssets).Execute();
             }
             catch (Exception)
             {

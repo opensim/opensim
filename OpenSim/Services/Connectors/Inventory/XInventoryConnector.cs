@@ -526,7 +526,7 @@ namespace OpenSim.Services.Connectors
             InventoryFolderBase folder = new InventoryFolderBase();
 
             try
-            {                
+            {
                 folder.ParentID = new UUID(data["ParentID"].ToString());
                 folder.Type = short.Parse(data["Type"].ToString());
                 folder.Version = ushort.Parse(data["Version"].ToString());

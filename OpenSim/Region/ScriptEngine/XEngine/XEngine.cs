@@ -564,7 +564,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             bool postOnRez = (bool)p[4];
             StateSource stateSource = (StateSource)p[5];
 
-            lock(m_CompileDict)
+            lock (m_CompileDict)
             {
                 if (!m_CompileDict.ContainsKey(itemID))
                     return false;

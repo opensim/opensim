@@ -44,7 +44,7 @@ namespace OpenSim.Data
         /// <returns></returns>
         public static UUID FromDB(object id)
         {
-            if( (id == null) || (id == DBNull.Value))
+            if ((id == null) || (id == DBNull.Value))
                 return UUID.Zero;
 
             if (id.GetType() == typeof(Guid))

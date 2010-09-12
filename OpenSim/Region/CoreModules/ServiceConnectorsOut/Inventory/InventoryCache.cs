@@ -185,7 +185,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 return folders[type];
             }
             
-            m_log.WarnFormat("[INVENTORY CACHE]: Could not find folder for system type {0} for {1}", type, userID);            
+            m_log.WarnFormat("[INVENTORY CACHE]: Could not find folder for system type {0} for {1}", type, userID);
 
             return null;
         }
