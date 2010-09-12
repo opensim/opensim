@@ -1,4 +1,4 @@
-﻿//
+//
 // Lazy.cs
 //
 // Authors:
