@@ -36,24 +36,8 @@ namespace OpenSim.Region.Framework
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected ISimulationDataStore m_dataStore;
-
-        public ISimulationDataStore DataStore
-        {
-            get { return m_dataStore; }
-        }
-
-        private IEstateDataStore m_estateDataStore;
-
-        public IEstateDataStore EstateDataStore
-        {
-            get { return m_estateDataStore; }
-        }
-
-        public StorageManager(ISimulationDataStore storage)
-        {
-            m_dataStore = storage;
-        }
+        public readonly ISimulationDataStore DataStore;
+        public readonly IEstateDataStore EstateDataStore;
 
         public StorageManager(string dllName, string connectionstring, string estateconnectionstring)
         {
@@ -72,7 +56,7 @@ namespace OpenSim.Region.Framework
                             (ISimulationDataStore)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise(connectionstring);
 
-                        m_dataStore = plug;
+                        DataStore = plug;
 
                         m_log.Info("[DATASTORE]: Added ISimulationDataStore Interface");
                     }
@@ -85,7 +69,7 @@ namespace OpenSim.Region.Framework
                             (IEstateDataStore) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         estPlug.Initialise(estateconnectionstring);
 
-                        m_estateDataStore = estPlug;
+                        EstateDataStore = estPlug;
                     }
                 }
             }
