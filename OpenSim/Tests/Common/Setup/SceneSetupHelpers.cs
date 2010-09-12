@@ -157,7 +157,7 @@ namespace OpenSim.Tests.Common.Setup
             AgentCircuitManager acm = new AgentCircuitManager();
             SceneCommunicationService scs = new SceneCommunicationService();
 
-            ISimulationDataService simDataService = null;
+            ISimulationDataService simDataService = OpenSim.Server.Base.ServerUtils.LoadPlugin<ISimulationDataService>("OpenSim.Tests.Common.dll", null);
             IEstateDataService estateDataService = null;
             IConfigSource configSource = new IniConfigSource();
 

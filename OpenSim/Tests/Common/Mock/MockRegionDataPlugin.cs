@@ -35,6 +35,81 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Data.Null
 {
+    public class NullDataService : ISimulationDataService
+    {
+        private NullDataStore m_store;
+
+        public NullDataService()
+        {
+            m_store = new NullDataStore();
+        }
+
+        public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
+        {
+            m_store.StoreObject(obj, regionUUID);
+        }
+
+        public void RemoveObject(UUID uuid, UUID regionUUID)
+        {
+            m_store.RemoveObject(uuid, regionUUID);
+        }
+
+        public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
+        {
+            m_store.StorePrimInventory(primID, items);
+        }
+
+        public List<SceneObjectGroup> LoadObjects(UUID regionUUID)
+        {
+            return m_store.LoadObjects(regionUUID);
+        }
+
+        public void StoreTerrain(double[,] terrain, UUID regionID)
+        {
+            m_store.StoreTerrain(terrain, regionID);
+        }
+
+        public double[,] LoadTerrain(UUID regionID)
+        {
+            return m_store.LoadTerrain(regionID);
+        }
+
+        public void StoreLandObject(ILandObject Parcel)
+        {
+            m_store.StoreLandObject(Parcel);
+        }
+
+        public void RemoveLandObject(UUID globalID)
+        {
+            m_store.RemoveLandObject(globalID);
+        }
+
+        public List<LandData> LoadLandObjects(UUID regionUUID)
+        {
+            return m_store.LoadLandObjects(regionUUID);
+        }
+
+        public void StoreRegionSettings(RegionSettings rs)
+        {
+            m_store.StoreRegionSettings(rs);
+        }
+
+        public RegionSettings LoadRegionSettings(UUID regionUUID)
+        {
+            return m_store.LoadRegionSettings(regionUUID);
+        }
+
+        public RegionLightShareData LoadRegionWindlightSettings(UUID regionUUID)
+        {
+            return m_store.LoadRegionWindlightSettings(regionUUID);
+        }
+
+        public void StoreRegionWindlightSettings(RegionLightShareData wl)
+        {
+            m_store.StoreRegionWindlightSettings(wl);
+        }
+    }
+
     /// <summary>
     /// Mock region data plugin.  This obeys the api contract for persistence but stores everything in memory, so that
     /// tests can check correct persistence.
