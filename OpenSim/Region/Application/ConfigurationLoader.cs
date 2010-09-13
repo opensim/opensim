@@ -85,6 +85,9 @@ namespace OpenSim
             string masterFileName =
                     startupConfig.GetString("inimaster", "OpenSimDefaults.ini");
 
+            if (masterFileName == "none")
+                masterFileName = String.Empty;
+
             if (IsUri(masterFileName))
             {
                 if (!sources.Contains(masterFileName))
@@ -95,10 +98,19 @@ namespace OpenSim
                 string masterFilePath = Path.GetFullPath(
                         Path.Combine(Util.configDir(), masterFileName));
 
-                if (masterFileName != String.Empty &&
-                        File.Exists(masterFilePath) &&
-                        (!sources.Contains(masterFilePath)))
-                    sources.Add(masterFilePath);
+                if (masterFileName != String.Empty)
+                {
+                    if (File.Exists(masterFilePath)
+                    {
+                        if (!sources.Contains(masterFilePath))
+                            sources.Add(masterFilePath);
+                    }
+                    else
+                    {
+                        m_log.ErrorFormat("Master ini file {0} not found", masterFilePath);
+                        Environment.Exit(1);
+                    }
+                }
             }
 
 
