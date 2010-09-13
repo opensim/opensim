@@ -300,12 +300,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             return null;
         }
         
-        public UUID SetAttachmentInventoryStatus(
+        /// <summary>
+        /// Update the user inventory to the attachment of an item
+        /// </summary>
+        /// <param name="att"></param>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="AttachmentPt"></param>
+        /// <returns></returns>        
+        protected UUID SetAttachmentInventoryStatus(
             SceneObjectGroup att, IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
-            m_log.DebugFormat(
-                "[ATTACHMENTS MODULE]: Updating inventory of {0} to show attachment of {1} (item ID {2})", 
-                remoteClient.Name, att.Name, itemID);
+//            m_log.DebugFormat(
+//                "[ATTACHMENTS MODULE]: Updating inventory of {0} to show attachment of {1} (item ID {2})", 
+//                remoteClient.Name, att.Name, itemID);
             
             if (!att.IsDeleted)
                 AttachmentPt = att.RootPart.AttachmentPoint;
@@ -387,7 +395,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 // Save avatar attachment information
                 if (m_scene.AvatarFactory != null)
                 {
-                    m_log.Debug("[ATTACHMENTS MODULE]: Dettaching from UserID: " + remoteClient.AgentId + ", ItemID: " + itemID);
+                    m_log.Debug("[ATTACHMENTS MODULE]: Detaching from UserID: " + remoteClient.AgentId + ", ItemID: " + itemID);
                     m_scene.AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
                 }
             }
