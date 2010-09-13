@@ -28,17 +28,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Net;
 using System.Reflection;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
-using OpenSim.Server.Base;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
@@ -358,25 +355,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return null;
         }
 
-//        private OSDMap GetSessionData(UUID sessionID)
-//        {
-//            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting session data for session " + sessionID);
-//
-//            NameValueCollection requestArgs = new NameValueCollection
-//            {
-//                { "RequestMethod", "GetSession" },
-//                { "SessionID", sessionID.ToString() }
-//            };
-//
-//            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
-//            if (response["Success"].AsBoolean())
-//                return response;
-//            else
-//                m_log.Warn("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve session data for session " + sessionID);
-//
-//            return null;
-//        }
-
         private List<PresenceInfo> GetSessions(UUID userID)
         {
             List<PresenceInfo> presences = new List<PresenceInfo>(1);
@@ -428,39 +406,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             return success;
         }
-
-        ///// <summary>
-        ///// Fetch the last known avatar location with GetSession and persist it
-        ///// as user data with AddUserData
-        ///// </summary>
-        //private bool SetLastLocation(UUID sessionID)
-        //{
-        //    NameValueCollection requestArgs = new NameValueCollection
-        //    {
-        //        { "RequestMethod", "GetSession" },
-        //        { "SessionID", sessionID.ToString() }
-        //    };
-
-        //    OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
-        //    bool success = response["Success"].AsBoolean();
-
-        //    if (success)
-        //    {
-        //        UUID userID = response["UserID"].AsUUID();
-        //        UUID sceneID = response["SceneID"].AsUUID();
-        //        Vector3 position = response["ScenePosition"].AsVector3();
-        //        Vector3 lookAt = response["SceneLookAt"].AsVector3();
-
-        //        return SetLastLocation(userID, sceneID, position, lookAt);
-        //    }
-        //    else
-        //    {
-        //        m_log.Warn("[SIMIAN PRESENCE CONNECTOR]: Failed to retrieve presence information for session " + sessionID +
-        //            " while saving last location: " + response["Message"].AsString());
-        //    }
-
-        //    return success;
-        //}
 
         private PresenceInfo ResponseToPresenceInfo(OSDMap sessionResponse, OSDMap userResponse)
         {

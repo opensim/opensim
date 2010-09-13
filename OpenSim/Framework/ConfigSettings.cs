@@ -124,22 +124,6 @@ namespace OpenSim.Framework
             set { m_standaloneUserSource = value; }
         }
 
-        protected string m_storageConnectionString;
-
-        public string StorageConnectionString
-        {
-            get { return m_storageConnectionString; }
-            set { m_storageConnectionString = value; }
-        }
-
-        protected string m_estateConnectionString;
-
-        public string EstateConnectionString
-        {
-            get { return m_estateConnectionString; }
-            set { m_estateConnectionString = value; }
-        }
-
         protected string m_librariesXMLFile;
         public string LibrariesXMLFile
         {

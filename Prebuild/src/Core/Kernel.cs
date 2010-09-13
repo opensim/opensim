@@ -36,21 +36,17 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 #endregion
 
+#define NO_VALIDATE
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Collections;
-using System.Collections.Specialized;
 using System.IO;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Schema;
-using System.Text;
-
 using Prebuild.Core.Attributes;
 using Prebuild.Core.Interfaces;
 using Prebuild.Core.Nodes;
-using Prebuild.Core.Parse;
 using Prebuild.Core.Utilities;
 
 namespace Prebuild.Core 
@@ -77,7 +73,7 @@ namespace Prebuild.Core
 		/// <summary>
 		/// This must match the version of the schema that is embeeded
 		/// </summary>
-		private const string m_SchemaVersion = "1.7";
+		private const string m_SchemaVersion = "1.9";
 		private const string m_Schema = "prebuild-" + m_SchemaVersion + ".xsd";
 		private const string m_SchemaURI = "http://dnpb.sourceforge.net/schemas/" + m_Schema;
 		bool disposed;
@@ -87,9 +83,9 @@ namespace Prebuild.Core
 		private Log m_Log;
 		private CurrentDirectory m_CurrentWorkingDirectory;
 		private XmlSchemaCollection m_Schemas;
-        
-		private Hashtable m_Targets;
-		private Hashtable m_Nodes;
+
+        private readonly Dictionary<string, ITarget> m_Targets = new Dictionary<string, ITarget>();
+        private readonly Dictionary<string, NodeEntry> m_Nodes = new Dictionary<string, NodeEntry>();
 
 	    readonly List<SolutionNode> m_Solutions = new List<SolutionNode>();        
 		string m_Target;
@@ -163,7 +159,7 @@ namespace Prebuild.Core
 		/// Gets the targets.
 		/// </summary>
 		/// <value>The targets.</value>
-		public Hashtable Targets
+		public Dictionary<string, ITarget> Targets
 		{
 			get
 			{
@@ -259,7 +255,7 @@ namespace Prebuild.Core
 
 		private void LoadSchema()
 		{
-			Assembly assembly = this.GetType().Assembly;
+			Assembly assembly = GetType().Assembly;
 			Stream stream = assembly.GetManifestResourceStream("Prebuild.data." + m_Schema);
 			if(stream == null) 
 			{
@@ -319,23 +315,24 @@ namespace Prebuild.Core
 
 		private void LogBanner()
 		{
-                  m_Log.Write("Prebuild v" + this.Version);
-                  m_Log.Write("Copyright (c) 2004-2008");
-                  m_Log.Write("Matthew Holmes (matthew@wildfiregames.com),");
-                  m_Log.Write("Dan Moorehead (dan05a@gmail.com),");
-                  m_Log.Write("David Hudson (jendave@yahoo.com),");
-                  m_Log.Write("Rob Loach (http://www.robloach.net),");
-                  m_Log.Write("C.J. Adams-Collier (cjac@colliertech.org),");
+            m_Log.Write("Prebuild v" + Version);
+            m_Log.Write("Copyright (c) 2004-2010");
+            m_Log.Write("Matthew Holmes (matthew@wildfiregames.com),");
+            m_Log.Write("Dan Moorehead (dan05a@gmail.com),");
+            m_Log.Write("David Hudson (jendave@yahoo.com),");
+            m_Log.Write("Rob Loach (http://www.robloach.net),");
+            m_Log.Write("C.J. Adams-Collier (cjac@colliertech.org),");
+            m_Log.Write("John Hurliman (john.hurliman@intel.com),");
 
-                  m_Log.Write("See 'prebuild /usage' for help");
-                  m_Log.Write();
+            m_Log.Write("See 'prebuild /usage' for help");
+            m_Log.Write();
 		}
 
 
 
         private void ProcessFile(string file)
         {
-            ProcessFile(file, this.m_Solutions);
+            ProcessFile(file, m_Solutions);
         }
 
         public void ProcessFile(ProcessNode node, SolutionNode parent)
@@ -381,12 +378,12 @@ namespace Prebuild.Core
                 Core.Parse.Preprocessor pre = new Core.Parse.Preprocessor();
 
                 //register command line arguments as XML variables
-                IDictionaryEnumerator dict = m_CommandLine.GetEnumerator();
+			    IEnumerator<KeyValuePair<string, string>> dict = m_CommandLine.GetEnumerator();
                 while (dict.MoveNext())
                 {
-                    string name = dict.Key.ToString().Trim();
+                    string name = dict.Current.Key.Trim();
                     if (name.Length > 0)
-                        pre.RegisterVariable(name, dict.Value.ToString());
+                        pre.RegisterVariable(name, dict.Current.Value);
                 }
 
 				string xml = pre.Process(reader);//remove script and evaulate pre-proccessing to get schema-conforming XML
@@ -422,6 +419,10 @@ namespace Prebuild.Core
 				m_CurrentDoc = new XmlDocument();
 				try
 				{
+#if NO_VALIDATE
+					XmlReader validator = XmlReader.Create(new StringReader(xml));
+					m_CurrentDoc.Load(validator);
+#else
 					XmlValidatingReader validator = new XmlValidatingReader(new XmlTextReader(new StringReader(xml)));
 
 					//validate while reading from string into XmlDocument DOM structure in memory
@@ -430,6 +431,7 @@ namespace Prebuild.Core
 						validator.Schemas.Add(schema);
 					}
 					m_CurrentDoc.Load(validator);
+#endif
 				} 
 				catch(XmlException e) 
 				{
@@ -541,7 +543,7 @@ namespace Prebuild.Core
 				return null;
 			}
 
-			NodeEntry ne = (NodeEntry)m_Nodes[node.Name];
+			NodeEntry ne = m_Nodes[node.Name];
 			return ne.Type;
 		}
 
@@ -578,11 +580,11 @@ namespace Prebuild.Core
 				{
 					if(!m_Nodes.ContainsKey(node.Name))
 					{
-						//throw new XmlException("Unknown XML node: " + node.Name);
+						Console.WriteLine("WARNING: Unknown XML node: " + node.Name);
 						return null;
 					}
 
-					NodeEntry ne = (NodeEntry)m_Nodes[node.Name];
+					NodeEntry ne = m_Nodes[node.Name];
 					Type type = ne.Type;
 					//DataNodeAttribute dna = ne.Attribute;
 
@@ -624,10 +626,8 @@ namespace Prebuild.Core
 		/// <param name="args">The args.</param>
 		public void Initialize(LogTargets target, string[] args)
 		{
-			m_Targets = new Hashtable();
-			CacheTargets(this.GetType().Assembly);
-			m_Nodes = new Hashtable();
-			CacheNodeTypes(this.GetType().Assembly);
+			CacheTargets(GetType().Assembly);
+			CacheNodeTypes(GetType().Assembly);
 			CacheVersion();
 
 			m_CommandLine = new CommandLineCollection(args);
@@ -750,11 +750,11 @@ namespace Prebuild.Core
 			}
 			else
 			{
-				if (!m_Targets.Contains(target)) {
+				if (!m_Targets.ContainsKey(target)) {
 					m_Log.Write(LogType.Error, "Unknown Target \"{0}\"", target);
 					return;
 				}
-				ITarget targ = (ITarget)m_Targets[target];
+				ITarget targ = m_Targets[target];
 
 				if(clean)
 				{
@@ -793,18 +793,19 @@ namespace Prebuild.Core
 		/// </remarks>
 		protected virtual void Dispose(bool disposing)
 		{
-			if (!this.disposed)
+			if (!disposed)
 			{
 				if (disposing)
 				{
-					if (this.m_Log != null)
+                    GC.SuppressFinalize(this);
+					if (m_Log != null)
 					{
-						this.m_Log.Close();
-						this.m_Log = null;
+						m_Log.Close();
+						m_Log = null;
 					}
 				}
 			}
-			this.disposed = true;
+			disposed = true;
 		}
 
 		/// <summary>
@@ -812,7 +813,7 @@ namespace Prebuild.Core
 		/// </summary>
 		~Kernel()
 		{
-			this.Dispose(false);
+			Dispose(false);
 		}
 		
 		/// <summary>

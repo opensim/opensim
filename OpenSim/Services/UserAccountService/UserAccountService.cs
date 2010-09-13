@@ -97,10 +97,10 @@ namespace OpenSim.Services.UserAccountService
         public UserAccount GetUserAccount(UUID scopeID, string firstName,
                 string lastName)
         {
-//			m_log.DebugFormat(
-//			    "[USER ACCOUNT SERVICE]: Retrieving account by username for {0} {1}, scope {2}", 
-//			    firstName, lastName, scopeID);
-			
+//            m_log.DebugFormat(
+//                "[USER ACCOUNT SERVICE]: Retrieving account by username for {0} {1}, scope {2}",
+//                firstName, lastName, scopeID);
+
             UserAccountData[] d;
 
             if (scopeID != UUID.Zero)
@@ -235,10 +235,10 @@ namespace OpenSim.Services.UserAccountService
 
         public bool StoreUserAccount(UserAccount data)
         {
-//			m_log.DebugFormat(
-//			    "[USER ACCOUNT SERVICE]: Storing user account for {0} {1} {2}, scope {3}", 
-//			    data.FirstName, data.LastName, data.PrincipalID, data.ScopeID);
-			
+//            m_log.DebugFormat(
+//                "[USER ACCOUNT SERVICE]: Storing user account for {0} {1} {2}, scope {3}",
+//                data.FirstName, data.LastName, data.PrincipalID, data.ScopeID);
+
             UserAccountData d = new UserAccountData();
 
             d.FirstName = data.FirstName;
@@ -285,7 +285,7 @@ namespace OpenSim.Services.UserAccountService
         #endregion
 
         #region Console commands
-        
+
         /// <summary>
         /// Handle the create user command from the console.
         /// </summary>
@@ -297,12 +297,14 @@ namespace OpenSim.Services.UserAccountService
             string password;
             string email;
 
+            List<char> excluded = new List<char>(new char[]{' '});
+
             if (cmdparams.Length < 3)
-                firstName = MainConsole.Instance.CmdPrompt("First name", "Default");
+                firstName = MainConsole.Instance.CmdPrompt("First name", "Default", excluded);
             else firstName = cmdparams[2];
 
             if (cmdparams.Length < 4)
-                lastName = MainConsole.Instance.CmdPrompt("Last name", "User");
+                lastName = MainConsole.Instance.CmdPrompt("Last name", "User", excluded);
             else lastName = cmdparams[3];
 
             if (cmdparams.Length < 5)

@@ -24,7 +24,6 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 #endregion
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
@@ -90,10 +89,10 @@ namespace Prebuild.Core.Nodes
 		/// .NET 3.5
 		/// </summary>
 		v3_5,
-        /// <summary>
-        /// .NET 4.0
-        /// </summary>
-        v4_0,
+		/// <summary>
+		/// .NET 4.0
+		/// </summary>
+		v4_0,
 	}
 	/// <summary>
 	/// The Node object representing /Prebuild/Solution/Project elements
@@ -121,7 +120,7 @@ namespace Prebuild.Core.Nodes
 		private Guid m_Guid;
         private string m_DebugStartParameters;
 
-        private Hashtable m_Configurations = new Hashtable();
+        private readonly Dictionary<string, ConfigurationNode> m_Configurations = new Dictionary<string, ConfigurationNode>();
         private readonly List<ReferencePathNode> m_ReferencePaths = new List<ReferencePathNode>();
 		private readonly List<ReferenceNode> m_References = new List<ReferenceNode>();
         private readonly List<AuthorNode> m_Authors = new List<AuthorNode>();
@@ -149,7 +148,7 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-			    return this.m_Framework;
+			    return m_Framework;
 			}
 		}
 		/// <summary>
@@ -283,7 +282,7 @@ namespace Prebuild.Core.Nodes
 			}
 		}
 
-		private bool m_GenerateAssemblyInfoFile = false;
+		private bool m_GenerateAssemblyInfoFile;
 		
 		/// <summary>
 		/// 
@@ -328,11 +327,11 @@ namespace Prebuild.Core.Nodes
 		/// Gets the configurations.
 		/// </summary>
 		/// <value>The configurations.</value>
-		public IList Configurations
+        public List<ConfigurationNode> Configurations
 		{
 			get
 			{
-                ArrayList tmp = new ArrayList(ConfigurationsTable.Values);
+			    List<ConfigurationNode> tmp = new List<ConfigurationNode>(ConfigurationsTable.Values);
                 tmp.Sort();
                 return tmp;
 			}
@@ -342,7 +341,7 @@ namespace Prebuild.Core.Nodes
 		/// Gets the configurations table.
 		/// </summary>
 		/// <value>The configurations table.</value>
-		public Hashtable ConfigurationsTable
+		public Dictionary<string, ConfigurationNode> ConfigurationsTable
 		{
 			get
 			{
@@ -420,7 +419,7 @@ namespace Prebuild.Core.Nodes
 					SolutionNode parent = (SolutionNode)base.Parent;
 					foreach(ConfigurationNode conf in parent.Configurations)
 					{
-						m_Configurations[conf.Name] = conf.Clone();
+						m_Configurations[conf.NameAndPlatform] = (ConfigurationNode) conf.Clone();
 					}
 				}
 			}
@@ -455,19 +454,19 @@ namespace Prebuild.Core.Nodes
 			if(String.Compare(conf.Name, "all", true) == 0) //apply changes to all, this may not always be applied first,
 				//so it *may* override changes to the same properties for configurations defines at the project level
 			{
-				foreach(ConfigurationNode confNode in this.m_Configurations.Values) 
+				foreach(ConfigurationNode confNode in m_Configurations.Values) 
 				{
 					conf.CopyTo(confNode);//update the config templates defines at the project level with the overrides
 				}
 			}
-			if(m_Configurations.ContainsKey(conf.Name))
+			if(m_Configurations.ContainsKey(conf.NameAndPlatform))
 			{
-				ConfigurationNode parentConf = (ConfigurationNode)m_Configurations[conf.Name];
+				ConfigurationNode parentConf = m_Configurations[conf.NameAndPlatform];
 				conf.CopyTo(parentConf);//update the config templates defines at the project level with the overrides
 			} 
 			else
 			{
-				m_Configurations[conf.Name] = conf;
+				m_Configurations[conf.NameAndPlatform] = conf;
 			}
 		}
 
@@ -504,12 +503,12 @@ namespace Prebuild.Core.Nodes
             m_GenerateAssemblyInfoFile = Helper.ParseBoolean(node, "generateAssemblyInfoFile", false);
 		    m_DebugStartParameters = Helper.AttributeValue(node, "debugStartParameters", string.Empty);
             
-			if(m_AssemblyName == null || m_AssemblyName.Length < 1)
+			if(string.IsNullOrEmpty(m_AssemblyName))
 			{
 				m_AssemblyName = m_Name;
 			}
 
-			if(m_RootNamespace == null || m_RootNamespace.Length < 1)
+			if(string.IsNullOrEmpty(m_RootNamespace))
 			{
 				m_RootNamespace = m_Name;
 			}
@@ -572,7 +571,7 @@ namespace Prebuild.Core.Nodes
         public int CompareTo(object obj)
         {
             ProjectNode that = (ProjectNode)obj;
-            return this.m_Name.CompareTo(that.m_Name);
+            return m_Name.CompareTo(that.m_Name);
         }
 
 		#endregion

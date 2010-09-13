@@ -38,7 +38,7 @@ namespace OpenSim.Framework.Console
 {
     /// <summary>
     /// A console that uses cursor control and color
-    /// </summary>    
+    /// </summary>
     public class LocalConsole : CommandConsole
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -100,8 +100,8 @@ namespace OpenSim.Framework.Console
         private int SetCursorTop(int top)
         {
             // From at least mono 2.4.2.3, window resizing can give mono an invalid row and column values.  If we try
-            // to set a cursor row position with a currently invalid column, mono will throw an exception.  
-            // Therefore, we need to make sure that the column position is valid first.              
+            // to set a cursor row position with a currently invalid column, mono will throw an exception.
+            // Therefore, we need to make sure that the column position is valid first.
             int left = System.Console.CursorLeft;
 
             if (left < 0)
@@ -121,7 +121,7 @@ namespace OpenSim.Framework.Console
             {
                 top = 0;
             }
-            else                
+            else
             {
                 int bh = System.Console.BufferHeight;
                 
@@ -133,7 +133,7 @@ namespace OpenSim.Framework.Console
             System.Console.CursorTop = top;
 
             return top;
-        }        
+        }
 
         /// <summary>
         /// Set the cursor column.
@@ -145,12 +145,12 @@ namespace OpenSim.Framework.Console
         /// </param>
         /// <returns>
         /// The new cursor column.
-        /// </returns>        
+        /// </returns>
         private int SetCursorLeft(int left)
         {
             // From at least mono 2.4.2.3, window resizing can give mono an invalid row and column values.  If we try
-            // to set a cursor column position with a currently invalid row, mono will throw an exception.  
-            // Therefore, we need to make sure that the row position is valid first.               
+            // to set a cursor column position with a currently invalid row, mono will throw an exception.
+            // Therefore, we need to make sure that the row position is valid first.
             int top = System.Console.CursorTop;
 
             if (top < 0)
@@ -214,7 +214,7 @@ namespace OpenSim.Framework.Console
                     System.Console.Write("{0}", prompt);
 
                 SetCursorTop(new_y);
-                SetCursorLeft(new_x);                
+                SetCursorLeft(new_x);
             }
         }
 
@@ -461,7 +461,8 @@ namespace OpenSim.Framework.Console
                         SetCursorLeft(0);
                         y = SetCursorTop(y);
 
-                        System.Console.WriteLine("{0}{1}", prompt, cmdline);
+                        System.Console.WriteLine();
+                        //Show();
 
                         lock (cmdline)
                         {
@@ -486,7 +487,7 @@ namespace OpenSim.Framework.Console
                             }
                         }
 
-                        AddToHistory(cmdline.ToString());
+                        //AddToHistory(cmdline.ToString());
                         return cmdline.ToString();
                     default:
                         break;

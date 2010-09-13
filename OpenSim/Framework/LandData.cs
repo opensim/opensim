@@ -89,13 +89,13 @@ namespace OpenSim.Framework
         private Vector3 _userLocation = new Vector3();
         private Vector3 _userLookAt = new Vector3();
         private int _otherCleanTime = 0;
-		private string _mediaType = "none/none";
-		private string _mediaDescription = "";
-		private int _mediaHeight = 0;
-		private int _mediaWidth = 0;
-		private bool _mediaLoop = false;
-		private bool _obscureMusic = false;
-		private bool _obscureMedia = false;
+        private string _mediaType = "none/none";
+        private string _mediaDescription = "";
+        private int _mediaHeight = 0;
+        private int _mediaWidth = 0;
+        private bool _mediaLoop = false;
+        private bool _obscureMusic = false;
+        private bool _obscureMedia = false;
 
         /// <summary>
         /// Whether to obscure parcel media URL
@@ -690,13 +690,13 @@ namespace OpenSim.Framework
             landData._userLocation = _userLocation;
             landData._userLookAt = _userLookAt;
             landData._otherCleanTime = _otherCleanTime;
-			landData._mediaType = _mediaType;
-			landData._mediaDescription = _mediaDescription;
-			landData._mediaWidth = _mediaWidth;
-			landData._mediaHeight = _mediaHeight;
-			landData._mediaLoop = _mediaLoop;
-			landData._obscureMusic = _obscureMusic;
-			landData._obscureMedia = _obscureMedia;
+            landData._mediaType = _mediaType;
+            landData._mediaDescription = _mediaDescription;
+            landData._mediaWidth = _mediaWidth;
+            landData._mediaHeight = _mediaHeight;
+            landData._mediaLoop = _mediaLoop;
+            landData._obscureMusic = _obscureMusic;
+            landData._obscureMedia = _obscureMedia;
 
             landData._parcelAccessList.Clear();
             foreach (ParcelManager.ParcelAccessEntry entry in _parcelAccessList)

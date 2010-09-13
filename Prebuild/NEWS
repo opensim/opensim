@@ -1,0 +1,200 @@
+Prebuild is an XML-driven pre-build tool allowing developers to easily generate project or make files for major IDE's and .NET development tools including: Visual Studio 2005, Visual Studio 2003, Visual Studio 2002, SharpDevelop, MonoDevelop, and NAnt.
+
+Documentation and downloads are available at http://dnpb.sourceforge.net.
+
+Prebuild is licensed under the BSD license.
+
+[ XXXXXXX XX, XXX - 1.3.2 ]
+	+ Added Keyfile signing to NAnt target and VS2005 target
+	+ Updated XSD file to 1.7
+	+ Boo and VisualBasic Language support in VS2005 target
+	+ Added basic Autotools target. It creates a non-recursive Autotools system. 
+	! Multiple files can be excluded from the Match node	
+	! VS2005 now handles .resx files correctly.
+	! NAnt and Autotools now handle defines
+	! NAnt and Autotools now handle resources
+	+ Conditional XML variables can be passed through the command line.
+	+ Added /install and /remove command line flags to install and remove assemblies from the GAC
+	+ Many fixes to VS2005 target
+
+[ July 21, 2006 - 1.3.1 ]
+	! VS2005 fixes from Rob Loach
+	! NAnt fixes from Rob Loach and David Hudson
+	! XML doc fixes from Rob Loach
+	+ Added SharpDevelop2 target (really just uses VS2005 target)
+	! Fixed bug with BuildEvents in Monodevelop target
+	+ Passing /yes will default to answering yes to any warnings
+
+[ February 28, 2006 - 1.3 ]
+	+ Added MonoDevelop target.
+	+ Added NAnt target.
+	+ Lots of fixes to all targets.
+	* Cleaned up the code using FXCop.
+	* Updated schema to 1.6 to fix a typo and add a new parameter.
+	* jendave is now the maintainer of the project. RobLoach has been added as a developer.
+	* Removed references to 'dnpb'.
+	+ Added rudimentary support for pre- and post- build scripts
+	* Updated examples.
+
+[ August 5, 2004 - 1.2 ]
+	+ Added Visual Studio Express (vs2005express) target contributed by Borrillis and modified for use with different languages
+	+ Added the allowedgroups command line option followed by a pipe-delimited list of project group filter flags (eg. Group1|Group2) allow optional filtering of all projects that dont have at least one of these flags
+	+ Added the filterGroups XML attribute to the project node and updated the scheme to v1.5 for this addition, it is used to specified the delimited list of filter groups to which a project belongs
+	* Modified the removedir command line option to allow for a pipe-delimited list of directory names
+	! Modified the resource loading code to search for resourced without the prepended namespace (as Visual Studio .NET does it) to allow for it to be compiled with SharpDevelop as well
+	+ Added the GenerateXmlDocFile boolean option to the Options XML element
+	* Changed the behavior of the XmlDocFile option so that if not specified it uses the assemblyName (without file extension) + .xml for the file name instead of just not generating the file since the new GenerateXmlDocFile takes care of this
+
+[ January 3, 2004 - 1.1 ]
+	! Replaced regex use for more efficient manual parsing to allow use on non-windows platforms with Mono which has Regex problems
+	+ Added the checkOsVars attribute to the root element for enabling interpolation for Enviroment variables in the form ${var}, otherwise no checking is performed for efficiency-sake
+	* Make the version attribute on the root element optional as it isn't used and not needed since the schema url contains the version
+
+[ December 30, 2004 - 1.1 ]
+    ! Applied Leed's fix for SharpDevelop references
+    + Rewrote much of the processing for better validation and without the use of a temp file
+    + Added support for configurations at the project level which are named All.  They now apply changes to all Solution level defined configs
+	* Changed all spaces into tabs
+	+ Added support for the None build action
+	* Replaced all sequence's in the XML schema for all's because the order doesn't matter since the xml file is loaded into an XmlDocument
+	
+[ December 25, 2004 - 1.0 ]
+    + Added the /removedir option for cleaning directories like obj before file releases
+    + Changed WriteTempXml() and the new DeleteTempXml() methods to be compiled only in DEBUG builds
+    * Made path optional for Match elements (defaults to current directory) and updates schema for it
+    ! Fixed XML example in the readme.txt
+    + Added example xml files to docs directory
+    * Updated license.txt to add Dan Moorehead and update copyright years
+    + Updated prebuild.xml to take advantage of the default path attribute for match elements
+    + Updated Clean to delete the obj directories
+
+[ December 25, 2004 - 0.13 ]
+    + Added dnpb.exe so that it can be used to generate the project files
+    + Added dnpb.ico
+    * Added parameterless Write statement to Log for writing a single line
+    * Changed scehema to version 1.3 for support of icon attribute
+    * Added support for All configuration name under a Project node signifying common settings for all configurations
+    ! Fixed the SupressWarnings by adding the corresponding field to OptionsNode
+    * Wrote documentation in docs/readme.txt
+    * Added Dan Moorehead to copyrights and extended date from 2004 to 2004-2005
+    * Updated prebuild.xml
+    * Optimized Log class
+    * Updated OutputUsage()
+    * /clean targets all by default
+    * No log file is used by default, /log without value specified uses default file name
+    + Added support for the /pause which pauses the utility after execution to observe output
+
+
+[ September 27, 2004 - 0.12.2a ]
+    ! Fixed a nasty bug when trying to delete our temp file for pre-processing.
+
+[ September 15, 2004 - 0.12.2 ]
+    + Expanded platform identification, thanks to the NAnt guys for shedding some
+      light on how to properly check for UNIX platforms! Thanks guys!
+    * POSIX OS identifier changed to UNIX. Valid OS names are now "Win32", "UNIX",
+      and "Unknown".
+    ! Fixed SharpDevelop target to properly use the 'rootNamespace' attribute of
+      the Project tag.
+    + New command-line switch, /ppo, forces DNPB to pre-process the file and write
+      the pre-processed file. This allows you to test/debug your pre-processor
+      macros. No other processing will be done. You can specify a target file as
+      a paramter for the /ppo switch, or DNPB will write the file 'preprocessed.xml'
+      if you do not specify a file.
+    + The Match tag now has a 'buildAction' attribute which functions exactly like
+      the attribute of the same name for the File tag.
+
+[ August 5, 2004 - 0.12.1 ]
+    + Added environment variable expansion for all values. Environment variables
+      should be listed in the form ${VAR}.
+
+[ July 30, 2004 - 0.12.0 ]
+    + Added preprocessing via XML processing information tags. Available tags
+      are: <?if <exp> ?>, <?elseif <exp> ?>, <?else ?> and <?endif ?>. The
+      current expression parser is very basic, but will be replaced with a more
+      capable parser over time. Current operators available are: =, !=, <, >,
+      <=, >=. Current test variables available: OS, RuntimeVersion, RuntimeMajor,
+      RuntimeMinor, RuntimeRevision.
+
+[ July 27, 2004 - 0.11.4 ]
+    + Added 'useRegex' attribute to the Match tag. Matches can now use regular
+      expressions to match filenames.
+    + Added the 'assemblyName' attribute to the Project tag. Projects can now
+      set their output assembly name.
+    ! Fixed several bugs in the way that Project tags inheirt their parent
+      Solutions configuration options. This operation should now work fully as
+      intended.
+    ! Due to some wierdness, Project Guid's are now stored as part of the Project
+      node and created at parse time.
+
+[ May 11, 2004 - 0.11.3 ]
+    ! Fixed a bug where I was writing the wrong property name for a projects root
+      namespace.
+    ! Removed a DEBUG statement I had left in the code in 0.11.2.
+    ! Fixed a bug in the VS2002 writer which caused the version variables to not
+      be overriden correctly.
+    + Added the rootNamespace property to the <Project> element, allowing you to
+      specify the root namespace.
+    * /target and /clean are now mutually exclusive command line switches, and
+      they both now take the all option. In the case of /target all, all build
+      file for all targets will be created. In the case of /clean all, the user
+      will be prompted to make sure they want to do it, and if so, will clean
+      all build files for all targets.
+
+[ April 22, 2004 - 0.11.2 ]
+    ! Fixed a bug with the /file command-line operator. Was using the unresolved
+      file path rather then the resolved one, was making the attempt to open the
+      dnpb file fail.
+    ! Fixed a bug in the schema that required at least 1 solution and 1 reference
+      path. We can do just fine with 0 of either of these. Some files may be all
+      <Process> statements and not have any <Solution> tags.
+    ! Fixed a bug that caused the project references not to be written with the
+      SharpDevelop target.
+    * Changed the schema to version 1.2, allowing for Configuration nodes to exist
+      under project nodes. The inheritance of values is hierarchical. Meaning, if
+      you define a configuration named Debug at the Soltion level, and one by the
+      same name at the Project level, the one at the Project level will first
+      inherit the options of the Solution level configuration, then set it's own
+      options. If you define a configuration at the Project level and it does not
+      exist at the Solution level, it will be created at the Solution level.
+    * Project references should now work correctly across the board. Note that due
+      to a restriction in Visual Studio, you can only reference projects in the same
+      solution.
+
+[ April 21, 2004 - 0.11.1 ]
+    ! Fixed a problem with resolving paths in various targets. Was not properly
+      setting the CWD.
+    * Schema updated to 1.1, moving the ReferencePath element from the Options
+      element to the Project element. This makes more logical sense, given that
+      reference paths are resolved relative to the project path. Any prebuild.xml
+      file referecning verison 1.0 will fail! Please update to the 1.1 schema.
+
+[ April 19, 2004 - 0.11.0 ]
+    * Added several attributes across the code to make FxCop happy
+    ! Fixed bugs in reference paths being written in the VS targets.
+    ! Fixed a bug in ProjectNode which was doing two CWDStack.Push() calls instead of
+      a Push/Pop pair. Was wreaking havoc with <Process> tags.	
+    ! Fixed some bugs in the path tracking, both the Project and Solution nodes now
+      have a FullPath property, which is the full path to the file resolved at load
+      time. This should fix all path relativity problems.
+    + Added new /clean switch, allowing the target to clean up any files it generated.
+      in accordance, the ITarget interface has been updated to support a new Clean()
+      method.
+    + Completed addition of the <Process> tag, to allow the referencing of external
+      prebuild.xml files.
+    + Added the runtime attribute to the Project element. This allows the developer
+      to specify which runtime a project should target (Mono or Microsoft). This is
+      of course ignored in certain targets like the Visual Studio targets.
+    + Added the SharpDevelop target.
+
+[ April 13, 2004 - 0.10.1a ]
+    + Added the buildAction attribute to the File node. This is needed for dnpb
+    to even be able to bootstrap itself (dnpb-1.0.xsd must be an embedded resource)
+
+[ April 13, 2004 - 0.10.1 ]
+    * First Release
+
+[ Key ]
+* = Change or information
++ = Addition
+! = Bug Fix
+

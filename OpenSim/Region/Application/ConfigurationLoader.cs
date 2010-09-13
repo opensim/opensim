@@ -345,10 +345,6 @@ namespace OpenSim
 
                 m_configSettings.StorageDll = startupConfig.GetString("storage_plugin");
 
-                m_configSettings.StorageConnectionString 
-                    = startupConfig.GetString("storage_connection_string");
-                m_configSettings.EstateConnectionString 
-                    = startupConfig.GetString("estate_connection_string", m_configSettings.StorageConnectionString);
                 m_configSettings.ClientstackDll 
                     = startupConfig.GetString("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
             }

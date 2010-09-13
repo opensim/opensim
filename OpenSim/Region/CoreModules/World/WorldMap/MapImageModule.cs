@@ -212,7 +212,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             double[,] hm = whichScene.Heightmap.GetDoubles();
             tc = Environment.TickCount;
             m_log.Info("[MAPTILE]: Generating Maptile Step 2: Object Volume Profile");
-            List<EntityBase> objs = whichScene.GetEntities();
+            EntityBase[] objs = whichScene.GetEntities();
             Dictionary<uint, DrawStruct> z_sort = new Dictionary<uint, DrawStruct>();
             //SortedList<float, RectangleDrawStruct> z_sort = new SortedList<float, RectangleDrawStruct>();
             List<float> z_sortheights = new List<float>();
@@ -228,7 +228,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         SceneObjectGroup mapdot = (SceneObjectGroup)obj;
                         Color mapdotspot = Color.Gray; // Default color when prim color is white
                         
-                        // Loop over prim in group                            
+                        // Loop over prim in group
                         List<SceneObjectPart> partList = null;
                         lock (mapdot.Children)
                             partList = new List<SceneObjectPart>(mapdot.Children.Values);

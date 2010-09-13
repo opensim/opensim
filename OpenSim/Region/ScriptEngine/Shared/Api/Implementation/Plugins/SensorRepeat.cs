@@ -286,7 +286,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
             else
             {
-                Entities = m_CmdManager.m_ScriptEngine.World.GetEntities();
+                Entities = new List<EntityBase>(m_CmdManager.m_ScriptEngine.World.GetEntities());
             }
             SceneObjectPart SensePoint = ts.host;
 
@@ -417,7 +417,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             List<SensedEntity> sensedEntities = new List<SensedEntity>();
 
             // If nobody about quit fast
-            if(m_CmdManager.m_ScriptEngine.World.GetRootAgentCount() == 0)
+            if (m_CmdManager.m_ScriptEngine.World.GetRootAgentCount() == 0)
                 return sensedEntities;
 
             SceneObjectPart SensePoint = ts.host;
@@ -496,7 +496,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             {
                 ScenePresence sp;
                 // Try direct lookup by UUID
-                if(!m_CmdManager.m_ScriptEngine.World.TryGetScenePresence(ts.keyID, out sp))
+                if (!m_CmdManager.m_ScriptEngine.World.TryGetScenePresence(ts.keyID, out sp))
                     return sensedEntities;
                 senseEntity(sp);
             }

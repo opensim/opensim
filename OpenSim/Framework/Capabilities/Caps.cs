@@ -760,7 +760,7 @@ namespace OpenSim.Framework.Capabilities
                 string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
 
                 BakedTextureUploader uploader =
-                    new BakedTextureUploader( capsBase + uploaderPath,
+                    new BakedTextureUploader(capsBase + uploaderPath,
                         m_httpListener);
                 uploader.OnUpLoad += BakedTextureUploaded;
 

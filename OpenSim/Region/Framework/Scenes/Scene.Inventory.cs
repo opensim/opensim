@@ -58,7 +58,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_log.Info("[PRIM INVENTORY]: Starting scripts in scene");
 
-            foreach (EntityBase group in Entities)
+            EntityBase[] entities = Entities.GetEntities();
+            foreach (EntityBase group in entities)
             {
                 if (group is SceneObjectGroup)
                 {
@@ -132,7 +133,7 @@ namespace OpenSim.Region.Framework.Scenes
                     item.Owner, item.Name, item.ID);
 
                 return false;
-            }            
+            }
         }
         
         /// <summary>
@@ -1987,7 +1988,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             
             if (!Permissions.CanRezObject(group.PrimCount, item.OwnerID, pos))
-                return null;            
+                return null;
 
             if (!Permissions.BypassPermissions())
             {
@@ -2065,7 +2066,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     List<SceneObjectPart> partList = null;
                     lock (sog.Children)
-                        partList = new List<SceneObjectPart>(sog.Children.Values);                    
+                        partList = new List<SceneObjectPart>(sog.Children.Values);
                     
                     foreach (SceneObjectPart child in partList)
                         child.Inventory.ChangeInventoryOwner(ownerID);
@@ -2080,7 +2081,7 @@ namespace OpenSim.Region.Framework.Scenes
                     
                     List<SceneObjectPart> partList = null;
                     lock (sog.Children)
-                        partList = new List<SceneObjectPart>(sog.Children.Values);                    
+                        partList = new List<SceneObjectPart>(sog.Children.Values);
 
                     foreach (SceneObjectPart child in partList)
                     {
@@ -2090,7 +2091,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     sog.SetOwnerId(groupID);
                     sog.ApplyNextOwnerPermissions();
-                }                
+                }
             }
 
             foreach (uint localID in localIDs)

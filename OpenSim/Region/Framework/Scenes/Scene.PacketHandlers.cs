@@ -116,9 +116,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void RequestPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            List<EntityBase> EntityList = GetEntities();
-
-            foreach (EntityBase ent in EntityList)
+            EntityBase[] entityList = GetEntities();
+            foreach (EntityBase ent in entityList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -138,9 +137,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void SelectPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            List<EntityBase> EntityList = GetEntities();
-
-            foreach (EntityBase ent in EntityList)
+            EntityBase[] entityList = GetEntities();
+            foreach (EntityBase ent in entityList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -166,7 +164,7 @@ namespace OpenSim.Region.Framework.Scenes
                         
                         List<SceneObjectPart> partList = null;
                         lock (sog.Children)
-                            partList = new List<SceneObjectPart>(sog.Children.Values);    
+                            partList = new List<SceneObjectPart>(sog.Children.Values);
 
                         foreach (SceneObjectPart part in partList)
                         {
@@ -259,7 +257,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void ProcessObjectGrab(uint localID, Vector3 offsetPos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
-            List<EntityBase> EntityList = GetEntities();
+            EntityBase[] EntityList = GetEntities();
 
             SurfaceTouchEventArgs surfaceArg = null;
             if (surfaceArgs != null && surfaceArgs.Count > 0)
@@ -303,7 +301,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void ProcessObjectGrabUpdate(UUID objectID, Vector3 offset, Vector3 pos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
-            List<EntityBase> EntityList = GetEntities();
+            EntityBase[] EntityList = GetEntities();
 
             SurfaceTouchEventArgs surfaceArg = null;
             if (surfaceArgs != null && surfaceArgs.Count > 0)
@@ -343,7 +341,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void ProcessObjectDeGrab(uint localID, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
-            List<EntityBase> EntityList = GetEntities();
+            EntityBase[] EntityList = GetEntities();
 
             SurfaceTouchEventArgs surfaceArg = null;
             if (surfaceArgs != null && surfaceArgs.Count > 0)

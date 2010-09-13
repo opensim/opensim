@@ -49,8 +49,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         protected bool m_collectStats;
         protected Scene m_scene = null;
         
-        public string Name { get { return "Binary Statistics Logging Module"; } }        
-        public Type ReplaceableInterface { get { return null; } }        
+        public string Name { get { return "Binary Statistics Logging Module"; } }
+        public Type ReplaceableInterface { get { return null; } }
 
         public void Initialise(IConfigSource source) 
         {
@@ -79,7 +79,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             catch
             {
                 // if it doesn't work, we don't collect anything
-            }         
+            }
         }
         
         public void AddRegion(Scene scene)
@@ -94,12 +94,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         public void RegionLoaded(Scene scene) 
         {
             if (m_collectStats)
-                m_scene.StatsReporter.OnSendStatsResult += LogSimStats;                
+                m_scene.StatsReporter.OnSendStatsResult += LogSimStats;
         }
         
         public void Close() 
         {
-        }                        
+        }
 
         public class StatLogger
         {
@@ -164,6 +164,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 }
             }
             return;
-        }      
+        }
     }
 }

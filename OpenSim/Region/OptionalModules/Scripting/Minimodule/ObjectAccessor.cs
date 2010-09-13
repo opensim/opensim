@@ -41,12 +41,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         private readonly Scene m_scene;
         private readonly IEnumerator<EntityBase> m_sogEnum;
         private readonly ISecurityCredential m_security;
+        private readonly List<EntityBase> m_entities;
 
         public IObjEnum(Scene scene, ISecurityCredential security)
         {
             m_scene = scene;
             m_security = security;
-            m_sogEnum = m_scene.Entities.GetAllByType<SceneObjectGroup>().GetEnumerator();
+            m_entities = new List<EntityBase>(m_scene.Entities.GetEntities());
+            m_sogEnum = m_entities.GetEnumerator();
         }
 
         public void Dispose()

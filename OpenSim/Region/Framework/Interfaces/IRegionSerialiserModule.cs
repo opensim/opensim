@@ -90,7 +90,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         /// <param name="entityList"></param>
         /// <param name="fileName"></param>
-        void SavePrimListToXml2(List<EntityBase> entityList, string fileName);
+        void SavePrimListToXml2(EntityBase[] entityList, string fileName);
 
         /// <summary>
         /// Save a set of prims in the xml2 format, optionally specifying a bounding box for which
@@ -101,7 +101,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="stream"></param>
         /// <param name="min"></param>
         /// <param name="max"></param>
-        void SavePrimListToXml2(List<EntityBase> entityList, TextWriter stream, Vector3 min, Vector3 max);
+        void SavePrimListToXml2(EntityBase[] entityList, TextWriter stream, Vector3 min, Vector3 max);
         
         void SaveNamedPrimsToXml2(Scene scene, string primName, string fileName);
             

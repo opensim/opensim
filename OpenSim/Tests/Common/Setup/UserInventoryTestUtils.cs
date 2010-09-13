@@ -42,7 +42,7 @@ namespace OpenSim.Tests.Common
 
         public static InventoryItemBase CreateInventoryItem(
             Scene scene, string itemName, UUID itemId, string folderPath, UUID userId)
-        {            
+        {
             InventoryItemBase item = new InventoryItemBase();
             item.Name = itemName;
             item.AssetID = AssetHelpers.CreateAsset(scene, userId).FullID;
@@ -52,7 +52,7 @@ namespace OpenSim.Tests.Common
             InventoryFolderBase objsFolder = scene.InventoryService.GetFolderForType(userId, AssetType.Object);
             
             item.Folder = objsFolder.ID;
-            scene.AddInventoryItem(item);            
+            scene.AddInventoryItem(item);
             
             return item;
         }

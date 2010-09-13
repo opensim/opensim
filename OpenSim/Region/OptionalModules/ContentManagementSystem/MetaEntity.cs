@@ -161,7 +161,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                 
                 //finalize
                 m_Entity.RootPart.PhysActor = null;
-                m_Entity.Children = parts;                
+                m_Entity.Children = parts;
             }
         }
 

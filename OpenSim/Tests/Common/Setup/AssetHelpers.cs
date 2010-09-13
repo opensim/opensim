@@ -54,8 +54,8 @@ namespace OpenSim.Tests.Common
         {
             AssetBase asset = CreateAsset(UUID.Random(), AssetType.Notecard, "hello", creatorId);
             scene.AssetService.Store(asset);
-            return asset;           
-        }        
+            return asset;
+        }
                 
         /// <summary>
         /// Create an asset from the given scene object.

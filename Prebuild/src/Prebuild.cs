@@ -26,9 +26,9 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,	EVEN IF	ADVISED	OF THE POSSIBILITY O
 #region	CVS	Information
 /*
  * $Source$
- * $Author: jendave $
- * $Date: 2006-09-26 23:43:35 +0200 (ti, 26 sep 2006) $
- * $Revision: 168 $
+ * $Author: kunnis $
+ * $Date: 2009-04-15 02:33:14 +0100 (Wed, 15 Apr 2009) $
+ * $Revision: 308 $
  */
 #endregion
 
@@ -86,17 +86,17 @@ namespace Prebuild
 				{
 					kernel.Process();
 				}
-			}
-			catch(Exception	ex)	
-			{
-				Console.WriteLine("Unhandled error:	{0}", ex.Message);
-				//#if DEBUG
-				Console.WriteLine("{0}", ex.StackTrace);
-				//#endif
-			}
-			finally
-			{
-				if(kernel.PauseAfterFinish)	
+            }
+#if !DEBUG
+            catch (Exception ex)
+            {
+                Console.WriteLine("Unhandled error:	{0}", ex.Message);
+                Console.WriteLine("{0}", ex.StackTrace);
+            }
+#endif
+            finally
+            {
+				if(kernel != null && kernel.PauseAfterFinish)	
 				{
 					Console.WriteLine("\nPress enter to continue...");
 					Console.ReadLine();

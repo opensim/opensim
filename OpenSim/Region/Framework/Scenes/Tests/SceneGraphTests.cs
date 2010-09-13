@@ -71,7 +71,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(dupeSo.Children.Count, Is.EqualTo(2));
             
             SceneObjectPart dupePart1 = dupeSo.GetLinkNumPart(1);
-            SceneObjectPart dupePart2 = dupeSo.GetLinkNumPart(2);                        
+            SceneObjectPart dupePart2 = dupeSo.GetLinkNumPart(2);
             Assert.That(dupePart1.LocalId, Is.Not.EqualTo(part1.LocalId));
             Assert.That(dupePart2.LocalId, Is.Not.EqualTo(part2.LocalId));
             
@@ -84,6 +84,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(dupePart1.PhysActor, Is.Not.Null);
             Assert.That(dupePart2.PhysActor, Is.Not.Null);
             */
-        }        
+        }
     }
 }

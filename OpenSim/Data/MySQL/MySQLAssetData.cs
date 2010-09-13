@@ -216,9 +216,6 @@ namespace OpenSim.Data.MySQL
 
         private void UpdateAccessTime(AssetBase asset)
         {
-            // Writing to the database every time Get() is called on an asset is killing us. Seriously. -jph
-            return;
-
             lock (m_dbLock)
             {
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))

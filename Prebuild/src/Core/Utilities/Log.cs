@@ -82,7 +82,7 @@ namespace Prebuild.Core.Utilities
 	{
 		#region Fields
 
-		private StreamWriter m_Writer;
+		private TextWriter m_Writer;
 		private LogTargets m_Target = LogTargets.Null;
 		bool disposed;
 
@@ -96,14 +96,20 @@ namespace Prebuild.Core.Utilities
 		/// <param name="target">The target.</param>
 		/// <param name="fileName">Name of the file.</param>
 		public Log(LogTargets target, string fileName)
-		{
-			m_Target = target;
-            
-			if((m_Target & LogTargets.File) != 0)
-			{
-				m_Writer = new StreamWriter(fileName, false);
-			}
-		}
+        {
+            m_Target = target;
+
+            if ((m_Target & LogTargets.File) != 0)
+            {
+                m_Writer = new StreamWriter(fileName, false);
+            }
+            else if ((m_Target & LogTargets.Console) != 0)
+            {
+                // Prevents null reference exceptions when outputing to the log file.
+                // This seems to only happen when running on a network drive.
+                m_Writer = Console.Out;
+            }
+        }
 
 		#endregion
 

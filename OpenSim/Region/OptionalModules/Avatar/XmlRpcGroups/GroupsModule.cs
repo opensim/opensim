@@ -962,7 +962,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if ((groupInfo == null) || (account == null))
             {
                 return;
-            }            
+            }
 
             // Send Message to Ejectee
             GridInstantMessage msg = new GridInstantMessage();

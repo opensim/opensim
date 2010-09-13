@@ -24,7 +24,7 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 #endregion
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -83,9 +83,9 @@ namespace Prebuild.Core.Parse
 
 		#region Fields
 
-		XmlDocument m_OutDoc;
-		Stack m_IfStack;
-		Hashtable m_Variables;
+	    readonly XmlDocument m_OutDoc = new XmlDocument();
+	    readonly Stack<IfContext> m_IfStack = new Stack<IfContext>();
+	    readonly Dictionary<string, object> m_Variables = new Dictionary<string, object>();
 
 		#endregion
 
@@ -96,10 +96,6 @@ namespace Prebuild.Core.Parse
 		/// </summary>
 		public Preprocessor()
 		{
-			m_OutDoc = new XmlDocument();
-			m_IfStack = new Stack();
-			m_Variables = new Hashtable();
-
 			RegisterVariable("OS", GetOS());
 			RegisterVariable("RuntimeVersion", Environment.Version.Major);
 			RegisterVariable("RuntimeMajor", Environment.Version.Major);
@@ -237,11 +233,10 @@ namespace Prebuild.Core.Parse
 			string str = "";
 			OperatorSymbol oper = OperatorSymbol.None;
 			bool inStr = false;
-			char c;
-			
-			for(int i = 0; i < exp.Length; i++)
+
+		    for(int i = 0; i < exp.Length; i++)
 			{
-				c = exp[i];
+				char c = exp[i];
 				if(Char.IsWhiteSpace(c))
 				{
 					continue;
@@ -326,16 +321,16 @@ namespace Prebuild.Core.Parse
 			{
 				throw new WarningException("Expected operator in expression");
 			}
-			else if(id.Length < 1)
-			{
-				throw new WarningException("Expected identifier in expression");
-			}
-			else if(str.Length < 1)
-			{
-				throw new WarningException("Expected value in expression");
-			}
+		    if(id.Length < 1)
+		    {
+		        throw new WarningException("Expected identifier in expression");
+		    }
+		    if(str.Length < 1)
+		    {
+		        throw new WarningException("Expected value in expression");
+		    }
 
-			bool ret = false;
+		    bool ret;
 			try
 			{
 				object val = m_Variables[id.ToLower()];
@@ -344,19 +339,17 @@ namespace Prebuild.Core.Parse
 					throw new WarningException("Unknown identifier '{0}'", id);
 				}
 
-				int numVal, numVal2;
-				string strVal, strVal2;
-				Type t = val.GetType();
+			    Type t = val.GetType();
 				if(t.IsAssignableFrom(typeof(int)))
 				{
-					numVal = (int)val;
-					numVal2 = Int32.Parse(str);
+					int numVal = (int)val;
+					int numVal2 = Int32.Parse(str);
 					ret = CompareNum(oper, numVal, numVal2);
 				}
 				else
 				{
-					strVal = val.ToString();
-					strVal2 = str;
+					string strVal = val.ToString();
+					string strVal2 = str;
 					ret = CompareStr(oper, strVal, strVal2);
 				}
 			}
@@ -368,6 +361,70 @@ namespace Prebuild.Core.Parse
 
 			return ret;
 		}
+
+        /// <summary>
+        /// Taken from current Prebuild included in OpenSim 0.7.x
+        /// </summary>
+        /// <param name="readerStack">
+        /// A <see cref="Stack<XmlReader>"/>
+        /// </param>
+        /// <param name="include">
+        /// A <see cref="System.String"/>
+        /// </param>
+        private static void WildCardInclude (Stack<XmlReader> readerStack, string include)
+        {
+            if (!include.Contains ("*")) {
+                return;
+            }
+            
+            // Console.WriteLine("Processing {0}", include);
+            
+            // Break up the include into pre and post wildcard sections
+            string preWildcard = include.Substring (0, include.IndexOf ("*"));
+            string postWildcard = include.Substring (include.IndexOf ("*") + 2);
+            
+            // If preWildcard is a directory, recurse
+            if (Directory.Exists (preWildcard)) {
+                string[] directories = Directory.GetDirectories (preWildcard);
+                Array.Sort (directories);
+                Array.Reverse (directories);
+                foreach (string dirPath in directories) {
+                    //Console.WriteLine ("Scanning : {0}", dirPath);
+                    
+                    string includeFile = Path.Combine (dirPath, postWildcard);
+                    if (includeFile.Contains ("*")) {
+                        // postWildcard included another wildcard, recurse.
+                        WildCardInclude (readerStack, includeFile);
+                    } else {
+                        FileInfo file = new FileInfo (includeFile);
+                        if (file.Exists) {
+                            //Console.WriteLine ("Including File: {0}", includeFile);
+                            XmlReader newReader = new XmlTextReader (file.Open (FileMode.Open, FileAccess.Read, FileShare.Read));
+                            readerStack.Push (newReader);
+                        }
+                    }
+                }
+            } else {
+                // preWildcard is not a path to a directory, so the wildcard is in the filename
+                string searchFilename = Path.GetFileName (preWildcard.Substring (preWildcard.IndexOf ("/") + 1) + "*" + postWildcard);
+                Console.WriteLine ("searchFilename: {0}", searchFilename);
+                
+                string searchDirectory = Path.GetDirectoryName (preWildcard);
+                Console.WriteLine ("searchDirectory: {0}", searchDirectory);
+                
+                string[] files = Directory.GetFiles (searchDirectory, searchFilename);
+                Array.Sort (files);
+                Array.Reverse (files);
+                foreach (string includeFile in files) {
+                    FileInfo file = new FileInfo (includeFile);
+                    if (file.Exists) {
+                        // Console.WriteLine ("Including File: {0}", includeFile);
+                        XmlReader newReader = new XmlTextReader (file.Open (FileMode.Open, FileAccess.Read, FileShare.Read));
+                        readerStack.Push (newReader);
+                    }
+                }
+            }
+        }
 
 		#endregion
 
@@ -392,7 +449,7 @@ namespace Prebuild.Core.Parse
 		/// Performs validation on the xml source as well as evaluates conditional and flow expresions
 		/// </summary>
 		/// <exception cref="ArgumentException">For invalid use of conditional expressions or for invalid XML syntax.  If a XmlValidatingReader is passed, then will also throw exceptions for non-schema-conforming xml</exception>
-		/// <param name="reader"></param>
+        /// <param name="initialReader"></param>
 		/// <returns>the output xml </returns>
 		public string Process(XmlReader initialReader)
 		{
@@ -411,13 +468,13 @@ namespace Prebuild.Core.Parse
 			// readers which lets the <?include?> operation add more
 			// readers to generate a multi-file parser and not require
 			// XML fragments that a recursive version would use.
-			Stack readerStack = new Stack();
+			Stack<XmlReader> readerStack = new Stack<XmlReader>();
 			readerStack.Push(initialReader);
 			
 			while(readerStack.Count > 0)
 			{
 				// Pop off the next reader.
-				XmlReader reader = (XmlReader) readerStack.Pop();
+				XmlReader reader = readerStack.Pop();
 
 				// Process through this XML reader until it is
 				// completed (or it is replaced by the include
@@ -437,7 +494,7 @@ namespace Prebuild.Core.Parse
 							case "include":
 								// use regular expressions to parse out the attributes.
 								MatchCollection matches = includeFileRegex.Matches(reader.Value);
-								
+
 								// make sure there is only one file attribute.
 								if(matches.Count > 1)
 								{
@@ -448,38 +505,37 @@ namespace Prebuild.Core.Parse
 								{
 									throw new WarningException("An <?include ?> node was found, but it did not specify the file attribute.");
 								}
-								
+
+                                // ***** Adding for wildcard handling
                                 // Push current reader back onto the stack.
-                                readerStack.Push(reader);
-
-								// Pull the file out from the regex and make sure it is a valid file before using it.
-								string filename = matches[0].Groups[1].Value;
-
-                                filename = String.Join(Path.DirectorySeparatorChar.ToString(), filename.Split(new char[] { '/', '\\' }));
-
-                                if (!filename.Contains("*"))
-                                {
-                                    FileInfo includeFile = new FileInfo(filename);
-
-                                    if (!includeFile.Exists)
-                                    {
-                                        throw new WarningException("Cannot include file: " + includeFile.FullName);
+                                readerStack.Push (reader);
+                                
+                                // Pull the file out from the regex and make sure it is a valid file before using it.
+                                string filename = matches[0].Groups[1].Value;
+                                
+                                filename = String.Join (Path.DirectorySeparatorChar.ToString (), filename.Split (new char[] { '/', '\\' }));
+                                
+                                if (!filename.Contains ("*")) {
+                                
+                                    FileInfo includeFile = new FileInfo (filename);
+                                    if (!includeFile.Exists) {
+                                        throw new WarningException ("Cannot include file: " + includeFile.FullName);
                                     }
-
-                                    // Create a new reader object for this file, and push it onto the stack
-                                    XmlReader newReader = new XmlTextReader(includeFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read));
-                                    readerStack.Push(newReader);
+                                
+                                    // Create a new reader object for this file. Then put the old reader back on the stack and start
+                                    // processing using this new XML reader.
+                                
+                                    XmlReader newReader = new XmlTextReader (includeFile.Open (FileMode.Open, FileAccess.Read, FileShare.Read));
+                                    reader = newReader;
+                                    readerStack.Push (reader);
+                                
+                                } else {
+                                    WildCardInclude (readerStack, filename);
                                 }
-                                else
-                                {
-                                    WildCardInclude(readerStack, filename);
-                                }
-
-                                // continue reading with whatever reader is on the top of the stack
-                                reader = (XmlReader)readerStack.Pop();
+                                
+                                reader = (XmlReader)readerStack.Pop ();
                                 ignore = true;
-
-								break;
+                                break;
 
 							case "if":
 								m_IfStack.Push(context);
@@ -492,12 +548,12 @@ namespace Prebuild.Core.Parse
 								{
 									throw new WarningException("Unexpected 'elseif' outside of 'if'");
 								}
-								else if(context.State != IfState.If && context.State != IfState.ElseIf)
-								{
-									throw new WarningException("Unexpected 'elseif' outside of 'if'");
-								}
+						        if(context.State != IfState.If && context.State != IfState.ElseIf)
+						        {
+						            throw new WarningException("Unexpected 'elseif' outside of 'if'");
+						        }
 
-								context.State = IfState.ElseIf;
+						        context.State = IfState.ElseIf;
 								if(!context.EverKept)
 								{
 									context.Keep = ParseExpression(reader.Value);
@@ -515,12 +571,12 @@ namespace Prebuild.Core.Parse
 								{
 									throw new WarningException("Unexpected 'else' outside of 'if'");
 								}
-								else if(context.State != IfState.If && context.State != IfState.ElseIf)
-								{
-									throw new WarningException("Unexpected 'else' outside of 'if'");
-								}
+						        if(context.State != IfState.If && context.State != IfState.ElseIf)
+						        {
+						            throw new WarningException("Unexpected 'else' outside of 'if'");
+						        }
 
-								context.State = IfState.Else;
+						        context.State = IfState.Else;
 								context.Keep = !context.EverKept;
 								ignore = true;
 								break;
@@ -531,7 +587,7 @@ namespace Prebuild.Core.Parse
 									throw new WarningException("Unexpected 'endif' outside of 'if'");
 								}
 
-								context = (IfContext)m_IfStack.Pop();
+								context = m_IfStack.Pop();
 								ignore = true;
 								break;
 						}
@@ -590,73 +646,6 @@ namespace Prebuild.Core.Parse
 			
 			return xmlText.ToString();
 		}
-
-        private static void WildCardInclude(Stack readerStack, string include)
-        {
-            if (!include.Contains("*"))
-            {
-                return;
-            }
-
-//            Console.WriteLine("Processing {0}", include);
-
-            // Break up the include into pre and post wildcard sections
-            string preWildcard = include.Substring(0, include.IndexOf("*"));
-            string postWildcard = include.Substring(include.IndexOf("*") + 2);
-
-            // If preWildcard is a directory, recurse
-            if (Directory.Exists(preWildcard))
-            {
-                string[] directories = Directory.GetDirectories(preWildcard);
-                Array.Sort(directories);
-                Array.Reverse(directories);
-                foreach (string dirPath in directories )
-                {
-                    Console.WriteLine("Scanning : {0}", dirPath);
-
-                    string includeFile = Path.Combine(dirPath, postWildcard);
-                    if (includeFile.Contains("*"))
-                    {
-                        // postWildcard included another wildcard, recurse.
-                        WildCardInclude(readerStack, includeFile);
-                    }
-                    else
-                    {
-                        FileInfo file = new FileInfo(includeFile);
-                        if (file.Exists)
-                        {
-                            Console.WriteLine("Including File: {0}", includeFile);
-                            XmlReader newReader = new XmlTextReader(file.Open(FileMode.Open, FileAccess.Read, FileShare.Read));
-                            readerStack.Push(newReader);
-                        }
-                    }
-                }
-            } 
-            else 
-            {
-                // preWildcard is not a path to a directory, so the wildcard is in the filename
-                string searchFilename = Path.GetFileName(preWildcard.Substring(preWildcard.IndexOf("/") + 1) + "*" + postWildcard);
-                // Console.WriteLine("searchFilename: {0}", searchFilename);
-
-                string searchDirectory = Path.GetDirectoryName(preWildcard);
-                // Console.WriteLine("searchDirectory: {0}", searchDirectory);
-
-                string[] files = Directory.GetFiles(searchDirectory, searchFilename);
-                Array.Sort(files);
-                Array.Reverse(files);
-                foreach (string includeFile in files)
-                {
-                    FileInfo file = new FileInfo(includeFile);
-                    if (file.Exists)
-                    {
-                        Console.WriteLine("Including File: {0}", includeFile);
-                        XmlReader newReader = new XmlTextReader(file.Open(FileMode.Open, FileAccess.Read, FileShare.Read));
-                        readerStack.Push(newReader);
-                    }
-                }
-            }
-
-        }
 
 		#endregion
 	}

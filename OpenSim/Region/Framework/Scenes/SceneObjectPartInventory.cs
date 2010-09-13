@@ -125,7 +125,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_items.LockItemsForWrite(true);
 
-            if (0 == Items.Count)
+            if (Items.Count == 0)
             {
                 m_items.LockItemsForWrite(false);
                 return;
@@ -1010,7 +1010,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Process inventory backup
         /// </summary>
         /// <param name="datastore"></param>
-        public void ProcessInventoryBackup(IRegionDataStore datastore)
+        public void ProcessInventoryBackup(ISimulationDataService datastore)
         {
             if (HasInventoryChanged)
             {
@@ -1257,7 +1257,7 @@ namespace OpenSim.Region.Framework.Scenes
                             engine.ResumeScript(item.ItemID);
                         }
                     }
-                }  
+                }
             }
 
             Items.LockItemsForRead(false);

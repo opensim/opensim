@@ -40,7 +40,7 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element ref="Process" minOccurs="0" maxOccurs="unbounded" />
-        <xs:element ref="Solution" minOccurs="0" maxOccurs="unbounded" />
+        <xs:element ref="Solution" minOccurs="1" maxOccurs="unbounded" />
       </xs:sequence>
       <xs:attribute name="version" />
       <xs:attribute name="checkOsVars" />
@@ -57,6 +57,7 @@
         <xs:element ref="Options" minOccurs="0" />
         <xs:element ref="Files" minOccurs="0" />
         <xs:element ref="Project" minOccurs="0" maxOccurs="unbounded" />
+        <xs:element ref="Cleanup" minOccurs="0" maxOccurs="1" />
         <xs:element ref="DatabaseProject" minOccurs="0" maxOccurs="unbounded" />
         <xs:element ref="EmbeddedSolution" minOccurs="0" maxOccurs="unbounded" />
       </xs:sequence>
@@ -224,6 +225,7 @@
       </xs:all>
     </xs:complexType>
   </xs:element>
+  
   <xs:element name="Files">
     <xs:complexType>
       <xs:sequence>
@@ -232,6 +234,7 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
+  
   <xs:element name="File">
     <xs:complexType>
       <xs:simpleContent>
@@ -275,6 +278,7 @@
       </xs:simpleContent>
     </xs:complexType>
   </xs:element>
+  
   <xs:element name="Match">
     <xs:complexType>
       <xs:sequence>
@@ -322,9 +326,24 @@
       <xs:attribute name="linkPath" type="xs:string" />
     </xs:complexType>
   </xs:element>
+  
   <xs:element name="Exclude">
     <xs:complexType>
       <xs:attribute name="name" type="xs:string" />
+      <xs:attribute name="pattern" type="xs:string" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Cleanup">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="CleanFiles" minOccurs="1" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="CleanFiles">
+    <xs:complexType>
       <xs:attribute name="pattern" type="xs:string" />
     </xs:complexType>
   </xs:element>

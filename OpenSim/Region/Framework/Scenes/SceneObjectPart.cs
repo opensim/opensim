@@ -508,7 +508,14 @@ namespace OpenSim.Region.Framework.Scenes
         public UUID UUID
         {
             get { return m_uuid; }
-            set { m_uuid = value; }
+            set 
+            { 
+                m_uuid = value; 
+                
+                // This is necessary so that TaskInventoryItem parent ids correctly reference the new uuid of this part
+                if (Inventory != null)
+                    Inventory.ResetInventoryIDs();
+            }
         }
 
         public uint LocalId
@@ -1027,12 +1034,12 @@ namespace OpenSim.Region.Framework.Scenes
                 return m_mediaUrl; 
             }
             
-            set               
-            {   
+            set
+            {
                 m_mediaUrl = value;
                 
                 if (ParentGroup != null)
-                    ParentGroup.HasGroupChanged = true;        
+                    ParentGroup.HasGroupChanged = true;
             }
         }
 
@@ -1045,7 +1052,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                m_log.DebugFormat("[SOP]: Setting CreateSelected to {0} for {1} {2}", value, Name, UUID);
                 m_createSelected = value; 
             }
-        }                
+        }
 
         #endregion
 
@@ -1207,7 +1214,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Property flags.  See OpenMetaverse.PrimFlags 
-        /// </summary>      
+        /// </summary>
         /// Example properties are PrimFlags.Phantom and PrimFlags.DieAtEdge
         public PrimFlags Flags
         {
@@ -1372,7 +1379,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Tell the scene presence that it should send updates for this part to its client
-        /// </summary>        
+        /// </summary>
         public void AddFullUpdateToAvatar(ScenePresence presence)
         {
             presence.SceneViewer.QueuePartForUpdate(this);
@@ -1431,7 +1438,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_parentGroup.Scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                if(!sp.IsChildAgent)
+                if (!sp.IsChildAgent)
                     sp.ControllingClient.SendAttachedSoundGainChange(UUID, (float)volume);
             });
         }
@@ -1683,7 +1690,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 //            m_log.DebugFormat("[SCENE OBJECT PART]: Clone of {0} {1} finished", Name, UUID);
                           
-            return dupe;            
+            return dupe;
         }
 
         protected void AssetReceived(string id, Object sender, AssetBase asset)
@@ -1993,10 +2000,10 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public uint GetEffectiveObjectFlags()
-        {            
+        {
             // Commenting this section of code out since it doesn't actually do anything, as enums are handled by 
             // value rather than reference
-//            PrimFlags f = _flags;                        
+//            PrimFlags f = _flags;
 //            if (m_parentGroup == null || m_parentGroup.RootPart == this)
 //                f &= ~(PrimFlags.Touch | PrimFlags.Money);
 
@@ -2793,7 +2800,6 @@ namespace OpenSim.Region.Framework.Scenes
             UUID = UUID.Random();
             LinkNum = linkNum;
             LocalId = 0;
-            Inventory.ResetInventoryIDs();
         }
 
         /// <summary>
@@ -4756,7 +4762,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup == null || ParentGroup.IsDeleted)
                 return;
 
-            if (IsAttachment && ParentGroup.RootPart != this)                                    
+            if (IsAttachment && ParentGroup.RootPart != this)
                 return;
             
             // Causes this thread to dig into the Client Thread Data.

@@ -960,7 +960,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             }
             
-            if( resp == null )
+            if (resp == null)
             {
                 string UserService;
                 UUID SessionID;
@@ -1065,7 +1065,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         
         /// <summary>
         /// Group Request Tokens are an attempt to allow the groups service to authenticate 
-        /// requests.  
+        /// requests.
         /// TODO: This broke after the big grid refactor, either find a better way, or discard this
         /// </summary>
         /// <param name="client"></param>

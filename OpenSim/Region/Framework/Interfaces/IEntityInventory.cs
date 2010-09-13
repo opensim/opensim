@@ -202,7 +202,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Backup the inventory to the given data store
         /// </summary>
         /// <param name="datastore"></param>
-        void ProcessInventoryBackup(IRegionDataStore datastore);
+        void ProcessInventoryBackup(ISimulationDataService datastore);
 
         uint MaskEffectivePermissions();
 

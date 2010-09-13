@@ -24,8 +24,7 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 #endregion
 
 using System;
-using System.Collections;
-using System.Collections.Specialized;
+using System.Collections.Generic;
 using System.IO;
 
 using Prebuild.Core.Attributes;
@@ -47,7 +46,7 @@ namespace Prebuild.Core.Targets
 		string versionName = "2003";
 		VSVersion version = VSVersion.VS71;
 
-		Hashtable m_Tools;
+	    readonly Dictionary<string, ToolInfo> m_Tools = new Dictionary<string, ToolInfo>();
 		Kernel m_Kernel;
 
 		/// <summary>
@@ -58,11 +57,11 @@ namespace Prebuild.Core.Targets
 		{
 			get
 			{
-				return this.solutionVersion;
+				return solutionVersion;
 			}
 			set
 			{
-				this.solutionVersion = value;
+				solutionVersion = value;
 			}
 		}
 		/// <summary>
@@ -73,11 +72,11 @@ namespace Prebuild.Core.Targets
 		{
 			get
 			{
-				return this.productVersion;
+				return productVersion;
 			}
 			set
 			{
-				this.productVersion = value;
+				productVersion = value;
 			}
 		}
 		/// <summary>
@@ -88,11 +87,11 @@ namespace Prebuild.Core.Targets
 		{
 			get
 			{
-				return this.schemaVersion;
+				return schemaVersion;
 			}
 			set
 			{
-				this.schemaVersion = value;
+				schemaVersion = value;
 			}
 		}
 		/// <summary>
@@ -103,11 +102,11 @@ namespace Prebuild.Core.Targets
 		{
 			get
 			{
-				return this.versionName;
+				return versionName;
 			}
 			set
 			{
-				this.versionName = value;
+				versionName = value;
 			}
 		}
 		/// <summary>
@@ -118,11 +117,11 @@ namespace Prebuild.Core.Targets
 		{
 			get
 			{
-				return this.version;
+				return version;
 			}
 			set
 			{
-				this.version = value;
+				version = value;
 			}
 		}
 
@@ -135,8 +134,6 @@ namespace Prebuild.Core.Targets
 		/// </summary>
 		public VS2003Target()
 		{
-			m_Tools = new Hashtable();
-
 			m_Tools["C#"] = new ToolInfo("C#", "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}", "csproj", "CSHARP");
 			m_Tools["VB.NET"] = new ToolInfo("VB.NET", "{F184B08F-C81C-45F6-A57F-5ABD9991F28F}", "vbproj", "VisualBasic");
 		}
@@ -178,23 +175,20 @@ namespace Prebuild.Core.Targets
 				throw new UnknownLanguageException("Unknown .NET language: " + project.Language);
 			}
 
-			ToolInfo toolInfo = (ToolInfo)m_Tools[project.Language];
+			ToolInfo toolInfo = m_Tools[project.Language];
 			string projectFile = Helper.MakeFilePath(project.FullPath, project.Name, toolInfo.FileExtension);
 			StreamWriter ps = new StreamWriter(projectFile);
 
 			m_Kernel.CurrentWorkingDirectory.Push();
 			Helper.SetCurrentDir(Path.GetDirectoryName(projectFile));
 
-			IEnumerator enumerator;
-			//ConfigurationNode scripts;
-
 			using(ps)
 			{
 				ps.WriteLine("<VisualStudioProject>");
 				ps.WriteLine("    <{0}", toolInfo.XmlTag);
 				ps.WriteLine("\t\t\t\tProjectType = \"Local\"");
-				ps.WriteLine("\t\t\t\tProductVersion = \"{0}\"", this.ProductVersion);
-				ps.WriteLine("\t\t\t\tSchemaVersion = \"{0}\"", this.SchemaVersion);
+				ps.WriteLine("\t\t\t\tProductVersion = \"{0}\"", ProductVersion);
+				ps.WriteLine("\t\t\t\tSchemaVersion = \"{0}\"", SchemaVersion);
 				ps.WriteLine("\t\t\t\tProjectGuid = \"{{{0}}}\"", project.Guid.ToString().ToUpper());
 				ps.WriteLine("\t\t>");
 
@@ -209,16 +203,13 @@ namespace Prebuild.Core.Targets
 				ps.WriteLine("\t\t\t\t  DefaultTargetSchema = \"IE50\"");
 				ps.WriteLine("\t\t\t\t  DelaySign = \"false\"");
 
-				if(this.Version == VSVersion.VS70)
+				if(Version == VSVersion.VS70)
 				{
 					ps.WriteLine("\t\t\t\t  NoStandardLibraries = \"false\"");
 				}
 
-				ps.WriteLine("\t\t\t\t  OutputType = \"{0}\"", project.Type.ToString());
+				ps.WriteLine("\t\t\t\t  OutputType = \"{0}\"", project.Type);
 
-				enumerator = project.Configurations.GetEnumerator();
-				enumerator.Reset();
-				enumerator.MoveNext();
 				foreach(ConfigurationNode conf in project.Configurations)
 				{
 					if (conf.Options["PreBuildEvent"] != null && conf.Options["PreBuildEvent"].ToString().Length != 0)
@@ -266,7 +257,7 @@ namespace Prebuild.Core.Targets
 					ps.WriteLine("\t\t\t\t      FileAlignment = \"{0}\"", conf.Options["FileAlignment"]);
 					ps.WriteLine("\t\t\t\t      IncrementalBuild = \"{0}\"", conf.Options["IncrementalBuild"].ToString().ToLower());
                     
-					if(this.Version == VSVersion.VS71)
+					if(Version == VSVersion.VS71)
 					{
 						ps.WriteLine("\t\t\t\t      NoStdLib = \"{0}\"", conf.Options["NoStdLib"].ToString().ToLower());
 						ps.WriteLine("\t\t\t\t      NoWarn = \"{0}\"", conf.Options["SuppressWarnings"].ToString().ToLower());
@@ -293,9 +284,9 @@ namespace Prebuild.Core.Targets
 
 					if(solution.ProjectsTable.ContainsKey(refr.Name))
 					{
-						ProjectNode refProject = (ProjectNode)solution.ProjectsTable[refr.Name];
+						ProjectNode refProject = solution.ProjectsTable[refr.Name];
 						ps.WriteLine("                    Project = \"{{{0}}}\"", refProject.Guid.ToString().ToUpper());
-						ps.WriteLine("                    Package = \"{0}\"", toolInfo.Guid.ToString().ToUpper());
+						ps.WriteLine("                    Package = \"{0}\"", toolInfo.Guid.ToUpper());
 					}
 					else
 					{
@@ -409,7 +400,7 @@ namespace Prebuild.Core.Targets
 
 		private void WriteSolution(SolutionNode solution)
 		{
-			m_Kernel.Log.Write("Creating Visual Studio {0} solution and project files", this.VersionName);
+			m_Kernel.Log.Write("Creating Visual Studio {0} solution and project files", VersionName);
 
 			foreach(ProjectNode project in solution.Projects)
 			{
@@ -429,7 +420,7 @@ namespace Prebuild.Core.Targets
             
 			using(ss)
 			{
-				ss.WriteLine("Microsoft Visual Studio Solution File, Format Version {0}", this.SolutionVersion);
+				ss.WriteLine("Microsoft Visual Studio Solution File, Format Version {0}", SolutionVersion);
 				foreach(ProjectNode project in solution.Projects)
 				{
 					if(!m_Tools.ContainsKey(project.Language))
@@ -437,7 +428,7 @@ namespace Prebuild.Core.Targets
 						throw new UnknownLanguageException("Unknown .NET language: " + project.Language);
 					}
 
-					ToolInfo toolInfo = (ToolInfo)m_Tools[project.Language];
+					ToolInfo toolInfo = m_Tools[project.Language];
                 
 					string path = Helper.MakePathRelativeTo(solution.FullPath, project.FullPath);
 					ss.WriteLine("Project(\"{0}\") = \"{1}\", \"{2}\", \"{{{3}}}\"",
@@ -464,10 +455,10 @@ namespace Prebuild.Core.Targets
 				{
 					for(int i = 0; i < project.References.Count; i++)
 					{
-						ReferenceNode refr = (ReferenceNode)project.References[i];
+						ReferenceNode refr = project.References[i];
 						if(solution.ProjectsTable.ContainsKey(refr.Name))
 						{
-							ProjectNode refProject = (ProjectNode)solution.ProjectsTable[refr.Name];
+							ProjectNode refProject = solution.ProjectsTable[refr.Name];
 							ss.WriteLine("\t\t({{{0}}}).{1} = ({{{2}}})", 
 								project.Guid.ToString().ToUpper()
 								, i, 
@@ -519,7 +510,7 @@ namespace Prebuild.Core.Targets
 		{
 			m_Kernel.Log.Write("...Cleaning project: {0}", project.Name);
 
-			ToolInfo toolInfo = (ToolInfo)m_Tools[project.Language];
+			ToolInfo toolInfo = m_Tools[project.Language];
 			string projectFile = Helper.MakeFilePath(project.FullPath, project.Name, toolInfo.FileExtension);
 			string userFile = projectFile + ".user";
             
@@ -529,7 +520,7 @@ namespace Prebuild.Core.Targets
 
 		private void CleanSolution(SolutionNode solution)
 		{
-			m_Kernel.Log.Write("Cleaning Visual Studio {0} solution and project files", this.VersionName, solution.Name);
+			m_Kernel.Log.Write("Cleaning Visual Studio {0} solution and project files", VersionName, solution.Name);
 
 			string slnFile = Helper.MakeFilePath(solution.FullPath, solution.Name, "sln");
 			string suoFile = Helper.MakeFilePath(solution.FullPath, solution.Name, "suo");

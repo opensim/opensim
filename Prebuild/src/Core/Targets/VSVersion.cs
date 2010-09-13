@@ -45,10 +45,10 @@ namespace Prebuild.Core.Targets
 		/// <summary>
 		/// Visual Studio 2008 
 		/// </summary>
-        VS90,
-        /// <summary>
-        /// Visual Studio 2010
-        /// </summary>
-        VS10
+		VS90,
+		/// <summary>
+		/// Visual Studio 2010 
+		/// </summary>
+		VS10
 	}
 }

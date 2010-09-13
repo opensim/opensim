@@ -59,8 +59,8 @@ namespace OpenSim.Region.Framework.Tests
             string userFirstName = "Jock";
             string userLastName = "Stirrup";
             string userPassword = "troll";
-            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");            
-            return UserProfileTestUtils.CreateUserWithInventory(scene, userFirstName, userLastName, userId, userPassword);            
+            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
+            return UserProfileTestUtils.CreateUserWithInventory(scene, userFirstName, userLastName, userId, userPassword);
         }
         
         protected SceneObjectGroup CreateSO1(Scene scene, UUID ownerId)
@@ -70,14 +70,16 @@ namespace OpenSim.Region.Framework.Tests
             SceneObjectPart part1
                 = new SceneObjectPart(ownerId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
                     { Name = part1Name, UUID = part1Id };
-            return new SceneObjectGroup(part1);            
+            return new SceneObjectGroup(part1);
         }
         
         protected TaskInventoryItem CreateSOItem1(Scene scene, SceneObjectPart part)
         {
-            AssetNotecard nc = new AssetNotecard("Hello World!");
+            AssetNotecard nc = new AssetNotecard();
+            nc.BodyText = "Hello World!";
+            nc.Encode();
             UUID ncAssetUuid = new UUID("00000000-0000-0000-1000-000000000000");
-            UUID ncItemUuid = new UUID("00000000-0000-0000-1100-000000000000");            
+            UUID ncItemUuid = new UUID("00000000-0000-0000-1100-000000000000");
             AssetBase ncAsset 
                 = AssetHelpers.CreateAsset(ncAssetUuid, AssetType.Notecard, nc.AssetData, UUID.Zero);
             scene.AssetService.Store(ncAsset);
@@ -112,9 +114,9 @@ namespace OpenSim.Region.Framework.Tests
             scene.MoveTaskInventoryItem(user1.PrincipalID, folder.ID, sop1, sopItem1.ItemID);
                 
             InventoryItemBase ncUserItem
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, user1.PrincipalID, "Objects/ncItem");            
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, user1.PrincipalID, "Objects/ncItem");
             Assert.That(ncUserItem, Is.Not.Null, "Objects/ncItem was not found");
-        }        
+        }
         
         /// <summary>
         /// Test MoveTaskInventoryItem where the item has no parent folder assigned.
@@ -136,7 +138,7 @@ namespace OpenSim.Region.Framework.Tests
             scene.MoveTaskInventoryItem(user1.PrincipalID, UUID.Zero, sop1, sopItem1.ItemID);
                 
             InventoryItemBase ncUserItem
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, user1.PrincipalID, "Notecards/ncItem");            
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, user1.PrincipalID, "Notecards/ncItem");
             Assert.That(ncUserItem, Is.Not.Null, "Notecards/ncItem was not found");
         }
     }

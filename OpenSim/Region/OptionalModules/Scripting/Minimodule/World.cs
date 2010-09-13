@@ -205,10 +205,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             get
             {
-                List<EntityBase> ents = m_internalScene.Entities.GetAllByType<ScenePresence>();
-                IAvatar[] rets = new IAvatar[ents.Count];
+                EntityBase[] ents = m_internalScene.Entities.GetAllByType<ScenePresence>();
+                IAvatar[] rets = new IAvatar[ents.Length];
 
-                for (int i = 0; i < ents.Count; i++)
+                for (int i = 0; i < ents.Length; i++)
                 {
                     EntityBase ent = ents[i];
                     rets[i] = new SPAvatar(m_internalScene, ent.UUID, m_security);

@@ -33,7 +33,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
     /// Signals an inventory archiving problem
     /// </summary>
     public class InventoryArchiverException : Exception
-    {        
+    {
         public InventoryArchiverException(string message) : base(message) {}
         public InventoryArchiverException(string message, Exception e) : base(message, e) {}
     }

@@ -165,12 +165,12 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
             return SceneXmlLoader.SaveGroupToXml2(grp);
         }
 
-        public void SavePrimListToXml2(List<EntityBase> entityList, string fileName)
+        public void SavePrimListToXml2(EntityBase[] entityList, string fileName)
         {
             SceneXmlLoader.SavePrimListToXml2(entityList, fileName);
         }
 
-        public void SavePrimListToXml2(List<EntityBase> entityList, TextWriter stream, Vector3 min, Vector3 max)
+        public void SavePrimListToXml2(EntityBase[] entityList, TextWriter stream, Vector3 min, Vector3 max)
         {
             SceneXmlLoader.SavePrimListToXml2(entityList, stream, min, max);
         }

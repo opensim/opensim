@@ -1326,7 +1326,7 @@ namespace OpenSim.Region.Framework.Scenes
             AbsolutePosition = detachedpos;
             m_rootPart.AttachedAvatar = UUID.Zero;
             
-            //Anakin Lohner bug #3839            
+            //Anakin Lohner bug #3839
             lock (m_parts)
             {
                 foreach (SceneObjectPart p in m_parts.Values)
@@ -1556,7 +1556,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Delete this group from its scene.  
+        /// Delete this group from its scene.
         /// </summary>
         /// 
         /// This only handles the in-world consequences of deletion (e.g. any avatars sitting on it are forcibly stood
@@ -1731,12 +1731,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// Processes backup.
         /// </summary>
         /// <param name="datastore"></param>
-        public virtual void ProcessBackup(IRegionDataStore datastore, bool forcedBackup)
+        public virtual void ProcessBackup(ISimulationDataService datastore, bool forcedBackup)
         {
             if (!m_isBackedUp)
             {
 //                m_log.DebugFormat(
-//                    "[WATER WARS]: Ignoring backup of {0} {1} since object is not marked to be backed up", Name, UUID);                
+//                    "[WATER WARS]: Ignoring backup of {0} {1} since object is not marked to be backed up", Name, UUID);
                 return;
             }
 
@@ -1748,7 +1748,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // Since this is the top of the section of call stack for backing up a particular scene object, don't let
-            // any exception propogate upwards.            
+            // any exception propogate upwards.
             try
             {
                 if (!m_scene.ShuttingDown || // if shutting down then there will be nothing to handle the return so leave till next restart
@@ -1944,7 +1944,6 @@ namespace OpenSim.Region.Framework.Scenes
                         part.PhysActor.LocalID = part.LocalId;
                         part.DoPhysicsPropertyUpdate(part.PhysActor.IsPhysical, true);
                     }                
-
                 }
                 if (userExposed)
                 {
@@ -1954,7 +1953,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                     ScheduleGroupForFullUpdate();
                 }
-
             }
             finally
             {
@@ -2515,16 +2513,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>null if a child part with the primID was not found</returns>
         public SceneObjectPart GetChildPart(UUID primID)
         {
-            SceneObjectPart childPart = null;
-            
+            SceneObjectPart childPart;
             lock (m_parts)
-            {
-                if (m_parts.ContainsKey(primID))
-                {
-                    childPart = m_parts[primID];
-                }
-            }
-            
+                m_parts.TryGetValue(primID, out childPart);
             return childPart;
         }
 

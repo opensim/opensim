@@ -229,13 +229,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                 newData.SnapshotID = args.SnapshotID;
                 newData.UserLocation = args.UserLocation;
                 newData.UserLookAt = args.UserLookAt;
-				newData.MediaType = args.MediaType;
-				newData.MediaDescription = args.MediaDescription;
-				newData.MediaWidth = args.MediaWidth;
-				newData.MediaHeight = args.MediaHeight;
-				newData.MediaLoop = args.MediaLoop;
-				newData.ObscureMusic = args.ObscureMusic;
-				newData.ObscureMedia = args.ObscureMedia;
+                newData.MediaType = args.MediaType;
+                newData.MediaDescription = args.MediaDescription;
+                newData.MediaWidth = args.MediaWidth;
+                newData.MediaHeight = args.MediaHeight;
+                newData.MediaLoop = args.MediaLoop;
+                newData.ObscureMusic = args.ObscureMusic;
+                newData.ObscureMedia = args.ObscureMedia;
 
                 m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
 

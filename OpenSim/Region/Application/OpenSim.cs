@@ -152,7 +152,7 @@ namespace OpenSim
             RegisterConsoleCommands();
 
             base.StartupSpecific();
-            
+
             MainServer.Instance.AddStreamHandler(new OpenSim.SimStatusHandler());
             MainServer.Instance.AddStreamHandler(new OpenSim.XSimStatusHandler(this));
             if (userStatsURI != String.Empty)
@@ -192,7 +192,7 @@ namespace OpenSim
             // Hook up to the watchdog timer
             Watchdog.OnWatchdogTimeout += WatchdogTimeoutHandler;
 
-            PrintFileToConsole("startuplogo.txt");            
+            PrintFileToConsole("startuplogo.txt");
 
             // For now, start at the 'root' level by default
             if (m_sceneManager.Scenes.Count == 1) // If there is only one region, select it
@@ -218,8 +218,8 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("region", false, "debug packet",
                                           "debug packet <level>",
-                                          "Turn on packet debugging", 
-                                          "If level > 255 then all incoming and outgoing packets are logged.\n" 
+                                          "Turn on packet debugging",
+                                          "If level > 255 then all incoming and outgoing packets are logged.\n"
                                           + "If level <= 255 then incoming AgentUpdate and outgoing SimStats and SimulatorViewerTimeMessage packets are not logged.\n"
                                           + "If level <= 200 then incoming RequestImage and outgoing ImagePacket, ImageData, LayerData and CoarseLocationUpdate packets are not logged.\n"
                                           + "If level <= 100 then incoming ViewerEffect and AgentAnimation and outgoing ViewerEffect and AvatarAnimation packets are not logged.\n"
@@ -316,7 +316,7 @@ namespace OpenSim
             m_console.Commands.AddCommand("region", false, "create region",
                                           "create region [\"region name\"] <region_file.ini>",
                                           "Create a new region.",
-                                          "The settings for \"region name\" are read from <region_file.ini>."
+                                          "The settings for \"region name\" are read from <region_file.ini> in your Regions directory."
                                           + " If \"region name\" does not exist in <region_file.ini>, it will be added." + Environment.NewLine
                                           + "Without \"region name\", the first region found in <region_file.ini> will be created." + Environment.NewLine
                                           + "If <region_file.ini> does not exist, it will be created.",
@@ -552,19 +552,20 @@ namespace OpenSim
                 regionFile = Path.Combine(regionsDir, regionFile);
             }
 
-	    RegionInfo regInfo;
+            RegionInfo regInfo;
             if (isXml)
             {
-		regInfo = new RegionInfo(regionName, regionFile, false, ConfigSource.Source);
+                regInfo = new RegionInfo(regionName, regionFile, false, ConfigSource.Source);
             }
             else
             {
-		regInfo = new RegionInfo(regionName, regionFile, false, ConfigSource.Source, regionName);
+                regInfo = new RegionInfo(regionName, regionFile, false, ConfigSource.Source, regionName);
             }
+
             IScene scene;
-	    PopulateRegionEstateInfo(regInfo);
-    	    CreateRegion(regInfo, true, out scene);
-    	    regInfo.EstateSettings.Save();
+            PopulateRegionEstateInfo(regInfo);
+            CreateRegion(regInfo, true, out scene);
+            regInfo.EstateSettings.Save();
         }
 
         /// <summary>
@@ -942,7 +943,7 @@ namespace OpenSim
                         delegate(Scene scene)
                             {
                                 MainConsole.Instance.Output(String.Format(
-                                           "Region Name: {0}, Region XLoc: {1}, Region YLoc: {2}, Region Port: {3}", 
+                                           "Region Name: {0}, Region XLoc: {1}, Region YLoc: {2}, Region Port: {3}",
                                            scene.RegionInfo.RegionName,
                                            scene.RegionInfo.RegionLocX,
                                            scene.RegionInfo.RegionLocY,

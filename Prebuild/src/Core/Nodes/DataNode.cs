@@ -104,7 +104,7 @@ namespace Prebuild.Core.Nodes
 				
 				foreach (string type in WebTypes)
 				{
-					if (path.EndsWith(string.Format("{0}{1}", type, extension)))
+                    if (path.EndsWith(type))
 					{
 						return SubType.CodeBehind;
 					}

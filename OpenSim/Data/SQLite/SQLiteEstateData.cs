@@ -49,6 +49,15 @@ namespace OpenSim.Data.SQLite
         private Dictionary<string, FieldInfo> m_FieldMap =
                 new Dictionary<string, FieldInfo>();
 
+        public SQLiteEstateStore()
+        {
+        }
+
+        public SQLiteEstateStore(string connectionString)
+        {
+            Initialise(connectionString);
+        }
+
         public void Initialise(string connectionString)
         {
             m_connectionString = connectionString;

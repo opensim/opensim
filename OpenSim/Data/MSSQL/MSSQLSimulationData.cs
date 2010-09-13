@@ -43,7 +43,7 @@ namespace OpenSim.Data.MSSQL
     /// <summary>
     /// A MSSQL Interface for the Region Server.
     /// </summary>
-    public class MSSQLRegionDataStore : IRegionDataStore
+    public class MSSQLSimulationData : ISimulationDataStore
     {
         private const string _migrationStore = "RegionStore";
 
@@ -55,6 +55,16 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         private MSSQLManager _Database;
         private string m_connectionString;
+
+        public MSSQLSimulationData()
+        {
+        }
+
+        public MSSQLSimulationData(string connectionString)
+        {
+            Initialise(connectionString);
+        }
+
         /// <summary>
         /// Initialises the region datastore
         /// </summary>
@@ -1126,7 +1136,7 @@ VALUES
             prim.LinkNum = Convert.ToInt32(primRow["LinkNumber"]);
             
             if (!(primRow["MediaURL"] is System.DBNull))
-                prim.MediaUrl = (string)primRow["MediaURL"];            
+                prim.MediaUrl = (string)primRow["MediaURL"];
 
             return prim;
         }
@@ -1180,7 +1190,7 @@ VALUES
             {
             }
 
-            if (!(shapeRow["Media"] is System.DBNull))  
+            if (!(shapeRow["Media"] is System.DBNull))
                 baseShape.Media = PrimitiveBaseShape.MediaList.FromXml((string)shapeRow["Media"]);
 
             return baseShape;
@@ -1511,7 +1521,7 @@ VALUES
                 parameters.Add(_Database.CreateParameter("PassTouches", 1));
             else
                 parameters.Add(_Database.CreateParameter("PassTouches", 0));
-            parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));            
+            parameters.Add(_Database.CreateParameter("LinkNumber", prim.LinkNum));
             parameters.Add(_Database.CreateParameter("MediaURL", prim.MediaUrl));
 
             return parameters.ToArray();

@@ -49,8 +49,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
         protected Scene m_scene = null;
         protected IDialogModule m_dialogModule;
         
-        public string Name { get { return "Object BuySell Module"; } }        
-        public Type ReplaceableInterface { get { return null; } }        
+        public string Name { get { return "Object BuySell Module"; } }
+        public Type ReplaceableInterface { get { return null; } }
 
         public void Initialise(IConfigSource source) {}
         
@@ -78,8 +78,8 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
         
         public void SubscribeToClientEvents(IClientAPI client)
         {
-            client.OnObjectSaleInfo += ObjectSaleInfo;         
-        }           
+            client.OnObjectSaleInfo += ObjectSaleInfo;
+        }
 
         protected void ObjectSaleInfo(
             IClientAPI client, UUID agentID, UUID sessionID, uint localID, byte saleType, int salePrice)
@@ -99,7 +99,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
             part.ParentGroup.HasGroupChanged = true;
 
             part.GetProperties(client);
-        }         
+        }
 
         public bool BuyObject(IClientAPI remoteClient, UUID categoryID, uint localID, byte saleType)
         {
@@ -225,7 +225,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 }
                 else
                 {
-                    if (m_dialogModule != null)   
+                    if (m_dialogModule != null)
                         m_dialogModule.SendAlertToUser(remoteClient, "Cannot buy now. Your inventory is unavailable");
                     return false;
                 }
@@ -261,6 +261,6 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
             }
 
             return true;
-        }        
+        }
     }
 }

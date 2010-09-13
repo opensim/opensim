@@ -54,7 +54,15 @@ namespace Prebuild.Core.Nodes
 		/// <summary>
 		/// 
 		/// </summary>
-		EmbeddedResource
+		EmbeddedResource,
+		/// <summary>
+		/// 
+		/// </summary>
+		ApplicationDefinition,
+		/// <summary>
+		/// 
+		/// </summary>
+		Page
 	}
 
 	/// <summary>
@@ -264,6 +272,12 @@ namespace Prebuild.Core.Nodes
 				m_Valid = false;
 				Kernel.Instance.Log.Write(LogType.Warning, "File does not exist: {0}", m_Path);
 			}
+
+            if (System.IO.Path.GetExtension(m_Path) == ".settings")
+            {
+                m_SubType = SubType.Settings;
+                m_BuildAction = BuildAction.None;
+            }
 		}
 
 		#endregion

@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Specialized;
 using System.IO;
 using System.Text;
 
@@ -26,9 +24,6 @@ namespace Prebuild.Core.Targets
 		string versionName = "Visual Studio 2008";
 		string name = "vs2008";
 		VSVersion version = VSVersion.VS90;
-
-		Hashtable tools;
-		Kernel kernel;
 
 		/// <summary>
 		/// Gets or sets the solution version.
@@ -120,7 +115,7 @@ namespace Prebuild.Core.Targets
 		#region Constructors
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="VS2008Target"/> class.
+		/// Initializes a new instance of the <see cref="VS2005Target"/> class.
 		/// </summary>
 		public VS2008Target()
 			: base()

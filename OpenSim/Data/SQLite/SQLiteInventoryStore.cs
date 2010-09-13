@@ -731,12 +731,12 @@ namespace OpenSim.Data.SQLite
          **********************************************************************/
 
         protected void CreateDataSetMapping(IDataAdapter da, string tableName)
-        {       
+        {
             ITableMapping dbMapping = da.TableMappings.Add(tableName, tableName);
             foreach (DataColumn col in ds.Tables[tableName].Columns)
-            {       
+            {
                 dbMapping.ColumnMappings.Add(col.ColumnName, col.ColumnName);
-            }       
+            }
         }
 
         /// <summary>

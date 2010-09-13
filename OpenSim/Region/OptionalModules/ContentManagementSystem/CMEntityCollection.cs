@@ -111,7 +111,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         }
 
         // Check if there are SceneObjectGroups in the list that do not have corresponding ContentManagementGroups in the CMEntityHash
-        public System.Collections.ArrayList CheckForMissingEntities(System.Collections.Generic.List<EntityBase> currList)
+        public System.Collections.ArrayList CheckForMissingEntities(EntityBase[] currList)
         {
             System.Collections.ArrayList missingList = new System.Collections.ArrayList();
             SceneObjectGroup temp = null;

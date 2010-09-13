@@ -24,8 +24,7 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 #endregion
 
 using System;
-using System.Collections;
-using System.Collections.Specialized;
+using System.Collections.Generic;
 using System.Xml;
 
 using Prebuild.Core.Attributes;
@@ -42,41 +41,19 @@ namespace Prebuild.Core.Nodes
 	{
 		#region Fields
 
-		private StringCollection m_Files;
-		private Hashtable m_BuildActions;
-		private Hashtable m_SubTypes;
-		private Hashtable m_ResourceNames;
-		private Hashtable m_CopyToOutputs;
-		private Hashtable m_Links;
-		private Hashtable m_LinkPaths;
-        private Hashtable m_PreservePaths;
-
-		#endregion
-
-		#region Constructors
-
-		/// <summary>
-		/// 
-		/// </summary>
-		public FilesNode()
-		{
-			m_Files = new StringCollection();
-			m_BuildActions = new Hashtable();
-			m_SubTypes = new Hashtable();
-			m_ResourceNames = new Hashtable();
-			m_CopyToOutputs = new Hashtable();
-			m_Links = new Hashtable();
-			m_LinkPaths = new Hashtable();
-			m_PreservePaths = new Hashtable();
-        }
+		private readonly List<string> m_Files = new List<string>();
+		private readonly Dictionary<string,BuildAction> m_BuildActions = new Dictionary<string, BuildAction>();
+		private readonly Dictionary<string, SubType> m_SubTypes = new Dictionary<string, SubType>();
+		private readonly Dictionary<string, string> m_ResourceNames = new Dictionary<string, string>();
+		private readonly Dictionary<string, CopyToOutput> m_CopyToOutputs = new Dictionary<string, CopyToOutput>();
+		private readonly Dictionary<string, bool> m_Links = new Dictionary<string, bool>();
+		private readonly Dictionary<string, string> m_LinkPaths = new Dictionary<string, string>();
+        private readonly Dictionary<string, bool> m_PreservePaths = new Dictionary<string, bool>();
 
 		#endregion
 
 		#region Properties
 
-		/// <summary>
-		/// 
-		/// </summary>
 		public int Count
 		{
 			get
@@ -89,11 +66,6 @@ namespace Prebuild.Core.Nodes
 
 		#region Public Methods
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="file"></param>
-		/// <returns></returns>
 		public BuildAction GetBuildAction(string file)
 		{
 			if(!m_BuildActions.ContainsKey(file))
@@ -101,41 +73,41 @@ namespace Prebuild.Core.Nodes
 				return BuildAction.Compile;
 			}
 
-			return (BuildAction)m_BuildActions[file];
+			return m_BuildActions[file];
 		}
 
 		public CopyToOutput GetCopyToOutput(string file)
 		{
-			if (!this.m_CopyToOutputs.ContainsKey(file))
+			if (!m_CopyToOutputs.ContainsKey(file))
 			{
 				return CopyToOutput.Never;
 			}
-			return (CopyToOutput) this.m_CopyToOutputs[file];
+			return m_CopyToOutputs[file];
 		}
 
 		public bool GetIsLink(string file)
 		{
-			if (!this.m_Links.ContainsKey(file))
+			if (!m_Links.ContainsKey(file))
 			{
 				return false;
 			}
-			return (bool) this.m_Links[file];
+			return m_Links[file];
 		}
+
+        public bool Contains(string file)
+        {
+            return m_Files.Contains(file);
+        }
 
 		public string GetLinkPath( string file )
 		{
-			if ( !this.m_LinkPaths.ContainsKey( file ) )
+			if ( !m_LinkPaths.ContainsKey( file ) )
 			{
 				return string.Empty;
 			}
-			return (string)this.m_LinkPaths[ file ];
+			return m_LinkPaths[ file ];
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="file"></param>
-		/// <returns></returns>
 		public SubType GetSubType(string file)
 		{
 			if(!m_SubTypes.ContainsKey(file))
@@ -143,29 +115,19 @@ namespace Prebuild.Core.Nodes
 				return SubType.Code;
 			}
 
-			return (SubType)m_SubTypes[file];
+			return m_SubTypes[file];
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="file"></param>
-		/// <returns></returns>
 		public string GetResourceName(string file)
 		{
 			if(!m_ResourceNames.ContainsKey(file))
 			{
-				return "";
+				return string.Empty;
 			}
 
-			return (string)m_ResourceNames[file];
+			return m_ResourceNames[file];
 		}
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="file"></param>
-        /// <returns></returns>
         public bool GetPreservePath( string file )
         {
             if ( !m_PreservePaths.ContainsKey( file ) )
@@ -173,13 +135,9 @@ namespace Prebuild.Core.Nodes
                 return false;
             }
 
-            return (bool)m_PreservePaths[ file ];
+            return m_PreservePaths[ file ];
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="node"></param>
 		public override void Parse(XmlNode node)
 		{
 			if( node == null )
@@ -200,10 +158,10 @@ namespace Prebuild.Core.Nodes
 							m_BuildActions[fileNode.Path] = fileNode.BuildAction;
 							m_SubTypes[fileNode.Path] = fileNode.SubType;
 							m_ResourceNames[fileNode.Path] = fileNode.ResourceName;
-                            this.m_PreservePaths[ fileNode.Path ] = fileNode.PreservePath;
-                            this.m_Links[ fileNode.Path ] = fileNode.IsLink;
-							this.m_LinkPaths[ fileNode.Path ] = fileNode.LinkPath;
-							this.m_CopyToOutputs[ fileNode.Path ] = fileNode.CopyToOutput;
+                            m_PreservePaths[ fileNode.Path ] = fileNode.PreservePath;
+                            m_Links[ fileNode.Path ] = fileNode.IsLink;
+							m_LinkPaths[ fileNode.Path ] = fileNode.LinkPath;
+							m_CopyToOutputs[ fileNode.Path ] = fileNode.CopyToOutput;
 
 						}
 					}
@@ -216,13 +174,16 @@ namespace Prebuild.Core.Nodes
 						if (!m_Files.Contains(file))
 						{
 							m_Files.Add(file);
-                            m_BuildActions[ file ] = matchNode.BuildAction == null ? GetBuildActionByFileName(file) : matchNode.BuildAction;
-							m_SubTypes[file] = matchNode.SubType == null ? GetSubTypeByFileName(file) : matchNode.SubType.Value;
+						    if (matchNode.BuildAction == null)
+                                m_BuildActions[file] = GetBuildActionByFileName(file);
+						    else
+                                m_BuildActions[file] = matchNode.BuildAction.Value;
+						    m_SubTypes[file] = matchNode.SubType == null ? GetSubTypeByFileName(file) : matchNode.SubType.Value;
                             m_ResourceNames[ file ] = matchNode.ResourceName;
-                            this.m_PreservePaths[ file ] = matchNode.PreservePath;
-                            this.m_Links[ file ] = matchNode.IsLink;
-							this.m_LinkPaths[ file ] = matchNode.LinkPath;
-							this.m_CopyToOutputs[ file ] = matchNode.CopyToOutput;
+                            m_PreservePaths[ file ] = matchNode.PreservePath;
+                            m_Links[ file ] = matchNode.IsLink;
+							m_LinkPaths[ file ] = matchNode.LinkPath;
+							m_CopyToOutputs[ file ] = matchNode.CopyToOutput;
 
 						}
 					}
@@ -232,11 +193,7 @@ namespace Prebuild.Core.Nodes
 
 		// TODO: Check in to why StringCollection's enumerator doesn't implement
 		// IEnumerator?
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <returns></returns>
-		public StringEnumerator GetEnumerator()
+		public IEnumerator<string> GetEnumerator()
 		{
 			return m_Files.GetEnumerator();
 		}

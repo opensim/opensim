@@ -86,7 +86,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             paramList.Add(hash);
 
             XmlRpcRequest request = new XmlRpcRequest("link_region", paramList);
-            string uri = "http://" + ((info.ServerURI != null && info.ServerURI != string.Empty && !info.ServerURI.StartsWith("http:")) ? info.ServerURI : info.ExternalEndPoint.Address + ":" + info.HttpPort + "/" );
+            string uri = "http://" + ((info.ServerURI != null && info.ServerURI != string.Empty && !info.ServerURI.StartsWith("http:")) ? info.ServerURI : info.ExternalEndPoint.Address + ":" + info.HttpPort + "/");
             m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: Linking to " + uri);
             XmlRpcResponse response = null;
             try

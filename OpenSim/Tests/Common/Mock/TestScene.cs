@@ -31,6 +31,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Tests.Common.Mock
@@ -39,18 +40,13 @@ namespace OpenSim.Tests.Common.Mock
     {
         public TestScene(
             RegionInfo regInfo, AgentCircuitManager authen,
-            SceneCommunicationService sceneGridService, StorageManager storeManager,
+            SceneCommunicationService sceneGridService, ISimulationDataService simDataService, IEstateDataService estateDataService,
             ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
             bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
-            : base(regInfo, authen, sceneGridService, storeManager, moduleLoader,
+            : base(regInfo, authen, sceneGridService, simDataService, estateDataService, moduleLoader,
                    dumpAssetsToFile, physicalPrim, SeeIntoRegionFromNeighbor, config, simulatorVersion)
         {
         }
-        
-        /// <summary>
-        /// Allow retrieval for test check purposes
-        /// </summary>
-        public StorageManager StorageManager { get { return m_storageManager; } }
         
         /// <summary>
         /// Temporarily override session authentication for tests (namely teleport).
@@ -69,6 +65,6 @@ namespace OpenSim.Tests.Common.Mock
         public AsyncSceneObjectGroupDeleter SceneObjectGroupDeleter
         {
             get { return m_asyncSceneObjectDeleter; }
-        }      
+        }
     }
 }

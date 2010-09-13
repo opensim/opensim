@@ -45,12 +45,21 @@ namespace OpenSim.Data.MySQL
     /// <summary>
     /// A MySQL Interface for the Region Server
     /// </summary>
-    public class MySQLDataStore : IRegionDataStore
+    public class MySQLSimulationData : ISimulationDataStore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_connectionString;
         private object m_dbLock = new object();
+
+        public MySQLSimulationData()
+        {
+        }
+
+        public MySQLSimulationData(string connectionString)
+        {
+            Initialise(connectionString);
+        }
 
         public void Initialise(string connectionString)
         {
@@ -680,7 +689,7 @@ namespace OpenSim.Data.MySQL
                             "UserLocationX, UserLocationY, UserLocationZ, " +
                             "UserLookAtX, UserLookAtY, UserLookAtZ, " +
                             "AuthbuyerID, OtherCleanTime, MediaType, MediaDescription, " +
-							"MediaSize, MediaLoop, ObscureMusic, ObscureMedia) values (" +
+                            "MediaSize, MediaLoop, ObscureMusic, ObscureMedia) values (" +
                             "?UUID, ?RegionUUID, " +
                             "?LocalLandID, ?Bitmap, ?Name, ?Description, " +
                             "?OwnerUUID, ?IsGroupOwned, ?Area, ?AuctionID, " +
@@ -691,7 +700,7 @@ namespace OpenSim.Data.MySQL
                             "?UserLocationX, ?UserLocationY, ?UserLocationZ, " +
                             "?UserLookAtX, ?UserLookAtY, ?UserLookAtZ, " +
                             "?AuthbuyerID, ?OtherCleanTime, ?MediaType, ?MediaDescription, "+
-							"CONCAT(?MediaWidth, ',', ?MediaHeight), ?MediaLoop, ?ObscureMusic, ?ObscureMedia)";
+                            "CONCAT(?MediaWidth, ',', ?MediaHeight), ?MediaLoop, ?ObscureMusic, ?ObscureMedia)";
 
                         FillLandCommand(cmd, parcel.LandData, parcel.RegionUUID);
 
@@ -728,7 +737,7 @@ namespace OpenSim.Data.MySQL
 
                 string command = "select * from `regionwindlight` where region_id = ?regionID";
 
-                using(MySqlCommand cmd = new MySqlCommand(command))
+                using (MySqlCommand cmd = new MySqlCommand(command))
                 {
                     cmd.Connection = dbcon;
 
@@ -1350,13 +1359,13 @@ namespace OpenSim.Data.MySQL
                 m_log.ErrorFormat("[PARCEL]: unable to get parcel telehub settings for {1}", newData.Name);
             }
 
-			newData.MediaDescription = (string) row["MediaDescription"];
-			newData.MediaType = (string) row["MediaType"];
-			newData.MediaWidth = Convert.ToInt32((((string) row["MediaSize"]).Split(','))[0]);
-			newData.MediaHeight = Convert.ToInt32((((string) row["MediaSize"]).Split(','))[1]);
-			newData.MediaLoop = Convert.ToBoolean(row["MediaLoop"]);
-			newData.ObscureMusic = Convert.ToBoolean(row["ObscureMusic"]);
-			newData.ObscureMedia = Convert.ToBoolean(row["ObscureMedia"]);
+            newData.MediaDescription = (string) row["MediaDescription"];
+            newData.MediaType = (string) row["MediaType"];
+            newData.MediaWidth = Convert.ToInt32((((string) row["MediaSize"]).Split(','))[0]);
+            newData.MediaHeight = Convert.ToInt32((((string) row["MediaSize"]).Split(','))[1]);
+            newData.MediaLoop = Convert.ToBoolean(row["MediaLoop"]);
+            newData.ObscureMusic = Convert.ToBoolean(row["ObscureMusic"]);
+            newData.ObscureMedia = Convert.ToBoolean(row["ObscureMedia"]);
 
             newData.ParcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
 
@@ -1724,7 +1733,7 @@ namespace OpenSim.Data.MySQL
 
             s.State = (byte)(int)row["State"];
             
-            if (!(row["Media"] is System.DBNull))         
+            if (!(row["Media"] is System.DBNull))
                 s.Media = PrimitiveBaseShape.MediaList.FromXml((string)row["Media"]);
 
             return s;

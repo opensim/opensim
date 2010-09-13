@@ -36,6 +36,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Physics.Manager;
 
@@ -48,28 +49,16 @@ namespace OpenSim.Region.ClientStack
 
         protected Dictionary<EndPoint, uint> m_clientCircuits = new Dictionary<EndPoint, uint>();
         protected NetworkServersInfo m_networkServersInfo;
-
-        public NetworkServersInfo NetServersInfo
-        {
-            get { return m_networkServersInfo; }
-        }
-
         protected uint m_httpServerPort;
-        
-        protected StorageManager m_storageManager;
-        
-        public StorageManager StorageManager
-        {
-            get { return m_storageManager; }
-        }
-        
+        protected ISimulationDataService m_simulationDataService;
+        protected IEstateDataService m_estateDataService;
         protected ClientStackManager m_clientStackManager;
-
-        public SceneManager SceneManager
-        {
-            get { return m_sceneManager; }
-        }
         protected SceneManager m_sceneManager = new SceneManager();
+
+        public SceneManager SceneManager { get { return m_sceneManager; } }
+        public NetworkServersInfo NetServersInfo { get { return m_networkServersInfo; } }
+        public ISimulationDataService SimulationDataService { get { return m_simulationDataService; } }
+        public IEstateDataService EstateDataService { get { return m_estateDataService; } }
        
         protected abstract void Initialize();
         
@@ -83,15 +72,11 @@ namespace OpenSim.Region.ClientStack
         /// <returns></returns>
         protected abstract PhysicsScene GetPhysicsScene(string osSceneIdentifier);
         
-        protected abstract StorageManager CreateStorageManager();
         protected abstract ClientStackManager CreateClientStackManager();
-        protected abstract Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
-                                             AgentCircuitManager circuitManager);
+        protected abstract Scene CreateScene(RegionInfo regionInfo, ISimulationDataService simDataService, IEstateDataService estateDataService, AgentCircuitManager circuitManager);
 
         protected override void StartupSpecific()
         {
-            m_storageManager = CreateStorageManager();
-
             m_clientStackManager = CreateClientStackManager();
 
             Initialize();

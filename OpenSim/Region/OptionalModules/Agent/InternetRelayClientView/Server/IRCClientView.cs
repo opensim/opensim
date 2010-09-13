@@ -375,8 +375,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         private void IRC_SendNamesReply()
         {
-            List<EntityBase> users = m_scene.Entities.GetAllByType<ScenePresence>();
-
+            EntityBase[] users = m_scene.Entities.GetAllByType<ScenePresence>();
             foreach (EntityBase user in users)
             {
                 SendServerCommand("353 " + m_nick + " = " + IrcRegionName + " :" + user.Name.Replace(" ", ""));
@@ -386,8 +385,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         private void IRC_SendWhoReply()
         {
-            List<EntityBase> users = m_scene.Entities.GetAllByType<ScenePresence>();
-
+            EntityBase[] users = m_scene.Entities.GetAllByType<ScenePresence>();
             foreach (EntityBase user in users)
             {
                 /*SendServerCommand(String.Format("352 {0} {1} {2} {3} {4} {5} :0 {6}", IrcRegionName,
@@ -415,11 +413,11 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         private void IRC_SendReplyUsers()
         {
-            List<EntityBase> users = m_scene.Entities.GetAllByType<ScenePresence>();
+            EntityBase[] users = m_scene.Entities.GetAllByType<ScenePresence>();
 
             SendServerCommand("392 :UserID   Terminal  Host");
 
-            if (users.Count == 0)
+            if (users.Length == 0)
             {
                 SendServerCommand("395 :Nobody logged in");
                 return;

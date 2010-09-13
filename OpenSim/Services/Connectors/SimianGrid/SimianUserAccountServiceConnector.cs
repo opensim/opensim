@@ -28,7 +28,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.IO;
 using System.Reflection;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -49,13 +48,15 @@ namespace OpenSim.Services.Connectors.SimianGrid
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class SimianUserAccountServiceConnector : IUserAccountService, ISharedRegionModule
     {
+        private const double CACHE_EXPIRATION_SECONDS = 120.0;
+
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_serverUrl = String.Empty;
-        private ExpiringCache<UUID, UserAccount> m_accountCache;
-        private bool m_Enabled = false;
+        private ExpiringCache<UUID, UserAccount> m_accountCache = new ExpiringCache<UUID,UserAccount>();
+        private bool m_Enabled;
 
         #region ISharedRegionModule
 
@@ -141,7 +142,15 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "UserID", userID.ToString() }
             };
 
-            return GetUser(requestArgs);
+            account = GetUser(requestArgs);
+
+            if (account == null)
+            {
+                // Store null responses too, to avoid repeated lookups for missing accounts
+                m_accountCache.AddOrUpdate(userID, null, DateTime.Now + TimeSpan.FromSeconds(CACHE_EXPIRATION_SECONDS));
+            }
+
+            return account;
         }
 
         public List<UserAccount> GetUserAccounts(UUID scopeID, string query)
@@ -216,7 +225,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 if (success)
                 {
                     // Cache the user account info
-                    m_accountCache.AddOrUpdate(data.PrincipalID, data, DateTime.Now + TimeSpan.FromMinutes(2.0d));
+                    m_accountCache.AddOrUpdate(data.PrincipalID, data, DateTime.Now + TimeSpan.FromSeconds(CACHE_EXPIRATION_SECONDS));
                 }
                 else
                 {
@@ -281,7 +290,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             GetFirstLastName(response["Name"].AsString(), out account.FirstName, out account.LastName);
 
             // Cache the user account info
-            m_accountCache.AddOrUpdate(account.PrincipalID, account, DateTime.Now + TimeSpan.FromMinutes(2.0d));
+            m_accountCache.AddOrUpdate(account.PrincipalID, account, DateTime.Now + TimeSpan.FromSeconds(CACHE_EXPIRATION_SECONDS));
 
             return account;
         }

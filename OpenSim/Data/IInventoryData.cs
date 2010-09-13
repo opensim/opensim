@@ -155,15 +155,4 @@ namespace OpenSim.Data
         /// </returns>
         List<InventoryItemBase> fetchActiveGestures(UUID avatarID);
     }
-
-    public class InventoryDataInitialiser : PluginInitialiserBase
-    {
-        private string connect;
-        public InventoryDataInitialiser (string s) { connect = s; }
-        public override void Initialise (IPlugin plugin)
-        {
-            IInventoryDataPlugin p = plugin as IInventoryDataPlugin;
-            p.Initialise (connect);
-        }
-    }
 }

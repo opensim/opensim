@@ -62,7 +62,7 @@ namespace OpenSim.Server.Base
         /// </summary>
         /// <param name="dllName"></param>
         /// <param name="args">The arguments which control which constructor is invoked on the plugin</param>
-        /// <returns></returns>        
+        /// <returns></returns>
         public static T LoadPlugin<T>(string dllName, Object[] args) where T:class
         {
             string[] parts = dllName.Split(new char[] {':'});

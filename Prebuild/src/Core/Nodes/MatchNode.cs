@@ -25,7 +25,6 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -33,7 +32,6 @@ using System.Xml;
 using Prebuild.Core.Attributes;
 using Prebuild.Core.Interfaces;
 using Prebuild.Core.Utilities;
-using System.Collections;
 
 namespace Prebuild.Core.Nodes
 {
@@ -45,7 +43,7 @@ namespace Prebuild.Core.Nodes
 	{
 		#region Fields
 
-        private readonly StringCollection m_Files = new StringCollection();
+        private readonly List<string> m_Files = new List<string>();
 		private Regex m_Regex;
 		private BuildAction? m_BuildAction;
 		private SubType? m_SubType;
@@ -63,7 +61,7 @@ namespace Prebuild.Core.Nodes
 		/// <summary>
 		/// 
 		/// </summary>
-		public StringCollection Files
+		public IEnumerable<string> Files
 		{
 			get
 			{
@@ -97,7 +95,7 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-				return this.m_CopyToOutput;
+				return m_CopyToOutput;
 			}
 		}
 
@@ -105,7 +103,7 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-				return this.m_Link;
+				return m_Link;
 			}
 		}
 
@@ -113,7 +111,7 @@ namespace Prebuild.Core.Nodes
 		{
 			get
 			{
-				return this.m_LinkPath;
+				return m_LinkPath;
 			}
 		}
 		/// <summary>
@@ -149,21 +147,35 @@ namespace Prebuild.Core.Nodes
 		private void RecurseDirectories(string path, string pattern, bool recurse, bool useRegex, List<ExcludeNode> exclusions)
 		{
 			Match match;
-            Boolean excludeFile;
-			try
+		    try
 			{
 				string[] files;
 
-				if(!useRegex)
+			    Boolean excludeFile;
+			    if(!useRegex)
 				{
-					files = Directory.GetFiles(path, pattern);
+                    try
+                    {
+                        files = Directory.GetFiles(path, pattern);
+                    }
+                    catch (IOException)
+                    {
+                        // swallow weird IOException error when running in a virtual box
+                        // guest OS on a network share when the host OS is not Windows.  
+                        // This seems to happen on network shares
+                        // when no files match, and may be related to this report:
+                        // http://connect.microsoft.com/VisualStudio/feedback/ViewFeedback.aspx?FeedbackID=254546
+
+                        files = null;
+                    }
+
 					if(files != null)
 					{
-						string fileTemp;
-						foreach (string file in files)
+					    foreach (string file in files)
 						{
                             excludeFile = false;
-							if (file.Substring(0,2) == "./" || file.Substring(0,2) == ".\\")
+						    string fileTemp;
+						    if (file.Substring(0,2) == "./" || file.Substring(0,2) == ".\\")
 							{
 								fileTemp = file.Substring(2);
 							}
@@ -187,47 +199,64 @@ namespace Prebuild.Core.Nodes
 
 						}
 					}
-					else
-					{
-						return;
-					}
+
+                    // don't call return here, because we may need to recursively search directories below
+                    // this one, even if no matches were found in this directory.
 				}
 				else
 				{
-					files = Directory.GetFiles(path);
-					foreach(string file in files)
-					{
-                        excludeFile = false;
-
-						match = m_Regex.Match(file);
-						if(match.Success)
-						{
-                            // Check all excludions and set flag if there are any hits.
-                            foreach ( ExcludeNode exclude in exclusions )
-                            {
-                                Regex exRegEx = new Regex( exclude.Pattern );
-                                match = exRegEx.Match( file );
-                                excludeFile |= !match.Success;
-                            }
-
-                            if ( !excludeFile )
-                            {
-                                m_Files.Add( file );
-                            }
-						}
+					try
+ 					{
+						files = Directory.GetFiles(path);
 					}
+                    catch (IOException)
+                    {
+                        // swallow weird IOException error when running in a virtual box
+                        // guest OS on a network share.
+                        files = null;
+                    }
+
+                    if (files != null)
+                    {
+                        foreach (string file in files)
+                        {
+                            excludeFile = false;
+
+                            match = m_Regex.Match(file);
+                            if (match.Success)
+                            {
+                                // Check all excludions and set flag if there are any hits.
+                                foreach (ExcludeNode exclude in exclusions)
+                                {
+                                    Regex exRegEx = new Regex(exclude.Pattern);
+                                    match = exRegEx.Match(file);
+                                    excludeFile |= !match.Success;
+                                }
+
+                                if (!excludeFile)
+                                {
+                                    m_Files.Add(file);
+                                }
+                            }
+                        }
+                    }
 				}
                 
 				if(recurse)
 				{
 					string[] dirs = Directory.GetDirectories(path);
 					if(dirs != null && dirs.Length > 0)
-					{
-						foreach(string str in dirs)
-						{
-							RecurseDirectories(Helper.NormalizePath(str), pattern, recurse, useRegex, exclusions);
-						}
-					}
+                    {
+                        foreach (string str in dirs)
+                        {
+                            // hack to skip subversion folders.  Not having this can cause
+                            // a significant performance hit when running on a network drive.
+                            if (str.EndsWith(".svn"))
+                                continue;
+
+                            RecurseDirectories(Helper.NormalizePath(str), pattern, recurse, useRegex, exclusions);
+                        }
+                    }
 				}
 			}
 			catch(DirectoryNotFoundException)
@@ -266,14 +295,14 @@ namespace Prebuild.Core.Nodes
 			//string subType = Helper.AttributeValue(node, "subType", string.Empty);
 			//if (subType != String.Empty)
 			//    m_SubType = (SubType)Enum.Parse(typeof(SubType), subType);
-			m_ResourceName = Helper.AttributeValue(node, "resourceName", m_ResourceName.ToString());
-			this.m_CopyToOutput = (CopyToOutput) Enum.Parse(typeof(CopyToOutput), Helper.AttributeValue(node, "copyToOutput", this.m_CopyToOutput.ToString()));
-			this.m_Link = bool.Parse(Helper.AttributeValue(node, "link", bool.FalseString));
-			if ( this.m_Link == true )
+			m_ResourceName = Helper.AttributeValue(node, "resourceName", m_ResourceName);
+			m_CopyToOutput = (CopyToOutput) Enum.Parse(typeof(CopyToOutput), Helper.AttributeValue(node, "copyToOutput", m_CopyToOutput.ToString()));
+			m_Link = bool.Parse(Helper.AttributeValue(node, "link", bool.FalseString));
+			if ( m_Link )
 			{
-				this.m_LinkPath = Helper.AttributeValue( node, "linkPath", string.Empty );
+				m_LinkPath = Helper.AttributeValue( node, "linkPath", string.Empty );
 			}
-            this.m_PreservePath = bool.Parse( Helper.AttributeValue( node, "preservePath", bool.FalseString ) );
+            m_PreservePath = bool.Parse( Helper.AttributeValue( node, "preservePath", bool.FalseString ) );
 
 
 			if(path != null && path.Length == 0)
@@ -318,11 +347,19 @@ namespace Prebuild.Core.Nodes
 
             RecurseDirectories( path, pattern, recurse, useRegex, m_Exclusions );
 
-			if(m_Files.Count < 1)
-			{
-				throw new WarningException("Match returned no files: {0}{1}", Helper.EndPath(path), pattern);
-			}
-			m_Regex = null;
+            if (m_Files.Count < 1)
+            {
+                // Include the project name when the match node returns no matches to provide extra
+                // debug info.
+                ProjectNode project = Parent.Parent as ProjectNode;
+                string projectName = "";
+
+                if (project != null)
+                    projectName = " in project " + project.AssemblyName;
+
+                throw new WarningException("Match" + projectName + " returned no files: {0}{1}", Helper.EndPath(path), pattern);
+            }
+            m_Regex = null;
 		}
 
 		#endregion

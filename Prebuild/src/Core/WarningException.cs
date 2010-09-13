@@ -31,7 +31,7 @@ namespace Prebuild.Core
 	/// <summary>
 	/// 
 	/// </summary>
-	[Serializable()]
+	[Serializable]
 	public class WarningException : Exception
 	{
 		#region Constructors

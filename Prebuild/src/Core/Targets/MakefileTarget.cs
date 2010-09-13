@@ -24,8 +24,6 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY O
 #endregion
 
 using System;
-using System.Collections;
-using System.Collections.Specialized;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -110,7 +108,7 @@ namespace Prebuild.Core.Targets
             {
                 string path;
                 // Project references change with configurations.
-                if (solution.ProjectsTable.Contains(refr.Name))
+                if (solution.ProjectsTable.ContainsKey(refr.Name))
                     continue;
                 path = FindFileReference(refr.Name, project);
                 if (path != null)
@@ -220,7 +218,7 @@ namespace Prebuild.Core.Targets
                 }
                 // Dependencies on other projects.
                 foreach (ReferenceNode refr in project.References)
-                    if (solution.ProjectsTable.Contains(refr.Name))
+                    if (solution.ProjectsTable.ContainsKey(refr.Name))
                     {
                         ProjectNode refProj = (ProjectNode)solution.ProjectsTable[refr.Name];
                         if (ProjectClashes(refProj))
@@ -256,7 +254,7 @@ namespace Prebuild.Core.Targets
                 // Build references to other projects. Now that sux.
                 // We have to reference the other project in the same conf.
                 foreach (ReferenceNode refr in project.References)
-                    if (solution.ProjectsTable.Contains(refr.Name))
+                    if (solution.ProjectsTable.ContainsKey(refr.Name))
                     {
                         ProjectNode refProj;
                         refProj = (ProjectNode)solution.ProjectsTable[refr.Name];
@@ -274,7 +272,7 @@ namespace Prebuild.Core.Targets
                     {
                         string outPath, srcPath, destPath;
                         outPath = Helper.NormalizePath((string)conf.Options["OutputPath"]);
-                        if (solution.ProjectsTable.Contains(refr.Name))
+                        if (solution.ProjectsTable.ContainsKey(refr.Name))
                         {
                             ProjectNode refProj;
                             refProj = (ProjectNode)solution.ProjectsTable[refr.Name];

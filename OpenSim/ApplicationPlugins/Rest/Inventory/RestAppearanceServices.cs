@@ -384,7 +384,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 //            }
 //
 //            rdata.Respond(String.Format("Appearance {0} : Normal completion", rdata.method));
-//            
+//
 //        }
 
         /// <summary>
@@ -449,7 +449,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 //                rdata.userAppearance = new AvatarAppearance();
 //                rdata.userAppearance.Owner = old.Owner;
 //                adata = new AvatarData(rdata.userAppearance);
-//                
+//
 //                Rest.AvatarServices.SetAvatar(rdata.userProfile.ID, adata);
 //
 //                rdata.Complete();

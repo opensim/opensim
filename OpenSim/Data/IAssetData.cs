@@ -40,15 +40,4 @@ namespace OpenSim.Data
         void Initialise(string connect);
         bool Delete(string id);
     }
-
-    public class AssetDataInitialiser : PluginInitialiserBase
-    {
-        private string connect;
-        public AssetDataInitialiser (string s) { connect = s; }
-        public override void Initialise (IPlugin plugin)
-        {
-            IAssetDataPlugin p = plugin as IAssetDataPlugin;
-            p.Initialise (connect);
-        }
-    }
 }

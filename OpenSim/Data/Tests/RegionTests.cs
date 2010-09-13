@@ -61,17 +61,17 @@ namespace OpenSim.Data.Tests
 #else
 
     [TestFixture(Description = "Region store tests (SQLite)")]
-    public class SQLiteRegionTests : RegionTests<SqliteConnection, SQLiteRegionData>
+    public class SQLiteRegionTests : RegionTests<SqliteConnection, SQLiteSimulationData>
     {
     }
 
     [TestFixture(Description = "Region store tests (MySQL)")]
-    public class MySqlRegionTests : RegionTests<MySqlConnection, MySQLDataStore>
+    public class MySqlRegionTests : RegionTests<MySqlConnection, MySQLSimulationData>
     {
     }
 
     [TestFixture(Description = "Region store tests (MS SQL Server)")]
-    public class MSSQLRegionTests : RegionTests<SqlConnection, MSSQLRegionDataStore>
+    public class MSSQLRegionTests : RegionTests<SqlConnection, MSSQLSimulationData>
     {
     }
 
@@ -79,11 +79,11 @@ namespace OpenSim.Data.Tests
 
     public class RegionTests<TConn, TRegStore> : BasicDataServiceTest<TConn, TRegStore>
         where TConn : DbConnection, new()
-        where TRegStore : class, IRegionDataStore, new()
+        where TRegStore : class, ISimulationDataStore, new()
     {
         bool m_rebuildDB;
 
-        public IRegionDataStore db;
+        public ISimulationDataStore db;
         public UUID zero = UUID.Zero;
         public UUID region1 = UUID.Random();
         public UUID region2 = UUID.Random();
@@ -122,7 +122,7 @@ namespace OpenSim.Data.Tests
         protected override void InitService(object service)
         {
             ClearDB();
-            db = (IRegionDataStore)service;
+            db = (ISimulationDataStore)service;
             db.Initialise(m_connStr);
         }
 

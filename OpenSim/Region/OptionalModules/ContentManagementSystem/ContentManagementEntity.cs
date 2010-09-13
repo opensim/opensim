@@ -127,7 +127,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         /// </summary>
         public void FindDifferences()
         {
-            System.Collections.Generic.List<EntityBase> sceneEntityList = m_Entity.Scene.GetEntities();
+            List<EntityBase> sceneEntityList = new List<EntityBase>(m_Entity.Scene.GetEntities());
             DiffersFromSceneGroup = false;
             // if group is not contained in scene's list
             if (!ContainsKey(sceneEntityList, m_UnchangedEntity.UUID))

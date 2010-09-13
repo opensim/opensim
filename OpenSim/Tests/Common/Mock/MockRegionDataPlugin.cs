@@ -35,11 +35,86 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Data.Null
 {
+    public class NullDataService : ISimulationDataService
+    {
+        private NullDataStore m_store;
+
+        public NullDataService()
+        {
+            m_store = new NullDataStore();
+        }
+
+        public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
+        {
+            m_store.StoreObject(obj, regionUUID);
+        }
+
+        public void RemoveObject(UUID uuid, UUID regionUUID)
+        {
+            m_store.RemoveObject(uuid, regionUUID);
+        }
+
+        public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
+        {
+            m_store.StorePrimInventory(primID, items);
+        }
+
+        public List<SceneObjectGroup> LoadObjects(UUID regionUUID)
+        {
+            return m_store.LoadObjects(regionUUID);
+        }
+
+        public void StoreTerrain(double[,] terrain, UUID regionID)
+        {
+            m_store.StoreTerrain(terrain, regionID);
+        }
+
+        public double[,] LoadTerrain(UUID regionID)
+        {
+            return m_store.LoadTerrain(regionID);
+        }
+
+        public void StoreLandObject(ILandObject Parcel)
+        {
+            m_store.StoreLandObject(Parcel);
+        }
+
+        public void RemoveLandObject(UUID globalID)
+        {
+            m_store.RemoveLandObject(globalID);
+        }
+
+        public List<LandData> LoadLandObjects(UUID regionUUID)
+        {
+            return m_store.LoadLandObjects(regionUUID);
+        }
+
+        public void StoreRegionSettings(RegionSettings rs)
+        {
+            m_store.StoreRegionSettings(rs);
+        }
+
+        public RegionSettings LoadRegionSettings(UUID regionUUID)
+        {
+            return m_store.LoadRegionSettings(regionUUID);
+        }
+
+        public RegionLightShareData LoadRegionWindlightSettings(UUID regionUUID)
+        {
+            return m_store.LoadRegionWindlightSettings(regionUUID);
+        }
+
+        public void StoreRegionWindlightSettings(RegionLightShareData wl)
+        {
+            m_store.StoreRegionWindlightSettings(wl);
+        }
+    }
+
     /// <summary>
     /// Mock region data plugin.  This obeys the api contract for persistence but stores everything in memory, so that
     /// tests can check correct persistence.
     /// </summary>
-    public class NullDataStore : IRegionDataStore
+    public class NullDataStore : ISimulationDataStore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
@@ -99,7 +174,7 @@ namespace OpenSim.Data.Null
         }
 
         public void RemoveObject(UUID obj, UUID regionUUID)
-        {           
+        {
             // All parts belonging to the object with the uuid are removed.
             List<SceneObjectPart> parts = new List<SceneObjectPart>(m_sceneObjectParts.Values);
             foreach (SceneObjectPart part in parts)
@@ -108,13 +183,12 @@ namespace OpenSim.Data.Null
                 {
                     m_log.DebugFormat(
                         "[MOCK REGION DATA PLUGIN]: Removing part {0} {1} as part of object {2} from {3}", 
-                        part.Name, part.UUID, obj, regionUUID);                    
+                        part.Name, part.UUID, obj, regionUUID);
                     m_sceneObjectParts.Remove(part.UUID);
                 }
             }
         }
 
-        // see IRegionDatastore
         public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
         {
             m_primItems[primID] = items;
@@ -130,7 +204,7 @@ namespace OpenSim.Data.Null
                 if (prim.IsRoot)
                 {
                     m_log.DebugFormat(
-                        "[MOCK REGION DATA PLUGIN]: Loading root part {0} {1} in {2}", prim.Name, prim.UUID, regionUUID);                               
+                        "[MOCK REGION DATA PLUGIN]: Loading root part {0} {1} in {2}", prim.Name, prim.UUID, regionUUID);
                     objects[prim.UUID] = new SceneObjectGroup(prim);
                 }
             }
