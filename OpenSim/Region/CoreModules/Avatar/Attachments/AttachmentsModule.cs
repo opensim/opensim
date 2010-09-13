@@ -218,14 +218,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         
         public UUID RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
-            m_log.DebugFormat("[ATTACHMENTS MODULE]: Rezzing single attachment from item {0} for {1}", itemID, remoteClient.Name);
-            
             return RezSingleAttachmentFromInventory(remoteClient, itemID, AttachmentPt, true);
         }
 
         public UUID RezSingleAttachmentFromInventory(
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus)
         {
+            m_log.DebugFormat(
+                "[ATTACHMENTS MODULE]: Rezzing attachment to point {0} from item {1} for {2}", 
+                (AttachmentPoint)AttachmentPt, itemID, remoteClient.Name);
+            
             SceneObjectGroup att = RezSingleAttachmentFromInventoryInternal(remoteClient, itemID, AttachmentPt);
 
             if (updateInventoryStatus)
