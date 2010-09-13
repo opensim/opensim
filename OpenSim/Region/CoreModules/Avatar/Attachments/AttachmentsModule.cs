@@ -233,11 +233,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (updateInventoryStatus)
             {
                 if (att == null)
-                {
                     ShowDetachInUserInventory(itemID, remoteClient);
-                }
-    
-                SetAttachmentInventoryStatus(att, remoteClient, itemID, AttachmentPt);
+                else
+                    SetAttachmentInventoryStatus(att, remoteClient, itemID, AttachmentPt);
             }
 
             if (null == att)
