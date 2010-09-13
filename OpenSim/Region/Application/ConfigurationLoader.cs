@@ -172,7 +172,7 @@ namespace OpenSim
             if (sources.Count == 0)
             {
                 m_log.FatalFormat("[CONFIG]: Could not load any configuration");
-                m_log.FatalFormat("[CONFIG]: Did you copy the OpenSim.ini.example file to OpenSim.ini?");
+                m_log.FatalFormat("[CONFIG]: Did you copy the OpenSimDefaults.ini.example file to OpenSimDefaults.ini?");
                 Environment.Exit(1);
             }
 
