@@ -109,17 +109,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="itemID"></param>
         /// <param name="remoteClient"></param>
         void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient);
-            
-        /// <summary>
-        /// Update the user inventory to the attachment of an item
-        /// </summary>
-        /// <param name="att"></param>
-        /// <param name="remoteClient"></param>
-        /// <param name="itemID"></param>
-        /// <param name="AttachmentPt"></param>
-        /// <returns></returns>
-        UUID SetAttachmentInventoryStatus(
-            SceneObjectGroup att, IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
 
         /// <summary>
         /// Update the user inventory to show a detach.

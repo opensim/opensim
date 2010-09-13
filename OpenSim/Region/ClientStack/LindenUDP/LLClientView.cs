@@ -5199,11 +5199,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     catch (Exception e)
                     {
-                        m_log.Error("[GENERICMESSAGE] " + e);
+                        m_log.ErrorFormat(
+                            "[LLCLIENTVIEW]: Exeception when handling generic message {0}{1}", e.Message, e.StackTrace);
                     }
                 }
             }
-            m_log.Error("[GENERICMESSAGE] Not handling GenericMessage with method-type of: " + method);
+            
+            //m_log.Debug("[LLCLIENTVIEW]: Not handling GenericMessage with method-type of: " + method);
             return false;
         }
 

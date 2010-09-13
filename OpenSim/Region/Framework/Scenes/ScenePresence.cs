@@ -1522,6 +1522,8 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
+                // If the agent update does move the avatar, then calculate the force ready for the velocity update,
+                // which occurs later in the main scene loop                
                 if (update_movementflag || (update_rotation && DCFlagKeyPressed))
                 {
                     //                    m_log.DebugFormat("{0} {1}", update_movementflag, (update_rotation && DCFlagKeyPressed));
@@ -3727,8 +3729,8 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
 
                 UUID itemID = m_appearance.GetAttachedItem(p);
-                UUID assetID = m_appearance.GetAttachedAsset(p);
 
+                //UUID assetID = m_appearance.GetAttachedAsset(p);
                 // For some reason assetIDs are being written as Zero's in the DB -- need to track tat down
                 // But they're not used anyway, the item is being looked up for now, so let's proceed.
                 //if (UUID.Zero == assetID) 
@@ -3739,17 +3741,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 try
                 {
-                    // Rez from inventory
-                    UUID asset 
-                        = m_scene.AttachmentsModule.RezSingleAttachmentFromInventory(ControllingClient, itemID, (uint)p);
-
-                    m_log.InfoFormat(
-                        "[ATTACHMENT]: Rezzed attachment in point {0} from item {1} and asset {2} ({3})",
-                        p, itemID, assetID, asset);
+                    m_scene.AttachmentsModule.RezSingleAttachmentFromInventory(ControllingClient, itemID, (uint)p);
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[ATTACHMENT]: Unable to rez attachment: {0}", e.ToString());
+                    m_log.ErrorFormat("[ATTACHMENT]: Unable to rez attachment: {0}{1}", e.Message, e.StackTrace);
                 }
             }
         }
