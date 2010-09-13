@@ -190,7 +190,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     itemID = group.GetFromItemID();
                 }
 
-                SetAttachmentInventoryStatus(remoteClient, AttachmentPt, itemID, group);
+                ShowAttachInUserInventory(remoteClient, AttachmentPt, itemID, group);
 
                 AttachToAgent(sp, group, AttachmentPt, attachPos, silent);
             }
@@ -235,7 +235,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 if (att == null)
                     ShowDetachInUserInventory(itemID, remoteClient);
                 else
-                    SetAttachmentInventoryStatus(att, remoteClient, itemID, AttachmentPt);
+                    ShowAttachInUserInventory(att, remoteClient, itemID, AttachmentPt);
             }
 
             if (null == att)
@@ -308,7 +308,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="itemID"></param>
         /// <param name="AttachmentPt"></param>
         /// <returns></returns>        
-        protected UUID SetAttachmentInventoryStatus(
+        protected UUID ShowAttachInUserInventory(
             SceneObjectGroup att, IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
 //            m_log.DebugFormat(
@@ -337,7 +337,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="AttachmentPt"></param>
         /// <param name="itemID"></param>
         /// <param name="att"></param>
-        public void SetAttachmentInventoryStatus(
+        protected void ShowAttachInUserInventory(
             IClientAPI remoteClient, uint AttachmentPt, UUID itemID, SceneObjectGroup att)
         {
 //            m_log.DebugFormat(
