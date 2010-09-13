@@ -100,7 +100,7 @@ namespace OpenSim
 
                 if (masterFileName != String.Empty)
                 {
-                    if (File.Exists(masterFilePath)
+                    if (File.Exists(masterFilePath))
                     {
                         if (!sources.Contains(masterFilePath))
                             sources.Add(masterFilePath);
