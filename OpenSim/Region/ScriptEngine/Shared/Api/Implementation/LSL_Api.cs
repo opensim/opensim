@@ -3249,10 +3249,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID result;
             if (!UUID.TryParse(user, out result))
             {
-                if (!m_debuggerSafe)
-                {
-                    throw new Exception(String.Format("An invalid key of '{0} was passed to llInstantMessage", user));
-                }
+                ShoutError("An invalid key  was passed to llInstantMessage");
+                ScriptSleep(2000);
                 return;
             }
             
