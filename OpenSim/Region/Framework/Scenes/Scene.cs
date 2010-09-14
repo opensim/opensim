@@ -1343,16 +1343,17 @@ namespace OpenSim.Region.Framework.Scenes
                     // Check if any objects have reached their targets
                     CheckAtTargets();
 
-                    // Run through all ScenePresences looking for updates
-                    // Presence updates and queued object updates for each presence are sent to clients
-                    if (m_frame % m_update_presences == 0)
-                        m_sceneGraph.UpdatePresences();
-
                     // Update SceneObjectGroups that have scheduled themselves for updates
                     // Objects queue their updates onto all scene presences
                     if (m_frame % m_update_objects == 0)
                         m_sceneGraph.UpdateObjectGroups();
 
+                    // Run through all ScenePresences looking for updates
+                    // Presence updates and queued object updates for each presence are sent to clients
+                    if (m_frame % m_update_presences == 0)
+                        m_sceneGraph.UpdatePresences();
+
+                    // Coarse locations relate to positions of green dots on the mini-map (on a SecondLife client)
                     if (m_frame % m_update_coarse_locations == 0)
                     {
                         List<Vector3> coarseLocations;
@@ -1370,9 +1371,12 @@ namespace OpenSim.Region.Framework.Scenes
                         m_sceneGraph.UpdatePreparePhysics();
                     physicsMS2 = Util.EnvironmentTickCountSubtract(tmpPhysicsMS2);
 
+                    // Apply any pending avatar force input to the avatar's velocity
                     if (m_frame % m_update_entitymovement == 0)
                         m_sceneGraph.UpdateScenePresenceMovement();
 
+                    // Perform the main physics update.  This will do the actual work of moving objects and avatars according to their
+                    // velocity
                     int tmpPhysicsMS = Util.EnvironmentTickCount();
                     if (m_frame % m_update_physics == 0)
                     {

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using log4net;
 
@@ -43,7 +44,7 @@ namespace OpenSim.Framework
         const int WATCHDOG_TIMEOUT_MS = 5000;
 
         [System.Diagnostics.DebuggerDisplay("{Thread.Name}")]
-        private class ThreadWatchdogInfo
+        public class ThreadWatchdogInfo
         {
             public Thread Thread;
             public int LastTick;
@@ -148,6 +149,15 @@ namespace OpenSim.Framework
                     AddThread(new ThreadWatchdogInfo(Thread.CurrentThread));
             }
             catch { }
+        }
+        
+        /// <summary>
+        /// Get currently watched threads for diagnostic purposes
+        /// </summary>
+        /// <returns></returns>
+        public static ThreadWatchdogInfo[] GetThreads()
+        {
+            return m_threads.Values.ToArray();
         }
 
         private static void WatchdogTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
