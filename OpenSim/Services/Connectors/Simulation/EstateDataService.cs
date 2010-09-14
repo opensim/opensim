@@ -60,9 +60,8 @@ namespace OpenSim.Services.Connectors
             if (dbConfig != null)
             {
                 dllName = dbConfig.GetString("StorageProvider", String.Empty);
-                connString = dbConfig.GetString("EstateConnectionString", String.Empty);
-                if (String.IsNullOrEmpty(connString))
-                    connString = dbConfig.GetString("ConnectionString", String.Empty);
+                connString = dbConfig.GetString("ConnectionString", String.Empty);
+                connString = dbConfig.GetString("EstateConnectionString", connString);
             }
 
             // Try reading the [EstateDataStore] section, if it exists
@@ -70,7 +69,7 @@ namespace OpenSim.Services.Connectors
             if (estConfig != null)
             {
                 dllName = estConfig.GetString("StorageProvider", dllName);
-                connString = dbConfig.GetString("ConnectionString", connString);
+                connString = estConfig.GetString("ConnectionString", connString);
             }
 
             // We tried, but this doesn't exist. We can't proceed
