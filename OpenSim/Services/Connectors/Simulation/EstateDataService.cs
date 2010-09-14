@@ -65,6 +65,14 @@ namespace OpenSim.Services.Connectors
                     connString = dbConfig.GetString("ConnectionString", String.Empty);
             }
 
+            // Try reading the [EstateDataStore] section, if it exists
+            IConfig estConfig = config.Configs["EstateDataStore"];
+            if (estConfig != null)
+            {
+                dllName = estConfig.GetString("StorageProvider", dllName);
+                connString = dbConfig.GetString("ConnectionString", connString);
+            }
+
             // We tried, but this doesn't exist. We can't proceed
             if (dllName == String.Empty)
                 throw new Exception("No StorageProvider configured");
