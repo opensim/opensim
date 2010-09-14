@@ -1348,15 +1348,12 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_frame % m_update_presences == 0)
                         m_sceneGraph.UpdatePresences();
 
-<<<<<<< HEAD:OpenSim/Region/Framework/Scenes/Scene.cs
                     // Update SceneObjectGroups that have scheduled themselves for updates
                     // Objects queue their updates onto all scene presences
                     if (m_frame % m_update_objects == 0)
                         m_sceneGraph.UpdateObjectGroups();
 
-=======
                     // Coarse locations relate to positions of green dots on the mini-map (on a SecondLife client)
->>>>>>> master:OpenSim/Region/Framework/Scenes/Scene.cs
                     if (m_frame % m_update_coarse_locations == 0)
                     {
                         List<Vector3> coarseLocations;

@@ -4330,8 +4330,8 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
                     }
 
                     m_log.InfoFormat(
-                        "[ATTACHMENT]: Rezzed attachment in point {0} from item {1} and asset {2} ({3})",
-                        p, itemID, assetID, asset);
+                        "[ATTACHMENT]: Rezzed attachment in point {0} from item {1} and asset {3}",
+                        p, itemID, asset);
                 }
                 catch (Exception e)
                 {
