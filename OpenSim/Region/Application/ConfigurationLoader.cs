@@ -83,7 +83,7 @@ namespace OpenSim
             List<string> sources = new List<string>();
 
             string masterFileName =
-                    startupConfig.GetString("inimaster", "OpenSimDefaults.ini");
+                    startupConfig.GetString("inimaster", "config-include/OpenSimDefaults.ini");
 
             if (masterFileName == "none")
                 masterFileName = String.Empty;
