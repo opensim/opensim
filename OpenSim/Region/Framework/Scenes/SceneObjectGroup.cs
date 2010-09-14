@@ -1789,11 +1789,15 @@ namespace OpenSim.Region.Framework.Scenes
                         if (m_rootPart.PhysActor != null &&
                             (!m_rootPart.PhysActor.IsPhysical))
                         {
+                            // Possible ghost prim
                             if (m_rootPart.PhysActor.Position != m_rootPart.GroupPosition)
                             {
-                                m_rootPart.PhysActor.Position = m_rootPart.GroupPosition;
-                                m_rootPart.PhysActor.Orientation = m_rootPart.RotationOffset;
-                                m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
+                                foreach (SceneObjectPart part in Children.Values)
+                                {
+                                    // Re-set physics actor positions and
+                                    // orientations
+                                    part.GroupPosition = m_rootPart.GroupPosition;
+                                }
                             }
                         }
                      //   m_log.DebugFormat(
