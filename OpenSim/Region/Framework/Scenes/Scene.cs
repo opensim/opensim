@@ -1343,15 +1343,15 @@ namespace OpenSim.Region.Framework.Scenes
                     // Check if any objects have reached their targets
                     CheckAtTargets();
 
-                    // Run through all ScenePresences looking for updates
-                    // Presence updates and queued object updates for each presence are sent to clients
-                    if (m_frame % m_update_presences == 0)
-                        m_sceneGraph.UpdatePresences();
-
                     // Update SceneObjectGroups that have scheduled themselves for updates
                     // Objects queue their updates onto all scene presences
                     if (m_frame % m_update_objects == 0)
                         m_sceneGraph.UpdateObjectGroups();
+
+                    // Run through all ScenePresences looking for updates
+                    // Presence updates and queued object updates for each presence are sent to clients
+                    if (m_frame % m_update_presences == 0)
+                        m_sceneGraph.UpdatePresences();
 
                     // Coarse locations relate to positions of green dots on the mini-map (on a SecondLife client)
                     if (m_frame % m_update_coarse_locations == 0)
