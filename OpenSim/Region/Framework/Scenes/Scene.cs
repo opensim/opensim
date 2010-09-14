@@ -1348,11 +1348,15 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_frame % m_update_presences == 0)
                         m_sceneGraph.UpdatePresences();
 
+<<<<<<< HEAD:OpenSim/Region/Framework/Scenes/Scene.cs
                     // Update SceneObjectGroups that have scheduled themselves for updates
                     // Objects queue their updates onto all scene presences
                     if (m_frame % m_update_objects == 0)
                         m_sceneGraph.UpdateObjectGroups();
 
+=======
+                    // Coarse locations relate to positions of green dots on the mini-map (on a SecondLife client)
+>>>>>>> master:OpenSim/Region/Framework/Scenes/Scene.cs
                     if (m_frame % m_update_coarse_locations == 0)
                     {
                         List<Vector3> coarseLocations;
@@ -1370,9 +1374,12 @@ namespace OpenSim.Region.Framework.Scenes
                         m_sceneGraph.UpdatePreparePhysics();
                     physicsMS2 = Util.EnvironmentTickCountSubtract(tmpPhysicsMS2);
 
+                    // Apply any pending avatar force input to the avatar's velocity
                     if (m_frame % m_update_entitymovement == 0)
                         m_sceneGraph.UpdateScenePresenceMovement();
 
+                    // Perform the main physics update.  This will do the actual work of moving objects and avatars according to their
+                    // velocity
                     int tmpPhysicsMS = Util.EnvironmentTickCount();
                     if (m_frame % m_update_physics == 0)
                     {

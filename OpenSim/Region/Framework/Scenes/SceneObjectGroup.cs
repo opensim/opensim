@@ -1796,9 +1796,9 @@ namespace OpenSim.Region.Framework.Scenes
                                 m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
                             }
                         }
-                     //   m_log.DebugFormat(
-                     //       "[SCENE]: Storing {0}, {1} in {2}",
-                     //       Name, UUID, m_scene.RegionInfo.RegionName);
+//                        m_log.DebugFormat(
+//                            "[SCENE]: Storing {0}, {1} in {2}",
+//                            Name, UUID, m_scene.RegionInfo.RegionName);
 
                         SceneObjectGroup backup_group = Copy(false);
                         backup_group.RootPart.Velocity = RootPart.Velocity;

@@ -198,7 +198,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         public void UpdateDatabase(UUID user, AvatarAppearance appearance)
         {
-            m_log.DebugFormat("[APPEARANCE]: UpdateDatabase");
+            //m_log.DebugFormat("[APPEARANCE]: UpdateDatabase");
             AvatarData adata = new AvatarData(appearance);
             m_scene.AvatarService.SetAvatar(user, adata);
         }
