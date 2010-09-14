@@ -1786,6 +1786,16 @@ namespace OpenSim.Region.Framework.Scenes
                     // don't backup while it's selected or you're asking for changes mid stream.
                     if (isTimeToPersist() || forcedBackup)
                     {
+                        if (m_rootPart.PhysActor != null &&
+                            (!m_rootPart.PhysActor.IsPhysical))
+                        {
+                            if (m_rootPart.PhysActor.Position != m_rootPart.GroupPosition)
+                            {
+                                m_rootPart.PhysActor.Position = m_rootPart.GroupPosition;
+                                m_rootPart.PhysActor.Orientation = m_rootPart.RotationOffset;
+                                m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
+                            }
+                        }
                      //   m_log.DebugFormat(
                      //       "[SCENE]: Storing {0}, {1} in {2}",
                      //       Name, UUID, m_scene.RegionInfo.RegionName);
