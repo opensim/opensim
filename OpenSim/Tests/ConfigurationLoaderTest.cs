@@ -69,7 +69,7 @@ namespace OpenSim.Tests
         [Test]
         public void IncludeTests()
         {
-            const string mainIniFile = "OpenSim.ini";
+            const string mainIniFile = "OpenSimDefaults.ini";
             m_config = new IniConfigSource();
 
             // Create ini files in a directory structure
