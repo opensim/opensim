@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Xml;
 using System.Xml.Serialization;
@@ -1236,26 +1237,27 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="silent">If true then deletion is not broadcast to clients</param>
         public void DeleteGroup(bool silent)
         {
-            lock (m_parts)
-            {
-                foreach (SceneObjectPart part in m_parts.Values)
-                {
-//                    part.Inventory.RemoveScriptInstances();
-                    Scene.ForEachScenePresence(delegate(ScenePresence avatar)
-                    {
-                        if (avatar.ParentID == LocalId)
-                        {
-                            avatar.StandUp();
-                        }
+            List<SceneObjectPart> parts;
 
-                        if (!silent)
-                        {
-                            part.UpdateFlag = 0;
-                            if (part == m_rootPart)
-                                avatar.ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
-                        }
-                    });
-                }
+            lock (m_parts)
+                parts = m_parts.Values.ToList();
+            
+            foreach (SceneObjectPart part in parts)
+            {
+                Scene.ForEachScenePresence(delegate(ScenePresence avatar)
+                {
+                    if (avatar.ParentID == LocalId)
+                    {
+                        avatar.StandUp();
+                    }
+
+                    if (!silent)
+                    {
+                        part.UpdateFlag = 0;
+                        if (part == m_rootPart)
+                            avatar.ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
+                    }
+                });
             }
         }
 
