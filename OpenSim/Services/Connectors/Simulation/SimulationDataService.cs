@@ -63,6 +63,14 @@ namespace OpenSim.Services.Connectors
                 connString = dbConfig.GetString("ConnectionString", String.Empty);
             }
 
+            // Try reading the [SimulationDataStore] section
+            IConfig simConfig = config.Configs["SimulationDataStore"];
+            if (simConfig != null)
+            {
+                dllName = simConfig.GetString("StorageProvider", dllName);
+                connString = simConfig.GetString("ConnectionString", connString);
+            }
+
             // We tried, but this doesn't exist. We can't proceed
             if (dllName == String.Empty)
                 throw new Exception("No StorageProvider configured");

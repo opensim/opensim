@@ -40,6 +40,9 @@
     ;; Enable this to use Freeswitch on a standalone
     ;FreeswitchServiceInConnector = True
 
+    ;; Authorization is not on by default, as it depends on external php
+    ;AuthorizationServices	= "LocalAuthorizationServicesConnector"
+
 [FreeswitchService]
     ;; Configuration for the freeswitch service goes here
     LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"
