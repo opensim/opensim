@@ -1235,7 +1235,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// must be handled by the caller.
         /// 
         /// <param name="silent">If true then deletion is not broadcast to clients</param>
-        public void DeleteGroup(bool silent)
+        public void DeleteGroupFromScene(bool silent)
         {
             List<SceneObjectPart> parts;
 

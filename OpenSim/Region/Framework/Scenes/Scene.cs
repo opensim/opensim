@@ -2120,7 +2120,7 @@ namespace OpenSim.Region.Framework.Scenes
                 EventManager.TriggerParcelPrimCountTainted();
             }
 
-            group.DeleteGroup(silent);
+            group.DeleteGroupFromScene(silent);
 
 //            m_log.DebugFormat("[SCENE]: Exit DeleteSceneObject() for {0} {1}", group.Name, group.UUID);
         }
