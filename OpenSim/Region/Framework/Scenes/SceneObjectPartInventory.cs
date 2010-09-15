@@ -132,7 +132,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             HasInventoryChanged = true;
-            m_part.ParentGroup.HasGroupChanged = true;
+            if (m_part.ParentGroup != null)
+            {
+                m_part.ParentGroup.HasGroupChanged = true;
+            }
+            
             IList<TaskInventoryItem> items = new List<TaskInventoryItem>(Items.Values);
             Items.Clear();
 
