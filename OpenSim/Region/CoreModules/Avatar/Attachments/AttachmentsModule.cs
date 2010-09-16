@@ -334,7 +334,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 if (m_scene.InventoryService != null)
                     item = m_scene.InventoryService.GetItem(item);
 
-                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
+				if (presence.Appearance != null)
+					presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
             }
             
             return att.UUID;
