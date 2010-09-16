@@ -302,6 +302,9 @@ namespace OpenSim.Services.Connectors
                 }
                 else
                 {
+					if (replyData["result"].ToString() == "null")
+						return null;
+
                     m_log.DebugFormat("[PRESENCE CONNECTOR]: Invalid reply (result not dictionary) received from presence server when querying for sessionID {0}", sessionID.ToString());
                 }
             }
