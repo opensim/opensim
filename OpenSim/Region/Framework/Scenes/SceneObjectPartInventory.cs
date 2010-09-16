@@ -140,6 +140,34 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void ResetObjectID()
+        {
+            m_items.LockItemsForWrite(true);
+
+            if (Items.Count == 0)
+            {
+                m_items.LockItemsForWrite(false);
+                return;
+            }
+
+            HasInventoryChanged = true;
+            if (m_part.ParentGroup != null)
+            {
+                m_part.ParentGroup.HasGroupChanged = true;
+            }
+            
+            IList<TaskInventoryItem> items = new List<TaskInventoryItem>(Items.Values);
+            Items.Clear();
+
+            foreach (TaskInventoryItem item in items)
+            {
+                item.ParentPartID = m_part.UUID;
+                item.ParentID = m_part.UUID;
+                Items.Add(item.ItemID, item);
+            }
+            m_items.LockItemsForWrite(false);
+        }
+
         /// <summary>
         /// Change every item in this inventory to a new owner.
         /// </summary>
