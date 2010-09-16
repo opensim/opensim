@@ -696,6 +696,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (node.Attributes["UUID"] != null)
                     {
                         UUID itemid = new UUID(node.Attributes["UUID"].Value);
+						m_log.DebugFormat("[SCRIPT STATE]: Adding state for oldID {0}", itemid);
                         m_savedScriptState.Add(itemid, node.InnerXml);
                     }
                 } 
