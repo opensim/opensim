@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Xml;
 using System.Xml.Serialization;
@@ -1564,7 +1564,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// must be handled by the caller.
         /// 
         /// <param name="silent">If true then deletion is not broadcast to clients</param>
-        public void DeleteGroup(bool silent)
+        public void DeleteGroupFromScene(bool silent)
         {
             // We need to keep track of this state in case this group is still queued for backup.
             m_isDeleted = true;
@@ -1572,28 +1572,25 @@ namespace OpenSim.Region.Framework.Scenes
             DetachFromBackup();
 
             lockPartsForRead(true);
-            List<SceneObjectPart> values = new List<SceneObjectPart>(m_parts.Values);
+            List<SceneObjectPart> parts = new List<SceneObjectPart>(m_parts.Values);
             lockPartsForRead(false);
             
-            foreach (SceneObjectPart part in values)
+            foreach (SceneObjectPart part in parts)
             {
-//                    part.Inventory.RemoveScriptInstances();
-                
-                Scene.ForEachScenePresence(delegate (ScenePresence sp)
+                Scene.ForEachScenePresence(delegate (ScenePresence avatar)
                 {
-                    if (sp.ParentID == LocalId)
+                    if (avatar.ParentID == LocalId)
                     {
-                        sp.StandUp();
+                        avatar.StandUp();
                     }
 
                     if (!silent)
                     {
                         part.UpdateFlag = 0;
                         if (part == m_rootPart)
-                            sp.ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
+                            avatar.ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
                     }
                 });
-                
             }
             
           

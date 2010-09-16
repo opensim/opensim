@@ -105,7 +105,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (permissionToDelete)
             {
                 foreach (SceneObjectGroup g in objectGroups)
-                    g.DeleteGroup(false);
+                    g.DeleteGroupFromScene(false);
             }
         }
         
