@@ -291,8 +291,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 // Check if the user is online
                 if (client.Scene is Scene)
                 {
-                    OpenSim.Services.Interfaces.PresenceInfo presence = ((Scene)client.Scene).PresenceService.GetAgent(avatarID);
-                    if (presence != null)
+                    OpenSim.Services.Interfaces.PresenceInfo[] presences = ((Scene)client.Scene).PresenceService.GetAgents(new string[] { avatarID.ToString() });
+                    if (presences != null && presences.Length > 0)
                         flags |= ProfileFlags.Online;
                 }
 
