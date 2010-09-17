@@ -167,11 +167,11 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         public void RemoveOrUpdateDeletedEntity(SceneObjectGroup group)
         {
             // Deal with new parts not revisioned that have been deleted.
-            lock (group.Children)
+            SceneObjectPart[] parts = group.Parts;
+            for (int i = 0; i < parts.Length; i++)
             {
-                foreach (SceneObjectPart part in group.Children.Values)
-                    if (m_MetaEntityCollection.Auras.ContainsKey(part.UUID))
-                        m_MetaEntityCollection.RemoveNewlyCreatedEntityAura(part.UUID);
+                if (m_MetaEntityCollection.Auras.ContainsKey(parts[i].UUID))
+                        m_MetaEntityCollection.RemoveNewlyCreatedEntityAura(parts[i].UUID);
             }
         }
 
@@ -210,12 +210,10 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                 {
                     temp = SceneObjectSerializer.FromXml2Format(xml);
                     temp.SetScene(scene);
-                    
-                    lock (temp.Children)
-                    {
-                        foreach (SceneObjectPart part in temp.Children.Values)
-                            part.RegionHandle = scene.RegionInfo.RegionHandle;
-                    }
+
+                    SceneObjectPart[] parts = temp.Parts;
+                    for (int i = 0; i < parts.Length; i++)
+                        parts[i].RegionHandle = scene.RegionInfo.RegionHandle;
                     
                     ReplacementList.Add(temp.UUID, (EntityBase)temp);
                 }
@@ -346,17 +344,16 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
             System.Collections.ArrayList auraList = new System.Collections.ArrayList();
             if (group == null)
                 return null;
-            
-            lock (group.Children)
+
+            SceneObjectPart[] parts = group.Parts;
+            for (int i = 0; i < parts.Length; i++)
             {
-                foreach (SceneObjectPart part in group.Children.Values)
+                SceneObjectPart part = parts[i];
+                if (m_MetaEntityCollection.Auras.ContainsKey(part.UUID))
                 {
-                    if (m_MetaEntityCollection.Auras.ContainsKey(part.UUID))
-                    {
-                        ((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]).SetAura(new Vector3(0,254,0), part.Scale);
-                        ((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]).RootPart.GroupPosition = part.GetWorldPosition();
-                        auraList.Add((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]);
-                    }
+                    ((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]).SetAura(new Vector3(0, 254, 0), part.Scale);
+                    ((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]).RootPart.GroupPosition = part.GetWorldPosition();
+                    auraList.Add((AuraMetaEntity)m_MetaEntityCollection.Auras[part.UUID]);
                 }
             }
             

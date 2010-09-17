@@ -98,10 +98,9 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
 
         #region Public Properties
 
-        public Dictionary<UUID, SceneObjectPart> Children
+        public SceneObjectPart[] Parts
         {
-            get { return m_Entity.Children; }
-            set { m_Entity.Children = value; }
+            get { return m_Entity.Parts; }
         }
 
         public uint LocalId
@@ -150,19 +149,17 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         {
             //make new uuids
             Dictionary<UUID, SceneObjectPart> parts = new Dictionary<UUID, SceneObjectPart>();
-            
-            lock (m_Entity.Children)
+
+            foreach (SceneObjectPart part in m_Entity.Parts)
             {
-                foreach (SceneObjectPart part in m_Entity.Children.Values)
-                {
-                    part.ResetIDs(part.LinkNum);
-                    parts.Add(part.UUID, part);
-                }
-                
-                //finalize
-                m_Entity.RootPart.PhysActor = null;
-                m_Entity.Children = parts;
+                part.ResetIDs(part.LinkNum);
+                parts.Add(part.UUID, part);
             }
+
+            //finalize
+            m_Entity.RootPart.PhysActor = null;
+            foreach (SceneObjectPart part in parts.Values)
+                m_Entity.AddPart(part);
         }
 
         #endregion Protected Methods
@@ -177,11 +174,8 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
             //This deletes the group without removing from any databases.
             //This is important because we are not IN any database.
             //m_Entity.FakeDeleteGroup();
-            lock (m_Entity.Children)
-            {
-                foreach (SceneObjectPart part in m_Entity.Children.Values)
-                    client.SendKillObject(m_Entity.RegionHandle, part.LocalId);
-            }
+            foreach (SceneObjectPart part in m_Entity.Parts)
+                client.SendKillObject(m_Entity.RegionHandle, part.LocalId);
         }
 
         /// <summary>
@@ -189,15 +183,12 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         /// </summary>
         public virtual void HideFromAll()
         {
-            lock (m_Entity.Children)
+            foreach (SceneObjectPart part in m_Entity.Parts)
             {
-                foreach (SceneObjectPart part in m_Entity.Children.Values)
-                {
-                    m_Entity.Scene.ForEachClient(
-                        delegate(IClientAPI controller)
-                        { controller.SendKillObject(m_Entity.RegionHandle, part.LocalId); }
-                    );
-                }
+                m_Entity.Scene.ForEachClient(
+                    delegate(IClientAPI controller)
+                    { controller.SendKillObject(m_Entity.RegionHandle, part.LocalId); }
+                );
             }
         }
 

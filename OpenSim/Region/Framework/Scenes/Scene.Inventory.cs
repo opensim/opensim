@@ -2051,9 +2051,7 @@ namespace OpenSim.Region.Framework.Scenes
                     sog.SetGroup(groupID, remoteClient);
                     sog.ScheduleGroupForFullUpdate();
 
-                    List<SceneObjectPart> partList = null;
-                    lock (sog.Children)
-                        partList = new List<SceneObjectPart>(sog.Children.Values);
+                    SceneObjectPart[] partList = sog.Parts;
                     
                     foreach (SceneObjectPart child in partList)
                         child.Inventory.ChangeInventoryOwner(ownerID);
@@ -2066,9 +2064,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (sog.GroupID != groupID)
                         continue;
                     
-                    List<SceneObjectPart> partList = null;
-                    lock (sog.Children)
-                        partList = new List<SceneObjectPart>(sog.Children.Values);
+                    SceneObjectPart[] partList = sog.Parts;
 
                     foreach (SceneObjectPart child in partList)
                     {

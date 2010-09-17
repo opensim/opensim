@@ -158,16 +158,15 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteEndElement();
             writer.WriteStartElement(String.Empty, "OtherParts", String.Empty);
 
-            lock (sceneObject.Children)
+            SceneObjectPart[] parts = sceneObject.Parts;
+            for (int i = 0; i < parts.Length; i++)
             {
-                foreach (SceneObjectPart part in sceneObject.Children.Values)
+                SceneObjectPart part = parts[i];
+                if (part.UUID != sceneObject.RootPart.UUID)
                 {
-                    if (part.UUID != sceneObject.RootPart.UUID)
-                    {
-                        writer.WriteStartElement(String.Empty, "Part", String.Empty);
-                        ToOriginalXmlFormat(part, writer);
-                        writer.WriteEndElement();
-                    }
+                    writer.WriteStartElement(String.Empty, "Part", String.Empty);
+                    ToOriginalXmlFormat(part, writer);
+                    writer.WriteEndElement();
                 }
             }
 
@@ -281,15 +280,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             sceneObject.RootPart.ToXml(writer);
             writer.WriteStartElement(String.Empty, "OtherParts", String.Empty);
 
-            lock (sceneObject.Children)
+            SceneObjectPart[] parts = sceneObject.Parts;
+            for (int i = 0; i < parts.Length; i++)
             {
-                foreach (SceneObjectPart part in sceneObject.Children.Values)
-                {
-                    if (part.UUID != sceneObject.RootPart.UUID)
-                    {
-                        part.ToXml(writer);
-                    }
-                }
+                SceneObjectPart part = parts[i];
+                if (part.UUID != sceneObject.RootPart.UUID)
+                    part.ToXml(writer);
             }
 
             writer.WriteEndElement(); // End of OtherParts

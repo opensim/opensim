@@ -193,11 +193,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
                 int i = 0;
                     
-                List<SceneObjectPart> partList = null;
-                lock (my.ParentGroup.Children)
-                    partList = new List<SceneObjectPart>(my.ParentGroup.Children.Values);
-                    
-                foreach (SceneObjectPart part in partList)
+                foreach (SceneObjectPart part in my.ParentGroup.Parts)
                 {
                     rets[i++] = new SOPObject(m_rootScene, part.LocalId, m_security);
                 }

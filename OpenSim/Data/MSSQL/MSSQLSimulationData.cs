@@ -241,7 +241,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="regionUUID"></param>
         public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
-            _Log.DebugFormat("[MSSQL]: Adding/Changing SceneObjectGroup: {0} to region: {1}, object has {2} prims.", obj.UUID, regionUUID, obj.Children.Count);
+            _Log.DebugFormat("[MSSQL]: Adding/Changing SceneObjectGroup: {0} to region: {1}, object has {2} prims.", obj.UUID, regionUUID, obj.Parts.Length);
 
             using (SqlConnection conn = new SqlConnection(m_connectionString))
             {
@@ -250,7 +250,7 @@ namespace OpenSim.Data.MSSQL
 
                 try
                 {
-                    foreach (SceneObjectPart sceneObjectPart in obj.Children.Values)
+                    foreach (SceneObjectPart sceneObjectPart in obj.Parts)
                     {
                         //Update prim
                         using (SqlCommand sqlCommand = conn.CreateCommand())

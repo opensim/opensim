@@ -236,8 +236,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             case ScriptBaseClass.LINK_SET:
                 if (m_host.ParentGroup != null)
                 {
-                    lock (m_host.ParentGroup.Children)
-                        return new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                    return new List<SceneObjectPart>(m_host.ParentGroup.Parts);
                 }
                 return ret;
 
@@ -254,8 +253,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (m_host.ParentGroup ==  null)
                     return new List<SceneObjectPart>();
                 
-                lock (m_host.ParentGroup.Children)
-                    ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                ret = new List<SceneObjectPart>(m_host.ParentGroup.Parts);
                 
                 if (ret.Contains(m_host))
                     ret.Remove(m_host);
@@ -265,8 +263,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (m_host.ParentGroup ==  null)
                     return new List<SceneObjectPart>();
                 
-                lock (m_host.ParentGroup.Children)
-                    ret = new List<SceneObjectPart>(m_host.ParentGroup.Children.Values);
+                ret = new List<SceneObjectPart>(m_host.ParentGroup.Parts);
                 
                 if (ret.Contains(m_host.ParentGroup.RootPart))
                     ret.Remove(m_host.ParentGroup.RootPart);
@@ -1187,16 +1184,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (group == null)
                         return;
                     bool allow = true;
-                    
-                    lock (group.Children)
+
+                    foreach (SceneObjectPart part in group.Parts)
                     {
-                        foreach (SceneObjectPart part in group.Children.Values)
+                        if (part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
                         {
-                            if (part.Scale.X > World.m_maxPhys || part.Scale.Y > World.m_maxPhys || part.Scale.Z > World.m_maxPhys)
-                            {
-                                allow = false;
-                                break;
-                            }
+                            allow = false;
+                            break;
                         }
                     }
 
@@ -3617,18 +3611,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 case ScriptBaseClass.LINK_ALL_OTHERS:
                 case ScriptBaseClass.LINK_ALL_CHILDREN:
                 case ScriptBaseClass.LINK_THIS:
-                    lock (parentPrim.Children)
+                    foreach (SceneObjectPart part in parentPrim.Parts)
                     {
-                        foreach (SceneObjectPart part in parentPrim.Children.Values)
+                        if (part.UUID != m_host.UUID)
                         {
-                            if (part.UUID != m_host.UUID)
-                            {
-                                childPrim = part;
-                                break;
-                            }
+                            childPrim = part;
+                            break;
                         }
-                        break;
                     }
+                    break;
                 default:
                     childPrim = parentPrim.GetLinkNumPart(linknum);
                     if (childPrim.UUID == m_host.UUID)
@@ -3639,30 +3630,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (linknum == ScriptBaseClass.LINK_ROOT)
             {
                 // Restructuring Multiple Prims.
-                lock (parentPrim.Children)
+                List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Parts);
+                parts.Remove(parentPrim.RootPart);
+                foreach (SceneObjectPart part in parts)
                 {
-                    List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Children.Values);
-                    parts.Remove(parentPrim.RootPart);
+                    parentPrim.DelinkFromGroup(part.LocalId, true);
+                }
+                parentPrim.HasGroupChanged = true;
+                parentPrim.ScheduleGroupForFullUpdate();
+                parentPrim.TriggerScriptChangedEvent(Changed.LINK);
+
+                if (parts.Count > 0)
+                {
+                    SceneObjectPart newRoot = parts[0];
+                    parts.Remove(newRoot);
                     foreach (SceneObjectPart part in parts)
                     {
-                        parentPrim.DelinkFromGroup(part.LocalId, true);
+                        part.UpdateFlag = 0;
+                        newRoot.ParentGroup.LinkToGroup(part.ParentGroup);
                     }
-                    parentPrim.HasGroupChanged = true;
-                    parentPrim.ScheduleGroupForFullUpdate();
-                    parentPrim.TriggerScriptChangedEvent(Changed.LINK);
-    
-                    if (parts.Count > 0)
-                    {
-                        SceneObjectPart newRoot = parts[0];
-                        parts.Remove(newRoot);
-                        foreach (SceneObjectPart part in parts)
-                        {
-                            part.UpdateFlag = 0;
-                            newRoot.ParentGroup.LinkToGroup(part.ParentGroup);
-                        }
-                        newRoot.ParentGroup.HasGroupChanged = true;
-                        newRoot.ParentGroup.ScheduleGroupForFullUpdate();
-                    }
+                    newRoot.ParentGroup.HasGroupChanged = true;
+                    newRoot.ParentGroup.ScheduleGroupForFullUpdate();
                 }
             }
             else
@@ -3684,19 +3672,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (parentPrim.RootPart.AttachmentPoint != 0)
                 return; // Fail silently if attached
 
-            lock (parentPrim.Children)
+            List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Parts);
+            parts.Remove(parentPrim.RootPart);
+
+            foreach (SceneObjectPart part in parts)
             {
-                List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Children.Values);
-                parts.Remove(parentPrim.RootPart);
-    
-                foreach (SceneObjectPart part in parts)
-                {
-                    parentPrim.DelinkFromGroup(part.LocalId, true);
-                    parentPrim.TriggerScriptChangedEvent(Changed.LINK);
-                }
-                parentPrim.HasGroupChanged = true;
-                parentPrim.ScheduleGroupForFullUpdate();
+                parentPrim.DelinkFromGroup(part.LocalId, true);
+                parentPrim.TriggerScriptChangedEvent(Changed.LINK);
             }
+            parentPrim.HasGroupChanged = true;
+            parentPrim.ScheduleGroupForFullUpdate();
         }
 
         public LSL_String llGetLinkKey(int linknum)

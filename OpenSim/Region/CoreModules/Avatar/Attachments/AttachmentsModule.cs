@@ -567,13 +567,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             so.RootPart.AttachedAvatar = avatar.UUID;
 
             //Anakin Lohner bug #3839 
-            lock (so.Children)
-            {
-                foreach (SceneObjectPart p in so.Children.Values)
-                {
-                    p.AttachedAvatar = avatar.UUID;
-                }
-            }
+            SceneObjectPart[] parts = so.Parts;
+            for (int i = 0; i < parts.Length; i++)
+                parts[i].AttachedAvatar = avatar.UUID;
 
             if (so.RootPart.PhysActor != null)
             {

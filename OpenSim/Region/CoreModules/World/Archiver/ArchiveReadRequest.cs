@@ -243,11 +243,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // to the same scene (when this is possible).
                 sceneObject.ResetIDs();
 
-                List<SceneObjectPart> partList = null;
-                lock (sceneObject.Children)
-                    partList = new List<SceneObjectPart>(sceneObject.Children.Values);
-                
-                foreach (SceneObjectPart part in partList)
+                foreach (SceneObjectPart part in sceneObject.Parts)
                 {
                     if (!ResolveUserUuid(part.CreatorID))
                         part.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;

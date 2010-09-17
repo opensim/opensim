@@ -144,7 +144,7 @@ namespace OpenSim.Data.MySQL
                     dbcon.Open();
                     MySqlCommand cmd = dbcon.CreateCommand();
 
-                    foreach (SceneObjectPart prim in obj.Children.Values)
+                    foreach (SceneObjectPart prim in obj.Parts)
                     {
                         cmd.Parameters.Clear();
 

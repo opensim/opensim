@@ -161,11 +161,8 @@ namespace OpenSim.Region.Framework.Scenes
                         bool foundPrim = false;
                         
                         SceneObjectGroup sog = ent as SceneObjectGroup;
-                        
-                        List<SceneObjectPart> partList = null;
-                        lock (sog.Children)
-                            partList = new List<SceneObjectPart>(sog.Children.Values);
 
+                        SceneObjectPart[] partList = sog.Parts;
                         foreach (SceneObjectPart part in partList)
                         {
                             if (part.LocalId == primLocalID) 

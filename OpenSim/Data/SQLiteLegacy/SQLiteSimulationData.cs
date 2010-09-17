@@ -335,7 +335,7 @@ namespace OpenSim.Data.SQLiteLegacy
 
             lock (ds)
             {
-                foreach (SceneObjectPart prim in obj.Children.Values)
+                foreach (SceneObjectPart prim in obj.Parts)
                 {
 //                    m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
                     addPrim(prim, obj.UUID, regionUUID);

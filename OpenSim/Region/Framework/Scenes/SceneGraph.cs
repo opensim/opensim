@@ -348,9 +348,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (Entities.ContainsKey(sceneObject.UUID))
                 return false;
 
-            List<SceneObjectPart> children;
-            lock (sceneObject.Children)
-                children = new List<SceneObjectPart>(sceneObject.Children.Values);
+            SceneObjectPart[] children = sceneObject.Parts;
 
             // Clamp child prim sizes and add child prims to the m_numPrim count
             if (m_parentScene.m_clampPrimSize)
@@ -369,7 +367,7 @@ namespace OpenSim.Region.Framework.Scenes
                     part.Shape.Scale = scale;
                 }
             }
-            m_numPrim += children.Count;
+            m_numPrim += children.Length;
 
             sceneObject.AttachToScene(m_parentScene);
 
@@ -426,15 +424,17 @@ namespace OpenSim.Region.Framework.Scenes
 
             lock (SceneObjectGroupsByFullID)
             {
-                foreach (SceneObjectPart part in grp.Children.Values)
-                    SceneObjectGroupsByFullID.Remove(part.UUID);
+                SceneObjectPart[] parts = grp.Parts;
+                for (int i = 0; i < parts.Length; i++)
+                    SceneObjectGroupsByFullID.Remove(parts[i].UUID);
                 SceneObjectGroupsByFullID.Remove(grp.RootPart.UUID);
             }
 
             lock (SceneObjectGroupsByLocalID)
             {
-                foreach (SceneObjectPart part in grp.Children.Values)
-                    SceneObjectGroupsByLocalID.Remove(part.LocalId);
+                SceneObjectPart[] parts = grp.Parts;
+                for (int i = 0; i < parts.Length; i++)
+                    SceneObjectGroupsByLocalID.Remove(parts[i].LocalId);
                 SceneObjectGroupsByLocalID.Remove(grp.RootPart.LocalId);
             }
 
@@ -887,11 +887,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (sog != null)
             {
-                lock (sog.Children)
-                {
-                    if (sog.Children.ContainsKey(fullID))
-                        return sog;
-                }
+                if (sog.ContainsPart(fullID))
+                    return sog;
 
                 lock (SceneObjectGroupsByFullID)
                     SceneObjectGroupsByFullID.Remove(fullID);
@@ -965,7 +962,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (entity is SceneObjectGroup)
                     {
-                        foreach (SceneObjectPart p in ((SceneObjectGroup)entity).GetParts())
+                        foreach (SceneObjectPart p in ((SceneObjectGroup)entity).Parts)
                         {
                             if (p.Name == name)
                             {
@@ -1626,14 +1623,8 @@ namespace OpenSim.Region.Framework.Scenes
                     //
                     SceneObjectGroup group = root.ParentGroup;
                     
-                    List<SceneObjectPart> newSet = null;
-                    int numChildren = -1;
-                    
-                    lock (group.Children)
-                    {
-                        newSet = new List<SceneObjectPart>(group.Children.Values);
-                        numChildren = group.PrimCount;
-                    }
+                    List<SceneObjectPart> newSet = new List<SceneObjectPart>(group.Parts);
+                    int numChildren = newSet.Count;
 
                     // If there are prims left in a link set, but the root is
                     // slated for unlink, we need to do this
@@ -1711,16 +1702,13 @@ namespace OpenSim.Region.Framework.Scenes
                 if (ent is SceneObjectGroup)
                 {
                     SceneObjectGroup sog = ent as SceneObjectGroup;
-                    
-                    lock (sog.Children)
+
+                    foreach (SceneObjectPart part in sog.Parts)
                     {
-                        foreach (KeyValuePair<UUID, SceneObjectPart> subent in sog.Children)
+                        if (part.LocalId == localID)
                         {
-                            if (subent.Value.LocalId == localID)
-                            {
-                                objid = subent.Key;
-                                obj = subent.Value;
-                            }
+                            objid = part.UUID;
+                            obj = part;
                         }
                     }
                 }
@@ -1796,8 +1784,7 @@ namespace OpenSim.Region.Framework.Scenes
                         copy.SetOwnerId(AgentID);
                         copy.SetRootPartOwner(copy.RootPart, AgentID, GroupID);
 
-                        List<SceneObjectPart> partList =
-                            new List<SceneObjectPart>(copy.Children.Values);
+                        SceneObjectPart[] partList = copy.Parts;
 
                         if (m_parentScene.Permissions.PropagatePermissions())
                         {
@@ -1822,7 +1809,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // think it's selected, so it will never send a deselect...
                     copy.IsSelected = false;
 
-                    m_numPrim += copy.Children.Count;
+                    m_numPrim += copy.Parts.Length;
 
                     if (rot != Quaternion.Identity)
                     {
