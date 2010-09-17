@@ -1533,7 +1533,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 lock (m_entityUpdates.SyncRoot)
                 {
                     m_killRecord.Add(localID);
-                    OutPacket(kill, ThrottleOutPacketType.State);
+                    
+                    // The throttle queue used here must match that being used for updates.  Otherwise, there is a 
+                    // chance that a kill packet put on a separate queue will be sent to the client before an existing
+                    // update packet on another queue.  Receiving updates after kills results in unowned and undeletable
+                    // scene objects in a viewer until that viewer is relogged in.
+                    OutPacket(kill, ThrottleOutPacketType.Task);
                 }
             }
         }

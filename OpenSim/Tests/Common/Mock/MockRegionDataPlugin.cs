@@ -163,7 +163,7 @@ namespace OpenSim.Data.Null
             // We can't simply store groups here because on delinking, OpenSim will not update the original group
             // directly.  Rather, the newly delinked parts will be updated to be in their own scene object group
             // Therefore, we need to store parts rather than groups.
-            foreach (SceneObjectPart prim in obj.Children.Values)
+            foreach (SceneObjectPart prim in obj.Parts)
             {
                 m_log.DebugFormat(
                     "[MOCK REGION DATA PLUGIN]: Storing part {0} {1} in object {2} {3} in region {4}", 

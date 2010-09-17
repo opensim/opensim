@@ -186,12 +186,9 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                 ((ContentManagementEntity)m_model.MetaEntityCollection.Entities[group.UUID]).SendFullDiffUpdateToAll();
 
             // Deal with new parts not revisioned that have been deleted.
-            lock (group.Children)
-            {
-                foreach (SceneObjectPart part in group.Children.Values)
-                    if (m_model.MetaEntityCollection.Auras.ContainsKey(part.UUID))
-                        ((AuraMetaEntity)m_model.MetaEntityCollection.Auras[part.UUID]).HideFromAll();
-            }
+            foreach (SceneObjectPart part in group.Parts)
+                if (m_model.MetaEntityCollection.Auras.ContainsKey(part.UUID))
+                    ((AuraMetaEntity)m_model.MetaEntityCollection.Auras[part.UUID]).HideFromAll();
         }
 
         public void SendMetaEntitiesToNewClient(IClientAPI client)

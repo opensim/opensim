@@ -128,14 +128,9 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                 group.SetOwnerId(remoteClient.AgentId);
                 group.SetRootPartOwner(part, remoteClient.AgentId, remoteClient.ActiveGroupId);
 
-                List<SceneObjectPart> partList = null;
-                
-                lock (group.Children)
-                    partList = new List<SceneObjectPart>(group.Children.Values);
-
                 if (m_scene.Permissions.PropagatePermissions())
                 {
-                    foreach (SceneObjectPart child in partList)
+                    foreach (SceneObjectPart child in group.Parts)
                     {
                         child.Inventory.ChangeInventoryOwner(remoteClient.AgentId);
                         child.TriggerScriptChangedEvent(Changed.OWNER);

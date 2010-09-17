@@ -232,15 +232,15 @@ namespace OpenSim.Data.Tests
             sog.AddPart(p2);
             sog.AddPart(p3);
             
-            SceneObjectPart[] parts = sog.GetParts();
+            SceneObjectPart[] parts = sog.Parts;
             Assert.That(parts.Length,Is.EqualTo(4), "Assert.That(parts.Length,Is.EqualTo(4))");
             
             db.StoreObject(sog, newregion);
             List<SceneObjectGroup> sogs = db.LoadObjects(newregion);
             Assert.That(sogs.Count,Is.EqualTo(1), "Assert.That(sogs.Count,Is.EqualTo(1))");
             SceneObjectGroup newsog = sogs[0];
-                        
-            SceneObjectPart[] newparts = newsog.GetParts();
+
+            SceneObjectPart[] newparts = newsog.Parts;
             Assert.That(newparts.Length,Is.EqualTo(4), "Assert.That(newparts.Length,Is.EqualTo(4))");
             
             Assert.That(newsog.HasChildPrim(tmp0), "Assert.That(newsog.HasChildPrim(tmp0))");
@@ -560,7 +560,7 @@ namespace OpenSim.Data.Tests
             }
             
             SceneObjectGroup retsog = FindSOG("Test SOG", region4);
-            SceneObjectPart[] parts = retsog.GetParts();
+            SceneObjectPart[] parts = retsog.Parts;
             for (int i=0;i<30;i++)
             {
                 SceneObjectPart cursop = mydic[parts[i].UUID];
@@ -607,7 +607,7 @@ namespace OpenSim.Data.Tests
             sog.AddPart(p2);
             sog.AddPart(p3);
 
-            SceneObjectPart[] parts = sog.GetParts();
+            SceneObjectPart[] parts = sog.Parts;
             Assert.That(parts.Length, Is.EqualTo(4), "Assert.That(parts.Length,Is.EqualTo(4))");
 
             db.StoreObject(sog, newregion);
@@ -615,7 +615,7 @@ namespace OpenSim.Data.Tests
             Assert.That(sogs.Count, Is.EqualTo(1), "Assert.That(sogs.Count,Is.EqualTo(1))");
             SceneObjectGroup newsog = sogs[0];
 
-            SceneObjectPart[] newparts = newsog.GetParts();
+            SceneObjectPart[] newparts = newsog.Parts;
             Assert.That(newparts.Length, Is.EqualTo(4), "Assert.That(newparts.Length,Is.EqualTo(4))");
 
             Assert.That(newsog, Constraints.PropertyCompareConstraint(sog)
@@ -625,7 +625,7 @@ namespace OpenSim.Data.Tests
                 .IgnoreProperty(x=>x.RegionHandle)
                 .IgnoreProperty(x=>x.RegionUUID)
                 .IgnoreProperty(x=>x.Scene)
-                .IgnoreProperty(x=>x.Children)
+                .IgnoreProperty(x=>x.Parts)
                 .IgnoreProperty(x=>x.PassCollision)
                 .IgnoreProperty(x=>x.RootPart));
         }

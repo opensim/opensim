@@ -84,7 +84,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public List<InventoryItemBase> getInventoryInFolder(UUID folderID)
         {
-            InventoryFolderBase folder = m_folders[folderID];
+//            InventoryFolderBase folder = m_folders[folderID];
             
 //            m_log.DebugFormat("[MOCK INV DB]: Getting items in folder {0} {1}", folder.Name, folder.ID);
             
@@ -116,7 +116,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public List<InventoryFolderBase> getInventoryFolders(UUID parentID)
         {
-            InventoryFolderBase parentFolder = m_folders[parentID];
+//            InventoryFolderBase parentFolder = m_folders[parentID];
             
 //            m_log.DebugFormat("[MOCK INV DB]: Getting folders in folder {0} {1}", parentFolder.Name, parentFolder.ID);
             
@@ -185,7 +185,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public void addInventoryItem(InventoryItemBase item) 
         {
-            InventoryFolderBase folder = m_folders[item.Folder];
+//            InventoryFolderBase folder = m_folders[item.Folder];
             
 //            m_log.DebugFormat(
 //                "[MOCK INV DB]: Adding inventory item {0} {1} in {2} {3}", item.Name, item.ID, folder.Name, folder.ID);

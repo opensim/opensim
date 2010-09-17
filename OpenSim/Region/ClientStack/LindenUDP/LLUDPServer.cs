@@ -500,6 +500,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // FIXME: Implement?
         }
 
+        /// <summary>
+        /// Actually send a packet to a client.
+        /// </summary>
+        /// <param name="outgoingPacket"></param>
         internal void SendPacketFinal(OutgoingPacket outgoingPacket)
         {
             UDPPacketBuffer buffer = outgoingPacket.Buffer;

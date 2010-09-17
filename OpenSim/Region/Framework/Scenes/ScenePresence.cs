@@ -1884,7 +1884,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If the primitive the player clicked on has no sit target, and one or more other linked objects have sit targets that are not full, the sit target of the object with the lowest link number will be used.
 
             // Get our own copy of the part array, and sort into the order we want to test
-            SceneObjectPart[] partArray = targetPart.ParentGroup.GetParts();
+            SceneObjectPart[] partArray = targetPart.ParentGroup.Parts;
             Array.Sort(partArray, delegate(SceneObjectPart p1, SceneObjectPart p2)
                        {
                            // we want the originally selected part first, then the rest in link order -- so make the selected part link num (-1)

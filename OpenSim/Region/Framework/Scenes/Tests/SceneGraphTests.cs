@@ -68,7 +68,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             SceneObjectGroup dupeSo 
                 = scene.SceneGraph.DuplicateObject(
                     part1.LocalId, new Vector3(10, 0, 0), 0, ownerId, UUID.Zero, Quaternion.Identity);
-            Assert.That(dupeSo.Children.Count, Is.EqualTo(2));
+            Assert.That(dupeSo.Parts.Length, Is.EqualTo(2));
             
             SceneObjectPart dupePart1 = dupeSo.GetLinkNumPart(1);
             SceneObjectPart dupePart2 = dupeSo.GetLinkNumPart(2);

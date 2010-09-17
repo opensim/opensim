@@ -1819,7 +1819,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_log.ErrorFormat(
                         "[SCENE]: Found a SceneObjectGroup with m_rootPart == null and {0} children",
-                        group.Children == null ? 0 : group.PrimCount);
+                        group.Parts == null ? 0 : group.PrimCount);
                 }
 
                 AddRestoredSceneObject(group, true, true);
@@ -2160,9 +2160,7 @@ namespace OpenSim.Region.Framework.Scenes
                 group.RemoveScriptInstances(true);
             }
 
-            List<SceneObjectPart> partList = null;
-            lock (group.Children)
-                partList = new List<SceneObjectPart>(group.Children.Values);
+            SceneObjectPart[] partList = group.Parts;
 
             foreach (SceneObjectPart part in partList)
             {
@@ -2540,11 +2538,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Force allocation of new LocalId
             //
-            lock (sceneObject.Children)
-            {
-                foreach (SceneObjectPart p in sceneObject.Children.Values)
-                    p.LocalId = 0;
-            }
+            SceneObjectPart[] parts = sceneObject.Parts;
+            for (int i = 0; i < parts.Length; i++)
+                parts[i].LocalId = 0;
 
             if (sceneObject.IsAttachmentCheckFull()) // Attachment
             {
