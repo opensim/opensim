@@ -1378,7 +1378,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectGroup dupe = (SceneObjectGroup)MemberwiseClone();
             dupe.m_isBackedUp = false;
-            dupe.m_parts.Clear();
+            dupe.m_parts = new MapAndArray<OpenMetaverse.UUID, SceneObjectPart>();
 
             // Warning, The following code related to previousAttachmentStatus is needed so that clones of 
             // attachments do not bordercross while they're being duplicated.  This is hacktastic!
