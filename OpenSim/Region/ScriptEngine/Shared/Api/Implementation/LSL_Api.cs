@@ -5601,78 +5601,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(5000);
         }
 
-        public LSL_List llParseString2List(string str, LSL_List separators, LSL_List in_spacers)
-        {
-            m_host.AddScriptLPS(1);
-            LSL_List ret = new LSL_List();
-            LSL_List spacers = new LSL_List();
-            if (in_spacers.Length > 0 && separators.Length > 0)
-            {
-                for (int i = 0; i < in_spacers.Length; i++)
-                {
-                    object s = in_spacers.Data[i];
-                    for (int j = 0; j < separators.Length; j++)
-                    {
-                        if (separators.Data[j].ToString() == s.ToString())
-                        {
-                            s = null;
-                            break;
-                        }
-                    }
-                    if (s != null)
-                    {
-                        spacers.Add(s);
-                    }
-                }
-            }
-            object[] delimiters = new object[separators.Length + spacers.Length];
-            separators.Data.CopyTo(delimiters, 0);
-            spacers.Data.CopyTo(delimiters, separators.Length);
-            bool dfound = false;
-            do
-            {
-                dfound = false;
-                int cindex = -1;
-                string cdeli = "";
-                for (int i = 0; i < delimiters.Length; i++)
-                {
-                    int index = str.IndexOf(delimiters[i].ToString());
-                    bool found = index != -1;
-                    if (found && String.Empty != delimiters[i].ToString())
-                    {
-                        if ((cindex > index) || (cindex == -1))
-                        {
-                            cindex = index;
-                            cdeli = delimiters[i].ToString();
-                        }
-                        dfound = dfound || found;
-                    }
-                }
-                if (cindex != -1)
-                {
-                    if (cindex > 0)
-                    {
-                        ret.Add(new LSL_String(str.Substring(0, cindex)));
-                    }
-                    // Cannot use spacers.Contains() because spacers may be either type String or LSLString
-                    for (int j = 0; j < spacers.Length; j++)
-                    {
-                        if (spacers.Data[j].ToString() == cdeli)
-                        {
-                            ret.Add(new LSL_String(cdeli));
-                            break;
-                        }
-                    }
-                    str = str.Substring(cindex + cdeli.Length);
-                }
-            } while (dfound);
-            if (str != "")
-            {
-                ret.Add(new LSL_String(str));
-            }
-            return ret;
-        }
-
         public LSL_Integer llOverMyLand(string id)
         {
             m_host.AddScriptLPS(1);
@@ -8436,7 +8364,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //  of arrays or other objects.
         //  </remarks>
 
-        public LSL_List llParseStringKeepNulls(string src, LSL_List separators, LSL_List spacers)
+        private LSL_List ParseString(string src, LSL_List separators, LSL_List spacers, bool keepNulls)
         {
             int         beginning = 0;
             int         srclen    = src.Length;
@@ -8455,8 +8383,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //    Initial capacity reduces resize cost
 
             LSL_List tokens = new LSL_List();
-
-            m_host.AddScriptLPS(1);
 
             //    All entries are initially valid
 
@@ -8529,14 +8455,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     // no markers were found on this pass
                     // so we're pretty much done
-                    tokens.Add(new LSL_String(src.Substring(beginning, srclen - beginning)));
+                    if ((keepNulls) || ((!keepNulls) && (srclen - beginning) > 0))
+                        tokens.Add(new LSL_String(src.Substring(beginning, srclen - beginning)));
                     break;
                 }
 
                 //    Otherwise we just add the newly delimited token
                 //    and recalculate where the search should continue.
-
-                tokens.Add(new LSL_String(src.Substring(beginning,offset[best]-beginning)));
+                if ((keepNulls) || ((!keepNulls) && (offset[best] - beginning) > 0))
+                    tokens.Add(new LSL_String(src.Substring(beginning,offset[best]-beginning)));
 
                 if (best < seplen)
                 {
@@ -8545,7 +8472,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 else
                 {
                     beginning = offset[best] + (spcarray[best - seplen].ToString()).Length;
-                    tokens.Add(new LSL_String(spcarray[best - seplen].ToString()));
+                    string str = spcarray[best - seplen].ToString();
+                    if ((keepNulls) || ((!keepNulls) && (str.Length > 0)))
+                        tokens.Add(new LSL_String(str));
                 }
             }
 
@@ -8555,7 +8484,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //    arduous. Alternatively the 'break' could be replced with a return
             //    but that's shabby programming.
 
-            if (beginning == srclen)
+            if ((beginning == srclen) && (keepNulls))
             {
                 if (srclen != 0)
                     tokens.Add(new LSL_String(""));
@@ -8563,7 +8492,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return tokens;
         }
-
+        
+        public LSL_List llParseString2List(string src, LSL_List separators, LSL_List spacers)
+        {
+            m_host.AddScriptLPS(1);
+            return this.ParseString(src, separators, spacers, false);
+        }
+        
+        public LSL_List llParseStringKeepNulls(string src, LSL_List separators, LSL_List spacers)
+        {
+            m_host.AddScriptLPS(1);
+            return this.ParseString(src, separators, spacers, true);
+        }
+        
         public LSL_Integer llGetObjectPermMask(int mask)
         {
             m_host.AddScriptLPS(1);
