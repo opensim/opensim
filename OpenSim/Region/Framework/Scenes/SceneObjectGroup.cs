@@ -112,7 +112,6 @@ namespace OpenSim.Region.Framework.Scenes
         private long m_minPersistTime = 0;
         private Random m_rand;
         private bool m_suspendUpdates;
-        private System.Threading.ReaderWriterLockSlim m_partsLock = new System.Threading.ReaderWriterLockSlim();        
         private List<ScenePresence> m_linkedAvatars = new List<ScenePresence>();
 
         public bool areUpdatesSuspended
