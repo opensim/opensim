@@ -1541,6 +1541,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     OutPacket(kill, ThrottleOutPacketType.Task);
                 }
             }
+            else
+            {
+                OutPacket(kill, ThrottleOutPacketType.State);
+            }
         }
 
         /// <summary>
