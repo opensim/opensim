@@ -500,7 +500,7 @@ namespace OpenSim.Region.Framework.Scenes
                 
                 // This is necessary so that TaskInventoryItem parent ids correctly reference the new uuid of this part
                 if (Inventory != null)
-                    Inventory.ResetInventoryIDs();
+                    Inventory.ResetObjectID();
             }
         }
 
@@ -2763,6 +2763,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID = UUID.Random();
             LinkNum = linkNum;
             LocalId = 0;
+			Inventory.ResetInventoryIDs();
         }
 
         /// <summary>
