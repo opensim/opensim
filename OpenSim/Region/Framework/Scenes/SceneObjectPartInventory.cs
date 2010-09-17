@@ -142,30 +142,29 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ResetObjectID()
         {
-            m_items.LockItemsForWrite(true);
-
-            if (Items.Count == 0)
+            lock (Items)
             {
-                m_items.LockItemsForWrite(false);
-                return;
+                if (Items.Count == 0)
+                {
+                    return;
+                }
+    
+                HasInventoryChanged = true;
+                if (m_part.ParentGroup != null)
+                {
+                    m_part.ParentGroup.HasGroupChanged = true;
+                }
+                
+                IList<TaskInventoryItem> items = new List<TaskInventoryItem>(Items.Values);
+                Items.Clear();
+    
+                foreach (TaskInventoryItem item in items)
+                {
+                    item.ParentPartID = m_part.UUID;
+                    item.ParentID = m_part.UUID;
+                    Items.Add(item.ItemID, item);
+                }
             }
-
-            HasInventoryChanged = true;
-            if (m_part.ParentGroup != null)
-            {
-                m_part.ParentGroup.HasGroupChanged = true;
-            }
-            
-            IList<TaskInventoryItem> items = new List<TaskInventoryItem>(Items.Values);
-            Items.Clear();
-
-            foreach (TaskInventoryItem item in items)
-            {
-                item.ParentPartID = m_part.UUID;
-                item.ParentID = m_part.UUID;
-                Items.Add(item.ItemID, item);
-            }
-            m_items.LockItemsForWrite(false);
         }
 
         /// <summary>
