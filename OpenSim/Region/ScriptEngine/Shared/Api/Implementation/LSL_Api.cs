@@ -5949,11 +5949,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(5000);
         }
 
-        public LSL_List llParseString2List(string str, LSL_List separators, LSL_List in_spacers)
-        {
-            return ParseString2List(str, separators, in_spacers, false);
-        }
-
         public LSL_Integer llOverMyLand(string id)
         {
             m_host.AddScriptLPS(1);
@@ -8936,7 +8931,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //  garbage generation.
         //  </remarks>
 
-        public LSL_List llParseStringKeepNulls(string src, LSL_List separators, LSL_List spacers)
+        private LSL_List ParseString(string src, LSL_List separators, LSL_List spacers, bool keepNulls)
         {
             return ParseString2List(src, separators, spacers, true);
         }
@@ -8957,19 +8952,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             int          i, j;
             string       d;
 
-            m_host.AddScriptLPS(1);
+            //    All entries are initially valid
 
-            /*
-             * Convert separator and spacer lists to C# strings.
-             * Also filter out null strings so we don't hang.
-             */
-            for (i = 0; i < seplen; i ++) {
-                d = separray[i].ToString();
-                if (d.Length > 0) {
-                    delarray[dellen++] = d;
-                }
-            }
-            seplen = dellen;
+            for (int i = 0; i < mlen; i++)
+                active[i] = true;
+
+            offset[mlen] = srclen;
+
+            while (beginning < srclen)
+            {
+
+                best = mlen;    // as bad as it gets
+
+                //    Scan for separators
 
             for (i = 0; i < spclen; i ++) {
                 d = spcarray[i].ToString();
@@ -9004,29 +8999,45 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
 
-                /*
-                 * Output source string starting at i through start of earliest delimeter.
-                 */
-                if (keepNulls || (earliestSrc > i)) {
-                    outarray[outlen++] = src.Substring(i, earliestSrc - i);
+                //    This is the normal exit from the scanning loop
+
+                if (best == mlen)
+                {
+                    // no markers were found on this pass
+                    // so we're pretty much done
+                    if ((keepNulls) || ((!keepNulls) && (srclen - beginning) > 0))
+                        tokens.Add(new LSL_String(src.Substring(beginning, srclen - beginning)));
+                    break;
                 }
 
-                /*
-                 * If no delimeter found at or after i, we're done scanning.
-                 */
-                if (earliestDel < 0) break;
+                //    Otherwise we just add the newly delimited token
+                //    and recalculate where the search should continue.
+                if ((keepNulls) || ((!keepNulls) && (offset[best] - beginning) > 0))
+                    tokens.Add(new LSL_String(src.Substring(beginning,offset[best]-beginning)));
 
-                /*
-                 * If delimeter was a spacer, output the spacer.
-                 */
-                if (earliestDel >= seplen) {
-                    outarray[outlen++] = earliestStr;
+                if (best < seplen)
+                {
+                    beginning = offset[best] + (separray[best].ToString()).Length;
                 }
+                else
+                {
+                    beginning = offset[best] + (spcarray[best - seplen].ToString()).Length;
+                    string str = spcarray[best - seplen].ToString();
+                    if ((keepNulls) || ((!keepNulls) && (str.Length > 0)))
+                        tokens.Add(new LSL_String(str));
+                }
+            }
 
-                /*
-                 * Look at rest of src string following delimeter.
-                 */
-                i = earliestSrc + earliestStr.Length;
+            //    This an awkward an not very intuitive boundary case. If the
+            //    last substring is a tokenizer, then there is an implied trailing
+            //    null list entry. Hopefully the single comparison will not be too
+            //    arduous. Alternatively the 'break' could be replced with a return
+            //    but that's shabby programming.
+
+            if ((beginning == srclen) && (keepNulls))
+            {
+                if (srclen != 0)
+                    tokens.Add(new LSL_String(""));
             }
 
             /*
@@ -9038,7 +9049,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             return new LSL_List(outlist);
         }
-
+        
+        public LSL_List llParseString2List(string src, LSL_List separators, LSL_List spacers)
+        {
+            m_host.AddScriptLPS(1);
+            return this.ParseString(src, separators, spacers, false);
+        }
+        
+        public LSL_List llParseStringKeepNulls(string src, LSL_List separators, LSL_List spacers)
+        {
+            m_host.AddScriptLPS(1);
+            return this.ParseString(src, separators, spacers, true);
+        }
+        
         public LSL_Integer llGetObjectPermMask(int mask)
         {
             m_host.AddScriptLPS(1);
