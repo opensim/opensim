@@ -30,6 +30,8 @@ using OpenSim.Framework;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using System;
+using System.Globalization;
+using System.Threading;
 
 namespace OpenSim.Framework.Tests
 {
@@ -265,7 +267,45 @@ namespace OpenSim.Framework.Tests
             Assert.That(fld.Owner == uuid2, "ID,Owner constructor failed to save value in ID field.");
         }
         
-        
+        [Test]
+        public void AsssetBaseConstructorTest01()
+        {
+            AssetBase abase = new AssetBase();
+            Assert.IsNotNull(abase.Metadata, "void constructor of AssetBase should have created a MetaData element but didn't.");
+            UUID itemID = UUID.Random();
+            UUID creatorID = UUID.Random();
+            abase = new AssetBase(itemID.ToString(), "test item", (sbyte) AssetType.Texture, creatorID.ToString());
+
+            Assert.IsNotNull(abase.Metadata, "string,string,sbyte,string constructor of AssetBase should have created a MetaData element but didn't.");
+            Assert.That(abase.ID == itemID.ToString(), "string,string,sbyte,string constructor failed to set ID property");
+            Assert.That(abase.Metadata.CreatorID == creatorID.ToString(), "string,string,sbyte,string constructor failed to set Creator ID");
+
+
+            abase = new AssetBase(itemID.ToString(), "test item", -1, creatorID.ToString());
+            Assert.IsNotNull(abase.Metadata, "string,string,sbyte,string constructor of AssetBase with unknown type should have created a MetaData element but didn't.");
+            Assert.That(abase.Metadata.Type == -1, "Unknown Type passed to string,string,sbyte,string constructor and was a known type when it came out again");
+
+            AssetMetadata metts = new AssetMetadata();
+            metts.FullID = itemID;
+            metts.ID = string.Empty;
+            metts.Name = "test item";
+            abase.Metadata = metts;
+
+            Assert.That(abase.ToString() == itemID.ToString(), "ToString is overriden to be fullID.ToString()");
+            Assert.That(abase.ID == itemID.ToString(),"ID should be MetaData.FullID.ToString() when string.empty or null is provided to the ID property");
+        }
+
+        [Test]
+        public void CultureSetCultureTest01()
+        {
+            CultureInfo ci = new CultureInfo("en-US", false);
+            Culture.SetCurrentCulture();
+            Assert.That(Thread.CurrentThread.CurrentCulture.Name == ci.Name, "SetCurrentCulture failed to set thread culture to en-US");
+
+        }
+
+       
+
     }
 }
 

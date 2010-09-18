@@ -54,9 +54,28 @@ namespace OpenSim.Framework.Tests
             Location TestLocation2 = new Location(1099511628032000);
             Assert.That(TestLocation1 == TestLocation2);
 
+            Assert.That(TestLocation2.X == 256000 && TestLocation2.Y == 256000, "Test xy location doesn't match regionhandle provided");
+
+            Assert.That(TestLocation2.RegionHandle == 1099511628032000,
+                        "Location RegionHandle Property didn't match regionhandle provided in constructor");
+
+
             TestLocation1 = new Location(256001, 256001);
             TestLocation2 = new Location(1099511628032000);
             Assert.That(TestLocation1 != TestLocation2);
+
+            Assert.That(TestLocation1.Equals(256001, 256001), "Equals(x,y) failed to match the position in the constructor");
+
+            Assert.That(TestLocation2.GetHashCode() == (TestLocation2.X.GetHashCode() ^ TestLocation2.Y.GetHashCode()), "GetHashCode failed to produce the expected hashcode");
+
+            Location TestLocation3;
+            object cln = TestLocation2.Clone();
+            TestLocation3 = (Location) cln;
+            Assert.That(TestLocation3.X == TestLocation2.X && TestLocation3.Y == TestLocation2.Y,
+                        "Cloned Location values do not match");
+
+            Assert.That(TestLocation2.Equals(cln), "Cloned object failed .Equals(obj) Test");
+
         }
         
     }
