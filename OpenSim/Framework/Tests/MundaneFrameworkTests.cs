@@ -29,12 +29,17 @@ using NUnit.Framework;
 using OpenSim.Framework;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using System;
 
 namespace OpenSim.Framework.Tests
 {
     [TestFixture]
     public class MundaneFrameworkTests
     {
+        private bool m_RegionSettingsOnSaveEventFired;
+        private bool m_RegionLightShareDataOnSaveEventFired;
+
+
         [Test]
         public void ChildAgentDataUpdate01()
         {
@@ -123,6 +128,141 @@ namespace OpenSim.Framework.Tests
             Assert.IsTrue(position2.Center == position1.Center, "Center didn't unpack the same way it packed");
             Assert.IsTrue(position2.Size == position1.Size, "Size didn't unpack the same way it packed");
 
+        }
+
+        [Test]
+        public void RegionSettingsTest01()
+        {
+            RegionSettings settings = new RegionSettings();
+            settings.OnSave += RegionSaveFired;
+            settings.Save();
+            settings.OnSave -= RegionSaveFired;
+
+            string str = settings.LoadedCreationDate;
+            int dt = settings.LoadedCreationDateTime;
+            string id = settings.LoadedCreationID;
+            string time = settings.LoadedCreationTime;
+
+            Assert.That(m_RegionSettingsOnSaveEventFired, "RegionSettings Save Event didn't Fire");
+            
+        }
+        public void RegionSaveFired(RegionSettings settings)
+        {
+            m_RegionSettingsOnSaveEventFired = true;
+        }
+        
+        [Test]
+        public void InventoryItemBaseConstructorTest01()
+        {
+            InventoryItemBase b1 = new InventoryItemBase();
+            Assert.That(b1.ID == UUID.Zero, "void constructor should create an inventory item with ID = UUID.Zero");
+            Assert.That(b1.Owner == UUID.Zero, "void constructor should create an inventory item with Owner = UUID.Zero");
+
+            UUID ItemID = UUID.Random();
+            UUID OwnerID = UUID.Random();
+            
+            InventoryItemBase b2 = new InventoryItemBase(ItemID);
+            Assert.That(b2.ID == ItemID, "ID constructor should create an inventory item with ID = ItemID");
+            Assert.That(b2.Owner == UUID.Zero, "ID constructor  should create an inventory item with Owner = UUID.Zero");
+
+            InventoryItemBase b3 = new InventoryItemBase(ItemID,OwnerID);
+            Assert.That(b3.ID == ItemID, "ID,OwnerID constructor should create an inventory item with ID = ItemID");
+            Assert.That(b3.Owner == OwnerID, "ID,OwnerID  constructor  should create an inventory item with Owner = OwnerID");
+
+        }
+
+        [Test]
+        public void AssetMetaDataNonNullContentTypeTest01()
+        {
+            AssetMetadata assetMetadata = new AssetMetadata();
+            assetMetadata.ContentType = "image/jp2";
+            Assert.That(assetMetadata.Type == (sbyte)AssetType.Texture, "Content type should be AssetType.Texture");
+            Assert.That(assetMetadata.ContentType == "image/jp2", "Text of content type should be image/jp2");
+            UUID rndID = UUID.Random();
+            assetMetadata.ID = rndID.ToString();
+            Assert.That(assetMetadata.ID.ToLower() == rndID.ToString().ToLower(), "assetMetadata.ID Setter/Getter not Consistent");
+            DateTime fixedTime = DateTime.Now;
+            assetMetadata.CreationDate = fixedTime;
+        }
+
+        [Test]
+        public void RegionLightShareDataCloneSaveTest01()
+        {
+            RegionLightShareData rlsd = new RegionLightShareData();
+            rlsd.OnSave += RegionLightShareDataSaveFired;
+            rlsd.Save();
+            rlsd.OnSave -= RegionLightShareDataSaveFired;
+            Assert.IsTrue(m_RegionLightShareDataOnSaveEventFired, "OnSave Event Never Fired");
+
+            object o = rlsd.Clone();
+            RegionLightShareData dupe = (RegionLightShareData) o;
+            Assert.IsTrue(rlsd.sceneGamma == dupe.sceneGamma, "Memberwise Clone of RegionLightShareData failed");
+        }
+        public void RegionLightShareDataSaveFired(RegionLightShareData settings)
+        {
+            m_RegionLightShareDataOnSaveEventFired = true;
+        }
+
+        [Test]
+        public void EstateSettingsMundateTests()
+        {
+            EstateSettings es = new EstateSettings();
+            es.AddBan(null);
+            UUID bannedUserId = UUID.Random();
+            es.AddBan(new EstateBan()
+                          {   BannedHostAddress = string.Empty,
+                              BannedHostIPMask = string.Empty,
+                              BannedHostNameMask = string.Empty,
+                              BannedUserID = bannedUserId}
+                          );
+            Assert.IsTrue(es.IsBanned(bannedUserId), "User Should be banned but is not.");
+            Assert.IsFalse(es.IsBanned(UUID.Zero), "User Should not be banned but is.");
+
+            es.RemoveBan(bannedUserId);
+
+            Assert.IsFalse(es.IsBanned(bannedUserId), "User Should not be banned but is.");
+
+            es.AddEstateManager(UUID.Zero);
+
+            es.AddEstateManager(bannedUserId);
+            Assert.IsTrue(es.IsEstateManager(bannedUserId), "bannedUserId should be EstateManager but isn't.");
+
+            es.RemoveEstateManager(bannedUserId);
+            Assert.IsFalse(es.IsEstateManager(bannedUserId), "bannedUserID is estateManager but shouldn't be");
+
+            Assert.IsFalse(es.HasAccess(bannedUserId), "bannedUserID has access but shouldn't");
+
+            es.AddEstateUser(bannedUserId);
+
+            Assert.IsTrue(es.HasAccess(bannedUserId), "bannedUserID doesn't have access but should");
+            es.RemoveEstateUser(bannedUserId);
+
+            es.AddEstateManager(bannedUserId);
+
+            Assert.IsTrue(es.HasAccess(bannedUserId), "bannedUserID doesn't have access but should");
+
+            Assert.That(es.EstateGroups.Length == 0, "No Estate Groups Added..   so the array should be 0 length");
+
+            es.AddEstateGroup(bannedUserId);
+
+            Assert.That(es.EstateGroups.Length == 1, "1 Estate Groups Added..   so the array should be 1 length");
+
+            Assert.That(es.EstateGroups[0] == bannedUserId,"User ID should be in EstateGroups");
+
+        }
+
+        [Test]
+        public void InventoryFolderBaseConstructorTest01()
+        {
+            UUID uuid1 = UUID.Random();
+            UUID uuid2 = UUID.Random();
+
+            InventoryFolderBase fld = new InventoryFolderBase(uuid1);
+            Assert.That(fld.ID == uuid1, "ID constructor failed to save value in ID field.");
+
+            fld = new InventoryFolderBase(uuid1, uuid2);
+            Assert.That(fld.ID == uuid1, "ID,Owner constructor failed to save value in ID field.");
+            Assert.That(fld.Owner == uuid2, "ID,Owner constructor failed to save value in ID field.");
         }
         
         

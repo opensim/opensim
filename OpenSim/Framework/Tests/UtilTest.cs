@@ -170,5 +170,63 @@ namespace OpenSim.Framework.Tests
             // Varying secrets should not eqal the same
             Assert.AreNotEqual(Util.GetHashGuid(string1, "secret1"), Util.GetHashGuid(string1, "secret2"));
         }
+
+        [Test]
+        public void SLUtilTests()
+        {
+            int[] assettypes = new int[]{-1,0,1,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22
+                                            ,23,24,25,46,47,48};
+            string[] contenttypes = new string[]
+                                        {
+                                  "application/octet-stream",
+                                  "image/x-j2c",
+                                  "audio/ogg",
+                                  "application/vnd.ll.callingcard",
+                                  "application/vnd.ll.landmark",
+                                  "application/vnd.ll.clothing",
+                                  "application/vnd.ll.primitive",
+                                  "application/vnd.ll.notecard",
+                                  "application/vnd.ll.folder",
+                                  "application/vnd.ll.rootfolder",
+                                  "application/vnd.ll.lsltext",
+                                  "application/vnd.ll.lslbyte",
+                                  "image/tga",
+                                  "application/vnd.ll.bodypart",
+                                  "application/vnd.ll.trashfolder",
+                                  "application/vnd.ll.snapshotfolder",
+                                  "application/vnd.ll.lostandfoundfolder",
+                                  "audio/x-wav",
+                                  "image/tga",
+                                  "image/jpeg",
+                                  "application/vnd.ll.animation",
+                                  "application/vnd.ll.gesture",
+                                  "application/x-metaverse-simstate",
+                                  "application/vnd.ll.favoritefolder",
+                                  "application/vnd.ll.link",
+                                  "application/vnd.ll.linkfolder",
+                                  "application/vnd.ll.currentoutfitfolder",
+                                  "application/vnd.ll.outfitfolder",
+                                  "application/vnd.ll.myoutfitsfolder"
+                    };
+            for (int i=0;i<assettypes.Length;i++)
+            {
+                Assert.That(SLUtil.SLAssetTypeToContentType(assettypes[i]) == contenttypes[i], "Expecting {0} but got {1}", contenttypes[i], SLUtil.SLAssetTypeToContentType(assettypes[i]));
+            }
+
+            for (int i = 0; i < contenttypes.Length; i++)
+            {
+                if (SLUtil.ContentTypeToSLAssetType(contenttypes[i]) == 18)
+                {
+                    Assert.That(contenttypes[i] == "image/tga");
+                }
+                else
+                {
+                    Assert.That(SLUtil.ContentTypeToSLAssetType(contenttypes[i]) == assettypes[i],
+                                "Expecting {0} but got {1}", assettypes[i],
+                                SLUtil.ContentTypeToSLAssetType(contenttypes[i]));
+                }
+            }
+
+        }
     }
 }
