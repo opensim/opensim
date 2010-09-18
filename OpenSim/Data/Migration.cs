@@ -138,12 +138,12 @@ namespace OpenSim.Data
         /// <param name="conn"></param>
         /// <param name="script">Array of strings, one-per-batch (often just one)</param>
         protected virtual void ExecuteScript(DbConnection conn, string[] script)
-        {
+        {            
             using (DbCommand cmd = conn.CreateCommand())
             {
                 cmd.CommandTimeout = 0;
                 foreach (string sql in script)
-                {
+                {                                      
                     cmd.CommandText = sql;
                     try
                     {
@@ -204,7 +204,7 @@ namespace OpenSim.Data
                 catch (Exception e)
                 {
                     m_log.DebugFormat("[MIGRATIONS]: Cmd was {0}", e.Message.Replace("\n", " "));
-                    m_log.Debug("[MIGRATIONS]: An error has occurred in the migration. This may mean you could see errors trying to run OpenSim. If you see database related errors, you will need to fix the issue manually. Continuing.");
+                    m_log.Debug("[MIGRATIONS]: An error has occurred in the migration.  If you're running OpenSim for the first time then you can probably safely ignore this, since certain migration commands attempt to fetch data out of old tables.  However, if you're using an existing database and you see database related errors while running OpenSim then you will need to fix these problems manually. Continuing.");
                     ExecuteScript("ROLLBACK;");
                 }
 
