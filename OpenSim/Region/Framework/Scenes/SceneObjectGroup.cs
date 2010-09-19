@@ -1029,7 +1029,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
-                Dictionary<UUID, string> pstates = parts[i].Inventory.GetScriptStates();
+                Dictionary<UUID, string> pstates = parts[i].Inventory.GetScriptStates(oldIDs);
                 foreach (KeyValuePair<UUID, string> kvp in pstates)
                     states.Add(kvp.Key, kvp.Value);
             }
