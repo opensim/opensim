@@ -1780,10 +1780,28 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            if ((int)InventoryType.LSL == invType)
-                if (m_allowedScriptCreators == UserSet.Administrators && !IsAdministrator(userID))
-                    return false;
-            
+            SceneObjectPart part = scene.GetSceneObjectPart(objectID);
+            ScenePresence p = scene.GetScenePresence(userID);
+
+            if (part == null || p == null)
+                return false;
+
+            if (!IsAdministrator(userID))
+            {
+                if (part.OwnerID != userID)
+                {
+                    // Group permissions
+                    if ((part.GroupID == UUID.Zero) || (p.ControllingClient.GetGroupPowers(part.GroupID) == 0) || ((part.GroupMask & (uint)PermissionMask.Modify) == 0))
+                        return false;
+                } else {
+                    if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                        return false;
+                }
+                if ((int)InventoryType.LSL == invType)
+                    if (m_allowedScriptCreators == UserSet.Administrators)
+                        return false;
+            }
+
             return true;
         }
         
