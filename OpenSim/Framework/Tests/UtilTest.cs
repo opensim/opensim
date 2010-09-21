@@ -170,5 +170,119 @@ namespace OpenSim.Framework.Tests
             // Varying secrets should not eqal the same
             Assert.AreNotEqual(Util.GetHashGuid(string1, "secret1"), Util.GetHashGuid(string1, "secret2"));
         }
+
+        [Test]
+        public void SLUtilTypeConvertTests()
+        {
+            int[] assettypes = new int[]{-1,0,1,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22
+                                            ,23,24,25,46,47,48};
+            string[] contenttypes = new string[]
+                                        {
+                                  "application/octet-stream",
+                                  "image/x-j2c",
+                                  "audio/ogg",
+                                  "application/vnd.ll.callingcard",
+                                  "application/vnd.ll.landmark",
+                                  "application/vnd.ll.clothing",
+                                  "application/vnd.ll.primitive",
+                                  "application/vnd.ll.notecard",
+                                  "application/vnd.ll.folder",
+                                  "application/vnd.ll.rootfolder",
+                                  "application/vnd.ll.lsltext",
+                                  "application/vnd.ll.lslbyte",
+                                  "image/tga",
+                                  "application/vnd.ll.bodypart",
+                                  "application/vnd.ll.trashfolder",
+                                  "application/vnd.ll.snapshotfolder",
+                                  "application/vnd.ll.lostandfoundfolder",
+                                  "audio/x-wav",
+                                  "image/tga",
+                                  "image/jpeg",
+                                  "application/vnd.ll.animation",
+                                  "application/vnd.ll.gesture",
+                                  "application/x-metaverse-simstate",
+                                  "application/vnd.ll.favoritefolder",
+                                  "application/vnd.ll.link",
+                                  "application/vnd.ll.linkfolder",
+                                  "application/vnd.ll.currentoutfitfolder",
+                                  "application/vnd.ll.outfitfolder",
+                                  "application/vnd.ll.myoutfitsfolder"
+                    };
+            for (int i=0;i<assettypes.Length;i++)
+            {
+                Assert.That(SLUtil.SLAssetTypeToContentType(assettypes[i]) == contenttypes[i], "Expecting {0} but got {1}", contenttypes[i], SLUtil.SLAssetTypeToContentType(assettypes[i]));
+            }
+
+            for (int i = 0; i < contenttypes.Length; i++)
+            {
+                if (SLUtil.ContentTypeToSLAssetType(contenttypes[i]) == 18)
+                {
+                    Assert.That(contenttypes[i] == "image/tga");
+                }
+                else
+                {
+                    Assert.That(SLUtil.ContentTypeToSLAssetType(contenttypes[i]) == assettypes[i],
+                                "Expecting {0} but got {1}", assettypes[i],
+                                SLUtil.ContentTypeToSLAssetType(contenttypes[i]));
+                }
+            }
+
+            int[] inventorytypes = new int[] {-1,0,1,2,3,6,7,8,9,10,15,17,18,20};
+            string[] invcontenttypes = new string[]
+                                           {
+                                               "application/octet-stream",
+                                               "image/x-j2c",
+                                               "audio/ogg",
+                                               "application/vnd.ll.callingcard",
+                                               "application/vnd.ll.landmark",
+                                               "application/vnd.ll.primitive",
+                                               "application/vnd.ll.notecard",
+                                               "application/vnd.ll.folder",
+                                               "application/octet-stream",
+                                               "application/vnd.ll.lsltext",
+                                               "image/x-j2c",
+                                               "application/vnd.ll.primitive",
+                                               "application/vnd.ll.clothing",
+                                               "application/vnd.ll.gesture"
+                                           };
+        
+            for (int i=0;i<inventorytypes.Length;i++)
+            {
+                Assert.That(SLUtil.SLInvTypeToContentType(inventorytypes[i]) == invcontenttypes[i], "Expected {0}, Got {1}", invcontenttypes[i], SLUtil.SLInvTypeToContentType(inventorytypes[i]));
+            }
+
+            invcontenttypes = new string[]
+                                  {
+                                      "image/x-j2c","image/jp2","image/tga",
+                                      "image/jpeg","application/ogg","audio/ogg",
+                                      "audio/x-wav","application/vnd.ll.callingcard",
+                                      "application/x-metaverse-callingcard",
+                                      "application/vnd.ll.landmark",
+                                      "application/x-metaverse-landmark",
+                                      "application/vnd.ll.clothing",
+                                      "application/x-metaverse-clothing","application/vnd.ll.bodypart",
+                                      "application/x-metaverse-bodypart","application/vnd.ll.primitive",
+                                      "application/x-metaverse-primitive","application/vnd.ll.notecard",
+                                      "application/x-metaverse-notecard","application/vnd.ll.folder",
+                                      "application/vnd.ll.rootfolder","application/vnd.ll.lsltext",
+                                      "application/x-metaverse-lsl","application/vnd.ll.lslbyte",
+                                      "application/x-metaverse-lso","application/vnd.ll.trashfolder",
+                                      "application/vnd.ll.snapshotfolder",
+                                      "application/vnd.ll.lostandfoundfolder","application/vnd.ll.animation",
+                                      "application/x-metaverse-animation","application/vnd.ll.gesture",
+                                      "application/x-metaverse-gesture","application/x-metaverse-simstate",
+                                      "application/octet-stream"
+                                  };
+            sbyte[] invtypes = new sbyte[]
+                                   {
+                                       0, 0, 0, 0, 1, 1, 1, 2, 2, 3, 3, 18, 18, 18, 18, 6, 6, 7, 7, 8, 9, 10, 10, 10, 10
+                                       , 8, 8, 8, 19, 19, 20, 20, 15, -1
+                                   };
+
+            for (int i = 0; i < invtypes.Length; i++)
+            {
+                Assert.That(SLUtil.ContentTypeToSLInvType(invcontenttypes[i]) == invtypes[i], "Expected {0}, Got {1}", invtypes[i], SLUtil.ContentTypeToSLInvType(invcontenttypes[i]));
+            }
+        }
     }
 }
