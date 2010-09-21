@@ -957,7 +957,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     CacheKey = sb.ToString();
                     m_memoryCache.TryGetValue(CacheKey, out resp);
                 }
-
             }
             
             if (resp == null)
@@ -965,21 +964,18 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 string UserService;
                 UUID SessionID;
                 GetClientGroupRequestID(requestingAgentID, out UserService, out SessionID);
-                param.Add("requestingAgentID", requestingAgentID.ToString());
+                
+                param.Add("RequestingAgentID", requestingAgentID.ToString());
                 param.Add("RequestingAgentUserService", UserService);
                 param.Add("RequestingSessionID", SessionID.ToString());
-
-
                 param.Add("ReadKey", m_groupReadKey);
                 param.Add("WriteKey", m_groupWriteKey);
-
 
                 IList parameters = new ArrayList();
                 parameters.Add(param);
 
                 ConfigurableKeepAliveXmlRpcRequest req;
                 req = new ConfigurableKeepAliveXmlRpcRequest(function, parameters, m_disableKeepAlive);
-
 
                 try
                 {
@@ -989,7 +985,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     {
                         m_memoryCache.AddOrUpdate(CacheKey, resp, TimeSpan.FromSeconds(m_cacheTimeout));
                     }
-
                 }
                 catch (Exception e)
                 {
@@ -1058,10 +1053,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 {
                     m_log.ErrorFormat("[XMLRPC-GROUPS-CONNECTOR]: {0}", line);
                 }
-
             }
         }
-
         
         /// <summary>
         /// Group Request Tokens are an attempt to allow the groups service to authenticate 

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -131,7 +131,8 @@ namespace OpenSim.Framework
         /// <returns>True if the key was found, otherwise false</returns>
         public bool ContainsKey(TKey key)
         {
-            return m_dict.ContainsKey(key);
+            lock (m_syncRoot)
+                return m_dict.ContainsKey(key);
         }
 
         /// <summary>
