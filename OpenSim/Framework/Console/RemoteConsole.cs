@@ -288,7 +288,7 @@ namespace OpenSim.Framework.Console
 
             reply["str_response_string"] = xmldoc.InnerXml;
             reply["int_response_code"] = 200;
-            reply["content_type"] = "text/plain";
+            reply["content_type"] = "text/xml";
 
             return reply;
         }
@@ -343,7 +343,7 @@ namespace OpenSim.Framework.Console
 
             reply["str_response_string"] = xmldoc.InnerXml;
             reply["int_response_code"] = 200;
-            reply["content_type"] = "text/plain";
+            reply["content_type"] = "text/xml";
 
             return reply;
         }

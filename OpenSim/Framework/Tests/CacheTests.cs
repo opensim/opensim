@@ -40,6 +40,7 @@ namespace OpenSim.Framework.Tests
         public void Build()
         {
             cache = new Cache();
+            cache = new Cache(CacheMedium.Memory,CacheStrategy.Aggressive,CacheFlags.AllowUpdate);
             cacheItemUUID = UUID.Random();
             MemoryCacheItem cachedItem = new MemoryCacheItem(cacheItemUUID.ToString(),DateTime.Now + TimeSpan.FromDays(1));
             byte[] foo = new byte[1];
@@ -68,23 +69,7 @@ namespace OpenSim.Framework.Tests
             Assert.That(citem == null, "Item should not be in Cache");
         }
 
-        //NOTE: Test Case disabled until Cache is fixed
-        [Test]
-        public void TestTTLExpiredEntry()
-        {
-            UUID ImmediateExpiryUUID = UUID.Random();
-            MemoryCacheItem cachedItem = new MemoryCacheItem(ImmediateExpiryUUID.ToString(), TimeSpan.FromDays(-1));
-            byte[] foo = new byte[1];
-            foo[0] = 1;
-            cachedItem.Store(foo);
-            cache.Store(cacheItemUUID.ToString(), cachedItem);
-
-            cache.Get(cacheItemUUID.ToString());
-            //object citem = cache.Get(cacheItemUUID.ToString());
-            //Assert.That(citem == null, "Item should not be in Cache because the expiry time was before now");
-        }
-
-        //NOTE: Test Case disabled until Cache is fixed
+        
         [Test]
         public void ExpireItemManually()
         {
@@ -94,10 +79,45 @@ namespace OpenSim.Framework.Tests
             foo[0] = 1;
             cachedItem.Store(foo);
             cache.Store(cacheItemUUID.ToString(), cachedItem);
-            cache.Invalidate(ImmediateExpiryUUID.ToString());
+            cache.Invalidate(cacheItemUUID.ToString());
             cache.Get(cacheItemUUID.ToString());
-            //object citem = cache.Get(cacheItemUUID.ToString());
-            //Assert.That(citem == null, "Item should not be in Cache because we manually invalidated it");
+            object citem = cache.Get(cacheItemUUID.ToString());
+            Assert.That(citem == null, "Item should not be in Cache because we manually invalidated it");
+        }
+
+        [Test]
+        public void ClearCacheTest()
+        {
+            UUID ImmediateExpiryUUID = UUID.Random();
+            MemoryCacheItem cachedItem = new MemoryCacheItem(ImmediateExpiryUUID.ToString(), DateTime.Now - TimeSpan.FromDays(1));
+            byte[] foo = new byte[1];
+            foo[0] = 1;
+            cachedItem.Store(foo);
+            cache.Store(cacheItemUUID.ToString(), cachedItem);
+            cache.Clear();
+  
+            object citem = cache.Get(cacheItemUUID.ToString());
+            Assert.That(citem == null, "Item should not be in Cache because we manually invalidated it");
+        }
+
+        [Test]
+        public void CacheItemMundane()
+        {
+            UUID Random1 = UUID.Random();
+            UUID Random2 = UUID.Random();
+            byte[] data = new byte[0];
+            CacheItemBase cb1 = new CacheItemBase(Random1.ToString(), DateTime.Now + TimeSpan.FromDays(1));
+            CacheItemBase cb2 = new CacheItemBase(Random2.ToString(), DateTime.Now + TimeSpan.FromDays(1));
+            CacheItemBase cb3 = new CacheItemBase(Random1.ToString(), DateTime.Now + TimeSpan.FromDays(1));
+
+            cb1.Store(data);
+
+            Assert.That(cb1.Equals(cb3), "cb1 should equal cb3, their uuids are the same");
+            Assert.That(!cb2.Equals(cb1), "cb2 should not equal cb1, their uuids are NOT the same");
+            Assert.That(cb1.IsLocked() == false, "CacheItemBase default is false");
+            Assert.That(cb1.Retrieve() == null, "Virtual Retrieve method should return null");
+
+
         }
 
     }

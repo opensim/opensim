@@ -150,10 +150,10 @@ namespace OpenSim.Framework
                 Vector3.TryParse(args["at_axis"].AsString(), out AtAxis);
 
             if (args["left_axis"] != null)
-                Vector3.TryParse(args["left_axis"].AsString(), out AtAxis);
+                Vector3.TryParse(args["left_axis"].AsString(), out LeftAxis);
 
             if (args["up_axis"] != null)
-                Vector3.TryParse(args["up_axis"].AsString(), out AtAxis);
+                Vector3.TryParse(args["up_axis"].AsString(), out UpAxis);
 
             if (args["changed_grid"] != null)
                 ChangedGrid = args["changed_grid"].AsBoolean();
