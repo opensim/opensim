@@ -238,7 +238,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnEditNotecard += CanEditNotecard; //NOT YET IMPLEMENTED
             m_scene.Permissions.OnEditScript += CanEditScript; //NOT YET IMPLEMENTED
             
-            m_scene.Permissions.OnCreateObjectInventory += CanCreateObjectInventory; //NOT IMPLEMENTED HERE 
+            m_scene.Permissions.OnCreateObjectInventory += CanCreateObjectInventory;
             m_scene.Permissions.OnEditObjectInventory += CanEditObjectInventory;//MAYBE FULLY IMPLEMENTED
             m_scene.Permissions.OnCopyObjectInventory += CanCopyObjectInventory; //NOT YET IMPLEMENTED
             m_scene.Permissions.OnDeleteObjectInventory += CanDeleteObjectInventory; //NOT YET IMPLEMENTED
@@ -1780,8 +1780,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            SceneObjectPart part = scene.GetSceneObjectPart(objectID);
-            ScenePresence p = scene.GetScenePresence(userID);
+            SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
+            ScenePresence p = m_scene.GetScenePresence(userID);
 
             if (part == null || p == null)
                 return false;
