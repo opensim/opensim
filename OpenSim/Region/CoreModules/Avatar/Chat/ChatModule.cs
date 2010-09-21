@@ -263,9 +263,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         
         public virtual void OnChatBroadcast(Object sender, OSChatMessage c)
         {
-            // unless the chat to be broadcast is of type Region, we
-            // drop it if its channel is neither 0 nor DEBUG_CHANNEL
-            if (c.Channel != 0 && c.Channel != DEBUG_CHANNEL && c.Type != ChatTypeEnum.Region) return;
+            if (c.Channel != 0 && c.Channel != DEBUG_CHANNEL) return;
 
             ChatTypeEnum cType = c.Type;
             if (c.Channel == DEBUG_CHANNEL)

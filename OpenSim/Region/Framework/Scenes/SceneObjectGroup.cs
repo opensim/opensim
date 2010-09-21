@@ -424,8 +424,12 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_rootPart.UUID; }
             set 
             {
-                m_rootPart.UUID = value;
-                m_parts.AddOrReplace(value, m_rootPart);
+                lock (m_parts.SyncRoot)
+                {
+                    m_parts.Remove(m_rootPart.UUID);
+                    m_rootPart.UUID = value;
+                    m_parts.Add(value, m_rootPart);
+                }
             }
         }
 
