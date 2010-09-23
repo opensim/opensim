@@ -27,7 +27,11 @@
 
 using System;
 using System.Data;
-using Mono.Data.Sqlite;
+#if CSharpSqlite
+    using Community.CsharpSqlite.Sqlite;
+#else
+    using Mono.Data.Sqlite;
+#endif
 
 namespace OpenSim.Data.SQLite
 {

@@ -2217,6 +2217,8 @@
       <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
       <Reference name="OpenMetaverse" path="../../../bin/"/>
       <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
+      <Reference name="Community.CsharpSqlite"/>
+      <Reference name="Community.CsharpSqlite.Sqlite"/>
       <Reference name="Mono.Data.Sqlite"/>
       <Reference name="Mono.Addins" path="../../../bin/"/>
       <Reference name="log4net" path="../../../bin/"/>
