@@ -244,13 +244,22 @@ namespace OpenSim.Framework
             // The Mono addin manager (in Mono.Addins.dll version 0.2.0.0)
             // occasionally seems to corrupt its addin cache
             // Hence, as a temporary solution we'll remove it before each startup
+
+            string customDir = Environment.GetEnvironmentVariable ("MONO_ADDINS_REGISTRY");
+            string v0 = "addin-db-000";
+            string v1 = "addin-db-001";
+            if (customDir != null && customDir != String.Empty)
+            {
+                v0 = Path.Combine(customDir, v0);
+                v1 = Path.Combine(customDir, v1);
+            }
             try
             {
-                if (Directory.Exists("addin-db-000"))
-                    Directory.Delete("addin-db-000", true);
+                if (Directory.Exists(v0))
+                    Directory.Delete(v0, true);
 
-                if (Directory.Exists("addin-db-001"))
-                    Directory.Delete("addin-db-001", true);
+                if (Directory.Exists(v1))
+                    Directory.Delete(v1, true);
             }
             catch (IOException)
             {
