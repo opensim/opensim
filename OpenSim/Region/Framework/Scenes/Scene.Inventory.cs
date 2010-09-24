@@ -1533,16 +1533,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (part == null)
                     return;
 
-                if (part.OwnerID != remoteClient.AgentId)
-                {
-                    // Group permissions
-                    if ((part.GroupID == UUID.Zero) || (remoteClient.GetGroupPowers(part.GroupID) == 0) || ((part.GroupMask & (uint)PermissionMask.Modify) == 0))
-                        return;
-                } else {
-                    if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
-                        return;
-                }
-
                 if (!Permissions.CanCreateObjectInventory(
                     itemBase.InvType, part.UUID, remoteClient.AgentId))
                     return;

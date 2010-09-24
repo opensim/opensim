@@ -30,7 +30,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using log4net;
-using Mono.Data.Sqlite;
+#if CSharpSqlite
+    using Community.CsharpSqlite.Sqlite;
+#else
+    using Mono.Data.Sqlite;
+#endif
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -105,10 +109,17 @@ namespace OpenSim.Data.SQLite
         {
             EstateSettings es = new EstateSettings();
             es.OnSave += StoreEstateSettings;
+            IDataReader r = null;
+            try
+            {
+                 r = cmd.ExecuteReader();
+            }
+            catch (SqliteException)
+            {
+                m_log.Error("[SQLITE]: There was an issue loading the estate settings.  This can happen the first time running OpenSimulator with CSharpSqlite the first time.  OpenSimulator will probably crash, restart it and it should be good to go.");
+            }
 
-            IDataReader r = cmd.ExecuteReader();
-
-            if (r.Read())
+            if (r != null && r.Read())
             {
                 foreach (string name in FieldList)
                 {

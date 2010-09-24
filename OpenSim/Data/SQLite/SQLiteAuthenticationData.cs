@@ -33,7 +33,12 @@ using System.Reflection;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using Mono.Data.Sqlite;
+using log4net;
+#if CSharpSqlite
+    using Community.CsharpSqlite.Sqlite;
+#else
+    using Mono.Data.Sqlite;
+#endif
 
 namespace OpenSim.Data.SQLite
 {
