@@ -545,6 +545,10 @@
     ;; false to allow script controlled underground positioning of
     ;; prims
     ; DisableUndergroundMovement = true
+    ;
+    ; Path to script engine assemblies
+    ; Default is ./bin/ScriptEngines
+    ; ScriptEnginesPath = "ScriptEngines"
 
 [MRM]
     ;; Enables the Mini Region Modules Script Engine.

@@ -32,7 +32,7 @@ using System.Reflection;
 namespace OpenSim.Region.ScriptEngine.Shared
 {
     [Serializable]
-    public class AssemblyResolver
+    public class AssemblyResolver : MarshalByRefObject
     {
         public static Assembly OnAssemblyResolve(object sender,
                 ResolveEventArgs args)
@@ -42,9 +42,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             AppDomain myDomain = (AppDomain)sender;
             string dirName = myDomain.FriendlyName;
+            string ScriptEnginesPath = myDomain.SetupInformation.PrivateBinPath;
 
-            string[] pathList = new string[] {"bin", "ScriptEngines",
-                                              Path.Combine("ScriptEngines", dirName)};
+            string[] pathList = new string[] {"bin", ScriptEnginesPath,
+                                              Path.Combine(ScriptEnginesPath, dirName)};
 
             string assemblyName = args.Name;
             if (assemblyName.IndexOf(",") != -1)
