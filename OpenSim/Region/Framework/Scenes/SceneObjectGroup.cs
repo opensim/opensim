@@ -1748,7 +1748,7 @@ namespace OpenSim.Region.Framework.Scenes
         
                         part.PhysActor 
                             = m_scene.PhysicsScene.AddPrimShape(
-                                part.Name,
+                                string.Format("{0}/{1}", part.Name, part.UUID),
                                 pbs,
                                 part.AbsolutePosition,
                                 part.Scale,

@@ -30,7 +30,12 @@ using System.Data;
 using System.Reflection;
 using System.Collections.Generic;
 using log4net;
-using Mono.Data.Sqlite;
+#if CSharpSqlite
+    using Community.CsharpSqlite.Sqlite;
+#else
+    using Mono.Data.Sqlite;
+#endif
+
 using OpenMetaverse;
 using OpenSim.Framework;
 

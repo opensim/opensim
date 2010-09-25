@@ -91,6 +91,9 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
             if (part.ParentGroup.IsDeleted)
                 return;
 
+            if (part.OwnerID != client.AgentId && (!m_scene.Permissions.IsGod(client.AgentId)))
+                return;
+
             part = part.ParentGroup.RootPart;
 
             part.ObjectSaleType = saleType;

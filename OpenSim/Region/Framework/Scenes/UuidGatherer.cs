@@ -291,9 +291,16 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Get the asset uuid associated with a gesture
+        /// </summary>
+        /// <param name="gestureUuid"></param>
+        /// <param name="assetUuids"></param>
         protected void GetGestureAssetUuids(UUID gestureUuid, IDictionary<UUID, AssetType> assetUuids)
         {
             AssetBase assetBase = GetAsset(gestureUuid);
+            if (null == assetBase)
+                return;
 
             MemoryStream ms = new MemoryStream(assetBase.Data);
             StreamReader sr = new StreamReader(ms);
