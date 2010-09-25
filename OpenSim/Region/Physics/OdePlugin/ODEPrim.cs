@@ -170,7 +170,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_lastUpdateSent;
 
         public IntPtr Body = IntPtr.Zero;
-        public String m_primName;
+        public String Name { get; private set; }
         private Vector3 _target_velocity;
         public d.Mass pMass;
 
@@ -188,6 +188,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
         {
+            Name = primName;            
             m_vehicle = new ODEDynamics();
             //gc = GCHandle.Alloc(prim_geom, GCHandleType.Pinned);
             ode = dode;
@@ -195,7 +196,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 pos = new Vector3(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f),
                     parent_scene.GetTerrainHeightAtXY(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f)) + 0.5f);
-                m_log.Warn("[PHYSICS]: Got nonFinite Object create Position");
+                m_log.WarnFormat("[PHYSICS]: Got nonFinite Object create Position for {0}", Name);
             }
             _position = pos;
             m_taintposition = pos;
@@ -212,7 +213,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (!pos.IsFinite())
             {
                 size = new Vector3(0.5f, 0.5f, 0.5f);
-                m_log.Warn("[PHYSICS]: Got nonFinite Object create Size");
+                m_log.WarnFormat("[PHYSICS]: Got nonFinite Object create Size for {0}", Name);
             }
 
             if (size.X <= 0) size.X = 0.01f;
@@ -225,7 +226,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (!QuaternionIsFinite(rotation))
             {
                 rotation = Quaternion.Identity;
-                m_log.Warn("[PHYSICS]: Got nonFinite Object create Rotation");
+                m_log.WarnFormat("[PHYSICS]: Got nonFinite Object create Rotation for {0}", Name);
             }
 
             _orientation = rotation;
@@ -246,7 +247,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_isphysical)
                     m_targetSpace = _parent_scene.space;
             }
-            m_primName = primName;
+
             m_taintadd = true;
             _parent_scene.AddPhysicsActorTaint(this);
             //  don't do .add() here; old geoms get recycled with the same hash
@@ -304,7 +305,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             prev_geom = prim_geom;
             prim_geom = geom;
-//Console.WriteLine("SetGeom to " + prim_geom + " for " + m_primName);
+//Console.WriteLine("SetGeom to " + prim_geom + " for " + Name);
             if (prim_geom != IntPtr.Zero)
             {
                 d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
@@ -857,7 +858,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             catch (AccessViolationException)
             {
-                m_log.Error("[PHYSICS]: MESH LOCKED");
+                m_log.ErrorFormat("[PHYSICS]: MESH LOCKED FOR {0}", Name);
                 return;
             }
 
@@ -874,7 +875,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void ProcessTaints(float timestep)
         {
-//Console.WriteLine("ProcessTaints for " + m_primName);
+//Console.WriteLine("ProcessTaints for " + Name);
             if (m_taintadd)
             {
                 changeadd(timestep);
@@ -945,7 +946,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                m_log.Error("[PHYSICS]: The scene reused a disposed PhysActor! *waves finger*, Don't be evil.  A couple of things can cause this.   An improper prim breakdown(be sure to set prim_geom to zero after d.GeomDestroy!   An improper buildup (creating the geom failed).   Or, the Scene Reused a physics actor after disposing it.)");
+                m_log.ErrorFormat("[PHYSICS]: The scene reused a disposed PhysActor for {0}! *waves finger*, Don't be evil.  A couple of things can cause this.   An improper prim breakdown(be sure to set prim_geom to zero after d.GeomDestroy!   An improper buildup (creating the geom failed).   Or, the Scene Reused a physics actor after disposing it.)", Name);
             }
         }
 
@@ -1035,7 +1036,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         // prim is the child
         public void ParentPrim(OdePrim prim)
         {
-//Console.WriteLine("ParentPrim  " + m_primName);
+//Console.WriteLine("ParentPrim  " + Name);
             if (this.m_localID != prim.m_localID)
             {
                 if (Body == IntPtr.Zero)
@@ -1071,18 +1072,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 d.MassTranslate(ref m2, Position.X - prm.Position.X, Position.Y - prm.Position.Y, Position.Z - prm.Position.Z);
                                 d.MassAdd(ref pMass, ref m2);
                             }
+                            
                             foreach (OdePrim prm in childrenPrim)
-                            {
-                       
+                            {                       
                                 prm.m_collisionCategories |= CollisionCategories.Body;
                                 prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 
                                 if (prm.prim_geom == IntPtr.Zero)
                                 {
-                                    m_log.Warn("[PHYSICS]: Unable to link one of the linkset elements.  No geom yet");
+                                    m_log.WarnFormat(
+                                        "[PHYSICS]: Unable to link one of the linkset elements {0} for parent {1}.  No geom yet", 
+                                        prm.Name, prim.Name);
                                     continue;
                                 }
-//Console.WriteLine(" GeomSetCategoryBits 1: " + prm.prim_geom + " - " + (int)prm.m_collisionCategories + " for " + m_primName);
+//Console.WriteLine(" GeomSetCategoryBits 1: " + prm.prim_geom + " - " + (int)prm.m_collisionCategories + " for " + Name);
                                 d.GeomSetCategoryBits(prm.prim_geom, (int)prm.m_collisionCategories);
                                 d.GeomSetCollideBits(prm.prim_geom, (int)prm.m_collisionFlags);
 
@@ -1111,7 +1114,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 }
                                 else
                                 {
-                                    m_log.Debug("[PHYSICS]:I ain't got no boooooooooddy, no body");
+                                    m_log.DebugFormat("[PHYSICS]: {0} ain't got no boooooooooddy, no body", Name);
                                 }
 
 
@@ -1130,7 +1133,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             m_collisionCategories |= CollisionCategories.Body;
                             m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 
-//Console.WriteLine("GeomSetCategoryBits 2: " + prim_geom + " - " + (int)m_collisionCategories + " for " + m_primName);
+//Console.WriteLine("GeomSetCategoryBits 2: " + prim_geom + " - " + (int)m_collisionCategories + " for " + Name);
                             d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
 //Console.WriteLine(" Post GeomSetCategoryBits 2");
                             d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
@@ -1373,7 +1376,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             catch (AccessViolationException)
                             {
-                                m_log.Warn("[PHYSICS]: Unable to create physics proxy for object");
+                                m_log.WarnFormat("[PHYSICS]: Unable to create physics proxy for object {0}", Name);
                                 ode.dunlock(_parent_scene.world);
                                 return;
                             }
@@ -1388,7 +1391,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             catch (AccessViolationException)
                             {
-                                m_log.Warn("[PHYSICS]: Unable to create physics proxy for object");
+                                m_log.WarnFormat("[PHYSICS]: Unable to create physics proxy for object {0}", Name);
                                 ode.dunlock(_parent_scene.world);
                                 return;
                             }
@@ -1404,7 +1407,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                         catch (AccessViolationException)
                         {
-                            m_log.Warn("[PHYSICS]: Unable to create physics proxy for object");
+                            m_log.WarnFormat("[PHYSICS]: Unable to create physics proxy for object {0}", Name);
                             ode.dunlock(_parent_scene.world);
                             return;
                         }
@@ -1421,7 +1424,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     catch (AccessViolationException)
                     {
-                        m_log.Warn("[PHYSICS]: Unable to create physics proxy for object");
+                        m_log.WarnFormat("[PHYSICS]: Unable to create physics proxy for object {0}", Name);
                         ode.dunlock(_parent_scene.world);
                         return;
                     }
@@ -1444,7 +1447,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (_parent_scene.needsMeshing(_pbs))
                 {
                     // Don't need to re-enable body..   it's done in SetMesh
-                    _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
+                    _mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
                     // createmesh returns null when it's a shape that isn't a cube.
                    // m_log.Debug(m_localID);
                 }
@@ -1473,7 +1476,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            _parent_scene.geom_name_map[prim_geom] = this.m_primName;
+            _parent_scene.geom_name_map[prim_geom] = this.Name;
             _parent_scene.actor_name_map[prim_geom] = (PhysicsActor)this;
 
             changeSelectedStatus(timestep);
@@ -1524,7 +1527,7 @@ Console.WriteLine(" JointCreateFixed");
                     }
                     else
                     {
-                        m_log.Warn("[PHYSICS]: Body Still null after enableBody().  This is a crash scenario.");
+                        m_log.WarnFormat("[PHYSICS]: Body for {0} still null after enableBody().  This is a crash scenario.", Name);
                     }
                 }
                 //else
@@ -1573,7 +1576,7 @@ Console.WriteLine(" JointCreateFixed");
                 }
                 else
                 {
-//Console.WriteLine("Move " +  m_primName);
+//Console.WriteLine("Move " +  Name);
                     if (!d.BodyIsEnabled (Body))  d.BodyEnable (Body); // KF add 161009
                     // NON-'VEHICLES' are dealt with here
 //                    if (d.BodyIsEnabled(Body) && !m_angularlock.ApproxEquals(Vector3.Zero, 0.003f))
@@ -1605,7 +1608,7 @@ Console.WriteLine(" JointCreateFixed");
 
                     if (m_usePID)
                     {
-//Console.WriteLine("PID " +  m_primName);
+//Console.WriteLine("PID " +  Name);
                         // KF - this is for object move? eg. llSetPos() ?
                         //if (!d.BodyIsEnabled(Body))
                         //d.BodySetForce(Body, 0f, 0f, 0f);
@@ -1677,7 +1680,7 @@ Console.WriteLine(" JointCreateFixed");
                     // Hover PID Controller needs to be mutually exlusive to MoveTo PID controller
                     if (m_useHoverPID && !m_usePID)
                     {
-//Console.WriteLine("Hover " +  m_primName);
+//Console.WriteLine("Hover " +  Name);
                     
                         // If we're using the PID controller, then we have no gravity
                         fz = (-1 * _parent_scene.gravityz) * m_mass;
@@ -1803,7 +1806,7 @@ Console.WriteLine(" JointCreateFixed");
             {    // is not physical, or is not a body or is selected
               //  _zeroPosition = d.BodyGetPosition(Body);
                 return;
-//Console.WriteLine("Nothing " +  m_primName);
+//Console.WriteLine("Nothing " +  Name);
                
             }
         }
@@ -1891,10 +1894,10 @@ Console.WriteLine(" JointCreateFixed");
                             catch (System.AccessViolationException)
                             {
                                 prim_geom = IntPtr.Zero;
-                                m_log.Error("[PHYSICS]: PrimGeom dead");
+                                m_log.ErrorFormat("[PHYSICS]: PrimGeom dead for {0}", Name);
                             }
                         }
-//Console.WriteLine("changePhysicsStatus for " + m_primName);
+//Console.WriteLine("changePhysicsStatus for " + Name);
                         changeadd(2f);
                     }
                     if (childPrim)
@@ -2063,7 +2066,7 @@ Console.WriteLine(" JointCreateFixed");
             catch (System.AccessViolationException)
             {
                 prim_geom = IntPtr.Zero;
-                m_log.Error("[PHYSICS]: PrimGeom dead");
+                m_log.ErrorFormat("[PHYSICS]: PrimGeom dead for {0}", Name);
             }
             prim_geom = IntPtr.Zero;
             // we don't need to do space calculation because the client sends a position update also.
@@ -2307,7 +2310,7 @@ Console.WriteLine(" JointCreateFixed");
                 }
                 else
                 {
-                    m_log.Warn("[PHYSICS]: Got NaN Size on object");
+                    m_log.WarnFormat("[PHYSICS]: Got NaN Size on object {0}", Name);
                 }
             }
         }
@@ -2329,7 +2332,7 @@ Console.WriteLine(" JointCreateFixed");
                 }
                 else
                 {
-                    m_log.Warn("[PHYSICS]: NaN in Force Applied to an Object");
+                    m_log.WarnFormat("[PHYSICS]: NaN in Force Applied to an Object {0}", Name);
                 }
             }
         }
@@ -2413,7 +2416,7 @@ Console.WriteLine(" JointCreateFixed");
                 }
                 else
                 {
-                    m_log.Warn("[PHYSICS]: Got NaN Velocity in Object");
+                    m_log.WarnFormat("[PHYSICS]: Got NaN Velocity in Object {0}", Name);
                 }
 
             }
@@ -2438,7 +2441,7 @@ Console.WriteLine(" JointCreateFixed");
                 }
                 else
                 {
-                    m_log.Warn("[PHYSICS]: Got NaN Torque in Object");
+                    m_log.WarnFormat("[PHYSICS]: Got NaN Torque in Object {0}", Name);
                 }
             }
         }
@@ -2465,7 +2468,7 @@ Console.WriteLine(" JointCreateFixed");
                     _orientation = value;
                 }
                 else
-                    m_log.Warn("[PHYSICS]: Got NaN quaternion Orientation from Scene in Object");
+                    m_log.WarnFormat("[PHYSICS]: Got NaN quaternion Orientation from Scene in Object {0}", Name);
 
             }
         }
@@ -2505,7 +2508,7 @@ Console.WriteLine(" JointCreateFixed");
             }
             else
             {
-                m_log.Warn("[PHYSICS]: Got Invalid linear force vector from Scene in Object");
+                m_log.WarnFormat("[PHYSICS]: Got Invalid linear force vector from Scene in Object {0}", Name);
             }
             //m_log.Info("[PHYSICS]: Added Force:" + force.ToString() +  " to prim at " + Position.ToString());
         }
@@ -2519,7 +2522,7 @@ Console.WriteLine(" JointCreateFixed");
             }
             else
             {
-                m_log.Warn("[PHYSICS]: Got Invalid Angular force vector from Scene in Object");
+                m_log.WarnFormat("[PHYSICS]: Got Invalid Angular force vector from Scene in Object {0}", Name);
             }
         }
 
@@ -2545,7 +2548,7 @@ Console.WriteLine(" JointCreateFixed");
                 }
                 else
                 {
-                    m_log.Warn("[PHYSICS]: Got NaN RotationalVelocity in Object");
+                    m_log.WarnFormat("[PHYSICS]: Got NaN RotationalVelocity in Object {0}", Name);
                 }
             }
         }
@@ -2560,7 +2563,7 @@ Console.WriteLine(" JointCreateFixed");
             }
             else if (m_crossingfailures == _parent_scene.geomCrossingFailuresBeforeOutofbounds)
             {
-                m_log.Warn("[PHYSICS]: Too many crossing failures for: " + m_primName);
+                m_log.Warn("[PHYSICS]: Too many crossing failures for: " + Name);
             }
         }
 
@@ -2593,7 +2596,7 @@ Console.WriteLine(" JointCreateFixed");
             }
             else
             {
-                m_log.Warn("[PHYSICS]: Got NaN locking axis from Scene on Object");
+                m_log.WarnFormat("[PHYSICS]: Got NaN locking axis from Scene on Object {0}", Name);
             }
         }
 
@@ -2685,7 +2688,7 @@ Console.WriteLine(" JointCreateFixed");
                     }
 
                     //float Adiff = 1.0f - Math.Abs(Quaternion.Dot(m_lastorientation, l_orientation));
-//Console.WriteLine("Adiff " + m_primName + " = " + Adiff);
+//Console.WriteLine("Adiff " + Name + " = " + Adiff);
                     if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02)
                         && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02)
                         && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02)
@@ -2826,7 +2829,7 @@ Console.WriteLine(" JointCreateFixed");
                     m_PIDTarget = value;
                 }
                 else
-                    m_log.Warn("[PHYSICS]: Got NaN PIDTarget from Scene on Object");
+                    m_log.WarnFormat("[PHYSICS]: Got NaN PIDTarget from Scene on Object {0}", Name);
             } 
         }
         public override bool PIDActive { set { m_usePID = value; } }
