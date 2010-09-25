@@ -143,6 +143,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         // unique UUID of this character object
         public UUID m_uuid;
         public bool bad = false;
+        private Object m_syncRoot = new Object();
         
         public OdeCharacter(String avName, OdeScene parent_scene, Vector3 pos, CollisionLocker dode, Vector3 size, float pid_d, float pid_p, float capsule_radius, float tensor, float density, float height_fudge_factor, float walk_divisor, float rundivisor)
         {
@@ -1323,103 +1324,106 @@ Console.WriteLine("**** Create {2}    Dicts: actor={0}   name={1}  height={3} ra
 
         public void ProcessTaints(float timestep)
         {
-
-            if (m_tainted_isPhysical != m_isPhysical)
+            lock (m_syncRoot)
             {
-                if (m_tainted_isPhysical)
-                {
-                    // Create avatar capsule and related ODE data
-                    if (!(Shell == IntPtr.Zero && Body == IntPtr.Zero && Amotor == IntPtr.Zero))
-                    {
-                        m_log.Warn("[PHYSICS]: re-creating the following avatar ODE data, even though it already exists - "
-                            + (Shell!=IntPtr.Zero ? "Shell ":"")
-                            + (Body!=IntPtr.Zero ? "Body ":"")
-                            + (Amotor!=IntPtr.Zero ? "Amotor ":""));
-                    }
-                    AvatarGeomAndBodyCreation(_position.X, _position.Y, _position.Z, m_tensor);
-                    _parent_scene.AddCharacter(this);
-                }
-                else
-                {
-                    _parent_scene.RemoveCharacter(this);
-                    // destroy avatar capsule and related ODE data
-                    if (Amotor != IntPtr.Zero)
-                    {
-                        // Kill the Amotor
-                        d.JointDestroy(Amotor);
-                        Amotor = IntPtr.Zero;
-                    }
-                    //kill the Geometry
-                    _parent_scene.waitForSpaceUnlock(_parent_scene.space);
 
+                if (m_tainted_isPhysical != m_isPhysical)
+                {
+                    if (m_tainted_isPhysical)
+                    {
+                        // Create avatar capsule and related ODE data
+                        if (!(Shell == IntPtr.Zero && Body == IntPtr.Zero && Amotor == IntPtr.Zero))
+                        {
+                            m_log.Warn("[PHYSICS]: re-creating the following avatar ODE data, even though it already exists - "
+                                + (Shell!=IntPtr.Zero ? "Shell ":"")
+                                + (Body!=IntPtr.Zero ? "Body ":"")
+                                + (Amotor!=IntPtr.Zero ? "Amotor ":""));
+                        }
+                        AvatarGeomAndBodyCreation(_position.X, _position.Y, _position.Z, m_tensor);
+                        _parent_scene.AddCharacter(this);
+                    }
+                    else
+                    {
+                        _parent_scene.RemoveCharacter(this);
+                        // destroy avatar capsule and related ODE data
+                        if (Amotor != IntPtr.Zero)
+                        {
+                            // Kill the Amotor
+                            d.JointDestroy(Amotor);
+                            Amotor = IntPtr.Zero;
+                        }
+                        //kill the Geometry
+                        _parent_scene.waitForSpaceUnlock(_parent_scene.space);
+
+                        if (Body != IntPtr.Zero)
+                        {
+                            //kill the body
+                            d.BodyDestroy(Body);
+                            Body = IntPtr.Zero;
+                        }
+
+                        if(Shell != IntPtr.Zero)
+                        {
+                            try
+                            {
+                                d.GeomDestroy(Shell);
+                            }
+                            catch (System.AccessViolationException)
+                            {
+                                m_log.Error("[PHYSICS]: PrimGeom dead");
+                            }
+                            // Remove any old entries
+    //string tShell;
+    //_parent_scene.geom_name_map.TryGetValue(Shell, out tShell);
+    //Console.WriteLine("**** Remove {0}", tShell);
+
+                            if(_parent_scene.geom_name_map.ContainsKey(Shell)) _parent_scene.geom_name_map.Remove(Shell);
+                            if(_parent_scene.actor_name_map.ContainsKey(Shell)) _parent_scene.actor_name_map.Remove(Shell);
+                            Shell = IntPtr.Zero;
+                        }
+                    }
+
+                    m_isPhysical = m_tainted_isPhysical;
+                }
+
+                if (m_tainted_CAPSULE_LENGTH != CAPSULE_LENGTH)
+                {
+                    if (Shell != IntPtr.Zero && Body != IntPtr.Zero && Amotor != IntPtr.Zero)
+                    {
+
+                        m_pidControllerActive = true;
+                        // no lock needed on _parent_scene.OdeLock because we are called from within the thread lock in OdePlugin's simulate()
+                        d.JointDestroy(Amotor);
+                        float prevCapsule = CAPSULE_LENGTH;
+                        CAPSULE_LENGTH = m_tainted_CAPSULE_LENGTH;
+                        //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
+                        d.BodyDestroy(Body);
+                        AvatarGeomAndBodyCreation(_position.X, _position.Y,
+                                          _position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule) * 2), m_tensor);
+                        Velocity = Vector3.Zero;
+                    }
+                    else
+                    {
+                        m_log.Warn("[PHYSICS]: trying to change capsule size, but the following ODE data is missing - " 
+                            + (Shell==IntPtr.Zero ? "Shell ":"")
+                            + (Body==IntPtr.Zero ? "Body ":"")
+                            + (Amotor==IntPtr.Zero ? "Amotor ":""));
+                    }
+                }
+
+                if (!m_taintPosition.ApproxEquals(_position, 0.05f))
+                {
                     if (Body != IntPtr.Zero)
                     {
-                        //kill the body
-                        d.BodyDestroy(Body);
-                        Body = IntPtr.Zero;
-                    }
+                        d.BodySetPosition(Body, m_taintPosition.X, m_taintPosition.Y, m_taintPosition.Z);
 
-               	    if(Shell != IntPtr.Zero)
-                    {
-                        try
-                        {
-                            d.GeomDestroy(Shell);
-                        }
-                        catch (System.AccessViolationException)
-                        {
-                            m_log.Error("[PHYSICS]: PrimGeom dead");
-                        }
-                        // Remove any old entries
-//string tShell;
-//_parent_scene.geom_name_map.TryGetValue(Shell, out tShell);
-//Console.WriteLine("**** Remove {0}", tShell);
-
-                        if(_parent_scene.geom_name_map.ContainsKey(Shell)) _parent_scene.geom_name_map.Remove(Shell);
-                        if(_parent_scene.actor_name_map.ContainsKey(Shell)) _parent_scene.actor_name_map.Remove(Shell);
-                        Shell = IntPtr.Zero;
+                        _position.X = m_taintPosition.X;
+                        _position.Y = m_taintPosition.Y;
+                        _position.Z = m_taintPosition.Z;
                     }
                 }
 
-                m_isPhysical = m_tainted_isPhysical;
             }
-
-            if (m_tainted_CAPSULE_LENGTH != CAPSULE_LENGTH)
-            {
-                if (Shell != IntPtr.Zero && Body != IntPtr.Zero && Amotor != IntPtr.Zero)
-                {
-
-                    m_pidControllerActive = true;
-                    // no lock needed on _parent_scene.OdeLock because we are called from within the thread lock in OdePlugin's simulate()
-                    d.JointDestroy(Amotor);
-                    float prevCapsule = CAPSULE_LENGTH;
-                    CAPSULE_LENGTH = m_tainted_CAPSULE_LENGTH;
-                    //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
-                    d.BodyDestroy(Body);
-                    AvatarGeomAndBodyCreation(_position.X, _position.Y,
-                                      _position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule) * 2), m_tensor);
-                    Velocity = Vector3.Zero;
-                }
-                else
-                {
-                    m_log.Warn("[PHYSICS]: trying to change capsule size, but the following ODE data is missing - " 
-                        + (Shell==IntPtr.Zero ? "Shell ":"")
-                        + (Body==IntPtr.Zero ? "Body ":"")
-                        + (Amotor==IntPtr.Zero ? "Amotor ":""));
-                }
-            }
-
-            if (!m_taintPosition.ApproxEquals(_position, 0.05f))
-            {
-                if (Body != IntPtr.Zero)
-                {
-                    d.BodySetPosition(Body, m_taintPosition.X, m_taintPosition.Y, m_taintPosition.Z);
-
-                    _position.X = m_taintPosition.X;
-                    _position.Y = m_taintPosition.Y;
-                    _position.Z = m_taintPosition.Z;
-                }
-            }
-
         }
 
         internal void AddCollisionFrameTime(int p)
