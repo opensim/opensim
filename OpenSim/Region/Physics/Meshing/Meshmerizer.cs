@@ -71,7 +71,7 @@ namespace OpenSim.Region.Physics.Meshing
 #endif
 
         private bool cacheSculptMaps = true;
-        private string decodedScultMapPath = null;
+        private string decodedSculptMapPath = null;
 
         private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
 
@@ -81,16 +81,16 @@ namespace OpenSim.Region.Physics.Meshing
         {
             IConfig start_config = config.Configs["Startup"];
 
-            decodedScultMapPath = start_config.GetString("DecodedSculpMapPath","j2kDecodeCache");
+            decodedSculptMapPath = start_config.GetString("DecodedSculptMapPath","j2kDecodeCache");
 
             try
             {
-                if (!Directory.Exists(decodedScultMapPath))
-                    Directory.CreateDirectory(decodedScultMapPath);
+                if (!Directory.Exists(decodedSculptMapPath))
+                    Directory.CreateDirectory(decodedSculptMapPath);
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[SCULPT]: Unable to create {0} directory: ", decodedScultMapPath, e.Message);
+                m_log.WarnFormat("[SCULPT]: Unable to create {0} directory: ", decodedSculptMapPath, e.Message);
             }
 
         }
@@ -265,7 +265,7 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 if (cacheSculptMaps && primShape.SculptTexture != UUID.Zero)
                 {
-                    decodedSculptFileName = System.IO.Path.Combine(decodedScultMapPath, "smap_" + primShape.SculptTexture.ToString());
+                    decodedSculptFileName = System.IO.Path.Combine(decodedSculptMapPath, "smap_" + primShape.SculptTexture.ToString());
                     try
                     {
                         if (File.Exists(decodedSculptFileName))

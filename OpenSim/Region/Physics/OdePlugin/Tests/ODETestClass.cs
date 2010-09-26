@@ -50,7 +50,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             IConfigSource TopConfig = new IniConfigSource();
             IConfig config = TopConfig.AddConfig("Startup");
-            config.Set("DecodedSculpMapPath","j2kDecodeCache");
+            config.Set("DecodedSculptMapPath","j2kDecodeCache");
 
             // Loading ODEPlugin
             cbt = new OdePlugin();
