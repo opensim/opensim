@@ -48,6 +48,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         [SetUp]
         public void Initialize()
         {
+            IConfigSource TopConfig = new IniConfigSource();
+            IConfig config = TopConfig.AddConfig("Startup");
+            config.Set("DecodedSculpMapPath","j2kDecodeCache");
+
             // Loading ODEPlugin
             cbt = new OdePlugin();
             // Loading Zero Mesher
@@ -55,7 +59,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // Getting Physics Scene
             ps = cbt.GetScene("test");
             // Initializing Physics Scene.
-            ps.Initialise(imp.GetMesher(),null);
+            ps.Initialise(imp.GetMesher(TopConfig),null);
             float[] _heightmap = new float[(int)Constants.RegionSize * (int)Constants.RegionSize];
             for (int i = 0; i < ((int)Constants.RegionSize * (int)Constants.RegionSize); i++)
             {

@@ -28,6 +28,7 @@
 using System;
 using OpenSim.Framework;
 using OpenMetaverse;
+using Nini.Config;
 
 /*
  * This is the zero mesher.
@@ -53,7 +54,7 @@ namespace OpenSim.Region.Physics.Manager
             return "ZeroMesher";
         }
 
-        public IMesher GetMesher()
+        public IMesher GetMesher(IConfigSource config)
         {
             return new ZeroMesher();
         }

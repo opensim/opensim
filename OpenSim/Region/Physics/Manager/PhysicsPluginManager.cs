@@ -81,7 +81,7 @@ namespace OpenSim.Region.Physics.Manager
             if (_MeshPlugins.ContainsKey(meshEngineName))
             {
                 m_log.Info("[PHYSICS]: creating meshing engine " + meshEngineName);
-                meshEngine = _MeshPlugins[meshEngineName].GetMesher();
+                meshEngine = _MeshPlugins[meshEngineName].GetMesher(config);
             }
             else
             {
@@ -234,6 +234,6 @@ namespace OpenSim.Region.Physics.Manager
     public interface IMeshingPlugin
     {
         string GetName();
-        IMesher GetMesher();
+        IMesher GetMesher(IConfigSource config);
     }
 }
