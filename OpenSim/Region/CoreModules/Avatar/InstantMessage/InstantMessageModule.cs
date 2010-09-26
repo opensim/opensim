@@ -183,7 +183,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             if (m_TransferModule != null)
             {
-                im.fromAgentName = client.FirstName + " " + client.LastName;
+                if (client != null)
+                    im.fromAgentName = client.FirstName + " " + client.LastName;
                 m_TransferModule.SendInstantMessage(im,
                     delegate(bool success)
                     {
