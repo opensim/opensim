@@ -41,7 +41,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
 
         public string WriteToFile(Scene scene, string dir)
         {
-            string targetFileName = dir + "objects.xml";
+            string targetFileName = Path.Combine(dir, "objects.xml");
 
             SaveSerialisedToFile(targetFileName, scene);
 
