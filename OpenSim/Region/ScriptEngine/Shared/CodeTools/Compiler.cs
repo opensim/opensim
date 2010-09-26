@@ -72,7 +72,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private Dictionary<string, enumCompileType> LanguageMapping = new Dictionary<string, enumCompileType>(StringComparer.CurrentCultureIgnoreCase);
 
         private string FilePrefix;
-        private string ScriptEnginesPath = "ScriptEngines";
+        private string ScriptEnginesPath = null;
         // mapping between LSL and C# line/column numbers
         private ICodeConverter LSL_Converter;
 
@@ -95,7 +95,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
         public Compiler(IScriptEngine scriptEngine)
         {
-            m_scriptEngine = scriptEngine;
+            m_scriptEngine = scriptEngine;;
+            ScriptEnginesPath = scriptEngine.ScriptEnginePath;
             ReadConfig();
         }
 

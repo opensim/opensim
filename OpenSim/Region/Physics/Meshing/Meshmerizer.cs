@@ -35,6 +35,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using PrimMesher;
 using log4net;
+using Nini.Config;
 using System.Reflection;
 using System.IO;
 
@@ -51,9 +52,9 @@ namespace OpenSim.Region.Physics.Meshing
             return "Meshmerizer";
         }
 
-        public IMesher GetMesher()
+        public IMesher GetMesher(IConfigSource config)
         {
-            return new Meshmerizer();
+            return new Meshmerizer(config);
         }
     }
 
@@ -70,14 +71,18 @@ namespace OpenSim.Region.Physics.Meshing
 #endif
 
         private bool cacheSculptMaps = true;
-        private string decodedScultMapPath = "j2kDecodeCache";
+        private string decodedScultMapPath = null;
 
         private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
 
         private Dictionary<ulong, Mesh> m_uniqueMeshes = new Dictionary<ulong, Mesh>();
 
-        public Meshmerizer()
+        public Meshmerizer(IConfigSource config)
         {
+            IConfig start_config = config.Configs["Startup"];
+
+            decodedScultMapPath = start_config.GetString("DecodedSculpMapPath","j2kDecodeCache");
+
             try
             {
                 if (!Directory.Exists(decodedScultMapPath))

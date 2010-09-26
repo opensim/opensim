@@ -89,6 +89,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private IXmlRpcRouter m_XmlRpcRouter;
         private int m_EventLimit;
         private bool m_KillTimedOutScripts;
+        private string m_ScriptEnginesPath = null;
 
         private static List<XEngine> m_ScriptEngines =
                 new List<XEngine>();
@@ -224,6 +225,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             get { return m_ScriptConfig; }
         }
 
+        public string ScriptEnginePath
+        {
+            get { return m_ScriptEnginesPath; }
+        }
+
         public IConfigSource ConfigSource
         {
             get { return m_ConfigSource; }
@@ -281,6 +287,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_EventLimit = m_ScriptConfig.GetInt("EventLimit", 30);
             m_KillTimedOutScripts = m_ScriptConfig.GetBoolean("KillTimedOutScripts", false);
             m_SaveTime = m_ScriptConfig.GetInt("SaveInterval", 120) * 1000;
+            m_ScriptEnginesPath = m_ScriptConfig.GetString("ScriptEnginesPath", "ScriptEngines");
 
             m_Prio = ThreadPriority.BelowNormal;
             switch (priority)
@@ -478,7 +485,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return 0;
         }
 
-        public Type ReplaceableInterface 
+        public Type ReplaceableInterface
         {
             get { return null; }
         }
@@ -1040,7 +1047,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             startInfo.IdleTimeout = idleTimeout*1000; // convert to seconds as stated in .ini
             startInfo.MaxWorkerThreads = maxThreads;
             startInfo.MinWorkerThreads = minThreads;
-            startInfo.ThreadPriority = threadPriority;
+            startInfo.ThreadPriority = threadPriority;;
             startInfo.StackSize = stackSize;
             startInfo.StartSuspended = true;
 
@@ -1186,8 +1193,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (!(sender is System.AppDomain))
                 return null;
 
-            string[] pathList = new string[] {"bin", "ScriptEngines",
-                                              Path.Combine("ScriptEngines",
+            string[] pathList = new string[] {"bin", m_ScriptEnginesPath,
+                                              Path.Combine(m_ScriptEnginesPath,
                                                            m_Scene.RegionInfo.RegionID.ToString())};
 
             string assemblyName = args.Name;
@@ -1564,7 +1571,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 string fn = assemE.GetAttribute("Filename");
                 string base64 = assemE.InnerText;
 
-                string path = Path.Combine("ScriptEngines", World.RegionInfo.RegionID.ToString());
+                string path = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
                 path = Path.Combine(path, fn);
 
                 if (!File.Exists(path))
@@ -1604,7 +1611,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
             }
 
-            string statepath = Path.Combine("ScriptEngines", World.RegionInfo.RegionID.ToString());
+            string statepath = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
             statepath = Path.Combine(statepath, itemID.ToString() + ".state");
 
             try
@@ -1630,7 +1637,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 XmlElement mapE = (XmlElement)mapL[0];
 
-                string mappath = Path.Combine("ScriptEngines", World.RegionInfo.RegionID.ToString());
+                string mappath = Path.Combine(m_ScriptEnginesPath, World.RegionInfo.RegionID.ToString());
                 mappath = Path.Combine(mappath, mapE.GetAttribute("Filename"));
 
                 try
