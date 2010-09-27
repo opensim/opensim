@@ -373,7 +373,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     gim.fromAgentName = fromAgentName;
                     gim.fromGroup = fromGroup;
                     gim.imSessionID = imSessionID.Guid;
-                    gim.RegionID = RegionID.Guid;
+                    gim.RegionID = UUID.Zero.Guid; // RegionID.Guid;
                     gim.timestamp = timestamp;
                     gim.toAgentID = toAgentID.Guid;
                     gim.message = message;
