@@ -696,6 +696,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void HandleLandStatRequest(int parcelID, uint reportType, uint requestFlags, string filter, IClientAPI remoteClient)
         {
+            if (!m_scene.Permissions.CanIssueEstateCommand(remoteClient.AgentId, false))
+                return;
+
             Dictionary<uint, float> SceneData = new Dictionary<uint,float>();
             List<UUID> uuidNameLookupList = new List<UUID>();
 
