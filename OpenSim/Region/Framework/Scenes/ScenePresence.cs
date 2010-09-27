@@ -229,6 +229,8 @@ namespace OpenSim.Region.Framework.Scenes
         private const int NumMovementsBetweenRayCast = 5;
         private List<uint> m_lastColliders = new List<uint>();
 
+        private object m_syncRoot = new Object();
+
         private bool CameraConstraintActive;
         //private int m_moveToPositionStateStatus;
         //*****************************************************
@@ -2861,66 +2863,69 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="visualParam"></param>
         public void SetAppearance(Primitive.TextureEntry textureEntry, byte[] visualParams)
         {
-            if (m_physicsActor != null)
+            lock (m_syncRoot)
             {
-                if (!IsChildAgent)
+                if (m_physicsActor != null)
                 {
-                    // This may seem like it's redundant, remove the avatar from the physics scene
-                    // just to add it back again, but it saves us from having to update
-                    // 3 variables 10 times a second.
-                    bool flyingTemp = m_physicsActor.Flying;
-                    RemoveFromPhysicalScene();
-                    //m_scene.PhysicsScene.RemoveAvatar(m_physicsActor);
-
-                    //PhysicsActor = null;
-
-                    AddToPhysicalScene(flyingTemp);
-                }
-            }
-
-            #region Bake Cache Check
-
-            if (textureEntry != null)
-            {
-                for (int i = 0; i < BAKE_INDICES.Length; i++)
-                {
-                    int j = BAKE_INDICES[i];
-                    Primitive.TextureEntryFace face = textureEntry.FaceTextures[j];
-
-                    if (face != null && face.TextureID != AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                    if (!IsChildAgent)
                     {
-                        if (m_scene.AssetService.Get(face.TextureID.ToString()) == null)
-                        {
-                            m_log.Warn("[APPEARANCE]: Missing baked texture " + face.TextureID + " (" + j + ") for avatar " + this.Name);
-                            this.ControllingClient.SendRebakeAvatarTextures(face.TextureID);
-                        }
+                        // This may seem like it's redundant, remove the avatar from the physics scene
+                        // just to add it back again, but it saves us from having to update
+                        // 3 variables 10 times a second.
+                        bool flyingTemp = m_physicsActor.Flying;
+                        RemoveFromPhysicalScene();
+                        //m_scene.PhysicsScene.RemoveAvatar(m_physicsActor);
+
+                        //PhysicsActor = null;
+
+                        AddToPhysicalScene(flyingTemp);
                     }
                 }
 
+                #region Bake Cache Check
+
+                if (textureEntry != null)
+                {
+                    for (int i = 0; i < BAKE_INDICES.Length; i++)
+                    {
+                        int j = BAKE_INDICES[i];
+                        Primitive.TextureEntryFace face = textureEntry.FaceTextures[j];
+
+                        if (face != null && face.TextureID != AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                        {
+                            if (m_scene.AssetService.Get(face.TextureID.ToString()) == null)
+                            {
+                                m_log.Warn("[APPEARANCE]: Missing baked texture " + face.TextureID + " (" + j + ") for avatar " + this.Name);
+                                this.ControllingClient.SendRebakeAvatarTextures(face.TextureID);
+                            }
+                        }
+                    }
+
+                }
+
+
+                #endregion Bake Cache Check
+
+                m_appearance.SetAppearance(textureEntry, visualParams);
+                if (m_appearance.AvatarHeight > 0)
+                    SetHeight(m_appearance.AvatarHeight);
+
+                // This is not needed, because only the transient data changed
+                //AvatarData adata = new AvatarData(m_appearance);
+                //m_scene.AvatarService.SetAvatar(m_controllingClient.AgentId, adata);
+
+                SendAppearanceToAllOtherAgents();
+                if (!m_startAnimationSet)
+                {
+                    Animator.UpdateMovementAnimations();
+                    m_startAnimationSet = true;
+                }
+
+                Vector3 pos = m_pos;
+                pos.Z += m_appearance.HipOffset;
+
+                m_controllingClient.SendAvatarDataImmediate(this);
             }
-
-
-            #endregion Bake Cache Check
-
-            m_appearance.SetAppearance(textureEntry, visualParams);
-            if (m_appearance.AvatarHeight > 0)
-                SetHeight(m_appearance.AvatarHeight);
-
-            // This is not needed, because only the transient data changed
-            //AvatarData adata = new AvatarData(m_appearance);
-            //m_scene.AvatarService.SetAvatar(m_controllingClient.AgentId, adata);
-
-            SendAppearanceToAllOtherAgents();
-            if (!m_startAnimationSet)
-            {
-                Animator.UpdateMovementAnimations();
-                m_startAnimationSet = true;
-            }
-
-            Vector3 pos = m_pos;
-            pos.Z += m_appearance.HipOffset;
-
-            m_controllingClient.SendAvatarDataImmediate(this);
         }
 
         public void SetWearable(int wearableId, AvatarWearable wearable)
