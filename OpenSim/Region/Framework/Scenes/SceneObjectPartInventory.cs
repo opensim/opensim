@@ -815,54 +815,55 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_part.ParentGroup.Scene.Permissions.CanEditObjectInventory(m_part.UUID, client.AgentId))
                 includeAssets = true;
 
-            m_items.LockItemsForRead(true);
-
-            foreach (TaskInventoryItem item in m_items.Values)
+            lock (m_items)
             {
-                UUID ownerID = item.OwnerID;
-                uint everyoneMask = 0;
-                uint baseMask = item.BasePermissions;
-                uint ownerMask = item.CurrentPermissions;
-                uint groupMask = item.GroupPermissions;
+                foreach (TaskInventoryItem item in m_items.Values)
+                {
+                    UUID ownerID = item.OwnerID;
+                    uint everyoneMask = 0;
+                    uint baseMask = item.BasePermissions;
+                    uint ownerMask = item.CurrentPermissions;
+                    uint groupMask = item.GroupPermissions;
 
-                invString.AddItemStart();
-                invString.AddNameValueLine("item_id", item.ItemID.ToString());
-                invString.AddNameValueLine("parent_id", m_part.UUID.ToString());
+                    invString.AddItemStart();
+                    invString.AddNameValueLine("item_id", item.ItemID.ToString());
+                    invString.AddNameValueLine("parent_id", m_part.UUID.ToString());
 
-                invString.AddPermissionsStart();
+                    invString.AddPermissionsStart();
 
-                invString.AddNameValueLine("base_mask", Utils.UIntToHexString(baseMask));
-                invString.AddNameValueLine("owner_mask", Utils.UIntToHexString(ownerMask));
-                invString.AddNameValueLine("group_mask", Utils.UIntToHexString(groupMask));
-                invString.AddNameValueLine("everyone_mask", Utils.UIntToHexString(everyoneMask));
-                invString.AddNameValueLine("next_owner_mask", Utils.UIntToHexString(item.NextPermissions));
+                    invString.AddNameValueLine("base_mask", Utils.UIntToHexString(baseMask));
+                    invString.AddNameValueLine("owner_mask", Utils.UIntToHexString(ownerMask));
+                    invString.AddNameValueLine("group_mask", Utils.UIntToHexString(groupMask));
+                    invString.AddNameValueLine("everyone_mask", Utils.UIntToHexString(everyoneMask));
+                    invString.AddNameValueLine("next_owner_mask", Utils.UIntToHexString(item.NextPermissions));
 
-                invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
-                invString.AddNameValueLine("owner_id", ownerID.ToString());
+                    invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
+                    invString.AddNameValueLine("owner_id", ownerID.ToString());
 
-                invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
+                    invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
 
-                invString.AddNameValueLine("group_id", item.GroupID.ToString());
-                invString.AddSectionEnd();
+                    invString.AddNameValueLine("group_id", item.GroupID.ToString());
+                    invString.AddSectionEnd();
 
-                if (includeAssets)
-                    invString.AddNameValueLine("asset_id", item.AssetID.ToString());
-                else
-                    invString.AddNameValueLine("asset_id", UUID.Zero.ToString());
-                invString.AddNameValueLine("type", TaskInventoryItem.Types[item.Type]);
-                invString.AddNameValueLine("inv_type", TaskInventoryItem.InvTypes[item.InvType]);
-                invString.AddNameValueLine("flags", Utils.UIntToHexString(item.Flags));
+                    if (includeAssets)
+                        invString.AddNameValueLine("asset_id", item.AssetID.ToString());
+                    else
+                        invString.AddNameValueLine("asset_id", UUID.Zero.ToString());
+                    invString.AddNameValueLine("type", TaskInventoryItem.Types[item.Type]);
+                    invString.AddNameValueLine("inv_type", TaskInventoryItem.InvTypes[item.InvType]);
+                    invString.AddNameValueLine("flags", Utils.UIntToHexString(item.Flags));
 
-                invString.AddSaleStart();
-                invString.AddNameValueLine("sale_type", "not");
-                invString.AddNameValueLine("sale_price", "0");
-                invString.AddSectionEnd();
+                    invString.AddSaleStart();
+                    invString.AddNameValueLine("sale_type", "not");
+                    invString.AddNameValueLine("sale_price", "0");
+                    invString.AddSectionEnd();
 
-                invString.AddNameValueLine("name", item.Name + "|");
-                invString.AddNameValueLine("desc", item.Description + "|");
+                    invString.AddNameValueLine("name", item.Name + "|");
+                    invString.AddNameValueLine("desc", item.Description + "|");
 
-                invString.AddNameValueLine("creation_date", item.CreationDate.ToString());
-                invString.AddSectionEnd();
+                    invString.AddNameValueLine("creation_date", item.CreationDate.ToString());
+                    invString.AddSectionEnd();
+                }
             }
 
             fileData = Utils.StringToBytes(invString.BuildString);
