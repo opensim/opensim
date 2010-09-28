@@ -1241,6 +1241,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (engines == null) // No engine at all
                 return ret;
 
+            Items.LockItemsForRead(true);
             foreach (TaskInventoryItem item in m_items.Values)
             {
                 if (item.InvType == (int)InventoryType.LSL)
@@ -1268,6 +1269,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
+            Items.LockItemsForRead(false);
             return ret;
         }
         
