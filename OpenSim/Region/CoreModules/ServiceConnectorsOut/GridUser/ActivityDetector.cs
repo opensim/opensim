@@ -42,7 +42,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IGridUserService m_GridUserService;
-        private Scene m_aScene;
 
         public ActivityDetector(IGridUserService guservice)
         {
@@ -56,9 +55,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
             // But we could trigger the position update more often
             scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
             scene.EventManager.OnNewClient += OnNewClient;
-
-            if (m_aScene == null)
-                m_aScene = scene;
         }
 
         public void RemoveRegion(Scene scene)
@@ -69,14 +65,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
 
         public void OnMakeRootAgent(ScenePresence sp)
         {
-            UUID sessionID = UUID.Zero;
-
-            IClientAPI client;
-            if (m_aScene.TryGetClient(sp.UUID, out client))
-                sessionID = client.SessionId;
-
             m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected root presence {0} in {1}", sp.UUID, sp.Scene.RegionInfo.RegionName);
-            m_GridUserService.SetLastPosition(sp.UUID.ToString(), sessionID, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
+            m_GridUserService.SetLastPosition(sp.UUID.ToString(), UUID.Zero, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
         }
 
         public void OnNewClient(IClientAPI client)
