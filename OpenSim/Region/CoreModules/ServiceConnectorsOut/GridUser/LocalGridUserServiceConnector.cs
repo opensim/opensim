@@ -152,9 +152,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
             return m_GridUserService.LoggedIn(userID);
         }
 
-        public bool LoggedOut(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
+        public bool LoggedOut(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
         {
-            return m_GridUserService.LoggedOut(userID, regionID, lastPosition, lastLookAt);
+            return m_GridUserService.LoggedOut(userID, sessionID, regionID, lastPosition, lastLookAt);
         }
 
         public bool SetHome(string userID, UUID homeID, Vector3 homePosition, Vector3 homeLookAt)

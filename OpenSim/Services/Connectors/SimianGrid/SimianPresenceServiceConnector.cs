@@ -260,7 +260,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return null;
         }
 
-        public bool LoggedOut(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
+        public bool LoggedOut(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
         {
             // Save our last position as user data
             NameValueCollection requestArgs = new NameValueCollection

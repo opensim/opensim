@@ -126,9 +126,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
             return null;
         }
 
-        public bool LoggedOut(string userID, UUID region, Vector3 position, Vector3 lookat)
+        public bool LoggedOut(string userID, UUID sessionID, UUID region, Vector3 position, Vector3 lookat)
         {
-            return m_RemoteConnector.LoggedOut(userID, region, position, lookat);
+            return m_RemoteConnector.LoggedOut(userID, sessionID, region, position, lookat);
         }
 
 

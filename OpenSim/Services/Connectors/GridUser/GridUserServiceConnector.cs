@@ -101,7 +101,7 @@ namespace OpenSim.Services.Connectors
 
         }
 
-        public bool LoggedOut(string userID, UUID region, Vector3 position, Vector3 lookat)
+        public bool LoggedOut(string userID, UUID sessionID, UUID region, Vector3 position, Vector3 lookat)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["SCOPEID"] = scopeID.ToString();

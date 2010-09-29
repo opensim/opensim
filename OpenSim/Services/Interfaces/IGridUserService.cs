@@ -105,7 +105,17 @@ namespace OpenSim.Services.Interfaces
     public interface IGridUserService
     {
         GridUserInfo LoggedIn(string userID);
-        bool LoggedOut(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt);
+
+        /// <summary>
+        /// Informs the grid that a user is logged out and to remove any session data for them
+        /// </summary>
+        /// <param name="userID">Ignore if your connector does not use userID for logouts</param>
+        /// <param name="sessionID">Ignore if your connector does not use sessionID for logouts</param>
+        /// <param name="regionID">RegionID where the user was last located</param>
+        /// <param name="lastPosition">Last region-relative position of the user</param>
+        /// <param name="lastLookAt">Last normalized look direction for the user</param>
+        /// <returns>True if the logout request was successfully processed, otherwise false</returns>
+        bool LoggedOut(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt);
         
         bool SetHome(string userID, UUID homeID, Vector3 homePosition, Vector3 homeLookAt);
 

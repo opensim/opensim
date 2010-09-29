@@ -92,7 +92,7 @@ namespace OpenSim.Services.UserAccountService
             return GetGridUserInfo(userID);
         }
 
-        public bool LoggedOut(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
+        public bool LoggedOut(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
         {
             m_log.DebugFormat("[GRID USER SERVICE]: User {0} is offline", userID);
             GridUserData d = m_Database.Get(userID);
