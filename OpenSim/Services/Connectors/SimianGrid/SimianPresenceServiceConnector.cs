@@ -262,6 +262,12 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public bool LoggedOut(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
         {
+            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Logging out user " + userID);
+
+            // Remove the session to mark this user offline
+            if (!LogoutAgent(sessionID))
+                return false;
+
             // Save our last position as user data
             NameValueCollection requestArgs = new NameValueCollection
             {
