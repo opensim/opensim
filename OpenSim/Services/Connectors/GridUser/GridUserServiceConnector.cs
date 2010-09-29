@@ -123,7 +123,7 @@ namespace OpenSim.Services.Connectors
             return Set(sendData, userID, regionID, position, lookAt);
         }
 
-        public bool SetLastPosition(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
+        public bool SetLastPosition(string userID, UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["SCOPEID"] = scopeID.ToString();

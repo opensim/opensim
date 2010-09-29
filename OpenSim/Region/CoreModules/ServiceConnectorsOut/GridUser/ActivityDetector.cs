@@ -69,9 +69,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
 
         public void OnMakeRootAgent(ScenePresence sp)
         {
-            m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected root presence {0} in {1}", sp.UUID, sp.Scene.RegionInfo.RegionName);
+            UUID sessionID = UUID.Zero;
 
-            m_GridUserService.SetLastPosition(sp.UUID.ToString(), sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
+            IClientAPI client;
+            if (m_aScene.TryGetClient(sp.UUID, out client))
+                sessionID = client.SessionId;
+
+            m_log.DebugFormat("[ACTIVITY DETECTOR]: Detected root presence {0} in {1}", sp.UUID, sp.Scene.RegionInfo.RegionName);
+            m_GridUserService.SetLastPosition(sp.UUID.ToString(), sessionID, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
         }
 
         public void OnNewClient(IClientAPI client)

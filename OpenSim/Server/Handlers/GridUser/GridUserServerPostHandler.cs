@@ -166,7 +166,7 @@ namespace OpenSim.Server.Handlers.GridUser
             if (!UnpackArgs(request, out user, out region, out position, out look))
                 return FailureResult();
 
-            if (m_GridUserService.SetLastPosition(user, region, position, look))
+            if (m_GridUserService.SetLastPosition(user, UUID.Zero, region, position, look))
                 return SuccessResult();
 
             return FailureResult();
