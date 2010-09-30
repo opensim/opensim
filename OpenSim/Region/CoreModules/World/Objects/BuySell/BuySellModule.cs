@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
             part.GetProperties(client);
         }
 
-        public bool BuyObject(IClientAPI remoteClient, UUID categoryID, uint localID, byte saleType)
+        public bool BuyObject(IClientAPI remoteClient, UUID categoryID, uint localID, byte saleType, int salePrice)
         {
             SceneObjectPart part = m_scene.GetSceneObjectPart(localID);
 
@@ -113,6 +113,18 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
 
             if (part.ParentGroup == null)
                 return false;
+
+            if (part.ObjectSaleType != saleType)
+            {
+                m_dialogModule.SendAlertToUser(remoteClient, "This item is not available for the type of sale specified");
+                return false;
+            }
+            
+            if (part.SalePrice != salePrice)
+            {
+                m_dialogModule.SendAlertToUser(remoteClient, "This item is not available for the price specified");
+                return false;
+            }
 
             SceneObjectGroup group = part.ParentGroup;
 
