@@ -1035,7 +1035,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Dictionary<UUID, string> pstates = parts[i].Inventory.GetScriptStates(oldIDs);
                 foreach (KeyValuePair<UUID, string> kvp in pstates)
-                    states.Add(kvp.Key, kvp.Value);
+                    states[kvp.Key] = kvp.Value;
             }
 
             if (states.Count > 0)
