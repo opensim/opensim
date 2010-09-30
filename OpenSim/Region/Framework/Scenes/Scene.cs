@@ -3856,6 +3856,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             // We have to wait until the viewer contacts this region after receiving EAC.
             // That calls AddNewClient, which finally creates the ScenePresence
+            int num = m_sceneGraph.GetNumberOfScenePresences();
+
+            if (num >= RegionInfo.RegionSettings.AgentLimit)
+            {
+                if (!Permissions.IsAdministrator(cAgentData.AgentID))
+                    return false;
+            }
+
             ScenePresence childAgentUpdate = WaitGetScenePresence(cAgentData.AgentID);
             if (childAgentUpdate != null)
             {
