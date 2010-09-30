@@ -515,6 +515,9 @@ namespace OpenSim.Region.Framework.Scenes
         public void HandleFetchInventoryDescendents(IClientAPI remoteClient, UUID folderID, UUID ownerID,
                                                     bool fetchFolders, bool fetchItems, int sortOrder)
         {
+            if (folderID == UUID.Zero)
+                return;
+
             // FIXME MAYBE: We're not handling sortOrder!
 
             // TODO: This code for looking in the folder for the library should be folded somewhere else
