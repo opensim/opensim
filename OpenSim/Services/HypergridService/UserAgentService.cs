@@ -232,7 +232,7 @@ namespace OpenSim.Services.HypergridService
 
             GridUserInfo guinfo = m_GridUserService.GetGridUserInfo(userID.ToString());
             if (guinfo != null)
-                m_GridUserService.LoggedOut(userID.ToString(), guinfo.LastRegionID, guinfo.LastPosition, guinfo.LastLookAt);
+                m_GridUserService.LoggedOut(userID.ToString(), sessionID, guinfo.LastRegionID, guinfo.LastPosition, guinfo.LastLookAt);
         }
 
         // We need to prevent foreign users with the same UUID as a local user

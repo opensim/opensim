@@ -260,8 +260,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return null;
         }
 
-        public bool LoggedOut(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
+        public bool LoggedOut(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
         {
+            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Logging out user " + userID);
+
+            // Remove the session to mark this user offline
+            if (!LogoutAgent(sessionID))
+                return false;
+
             // Save our last position as user data
             NameValueCollection requestArgs = new NameValueCollection
             {
@@ -302,12 +308,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
         public bool SetLastPosition(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
         {
             return UpdateSession(sessionID, regionID, lastPosition, lastLookAt);
-        }
-
-        public bool SetLastPosition(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
-        {
-            // Never called
-            return false;
         }
 
         public GridUserInfo GetGridUserInfo(string user)

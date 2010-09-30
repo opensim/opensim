@@ -426,6 +426,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (part == null || part.ParentGroup == null)
                 return;
 
+            if (part.ParentGroup.RootPart.AttachedAvatar != remoteClient.AgentId)
+                return;
+
             UUID inventoryID = part.ParentGroup.GetFromItemID();
 
             ScenePresence presence;

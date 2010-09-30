@@ -105,11 +105,31 @@ namespace OpenSim.Services.Interfaces
     public interface IGridUserService
     {
         GridUserInfo LoggedIn(string userID);
-        bool LoggedOut(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt);
+
+        /// <summary>
+        /// Informs the grid that a user is logged out and to remove any session data for them
+        /// </summary>
+        /// <param name="userID">Ignore if your connector does not use userID for logouts</param>
+        /// <param name="sessionID">Ignore if your connector does not use sessionID for logouts</param>
+        /// <param name="regionID">RegionID where the user was last located</param>
+        /// <param name="lastPosition">Last region-relative position of the user</param>
+        /// <param name="lastLookAt">Last normalized look direction for the user</param>
+        /// <returns>True if the logout request was successfully processed, otherwise false</returns>
+        bool LoggedOut(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt);
         
         bool SetHome(string userID, UUID homeID, Vector3 homePosition, Vector3 homeLookAt);
-        bool SetLastPosition(string userID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt);
-    
+
+        /// <summary>
+        /// Stores the last known user position at the grid level
+        /// </summary>
+        /// <param name="userID">Ignore if your connector does not use userID for position updates</param>
+        /// <param name="sessionID">Ignore if your connector does not use sessionID for position updates</param>
+        /// <param name="regionID">RegionID where the user is currently located</param>
+        /// <param name="lastPosition">Region-relative position</param>
+        /// <param name="lastLookAt">Normalized look direction</param>
+        /// <returns>True if the user's last position was successfully updated, otherwise false</returns>
+        bool SetLastPosition(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt);
+        
         GridUserInfo GetGridUserInfo(string userID);
     }
 }

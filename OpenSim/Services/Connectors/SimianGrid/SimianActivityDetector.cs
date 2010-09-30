@@ -29,6 +29,7 @@ using System;
 using System.Reflection;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 using log4net;
 
@@ -38,12 +39,11 @@ namespace OpenSim.Services.Connectors.SimianGrid
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private SimianPresenceServiceConnector m_GridUserService;
-        private Scene m_aScene;
+        private IGridUserService m_GridUserService;
 
-        public SimianActivityDetector(SimianPresenceServiceConnector guservice)
+        public SimianActivityDetector(IGridUserService guService)
         {
-            m_GridUserService = guservice;
+            m_GridUserService = guService;
             m_log.DebugFormat("[SIMIAN ACTIVITY DETECTOR]: Started");
         }
 
@@ -54,9 +54,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
             scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnAvatarEnteringNewParcel += OnEnteringNewParcel;
-
-            if (m_aScene == null)
-                m_aScene = scene;
         }
 
         public void RemoveRegion(Scene scene)
@@ -101,9 +98,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 }
 
                 m_log.DebugFormat("[SIMIAN ACTIVITY DETECTOR]: Detected client logout {0} in {1}", client.AgentId, client.Scene.RegionInfo.RegionName);
-                m_GridUserService.LoggedOut(client.AgentId.ToString(), client.Scene.RegionInfo.RegionID, position, lookat);
+                m_GridUserService.LoggedOut(client.AgentId.ToString(), client.SessionId, client.Scene.RegionInfo.RegionID, position, lookat);
             }
-
         }
 
         void OnEnteringNewParcel(ScenePresence sp, int localLandID, UUID regionID)
