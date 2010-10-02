@@ -572,8 +572,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     break;
 
                                 case HollowShape.Circle:
-                                    // Hollow shape is a perfect cyllinder in respect to the cube's scale
-                                    // Cyllinder hollow volume calculation
+                                    // Hollow shape is a perfect cylinder in respect to the cube's scale
+                                    // Cylinder hollow volume calculation
 
                                     hollowVolume *= 0.1963495f * 3.07920140172638f;
                                     break;
