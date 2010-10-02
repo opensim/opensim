@@ -814,7 +814,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             
             IBuySellModule module = s.RequestModuleInterface<IBuySellModule>();
             if (module != null)
-                module.BuyObject(remoteClient, categoryID, localID, saleType, salePrice);
+                module.BuyObject(remoteClient, categoryID, localID, saleType);
         }
     }
 
