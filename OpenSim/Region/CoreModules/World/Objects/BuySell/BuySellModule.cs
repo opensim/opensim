@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
             part.GetProperties(client);
         }
 
-        public bool BuyObject(IClientAPI remoteClient, UUID categoryID, uint localID, byte saleType)
+        public bool BuyObject(IClientAPI remoteClient, UUID categoryID, uint localID, byte saleType, int salePrice)
         {
             SceneObjectPart part = m_scene.GetSceneObjectPart(localID);
 
