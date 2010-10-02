@@ -145,12 +145,12 @@ namespace OpenSim.Services.HypergridService
             region.RegionLocY = finalDestination.RegionLocY;
 
             // Generate a new service session
-            agentCircuit.ServiceSessionID = "http://" + region.ExternalHostName + ":" + region.HttpPort + ";" + UUID.Random();
+            agentCircuit.ServiceSessionID = region.ServerURI + ";" + UUID.Random();
             TravelingAgentInfo old = UpdateTravelInfo(agentCircuit, region);
 
             bool success = false;
             string myExternalIP = string.Empty;
-            string gridName = "http://" + gatekeeper.ExternalHostName + ":" + gatekeeper.HttpPort;
+            string gridName = gatekeeper.ServerURI;
             if (m_GridName == gridName)
                 success = m_GatekeeperService.LoginAgent(agentCircuit, finalDestination, out reason);
             else
@@ -159,7 +159,7 @@ namespace OpenSim.Services.HypergridService
             if (!success)
             {
                 m_log.DebugFormat("[USER AGENT SERVICE]: Unable to login user {0} {1} to grid {2}, reason: {3}", 
-                    agentCircuit.firstname, agentCircuit.lastname, region.ExternalHostName + ":" + region.HttpPort, reason);
+                    agentCircuit.firstname, agentCircuit.lastname, region.ServerURI, reason);
 
                 // restore the old travel info
                 lock (m_TravelingAgents)
@@ -210,7 +210,7 @@ namespace OpenSim.Services.HypergridService
                 m_TravelingAgents[agentCircuit.SessionID] = travel;
             }
             travel.UserID = agentCircuit.AgentID;
-            travel.GridExternalName = "http://" + region.ExternalHostName + ":" + region.HttpPort;
+            travel.GridExternalName = region.ServerURI;
             travel.ServiceToken = agentCircuit.ServiceSessionID;
             if (old != null)
                 travel.ClientIPAddress = old.ClientIPAddress;
