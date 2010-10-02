@@ -84,8 +84,7 @@ namespace OpenSim.Services.Connectors
                 if (info != null) // just to be sure
                 {
                     XmlRpcRequest request = new XmlRpcRequest("land_data", paramList);
-                    string uri = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/";
-                    XmlRpcResponse response = request.Send(uri, 10000);
+                    XmlRpcResponse response = request.Send(info.ServerURI, 10000);
                     if (response.IsFault)
                     {
                         m_log.ErrorFormat("[LAND CONNECTOR]: remote call returned an error: {0}", response.FaultString);
