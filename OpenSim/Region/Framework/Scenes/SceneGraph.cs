@@ -1136,7 +1136,7 @@ namespace OpenSim.Region.Framework.Scenes
                 catch (Exception e)
                 {
                     // Catch it and move on. This includes situations where splist has inconsistent info
-                    m_log.WarnFormat("[SCENE]: Problem processing action in ForEachSOG: ", e.Message);
+                    m_log.WarnFormat("[SCENE]: Problem processing action in ForEachSOG: ", e.ToString());
                 }
             }
         }
@@ -1177,7 +1177,6 @@ namespace OpenSim.Region.Framework.Scenes
                 catch (Exception e)
                 {
                     m_log.Info("[BUG] in " + m_parentScene.RegionInfo.RegionName + ": " + e.ToString());
-                    m_log.Info("[BUG] Stack Trace: " + e.StackTrace);
                 }
             }
         }
