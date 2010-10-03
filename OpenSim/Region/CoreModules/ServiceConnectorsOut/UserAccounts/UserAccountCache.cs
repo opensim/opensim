@@ -53,9 +53,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
         public void Cache(UUID userID, UserAccount account)
         {
             // Cache even null accounts
-            m_UUIDCache.AddOrUpdate(userID, account, DateTime.Now + TimeSpan.FromSeconds(CACHE_EXPIRATION_SECONDS));
+            m_UUIDCache.AddOrUpdate(userID, account, CACHE_EXPIRATION_SECONDS);
             if (account != null)
-                m_NameCache.AddOrUpdate(account.Name, account.PrincipalID, DateTime.Now + TimeSpan.FromSeconds(CACHE_EXPIRATION_SECONDS));
+                m_NameCache.AddOrUpdate(account.Name, account.PrincipalID, CACHE_EXPIRATION_SECONDS);
 
            // m_log.DebugFormat("[USER CACHE]: cached user {0}", userID);
         }

@@ -143,7 +143,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutgoingPacket pendingAdd;
             if (m_pendingAdds != null)
             {
-                while (m_pendingAdds.Dequeue(out pendingAdd))
+                while (m_pendingAdds.TryDequeue(out pendingAdd))
                 {
                     if (pendingAdd != null && m_packets != null)
                     {
@@ -157,7 +157,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutgoingPacket ackedPacket;
             if (m_pendingRemoves != null)
             {
-                while (m_pendingRemoves.Dequeue(out pendingRemove))
+                while (m_pendingRemoves.TryDequeue(out pendingRemove))
                 {
                     if (m_pendingRemoves != null && m_packets != null)
                     {
