@@ -411,7 +411,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 return;
             }
 
-            using (Image mapTile = tileGenerator.CreateMapTile("defaultstripe.png"))
+            using (Image mapTile = tileGenerator.CreateMapTile())
             {
                 using (MemoryStream stream = new MemoryStream())
                 {

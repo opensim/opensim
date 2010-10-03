@@ -29,7 +29,7 @@ using System.Drawing;
 using Nini.Config;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.World.WorldMap
+namespace OpenSim.Region.CoreModules.World.LegacyMap
 {
     public interface IMapTileTerrainRenderer
     {
