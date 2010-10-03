@@ -310,7 +310,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 delegate(SceneObjectGroup group)
                 {
                     CreatePrim(renderer, group.RootPart);
-                    foreach (SceneObjectPart child in group.Children.Values)
+                    foreach (SceneObjectPart child in group.Parts)
                         CreatePrim(renderer, child);
                 }
             );
