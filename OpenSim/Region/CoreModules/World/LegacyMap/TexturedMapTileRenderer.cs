@@ -36,7 +36,7 @@ using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.World.WorldMap
+namespace OpenSim.Region.CoreModules.World.LegacyMap
 {
     // Hue, Saturation, Value; used for color-interpolation
     struct HSV {

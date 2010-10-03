@@ -92,6 +92,17 @@ namespace OpenSim.Framework
         public static FireAndForgetMethod FireAndForgetMethod = FireAndForgetMethod.SmartThreadPool;
 
         /// <summary>
+        /// Gets the name of the directory where the current running executable
+        /// is located
+        /// </summary>
+        /// <returns>Filesystem path to the directory containing the current
+        /// executable</returns>
+        public static string ExecutingDirectory()
+        {
+            return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        }
+
+        /// <summary>
         /// Linear interpolates B<->C using percent A
         /// </summary>
         /// <param name="a"></param>

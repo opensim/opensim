@@ -37,7 +37,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.World.WorldMap
+namespace OpenSim.Region.CoreModules.World.LegacyMap
 {
     public enum DrawRoutine
     {
@@ -70,7 +70,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         #region IMapImageGenerator Members
 
-        public Bitmap CreateMapTile(string gradientmap)
+        public Bitmap CreateMapTile()
         {
             bool drawPrimVolume = true;
             bool textureTerrain = false;
@@ -113,11 +113,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             return mapbmp;
         }
 
-        public byte[] WriteJpeg2000Image(string gradientmap)
+        public byte[] WriteJpeg2000Image()
         {
             try
             {
-                using (Bitmap mapbmp = CreateMapTile(gradientmap))
+                using (Bitmap mapbmp = CreateMapTile())
                     return OpenJPEG.EncodeFromImage(mapbmp, true);
             }
             catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
@@ -545,44 +545,5 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             return returnpt;
         }
-
-// TODO: unused:
-//         #region Deprecated Maptile Generation.  Adam may update this
-//         private Bitmap TerrainToBitmap(string gradientmap)
-//         {
-//             Bitmap gradientmapLd = new Bitmap(gradientmap);
-//
-//             int pallete = gradientmapLd.Height;
-//
-//             Bitmap bmp = new Bitmap(m_scene.Heightmap.Width, m_scene.Heightmap.Height);
-//             Color[] colours = new Color[pallete];
-//
-//             for (int i = 0; i < pallete; i++)
-//             {
-//                 colours[i] = gradientmapLd.GetPixel(0, i);
-//             }
-//
-//             lock (m_scene.Heightmap)
-//             {
-//                 ITerrainChannel copy = m_scene.Heightmap;
-//                 for (int y = 0; y < copy.Height; y++)
-//                 {
-//                     for (int x = 0; x < copy.Width; x++)
-//                     {
-//                         // 512 is the largest possible height before colours clamp
-//                         int colorindex = (int) (Math.Max(Math.Min(1.0, copy[x, y] / 512.0), 0.0) * (pallete - 1));
-//
-//                         // Handle error conditions
-//                         if (colorindex > pallete - 1 || colorindex < 0)
-//                             bmp.SetPixel(x, copy.Height - y - 1, Color.Red);
-//                         else
-//                             bmp.SetPixel(x, copy.Height - y - 1, colours[colorindex]);
-//                     }
-//                 }
-//                 ShadeBuildings(bmp);
-//                 return bmp;
-//             }
-//         }
-//         #endregion
     }
 }
