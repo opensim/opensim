@@ -579,7 +579,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                 if (mreg != null)
                 {
-                    httpserver = "http://" + mreg.ExternalEndPoint.Address.ToString() + ":" + mreg.HttpPort + "/MAP/MapItems/" + regionhandle.ToString();
+                    httpserver = mreg.ServerURI + "MAP/MapItems/" + regionhandle.ToString();
                     lock (m_cachedRegionMapItemsAddress)
                     {
                         if (!m_cachedRegionMapItemsAddress.ContainsKey(regionhandle))

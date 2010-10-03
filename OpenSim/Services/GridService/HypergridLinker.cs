@@ -199,11 +199,14 @@ namespace OpenSim.Services.GridService
             return null;
         }
 
-
-        public bool TryCreateLink(UUID scopeID, int xloc, int yloc,
-            string externalRegionName, uint externalPort, string externalHostName, out GridRegion regInfo, out string reason)
+        public bool TryCreateLink(UUID scopeID, int xloc, int yloc, string externalRegionName, string serverURI, out GridRegion regInfo, out string reason)
         {
-            TryCreateLink(scopeID, xloc, yloc, externalRegionName, externalPort, externalHostName, null, regInfo, reason);
+            return TryCreateLink(scopeID, xloc, yloc, externalRegionName, 0, null, serverURI, out regInfo, out reason);
+        }
+
+        public bool TryCreateLink(UUID scopeID, int xloc, int yloc, string externalRegionName, uint externalPort, string externalHostName, out GridRegion regInfo, out string reason)
+        {
+            return TryCreateLink(scopeID, xloc, yloc, externalRegionName, externalPort, externalHostName, null, out regInfo, out reason);
         }
 
         // From the command line and the 2 above
