@@ -328,7 +328,7 @@ namespace OpenSim
 
             // set initial ServerURI
             regionInfo.HttpPort = m_httpServerPort;
-            regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort.ToString();
+            regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort.ToString() + "/";
             
             regionInfo.osSecret = m_osSecret;
             
