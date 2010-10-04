@@ -352,6 +352,12 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 Face face = renderMesh.Faces[i];
                 string meshName = primID + "-Face-" + i.ToString();
 
+                // Avoid adding duplicate meshes to the scene
+                if (renderer.Scene.objectData.ContainsKey(meshName))
+                {
+                    continue;
+                }
+
                 warp_Object faceObj = new warp_Object(face.Vertices.Count, face.Indices.Count / 3);
 
                 for (int j = 0; j < face.Vertices.Count; j++)
