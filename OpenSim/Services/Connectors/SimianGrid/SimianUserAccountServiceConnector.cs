@@ -147,7 +147,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             if (account == null)
             {
                 // Store null responses too, to avoid repeated lookups for missing accounts
-                m_accountCache.AddOrUpdate(userID, null, CACHE_EXPIRATION_SECONDS);
+                m_accountCache.AddOrUpdate(userID, null, DateTime.Now + TimeSpan.FromSeconds(CACHE_EXPIRATION_SECONDS));
             }
 
             return account;
@@ -225,7 +225,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 if (success)
                 {
                     // Cache the user account info
-                    m_accountCache.AddOrUpdate(data.PrincipalID, data, CACHE_EXPIRATION_SECONDS);
+                    m_accountCache.AddOrUpdate(data.PrincipalID, data, DateTime.Now + TimeSpan.FromSeconds(CACHE_EXPIRATION_SECONDS));
                 }
                 else
                 {
@@ -290,7 +290,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             GetFirstLastName(response["Name"].AsString(), out account.FirstName, out account.LastName);
 
             // Cache the user account info
-            m_accountCache.AddOrUpdate(account.PrincipalID, account, CACHE_EXPIRATION_SECONDS);
+            m_accountCache.AddOrUpdate(account.PrincipalID, account, DateTime.Now + TimeSpan.FromSeconds(CACHE_EXPIRATION_SECONDS));
 
             return account;
         }
