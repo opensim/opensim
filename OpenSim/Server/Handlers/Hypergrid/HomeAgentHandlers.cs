@@ -55,11 +55,13 @@ namespace OpenSim.Server.Handlers.Hypergrid
         private IUserAgentService m_UserAgentService;
 
         private string m_LoginServerIP;
+        private bool m_Proxy = false;
 
-        public HomeAgentHandler(IUserAgentService userAgentService, string loginServerIP)
+        public HomeAgentHandler(IUserAgentService userAgentService, string loginServerIP, bool proxy)
         {
             m_UserAgentService = userAgentService;
             m_LoginServerIP = loginServerIP;
+            m_Proxy = proxy;
         }
 
         public Hashtable Handler(Hashtable request)
@@ -153,11 +155,11 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 string ip_str = args["client_ip"].ToString();
                 try
                 {
-                    string callerIP = Util.GetCallerIP(request);
+                    string callerIP = GetCallerIP(request);
                     // Verify if this caller has authority to send the client IP
                     if (callerIP == m_LoginServerIP)
                         client_ipaddress = new IPEndPoint(IPAddress.Parse(ip_str), 0);
-                    else
+                    else // leaving this for now, but this warning should be removed
                         m_log.WarnFormat("[HOME AGENT HANDLER]: Unauthorized machine {0} tried to set client ip to {1}", callerIP, ip_str);
                 }
                 catch
@@ -198,6 +200,23 @@ namespace OpenSim.Server.Handlers.Hypergrid
             responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp);
         }
 
+        private string GetCallerIP(Hashtable request)
+        {
+            if (!m_Proxy)
+                return Util.GetCallerIP(request);
+
+            // We're behind a proxy
+            Hashtable headers = (Hashtable)request["headers"];
+            if (headers.ContainsKey("X-Forwarded-For") && headers["X-Forwarded-For"] != null)
+            {
+                IPEndPoint ep = Util.GetClientIPFromXFF((string)headers["X-Forwarded-For"]);
+                if (ep != null)
+                    return ep.Address.ToString();
+            }
+
+            // Oops
+            return Util.GetCallerIP(request);
+        }
     }
 
 }

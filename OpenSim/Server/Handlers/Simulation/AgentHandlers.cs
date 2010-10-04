@@ -52,6 +52,8 @@ namespace OpenSim.Server.Handlers.Simulation
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private ISimulationService m_SimulationService;
 
+        protected bool m_Proxy = false;
+
         public AgentHandler() { }
 
         public AgentHandler(ISimulationService sim)
@@ -184,11 +186,29 @@ namespace OpenSim.Server.Handlers.Simulation
             resp["reason"] = OSD.FromString(reason);
             resp["success"] = OSD.FromBoolean(result);
             // Let's also send out the IP address of the caller back to the caller (HG 1.5)
-            resp["your_ip"] = OSD.FromString(Util.GetCallerIP(request));
+            resp["your_ip"] = OSD.FromString(GetCallerIP(request));
 
             // TODO: add reason if not String.Empty?
             responsedata["int_response_code"] = HttpStatusCode.OK;
             responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp);
+        }
+
+        private string GetCallerIP(Hashtable request)
+        {
+            if (!m_Proxy)
+                return Util.GetCallerIP(request);
+
+            // We're behind a proxy
+            Hashtable headers = (Hashtable)request["headers"];
+            if (headers.ContainsKey("X-Forwarded-For") && headers["X-Forwarded-For"] != null)
+            {
+                IPEndPoint ep = Util.GetClientIPFromXFF((string)headers["X-Forwarded-For"]);
+                if (ep != null)
+                    return ep.Address.ToString();
+            }
+
+            // Oops
+            return Util.GetCallerIP(request);
         }
 
         // subclasses can override this

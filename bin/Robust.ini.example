@@ -141,6 +141,9 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; For snowglobe's web map
     ; MapTileURL = "";
 
+    ; If you run this login server behind a proxy, set this to true
+    ; HasProxy = true
+
 
 [GridInfoService]
     ; These settings are used to return information on a get_grid_info call.

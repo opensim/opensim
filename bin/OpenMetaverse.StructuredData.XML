@@ -15,85 +15,6 @@
             
             </summary>
         </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDBinary(System.Byte[])">
-            <summary>
-            
-            </summary>
-            <param name="binaryData"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDBinary(System.IO.Stream)">
-            <summary>
-            
-            </summary>
-            <param name="stream"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDBinary(OpenMetaverse.StructuredData.OSD)">
-            <summary>
-            
-            </summary>
-            <param name="osd"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDBinaryStream(OpenMetaverse.StructuredData.OSD)">
-            <summary>
-            
-            </summary>
-            <param name="data"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.SkipWhiteSpace(System.IO.Stream)">
-            <summary>
-            
-            </summary>
-            <param name="stream"></param>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.FindByte(System.IO.Stream,System.Byte)">
-            <summary>
-            
-            </summary>
-            <param name="stream"></param>
-            <param name="toFind"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.FindString(System.IO.Stream,System.String)">
-            <summary>
-            
-            </summary>
-            <param name="stream"></param>
-            <param name="toFind"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.ConsumeBytes(System.IO.Stream,System.Int32)">
-            <summary>
-            
-            </summary>
-            <param name="stream"></param>
-            <param name="consumeBytes"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.NetworkToHostInt(System.Byte[])">
-            <summary>
-            
-            </summary>
-            <param name="binaryNetEnd"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.NetworkToHostDouble(System.Byte[])">
-            <summary>
-            
-            </summary>
-            <param name="binaryNetEnd"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.HostToNetworkIntBytes(System.Int32)">
-            <summary>
-            
-            </summary>
-            <param name="intHostEnd"></param>
-            <returns></returns>   
-        </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDXml(System.Byte[])">
             <summary>
             
@@ -211,6 +132,85 @@
             <param name="s"></param>
             <param name="c"></param>
             <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDBinary(System.Byte[])">
+            <summary>
+            
+            </summary>
+            <param name="binaryData"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDBinary(System.IO.Stream)">
+            <summary>
+            
+            </summary>
+            <param name="stream"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDBinary(OpenMetaverse.StructuredData.OSD)">
+            <summary>
+            
+            </summary>
+            <param name="osd"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDBinaryStream(OpenMetaverse.StructuredData.OSD)">
+            <summary>
+            
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.SkipWhiteSpace(System.IO.Stream)">
+            <summary>
+            
+            </summary>
+            <param name="stream"></param>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.FindByte(System.IO.Stream,System.Byte)">
+            <summary>
+            
+            </summary>
+            <param name="stream"></param>
+            <param name="toFind"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.FindByteArray(System.IO.Stream,System.Byte[])">
+            <summary>
+            
+            </summary>
+            <param name="stream"></param>
+            <param name="toFind"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.ConsumeBytes(System.IO.Stream,System.Int32)">
+            <summary>
+            
+            </summary>
+            <param name="stream"></param>
+            <param name="consumeBytes"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.NetworkToHostInt(System.Byte[])">
+            <summary>
+            
+            </summary>
+            <param name="binaryNetEnd"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.NetworkToHostDouble(System.Byte[])">
+            <summary>
+            
+            </summary>
+            <param name="binaryNetEnd"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.HostToNetworkIntBytes(System.Int32)">
+            <summary>
+            
+            </summary>
+            <param name="intHostEnd"></param>
+            <returns></returns>   
         </member>
         <member name="T:OpenMetaverse.StructuredData.OSDType">
             <summary>

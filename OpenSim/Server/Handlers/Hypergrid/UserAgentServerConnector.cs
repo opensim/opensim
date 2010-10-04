@@ -67,6 +67,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 throw new Exception("UserAgent server connector cannot proceed because of missing service");
 
             string loginServerIP = gridConfig.GetString("LoginServerIP", "127.0.0.1");
+            bool proxy = gridConfig.GetBoolean("HasProxy", false);
 
             server.AddXmlRPCHandler("agent_is_coming_home", AgentIsComingHome, false);
             server.AddXmlRPCHandler("get_home_region", GetHomeRegion, false);
@@ -74,7 +75,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             server.AddXmlRPCHandler("verify_client", VerifyClient, false);
             server.AddXmlRPCHandler("logout_agent", LogoutAgent, false);
 
-            server.AddHTTPHandler("/homeagent/", new HomeAgentHandler(m_HomeUsersService, loginServerIP).Handler);
+            server.AddHTTPHandler("/homeagent/", new HomeAgentHandler(m_HomeUsersService, loginServerIP, proxy).Handler);
         }
 
         public XmlRpcResponse GetHomeRegion(XmlRpcRequest request, IPEndPoint remoteClient)

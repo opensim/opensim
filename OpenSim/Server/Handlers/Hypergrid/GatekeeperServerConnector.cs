@@ -51,6 +51,8 @@ namespace OpenSim.Server.Handlers.Hypergrid
             get { return m_GatekeeperService; }
         }
 
+        bool m_Proxy = false;
+
         public GatekeeperServiceInConnector(IConfigSource config, IHttpServer server, ISimulationService simService) :
                 base(config, server, String.Empty)
         {
@@ -65,11 +67,13 @@ namespace OpenSim.Server.Handlers.Hypergrid
             if (m_GatekeeperService == null)
                 throw new Exception("Gatekeeper server connector cannot proceed because of missing service");
 
+            m_Proxy = gridConfig.GetBoolean("HasProxy", false);
+
             HypergridHandlers hghandlers = new HypergridHandlers(m_GatekeeperService);
             server.AddXmlRPCHandler("link_region", hghandlers.LinkRegionRequest, false);
             server.AddXmlRPCHandler("get_region", hghandlers.GetRegion, false);
 
-            server.AddHTTPHandler("/foreignagent/", new GatekeeperAgentHandler(m_GatekeeperService).Handler);
+            server.AddHTTPHandler("/foreignagent/", new GatekeeperAgentHandler(m_GatekeeperService, m_Proxy).Handler);
         }
 
         public GatekeeperServiceInConnector(IConfigSource config, IHttpServer server)
