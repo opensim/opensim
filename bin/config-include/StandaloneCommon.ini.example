@@ -13,8 +13,8 @@
     ; for more details
     ;Include-Storage = "config-include/storage/SQLiteLegacyStandalone.ini";
 
-    ; MySql  
-    ; Uncomment these lines if you want to use mysql storage 
+    ; MySql
+    ; Uncomment these lines if you want to use mysql storage
     ; Change the connection string to your db details
     ;StorageProvider = "OpenSim.Data.MySQL.dll"
     ;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;Old Guids=true;"
@@ -28,9 +28,9 @@
 [Modules]
     ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.
     ;; Copy the config .example file into your own .ini file and change configs there
-    
+
     ;AssetCaching = "GlynnTuckerAssetCache"
-    
+
     ;AssetCaching = "FlotsamAssetCache"
     ;Include-FlotsamCache = "config-include/FlotsamCache.ini"
 
@@ -41,7 +41,7 @@
     ;FreeswitchServiceInConnector = True
 
     ;; Authorization is not on by default, as it depends on external php
-    ;AuthorizationServices	= "LocalAuthorizationServicesConnector"
+    ;AuthorizationServices = "LocalAuthorizationServicesConnector"
 
 [FreeswitchService]
     ;; Configuration for the freeswitch service goes here
@@ -49,11 +49,11 @@
 
 [GridService]
     ;; For in-memory region storage (default)
-	  StorageProvider = "OpenSim.Data.Null.dll:NullRegionData"
+    StorageProvider = "OpenSim.Data.Null.dll:NullRegionData"
     ;;--- For MySql region storage (alternative)
- 	  ;StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
+    ;StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
 
-	; If HG, do you want this check on the distance to be performed?
+    ; If HG, do you want this check on the distance to be performed?
     ; Check4096 = "False"
 
     ;; Next, we can specify properties of regions, including default and fallback regions
@@ -65,7 +65,7 @@
 [LibraryModule]
     ; Set this if you want to change the name of the OpenSim Library
     ;LibraryName = "My World's Library"
-    
+
 [LoginService]
     WelcomeMessage = "Welcome, Avatar!"
 
@@ -77,9 +77,9 @@
 [GatekeeperService]
     ExternalName = "http://127.0.0.1:9000"
 
-	; Does this grid allow incoming links to any region in it? 
-	; If false, HG TPs happen only to the  Default regions specified in [GridService] section
-	AllowTeleportsToAnyRegion = true
+    ; Does this grid allow incoming links to any region in it?
+    ; If false, HG TPs happen only to the  Default regions specified in [GridService] section
+    AllowTeleportsToAnyRegion = true
 
 [GridInfoService]
     ; These settings are used to return information on a get_grid_info call.
