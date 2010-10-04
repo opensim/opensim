@@ -148,7 +148,6 @@ namespace OpenSim.Services.HypergridService
             agentCircuit.ServiceSessionID = "http://" + region.ExternalHostName + ":" + region.HttpPort + ";" + UUID.Random();
             TravelingAgentInfo old = UpdateTravelInfo(agentCircuit, region);
 
-            //bool success = m_GatekeeperConnector.CreateAgent(region, agentCircuit, (uint)Constants.TeleportFlags.ViaLogin, out reason);
             bool success = false;
             string myExternalIP = string.Empty;
             string gridName = "http://" + gatekeeper.ExternalHostName + ":" + gatekeeper.HttpPort;
@@ -200,6 +199,11 @@ namespace OpenSim.Services.HypergridService
             {
                 if (m_TravelingAgents.ContainsKey(agentCircuit.SessionID))
                 {
+                    // Very important! Override whatever this agent comes with.
+                    // UserAgentService always sets the IP for every new agent
+                    // with the original IP address.
+                    agentCircuit.IPAddress = m_TravelingAgents[agentCircuit.SessionID].ClientIPAddress;
+
                     old = m_TravelingAgents[agentCircuit.SessionID];
                 }
 

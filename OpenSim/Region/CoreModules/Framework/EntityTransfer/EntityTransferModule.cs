@@ -301,7 +301,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (currentAgentCircuit != null)
                 {
                     agentCircuit.ServiceURLs = currentAgentCircuit.ServiceURLs;
+                    agentCircuit.IPAddress = currentAgentCircuit.IPAddress;
                     agentCircuit.Viewer = currentAgentCircuit.Viewer;
+                    agentCircuit.Channel = currentAgentCircuit.Channel;
+                    agentCircuit.Mac = currentAgentCircuit.Mac;
+                    agentCircuit.Id0 = currentAgentCircuit.Id0;
                 }
 
                 if (NeedsNewAgent(oldRegionX, newRegionX, oldRegionY, newRegionY))
@@ -955,16 +959,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             agent.CapsPath = CapsUtil.GetRandomCapsObjectPath();
 
             agent.ChildrenCapSeeds = new Dictionary<ulong, string>(sp.Scene.CapsModule.GetChildrenSeeds(sp.UUID));
-            m_log.DebugFormat("[XXX] Seeds 1 {0}", agent.ChildrenCapSeeds.Count);
+            //m_log.DebugFormat("[XXX] Seeds 1 {0}", agent.ChildrenCapSeeds.Count);
 
             if (!agent.ChildrenCapSeeds.ContainsKey(sp.Scene.RegionInfo.RegionHandle))
                 agent.ChildrenCapSeeds.Add(sp.Scene.RegionInfo.RegionHandle, sp.ControllingClient.RequestClientInfo().CapsPath);
-            m_log.DebugFormat("[XXX] Seeds 2 {0}", agent.ChildrenCapSeeds.Count);
+            //m_log.DebugFormat("[XXX] Seeds 2 {0}", agent.ChildrenCapSeeds.Count);
 
             sp.AddNeighbourRegion(region.RegionHandle, agent.CapsPath);
-            foreach (ulong h in agent.ChildrenCapSeeds.Keys)
-                m_log.DebugFormat("[XXX] --> {0}", h);
-            m_log.DebugFormat("[XXX] Adding {0}", region.RegionHandle);
+            //foreach (ulong h in agent.ChildrenCapSeeds.Keys)
+            //    m_log.DebugFormat("[XXX] --> {0}", h);
+            //m_log.DebugFormat("[XXX] Adding {0}", region.RegionHandle);
             agent.ChildrenCapSeeds.Add(region.RegionHandle, agent.CapsPath);
 
             if (sp.Scene.CapsModule != null)
@@ -975,7 +979,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (currentAgentCircuit != null)
             {
                 agent.ServiceURLs = currentAgentCircuit.ServiceURLs;
+                agent.IPAddress = currentAgentCircuit.IPAddress;
                 agent.Viewer = currentAgentCircuit.Viewer;
+                agent.Channel = currentAgentCircuit.Channel;
+                agent.Mac = currentAgentCircuit.Mac;
+                agent.Id0 = currentAgentCircuit.Id0;
             }
 
             InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
@@ -1064,7 +1072,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     if (currentAgentCircuit != null)
                     {
                         agent.ServiceURLs = currentAgentCircuit.ServiceURLs;
+                        agent.IPAddress = currentAgentCircuit.IPAddress;
                         agent.Viewer = currentAgentCircuit.Viewer;
+                        agent.Channel = currentAgentCircuit.Channel;
+                        agent.Mac = currentAgentCircuit.Mac;
+                        agent.Id0 = currentAgentCircuit.Id0;
                     }
 
                     if (newRegions.Contains(neighbour.RegionHandle))

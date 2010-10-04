@@ -157,7 +157,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
                     // Verify if this caller has authority to send the client IP
                     if (callerIP == m_LoginServerIP)
                         client_ipaddress = new IPEndPoint(IPAddress.Parse(ip_str), 0);
-                    else
+                    else // leaving this for now, but this warning should be removed
                         m_log.WarnFormat("[HOME AGENT HANDLER]: Unauthorized machine {0} tried to set client ip to {1}", callerIP, ip_str);
                 }
                 catch
