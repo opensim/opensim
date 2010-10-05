@@ -112,6 +112,19 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         public Bitmap CreateMapTile()
         {
+            Vector3 camPos = new Vector3(127.5f, 127.5f, 221.7025033688163f);
+            Viewport viewport = new Viewport(camPos, -Vector3.UnitZ, 1024f, 0.1f, (int)Constants.RegionSize, (int)Constants.RegionSize, (float)Constants.RegionSize, (float)Constants.RegionSize);
+            return CreateMapTile(viewport);
+        }
+
+        public Bitmap CreateViewImage(Vector3 camPos, Vector3 camDir, float fov, int width, int height)
+        {
+            Viewport viewport = new Viewport(camPos, camDir, fov, (float)Constants.RegionSize, 0.1f, width, height);
+            return CreateMapTile(viewport);
+        }
+
+        public Bitmap CreateMapTile(Viewport viewport)
+        {
             bool drawPrimVolume = true;
             bool textureTerrain = true;
 
@@ -127,9 +140,6 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             }
 
             m_colors.Clear();
-
-            Vector3 camPos = new Vector3(127.5f, 127.5f, 221.7025033688163f);
-            Viewport viewport = new Viewport(camPos, -Vector3.UnitZ, 1024f, 0.1f, (int)Constants.RegionSize, (int)Constants.RegionSize, (float)Constants.RegionSize, (float)Constants.RegionSize);
 
             int width = viewport.Width;
             int height = viewport.Height;
