@@ -1523,7 +1523,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 // If the agent update does move the avatar, then calculate the force ready for the velocity update,
-                // which occurs later in the main scene loop                
+                // which occurs later in the main scene loop
                 if (update_movementflag || (update_rotation && DCFlagKeyPressed))
                 {
                     //                    m_log.DebugFormat("{0} {1}", update_movementflag, (update_rotation && DCFlagKeyPressed));

@@ -2,7 +2,7 @@
     ;;
     ;; Options for FlotsamAssetCache
     ;;
-    
+
     ; cache directory can be shared by multiple instances
     CacheDirectory = ./assetcache
     ; Other examples:
@@ -34,9 +34,9 @@
     ; How often {in hours} should the disk be checked for expired filed
     ; Specify 0 to disable expiration checking
     FileCleanupTimer = .166  ;roughly every 10 minutes
-    
-    ; If WAIT_ON_INPROGRESS_REQUESTS has been defined then this specifies how 
-    ; long (in miliseconds) to block a request thread while trying to complete 
+
+    ; If WAIT_ON_INPROGRESS_REQUESTS has been defined then this specifies how
+    ; long (in miliseconds) to block a request thread while trying to complete
     ; an existing write to disk.
     ; WaitOnInprogressTimeout = 3000
 
@@ -50,10 +50,10 @@
 
     ; Warning level for cache directory size
     ;CacheWarnAt = 30000
-	
-	; Perform a deep scan of all assets within all regions, looking for all assets
-	; present or referenced.  Mark all assets found that are already present in the
-	; cache, and request all assets that are found that are not already cached (this
-	; will cause those assets to be cached)
-	;
-	; DeepScanBeforePurge = false
+
+    ; Perform a deep scan of all assets within all regions, looking for all assets
+    ; present or referenced.  Mark all assets found that are already present in the
+    ; cache, and request all assets that are found that are not already cached (this
+    ; will cause those assets to be cached)
+    ;
+    ; DeepScanBeforePurge = false

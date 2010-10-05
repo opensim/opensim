@@ -364,7 +364,7 @@
 
     ;; Path to default appearance XML file that specifies the look of the
     ;; default avatars
-    ; default_appearance = default_appearance.xml 
+    ; default_appearance = default_appearance.xml
 
 [Wind]
     ;# {enabled} {} {Enable wind module?} {true false} true
@@ -510,7 +510,7 @@
     ;# {AllowOSFunctions} {Enabled:true} {Allow OSFunctions? (DANGEROUS!)} {true false} false
     ;; Allow the use of os* functions (some are dangerous)
     ; AllowOSFunctions = false
-    
+
     ;# {AllowLightShareFunctions} {Enabled:true [LightShare]enable_windlight:true} {Allow LightShare functions?} {true false} true
     ; Allow the user of LightShare functions
     ; AllowLightShareFunctions = false
@@ -633,7 +633,7 @@
 
     ;; Service connectors to the Groups Service.  Select one depending on
     ;; whether you're using a Flotsam XmlRpc backend or a SimianGrid backend
-  
+
     ;# {ServicesConnectorModule} {Module:GroupsModule} {Service connector to use for groups?} {XmlRpcGroupsServicesConnector SimianGroupsServicesConnector} XmlRpcGroupsServicesConnector
     ;; The service connector to use for the GroupsModule
     ; ServicesConnectorModule = SimianGroupsServicesConnector
@@ -644,7 +644,7 @@
 
     ;# {NoticesEnabled} {Module:GroupsModule} {Enable group notices?} {true false} true
     ;; Enable Group Notices
-    ; NoticesEnabled = true 
+    ; NoticesEnabled = true
 
     ;; This makes the Groups modules very chatty on the console.
     ; DebugEnabled = false
@@ -652,12 +652,12 @@
     ;; Specify which messaging module to use for groups messaging and if it's
     ;; enabled
     ; MessagingModule = GroupsMessagingModule
-    ; MessagingEnabled = true 
+    ; MessagingEnabled = true
 
     ;; XmlRpc Security settings.  These must match those set on your backend
     ;; groups service.
-    ; XmlRpcServiceReadKey    = 1234 
-    ; XmlRpcServiceWriteKey   = 1234 
+    ; XmlRpcServiceReadKey    = 1234
+    ; XmlRpcServiceWriteKey   = 1234
 
 [InterestManagement]
      ;# {UpdatePrioritizationScheme} {} {Update prioritization scheme?} {BestAvatarResponsiveness Time Distance SimpleAngularDistance FrontBack} BestAvatarResponsiveness
