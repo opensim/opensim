@@ -126,7 +126,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         public Bitmap CreateMapTile(Viewport viewport)
         {
             bool drawPrimVolume = true;
-            bool textureTerrain = false; //true;
+            bool textureTerrain = true;
 
             try
             {
