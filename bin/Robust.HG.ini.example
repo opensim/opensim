@@ -212,6 +212,10 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; Does this grid allow incoming links to any region in it? 
     ; If false, HG TPs happen only to the Default regions specified in [GridService] section
     AllowTeleportsToAnyRegion = true
+    
+    ; If you run this gatekeeper server behind a proxy, set this to true
+    ; HasProxy = true
+
 
 [UserAgentService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:UserAgentService"
@@ -220,6 +224,9 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     GridService = "OpenSim.Services.GridService.dll:GridService"
     GatekeeperService = "OpenSim.Services.HypergridService.dll:GatekeeperService"
     
+    ; If you run this user agent server behind a proxy, set this to true
+    ; HasProxy = true
+
     ;; If you separate the UserAgentService from the LoginService, set this to
     ;; the IP address of the machine where your LoginService is
     ;LoginServerIP = "127.0.0.1"

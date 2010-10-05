@@ -108,9 +108,29 @@ namespace OpenSim.Framework
         public string ServiceSessionID = string.Empty;
 
         /// <summary>
-        /// Viewer's version string
+        /// The client's IP address, as captured by the login service
+        /// </summary>
+        public string IPAddress;
+
+        /// <summary>
+        /// Viewer's version string as reported by the viewer at login
         /// </summary>
         public string Viewer;
+
+        /// <summary>
+        /// The channel strinf sent by the viewer at login
+        /// </summary>
+        public string Channel;
+
+        /// <summary>
+        /// The Mac address as reported by the viewer at login
+        /// </summary>
+        public string Mac;
+
+        /// <summary>
+        /// The id0 as reported by the viewer at login
+        /// </summary>
+        public string Id0;
 
         /// <summary>
         /// Position the Agent's Avatar starts in the region
@@ -179,7 +199,11 @@ namespace OpenSim.Framework
             args["service_session_id"] = OSD.FromString(ServiceSessionID);
             args["start_pos"] = OSD.FromString(startpos.ToString());
             args["appearance_serial"] = OSD.FromInteger(Appearance.Serial);
+            args["client_ip"] = OSD.FromString(IPAddress);
             args["viewer"] = OSD.FromString(Viewer);
+            args["channel"] = OSD.FromString(Channel);
+            args["mac"] = OSD.FromString(Mac);
+            args["id0"] = OSD.FromString(Id0);
 
             if (Appearance != null)
             {
@@ -279,8 +303,16 @@ namespace OpenSim.Framework
                 SessionID = args["session_id"].AsUUID();
             if (args["service_session_id"] != null)
                 ServiceSessionID = args["service_session_id"].AsString();
+            if (args["client_ip"] != null)
+                IPAddress = args["client_ip"].AsString();
             if (args["viewer"] != null)
                 Viewer = args["viewer"].AsString();
+            if (args["channel"] != null)
+                Channel = args["channel"].AsString();
+            if (args["mac"] != null)
+                Mac = args["mac"].AsString();
+            if (args["id0"] != null)
+                Id0 = args["id0"].AsString();
 
             if (args["start_pos"] != null)
                 Vector3.TryParse(args["start_pos"].AsString(), out startpos);
@@ -349,6 +381,9 @@ namespace OpenSim.Framework
         public float startposy;
         public float startposz;
         public string Viewer;
+        public string Channel;
+        public string Mac;
+        public string Id0;
 
         public sAgentCircuitData()
         {

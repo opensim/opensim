@@ -812,7 +812,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             // gets the object data.   If the data sent by the client doesn't match the object, the viewer probably has an 
             // old idea of what the object properties are.   Viewer developer Hazim informed us that the base module 
             // didn't check the client sent data against the object do any.   Since the base modules are the 
-            // 'crowning glory' examples of good practice..    
+            // 'crowning glory' examples of good practice..
 
             // Validate that the object exists in the scene the user is in
             SceneObjectPart part = s.GetSceneObjectPart(localID);

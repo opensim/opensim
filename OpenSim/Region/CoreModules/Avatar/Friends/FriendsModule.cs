@@ -318,12 +318,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
                 UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(client.Scene.RegionInfo.ScopeID, fromAgentID);
 
-				PresenceInfo presence = null;
-				PresenceInfo[] presences = PresenceService.GetAgents(new string[] { fid });
-				if (presences != null && presences.Length > 0)
-					presence = presences[0];
-				if (presence != null)
-					im.offline = 0;
+                PresenceInfo presence = null;
+                PresenceInfo[] presences = PresenceService.GetAgents(new string[] { fid });
+                if (presences != null && presences.Length > 0)
+                    presence = presences[0];
+                if (presence != null)
+                    im.offline = 0;
 
                 im.fromAgentID = fromAgentID.Guid;
                 im.fromAgentName = account.FirstName + " " + account.LastName;

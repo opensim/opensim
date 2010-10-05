@@ -57,12 +57,12 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
     ; Realm = "regions"
     ; AllowDuplicateNames = "True"
-    
+
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegionName> = "<flags>"
     ;; or:            Region_<RegionID> = "<flags>"
     ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut,Reservation,NoMove,Authenticate
-    ;; For example: 
+    ;; For example:
     ; Region_Welcome_Area = "DefaultRegion, FallbackRegion"
     ; (replace spaces with underscore)
 
@@ -83,7 +83,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; for the server connector
     AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
     UserAccountServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
-	
+
 ; * This is the new style authentication service. Currently, only MySQL
 ; * is implemented. "Realm" is the table that is used for user lookup.
 ; * It defaults to "useraccounts", which uses the new style.
@@ -141,6 +141,8 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; For snowglobe's web map
     ; MapTileURL = "";
 
+    ; If you run this login server behind a proxy, set this to true
+    ; HasProxy = true
 
 [GridInfoService]
     ; These settings are used to return information on a get_grid_info call.
