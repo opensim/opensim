@@ -138,12 +138,12 @@ namespace OpenSim.Data
         /// <param name="conn"></param>
         /// <param name="script">Array of strings, one-per-batch (often just one)</param>
         protected virtual void ExecuteScript(DbConnection conn, string[] script)
-        {            
+        {
             using (DbCommand cmd = conn.CreateCommand())
             {
                 cmd.CommandTimeout = 0;
                 foreach (string sql in script)
-                {                                      
+                {
                     cmd.CommandText = sql;
                     try
                     {

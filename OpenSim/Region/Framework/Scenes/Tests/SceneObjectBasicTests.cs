@@ -210,7 +210,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
                     { Name = childPartName, UUID = childPartUuid };
 
-            SceneObjectGroup sog = new SceneObjectGroup(rootPart);            
+            SceneObjectGroup sog = new SceneObjectGroup(rootPart);
             sog.AddPart(linkPart);
             
             Assert.That(sog.UUID, Is.EqualTo(rootPartUuid));
@@ -221,7 +221,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             sog.UUID = newRootPartUuid;
                         
             Assert.That(sog.UUID, Is.EqualTo(newRootPartUuid));
-            Assert.That(sog.RootPart.UUID, Is.EqualTo(newRootPartUuid));            
+            Assert.That(sog.RootPart.UUID, Is.EqualTo(newRootPartUuid));
             Assert.That(sog.Parts.Length, Is.EqualTo(2));
         }
     }

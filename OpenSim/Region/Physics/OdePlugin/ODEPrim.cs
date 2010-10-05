@@ -188,7 +188,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
         {
-            Name = primName;            
+            Name = primName;
             m_vehicle = new ODEDynamics();
             //gc = GCHandle.Alloc(prim_geom, GCHandleType.Pinned);
             ode = dode;
@@ -620,7 +620,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             volume *= (1.0f - hollowVolume);
                             }
                         }
-                        break;                  
+                        break;
 
                 default:
                     break;
@@ -658,7 +658,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 taperY = _pbs.PathTaperY * 0.01f;
                 if (taperY < 0.0f)
-                    taperY = -taperY;               
+                    taperY = -taperY;
                 taperY1 = 1.0f - taperY;
 
                 }
@@ -1059,7 +1059,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                             
                             foreach (OdePrim prm in childrenPrim)
-                            {                       
+                            {
                                 prm.m_collisionCategories |= CollisionCategories.Body;
                                 prm.m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 

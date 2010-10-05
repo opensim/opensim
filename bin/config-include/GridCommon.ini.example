@@ -11,8 +11,8 @@
     ; for more details
     ;Include-Storage = "config-include/storage/SQLiteLegacyStandalone.ini";
 
-    ; MySql  
-    ; Uncomment these lines if you want to use mysql storage 
+    ; MySql
+    ; Uncomment these lines if you want to use mysql storage
     ; Change the connection string to your db details
     ;StorageProvider = "OpenSim.Data.MySQL.dll"
     ;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;"
@@ -81,18 +81,18 @@
 [Modules]
     ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.
     ;; Copy the config .example file into your own .ini file and change configs there
-        
+
     AssetCaching = "FlotsamAssetCache"
     Include-FlotsamCache = "config-include/FlotsamCache.ini"
 
     ;AssetCaching = "CenomeMemoryAssetCache"
     ;Include-CenomeCache = "config-include/CenomeCache.ini"
-    
+
     ;AssetCaching = "GlynnTuckerAssetCache"
 
     ;; Optionally, the port for the LLProxyLoginModule module can be changed
-    
+
     ;Setup_LLProxyLoginModule = "9090/"
 
     ;; Authorization is not on by default, as it depends on external php
-    ;AuthorizationServices	= "RemoteAuthorizationServicesConnector"
+    ;AuthorizationServices = "RemoteAuthorizationServicesConnector"

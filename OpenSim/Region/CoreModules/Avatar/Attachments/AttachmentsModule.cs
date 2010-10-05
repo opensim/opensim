@@ -316,7 +316,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="remoteClient"></param>
         /// <param name="itemID"></param>
         /// <param name="AttachmentPt"></param>
-        /// <returns></returns>        
+        /// <returns></returns>
         protected UUID ShowAttachInUserInventory(
             SceneObjectGroup att, IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
