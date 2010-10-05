@@ -176,7 +176,7 @@ namespace OpenSim.Server.Base
             OpenSimAppender consoleAppender = null;
             FileAppender fileAppender = null;
 
-            if ( logConfig != null )
+            if (logConfig != null)
             {
                 FileInfo cfg = new FileInfo(logConfig);
                 XmlConfigurator.Configure(cfg);

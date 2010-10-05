@@ -2763,7 +2763,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID = UUID.Random();
             LinkNum = linkNum;
             LocalId = 0;
-			Inventory.ResetInventoryIDs();
+            Inventory.ResetInventoryIDs();
         }
 
         /// <summary>
