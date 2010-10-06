@@ -77,7 +77,7 @@
         <RegionModule id="AuthenticationServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Authentication.AuthenticationServiceInConnectorModule" />
         <RegionModule id="AccessModule" type="OpenSim.Region.CoreModules.World.AccessModule" />    \
         <RegionModule id="MapImageModule" type="OpenSim.Region.CoreModules.World.LegacyMap.MapImageModule" />    \
-        <RegionModule id="Warp3DImageModule" type="OpenSim.Region.CoreModules.World.Warp3DMap/Warp3DImageModule" />    \
+        <RegionModule id="Warp3DImageModule" type="OpenSim.Region.CoreModules.World.Warp3DMap.Warp3DImageModule" />    \
 
     </Extension>
 
