@@ -28,7 +28,9 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Reflection;
+using System.IO;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
@@ -109,7 +111,11 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
             Bitmap bmp = m_Generator.CreateViewImage(pos, rot, fov, width,
                     height);
 
-            return new Byte[0];
+            MemoryStream str = new MemoryStream();
+
+            bmp.Save(str, ImageFormat.Jpeg);
+
+            return str.ToArray();
         }
     }
 }
