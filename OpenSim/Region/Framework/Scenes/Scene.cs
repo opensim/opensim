@@ -4865,7 +4865,16 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 float ominX, ominY, ominZ, omaxX, omaxY, omaxZ;
 
+                Vector3 vec = g.AbsolutePosition;
+
                 g.GetAxisAlignedBoundingBoxRaw(out ominX, out omaxX, out ominY, out omaxY, out ominZ, out omaxZ);
+
+                ominX += vec.X;
+                omaxX += vec.X;
+                ominY += vec.Y;
+                omaxY += vec.Y;
+                ominZ += vec.Z;
+                omaxZ += vec.Z;
 
                 if (minX > ominX)
                     minX = ominX;
