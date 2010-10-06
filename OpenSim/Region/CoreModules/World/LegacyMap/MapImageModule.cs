@@ -560,7 +560,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             return returnpt;
         }
 
-        public Bitmap CreateViewImage(Vector3 camPos, Vector3 camDir, float fov, int width, int height)
+        public Bitmap CreateViewImage(Vector3 camPos, Vector3 camDir, float fov, int width, int height, bool useTextures)
         {
             return null;
         }

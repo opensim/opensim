@@ -96,6 +96,7 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
             float fov;
             int width;
             int height;
+            bool usetex;
 
             if (!request.ContainsKey("posX"))
                 return new Byte[0];
@@ -115,6 +116,8 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
                 return new Byte[0];
             if (!request.ContainsKey("height"))
                 return new Byte[0];
+            if (!request.ContainsKey("usetex"))
+                return new Byte[0];
 
             try
             {
@@ -127,6 +130,7 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
                 fov = Convert.ToSingle(request["fov"]);
                 width = Convert.ToInt32(request["width"]);
                 height = Convert.ToInt32(request["height"]);
+                usetex = Convert.ToBoolean(request["usetex"]);
             }
             catch
             {
@@ -137,7 +141,7 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
             Vector3 rot = new Vector3(rotX, rotY, rotZ);
 
             return m_WorldViewModule.GenerateWorldView(pos, rot, fov, width,
-                    height);
+                    height, usetex);
         }
     }
 }
