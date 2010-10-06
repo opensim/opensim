@@ -556,7 +556,7 @@ namespace OpenSim.Tests.Common.Setup
             AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
             sogd.Enabled = false;
 
-            scene.DeRezObject(client, part.LocalId, UUID.Zero, action, destinationId);
+            scene.DeRezObjects(client, new List<uint>() { part.LocalId }, UUID.Zero, action, destinationId);
             sogd.InventoryDeQueueAndDelete();
         }
     }
