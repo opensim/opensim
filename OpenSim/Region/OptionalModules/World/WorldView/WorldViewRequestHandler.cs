@@ -49,8 +49,8 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
         protected WorldViewModule m_WorldViewModule;
         protected Object m_RequestLock = new Object();
 
-        public WorldViewRequestHandler(WorldViewModule fmodule)
-                : base("POST", "/worldview")
+        public WorldViewRequestHandler(WorldViewModule fmodule, string rid)
+                : base("POST", "/worldview/" + rid)
         {
             m_WorldViewModule = fmodule;
         }

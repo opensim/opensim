@@ -81,7 +81,8 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
             m_log.Info("[WORLDVIEW]: Configured and enabled");
 
             IHttpServer server = MainServer.GetHttpServer(0);
-            server.AddStreamHandler(new WorldViewRequestHandler(this));
+            server.AddStreamHandler(new WorldViewRequestHandler(this,
+                    scene.RegionInfo.RegionID.ToString()));
         }
 
         public void RemoveRegion(Scene scene)
