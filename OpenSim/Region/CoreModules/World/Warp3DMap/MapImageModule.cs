@@ -49,7 +49,7 @@ using WarpRenderer = global::Warp3D.Warp3D;
 
 namespace OpenSim.Region.CoreModules.World.Warp3DMap
 {
-    public class Warp3DImageModule : IMapImageGenerator, IRegionModule
+    public class Warp3DImageModule : IMapImageGenerator, INonSharedRegionModule
     {
         private static readonly UUID TEXTURE_METADATA_MAGIC = new UUID("802dc0e0-f080-4931-8b57-d1be8611c4f3");
         private static readonly Color4 WATER_COLOR = new Color4(29, 71, 95, 216);
@@ -62,17 +62,27 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private IConfigSource m_config;
         private Dictionary<UUID, Color4> m_colors = new Dictionary<UUID, Color4>();
         private bool m_useAntiAliasing = true; // TODO: Make this a config option
+        private bool m_Enabled = false;
 
         #region IRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
         {
-            m_scene = scene;
             m_config = source;
 
             IConfig startupConfig = m_config.Configs["Startup"];
             if (startupConfig.GetString("MapImageModule", "MapImageModule") != "Warp3DImageModule")
                 return;
+
+            m_Enabled = true;
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            m_scene = scene;
 
             List<string> renderers = RenderingLoader.ListRenderers(Util.ExecutingDirectory());
             if (renderers.Count > 0)
@@ -88,7 +98,11 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             m_scene.RegisterModuleInterface<IMapImageGenerator>(this);
         }
 
-        public void PostInitialise()
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
         {
         }
 
@@ -101,9 +115,9 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             get { return "Warp3DImageModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return false; }
+            get { return null; }
         }
 
         #endregion
