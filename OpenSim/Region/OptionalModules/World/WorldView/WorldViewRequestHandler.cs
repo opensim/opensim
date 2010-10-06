@@ -50,7 +50,7 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
         protected Object m_RequestLock = new Object();
 
         public WorldViewRequestHandler(WorldViewModule fmodule, string rid)
-                : base("POST", "/worldview/" + rid)
+                : base("GET", "/worldview/" + rid)
         {
             m_WorldViewModule = fmodule;
         }
@@ -58,24 +58,28 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
         public override byte[] Handle(string path, Stream requestData,
                 OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            StreamReader sr = new StreamReader(requestData);
-            string body = sr.ReadToEnd();
-            sr.Close();
-            body = body.Trim();
+            httpResponse.ContentType = "image/jpeg";
+
+//            StreamReader sr = new StreamReader(requestData);
+//            string body = sr.ReadToEnd();
+//            sr.Close();
+//            body = body.Trim();
 
             try
             {
                 lock (m_RequestLock)
                 {
                     Dictionary<string, object> request =
-                            ServerUtils.ParseQueryString(body);
+                            new Dictionary<string, object>();
+                    foreach (string name in httpRequest.QueryString)
+                        request[name] = httpRequest.QueryString[name];
 
                     return SendWorldView(request);
                 }
             }
             catch (Exception e)
             {
-                m_log.Debug("[WORLDVIEW]: Exception {0}" + e.ToString());
+                m_log.Debug("[WORLDVIEW]: Exception: " + e.ToString());
             }
 
             return new Byte[0];
