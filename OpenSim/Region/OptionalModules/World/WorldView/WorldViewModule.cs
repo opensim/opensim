@@ -100,8 +100,15 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
         {
         }
 
-        public byte[] GenerateWorldView(Vector3 pos, Vector3 rot)
+        public byte[] GenerateWorldView(Vector3 pos, Vector3 rot, float fov,
+                int width, int height)
         {
+            if (!m_Enabled)
+                return new Byte[0];
+
+            Bitmap bmp = m_Generator.CreateViewImage(pos, rot, fov, width,
+                    height);
+
             return new Byte[0];
         }
     }
