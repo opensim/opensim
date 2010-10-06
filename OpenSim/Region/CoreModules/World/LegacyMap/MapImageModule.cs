@@ -59,7 +59,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         public face[] trns;
     }
 
-    public class MapImageModule : IMapImageGenerator, IRegionModule
+    public class MapImageModule : IMapImageGenerator, INonSharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -67,6 +67,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         private Scene m_scene;
         private IConfigSource m_config;
         private IMapTileTerrainRenderer terrainRenderer;
+        private bool m_Enabled = false;
 
         #region IMapImageGenerator Members
 
@@ -132,9 +133,8 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
         #region IRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
         {
-            m_scene = scene;
             m_config = source;
 
             IConfig startupConfig = m_config.Configs["Startup"];
@@ -142,10 +142,24 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                     "MapImageModule")
                 return;
 
+            m_Enabled = true;
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            m_scene = scene;
+
             m_scene.RegisterModuleInterface<IMapImageGenerator>(this);
         }
 
-        public void PostInitialise()
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
         {
         }
 
@@ -158,9 +172,9 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             get { return "MapImageModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return false; }
+            get { return null; }
         }
 
         #endregion
