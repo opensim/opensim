@@ -36,6 +36,9 @@ using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Server.Base;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.World.WorldView
 {
@@ -46,9 +49,18 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
 
 
         private bool m_Enabled = false;
+        private IMapImageGenerator m_Generator;
 
         public void Initialise(IConfigSource config)
         {
+            IConfig moduleConfig = config.Configs["Modules"];
+            if (moduleConfig == null)
+                return;
+
+            if (moduleConfig.GetString("WorldViewModule", String.Empty) != Name)
+                return;
+
+            m_Enabled = true;
         }
 
         public void AddRegion(Scene scene)
@@ -57,6 +69,17 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
 
         public void RegionLoaded(Scene scene)
         {
+            m_Generator = scene.RequestModuleInterface<IMapImageGenerator>();
+            if (m_Generator == null)
+            {
+                m_Enabled = false;
+                return;
+            }
+
+            m_log.Info("[WORLDVIEW]: Configured and enabled");
+
+            IHttpServer server = MainServer.GetHttpServer(0);
+            server.AddStreamHandler(new WorldViewRequestHandler(this));
         }
 
         public void RemoveRegion(Scene scene)
@@ -75,6 +98,11 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
 
         public void Close()
         {
+        }
+
+        public byte[] GenerateWorldView(Vector3 pos, Vector3 rot)
+        {
+            return new Byte[0];
         }
     }
 }
