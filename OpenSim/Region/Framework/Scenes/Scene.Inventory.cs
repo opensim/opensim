@@ -1688,37 +1688,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-          /// <summary>
-        /// Called when one or more objects are removed from the environment into inventory.
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="localID"></param>
-        /// <param name="groupID"></param>
-        /// <param name="action"></param>
-        /// <param name="destinationID"></param>
-        public virtual void DeRezObject(IClientAPI remoteClient, List<uint> localIDs,
-                UUID groupID, DeRezAction action, UUID destinationID)
-        {
-            foreach (uint localID in localIDs)
-            {
-                DeRezObject(remoteClient, localID, groupID, action, destinationID);
-            }
-        }
-
-        /// <summary>
-        /// Called when an object is removed from the environment into inventory.
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="localID"></param>
-        /// <param name="groupID"></param>
-        /// <param name="action"></param>
-        /// <param name="destinationID"></param>
-        public virtual void DeRezObject(IClientAPI remoteClient, uint localID,
-                UUID groupID, DeRezAction action, UUID destinationID)
-        {
-            DeRezObjects(remoteClient, new List<uint>() { localID }, groupID, action, destinationID);
-        }
-
         public virtual void DeRezObjects(IClientAPI remoteClient, List<uint> localIDs,
                 UUID groupID, DeRezAction action, UUID destinationID)
         {
@@ -2003,14 +1972,19 @@ namespace OpenSim.Region.Framework.Scenes
             return group;
         }
 
-        public virtual bool returnObjects(SceneObjectGroup[] returnobjects, UUID AgentId)
+        public virtual bool returnObjects(SceneObjectGroup[] returnobjects,
+                UUID AgentId)
         {
+            List<uint> localIDs = new List<uint>();
+
             foreach (SceneObjectGroup grp in returnobjects)
             {
-                AddReturn(grp.OwnerID, grp.Name, grp.AbsolutePosition, "parcel owner return");
-                DeRezObject(null, grp.RootPart.LocalId,
-                        grp.RootPart.GroupID, DeRezAction.Return, UUID.Zero);
+                AddReturn(grp.OwnerID, grp.Name, grp.AbsolutePosition,
+                        "parcel owner return");
+                localIDs.Add(grp.RootPart.LocalId);
             }
+            DeRezObjects(null, localIDs, UUID.Zero, DeRezAction.Return,
+                    UUID.Zero);
 
             return true;
         }
