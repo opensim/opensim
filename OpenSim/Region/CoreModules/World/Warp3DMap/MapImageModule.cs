@@ -128,16 +128,16 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         {
             Vector3 camPos = new Vector3(127.5f, 127.5f, 221.7025033688163f);
             Viewport viewport = new Viewport(camPos, -Vector3.UnitZ, 1024f, 0.1f, (int)Constants.RegionSize, (int)Constants.RegionSize, (float)Constants.RegionSize, (float)Constants.RegionSize);
-            return CreateMapTile(viewport);
+            return CreateMapTile(viewport, false);
         }
 
-        public Bitmap CreateViewImage(Vector3 camPos, Vector3 camDir, float fov, int width, int height)
+        public Bitmap CreateViewImage(Vector3 camPos, Vector3 camDir, float fov, int width, int height, bool useTextures)
         {
             Viewport viewport = new Viewport(camPos, camDir, fov, (float)Constants.RegionSize, 0.1f, width, height);
-            return CreateMapTile(viewport);
+            return CreateMapTile(viewport, useTextures);
         }
 
-        public Bitmap CreateMapTile(Viewport viewport)
+        public Bitmap CreateMapTile(Viewport viewport, bool useTextures)
         {
             bool drawPrimVolume = true;
             bool textureTerrain = true;
@@ -198,7 +198,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             CreateWater(renderer);
             CreateTerrain(renderer, textureTerrain);
             if (drawPrimVolume)
-                CreateAllPrims(renderer);
+                CreateAllPrims(renderer, useTextures);
 
             renderer.Render();
             Bitmap bitmap = renderer.Scene.getImage();
@@ -325,7 +325,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             renderer.SetObjectMaterial("Terrain", "TerrainColor");
         }
 
-        private void CreateAllPrims(WarpRenderer renderer)
+        private void CreateAllPrims(WarpRenderer renderer, bool useTextures)
         {
             if (m_primMesher == null)
                 return;
@@ -333,14 +333,15 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             m_scene.ForEachSOG(
                 delegate(SceneObjectGroup group)
                 {
-                    CreatePrim(renderer, group.RootPart);
+                    CreatePrim(renderer, group.RootPart, useTextures);
                     foreach (SceneObjectPart child in group.Parts)
-                        CreatePrim(renderer, child);
+                        CreatePrim(renderer, child, useTextures);
                 }
             );
         }
 
-        private void CreatePrim(WarpRenderer renderer, SceneObjectPart prim)
+        private void CreatePrim(WarpRenderer renderer, SceneObjectPart prim,
+                bool useTextures)
         {
             const float MIN_SIZE = 2f;
 
@@ -371,6 +372,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             string primID = prim.UUID.ToString();
 
             // Create the prim faces
+            // TODO: Implement the useTextures flag behavior
             for (int i = 0; i < renderMesh.Faces.Count; i++)
             {
                 Face face = renderMesh.Faces[i];
