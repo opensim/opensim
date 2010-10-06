@@ -12,5 +12,6 @@
       <RegionModule id="IRCBridge"             type="OpenSim.Region.OptionalModules.Avatar.Chat.IRCBridgeModule" />
       <RegionModule id="Concierge"             type="OpenSim.Region.OptionalModules.Avatar.Concierge.ConciergeModule" />
       <RegionModule id="VivoxVoice"            type="OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice.VivoxVoiceModule" />
+      <RegionModule id="WorldViewModule"            type="OpenSim.Region.OptionalModules.World.WorldView.WorldViewModule" />
     </Extension>
 </Addin>
