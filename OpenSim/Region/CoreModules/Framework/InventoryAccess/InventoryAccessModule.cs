@@ -247,11 +247,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                     Vector3 originalPosition = objectGroup.AbsolutePosition;
 
-                    // Restore attachment data after trip through the sim
-                    if (objectGroup.RootPart.AttachPoint > 0)
-                        inventoryStoredPosition = objectGroup.RootPart.AttachOffset;
-                    objectGroup.RootPart.Shape.State = objectGroup.RootPart.AttachPoint;
-
                     objectGroup.AbsolutePosition = inventoryStoredPosition;
 
                     // Make sure all bits but the ones we want are clear
@@ -815,13 +810,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         if (!attachment)
                         {
                             if (group.RootPart.Shape.PCode == (byte)PCode.Prim)
-                            {
-                                // Save attachment data
-                                group.RootPart.AttachPoint = group.RootPart.Shape.State;
-                                group.RootPart.AttachOffset = storedPosition;
-
                                 group.ClearPartAttachmentData();
-                            }
                             
                             // Fire on_rez
                             group.CreateScriptInstances(0, true, m_Scene.DefaultScriptEngine, 1);
