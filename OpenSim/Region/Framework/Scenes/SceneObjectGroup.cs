@@ -1151,7 +1151,7 @@ namespace OpenSim.Region.Framework.Scenes
                     //
                     if (IsSelected)
                     {
-                        m_scene.SendKillObject(m_rootPart.LocalId);
+                        m_scene.SendKillObject(new List<uint> { m_rootPart.LocalId });
                     }
 
                     IsSelected = false; // fudge....
@@ -1415,11 +1415,7 @@ namespace OpenSim.Region.Framework.Scenes
                         avatar.StandUp();
 
                     if (!silent)
-                    {
                         part.UpdateFlag = 0;
-                        if (part == m_rootPart)
-                            avatar.ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
-                    }
                 });
             }
             

@@ -386,7 +386,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                         m_scene.ForEachClient(delegate(IClientAPI controller)
                         {
                             controller.SendKillObject(m_scene.RegionInfo.RegionHandle,
-                                                      selectedTree.LocalId);
+                                                      new List<uint>() { selectedTree.LocalId });
                         });
                     }
                     else
@@ -727,7 +727,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                                 m_scene.ForEachClient(delegate(IClientAPI controller)
                                                           {
                                                               controller.SendKillObject(m_scene.RegionInfo.RegionHandle,
-                                                                                        selectedTree.LocalId);
+                                                                                        new List<uint>() { selectedTree.LocalId });
                                                           });
 
                                 break;

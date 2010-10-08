@@ -44,8 +44,6 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.Framework.Scenes
 {
-    public delegate void KiPrimitiveDelegate(uint localID);
-
     public delegate void RemoveKnownRegionsFromAvatarList(UUID avatarID, List<ulong> regionlst);
 
     /// <summary>
@@ -112,8 +110,6 @@ namespace OpenSim.Region.Framework.Scenes
         //private RemoveKnownRegionsFromAvatarList handlerRemoveKnownRegionFromAvatar = null; // OnRemoveKnownRegionFromAvatar;
 //        private LogOffUser handlerLogOffUser = null;
 //        private GetLandData handlerGetLandData = null; // OnGetLandData
-
-        public KiPrimitiveDelegate KiPrimitive;
 
         public SceneCommunicationService()
         {

@@ -2188,6 +2188,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             group.DeleteGroupFromScene(silent);
+            if (!silent)
+                SendKillObject(new List<uint>() { group.LocalId });
 
 //            m_log.DebugFormat("[SCENE]: Exit DeleteSceneObject() for {0} {1}", group.Name, group.UUID);
         }
@@ -3273,7 +3275,7 @@ namespace OpenSim.Region.Framework.Scenes
                     delegate(IClientAPI client)
                     {
                         //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
-                        try { client.SendKillObject(avatar.RegionHandle, avatar.LocalId); }
+                        try { client.SendKillObject(avatar.RegionHandle, new List<uint>() { avatar.LocalId}); }
                         catch (NullReferenceException) { }
                     });
 
@@ -3336,18 +3338,24 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Entities
 
-        public void SendKillObject(uint localID)
+        public void SendKillObject(List<uint> localIDs)
         {
-            SceneObjectPart part = GetSceneObjectPart(localID);
-            if (part != null) // It is a prim
+            List<uint> deleteIDs = new List<uint>();
+
+            foreach (uint localID in localIDs)
             {
-                if (part.ParentGroup != null && !part.ParentGroup.IsDeleted) // Valid
+                SceneObjectPart part = GetSceneObjectPart(localID);
+                if (part != null) // It is a prim
                 {
-                    if (part.ParentGroup.RootPart != part) // Child part
-                        return;
+                    if (part.ParentGroup != null && !part.ParentGroup.IsDeleted) // Valid
+                    {
+                        if (part.ParentGroup.RootPart != part) // Child part
+                            continue;
+                    }
                 }
+                deleteIDs.Add(localID);
             }
-            ForEachClient(delegate(IClientAPI client) { client.SendKillObject(m_regionHandle, localID); });
+            ForEachClient(delegate(IClientAPI client) { client.SendKillObject(m_regionHandle, deleteIDs); });
         }
 
         #endregion
@@ -3365,7 +3373,6 @@ namespace OpenSim.Region.Framework.Scenes
             //m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
             //m_sceneGridService.OnRemoveKnownRegionFromAvatar += HandleRemoveKnownRegionsFromAvatar;
             m_sceneGridService.OnLogOffUser += HandleLogOffUserFromGrid;
-            m_sceneGridService.KiPrimitive += SendKillObject;
             m_sceneGridService.OnGetLandData += GetLandData;
         }
 
@@ -3374,7 +3381,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void UnRegisterRegionWithComms()
         {
-            m_sceneGridService.KiPrimitive -= SendKillObject;
             m_sceneGridService.OnLogOffUser -= HandleLogOffUserFromGrid;
             //m_sceneGridService.OnRemoveKnownRegionFromAvatar -= HandleRemoveKnownRegionsFromAvatar;
             //m_sceneGridService.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;

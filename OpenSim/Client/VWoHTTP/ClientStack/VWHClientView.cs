@@ -495,7 +495,7 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
             throw new System.NotImplementedException();
         }
 
-        public void SendKillObject(ulong regionHandle, uint localID)
+        public void SendKillObject(ulong regionHandle, List<uint> localID)
         {
             throw new System.NotImplementedException();
         }

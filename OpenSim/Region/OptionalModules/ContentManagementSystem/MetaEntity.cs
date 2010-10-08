@@ -175,7 +175,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
             //This is important because we are not IN any database.
             //m_Entity.FakeDeleteGroup();
             foreach (SceneObjectPart part in m_Entity.Parts)
-                client.SendKillObject(m_Entity.RegionHandle, part.LocalId);
+                client.SendKillObject(m_Entity.RegionHandle, new List<uint>() { part.LocalId });
         }
 
         /// <summary>
@@ -187,7 +187,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
             {
                 m_Entity.Scene.ForEachClient(
                     delegate(IClientAPI controller)
-                    { controller.SendKillObject(m_Entity.RegionHandle, part.LocalId); }
+                    { controller.SendKillObject(m_Entity.RegionHandle, new List<uint>() { part.LocalId }); }
                 );
             }
         }

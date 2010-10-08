@@ -429,7 +429,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         }
 
-        public virtual void SendKillObject(ulong regionHandle, uint localID)
+        public virtual void SendKillObject(ulong regionHandle, List<uint> localID)
         {
         }
 

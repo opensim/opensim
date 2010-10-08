@@ -1709,7 +1709,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (part == null)
                 {
                     //Client still thinks the object exists, kill it
-                    SendKillObject(localID);
+                    deleteIDs.Add(localID);
                     continue;
                 }
 
@@ -1717,7 +1717,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 {
                     //Client still thinks the object exists, kill it
-                    SendKillObject(localID);
+                    deleteIDs.Add(localID);
                     continue;
                 }
 
@@ -1727,8 +1727,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 SceneObjectGroup grp = part.ParentGroup;
 
-                deleteIDs.Add(localID);
                 deleteGroups.Add(grp);
+                deleteIDs.Add(grp.LocalId);
 
                 if (remoteClient == null)
                 {
@@ -1810,6 +1810,8 @@ namespace OpenSim.Region.Framework.Scenes
                     permissionToDelete = true;
                 }
             }
+
+            SendKillObject(deleteIDs);
 
             if (permissionToTake)
             {

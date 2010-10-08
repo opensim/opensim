@@ -1516,35 +1516,46 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(pc, ThrottleOutPacketType.Unknown);
         }
 
-        public void SendKillObject(ulong regionHandle, uint localID)
+        public void SendKillObject(ulong regionHandle, List<uint> localIDs)
         {
 //            m_log.DebugFormat("[CLIENT]: Sending KillObjectPacket to {0} for {1} in {2}", Name, localID, regionHandle);
 
             KillObjectPacket kill = (KillObjectPacket)PacketPool.Instance.GetPacket(PacketType.KillObject);
             // TODO: don't create new blocks if recycling an old packet
-            kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
-            kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
-            kill.ObjectData[0].ID = localID;
+            kill.ObjectData = new KillObjectPacket.ObjectDataBlock[localIDs.Count];
+            for (int i = 0 ; i < localIDs.Count ; i++ )
+            {
+                kill.ObjectData[i] = new KillObjectPacket.ObjectDataBlock();
+                kill.ObjectData[i].ID = localIDs[i];
+            }
             kill.Header.Reliable = true;
             kill.Header.Zerocoded = true;
 
-            if (m_scene.GetScenePresence(localID) == null)
+            if (localIDs.Count == 1)
             {
-                lock (m_entityUpdates.SyncRoot)
+                if (m_scene.GetScenePresence(localIDs[0]) != null)
                 {
-                    m_killRecord.Add(localID);
-                    
-                    // The throttle queue used here must match that being used for updates.  Otherwise, there is a 
-                    // chance that a kill packet put on a separate queue will be sent to the client before an existing
-                    // update packet on another queue.  Receiving updates after kills results in unowned and undeletable
-                    // scene objects in a viewer until that viewer is relogged in.
-                    OutPacket(kill, ThrottleOutPacketType.Task);
+                    OutPacket(kill, ThrottleOutPacketType.State);
+                    return;
                 }
+                m_killRecord.Add(localIDs[0]);
             }
             else
             {
-                OutPacket(kill, ThrottleOutPacketType.State);
+                lock (m_entityUpdates.SyncRoot)
+                {
+                    foreach (uint localID in localIDs)
+                        m_killRecord.Add(localID);
+                }
             }
+
+            // The throttle queue used here must match that being used for
+            // updates. Otherwise, there is a chance that a kill packet put
+            // on a separate queue will be sent to the client before an
+            // existing update packet on another queue. Receiving updates
+            // after kills results in unowned and undeletable
+            // scene objects in a viewer until that viewer is relogged in.
+            OutPacket(kill, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
@@ -10969,7 +10980,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         // It's a ghost! tell the client to delete it from view.
                         simClient.SendKillObject(Scene.RegionInfo.RegionHandle,
-                                                 localId);
+                                                 new List<uint>() { localId });
                     }
                     else
                     {

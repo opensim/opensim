@@ -259,9 +259,10 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                     // I thought that the DeleteGroup() function would handle all of this, but it doesn't. I'm not sure WHAT it handles.
                     ((SceneObjectGroup)scene.Entities[uuid]).DetachFromBackup();
                     scene.PhysicsScene.RemovePrim(((SceneObjectGroup)scene.Entities[uuid]).RootPart.PhysActor);
-                    scene.SendKillObject(scene.Entities[uuid].LocalId);
+                    scene.SendKillObject(new List<uint>() { scene.Entities[uuid].LocalId });
                     scene.SceneGraph.DeleteSceneObject(uuid, false);
                     ((SceneObjectGroup)scene.Entities[uuid]).DeleteGroupFromScene(false);
+                    scene.SendKillObject(new List<uint>() { ((SceneObjectGroup)scene.Entities[uuid]).LocalId });
                 }
                 catch(Exception e)
                 {

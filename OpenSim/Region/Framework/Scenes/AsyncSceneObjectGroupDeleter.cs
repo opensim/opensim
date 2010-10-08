@@ -104,8 +104,15 @@ namespace OpenSim.Region.Framework.Scenes
             // better than losing the object for now.
             if (permissionToDelete)
             {
+                List<uint> killIDs = new List<uint>();
+
                 foreach (SceneObjectGroup g in objectGroups)
+                {
+                    killIDs.Add(g.LocalId);
                     g.DeleteGroupFromScene(false);
+                }
+
+                m_scene.SendKillObject(killIDs);
             }
         }
         

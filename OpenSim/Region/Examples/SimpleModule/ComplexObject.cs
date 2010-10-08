@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
@@ -110,7 +111,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
             m_parts.Remove(part.UUID);
 
-            remoteClient.SendKillObject(m_regionHandle, part.LocalId);
+            remoteClient.SendKillObject(m_regionHandle, new List<uint>() { part.LocalId} );
             remoteClient.AddMoney(1);
             remoteClient.SendChatMessage("Poof!", 1, AbsolutePosition, "Party Party", UUID.Zero, (byte)ChatSourceType.Object, (byte)ChatAudibleLevel.Fully);
         }
@@ -121,7 +122,7 @@ namespace OpenSim.Region.Examples.SimpleModule
             {
                 m_parts.Remove(m_rootPart.UUID);
                 m_scene.DeleteSceneObject(this, false);
-                remoteClient.SendKillObject(m_regionHandle, m_rootPart.LocalId);
+                remoteClient.SendKillObject(m_regionHandle, new List<uint>() { m_rootPart.LocalId });
                 remoteClient.AddMoney(50);
                 remoteClient.SendChatMessage("KABLAM!!!", 1, AbsolutePosition, "Groupie Groupie", UUID.Zero, (byte)ChatSourceType.Object, (byte)ChatAudibleLevel.Fully);
             }

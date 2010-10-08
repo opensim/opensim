@@ -897,7 +897,13 @@ namespace OpenSim.Client.MXP.ClientStack
             // Need to translate to MXP somehow
         }
 
-        public void SendKillObject(ulong regionHandle, uint localID)
+        public void SendKillObject(ulong regionHandle, List<uint> localIDs)
+        {
+            foreach (uint localID in localIDs)
+                SendKillObject(regionHandle, localID);
+        }
+
+        private void SendKillObject(ulong regionHandle, uint localID)
         {
             DisappearanceEventMessage de = new DisappearanceEventMessage();
             de.ObjectIndex = localID;
