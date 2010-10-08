@@ -1695,6 +1695,7 @@ namespace OpenSim.Region.Framework.Scenes
             // build a list of eligible objects
             List<uint> deleteIDs = new List<uint>();
             List<SceneObjectGroup> deleteGroups = new List<SceneObjectGroup>();
+            List<SceneObjectGroup> takeGroups = new List<SceneObjectGroup>();
 
             // Start with true for both, then remove the flags if objects
             // that we can't derez are part of the selection
@@ -1727,9 +1728,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 SceneObjectGroup grp = part.ParentGroup;
 
-                deleteGroups.Add(grp);
-                deleteIDs.Add(grp.LocalId);
-
                 if (remoteClient == null)
                 {
                     // Autoreturn has a null client. Nothing else does. So
@@ -1756,73 +1754,89 @@ namespace OpenSim.Region.Framework.Scenes
                     if (!Permissions.CanDeleteObject(grp.UUID, remoteClient.AgentId))
                         permissionToDelete = false;
                 }
-            }
 
-            // Handle god perms
-            if ((remoteClient != null) && Permissions.IsGod(remoteClient.AgentId))
-            {
-                permissionToTake = true;
-                permissionToTakeCopy = true;
-                permissionToDelete = true;
-            }
-
-            // If we're re-saving, we don't even want to delete
-            if (action == DeRezAction.SaveToExistingUserInventoryItem)
-                permissionToDelete = false;
-
-            // if we want to take a copy, we also don't want to delete
-            // Note: after this point, the permissionToTakeCopy flag
-            // becomes irrelevant. It already includes the permissionToTake
-            // permission and after excluding no copy items here, we can
-            // just use that.
-            if (action == DeRezAction.TakeCopy)
-            {
-                // If we don't have permission, stop right here
-                if (!permissionToTakeCopy)
-                    return;
-
-                permissionToTake = true;
-                // Don't delete
-                permissionToDelete = false;
-            }
-
-            if (action == DeRezAction.Return)
-            {
-                if (remoteClient != null)
+                // Handle god perms
+                if ((remoteClient != null) && Permissions.IsGod(remoteClient.AgentId))
                 {
-                    if (Permissions.CanReturnObjects(
-                                    null,
-                                    remoteClient.AgentId,
-                                    deleteGroups))
+                    permissionToTake = true;
+                    permissionToTakeCopy = true;
+                    permissionToDelete = true;
+                }
+
+                // If we're re-saving, we don't even want to delete
+                if (action == DeRezAction.SaveToExistingUserInventoryItem)
+                    permissionToDelete = false;
+
+                // if we want to take a copy, we also don't want to delete
+                // Note: after this point, the permissionToTakeCopy flag
+                // becomes irrelevant. It already includes the permissionToTake
+                // permission and after excluding no copy items here, we can
+                // just use that.
+                if (action == DeRezAction.TakeCopy)
+                {
+                    // If we don't have permission, stop right here
+                    if (!permissionToTakeCopy)
+                        return;
+
+                    permissionToTake = true;
+                    // Don't delete
+                    permissionToDelete = false;
+                }
+
+                if (action == DeRezAction.Return)
+                {
+                    if (remoteClient != null)
+                    {
+                        if (Permissions.CanReturnObjects(
+                                        null,
+                                        remoteClient.AgentId,
+                                        deleteGroups))
+                        {
+                            permissionToTake = true;
+                            permissionToDelete = true;
+
+                            AddReturn(grp.OwnerID, grp.Name, grp.AbsolutePosition, "parcel owner return");
+                        }
+                    }
+                    else // Auto return passes through here with null agent
                     {
                         permissionToTake = true;
                         permissionToDelete = true;
-
-                        foreach (SceneObjectGroup g in deleteGroups)
-                        {
-                            AddReturn(g.OwnerID, g.Name, g.AbsolutePosition, "parcel owner return");
-                        }
                     }
-                }
-                else // Auto return passes through here with null agent
-                {
-                    permissionToTake = true;
-                    permissionToDelete = true;
+
+                    if (permissionToTake && (!permissionToDelete))
+                        takeGroups.Add(grp);
+
+                    if (permissionToDelete)
+                    {
+                        if (permissionToTake)
+                            deleteGroups.Add(grp);
+                        deleteIDs.Add(grp.LocalId);
+                    }
                 }
             }
 
             SendKillObject(deleteIDs);
 
-            if (permissionToTake)
-            {
-                m_asyncSceneObjectDeleter.DeleteToInventory(
-                        action, destinationID, deleteGroups, remoteClient,
-                        permissionToDelete);
-            }
-            else if (permissionToDelete)
+            if (deleteGroups.Count > 0)
             {
                 foreach (SceneObjectGroup g in deleteGroups)
-                    DeleteSceneObject(g, false);
+                    deleteIDs.Remove(g.LocalId);
+
+                m_asyncSceneObjectDeleter.DeleteToInventory(
+                        action, destinationID, deleteGroups, remoteClient,
+                        true);
+            }
+            if (takeGroups.Count > 0)
+            {
+                m_asyncSceneObjectDeleter.DeleteToInventory(
+                        action, destinationID, takeGroups, remoteClient,
+                        false);
+            }
+            if (deleteIDs.Count > 0)
+            {
+                foreach (SceneObjectGroup g in deleteGroups)
+                    DeleteSceneObject(g, true);
             }
         }
 
