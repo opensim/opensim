@@ -196,13 +196,24 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             // currently calls this with multiple items.
             UUID ret = UUID.Zero; 
 
+            Dictionary<UUID, List<SceneObjectGroup>> deletes =
+                    new Dictionary<UUID, List<SceneObjectGroup>>();
+
             foreach (SceneObjectGroup g in objectGroups)
-                ret = DeleteToInventory(action, folderID, g, remoteClient);
+            {
+                if (!deletes.ContainsKey(g.OwnerID))
+                    deletes[g.OwnerID] = new List<SceneObjectGroup>();
+
+                deletes[g.OwnerID].Add(g);
+            }
+
+            foreach (List<SceneObjectGroup> objlist in deletes.Values)
+                ret = DeleteToInventory(action, folderID, objlist, remoteClient);
 
             return ret;
         }
 
-        public virtual UUID DeleteToInventory(DeRezAction action, UUID folderID,
+        private UUID DeleteToInventory(DeRezAction action, UUID folderID,
                 SceneObjectGroup objectGroup, IClientAPI remoteClient)
         {
             UUID assetID = UUID.Zero;
@@ -315,10 +326,20 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     }
                     else
                     {
-                        // Catch all. Use lost & found
-                        //
+                        if (remoteClient == null ||
+                            objectGroup.OwnerID != remoteClient.AgentId)
+                        {
+                            // Taking copy of another person's item. Take to
+                            // Objects folder.
+                            folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.Object);
+                        }
+                        else
+                        {
+                            // Catch all. Use lost & found
+                            //
 
-                        folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.LostAndFoundFolder);
+                            folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.LostAndFoundFolder);
+                        }
                     }
                 }
 

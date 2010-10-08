@@ -13,7 +13,10 @@
 ;;    An empty question will set the default if the dependencies are
 ;;    satisfied.
 ;;
-;; ; denotes a commented option. It is ignored.
+;; ;  denotes a commented out option. Uncomment it to actvate it
+;;    and change it to the desired value
+;;    Any options added to OpenSim.ini.exmaple must be commented out,
+;;    and their value must represent the default.
 
 [Startup]
     ;# {save_crashes} {} {Save crashes to disk?} {true false} false

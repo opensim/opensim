@@ -1304,8 +1304,8 @@ namespace OpenSim.Region.Framework.Scenes
                                 DetachFromBackup();
                                 m_log.InfoFormat("[SCENE]: Returning object {0} due to parcel auto return", RootPart.UUID.ToString());
                                 m_scene.AddReturn(OwnerID, Name, AbsolutePosition, "parcel auto return");
-                                m_scene.DeRezObject(null, RootPart.LocalId,
-                                    RootPart.GroupID, DeRezAction.Return, UUID.Zero);
+                                m_scene.DeRezObjects(null, new List<uint>() { RootPart.LocalId }, UUID.Zero,
+                                        DeRezAction.Return, UUID.Zero);
 
                                 return;
                             }
