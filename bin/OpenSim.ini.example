@@ -133,14 +133,6 @@
     ;; Usually this is only a box.
     ; meshing = Meshmerizer
     ; meshing = ZeroMesher
-    
-    ;# {CacheSculptMaps} {Cache decoded sculpt maps?} {true false} true
-    ;; if you use Meshmerizer and want sculpt map collisions, setting this to
-    ;; to true will store decoded sculpt maps in a special folder in your bin
-    ;; folder, which can reduce startup times by reducing asset requests. Some
-    ;; versions of mono dont work well when reading the cache files, so set this
-    ;; to false if you have compatability problems.
-     CacheSculptMaps = false
 
     ;; Choose one of the physics engines below
     ;; OpenDynamicsEngine is by some distance the most developed physics engine
