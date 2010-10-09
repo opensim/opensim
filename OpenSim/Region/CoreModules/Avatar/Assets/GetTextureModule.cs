@@ -187,8 +187,8 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
                 int start, end;
                 if (TryParseRange(range, out start, out end))
                 {
-                    end = Utils.Clamp(end, 1, texture.Data.Length - 1);
-                    start = Utils.Clamp(start, 0, end - 1);
+                    end = Utils.Clamp(end, 0, texture.Data.Length - 1);
+                    start = Utils.Clamp(start, 0, end);
                     int len = end - start + 1;
 
                     //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
