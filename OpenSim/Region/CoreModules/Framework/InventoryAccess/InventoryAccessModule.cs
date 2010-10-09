@@ -208,7 +208,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
 
             foreach (List<SceneObjectGroup> objlist in deletes.Values)
-                ret = DeleteToInventory(action, folderID, objlist, remoteClient);
+            {
+                foreach (SceneObjectGroup g in objlist)
+                    ret = DeleteToInventory(action, folderID, g, remoteClient);
+            }
 
             return ret;
         }
