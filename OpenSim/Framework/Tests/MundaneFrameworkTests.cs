@@ -140,10 +140,10 @@ namespace OpenSim.Framework.Tests
             settings.Save();
             settings.OnSave -= RegionSaveFired;
 
-            string str = settings.LoadedCreationDate;
-            int dt = settings.LoadedCreationDateTime;
-            string id = settings.LoadedCreationID;
-            string time = settings.LoadedCreationTime;
+//            string str = settings.LoadedCreationDate;
+//            int dt = settings.LoadedCreationDateTime;
+//            string id = settings.LoadedCreationID;
+//            string time = settings.LoadedCreationTime;
 
             Assert.That(m_RegionSettingsOnSaveEventFired, "RegionSettings Save Event didn't Fire");
             

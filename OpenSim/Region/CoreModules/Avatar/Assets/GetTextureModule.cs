@@ -187,8 +187,16 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
                 int start, end;
                 if (TryParseRange(range, out start, out end))
                 {
-                    end = Utils.Clamp(end, 1, texture.Data.Length - 1);
-                    start = Utils.Clamp(start, 0, end - 1);
+                    // Before clamping start make sure we can satisfy it in order to avoid
+                    // sending back the last byte instead of an error status
+                    if (start >= texture.Data.Length)
+                    {
+                        response.StatusCode = (int)System.Net.HttpStatusCode.RequestedRangeNotSatisfiable;
+                        return;
+                    }
+
+                    end = Utils.Clamp(end, 0, texture.Data.Length - 1);
+                    start = Utils.Clamp(start, 0, end);
                     int len = end - start + 1;
 
                     //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);

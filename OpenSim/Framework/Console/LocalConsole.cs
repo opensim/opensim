@@ -44,6 +44,7 @@ namespace OpenSim.Framework.Console
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // private readonly object m_syncRoot = new object();
+        private const string LOGLEVEL_NONE = "(none)";
 
         private int y = -1;
         private int cp = 0;
@@ -278,22 +279,25 @@ namespace OpenSim.Framework.Console
 
         private void WriteLocalText(string text, string level)
         {
-            string regex = @"^(?<Front>.*?)\[(?<Category>[^\]]+)\]:?(?<End>.*)";
-
-            Regex RE = new Regex(regex, RegexOptions.Multiline);
-            MatchCollection matches = RE.Matches(text);
-
             string outText = text;
 
-            if (matches.Count == 1)
+            if (level != LOGLEVEL_NONE)
             {
-                outText = matches[0].Groups["End"].Value;
-                System.Console.Write(matches[0].Groups["Front"].Value);
+                string regex = @"^(?<Front>.*?)\[(?<Category>[^\]]+)\]:?(?<End>.*)";
 
-                System.Console.Write("[");
-                WriteColorText(DeriveColor(matches[0].Groups["Category"].Value),
-                        matches[0].Groups["Category"].Value);
-                System.Console.Write("]:");
+                Regex RE = new Regex(regex, RegexOptions.Multiline);
+                MatchCollection matches = RE.Matches(text);
+
+                if (matches.Count == 1)
+                {
+                    outText = matches[0].Groups["End"].Value;
+                    System.Console.Write(matches[0].Groups["Front"].Value);
+
+                    System.Console.Write("[");
+                    WriteColorText(DeriveColor(matches[0].Groups["Category"].Value),
+                            matches[0].Groups["Category"].Value);
+                    System.Console.Write("]:");
+                }
             }
 
             if (level == "error")
@@ -308,7 +312,7 @@ namespace OpenSim.Framework.Console
 
         public override void Output(string text)
         {
-            Output(text, "normal");
+            Output(text, LOGLEVEL_NONE);
         }
 
         public override void Output(string text, string level)
