@@ -2730,7 +2730,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void PreloadSound(string sound)
         {
             // UUID ownerID = OwnerID;
-            UUID objectID = UUID;
+            UUID objectID = ParentGroup.RootPart.UUID;
             UUID soundID = UUID.Zero;
 
             if (!UUID.TryParse(sound, out soundID))
@@ -3112,7 +3112,7 @@ namespace OpenSim.Region.Framework.Scenes
                 volume = 0;
 
             UUID ownerID = _ownerID;
-            UUID objectID = UUID;
+            UUID objectID = ParentGroup.RootPart.UUID;
             UUID parentID = GetRootPartUUID();
 
             if (ParentGroup.IsAttachment && ParentGroup.RootPart.Shape.State > 30)
@@ -3157,11 +3157,11 @@ namespace OpenSim.Region.Framework.Scenes
                         else
                             soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags, radius);
                         ParentGroup.PlaySoundMasterPrim = this;
-                        ownerID = this._ownerID;
-                        objectID = this.UUID;
-                        parentID = this.GetRootPartUUID();
-                        position = this.AbsolutePosition; // region local
-                        regionHandle = this.ParentGroup.Scene.RegionInfo.RegionHandle;
+                        ownerID = _ownerID;
+                        objectID = ParentGroup.RootPart.UUID;
+                        parentID = GetRootPartUUID();
+                        position = AbsolutePosition; // region local
+                        regionHandle = ParentGroup.Scene.RegionInfo.RegionHandle;
                         if (triggered)
                             soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, radius);
                         else
@@ -3169,7 +3169,7 @@ namespace OpenSim.Region.Framework.Scenes
                         foreach (SceneObjectPart prim in ParentGroup.PlaySoundSlavePrims)
                         {
                             ownerID = prim._ownerID;
-                            objectID = prim.UUID;
+                            objectID = prim.ParentGroup.RootPart.UUID;
                             parentID = prim.GetRootPartUUID();
                             position = prim.AbsolutePosition; // region local
                             regionHandle = prim.ParentGroup.Scene.RegionInfo.RegionHandle;
