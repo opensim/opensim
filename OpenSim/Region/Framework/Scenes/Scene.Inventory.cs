@@ -1697,14 +1697,14 @@ namespace OpenSim.Region.Framework.Scenes
             List<SceneObjectGroup> deleteGroups = new List<SceneObjectGroup>();
             List<SceneObjectGroup> takeGroups = new List<SceneObjectGroup>();
 
-            // Start with true for both, then remove the flags if objects
-            // that we can't derez are part of the selection
-            bool permissionToTake = true;
-            bool permissionToTakeCopy = true;
-            bool permissionToDelete = true;
-
             foreach (uint localID in localIDs)
             {
+                // Start with true for both, then remove the flags if objects
+                // that we can't derez are part of the selection
+                bool permissionToTake = true;
+                bool permissionToTakeCopy = true;
+                bool permissionToDelete = true;
+
                 // Invalid id
                 SceneObjectPart part = GetSceneObjectPart(localID);
                 if (part == null)
@@ -1803,16 +1803,16 @@ namespace OpenSim.Region.Framework.Scenes
                         permissionToTake = true;
                         permissionToDelete = true;
                     }
+                }
 
-                    if (permissionToTake && (!permissionToDelete))
-                        takeGroups.Add(grp);
+                if (permissionToTake && (!permissionToDelete))
+                    takeGroups.Add(grp);
 
-                    if (permissionToDelete)
-                    {
-                        if (permissionToTake)
-                            deleteGroups.Add(grp);
-                        deleteIDs.Add(grp.LocalId);
-                    }
+                if (permissionToDelete)
+                {
+                    if (permissionToTake)
+                        deleteGroups.Add(grp);
+                    deleteIDs.Add(grp.LocalId);
                 }
             }
 
