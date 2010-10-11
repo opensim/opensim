@@ -124,6 +124,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             UUID uuid = UUID.Zero;
             string regionname = string.Empty;
             string gatekeeper_host = string.Empty;
+            string server_uri = string.Empty;
             int gatekeeper_port = 0;
             IPEndPoint client_ipaddress = null;
 
@@ -173,6 +174,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             destination.RegionLocX = x;
             destination.RegionLocY = y;
             destination.RegionName = regionname;
+            
 
             AgentCircuitData aCircuit = new AgentCircuitData();
             try
