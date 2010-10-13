@@ -1533,7 +1533,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 }
                 else
                 {
-                    m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element {0}", nodeName);
+                    //m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element {0}", nodeName);
                     reader.ReadOuterXml(); // ignore
                 }
 
