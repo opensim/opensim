@@ -227,6 +227,9 @@ namespace OpenSim.Framework
             get {
                 return _oldID;
             }
+            set {
+                _oldID = value;
+            }
         }
 
         public UUID LastOwnerID {
