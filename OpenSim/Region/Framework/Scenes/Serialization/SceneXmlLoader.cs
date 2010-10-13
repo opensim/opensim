@@ -124,14 +124,30 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 foreach (XmlNode aPrimNode in rootNode.ChildNodes)
                 {
                     // There is only ever one prim.  This oddity should be removeable post 0.5.9
-                    return SceneObjectSerializer.FromXml2Format(aPrimNode.OuterXml);
+                    //return SceneObjectSerializer.FromXml2Format(aPrimNode.OuterXml);
+                    using (reader = new XmlTextReader(new StringReader(aPrimNode.OuterXml)))
+                    {
+                        SceneObjectGroup obj = new SceneObjectGroup();
+                        if (SceneObjectSerializer.Xml2ToSOG(reader, obj))
+                            return obj;
+
+                        return null;
+                    }
                 }
 
                 return null;
             }
             else
             {
-                return SceneObjectSerializer.FromXml2Format(rootNode.OuterXml);
+                //return SceneObjectSerializer.FromXml2Format(rootNode.OuterXml);
+                using (reader = new XmlTextReader(new StringReader(rootNode.OuterXml)))
+                {
+                    SceneObjectGroup obj = new SceneObjectGroup();
+                    if (SceneObjectSerializer.Xml2ToSOG(reader, obj))
+                        return obj;
+
+                    return null;
+                }
             }
         }
 
@@ -193,12 +209,17 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <returns>The scene object created.  null if the scene object already existed</returns>
         protected static SceneObjectGroup CreatePrimFromXml2(Scene scene, string xmlData)
         {
-            SceneObjectGroup obj = SceneObjectSerializer.FromXml2Format(xmlData);
+            //SceneObjectGroup obj = SceneObjectSerializer.FromXml2Format(xmlData);
+            using (XmlTextReader reader = new XmlTextReader(new StringReader(xmlData)))
+            {
+                SceneObjectGroup obj = new SceneObjectGroup();
+                SceneObjectSerializer.Xml2ToSOG(reader, obj);
 
-            if (scene.AddRestoredSceneObject(obj, true, false))
-                return obj;
-            else
-                return null;
+                if (scene.AddRestoredSceneObject(obj, true, false))
+                    return obj;
+                else
+                    return null;
+            }
         }
 
         public static void SavePrimsToXml2(Scene scene, string fileName)
