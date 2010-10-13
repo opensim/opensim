@@ -443,7 +443,7 @@ namespace OpenSim.Region.Framework.Scenes
         private uint _ownerMask = (uint)PermissionMask.All;
         private uint _groupMask = (uint)PermissionMask.None;
         private uint _everyoneMask = (uint)PermissionMask.None;
-        private uint _nextOwnerMask = (uint)PermissionMask.All;
+        private uint _nextOwnerMask = (uint)(PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer);
         private PrimFlags _flags = PrimFlags.None;
         private DateTime m_expires;
         private DateTime m_rezzed;
@@ -1668,6 +1668,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Move afterwards ResetIDs as it clears the localID
             dupe.LocalId = localID;
+            if(dupe.PhysActor != null)
+                dupe.PhysActor.LocalID = localID;
+
             // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
             dupe._lastOwnerID = OwnerID;
 
