@@ -78,9 +78,12 @@ namespace OpenSim.Data.MySQL
             if (pd.Length == 0)
                 return false;
 
+            if (regionID == UUID.Zero)
+                return;
+
             MySqlCommand cmd = new MySqlCommand();
 
-            cmd.CommandText = String.Format("update {0} set RegionID=?RegionID where `SessionID`=?SessionID", m_Realm);
+            cmd.CommandText = String.Format("update {0} set RegionID=?RegionID, LastSeen=NOW() where `SessionID`=?SessionID", m_Realm);
 
             cmd.Parameters.AddWithValue("?SessionID", sessionID.ToString());
             cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
@@ -90,6 +93,5 @@ namespace OpenSim.Data.MySQL
 
             return true;
         }
-
     }
 }
