@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
 
             m_log.Info("[GETMESH]: /CAPS/" + capID);
             caps.RegisterHandler("GetMesh",
-                                 new RestHTTPHandler("POST", "/CAPS/" + capID + "/",
+                                 new RestHTTPHandler("GET", "/CAPS/" + capID,
                                                        delegate(Hashtable m_dhttpMethod)
                                                        {
                                                            return ProcessGetMesh(m_dhttpMethod, agentID, caps);
