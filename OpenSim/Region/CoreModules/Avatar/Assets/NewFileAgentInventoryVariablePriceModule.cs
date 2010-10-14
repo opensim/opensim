@@ -48,7 +48,7 @@ using OpenSim.Framework.Capabilities;
 namespace OpenSim.Region.CoreModules.Avatar.Assets
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class UploadObjectAssetModule : INonSharedRegionModule
+    public class NewFileAgentInventoryVariablePriceModule : INonSharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -97,7 +97,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
 
         public void Close() { }
 
-        public string Name { get { return "UploadObjectAssetModule"; } }
+        public string Name { get { return "NewFileAgentInventoryVariablePriceModule"; } }
 
 
         public void RegisterCaps(UUID agentID, Caps caps)
@@ -105,7 +105,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
             UUID capID = UUID.Random();
 
             m_log.Info("[GETMESH]: /CAPS/" + capID);
-            caps.RegisterHandler("UploadObjectAsset",
+            caps.RegisterHandler("NewFileAgentInventoryVariablePrice",
 
                     new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>("POST",
                                                                                            "/CAPS/" + capID.ToString(),
@@ -151,11 +151,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
 
             string assetName = llsdRequest.name;
             string assetDes = llsdRequest.description;
-            string capsBase = "/CAPS/UploadObjectAsset/";
+            string capsBase = "/CAPS/NewFileAgentInventoryVariablePrice/";
             UUID newAsset = UUID.Random();
             UUID newInvItem = UUID.Random();
             UUID parentFolder = llsdRequest.folder_id;
-            string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
+            string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000") + "/";
 
             Caps.AssetUploader uploader =
                 new Caps.AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
@@ -174,8 +174,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
             LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
             uploadResponse.uploader = uploaderURL;
             uploadResponse.state = "upload";
-            
-            uploader.OnUpLoad += delegate(
+
+            uploader.OnUpLoad += UploadCompleteHandler;
+                
+                /*delegate(
                 string passetName, string passetDescription, UUID passetID,
                 UUID pinventoryItem, UUID pparentFolder, byte[] pdata, string pinventoryType,
                 string passetType)
@@ -183,15 +185,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
                    UploadCompleteHandler(passetName, passetDescription,  passetID,
                                           pinventoryItem, pparentFolder, pdata,  pinventoryType,
                                           passetType,agentID);
-               };
+               };*/
             return uploadResponse;
         }
 
        
         public void UploadCompleteHandler(string assetName, string assetDescription, UUID assetID,
                                           UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
-                                          string assetType,UUID AgentID)
+                                          string assetType)
         {
+            UUID AgentID = UUID.Zero;
             sbyte assType = 0;
             sbyte inType = 0;
 
@@ -217,6 +220,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
                         assType = 5;
                         break;
                 }
+            }
+            else if (inventoryType == "mesh")
+            {
+                inType = 45; // TODO: Replace with appropriate type
+                assType = 45;// TODO: Replace with appropriate type
             }
 
             AssetBase asset;
