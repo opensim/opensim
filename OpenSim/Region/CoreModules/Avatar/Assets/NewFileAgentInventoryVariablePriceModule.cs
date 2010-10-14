@@ -233,8 +233,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
             }
             else if (inventoryType == "mesh")
             {
-                inType = 22; // TODO: Replace with appropriate type
-                assType = 49;// TODO: Replace with appropriate type
+                inType = (sbyte)InventoryType.Mesh; 
+                assType = (sbyte)AssetType.Mesh;
             }
 
             AssetBase asset;
