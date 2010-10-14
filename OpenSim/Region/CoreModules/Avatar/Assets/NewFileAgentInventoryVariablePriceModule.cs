@@ -254,10 +254,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
             item.AssetType = assType;
             item.InvType = inType;
             item.Folder = parentFolder;
-            item.CurrentPermissions = 2147483647;
-            item.BasePermissions = 2147483647;
+            item.CurrentPermissions = (uint)PermissionMask.All;
+            item.BasePermissions = (uint)PermissionMask.All;
             item.EveryOnePermissions = 0;
-            item.NextPermissions = 2147483647;
+            item.NextPermissions = (uint)(PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer);
             item.CreationDate = Util.UnixTimeSinceEpoch();
             m_scene.AddInventoryItem(item);
             
