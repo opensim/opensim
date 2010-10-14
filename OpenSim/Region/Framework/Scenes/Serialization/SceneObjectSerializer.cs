@@ -361,6 +361,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("Flags", ProcessFlags);
             m_SOPXmlProcessors.Add("CollisionSound", ProcessCollisionSound);
             m_SOPXmlProcessors.Add("CollisionSoundVolume", ProcessCollisionSoundVolume);
+            m_SOPXmlProcessors.Add("MediaUrl", ProcessMediaUrl);
             #endregion
 
             #region TaskInventoryXmlProcessors initialization
@@ -436,6 +437,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_ShapeXmlProcessors.Add("FlexiEntry", ProcessShpFlexiEntry);
             m_ShapeXmlProcessors.Add("LightEntry", ProcessShpLightEntry);
             m_ShapeXmlProcessors.Add("SculptEntry", ProcessShpSculptEntry);
+            m_ShapeXmlProcessors.Add("Media", ProcessShpMedia);
             #endregion
         }
 
@@ -702,6 +704,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessCollisionSoundVolume(SceneObjectPart obj, XmlTextReader reader)
         {
             obj.CollisionSoundVolume = reader.ReadElementContentAsFloat("CollisionSoundVolume", String.Empty);
+        }
+
+        private static void ProcessMediaUrl(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.MediaUrl = reader.ReadElementContentAsString("MediaUrl", String.Empty);
         }
         #endregion
 
@@ -1063,6 +1070,13 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             shp.SculptEntry = reader.ReadElementContentAsBoolean("SculptEntry", String.Empty);
         }
 
+        private static void ProcessShpMedia(PrimitiveBaseShape shp, XmlTextReader reader)
+        {
+            string value = reader.ReadElementContentAsString("Media", String.Empty);
+            shp.Media = PrimitiveBaseShape.MediaList.FromXml(value);
+        }
+
+
         #endregion
 
         ////////// Write /////////
@@ -1305,210 +1319,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             return true;
         }
 
-        public static SceneObjectPart Xml2ToSOPPull(XmlTextReader reader)
-        {
-            SceneObjectPart obj = new SceneObjectPart();
-
-            reader.ReadStartElement("SceneObjectPart");
-
-            if (reader.Name == "AllowedDrop")
-                obj.AllowedDrop = reader.ReadElementContentAsBoolean("AllowedDrop", String.Empty);
-            else
-                obj.AllowedDrop = true;
-
-            obj.CreatorID = ReadUUID(reader, "CreatorID");
-            obj.FolderID = ReadUUID(reader, "FolderID");
-            obj.InventorySerial = (uint)reader.ReadElementContentAsInt("InventorySerial", String.Empty);
-
-            #region Task Inventory
-
-            obj.TaskInventory = new TaskInventoryDictionary();
-            //List<PrimObject.InventoryBlock.ItemBlock> invItems = new List<PrimObject.InventoryBlock.ItemBlock>();
-
-            reader.ReadStartElement("TaskInventory", String.Empty);
-            while (reader.Name == "TaskInventoryItem")
-            {
-                TaskInventoryItem item = new TaskInventoryItem();
-                reader.ReadStartElement("TaskInventoryItem", String.Empty);
-
-                item.AssetID = ReadUUID(reader, "AssetID");
-                item.BasePermissions = (uint)reader.ReadElementContentAsInt("BasePermissions", String.Empty);
-                item.CreationDate = (uint)reader.ReadElementContentAsInt("CreationDate", String.Empty);
-                item.CreatorID = ReadUUID(reader, "CreatorID");
-                item.Description = reader.ReadElementContentAsString("Description", String.Empty);
-                item.EveryonePermissions = (uint)reader.ReadElementContentAsInt("EveryonePermissions", String.Empty);
-                item.Flags = (uint)reader.ReadElementContentAsInt("Flags", String.Empty);
-                item.GroupID = ReadUUID(reader, "GroupID");
-                item.GroupPermissions = (uint)reader.ReadElementContentAsInt("GroupPermissions", String.Empty);
-                item.InvType = reader.ReadElementContentAsInt("InvType", String.Empty);
-                item.ItemID = ReadUUID(reader, "ItemID");
-                UUID oldItemID = ReadUUID(reader, "OldItemID"); // TODO: Is this useful?
-                item.LastOwnerID = ReadUUID(reader, "LastOwnerID");
-                item.Name = reader.ReadElementContentAsString("Name", String.Empty);
-                item.NextPermissions = (uint)reader.ReadElementContentAsInt("NextPermissions", String.Empty);
-                item.OwnerID = ReadUUID(reader, "OwnerID");
-                item.CurrentPermissions = (uint)reader.ReadElementContentAsInt("CurrentPermissions", String.Empty);
-                UUID parentID = ReadUUID(reader, "ParentID");
-                UUID parentPartID = ReadUUID(reader, "ParentPartID");
-                item.PermsGranter = ReadUUID(reader, "PermsGranter");
-                item.PermsMask = reader.ReadElementContentAsInt("PermsMask", String.Empty);
-                item.Type = reader.ReadElementContentAsInt("Type", String.Empty);
-
-                reader.ReadEndElement();
-                obj.TaskInventory.Add(item.ItemID, item);
-            }
-            if (reader.NodeType == XmlNodeType.EndElement)
-                reader.ReadEndElement();
-
-            #endregion Task Inventory
-
-            obj.Flags = (PrimFlags)reader.ReadElementContentAsInt("ObjectFlags", String.Empty);
-
-            obj.UUID = ReadUUID(reader, "UUID");
-            obj.LocalId = (uint)reader.ReadElementContentAsLong("LocalId", String.Empty);
-            obj.Name = reader.ReadElementString("Name");
-            obj.Material = (byte)reader.ReadElementContentAsInt("Material", String.Empty);
-
-            if (reader.Name == "PassTouches")
-                obj.PassTouches = reader.ReadElementContentAsBoolean("PassTouches", String.Empty);
-            else
-                obj.PassTouches = false;
-
-            obj.RegionHandle = (ulong)reader.ReadElementContentAsLong("RegionHandle", String.Empty);
-            obj.ScriptAccessPin = reader.ReadElementContentAsInt("ScriptAccessPin", String.Empty);
-
-            if (reader.Name == "PlaySoundSlavePrims")
-                reader.ReadInnerXml();
-            if (reader.Name == "LoopSoundSlavePrims")
-                reader.ReadInnerXml();
-
-            Vector3 groupPosition = ReadVector(reader, "GroupPosition");
-            Vector3 offsetPosition = ReadVector(reader, "OffsetPosition");
-            obj.RotationOffset = ReadQuaternion(reader, "RotationOffset");
-            obj.Velocity = ReadVector(reader, "Velocity");
-            if (reader.Name == "RotationalVelocity")
-                ReadVector(reader, "RotationalVelocity");
-            obj.AngularVelocity = ReadVector(reader, "AngularVelocity");
-            obj.Acceleration = ReadVector(reader, "Acceleration");
-            obj.Description = reader.ReadElementString("Description");
-            reader.ReadStartElement("Color");
-            if (reader.Name == "R")
-            {
-                obj.Color = Color.FromArgb((int)reader.ReadElementContentAsFloat("A", String.Empty),
-                        (int)reader.ReadElementContentAsFloat("R", String.Empty),
-                        (int)reader.ReadElementContentAsFloat("G", String.Empty),
-                        (int)reader.ReadElementContentAsFloat("B", String.Empty));
-                reader.ReadEndElement();
-            }
-            obj.Text = reader.ReadElementString("Text", String.Empty);
-            obj.SitName = reader.ReadElementString("SitName", String.Empty);
-            obj.TouchName = reader.ReadElementString("TouchName", String.Empty);
-
-            obj.LinkNum = reader.ReadElementContentAsInt("LinkNum", String.Empty);
-            obj.ClickAction = (byte)reader.ReadElementContentAsInt("ClickAction", String.Empty);
-
-            reader.ReadStartElement("Shape");
-            obj.Shape.ProfileCurve = (byte)reader.ReadElementContentAsInt("ProfileCurve", String.Empty);
-
-            byte[] teData = Convert.FromBase64String(reader.ReadElementString("TextureEntry"));
-            obj.Shape.Textures = new Primitive.TextureEntry(teData, 0, teData.Length);
-
-            reader.ReadInnerXml(); // ExtraParams
-
-            obj.Shape.PathBegin = (ushort)reader.ReadElementContentAsInt("PathBegin", String.Empty);
-            obj.Shape.PathCurve = (byte)reader.ReadElementContentAsInt("PathCurve", String.Empty);
-            obj.Shape.PathEnd = (ushort)reader.ReadElementContentAsInt("PathEnd", String.Empty);
-            obj.Shape.PathRadiusOffset = (sbyte)reader.ReadElementContentAsInt("PathRadiusOffset", String.Empty);
-            obj.Shape.PathRevolutions = (byte)reader.ReadElementContentAsInt("PathRevolutions", String.Empty);
-            obj.Shape.PathScaleX = (byte)reader.ReadElementContentAsInt("PathScaleX", String.Empty);
-            obj.Shape.PathScaleY = (byte)reader.ReadElementContentAsInt("PathScaleY", String.Empty);
-            obj.Shape.PathShearX = (byte)reader.ReadElementContentAsInt("PathShearX", String.Empty);
-            obj.Shape.PathShearY = (byte)reader.ReadElementContentAsInt("PathShearY", String.Empty);
-            obj.Shape.PathSkew = (sbyte)reader.ReadElementContentAsInt("PathSkew", String.Empty);
-            obj.Shape.PathTaperX = (sbyte)reader.ReadElementContentAsInt("PathTaperX", String.Empty);
-            obj.Shape.PathTaperY = (sbyte)reader.ReadElementContentAsInt("PathTaperY", String.Empty);
-            obj.Shape.PathTwist = (sbyte)reader.ReadElementContentAsInt("PathTwist", String.Empty);
-            obj.Shape.PathTwistBegin = (sbyte)reader.ReadElementContentAsInt("PathTwistBegin", String.Empty);
-            obj.Shape.PCode = (byte)reader.ReadElementContentAsInt("PCode", String.Empty);
-            obj.Shape.ProfileBegin = (ushort)reader.ReadElementContentAsInt("ProfileBegin", String.Empty);
-            obj.Shape.ProfileEnd = (ushort)reader.ReadElementContentAsInt("ProfileEnd", String.Empty);
-            obj.Shape.ProfileHollow = (ushort)reader.ReadElementContentAsInt("ProfileHollow", String.Empty);
-            obj.Scale = ReadVector(reader, "Scale");
-            obj.Shape.State = (byte)reader.ReadElementContentAsInt("State", String.Empty);
-
-            obj.Shape.ProfileCurve = (byte)reader.ReadElementContentAsInt("ProfileCurve", String.Empty);
-            obj.Shape.ProfileShape = (ProfileShape)reader.ReadElementContentAsInt("ProfileShape", String.Empty);
-            obj.Shape.HollowShape = (HollowShape)reader.ReadElementContentAsInt("HollowShape", String.Empty);
-
-            UUID sculptTexture = ReadUUID(reader, "SculptTexture");
-            SculptType sculptType = (SculptType)reader.ReadElementContentAsInt("SculptType", String.Empty);
-            if (sculptTexture != UUID.Zero)
-            {
-                obj.Shape.SculptTexture = sculptTexture;
-                obj.Shape.SculptType = (byte)sculptType;
-            }
-
-            reader.ReadInnerXml(); // SculptData
-
-            obj.Shape.FlexiSoftness = reader.ReadElementContentAsInt("FlexiSoftness", String.Empty);
-            obj.Shape.FlexiTension = reader.ReadElementContentAsFloat("FlexiTension", String.Empty);
-            obj.Shape.FlexiDrag = reader.ReadElementContentAsFloat("FlexiDrag", String.Empty);
-            obj.Shape.FlexiGravity = reader.ReadElementContentAsFloat("FlexiGravity", String.Empty);
-            obj.Shape.FlexiWind = reader.ReadElementContentAsFloat("FlexiWind", String.Empty);
-            obj.Shape.FlexiForceX = reader.ReadElementContentAsFloat("FlexiForceX", String.Empty);
-            obj.Shape.FlexiForceY = reader.ReadElementContentAsFloat("FlexiForceY", String.Empty);
-            obj.Shape.FlexiForceZ = reader.ReadElementContentAsFloat("FlexiForceZ", String.Empty);
-
-            obj.Shape.LightColorR = reader.ReadElementContentAsFloat("LightColorR", String.Empty);
-            obj.Shape.LightColorG = reader.ReadElementContentAsFloat("LightColorG", String.Empty);
-            obj.Shape.LightColorB = reader.ReadElementContentAsFloat("LightColorB", String.Empty);
-            obj.Shape.LightColorA = reader.ReadElementContentAsFloat("LightColorA", String.Empty);
-            obj.Shape.LightRadius = reader.ReadElementContentAsFloat("LightRadius", String.Empty);
-            obj.Shape.LightCutoff = reader.ReadElementContentAsFloat("LightCutoff", String.Empty);
-            obj.Shape.LightFalloff = reader.ReadElementContentAsFloat("LightFalloff", String.Empty);
-            obj.Shape.LightIntensity = reader.ReadElementContentAsFloat("LightIntensity", String.Empty);
-
-            bool hasFlexi = reader.ReadElementContentAsBoolean("FlexiEntry", String.Empty);
-            bool hasLight = reader.ReadElementContentAsBoolean("LightEntry", String.Empty);
-            reader.ReadInnerXml(); // SculptEntry
-
-            reader.ReadEndElement();
-
-            obj.Scale = ReadVector(reader, "Scale"); // Yes, again
-            obj.UpdateFlag =  (byte)reader.ReadElementContentAsInt("UpdateFlag", String.Empty); // UpdateFlag
-
-            obj.SitTargetOrientation = ReadQuaternion(reader, "SitTargetOrientation");
-            obj.SitTargetPosition = ReadVector(reader, "SitTargetPosition");
-            obj.SitTargetPositionLL = ReadVector(reader, "SitTargetPositionLL");
-            obj.SitTargetOrientationLL = ReadQuaternion(reader, "SitTargetOrientationLL");
-            obj.ParentID = (uint)reader.ReadElementContentAsLong("ParentID", String.Empty);
-            obj.CreationDate = reader.ReadElementContentAsInt("CreationDate", String.Empty);
-            int category = reader.ReadElementContentAsInt("Category", String.Empty);
-            obj.SalePrice = reader.ReadElementContentAsInt("SalePrice", String.Empty);
-            obj.ObjectSaleType = (byte)reader.ReadElementContentAsInt("ObjectSaleType", String.Empty);
-            int ownershipCost = reader.ReadElementContentAsInt("OwnershipCost", String.Empty);
-            obj.GroupID = ReadUUID(reader, "GroupID");
-            obj.OwnerID = ReadUUID(reader, "OwnerID");
-            obj.LastOwnerID = ReadUUID(reader, "LastOwnerID");
-            obj.BaseMask = (uint)reader.ReadElementContentAsInt("BaseMask", String.Empty);
-            obj.OwnerMask = (uint)reader.ReadElementContentAsInt("OwnerMask", String.Empty);
-            obj.GroupMask = (uint)reader.ReadElementContentAsInt("GroupMask", String.Empty);
-            obj.EveryoneMask = (uint)reader.ReadElementContentAsInt("EveryoneMask", String.Empty);
-            obj.NextOwnerMask = (uint)reader.ReadElementContentAsInt("NextOwnerMask", String.Empty);
-
-            obj.Flags = (PrimFlags)reader.ReadElementContentAsInt("Flags", String.Empty);
-
-            obj.CollisionSound = ReadUUID(reader, "CollisionSound");
-            obj.CollisionSoundVolume = reader.ReadElementContentAsFloat("CollisionSoundVolume", String.Empty);
-
-            reader.ReadEndElement();
-
-            obj.GroupPosition = groupPosition;
-            obj.OffsetPosition = offsetPosition;
-
-            return obj;
-        }
-
         public static SceneObjectPart Xml2ToSOP(XmlTextReader reader)
         {
             SceneObjectPart obj = new SceneObjectPart();
@@ -1533,7 +1343,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 }
                 else
                 {
-                    m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element {0}", nodeName);
+                    //m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element {0}", nodeName);
                     reader.ReadOuterXml(); // ignore
                 }
 
