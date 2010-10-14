@@ -120,6 +120,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
 
         public LLSDNewFileAngentInventoryVariablePriceReplyResponse NewAgentInventoryRequest(LLSDAssetUploadRequest llsdRequest, UUID agentID)
         {
+
+            //TODO:  The Mesh uploader uploads many types of content. If you're going to implement a Money based limit
+            // You need to be aware of this and 
+
+
             //if (llsdRequest.asset_type == "texture" ||
            //     llsdRequest.asset_type == "animation" ||
            //     llsdRequest.asset_type == "sound")
