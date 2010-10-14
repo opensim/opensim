@@ -113,6 +113,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
         }
 
         #endregion
+
         public Hashtable ProcessGetMesh(Hashtable request, UUID AgentId, Caps cap)
         {
             
