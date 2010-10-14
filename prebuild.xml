@@ -679,6 +679,7 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenMetaverse" path="../../../bin/"/>
       <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
       <!-- FIXME: The OpenMetaverse.dll reference can be dropped when the TransferRequestPacket reference is removed from the code -->
       <Reference name="Nini" path="../../../bin/"/>
