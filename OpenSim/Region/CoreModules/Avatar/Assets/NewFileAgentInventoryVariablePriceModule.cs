@@ -107,7 +107,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
             m_log.Info("[GETMESH]: /CAPS/" + capID);
             caps.RegisterHandler("NewFileAgentInventoryVariablePrice",
 
-                    new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>("POST",
+                    new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDNewFileAngentInventoryVariablePriceReplyResponse>("POST",
                                                                                            "/CAPS/" + capID.ToString(),
                                                                                            delegate(LLSDAssetUploadRequest req)
                                                        {
@@ -117,8 +117,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
         }
 
         #endregion
-       
-        public LLSDAssetUploadResponse NewAgentInventoryRequest(LLSDAssetUploadRequest llsdRequest, UUID agentID)
+
+        public LLSDNewFileAngentInventoryVariablePriceReplyResponse NewAgentInventoryRequest(LLSDAssetUploadRequest llsdRequest, UUID agentID)
         {
             //if (llsdRequest.asset_type == "texture" ||
            //     llsdRequest.asset_type == "animation" ||
@@ -138,8 +138,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
                             if (client != null)
                                 client.SendAgentAlertMessage("Unable to upload asset. Insufficient funds.", false);
 
-                            LLSDAssetUploadResponse errorResponse = new LLSDAssetUploadResponse();
-                            errorResponse.uploader = "";
+                            LLSDNewFileAngentInventoryVariablePriceReplyResponse errorResponse = new LLSDNewFileAngentInventoryVariablePriceReplyResponse();
+                            errorResponse.rsvp = "";
                             errorResponse.state = "error";
                             return errorResponse;
                         }
@@ -170,14 +170,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
 
             string uploaderURL = protocol + m_scene.RegionInfo.ExternalHostName + ":" + MainServer.Instance.Port.ToString() + capsBase +
                                  uploaderPath;
+         
 
-            LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
-            uploadResponse.uploader = uploaderURL;
+            LLSDNewFileAngentInventoryVariablePriceReplyResponse uploadResponse = new LLSDNewFileAngentInventoryVariablePriceReplyResponse();
+           
+            
+            uploadResponse.rsvp = uploaderURL;
             uploadResponse.state = "upload";
+            uploadResponse.resource_cost = 0;
+            uploadResponse.upload_price = 0;
 
-            uploader.OnUpLoad += UploadCompleteHandler;
+            uploader.OnUpLoad += //UploadCompleteHandler;
                 
-                /*delegate(
+                delegate(
                 string passetName, string passetDescription, UUID passetID,
                 UUID pinventoryItem, UUID pparentFolder, byte[] pdata, string pinventoryType,
                 string passetType)
@@ -185,16 +190,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
                    UploadCompleteHandler(passetName, passetDescription,  passetID,
                                           pinventoryItem, pparentFolder, pdata,  pinventoryType,
                                           passetType,agentID);
-               };*/
+               };
             return uploadResponse;
         }
 
        
         public void UploadCompleteHandler(string assetName, string assetDescription, UUID assetID,
                                           UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
-                                          string assetType)
+                                          string assetType,UUID AgentID)
         {
-            UUID AgentID = UUID.Zero;
+            
             sbyte assType = 0;
             sbyte inType = 0;
 
@@ -223,8 +228,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
             }
             else if (inventoryType == "mesh")
             {
-                inType = 45; // TODO: Replace with appropriate type
-                assType = 45;// TODO: Replace with appropriate type
+                inType = 22; // TODO: Replace with appropriate type
+                assType = 49;// TODO: Replace with appropriate type
             }
 
             AssetBase asset;

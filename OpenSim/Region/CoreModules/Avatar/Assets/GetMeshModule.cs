@@ -145,7 +145,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
                 mesh = m_assetService.GetCached(meshID.ToString());
                 if (mesh != null)
                 {
-                    if (mesh.Type == (sbyte)45) //TODO: Change to AssetType.Mesh when libomv gets updated!
+                    if (mesh.Type == (sbyte)49) //TODO: Change to AssetType.Mesh when libomv gets updated!
                     {
                         responsedata["str_response_string"] = Convert.ToBase64String(mesh.Data);
                         responsedata["content_type"] = "application/vnd.ll.mesh";
@@ -166,7 +166,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
                     mesh = m_assetService.Get(meshID.ToString());
                     if (mesh != null)
                     {
-                        if (mesh.Type == (sbyte)45) //TODO: Change to AssetType.Mesh when libomv gets updated!
+                        if (mesh.Type == (sbyte)49) //TODO: Change to AssetType.Mesh when libomv gets updated!
                         {
                             responsedata["str_response_string"] = Convert.ToBase64String(mesh.Data);
                             responsedata["content_type"] = "application/vnd.ll.mesh";
