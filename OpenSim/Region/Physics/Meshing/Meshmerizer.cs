@@ -256,102 +256,112 @@ namespace OpenSim.Region.Physics.Meshing
             PrimMesh primMesh;
             PrimMesher.SculptMesh sculptMesh;
 
-            List<Coord> coords;
-            List<Face> faces;
+            List<Coord> coords = new List<Coord>();
+            List<Face> faces = new List<Face>();
 
             Image idata = null;
             string decodedSculptFileName = "";
 
             if (primShape.SculptEntry)
             {
-                if (cacheSculptMaps && primShape.SculptTexture != UUID.Zero)
+                if (((OpenMetaverse.SculptType)primShape.SculptType) == SculptType.Mesh)
                 {
-                    decodedSculptFileName = System.IO.Path.Combine(decodedSculptMapPath, "smap_" + primShape.SculptTexture.ToString());
-                    try
+                    // add code for mesh physics proxy generation here
+                    m_log.Debug("[MESH]: mesh proxy generation not implemented yet ");
+                    return null;
+
+                }
+                else
+                {
+                    if (cacheSculptMaps && primShape.SculptTexture != UUID.Zero)
                     {
-                        if (File.Exists(decodedSculptFileName))
+                        decodedSculptFileName = System.IO.Path.Combine(decodedSculptMapPath, "smap_" + primShape.SculptTexture.ToString());
+                        try
                         {
-                            idata = Image.FromFile(decodedSculptFileName);
+                            if (File.Exists(decodedSculptFileName))
+                            {
+                                idata = Image.FromFile(decodedSculptFileName);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.Error("[SCULPT]: unable to load cached sculpt map " + decodedSculptFileName + " " + e.Message);
+
+                        }
+                        //if (idata != null)
+                        //    m_log.Debug("[SCULPT]: loaded cached map asset for map ID: " + primShape.SculptTexture.ToString());
+                    }
+
+                    if (idata == null)
+                    {
+                        if (primShape.SculptData == null || primShape.SculptData.Length == 0)
+                            return null;
+
+                        try
+                        {
+                            OpenMetaverse.Imaging.ManagedImage unusedData;
+                            OpenMetaverse.Imaging.OpenJPEG.DecodeToImage(primShape.SculptData, out unusedData, out idata);
+                            unusedData = null;
+
+                            //idata = CSJ2K.J2kImage.FromBytes(primShape.SculptData);
+
+                            if (cacheSculptMaps && idata != null)
+                            {
+                                try { idata.Save(decodedSculptFileName, ImageFormat.MemoryBmp); }
+                                catch (Exception e) { m_log.Error("[SCULPT]: unable to cache sculpt map " + decodedSculptFileName + " " + e.Message); }
+                            }
+                        }
+                        catch (DllNotFoundException)
+                        {
+                            m_log.Error("[PHYSICS]: OpenJpeg is not installed correctly on this system. Physics Proxy generation failed.  Often times this is because of an old version of GLIBC.  You must have version 2.4 or above!");
+                            return null;
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            m_log.Error("[PHYSICS]: OpenJpeg was unable to decode this. Physics Proxy generation failed");
+                            return null;
+                        }
+                        catch (Exception ex)
+                        {
+                            m_log.Error("[PHYSICS]: Unable to generate a Sculpty physics proxy. Sculpty texture decode failed: " + ex.Message);
+                            return null;
                         }
                     }
-                    catch (Exception e)
-                    {
-                        m_log.Error("[SCULPT]: unable to load cached sculpt map " + decodedSculptFileName + " " + e.Message);
 
+                    PrimMesher.SculptMesh.SculptType sculptType;
+                    switch ((OpenMetaverse.SculptType)primShape.SculptType)
+                    {
+                        case OpenMetaverse.SculptType.Cylinder:
+                            sculptType = PrimMesher.SculptMesh.SculptType.cylinder;
+                            break;
+                        case OpenMetaverse.SculptType.Plane:
+                            sculptType = PrimMesher.SculptMesh.SculptType.plane;
+                            break;
+                        case OpenMetaverse.SculptType.Torus:
+                            sculptType = PrimMesher.SculptMesh.SculptType.torus;
+                            break;
+                        case OpenMetaverse.SculptType.Sphere:
+                            sculptType = PrimMesher.SculptMesh.SculptType.sphere;
+                            break;
+                        default:
+                            sculptType = PrimMesher.SculptMesh.SculptType.plane;
+                            break;
                     }
-                    //if (idata != null)
-                    //    m_log.Debug("[SCULPT]: loaded cached map asset for map ID: " + primShape.SculptTexture.ToString());
+
+                    bool mirror = ((primShape.SculptType & 128) != 0);
+                    bool invert = ((primShape.SculptType & 64) != 0);
+
+                    sculptMesh = new PrimMesher.SculptMesh((Bitmap)idata, sculptType, (int)lod, false, mirror, invert);
+                    
+                    idata.Dispose();
+
+                    sculptMesh.DumpRaw(baseDir, primName, "primMesh");
+
+                    sculptMesh.Scale(size.X, size.Y, size.Z);
+
+                    coords = sculptMesh.coords;
+                    faces = sculptMesh.faces;
                 }
-
-                if (idata == null)
-                {
-                    if (primShape.SculptData == null || primShape.SculptData.Length == 0)
-                        return null;
-
-                    try
-                    {
-                        OpenMetaverse.Imaging.ManagedImage unusedData;
-                        OpenMetaverse.Imaging.OpenJPEG.DecodeToImage(primShape.SculptData, out unusedData, out idata);
-                        unusedData = null;
-
-                        //idata = CSJ2K.J2kImage.FromBytes(primShape.SculptData);
-
-                        if (cacheSculptMaps && idata != null)
-                        {
-                            try { idata.Save(decodedSculptFileName, ImageFormat.MemoryBmp); }
-                            catch (Exception e) { m_log.Error("[SCULPT]: unable to cache sculpt map " + decodedSculptFileName + " " + e.Message); }
-                        }
-                    }
-                    catch (DllNotFoundException)
-                    {
-                        m_log.Error("[PHYSICS]: OpenJpeg is not installed correctly on this system. Physics Proxy generation failed.  Often times this is because of an old version of GLIBC.  You must have version 2.4 or above!");
-                        return null;
-                    }
-                    catch (IndexOutOfRangeException)
-                    {
-                        m_log.Error("[PHYSICS]: OpenJpeg was unable to decode this. Physics Proxy generation failed");
-                        return null;
-                    }
-                    catch (Exception ex)
-                    {
-                        m_log.Error("[PHYSICS]: Unable to generate a Sculpty physics proxy. Sculpty texture decode failed: " + ex.Message);
-                        return null;
-                    }
-                }
-
-                PrimMesher.SculptMesh.SculptType sculptType;
-                switch ((OpenMetaverse.SculptType)primShape.SculptType)
-                {
-                    case OpenMetaverse.SculptType.Cylinder:
-                        sculptType = PrimMesher.SculptMesh.SculptType.cylinder;
-                        break;
-                    case OpenMetaverse.SculptType.Plane:
-                        sculptType = PrimMesher.SculptMesh.SculptType.plane;
-                        break;
-                    case OpenMetaverse.SculptType.Torus:
-                        sculptType = PrimMesher.SculptMesh.SculptType.torus;
-                        break;
-                    case OpenMetaverse.SculptType.Sphere:
-                        sculptType = PrimMesher.SculptMesh.SculptType.sphere;
-                        break;
-                    default:
-                        sculptType = PrimMesher.SculptMesh.SculptType.plane;
-                        break;
-                }
-
-                bool mirror = ((primShape.SculptType & 128) != 0);
-                bool invert = ((primShape.SculptType & 64) != 0);
-
-                sculptMesh = new PrimMesher.SculptMesh((Bitmap)idata, sculptType, (int)lod, false, mirror, invert);
-                
-                idata.Dispose();
-
-                sculptMesh.DumpRaw(baseDir, primName, "primMesh");
-
-                sculptMesh.Scale(size.X, size.Y, size.Z);
-
-                coords = sculptMesh.coords;
-                faces = sculptMesh.faces;
             }
             else
             {
