@@ -316,7 +316,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("FolderID", ProcessFolderID);
             m_SOPXmlProcessors.Add("InventorySerial", ProcessInventorySerial);
             m_SOPXmlProcessors.Add("TaskInventory", ProcessTaskInventory);
-            m_SOPXmlProcessors.Add("ObjectFlags", ProcessObjectFlags);
             m_SOPXmlProcessors.Add("UUID", ProcessUUID);
             m_SOPXmlProcessors.Add("LocalId", ProcessLocalId);
             m_SOPXmlProcessors.Add("Name", ProcessName);
@@ -465,11 +464,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessTaskInventory(SceneObjectPart obj, XmlTextReader reader)
         {
             obj.TaskInventory = ReadTaskInventory(reader, "TaskInventory");
-        }
-
-        private static void ProcessObjectFlags(SceneObjectPart obj, XmlTextReader reader)
-        {
-            obj.Flags = (PrimFlags)reader.ReadElementContentAsInt("ObjectFlags", String.Empty);
         }
 
         private static void ProcessUUID(SceneObjectPart obj, XmlTextReader reader)
@@ -1089,7 +1083,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             sog.ForEachPart(delegate(SceneObjectPart sop)
             {
-                SOPToXml2(writer, sop, sog.RootPart);
+                if (sop.UUID != sog.RootPart.UUID)
+                    SOPToXml2(writer, sop, sog.RootPart);
             });
 
             writer.WriteEndElement();
@@ -1102,19 +1097,18 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteAttributeString("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
             writer.WriteAttributeString("xmlns:xsd", "http://www.w3.org/2001/XMLSchema");
 
+            writer.WriteElementString("AllowedDrop", sop.AllowedDrop.ToString().ToLower());
             WriteUUID(writer, "CreatorID", sop.CreatorID);
             WriteUUID(writer, "FolderID", sop.FolderID);
-            writer.WriteElementString("InventorySerial", (sop.Inventory != null) ? sop.InventorySerial.ToString() : "0");
+            writer.WriteElementString("InventorySerial", sop.InventorySerial.ToString());
 
-            // FIXME: Task inventory
-            writer.WriteStartElement("TaskInventory"); writer.WriteEndElement();
-
-            writer.WriteElementString("ObjectFlags", ((int)sop.Flags).ToString());
+            WriteTaskInventory(writer, sop.TaskInventory);
 
             WriteUUID(writer, "UUID", sop.UUID);
             writer.WriteElementString("LocalId", sop.LocalId.ToString());
             writer.WriteElementString("Name", sop.Name);
-            writer.WriteElementString("Material", ((int)sop.Material).ToString());
+            writer.WriteElementString("Material", sop.Material.ToString());
+            writer.WriteElementString("PassTouches", sop.PassTouches.ToString().ToLower());
             writer.WriteElementString("RegionHandle", sop.RegionHandle.ToString());
             writer.WriteElementString("ScriptAccessPin", sop.ScriptAccessPin.ToString());
 
@@ -1123,115 +1117,40 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             WriteQuaternion(writer, "RotationOffset", sop.RotationOffset);
             WriteVector(writer, "Velocity", sop.Velocity);
-            WriteVector(writer, "RotationalVelocity", Vector3.Zero);
             WriteVector(writer, "AngularVelocity", sop.AngularVelocity);
             WriteVector(writer, "Acceleration", sop.Acceleration);
             writer.WriteElementString("Description", sop.Description);
-            writer.WriteStartElement("Color");
-            writer.WriteElementString("R", sop.Color.R.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("G", sop.Color.G.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("B", sop.Color.B.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("A", sop.Color.G.ToString(Utils.EnUsCulture));
-            writer.WriteEndElement();
+            if (sop.Color != null)
+            {
+                writer.WriteStartElement("Color");
+                writer.WriteElementString("R", sop.Color.R.ToString(Utils.EnUsCulture));
+                writer.WriteElementString("G", sop.Color.G.ToString(Utils.EnUsCulture));
+                writer.WriteElementString("B", sop.Color.B.ToString(Utils.EnUsCulture));
+                writer.WriteElementString("A", sop.Color.G.ToString(Utils.EnUsCulture));
+                writer.WriteEndElement();
+            }
+
             writer.WriteElementString("Text", sop.Text);
             writer.WriteElementString("SitName", sop.SitName);
             writer.WriteElementString("TouchName", sop.TouchName);
 
             writer.WriteElementString("LinkNum", sop.LinkNum.ToString());
             writer.WriteElementString("ClickAction", sop.ClickAction.ToString());
-            writer.WriteStartElement("Shape");
 
-            writer.WriteElementString("ProfileCurve", sop.Shape.ProfileCurve.ToString());
-
-            writer.WriteStartElement("TextureEntry");
-            byte[] te;
-            if (sop.Shape.TextureEntry != null)
-                te = sop.Shape.TextureEntry;
-            else
-                te = Utils.EmptyBytes;
-            writer.WriteBase64(te, 0, te.Length);
-            writer.WriteEndElement(); // TextureEntry
-
-            writer.WriteStartElement("ExtraParams");
-            byte[] ep;
-            if (sop.Shape.ExtraParams != null)
-                ep = sop.Shape.ExtraParams;
-            else
-                ep = Utils.EmptyBytes;
-            writer.WriteBase64(ep, 0, ep.Length);
-            writer.WriteEndElement(); // ExtraParams
-
-            writer.WriteElementString("PathBegin", Primitive.PackBeginCut(sop.Shape.PathBegin).ToString());
-            writer.WriteElementString("PathCurve", sop.Shape.PathCurve.ToString());
-            writer.WriteElementString("PathEnd", Primitive.PackEndCut(sop.Shape.PathEnd).ToString());
-            writer.WriteElementString("PathRadiusOffset", Primitive.PackPathTwist(sop.Shape.PathRadiusOffset).ToString());
-            writer.WriteElementString("PathRevolutions", Primitive.PackPathRevolutions(sop.Shape.PathRevolutions).ToString());
-            writer.WriteElementString("PathScaleX", Primitive.PackPathScale(sop.Shape.PathScaleX).ToString());
-            writer.WriteElementString("PathScaleY", Primitive.PackPathScale(sop.Shape.PathScaleY).ToString());
-            writer.WriteElementString("PathShearX", ((byte)Primitive.PackPathShear(sop.Shape.PathShearX)).ToString());
-            writer.WriteElementString("PathShearY", ((byte)Primitive.PackPathShear(sop.Shape.PathShearY)).ToString());
-            writer.WriteElementString("PathSkew", Primitive.PackPathTwist(sop.Shape.PathSkew).ToString());
-            writer.WriteElementString("PathTaperX", Primitive.PackPathTaper(sop.Shape.PathTaperX).ToString());
-            writer.WriteElementString("PathTaperY", Primitive.PackPathTaper(sop.Shape.PathTaperY).ToString());
-            writer.WriteElementString("PathTwist", Primitive.PackPathTwist(sop.Shape.PathTwist).ToString());
-            writer.WriteElementString("PathTwistBegin", Primitive.PackPathTwist(sop.Shape.PathTwistBegin).ToString());
-            writer.WriteElementString("PCode", sop.Shape.PCode.ToString());
-            writer.WriteElementString("ProfileBegin", Primitive.PackBeginCut(sop.Shape.ProfileBegin).ToString());
-            writer.WriteElementString("ProfileEnd", Primitive.PackEndCut(sop.Shape.ProfileEnd).ToString());
-            writer.WriteElementString("ProfileHollow", Primitive.PackProfileHollow(sop.Shape.ProfileHollow).ToString());
-            WriteVector(writer, "Scale", sop.Scale);
-            writer.WriteElementString("State", sop.Shape.State.ToString());
-
-            writer.WriteElementString("ProfileShape", sop.Shape.ProfileShape.ToString());
-            writer.WriteElementString("HollowShape", sop.Shape.HollowShape.ToString());
-
-            writer.WriteElementString("SculptTexture", sop.Shape.SculptTexture.ToString());
-            writer.WriteElementString("SculptType", sop.Shape.SculptType.ToString());
-            writer.WriteStartElement("SculptData");
-            byte[] sd;
-            if (sop.Shape.SculptData != null)
-                sd = sop.Shape.ExtraParams;
-            else
-                sd = Utils.EmptyBytes;
-            writer.WriteBase64(sd, 0, sd.Length);
-            writer.WriteEndElement(); // SculptData
-
-            writer.WriteElementString("FlexiSoftness", sop.Shape.FlexiSoftness.ToString());
-            writer.WriteElementString("FlexiTension", sop.Shape.FlexiTension.ToString());
-            writer.WriteElementString("FlexiDrag", sop.Shape.FlexiDrag.ToString());
-            writer.WriteElementString("FlexiGravity", sop.Shape.FlexiGravity.ToString());
-            writer.WriteElementString("FlexiWind", sop.Shape.FlexiWind.ToString());
-            writer.WriteElementString("FlexiForceX", sop.Shape.FlexiForceX.ToString());
-            writer.WriteElementString("FlexiForceY", sop.Shape.FlexiForceY.ToString());
-            writer.WriteElementString("FlexiForceZ", sop.Shape.FlexiForceZ.ToString());
-
-            writer.WriteElementString("LightColorR", sop.Shape.LightColorR.ToString());
-            writer.WriteElementString("LightColorG", sop.Shape.LightColorG.ToString());
-            writer.WriteElementString("LightColorB", sop.Shape.LightColorB.ToString());
-            writer.WriteElementString("LightColorA", sop.Shape.LightColorA.ToString());
-            writer.WriteElementString("LightRadius", sop.Shape.LightRadius.ToString());
-            writer.WriteElementString("LightCutoff", sop.Shape.LightCutoff.ToString());
-            writer.WriteElementString("LightFalloff", sop.Shape.LightFalloff.ToString());
-            writer.WriteElementString("LightIntensity", sop.Shape.LightIntensity.ToString());
-
-            writer.WriteElementString("FlexyEntry", sop.Shape.FlexiEntry.ToString());
-            writer.WriteElementString("LightEntry", sop.Shape.LightEntry.ToString());
-            writer.WriteElementString("SculptEntry", sop.Shape.SculptEntry.ToString());
-
-            writer.WriteEndElement(); // Shape
+            WriteShape(writer, sop.Shape);
 
             WriteVector(writer, "Scale", sop.Scale);
-            writer.WriteElementString("UpdateFlag", "0");
+            writer.WriteElementString("UpdateFlag", sop.UpdateFlag.ToString());
             WriteQuaternion(writer, "SitTargetOrientation", sop.SitTargetOrientation); 
             WriteVector(writer, "SitTargetPosition", sop.SitTargetPosition);
             WriteVector(writer, "SitTargetPositionLL", sop.SitTargetPositionLL);
             WriteQuaternion(writer, "SitTargetOrientationLL", sop.SitTargetOrientationLL);
             writer.WriteElementString("ParentID", sop.ParentID.ToString());
             writer.WriteElementString("CreationDate", sop.CreationDate.ToString());
-            writer.WriteElementString("Category", "0");
+            writer.WriteElementString("Category", sop.Category.ToString());
             writer.WriteElementString("SalePrice", sop.SalePrice.ToString());
-            writer.WriteElementString("ObjectSaleType", ((int)sop.ObjectSaleType).ToString());
-            writer.WriteElementString("OwnershipCost", "0");
+            writer.WriteElementString("ObjectSaleType", sop.ObjectSaleType.ToString());
+            writer.WriteElementString("OwnershipCost", sop.OwnershipCost.ToString());
             WriteUUID(writer, "GroupID", sop.GroupID);
             WriteUUID(writer, "OwnerID", sop.OwnerID);
             WriteUUID(writer, "LastOwnerID", sop.LastOwnerID);
@@ -1243,6 +1162,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("Flags", sop.Flags.ToString());
             WriteUUID(writer, "CollisionSound", sop.CollisionSound);
             writer.WriteElementString("CollisionSoundVolume", sop.CollisionSoundVolume.ToString());
+            if (sop.MediaUrl != null)
+                writer.WriteElementString("MediaUrl", sop.MediaUrl.ToString());
 
             writer.WriteEndElement();
         }
@@ -1273,6 +1194,134 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteEndElement();
         }
 
+        static void WriteTaskInventory(XmlTextWriter writer, TaskInventoryDictionary tinv)
+        {
+            if (tinv.Count > 0) // otherwise skip this
+            {
+                writer.WriteStartElement("TaskInventory");
+
+                foreach (TaskInventoryItem item in tinv.Values)
+                {
+                    writer.WriteStartElement("TaskInventoryItem");
+                    
+                    WriteUUID(writer, "AssetID", item.AssetID);
+                    writer.WriteElementString("BasePermissions", item.BasePermissions.ToString());
+                    writer.WriteElementString("CreationDate", item.CreationDate.ToString());
+                    WriteUUID(writer, "CreatorID", item.CreatorID);
+                    writer.WriteElementString("Description", item.Description);
+                    writer.WriteElementString("EveryonePermissions", item.EveryonePermissions.ToString());
+                    writer.WriteElementString("Flags", item.Flags.ToString());
+                    WriteUUID(writer, "GroupID", item.GroupID);
+                    writer.WriteElementString("GroupPermissions", item.GroupPermissions.ToString());
+                    writer.WriteElementString("InvType", item.InvType.ToString());
+                    WriteUUID(writer, "ItemID", item.ItemID);
+                    WriteUUID(writer, "OldItemID", item.OldItemID);
+                    WriteUUID(writer, "LastOwnerID", item.LastOwnerID);
+                    writer.WriteElementString("Name", item.Name);
+                    writer.WriteElementString("NextPermissions", item.NextPermissions.ToString());
+                    WriteUUID(writer, "OwnerID", item.OwnerID);
+                    writer.WriteElementString("CurrentPermissions", item.CurrentPermissions.ToString());
+                    WriteUUID(writer, "ParentID", item.ParentID);
+                    WriteUUID(writer, "ParentPartID", item.ParentPartID);
+                    WriteUUID(writer, "PermsGranter", item.PermsGranter);
+                    writer.WriteElementString("PermsMask", item.PermsMask.ToString());
+                    writer.WriteElementString("Type", item.Type.ToString());
+
+                    writer.WriteEndElement(); // TaskInventoryItem
+                }
+
+                writer.WriteEndElement(); // TaskInventory
+            }
+        }
+
+        static void WriteShape(XmlTextWriter writer, PrimitiveBaseShape shp)
+        {
+            if (shp != null)
+            {
+                writer.WriteStartElement("Shape");
+
+                writer.WriteElementString("ProfileCurve", shp.ProfileCurve.ToString());
+
+                writer.WriteStartElement("TextureEntry");
+                byte[] te;
+                if (shp.TextureEntry != null)
+                    te = shp.TextureEntry;
+                else
+                    te = Utils.EmptyBytes;
+                writer.WriteBase64(te, 0, te.Length);
+                writer.WriteEndElement(); // TextureEntry
+
+                writer.WriteStartElement("ExtraParams");
+                byte[] ep;
+                if (shp.ExtraParams != null)
+                    ep = shp.ExtraParams;
+                else
+                    ep = Utils.EmptyBytes;
+                writer.WriteBase64(ep, 0, ep.Length);
+                writer.WriteEndElement(); // ExtraParams
+
+                writer.WriteElementString("PathBegin", shp.PathBegin.ToString());
+                writer.WriteElementString("PathCurve", shp.PathCurve.ToString());
+                writer.WriteElementString("PathEnd", shp.PathEnd.ToString());
+                writer.WriteElementString("PathRadiusOffset", shp.PathRadiusOffset.ToString());
+                writer.WriteElementString("PathRevolutions", shp.PathRevolutions.ToString());
+                writer.WriteElementString("PathScaleX", shp.PathScaleX.ToString());
+                writer.WriteElementString("PathScaleY", shp.PathScaleY.ToString());
+                writer.WriteElementString("PathShearX", shp.PathShearX.ToString());
+                writer.WriteElementString("PathShearY", shp.PathShearY.ToString());
+                writer.WriteElementString("PathSkew", shp.PathSkew.ToString());
+                writer.WriteElementString("PathTaperX", shp.PathTaperX.ToString());
+                writer.WriteElementString("PathTaperY", shp.PathTaperY.ToString());
+                writer.WriteElementString("PathTwist", shp.PathTwist.ToString());
+                writer.WriteElementString("PathTwistBegin", shp.PathTwistBegin.ToString());
+                writer.WriteElementString("PCode", shp.PCode.ToString());
+                writer.WriteElementString("ProfileBegin", shp.ProfileBegin.ToString());
+                writer.WriteElementString("ProfileEnd", shp.ProfileEnd.ToString());
+                writer.WriteElementString("ProfileHollow", shp.ProfileHollow.ToString());
+                writer.WriteElementString("State", shp.State.ToString());
+
+                writer.WriteElementString("ProfileShape", shp.ProfileShape.ToString());
+                writer.WriteElementString("HollowShape", shp.HollowShape.ToString());
+
+                WriteUUID(writer, "SculptTexture", shp.SculptTexture);
+                writer.WriteElementString("SculptType", shp.SculptType.ToString());
+                writer.WriteStartElement("SculptData");
+                byte[] sd;
+                if (shp.SculptData != null)
+                    sd = shp.ExtraParams;
+                else
+                    sd = Utils.EmptyBytes;
+                writer.WriteBase64(sd, 0, sd.Length);
+                writer.WriteEndElement(); // SculptData
+
+                writer.WriteElementString("FlexiSoftness", shp.FlexiSoftness.ToString());
+                writer.WriteElementString("FlexiTension", shp.FlexiTension.ToString());
+                writer.WriteElementString("FlexiDrag", shp.FlexiDrag.ToString());
+                writer.WriteElementString("FlexiGravity", shp.FlexiGravity.ToString());
+                writer.WriteElementString("FlexiWind", shp.FlexiWind.ToString());
+                writer.WriteElementString("FlexiForceX", shp.FlexiForceX.ToString());
+                writer.WriteElementString("FlexiForceY", shp.FlexiForceY.ToString());
+                writer.WriteElementString("FlexiForceZ", shp.FlexiForceZ.ToString());
+
+                writer.WriteElementString("LightColorR", shp.LightColorR.ToString());
+                writer.WriteElementString("LightColorG", shp.LightColorG.ToString());
+                writer.WriteElementString("LightColorB", shp.LightColorB.ToString());
+                writer.WriteElementString("LightColorA", shp.LightColorA.ToString());
+                writer.WriteElementString("LightRadius", shp.LightRadius.ToString());
+                writer.WriteElementString("LightCutoff", shp.LightCutoff.ToString());
+                writer.WriteElementString("LightFalloff", shp.LightFalloff.ToString());
+                writer.WriteElementString("LightIntensity", shp.LightIntensity.ToString());
+
+                writer.WriteElementString("FlexiEntry", shp.FlexiEntry.ToString().ToLower());
+                writer.WriteElementString("LightEntry", shp.LightEntry.ToString().ToLower());
+                writer.WriteElementString("SculptEntry", shp.SculptEntry.ToString().ToLower());
+
+                if (shp.Media != null)
+                    writer.WriteElementString("Media", shp.Media.ToXml());
+
+                writer.WriteEndElement(); // Shape
+            }
+        }
 
         //////// Read /////////
         public static bool Xml2ToSOG(XmlTextReader reader, SceneObjectGroup sog)
@@ -1332,13 +1381,16 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 SOPXmlProcessor p = null;
                 if (m_SOPXmlProcessors.TryGetValue(reader.Name, out p))
                 {
+                    //m_log.DebugFormat("[XXX] Processing: {0}", reader.Name);
                     try
                     {
                         p(obj, reader);
                     }
                     catch (Exception e)
                     {
-                        m_log.DebugFormat("[SceneObjectSerializer]: exception while parsing {0} in {1}-{2}: {3}", nodeName, obj.Name, obj.UUID, e);
+                        m_log.DebugFormat("[SceneObjectSerializer]: exception while parsing {0}: {1}", nodeName, e);
+                        if (reader.NodeType == XmlNodeType.EndElement)
+                            reader.Read();
                     }
                 }
                 else
@@ -1441,6 +1493,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             while (reader.NodeType != XmlNodeType.EndElement)
             {
+                //m_log.DebugFormat("[XXX] Processing: {0}", reader.Name); 
                 ShapeXmlProcessor p = null;
                 if (m_ShapeXmlProcessors.TryGetValue(reader.Name, out p))
                     p(shape, reader);
