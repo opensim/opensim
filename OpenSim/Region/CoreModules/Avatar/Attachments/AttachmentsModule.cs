@@ -228,6 +228,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 "[ATTACHMENTS MODULE]: Rezzing attachment to point {0} from item {1} for {2}", 
                 (AttachmentPoint)AttachmentPt, itemID, remoteClient.Name);
             
+            // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
+            // be removed when that functionality is implemented in opensim
+            AttachmentPt &= 0x7f;
+
             SceneObjectGroup att = RezSingleAttachmentFromInventoryInternal(remoteClient, itemID, AttachmentPt);
 
             if (updateInventoryStatus)
