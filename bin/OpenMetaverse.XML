@@ -3497,6 +3497,13 @@
             </summary>
             <param name="textureID">The texture assets <see cref="T:OpenMetaverse.UUID"/></param>
         </member>
+        <member name="M:OpenMetaverse.AssetManager.RequestMesh(OpenMetaverse.UUID,OpenMetaverse.AssetManager.MeshDownloadCallback)">
+            <summary>
+            Requests download of a mesh asset
+            </summary>
+            <param name="meshID">UUID of the mesh asset</param>
+            <param name="callback">Callback when the request completes</param>
+        </member>
         <member name="M:OpenMetaverse.AssetManager.FireImageProgressEvent(OpenMetaverse.UUID,System.Int32,System.Int32)">
             <summary>
             Lets TexturePipeline class fire the progress event
@@ -3572,6 +3579,13 @@
             Callback used upon competition of baked texture upload
             </summary>
             <param name="newAssetID">Asset UUID of the newly uploaded baked texture</param>
+        </member>
+        <member name="T:OpenMetaverse.AssetManager.MeshDownloadCallback">
+            <summary>
+            A callback that fires upon the completition of the RequestMesh call
+            </summary>
+            <param name="success">Was the download successfull</param>
+            <param name="assetMesh">Resulting mesh or null on problems</param>
         </member>
         <member name="P:OpenMetaverse.XferReceivedEventArgs.Xfer">
             <summary>Xfer data</summary>
@@ -20342,6 +20356,33 @@
             <summary>
             Level of Detail mesh
             </summary>
+        </member>
+        <member name="T:OpenMetaverse.Assets.AssetMesh">
+            <summary>
+            Represents Mesh asset
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.Assets.AssetMesh.#ctor">
+            <summary>Initializes a new instance of an AssetMesh object</summary>
+        </member>
+        <member name="M:OpenMetaverse.Assets.AssetMesh.#ctor(OpenMetaverse.UUID,System.Byte[])">
+            <summary>Initializes a new instance of an AssetMesh object with parameters</summary>
+            <param name="assetID">A unique <see cref="T:OpenMetaverse.UUID"/> specific to this asset</param>
+            <param name="assetData">A byte array containing the raw asset data</param>
+        </member>
+        <member name="M:OpenMetaverse.Assets.AssetMesh.Encode">
+            <summary>
+            TODO: Encodes a scripts contents into a LSO Bytecode file
+            </summary>
+        </member>
+        <member name="M:OpenMetaverse.Assets.AssetMesh.Decode">
+            <summary>
+            TODO: Decode LSO Bytecode into a string
+            </summary>
+            <returns>true</returns>
+        </member>
+        <member name="P:OpenMetaverse.Assets.AssetMesh.AssetType">
+            <summary>Override the base classes AssetType</summary>
         </member>
         <member name="T:OpenMetaverse.TextureRequestState">
             <summary>
