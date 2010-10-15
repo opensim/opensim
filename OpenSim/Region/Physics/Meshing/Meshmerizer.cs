@@ -31,8 +31,10 @@ using System.Collections.Generic;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO.Compression;
 using PrimMesher;
 using log4net;
 using Nini.Config;
@@ -268,6 +270,69 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     // add code for mesh physics proxy generation here
                     m_log.Debug("[MESH]: mesh proxy generation not implemented yet ");
+
+                    OSD meshOsd;
+
+                    if (primShape.SculptData.Length > 0)
+                    {
+                        
+                        
+                        m_log.Debug("[MESH]: asset data length: " + primShape.SculptData.Length.ToString());
+                        byte[] header = Util.StringToBytes256("<? LLSD/Binary ?>");
+
+                        ////dump to debugging file
+                        //string filename = System.IO.Path.Combine(decodedSculptMapPath, "mesh_" + primShape.SculptTexture.ToString());
+                        //BinaryWriter writer = new BinaryWriter(File.Open(filename, FileMode.Create));
+                        //writer.Write(primShape.SculptData);
+                        //writer.Close();
+
+                    }
+                    else
+                    {
+                        m_log.Error("[MESH]: asset data is zero length");
+                        return null;
+                    }
+
+                    try
+                    {
+                        meshOsd = OSDParser.DeserializeLLSDBinary(primShape.SculptData, true);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Error("[MESH]: exception decoding mesh asset: " + e.ToString());
+                        return null;
+                    }
+
+                    if (meshOsd is OSDMap)
+                    {
+                        OSDMap map = (OSDMap)meshOsd;
+                        //foreach (string name in map.Keys)
+                        //    m_log.Debug("[MESH]: key:" + name + " value:" + map[name].AsString());
+                        OSDMap physicsParms = (OSDMap)map["physics_shape"];
+                        int physOffset = physicsParms["offset"].AsInteger();
+                        int physSize = physicsParms["size"].AsInteger();
+
+                        if (physOffset < 0 || physSize == 0)
+                            return null; // no mesh data in asset
+
+                        m_log.Debug("[MESH]: physOffset:" + physOffset.ToString() + " physSize:" + physSize.ToString());
+                        //MemoryStream ms = new MemoryStream(primShape.SculptData, physOffset, physSize);
+                        //GZipStream gzStream = new GZipStream(ms, CompressionMode.Decompress);
+                        
+                        //int maxSize = physSize * 5; // arbitrary guess
+                        //byte[] readBuffer = new byte[maxSize];
+
+                        //int bytesRead = gzStream.Read(readBuffer, 0, maxSize);
+
+                        //OSD physMeshOsd = OSDParser.DeserializeLLSDBinary(readBuffer);
+
+
+
+
+
+                    }
+
+                    //just bail out for now until mesh code is finished
                     return null;
 
                 }
