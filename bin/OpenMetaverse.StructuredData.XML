@@ -135,33 +135,17 @@
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDBinary(System.Byte[])">
             <summary>
-            Deserializes binary LLSD
+            
             </summary>
-            <param name="binaryData">Serialized data</param>
-            <returns>OSD containting deserialized data</returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDBinary(System.Byte[],System.Boolean)">
-            <summary>
-            Deserializes binary LLSD
-            </summary>
-            <param name="binaryData">Serialized data</param>
-            <param name="headerOptional">Treat LLSD binary header as optional</param>
-            <returns>OSD containting deserialized data</returns>
+            <param name="binaryData"></param>
+            <returns></returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDBinary(System.IO.Stream)">
             <summary>
-            Deserializes binary LLSD
+            
             </summary>
-            <param name="stream">Stream to read the data from</param>
-            <returns>OSD containting deserialized data</returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDBinary(System.IO.Stream,System.Boolean)">
-            <summary>
-            Deserializes binary LLSD
-            </summary>
-            <param name="stream">Stream to read the data from</param>
-            <param name="headerOptional">Treat LLSD binary header as optional</param>
-            <returns>OSD containting deserialized data</returns>
+            <param name="stream"></param>
+            <returns></returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDBinary(OpenMetaverse.StructuredData.OSD)">
             <summary>
