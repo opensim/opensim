@@ -2402,7 +2402,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (archiver != null)
                 {
                     scene.EventManager.OnOarFileSaved += RemoteAdminOarSaveCompleted;
-                    archiver.ArchiveRegion(filename);
+                    archiver.ArchiveRegion(filename, new Dictionary<string, object>());
                     lock (m_saveOarLock) Monitor.Wait(m_saveOarLock,5000);
                     scene.EventManager.OnOarFileSaved -= RemoteAdminOarSaveCompleted;
                 }

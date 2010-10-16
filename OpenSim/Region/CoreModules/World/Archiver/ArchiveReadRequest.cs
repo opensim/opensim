@@ -51,6 +51,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     public class ArchiveReadRequest
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        /// <summary>
+        /// The maximum major version of OAR that we can read.  Minor versions shouldn't need a number since version
+        /// bumps here should be compatible.
+        /// </summary>
+        public static int MAX_MAJOR_VERSION = 0;
 
         protected Scene m_scene;
         protected Stream m_loadStream;
@@ -515,6 +521,22 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 if (xtr.NodeType == XmlNodeType.Element) 
                 {
+                    if (xtr.Name.ToString() == "archive")
+                    {
+                        int majorVersion = int.Parse(xtr["major_version"]);
+                        int minorVersion = int.Parse(xtr["minor_version"]);
+                        string version = string.Format("{0}.{1}", majorVersion, minorVersion);
+                        
+                        if (majorVersion > MAX_MAJOR_VERSION)
+                        {
+                            throw new Exception(
+                                string.Format(
+                                    "The OAR you are trying to load has major version number of {0} but this version of OpenSim can only load OARs with major version number {1} and below",
+                                    majorVersion, MAX_MAJOR_VERSION));
+                        }
+                        
+                        m_log.InfoFormat("[ARCHIVER]: Loading OAR with version {0}", version);
+                    }
                     if (xtr.Name.ToString() == "datetime") 
                     {
                         int value;
