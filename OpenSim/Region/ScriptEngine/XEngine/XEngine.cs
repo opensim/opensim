@@ -794,9 +794,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     try
                     {
                         AppDomainSetup appSetup = new AppDomainSetup();
-                        //                            appSetup.ApplicationBase = Path.Combine(
-                        //                                    "ScriptEngines",
-                        //                                    m_Scene.RegionInfo.RegionID.ToString());
+                        appSetup.PrivateBinPath = Path.Combine(
+                                m_ScriptEnginesPath,
+                                m_Scene.RegionInfo.RegionID.ToString());
 
                         Evidence baseEvidence = AppDomain.CurrentDomain.Evidence;
                         Evidence evidence = new Evidence(baseEvidence);

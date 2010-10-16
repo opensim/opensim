@@ -56,7 +56,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 {
     public class ScriptInstance : MarshalByRefObject, IScriptInstance
     {
-        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private IScriptEngine m_Engine;
         private IScriptWorkItem m_CurrentResult = null;
@@ -271,9 +271,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 //RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
 //                lease.Register(this);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // m_log.ErrorFormat("[Script] Error loading assembly {0}\n"+e.ToString(), assembly);
+                m_log.ErrorFormat("[Script] Error loading assembly {0}\n"+e.ToString(), assembly);
+                throw;
             }
 
             try
