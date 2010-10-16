@@ -160,9 +160,9 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
             return SceneXmlLoader.DeserializeGroupFromXml2(xmlString);
         }
 
-        public string SerializeGroupToXml2(SceneObjectGroup grp)
+        public string SerializeGroupToXml2(SceneObjectGroup grp, Dictionary<string, object> options)
         {
-            return SceneXmlLoader.SaveGroupToXml2(grp);
+            return SceneXmlLoader.SaveGroupToXml2(grp, options);
         }
 
         public void SavePrimListToXml2(EntityBase[] entityList, string fileName)

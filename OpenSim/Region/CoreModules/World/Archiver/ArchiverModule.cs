@@ -122,37 +122,44 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <param name="cmdparams"></param>
         public void HandleSaveOarConsoleCommand(string module, string[] cmdparams)
         {
+            Dictionary<string, object> options = new Dictionary<string, object>();
+
+            OptionSet ops = new OptionSet();
+            ops.Add("old|old-guids", delegate(string v) { options["old-guids"] = (v != null); });
+
+            List<string> mainParams = ops.Parse(cmdparams);
+
             if (cmdparams.Length > 2)
             {
-                ArchiveRegion(cmdparams[2]);
+                ArchiveRegion(mainParams[2], options);
             }
             else
             {
-                ArchiveRegion(DEFAULT_OAR_BACKUP_FILENAME);
+                ArchiveRegion(DEFAULT_OAR_BACKUP_FILENAME, options);
             }
         }
         
-        public void ArchiveRegion(string savePath)
+        public void ArchiveRegion(string savePath, Dictionary<string, object> options)
         {
-            ArchiveRegion(savePath, Guid.Empty);
+            ArchiveRegion(savePath, Guid.Empty, options);
         }
-        
-        public void ArchiveRegion(string savePath, Guid requestId)
+
+        public void ArchiveRegion(string savePath, Guid requestId, Dictionary<string, object> options)
         {
             m_log.InfoFormat(
                 "[ARCHIVER]: Writing archive for region {0} to {1}", m_scene.RegionInfo.RegionName, savePath);
             
-            new ArchiveWriteRequestPreparation(m_scene, savePath, requestId).ArchiveRegion();
+            new ArchiveWriteRequestPreparation(m_scene, savePath, requestId).ArchiveRegion(options);
         }
-        
+
         public void ArchiveRegion(Stream saveStream)
         {
             ArchiveRegion(saveStream, Guid.Empty);
         }
-        
+
         public void ArchiveRegion(Stream saveStream, Guid requestId)
         {
-            new ArchiveWriteRequestPreparation(m_scene, saveStream, requestId).ArchiveRegion();
+            new ArchiveWriteRequestPreparation(m_scene, saveStream, requestId).ArchiveRegion(new Dictionary<string, object>());
         }
 
         public void DearchiveRegion(string loadPath)

@@ -60,6 +60,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         protected Scene m_scene;
         protected TarArchiveWriter m_archiveWriter;
         protected Guid m_requestId;
+        protected Dictionary<string, object> m_options;
 
         public ArchiveWriteRequestExecution(
              List<SceneObjectGroup> sceneObjects,
@@ -67,7 +68,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
              IRegionSerialiserModule serialiser,
              Scene scene,
              TarArchiveWriter archiveWriter,
-             Guid requestId)
+             Guid requestId,
+             Dictionary<string, object> options)
         {
             m_sceneObjects = sceneObjects;
             m_terrainModule = terrainModule;
@@ -75,6 +77,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_scene = scene;
             m_archiveWriter = archiveWriter;
             m_requestId = requestId;
+            m_options = options;
         }
 
         protected internal void ReceivedAllAssets(
@@ -145,7 +148,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 //m_log.DebugFormat("[ARCHIVER]: Saving {0} {1}, {2}", entity.Name, entity.UUID, entity.GetType());
 
-                string serializedObject = m_serialiser.SerializeGroupToXml2(sceneObject);
+                string serializedObject = m_serialiser.SerializeGroupToXml2(sceneObject, m_options);
                 m_archiveWriter.WriteFile(ArchiveHelpers.CreateObjectPath(sceneObject), serializedObject);
             }
 

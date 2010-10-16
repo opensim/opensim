@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace OpenSim.Region.Framework.Interfaces
@@ -46,7 +47,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// the EventManager.OnOarFileSaved event.
         /// 
         /// <param name="savePath"></param>
-        void ArchiveRegion(string savePath);
+        void ArchiveRegion(string savePath, Dictionary<string, object> options);
         
         /// <summary>
         /// Archive the region to the given path
@@ -57,7 +58,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// 
         /// <param name="savePath"></param>
         /// <param name="requestId">If supplied, this request Id is later returned in the saved event</param>
-        void ArchiveRegion(string savePath, Guid requestId);
+        void ArchiveRegion(string savePath, Guid requestId, Dictionary<string, object> options);
 
         /// <summary>
         /// Archive the region to a stream.

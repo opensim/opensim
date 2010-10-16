@@ -264,10 +264,11 @@ namespace OpenSim
                                           LoadOar);
 
             m_console.Commands.AddCommand("region", false, "save oar",
-                                          "save oar [<OAR path>]",
+                                          "save oar [--old-guids] [<OAR path>]",
                                           "Save a region's data to an OAR archive.",
                                           "The OAR path must be a filesystem path."
-                                          + "  If this is not given then the oar is saved to region.oar in the current directory.",
+                                          + "  If this is not given then the oar is saved to region.oar in the current directory." + Environment.NewLine
+                                          + "--old-guids produces OARs compatible with older (pre 0.7.1) OpenSim versions.",
                                           SaveOar);
 
             m_console.Commands.AddCommand("region", false, "edit scale",

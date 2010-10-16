@@ -45,6 +45,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        #region old xml format
         public static void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, Vector3 loadOffset)
         {
             XmlDocument doc = new XmlDocument();
@@ -98,10 +99,127 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             file.Close();
         }
 
-        public static string SaveGroupToXml2(SceneObjectGroup grp)
+        #endregion
+
+        #region XML2 serialization
+
+        // Called by archives (save oar)
+        public static string SaveGroupToXml2(SceneObjectGroup grp, Dictionary<string, object> options)
         {
-            return SceneObjectSerializer.ToXml2Format(grp);
+            //return SceneObjectSerializer.ToXml2Format(grp);
+            using (MemoryStream mem = new MemoryStream())
+            {
+                using (XmlTextWriter writer = new XmlTextWriter(mem, System.Text.Encoding.UTF8))
+                {
+                    SceneObjectSerializer.SOGToXml2(writer, grp, options);
+                    writer.Flush();
+
+                    using (StreamReader reader = new StreamReader(mem))
+                    {
+                        mem.Seek(0, SeekOrigin.Begin);
+                        return reader.ReadToEnd();
+                    }
+                }
+            }
         }
+
+        // Called by scene serializer (save xml2)
+        public static void SavePrimsToXml2(Scene scene, string fileName)
+        {
+            EntityBase[] entityList = scene.GetEntities();
+            SavePrimListToXml2(entityList, fileName);
+        }
+
+        // Called by scene serializer (save xml2)
+        public static void SaveNamedPrimsToXml2(Scene scene, string primName, string fileName)
+        {
+            m_log.InfoFormat(
+                "[SERIALISER]: Saving prims with name {0} in xml2 format for region {1} to {2}",
+                primName, scene.RegionInfo.RegionName, fileName);
+
+            EntityBase[] entityList = scene.GetEntities();
+            List<EntityBase> primList = new List<EntityBase>();
+
+            foreach (EntityBase ent in entityList)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    if (ent.Name == primName)
+                    {
+                        primList.Add(ent);
+                    }
+                }
+            }
+
+            SavePrimListToXml2(primList.ToArray(), fileName);
+        }
+
+        // Called by REST Application plugin
+        public static void SavePrimsToXml2(Scene scene, TextWriter stream, Vector3 min, Vector3 max)
+        {
+            EntityBase[] entityList = scene.GetEntities();
+            SavePrimListToXml2(entityList, stream, min, max);
+        }
+
+        // Called here only. Should be private?
+        public static void SavePrimListToXml2(EntityBase[] entityList, string fileName)
+        {
+            FileStream file = new FileStream(fileName, FileMode.Create);
+            try
+            {
+                StreamWriter stream = new StreamWriter(file);
+                try
+                {
+                    SavePrimListToXml2(entityList, stream, Vector3.Zero, Vector3.Zero);
+                }
+                finally
+                {
+                    stream.Close();
+                }
+            }
+            finally
+            {
+                file.Close();
+            }
+        }
+
+        // Called here only. Should be private?
+        public static void SavePrimListToXml2(EntityBase[] entityList, TextWriter stream, Vector3 min, Vector3 max)
+        {
+            XmlTextWriter writer = new XmlTextWriter(stream);
+
+            int primCount = 0;
+            stream.WriteLine("<scene>\n");
+
+            foreach (EntityBase ent in entityList)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    SceneObjectGroup g = (SceneObjectGroup)ent;
+                    if (!min.Equals(Vector3.Zero) || !max.Equals(Vector3.Zero))
+                    {
+                        Vector3 pos = g.RootPart.GetWorldPosition();
+                        if (min.X > pos.X || min.Y > pos.Y || min.Z > pos.Z)
+                            continue;
+                        if (max.X < pos.X || max.Y < pos.Y || max.Z < pos.Z)
+                            continue;
+                    }
+
+                    //stream.WriteLine(SceneObjectSerializer.ToXml2Format(g));
+                    SceneObjectSerializer.SOGToXml2(writer, (SceneObjectGroup)ent, new Dictionary<string,object>());
+                    stream.WriteLine();
+
+                    primCount++;
+                }
+            }
+
+            stream.WriteLine("</scene>\n");
+            stream.Flush();
+        }
+
+        #endregion
+
+        #region XML2 deserialization
 
         public static SceneObjectGroup DeserializeGroupFromXml2(string xmlString)
         {
@@ -222,94 +340,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             }
         }
 
-        public static void SavePrimsToXml2(Scene scene, string fileName)
-        {
-            EntityBase[] entityList = scene.GetEntities();
-            SavePrimListToXml2(entityList, fileName);
-        }
-
-        public static void SavePrimsToXml2(Scene scene, TextWriter stream, Vector3 min, Vector3 max)
-        {
-            EntityBase[] entityList = scene.GetEntities();
-            SavePrimListToXml2(entityList, stream, min, max);
-        }
-        
-        public static void SaveNamedPrimsToXml2(Scene scene, string primName, string fileName)
-        {
-            m_log.InfoFormat(
-                "[SERIALISER]: Saving prims with name {0} in xml2 format for region {1} to {2}", 
-                primName, scene.RegionInfo.RegionName, fileName);
-
-            EntityBase[] entityList = scene.GetEntities();
-            List<EntityBase> primList = new List<EntityBase>();
-
-            foreach (EntityBase ent in entityList)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    if (ent.Name == primName)
-                    {
-                        primList.Add(ent);
-                    }
-                }
-            }
-
-            SavePrimListToXml2(primList.ToArray(), fileName);
-        }
-
-        public static void SavePrimListToXml2(EntityBase[] entityList, string fileName)
-        {
-            FileStream file = new FileStream(fileName, FileMode.Create);
-            try
-            {
-                StreamWriter stream = new StreamWriter(file);
-                try
-                {
-                    SavePrimListToXml2(entityList, stream, Vector3.Zero, Vector3.Zero);
-                }
-                finally
-                {
-                    stream.Close();
-                }
-            }
-            finally
-            {
-                file.Close();
-            }
-        }
-
-        public static void SavePrimListToXml2(EntityBase[] entityList, TextWriter stream, Vector3 min, Vector3 max)
-        {
-            XmlTextWriter writer = new XmlTextWriter(stream);
-
-            int primCount = 0;
-            stream.WriteLine("<scene>\n");
-
-            foreach (EntityBase ent in entityList)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    SceneObjectGroup g = (SceneObjectGroup)ent;
-                    if (!min.Equals(Vector3.Zero) || !max.Equals(Vector3.Zero))
-                    {
-                        Vector3 pos = g.RootPart.GetWorldPosition();
-                        if (min.X > pos.X || min.Y > pos.Y || min.Z > pos.Z)
-                            continue;
-                        if (max.X < pos.X || max.Y < pos.Y || max.Z < pos.Z)
-                            continue;
-                    }
-
-                    //stream.WriteLine(SceneObjectSerializer.ToXml2Format(g));
-                    SceneObjectSerializer.SOGToXml2(writer, (SceneObjectGroup)ent);
-                    stream.WriteLine();
-
-                    primCount++;
-                }
-            }
-
-            stream.WriteLine("</scene>\n");
-            stream.Flush();
-        }
-
+        #endregion
     }
 }
