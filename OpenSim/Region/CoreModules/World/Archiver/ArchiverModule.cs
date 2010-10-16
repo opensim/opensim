@@ -125,7 +125,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             Dictionary<string, object> options = new Dictionary<string, object>();
 
             OptionSet ops = new OptionSet();
-            ops.Add("old|old-guids", delegate(string v) { options["old-guids"] = (v != null); });
+            ops.Add("v|version=", delegate(string v) { options["version"] = v; });
 
             List<string> mainParams = ops.Parse(cmdparams);
 
