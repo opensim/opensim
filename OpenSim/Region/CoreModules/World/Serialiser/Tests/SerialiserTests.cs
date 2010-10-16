@@ -25,6 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
+using System.IO;
+using System.Xml;
 using log4net.Config;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
@@ -34,8 +37,6 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Setup;
-using System.IO;
-using System.Xml;
 
 namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
 {
@@ -369,7 +370,9 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             // Need to add the object to the scene so that the request to get script state succeeds
             m_scene.AddSceneObject(so);
 
-            string xml2 = m_serialiserModule.SerializeGroupToXml2(so, new System.Collections.Generic.Dictionary<string,object>());
+            Dictionary<string, object> options = new Dictionary<string, object>();
+            options["old-guids"] = true;
+            string xml2 = m_serialiserModule.SerializeGroupToXml2(so, options);
 
             XmlTextReader xtr = new XmlTextReader(new StringReader(xml2));
             xtr.ReadStartElement("SceneObjectGroup");
