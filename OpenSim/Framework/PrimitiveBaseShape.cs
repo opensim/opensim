@@ -901,7 +901,7 @@ namespace OpenSim.Framework
                 Array.Copy(ProjectionData, 0, returnbytes, i, ProjectionData.Length);
                 i += ProjectionData.Length;
             }
-            if (!_flexiEntry && !_lightEntry && !_sculptEntry)
+            if (!_flexiEntry && !_lightEntry && !_sculptEntry && !_projectionEntry)
             {
                 byte[] returnbyte = new byte[1];
                 returnbyte[0] = 0;
