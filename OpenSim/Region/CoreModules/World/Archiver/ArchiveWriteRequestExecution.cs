@@ -108,12 +108,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 //                "[ARCHIVER]: Received {0} of {1} assets requested",
 //                assetsFoundUuids.Count, assetsFoundUuids.Count + assetsNotFoundUuids.Count);
 
-            m_log.InfoFormat("[ARCHIVER]: Creating archive file.  This may take some time.");
-
-            // Write out control file
-            m_archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p2ControlFile());
-            m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
-
             // Write out region settings
             string settingsPath
                 = String.Format("{0}{1}.xml", ArchiveConstants.SETTINGS_PATH, m_scene.RegionInfo.RegionName);
@@ -155,35 +149,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_log.InfoFormat("[ARCHIVER]: Added scene objects to archive.");
         }
 
-        /// <summary>
-        /// Create the control file for a 0.2 version archive
-        /// </summary>
-        /// <returns></returns>
-        public static string Create0p2ControlFile()
-        {
-            StringWriter sw = new StringWriter();
-            XmlTextWriter xtw = new XmlTextWriter(sw);
-            xtw.Formatting = Formatting.Indented;
-            xtw.WriteStartDocument();
-            xtw.WriteStartElement("archive");
-            xtw.WriteAttributeString("major_version", "0");
-            xtw.WriteAttributeString("minor_version", "3");
 
-            xtw.WriteStartElement("creation_info");
-            DateTime now = DateTime.UtcNow;
-            TimeSpan t = now - new DateTime(1970, 1, 1);
-            xtw.WriteElementString("datetime", ((int)t.TotalSeconds).ToString());
-            xtw.WriteElementString("id", UUID.Random().ToString());
-            xtw.WriteEndElement();
-            xtw.WriteEndElement();
-
-            xtw.Flush();
-            xtw.Close();
-
-            String s = sw.ToString();
-            sw.Close();
-
-            return s;
-        }
     }
 }
