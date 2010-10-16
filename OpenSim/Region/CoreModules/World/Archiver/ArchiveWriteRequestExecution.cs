@@ -138,8 +138,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_log.InfoFormat("[ARCHIVER]: Added terrain information to archive.");
 
             Dictionary<string, object> serializationOptions = new Dictionary<string, object>();
-            if (m_options.ContainsKey("version") && (string)m_options["version"] == "0")
-                serializationOptions["old-guids"] = true;
+//            if (m_options.ContainsKey("version") && (string)m_options["version"] == "0")
+//                serializationOptions["old-guids"] = true;
             
             // Write out scene object metadata
             foreach (SceneObjectGroup sceneObject in m_sceneObjects)
