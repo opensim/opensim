@@ -369,7 +369,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             // Need to add the object to the scene so that the request to get script state succeeds
             m_scene.AddSceneObject(so);
 
-            string xml2 = m_serialiserModule.SerializeGroupToXml2(so);
+            string xml2 = m_serialiserModule.SerializeGroupToXml2(so, new System.Collections.Generic.Dictionary<string,object>());
 
             XmlTextReader xtr = new XmlTextReader(new StringReader(xml2));
             xtr.ReadStartElement("SceneObjectGroup");

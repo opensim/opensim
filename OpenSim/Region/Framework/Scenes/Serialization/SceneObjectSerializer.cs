@@ -1075,36 +1075,36 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         ////////// Write /////////
 
-        public static void SOGToXml2(XmlTextWriter writer, SceneObjectGroup sog)
+        public static void SOGToXml2(XmlTextWriter writer, SceneObjectGroup sog, Dictionary<string, object>options)
         {
             writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
-            SOPToXml2(writer, sog.RootPart, null);
+            SOPToXml2(writer, sog.RootPart, null, options);
             writer.WriteStartElement(String.Empty, "OtherParts", String.Empty);
 
             sog.ForEachPart(delegate(SceneObjectPart sop)
             {
                 if (sop.UUID != sog.RootPart.UUID)
-                    SOPToXml2(writer, sop, sog.RootPart);
+                    SOPToXml2(writer, sop, sog.RootPart, options);
             });
 
             writer.WriteEndElement();
             writer.WriteEndElement();
         }
 
-        static void SOPToXml2(XmlTextWriter writer, SceneObjectPart sop, SceneObjectPart parent)
+        static void SOPToXml2(XmlTextWriter writer, SceneObjectPart sop, SceneObjectPart parent, Dictionary<string, object> options)
         {
             writer.WriteStartElement("SceneObjectPart");
             writer.WriteAttributeString("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
             writer.WriteAttributeString("xmlns:xsd", "http://www.w3.org/2001/XMLSchema");
 
             writer.WriteElementString("AllowedDrop", sop.AllowedDrop.ToString().ToLower());
-            WriteUUID(writer, "CreatorID", sop.CreatorID);
-            WriteUUID(writer, "FolderID", sop.FolderID);
+            WriteUUID(writer, "CreatorID", sop.CreatorID, options);
+            WriteUUID(writer, "FolderID", sop.FolderID, options);
             writer.WriteElementString("InventorySerial", sop.InventorySerial.ToString());
 
-            WriteTaskInventory(writer, sop.TaskInventory);
+            WriteTaskInventory(writer, sop.TaskInventory, options);
 
-            WriteUUID(writer, "UUID", sop.UUID);
+            WriteUUID(writer, "UUID", sop.UUID, options);
             writer.WriteElementString("LocalId", sop.LocalId.ToString());
             writer.WriteElementString("Name", sop.Name);
             writer.WriteElementString("Material", sop.Material.ToString());
@@ -1137,7 +1137,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("LinkNum", sop.LinkNum.ToString());
             writer.WriteElementString("ClickAction", sop.ClickAction.ToString());
 
-            WriteShape(writer, sop.Shape);
+            WriteShape(writer, sop.Shape, options);
 
             WriteVector(writer, "Scale", sop.Scale);
             writer.WriteElementString("UpdateFlag", sop.UpdateFlag.ToString());
@@ -1151,16 +1151,16 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("SalePrice", sop.SalePrice.ToString());
             writer.WriteElementString("ObjectSaleType", sop.ObjectSaleType.ToString());
             writer.WriteElementString("OwnershipCost", sop.OwnershipCost.ToString());
-            WriteUUID(writer, "GroupID", sop.GroupID);
-            WriteUUID(writer, "OwnerID", sop.OwnerID);
-            WriteUUID(writer, "LastOwnerID", sop.LastOwnerID);
+            WriteUUID(writer, "GroupID", sop.GroupID, options);
+            WriteUUID(writer, "OwnerID", sop.OwnerID, options);
+            WriteUUID(writer, "LastOwnerID", sop.LastOwnerID, options);
             writer.WriteElementString("BaseMask", sop.BaseMask.ToString());
             writer.WriteElementString("OwnerMask", sop.OwnerMask.ToString());
             writer.WriteElementString("GroupMask", sop.GroupMask.ToString());
             writer.WriteElementString("EveryoneMask", sop.EveryoneMask.ToString());
             writer.WriteElementString("NextOwnerMask", sop.NextOwnerMask.ToString());
             writer.WriteElementString("Flags", sop.Flags.ToString());
-            WriteUUID(writer, "CollisionSound", sop.CollisionSound);
+            WriteUUID(writer, "CollisionSound", sop.CollisionSound, options);
             writer.WriteElementString("CollisionSoundVolume", sop.CollisionSoundVolume.ToString());
             if (sop.MediaUrl != null)
                 writer.WriteElementString("MediaUrl", sop.MediaUrl.ToString());
@@ -1168,10 +1168,13 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteEndElement();
         }
 
-        static void WriteUUID(XmlTextWriter writer, string name, UUID id)
+        static void WriteUUID(XmlTextWriter writer, string name, UUID id, Dictionary<string, object> options)
         {
             writer.WriteStartElement(name);
-            writer.WriteElementString("UUID", id.ToString());
+            if (options.ContainsKey("old-guids"))
+                writer.WriteElementString("Guid", id.ToString());
+            else
+                writer.WriteElementString("UUID", id.ToString());
             writer.WriteEndElement();
         }
 
@@ -1194,7 +1197,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteEndElement();
         }
 
-        static void WriteTaskInventory(XmlTextWriter writer, TaskInventoryDictionary tinv)
+        static void WriteTaskInventory(XmlTextWriter writer, TaskInventoryDictionary tinv, Dictionary<string, object> options)
         {
             if (tinv.Count > 0) // otherwise skip this
             {
@@ -1203,27 +1206,27 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 foreach (TaskInventoryItem item in tinv.Values)
                 {
                     writer.WriteStartElement("TaskInventoryItem");
-                    
-                    WriteUUID(writer, "AssetID", item.AssetID);
+
+                    WriteUUID(writer, "AssetID", item.AssetID, options);
                     writer.WriteElementString("BasePermissions", item.BasePermissions.ToString());
                     writer.WriteElementString("CreationDate", item.CreationDate.ToString());
-                    WriteUUID(writer, "CreatorID", item.CreatorID);
+                    WriteUUID(writer, "CreatorID", item.CreatorID, options);
                     writer.WriteElementString("Description", item.Description);
                     writer.WriteElementString("EveryonePermissions", item.EveryonePermissions.ToString());
                     writer.WriteElementString("Flags", item.Flags.ToString());
-                    WriteUUID(writer, "GroupID", item.GroupID);
+                    WriteUUID(writer, "GroupID", item.GroupID, options);
                     writer.WriteElementString("GroupPermissions", item.GroupPermissions.ToString());
                     writer.WriteElementString("InvType", item.InvType.ToString());
-                    WriteUUID(writer, "ItemID", item.ItemID);
-                    WriteUUID(writer, "OldItemID", item.OldItemID);
-                    WriteUUID(writer, "LastOwnerID", item.LastOwnerID);
+                    WriteUUID(writer, "ItemID", item.ItemID, options);
+                    WriteUUID(writer, "OldItemID", item.OldItemID, options);
+                    WriteUUID(writer, "LastOwnerID", item.LastOwnerID, options);
                     writer.WriteElementString("Name", item.Name);
                     writer.WriteElementString("NextPermissions", item.NextPermissions.ToString());
-                    WriteUUID(writer, "OwnerID", item.OwnerID);
+                    WriteUUID(writer, "OwnerID", item.OwnerID, options);
                     writer.WriteElementString("CurrentPermissions", item.CurrentPermissions.ToString());
-                    WriteUUID(writer, "ParentID", item.ParentID);
-                    WriteUUID(writer, "ParentPartID", item.ParentPartID);
-                    WriteUUID(writer, "PermsGranter", item.PermsGranter);
+                    WriteUUID(writer, "ParentID", item.ParentID, options);
+                    WriteUUID(writer, "ParentPartID", item.ParentPartID, options);
+                    WriteUUID(writer, "PermsGranter", item.PermsGranter, options);
                     writer.WriteElementString("PermsMask", item.PermsMask.ToString());
                     writer.WriteElementString("Type", item.Type.ToString());
 
@@ -1234,7 +1237,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             }
         }
 
-        static void WriteShape(XmlTextWriter writer, PrimitiveBaseShape shp)
+        static void WriteShape(XmlTextWriter writer, PrimitiveBaseShape shp, Dictionary<string, object> options)
         {
             if (shp != null)
             {
@@ -1283,7 +1286,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteElementString("ProfileShape", shp.ProfileShape.ToString());
                 writer.WriteElementString("HollowShape", shp.HollowShape.ToString());
 
-                WriteUUID(writer, "SculptTexture", shp.SculptTexture);
+                WriteUUID(writer, "SculptTexture", shp.SculptTexture, options);
                 writer.WriteElementString("SculptType", shp.SculptType.ToString());
                 writer.WriteStartElement("SculptData");
                 byte[] sd;
