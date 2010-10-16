@@ -186,7 +186,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <returns></returns>
         public static string Create0p2ControlFile(Dictionary<string, object> options)
         {
-            int majorVersion, minorVersion;
+            int majorVersion = 0, minorVersion = 4;
+            
+            /*
             if (options.ContainsKey("version") && (string)options["version"] == "0")
             {
                 majorVersion = 0;
@@ -197,12 +199,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 majorVersion = 1;
                 minorVersion = 0;
             }  
+            */
             
             m_log.InfoFormat("[ARCHIVER]: Creating version {0}.{1} OAR", majorVersion, minorVersion);
-            if (majorVersion == 1)
-            {
-                m_log.WarnFormat("[ARCHIVER]: Please be aware that version 1.0 OARs are not compatible with OpenSim 0.7.0.2 and earlier.  Please use the --version=0 option if you want to produce a compatible OAR");                
-            }
+//            if (majorVersion == 1)
+//            {
+//                m_log.WarnFormat("[ARCHIVER]: Please be aware that version 1.0 OARs are not compatible with OpenSim 0.7.0.2 and earlier.  Please use the --version=0 option if you want to produce a compatible OAR");                
+//            }
+            
             
             StringWriter sw = new StringWriter();
             XmlTextWriter xtw = new XmlTextWriter(sw);
