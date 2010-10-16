@@ -316,7 +316,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("FolderID", ProcessFolderID);
             m_SOPXmlProcessors.Add("InventorySerial", ProcessInventorySerial);
             m_SOPXmlProcessors.Add("TaskInventory", ProcessTaskInventory);
-            m_SOPXmlProcessors.Add("ObjectFlags", ProcessObjectFlags);
             m_SOPXmlProcessors.Add("UUID", ProcessUUID);
             m_SOPXmlProcessors.Add("LocalId", ProcessLocalId);
             m_SOPXmlProcessors.Add("Name", ProcessName);
@@ -361,6 +360,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("Flags", ProcessFlags);
             m_SOPXmlProcessors.Add("CollisionSound", ProcessCollisionSound);
             m_SOPXmlProcessors.Add("CollisionSoundVolume", ProcessCollisionSoundVolume);
+            m_SOPXmlProcessors.Add("MediaUrl", ProcessMediaUrl);
             #endregion
 
             #region TaskInventoryXmlProcessors initialization
@@ -436,6 +436,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_ShapeXmlProcessors.Add("FlexiEntry", ProcessShpFlexiEntry);
             m_ShapeXmlProcessors.Add("LightEntry", ProcessShpLightEntry);
             m_ShapeXmlProcessors.Add("SculptEntry", ProcessShpSculptEntry);
+            m_ShapeXmlProcessors.Add("Media", ProcessShpMedia);
             #endregion
         }
 
@@ -463,11 +464,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessTaskInventory(SceneObjectPart obj, XmlTextReader reader)
         {
             obj.TaskInventory = ReadTaskInventory(reader, "TaskInventory");
-        }
-
-        private static void ProcessObjectFlags(SceneObjectPart obj, XmlTextReader reader)
-        {
-            obj.Flags = (PrimFlags)reader.ReadElementContentAsInt("ObjectFlags", String.Empty);
         }
 
         private static void ProcessUUID(SceneObjectPart obj, XmlTextReader reader)
@@ -702,6 +698,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessCollisionSoundVolume(SceneObjectPart obj, XmlTextReader reader)
         {
             obj.CollisionSoundVolume = reader.ReadElementContentAsFloat("CollisionSoundVolume", String.Empty);
+        }
+
+        private static void ProcessMediaUrl(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.MediaUrl = reader.ReadElementContentAsString("MediaUrl", String.Empty);
         }
         #endregion
 
@@ -1063,6 +1064,13 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             shp.SculptEntry = reader.ReadElementContentAsBoolean("SculptEntry", String.Empty);
         }
 
+        private static void ProcessShpMedia(PrimitiveBaseShape shp, XmlTextReader reader)
+        {
+            string value = reader.ReadElementContentAsString("Media", String.Empty);
+            shp.Media = PrimitiveBaseShape.MediaList.FromXml(value);
+        }
+
+
         #endregion
 
         ////////// Write /////////
@@ -1075,7 +1083,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             sog.ForEachPart(delegate(SceneObjectPart sop)
             {
-                SOPToXml2(writer, sop, sog.RootPart);
+                if (sop.UUID != sog.RootPart.UUID)
+                    SOPToXml2(writer, sop, sog.RootPart);
             });
 
             writer.WriteEndElement();
@@ -1088,19 +1097,18 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteAttributeString("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
             writer.WriteAttributeString("xmlns:xsd", "http://www.w3.org/2001/XMLSchema");
 
+            writer.WriteElementString("AllowedDrop", sop.AllowedDrop.ToString().ToLower());
             WriteUUID(writer, "CreatorID", sop.CreatorID);
             WriteUUID(writer, "FolderID", sop.FolderID);
-            writer.WriteElementString("InventorySerial", (sop.Inventory != null) ? sop.InventorySerial.ToString() : "0");
+            writer.WriteElementString("InventorySerial", sop.InventorySerial.ToString());
 
-            // FIXME: Task inventory
-            writer.WriteStartElement("TaskInventory"); writer.WriteEndElement();
-
-            writer.WriteElementString("ObjectFlags", ((int)sop.Flags).ToString());
+            WriteTaskInventory(writer, sop.TaskInventory);
 
             WriteUUID(writer, "UUID", sop.UUID);
             writer.WriteElementString("LocalId", sop.LocalId.ToString());
             writer.WriteElementString("Name", sop.Name);
-            writer.WriteElementString("Material", ((int)sop.Material).ToString());
+            writer.WriteElementString("Material", sop.Material.ToString());
+            writer.WriteElementString("PassTouches", sop.PassTouches.ToString().ToLower());
             writer.WriteElementString("RegionHandle", sop.RegionHandle.ToString());
             writer.WriteElementString("ScriptAccessPin", sop.ScriptAccessPin.ToString());
 
@@ -1109,115 +1117,40 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             WriteQuaternion(writer, "RotationOffset", sop.RotationOffset);
             WriteVector(writer, "Velocity", sop.Velocity);
-            WriteVector(writer, "RotationalVelocity", Vector3.Zero);
             WriteVector(writer, "AngularVelocity", sop.AngularVelocity);
             WriteVector(writer, "Acceleration", sop.Acceleration);
             writer.WriteElementString("Description", sop.Description);
-            writer.WriteStartElement("Color");
-            writer.WriteElementString("R", sop.Color.R.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("G", sop.Color.G.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("B", sop.Color.B.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("A", sop.Color.G.ToString(Utils.EnUsCulture));
-            writer.WriteEndElement();
+            if (sop.Color != null)
+            {
+                writer.WriteStartElement("Color");
+                writer.WriteElementString("R", sop.Color.R.ToString(Utils.EnUsCulture));
+                writer.WriteElementString("G", sop.Color.G.ToString(Utils.EnUsCulture));
+                writer.WriteElementString("B", sop.Color.B.ToString(Utils.EnUsCulture));
+                writer.WriteElementString("A", sop.Color.G.ToString(Utils.EnUsCulture));
+                writer.WriteEndElement();
+            }
+
             writer.WriteElementString("Text", sop.Text);
             writer.WriteElementString("SitName", sop.SitName);
             writer.WriteElementString("TouchName", sop.TouchName);
 
             writer.WriteElementString("LinkNum", sop.LinkNum.ToString());
             writer.WriteElementString("ClickAction", sop.ClickAction.ToString());
-            writer.WriteStartElement("Shape");
 
-            writer.WriteElementString("ProfileCurve", sop.Shape.ProfileCurve.ToString());
-
-            writer.WriteStartElement("TextureEntry");
-            byte[] te;
-            if (sop.Shape.TextureEntry != null)
-                te = sop.Shape.TextureEntry;
-            else
-                te = Utils.EmptyBytes;
-            writer.WriteBase64(te, 0, te.Length);
-            writer.WriteEndElement(); // TextureEntry
-
-            writer.WriteStartElement("ExtraParams");
-            byte[] ep;
-            if (sop.Shape.ExtraParams != null)
-                ep = sop.Shape.ExtraParams;
-            else
-                ep = Utils.EmptyBytes;
-            writer.WriteBase64(ep, 0, ep.Length);
-            writer.WriteEndElement(); // ExtraParams
-
-            writer.WriteElementString("PathBegin", Primitive.PackBeginCut(sop.Shape.PathBegin).ToString());
-            writer.WriteElementString("PathCurve", sop.Shape.PathCurve.ToString());
-            writer.WriteElementString("PathEnd", Primitive.PackEndCut(sop.Shape.PathEnd).ToString());
-            writer.WriteElementString("PathRadiusOffset", Primitive.PackPathTwist(sop.Shape.PathRadiusOffset).ToString());
-            writer.WriteElementString("PathRevolutions", Primitive.PackPathRevolutions(sop.Shape.PathRevolutions).ToString());
-            writer.WriteElementString("PathScaleX", Primitive.PackPathScale(sop.Shape.PathScaleX).ToString());
-            writer.WriteElementString("PathScaleY", Primitive.PackPathScale(sop.Shape.PathScaleY).ToString());
-            writer.WriteElementString("PathShearX", ((byte)Primitive.PackPathShear(sop.Shape.PathShearX)).ToString());
-            writer.WriteElementString("PathShearY", ((byte)Primitive.PackPathShear(sop.Shape.PathShearY)).ToString());
-            writer.WriteElementString("PathSkew", Primitive.PackPathTwist(sop.Shape.PathSkew).ToString());
-            writer.WriteElementString("PathTaperX", Primitive.PackPathTaper(sop.Shape.PathTaperX).ToString());
-            writer.WriteElementString("PathTaperY", Primitive.PackPathTaper(sop.Shape.PathTaperY).ToString());
-            writer.WriteElementString("PathTwist", Primitive.PackPathTwist(sop.Shape.PathTwist).ToString());
-            writer.WriteElementString("PathTwistBegin", Primitive.PackPathTwist(sop.Shape.PathTwistBegin).ToString());
-            writer.WriteElementString("PCode", sop.Shape.PCode.ToString());
-            writer.WriteElementString("ProfileBegin", Primitive.PackBeginCut(sop.Shape.ProfileBegin).ToString());
-            writer.WriteElementString("ProfileEnd", Primitive.PackEndCut(sop.Shape.ProfileEnd).ToString());
-            writer.WriteElementString("ProfileHollow", Primitive.PackProfileHollow(sop.Shape.ProfileHollow).ToString());
-            WriteVector(writer, "Scale", sop.Scale);
-            writer.WriteElementString("State", sop.Shape.State.ToString());
-
-            writer.WriteElementString("ProfileShape", sop.Shape.ProfileShape.ToString());
-            writer.WriteElementString("HollowShape", sop.Shape.HollowShape.ToString());
-
-            writer.WriteElementString("SculptTexture", sop.Shape.SculptTexture.ToString());
-            writer.WriteElementString("SculptType", sop.Shape.SculptType.ToString());
-            writer.WriteStartElement("SculptData");
-            byte[] sd;
-            if (sop.Shape.SculptData != null)
-                sd = sop.Shape.ExtraParams;
-            else
-                sd = Utils.EmptyBytes;
-            writer.WriteBase64(sd, 0, sd.Length);
-            writer.WriteEndElement(); // SculptData
-
-            writer.WriteElementString("FlexiSoftness", sop.Shape.FlexiSoftness.ToString());
-            writer.WriteElementString("FlexiTension", sop.Shape.FlexiTension.ToString());
-            writer.WriteElementString("FlexiDrag", sop.Shape.FlexiDrag.ToString());
-            writer.WriteElementString("FlexiGravity", sop.Shape.FlexiGravity.ToString());
-            writer.WriteElementString("FlexiWind", sop.Shape.FlexiWind.ToString());
-            writer.WriteElementString("FlexiForceX", sop.Shape.FlexiForceX.ToString());
-            writer.WriteElementString("FlexiForceY", sop.Shape.FlexiForceY.ToString());
-            writer.WriteElementString("FlexiForceZ", sop.Shape.FlexiForceZ.ToString());
-
-            writer.WriteElementString("LightColorR", sop.Shape.LightColorR.ToString());
-            writer.WriteElementString("LightColorG", sop.Shape.LightColorG.ToString());
-            writer.WriteElementString("LightColorB", sop.Shape.LightColorB.ToString());
-            writer.WriteElementString("LightColorA", sop.Shape.LightColorA.ToString());
-            writer.WriteElementString("LightRadius", sop.Shape.LightRadius.ToString());
-            writer.WriteElementString("LightCutoff", sop.Shape.LightCutoff.ToString());
-            writer.WriteElementString("LightFalloff", sop.Shape.LightFalloff.ToString());
-            writer.WriteElementString("LightIntensity", sop.Shape.LightIntensity.ToString());
-
-            writer.WriteElementString("FlexyEntry", sop.Shape.FlexiEntry.ToString());
-            writer.WriteElementString("LightEntry", sop.Shape.LightEntry.ToString());
-            writer.WriteElementString("SculptEntry", sop.Shape.SculptEntry.ToString());
-
-            writer.WriteEndElement(); // Shape
+            WriteShape(writer, sop.Shape);
 
             WriteVector(writer, "Scale", sop.Scale);
-            writer.WriteElementString("UpdateFlag", "0");
+            writer.WriteElementString("UpdateFlag", sop.UpdateFlag.ToString());
             WriteQuaternion(writer, "SitTargetOrientation", sop.SitTargetOrientation); 
             WriteVector(writer, "SitTargetPosition", sop.SitTargetPosition);
             WriteVector(writer, "SitTargetPositionLL", sop.SitTargetPositionLL);
             WriteQuaternion(writer, "SitTargetOrientationLL", sop.SitTargetOrientationLL);
             writer.WriteElementString("ParentID", sop.ParentID.ToString());
             writer.WriteElementString("CreationDate", sop.CreationDate.ToString());
-            writer.WriteElementString("Category", "0");
+            writer.WriteElementString("Category", sop.Category.ToString());
             writer.WriteElementString("SalePrice", sop.SalePrice.ToString());
-            writer.WriteElementString("ObjectSaleType", ((int)sop.ObjectSaleType).ToString());
-            writer.WriteElementString("OwnershipCost", "0");
+            writer.WriteElementString("ObjectSaleType", sop.ObjectSaleType.ToString());
+            writer.WriteElementString("OwnershipCost", sop.OwnershipCost.ToString());
             WriteUUID(writer, "GroupID", sop.GroupID);
             WriteUUID(writer, "OwnerID", sop.OwnerID);
             WriteUUID(writer, "LastOwnerID", sop.LastOwnerID);
@@ -1229,6 +1162,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("Flags", sop.Flags.ToString());
             WriteUUID(writer, "CollisionSound", sop.CollisionSound);
             writer.WriteElementString("CollisionSoundVolume", sop.CollisionSoundVolume.ToString());
+            if (sop.MediaUrl != null)
+                writer.WriteElementString("MediaUrl", sop.MediaUrl.ToString());
 
             writer.WriteEndElement();
         }
@@ -1259,6 +1194,134 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteEndElement();
         }
 
+        static void WriteTaskInventory(XmlTextWriter writer, TaskInventoryDictionary tinv)
+        {
+            if (tinv.Count > 0) // otherwise skip this
+            {
+                writer.WriteStartElement("TaskInventory");
+
+                foreach (TaskInventoryItem item in tinv.Values)
+                {
+                    writer.WriteStartElement("TaskInventoryItem");
+                    
+                    WriteUUID(writer, "AssetID", item.AssetID);
+                    writer.WriteElementString("BasePermissions", item.BasePermissions.ToString());
+                    writer.WriteElementString("CreationDate", item.CreationDate.ToString());
+                    WriteUUID(writer, "CreatorID", item.CreatorID);
+                    writer.WriteElementString("Description", item.Description);
+                    writer.WriteElementString("EveryonePermissions", item.EveryonePermissions.ToString());
+                    writer.WriteElementString("Flags", item.Flags.ToString());
+                    WriteUUID(writer, "GroupID", item.GroupID);
+                    writer.WriteElementString("GroupPermissions", item.GroupPermissions.ToString());
+                    writer.WriteElementString("InvType", item.InvType.ToString());
+                    WriteUUID(writer, "ItemID", item.ItemID);
+                    WriteUUID(writer, "OldItemID", item.OldItemID);
+                    WriteUUID(writer, "LastOwnerID", item.LastOwnerID);
+                    writer.WriteElementString("Name", item.Name);
+                    writer.WriteElementString("NextPermissions", item.NextPermissions.ToString());
+                    WriteUUID(writer, "OwnerID", item.OwnerID);
+                    writer.WriteElementString("CurrentPermissions", item.CurrentPermissions.ToString());
+                    WriteUUID(writer, "ParentID", item.ParentID);
+                    WriteUUID(writer, "ParentPartID", item.ParentPartID);
+                    WriteUUID(writer, "PermsGranter", item.PermsGranter);
+                    writer.WriteElementString("PermsMask", item.PermsMask.ToString());
+                    writer.WriteElementString("Type", item.Type.ToString());
+
+                    writer.WriteEndElement(); // TaskInventoryItem
+                }
+
+                writer.WriteEndElement(); // TaskInventory
+            }
+        }
+
+        static void WriteShape(XmlTextWriter writer, PrimitiveBaseShape shp)
+        {
+            if (shp != null)
+            {
+                writer.WriteStartElement("Shape");
+
+                writer.WriteElementString("ProfileCurve", shp.ProfileCurve.ToString());
+
+                writer.WriteStartElement("TextureEntry");
+                byte[] te;
+                if (shp.TextureEntry != null)
+                    te = shp.TextureEntry;
+                else
+                    te = Utils.EmptyBytes;
+                writer.WriteBase64(te, 0, te.Length);
+                writer.WriteEndElement(); // TextureEntry
+
+                writer.WriteStartElement("ExtraParams");
+                byte[] ep;
+                if (shp.ExtraParams != null)
+                    ep = shp.ExtraParams;
+                else
+                    ep = Utils.EmptyBytes;
+                writer.WriteBase64(ep, 0, ep.Length);
+                writer.WriteEndElement(); // ExtraParams
+
+                writer.WriteElementString("PathBegin", shp.PathBegin.ToString());
+                writer.WriteElementString("PathCurve", shp.PathCurve.ToString());
+                writer.WriteElementString("PathEnd", shp.PathEnd.ToString());
+                writer.WriteElementString("PathRadiusOffset", shp.PathRadiusOffset.ToString());
+                writer.WriteElementString("PathRevolutions", shp.PathRevolutions.ToString());
+                writer.WriteElementString("PathScaleX", shp.PathScaleX.ToString());
+                writer.WriteElementString("PathScaleY", shp.PathScaleY.ToString());
+                writer.WriteElementString("PathShearX", shp.PathShearX.ToString());
+                writer.WriteElementString("PathShearY", shp.PathShearY.ToString());
+                writer.WriteElementString("PathSkew", shp.PathSkew.ToString());
+                writer.WriteElementString("PathTaperX", shp.PathTaperX.ToString());
+                writer.WriteElementString("PathTaperY", shp.PathTaperY.ToString());
+                writer.WriteElementString("PathTwist", shp.PathTwist.ToString());
+                writer.WriteElementString("PathTwistBegin", shp.PathTwistBegin.ToString());
+                writer.WriteElementString("PCode", shp.PCode.ToString());
+                writer.WriteElementString("ProfileBegin", shp.ProfileBegin.ToString());
+                writer.WriteElementString("ProfileEnd", shp.ProfileEnd.ToString());
+                writer.WriteElementString("ProfileHollow", shp.ProfileHollow.ToString());
+                writer.WriteElementString("State", shp.State.ToString());
+
+                writer.WriteElementString("ProfileShape", shp.ProfileShape.ToString());
+                writer.WriteElementString("HollowShape", shp.HollowShape.ToString());
+
+                WriteUUID(writer, "SculptTexture", shp.SculptTexture);
+                writer.WriteElementString("SculptType", shp.SculptType.ToString());
+                writer.WriteStartElement("SculptData");
+                byte[] sd;
+                if (shp.SculptData != null)
+                    sd = shp.ExtraParams;
+                else
+                    sd = Utils.EmptyBytes;
+                writer.WriteBase64(sd, 0, sd.Length);
+                writer.WriteEndElement(); // SculptData
+
+                writer.WriteElementString("FlexiSoftness", shp.FlexiSoftness.ToString());
+                writer.WriteElementString("FlexiTension", shp.FlexiTension.ToString());
+                writer.WriteElementString("FlexiDrag", shp.FlexiDrag.ToString());
+                writer.WriteElementString("FlexiGravity", shp.FlexiGravity.ToString());
+                writer.WriteElementString("FlexiWind", shp.FlexiWind.ToString());
+                writer.WriteElementString("FlexiForceX", shp.FlexiForceX.ToString());
+                writer.WriteElementString("FlexiForceY", shp.FlexiForceY.ToString());
+                writer.WriteElementString("FlexiForceZ", shp.FlexiForceZ.ToString());
+
+                writer.WriteElementString("LightColorR", shp.LightColorR.ToString());
+                writer.WriteElementString("LightColorG", shp.LightColorG.ToString());
+                writer.WriteElementString("LightColorB", shp.LightColorB.ToString());
+                writer.WriteElementString("LightColorA", shp.LightColorA.ToString());
+                writer.WriteElementString("LightRadius", shp.LightRadius.ToString());
+                writer.WriteElementString("LightCutoff", shp.LightCutoff.ToString());
+                writer.WriteElementString("LightFalloff", shp.LightFalloff.ToString());
+                writer.WriteElementString("LightIntensity", shp.LightIntensity.ToString());
+
+                writer.WriteElementString("FlexiEntry", shp.FlexiEntry.ToString().ToLower());
+                writer.WriteElementString("LightEntry", shp.LightEntry.ToString().ToLower());
+                writer.WriteElementString("SculptEntry", shp.SculptEntry.ToString().ToLower());
+
+                if (shp.Media != null)
+                    writer.WriteElementString("Media", shp.Media.ToXml());
+
+                writer.WriteEndElement(); // Shape
+            }
+        }
 
         //////// Read /////////
         public static bool Xml2ToSOG(XmlTextReader reader, SceneObjectGroup sog)
@@ -1305,210 +1368,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             return true;
         }
 
-        public static SceneObjectPart Xml2ToSOPPull(XmlTextReader reader)
-        {
-            SceneObjectPart obj = new SceneObjectPart();
-
-            reader.ReadStartElement("SceneObjectPart");
-
-            if (reader.Name == "AllowedDrop")
-                obj.AllowedDrop = reader.ReadElementContentAsBoolean("AllowedDrop", String.Empty);
-            else
-                obj.AllowedDrop = true;
-
-            obj.CreatorID = ReadUUID(reader, "CreatorID");
-            obj.FolderID = ReadUUID(reader, "FolderID");
-            obj.InventorySerial = (uint)reader.ReadElementContentAsInt("InventorySerial", String.Empty);
-
-            #region Task Inventory
-
-            obj.TaskInventory = new TaskInventoryDictionary();
-            //List<PrimObject.InventoryBlock.ItemBlock> invItems = new List<PrimObject.InventoryBlock.ItemBlock>();
-
-            reader.ReadStartElement("TaskInventory", String.Empty);
-            while (reader.Name == "TaskInventoryItem")
-            {
-                TaskInventoryItem item = new TaskInventoryItem();
-                reader.ReadStartElement("TaskInventoryItem", String.Empty);
-
-                item.AssetID = ReadUUID(reader, "AssetID");
-                item.BasePermissions = (uint)reader.ReadElementContentAsInt("BasePermissions", String.Empty);
-                item.CreationDate = (uint)reader.ReadElementContentAsInt("CreationDate", String.Empty);
-                item.CreatorID = ReadUUID(reader, "CreatorID");
-                item.Description = reader.ReadElementContentAsString("Description", String.Empty);
-                item.EveryonePermissions = (uint)reader.ReadElementContentAsInt("EveryonePermissions", String.Empty);
-                item.Flags = (uint)reader.ReadElementContentAsInt("Flags", String.Empty);
-                item.GroupID = ReadUUID(reader, "GroupID");
-                item.GroupPermissions = (uint)reader.ReadElementContentAsInt("GroupPermissions", String.Empty);
-                item.InvType = reader.ReadElementContentAsInt("InvType", String.Empty);
-                item.ItemID = ReadUUID(reader, "ItemID");
-                UUID oldItemID = ReadUUID(reader, "OldItemID"); // TODO: Is this useful?
-                item.LastOwnerID = ReadUUID(reader, "LastOwnerID");
-                item.Name = reader.ReadElementContentAsString("Name", String.Empty);
-                item.NextPermissions = (uint)reader.ReadElementContentAsInt("NextPermissions", String.Empty);
-                item.OwnerID = ReadUUID(reader, "OwnerID");
-                item.CurrentPermissions = (uint)reader.ReadElementContentAsInt("CurrentPermissions", String.Empty);
-                UUID parentID = ReadUUID(reader, "ParentID");
-                UUID parentPartID = ReadUUID(reader, "ParentPartID");
-                item.PermsGranter = ReadUUID(reader, "PermsGranter");
-                item.PermsMask = reader.ReadElementContentAsInt("PermsMask", String.Empty);
-                item.Type = reader.ReadElementContentAsInt("Type", String.Empty);
-
-                reader.ReadEndElement();
-                obj.TaskInventory.Add(item.ItemID, item);
-            }
-            if (reader.NodeType == XmlNodeType.EndElement)
-                reader.ReadEndElement();
-
-            #endregion Task Inventory
-
-            obj.Flags = (PrimFlags)reader.ReadElementContentAsInt("ObjectFlags", String.Empty);
-
-            obj.UUID = ReadUUID(reader, "UUID");
-            obj.LocalId = (uint)reader.ReadElementContentAsLong("LocalId", String.Empty);
-            obj.Name = reader.ReadElementString("Name");
-            obj.Material = (byte)reader.ReadElementContentAsInt("Material", String.Empty);
-
-            if (reader.Name == "PassTouches")
-                obj.PassTouches = reader.ReadElementContentAsBoolean("PassTouches", String.Empty);
-            else
-                obj.PassTouches = false;
-
-            obj.RegionHandle = (ulong)reader.ReadElementContentAsLong("RegionHandle", String.Empty);
-            obj.ScriptAccessPin = reader.ReadElementContentAsInt("ScriptAccessPin", String.Empty);
-
-            if (reader.Name == "PlaySoundSlavePrims")
-                reader.ReadInnerXml();
-            if (reader.Name == "LoopSoundSlavePrims")
-                reader.ReadInnerXml();
-
-            Vector3 groupPosition = ReadVector(reader, "GroupPosition");
-            Vector3 offsetPosition = ReadVector(reader, "OffsetPosition");
-            obj.RotationOffset = ReadQuaternion(reader, "RotationOffset");
-            obj.Velocity = ReadVector(reader, "Velocity");
-            if (reader.Name == "RotationalVelocity")
-                ReadVector(reader, "RotationalVelocity");
-            obj.AngularVelocity = ReadVector(reader, "AngularVelocity");
-            obj.Acceleration = ReadVector(reader, "Acceleration");
-            obj.Description = reader.ReadElementString("Description");
-            reader.ReadStartElement("Color");
-            if (reader.Name == "R")
-            {
-                obj.Color = Color.FromArgb((int)reader.ReadElementContentAsFloat("A", String.Empty),
-                        (int)reader.ReadElementContentAsFloat("R", String.Empty),
-                        (int)reader.ReadElementContentAsFloat("G", String.Empty),
-                        (int)reader.ReadElementContentAsFloat("B", String.Empty));
-                reader.ReadEndElement();
-            }
-            obj.Text = reader.ReadElementString("Text", String.Empty);
-            obj.SitName = reader.ReadElementString("SitName", String.Empty);
-            obj.TouchName = reader.ReadElementString("TouchName", String.Empty);
-
-            obj.LinkNum = reader.ReadElementContentAsInt("LinkNum", String.Empty);
-            obj.ClickAction = (byte)reader.ReadElementContentAsInt("ClickAction", String.Empty);
-
-            reader.ReadStartElement("Shape");
-            obj.Shape.ProfileCurve = (byte)reader.ReadElementContentAsInt("ProfileCurve", String.Empty);
-
-            byte[] teData = Convert.FromBase64String(reader.ReadElementString("TextureEntry"));
-            obj.Shape.Textures = new Primitive.TextureEntry(teData, 0, teData.Length);
-
-            reader.ReadInnerXml(); // ExtraParams
-
-            obj.Shape.PathBegin = (ushort)reader.ReadElementContentAsInt("PathBegin", String.Empty);
-            obj.Shape.PathCurve = (byte)reader.ReadElementContentAsInt("PathCurve", String.Empty);
-            obj.Shape.PathEnd = (ushort)reader.ReadElementContentAsInt("PathEnd", String.Empty);
-            obj.Shape.PathRadiusOffset = (sbyte)reader.ReadElementContentAsInt("PathRadiusOffset", String.Empty);
-            obj.Shape.PathRevolutions = (byte)reader.ReadElementContentAsInt("PathRevolutions", String.Empty);
-            obj.Shape.PathScaleX = (byte)reader.ReadElementContentAsInt("PathScaleX", String.Empty);
-            obj.Shape.PathScaleY = (byte)reader.ReadElementContentAsInt("PathScaleY", String.Empty);
-            obj.Shape.PathShearX = (byte)reader.ReadElementContentAsInt("PathShearX", String.Empty);
-            obj.Shape.PathShearY = (byte)reader.ReadElementContentAsInt("PathShearY", String.Empty);
-            obj.Shape.PathSkew = (sbyte)reader.ReadElementContentAsInt("PathSkew", String.Empty);
-            obj.Shape.PathTaperX = (sbyte)reader.ReadElementContentAsInt("PathTaperX", String.Empty);
-            obj.Shape.PathTaperY = (sbyte)reader.ReadElementContentAsInt("PathTaperY", String.Empty);
-            obj.Shape.PathTwist = (sbyte)reader.ReadElementContentAsInt("PathTwist", String.Empty);
-            obj.Shape.PathTwistBegin = (sbyte)reader.ReadElementContentAsInt("PathTwistBegin", String.Empty);
-            obj.Shape.PCode = (byte)reader.ReadElementContentAsInt("PCode", String.Empty);
-            obj.Shape.ProfileBegin = (ushort)reader.ReadElementContentAsInt("ProfileBegin", String.Empty);
-            obj.Shape.ProfileEnd = (ushort)reader.ReadElementContentAsInt("ProfileEnd", String.Empty);
-            obj.Shape.ProfileHollow = (ushort)reader.ReadElementContentAsInt("ProfileHollow", String.Empty);
-            obj.Scale = ReadVector(reader, "Scale");
-            obj.Shape.State = (byte)reader.ReadElementContentAsInt("State", String.Empty);
-
-            obj.Shape.ProfileCurve = (byte)reader.ReadElementContentAsInt("ProfileCurve", String.Empty);
-            obj.Shape.ProfileShape = (ProfileShape)reader.ReadElementContentAsInt("ProfileShape", String.Empty);
-            obj.Shape.HollowShape = (HollowShape)reader.ReadElementContentAsInt("HollowShape", String.Empty);
-
-            UUID sculptTexture = ReadUUID(reader, "SculptTexture");
-            SculptType sculptType = (SculptType)reader.ReadElementContentAsInt("SculptType", String.Empty);
-            if (sculptTexture != UUID.Zero)
-            {
-                obj.Shape.SculptTexture = sculptTexture;
-                obj.Shape.SculptType = (byte)sculptType;
-            }
-
-            reader.ReadInnerXml(); // SculptData
-
-            obj.Shape.FlexiSoftness = reader.ReadElementContentAsInt("FlexiSoftness", String.Empty);
-            obj.Shape.FlexiTension = reader.ReadElementContentAsFloat("FlexiTension", String.Empty);
-            obj.Shape.FlexiDrag = reader.ReadElementContentAsFloat("FlexiDrag", String.Empty);
-            obj.Shape.FlexiGravity = reader.ReadElementContentAsFloat("FlexiGravity", String.Empty);
-            obj.Shape.FlexiWind = reader.ReadElementContentAsFloat("FlexiWind", String.Empty);
-            obj.Shape.FlexiForceX = reader.ReadElementContentAsFloat("FlexiForceX", String.Empty);
-            obj.Shape.FlexiForceY = reader.ReadElementContentAsFloat("FlexiForceY", String.Empty);
-            obj.Shape.FlexiForceZ = reader.ReadElementContentAsFloat("FlexiForceZ", String.Empty);
-
-            obj.Shape.LightColorR = reader.ReadElementContentAsFloat("LightColorR", String.Empty);
-            obj.Shape.LightColorG = reader.ReadElementContentAsFloat("LightColorG", String.Empty);
-            obj.Shape.LightColorB = reader.ReadElementContentAsFloat("LightColorB", String.Empty);
-            obj.Shape.LightColorA = reader.ReadElementContentAsFloat("LightColorA", String.Empty);
-            obj.Shape.LightRadius = reader.ReadElementContentAsFloat("LightRadius", String.Empty);
-            obj.Shape.LightCutoff = reader.ReadElementContentAsFloat("LightCutoff", String.Empty);
-            obj.Shape.LightFalloff = reader.ReadElementContentAsFloat("LightFalloff", String.Empty);
-            obj.Shape.LightIntensity = reader.ReadElementContentAsFloat("LightIntensity", String.Empty);
-
-            bool hasFlexi = reader.ReadElementContentAsBoolean("FlexiEntry", String.Empty);
-            bool hasLight = reader.ReadElementContentAsBoolean("LightEntry", String.Empty);
-            reader.ReadInnerXml(); // SculptEntry
-
-            reader.ReadEndElement();
-
-            obj.Scale = ReadVector(reader, "Scale"); // Yes, again
-            obj.UpdateFlag =  (byte)reader.ReadElementContentAsInt("UpdateFlag", String.Empty); // UpdateFlag
-
-            obj.SitTargetOrientation = ReadQuaternion(reader, "SitTargetOrientation");
-            obj.SitTargetPosition = ReadVector(reader, "SitTargetPosition");
-            obj.SitTargetPositionLL = ReadVector(reader, "SitTargetPositionLL");
-            obj.SitTargetOrientationLL = ReadQuaternion(reader, "SitTargetOrientationLL");
-            obj.ParentID = (uint)reader.ReadElementContentAsLong("ParentID", String.Empty);
-            obj.CreationDate = reader.ReadElementContentAsInt("CreationDate", String.Empty);
-            int category = reader.ReadElementContentAsInt("Category", String.Empty);
-            obj.SalePrice = reader.ReadElementContentAsInt("SalePrice", String.Empty);
-            obj.ObjectSaleType = (byte)reader.ReadElementContentAsInt("ObjectSaleType", String.Empty);
-            int ownershipCost = reader.ReadElementContentAsInt("OwnershipCost", String.Empty);
-            obj.GroupID = ReadUUID(reader, "GroupID");
-            obj.OwnerID = ReadUUID(reader, "OwnerID");
-            obj.LastOwnerID = ReadUUID(reader, "LastOwnerID");
-            obj.BaseMask = (uint)reader.ReadElementContentAsInt("BaseMask", String.Empty);
-            obj.OwnerMask = (uint)reader.ReadElementContentAsInt("OwnerMask", String.Empty);
-            obj.GroupMask = (uint)reader.ReadElementContentAsInt("GroupMask", String.Empty);
-            obj.EveryoneMask = (uint)reader.ReadElementContentAsInt("EveryoneMask", String.Empty);
-            obj.NextOwnerMask = (uint)reader.ReadElementContentAsInt("NextOwnerMask", String.Empty);
-
-            obj.Flags = (PrimFlags)reader.ReadElementContentAsInt("Flags", String.Empty);
-
-            obj.CollisionSound = ReadUUID(reader, "CollisionSound");
-            obj.CollisionSoundVolume = reader.ReadElementContentAsFloat("CollisionSoundVolume", String.Empty);
-
-            reader.ReadEndElement();
-
-            obj.GroupPosition = groupPosition;
-            obj.OffsetPosition = offsetPosition;
-
-            return obj;
-        }
-
         public static SceneObjectPart Xml2ToSOP(XmlTextReader reader)
         {
             SceneObjectPart obj = new SceneObjectPart();
@@ -1522,13 +1381,16 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 SOPXmlProcessor p = null;
                 if (m_SOPXmlProcessors.TryGetValue(reader.Name, out p))
                 {
+                    //m_log.DebugFormat("[XXX] Processing: {0}", reader.Name);
                     try
                     {
                         p(obj, reader);
                     }
                     catch (Exception e)
                     {
-                        m_log.DebugFormat("[SceneObjectSerializer]: exception while parsing {0} in {1}-{2}: {3}", nodeName, obj.Name, obj.UUID, e);
+                        m_log.DebugFormat("[SceneObjectSerializer]: exception while parsing {0}: {1}", nodeName, e);
+                        if (reader.NodeType == XmlNodeType.EndElement)
+                            reader.Read();
                     }
                 }
                 else
@@ -1631,6 +1493,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             while (reader.NodeType != XmlNodeType.EndElement)
             {
+                //m_log.DebugFormat("[XXX] Processing: {0}", reader.Name); 
                 ShapeXmlProcessor p = null;
                 if (m_ShapeXmlProcessors.TryGetValue(reader.Name, out p))
                     p(shape, reader);

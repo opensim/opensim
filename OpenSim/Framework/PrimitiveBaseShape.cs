@@ -136,6 +136,13 @@ namespace OpenSim.Framework
         [XmlIgnore] private bool _lightEntry;
         [XmlIgnore] private bool _sculptEntry;
 
+        // Light Projection Filter
+        [XmlIgnore] private bool _projectionEntry;
+        [XmlIgnore] private UUID _projectionTextureID;
+        [XmlIgnore] private float _projectionFOV;
+        [XmlIgnore] private float _projectionFocus;
+        [XmlIgnore] private float _projectionAmb;
+
         public byte ProfileCurve
         {
             get { return (byte)((byte)HollowShape | (byte)ProfileShape); }
@@ -800,6 +807,7 @@ namespace OpenSim.Framework
             ushort FlexiEP = 0x10;
             ushort LightEP = 0x20;
             ushort SculptEP = 0x30;
+            ushort ProjectionEP = 0x40;
 
             int i = 0;
             uint TotalBytesLength = 1; // ExtraParamsNum
@@ -822,6 +830,12 @@ namespace OpenSim.Framework
                 ExtraParamsNum++;
                 TotalBytesLength += 17;// data
                 TotalBytesLength += 2 + 4; // type
+            }
+            if (_projectionEntry)
+            {
+                ExtraParamsNum++;
+                TotalBytesLength += 28;// data
+                TotalBytesLength += 2 + 4;// type
             }
 
             byte[] returnbytes = new byte[TotalBytesLength];
@@ -874,7 +888,19 @@ namespace OpenSim.Framework
                 Array.Copy(SculptData, 0, returnbytes, i, SculptData.Length);
                 i += SculptData.Length;
             }
+            if (_projectionEntry)
+            {
+                byte[] ProjectionData = GetProjectionBytes();
 
+                returnbytes[i++] = (byte)(ProjectionEP % 256);
+                returnbytes[i++] = (byte)((ProjectionEP >> 8) % 256);
+                returnbytes[i++] = (byte)((ProjectionData.Length) % 256);
+                returnbytes[i++] = (byte)((ProjectionData.Length >> 16) % 256);
+                returnbytes[i++] = (byte)((ProjectionData.Length >> 20) % 256);
+                returnbytes[i++] = (byte)((ProjectionData.Length >> 24) % 256);
+                Array.Copy(ProjectionData, 0, returnbytes, i, ProjectionData.Length);
+                i += ProjectionData.Length;
+            }
             if (!_flexiEntry && !_lightEntry && !_sculptEntry)
             {
                 byte[] returnbyte = new byte[1];
@@ -893,6 +919,7 @@ namespace OpenSim.Framework
             const ushort FlexiEP = 0x10;
             const ushort LightEP = 0x20;
             const ushort SculptEP = 0x30;
+            const ushort ProjectionEP = 0x40;
 
             switch (type)
             {
@@ -922,6 +949,14 @@ namespace OpenSim.Framework
                     }
                     ReadSculptData(data, 0);
                     break;
+                case ProjectionEP:
+                    if (!inUse)
+                    {
+                        _projectionEntry = false;
+                        return;
+                    }
+                    ReadProjectionData(data, 0);
+                    break;
             }
         }
 
@@ -933,10 +968,12 @@ namespace OpenSim.Framework
             const ushort FlexiEP = 0x10;
             const ushort LightEP = 0x20;
             const ushort SculptEP = 0x30;
+            const ushort ProjectionEP = 0x40;
 
             bool lGotFlexi = false;
             bool lGotLight = false;
             bool lGotSculpt = false;
+            bool lGotFilter = false;
 
             int i = 0;
             byte extraParamCount = 0;
@@ -973,6 +1010,11 @@ namespace OpenSim.Framework
                         i += 17;
                         lGotSculpt = true;
                         break;
+                    case ProjectionEP:
+                        ReadProjectionData(data, i);
+                        i += 28;
+                        lGotFilter = true;
+                        break;
                 }
             }
 
@@ -982,6 +1024,8 @@ namespace OpenSim.Framework
                 _lightEntry = false;
             if (!lGotSculpt)
                 _sculptEntry = false;
+            if (!lGotFilter)
+                _projectionEntry = false;
 
         }
 
@@ -1117,6 +1161,42 @@ namespace OpenSim.Framework
             Utils.FloatToBytes(_lightRadius).CopyTo(data, 4);
             Utils.FloatToBytes(_lightCutoff).CopyTo(data, 8);
             Utils.FloatToBytes(_lightFalloff).CopyTo(data, 12);
+
+            return data;
+        }
+
+        public void ReadProjectionData(byte[] data, int pos)
+        {
+            byte[] ProjectionTextureUUID = new byte[16];
+
+            if (data.Length - pos >= 28)
+            {
+                _projectionEntry = true;
+                Array.Copy(data, pos, ProjectionTextureUUID,0, 16);
+                _projectionTextureID = new UUID(ProjectionTextureUUID, 0);
+
+                _projectionFocus = Utils.BytesToFloat(data, pos + 16);
+                _projectionFOV = Utils.BytesToFloat(data, pos + 20);
+                _projectionAmb = Utils.BytesToFloat(data, pos + 24);
+            }
+            else
+            {
+                _projectionEntry = false;
+                _projectionTextureID = UUID.Zero;
+                _projectionFocus = 0f;
+                _projectionFOV = 0f;
+                _projectionAmb = 0f;
+            }
+        }
+
+        public byte[] GetProjectionBytes()
+        {
+            byte[] data = new byte[28];
+
+            _projectionTextureID.GetBytes().CopyTo(data, 0);
+            Utils.FloatToBytes(_projectionFocus).CopyTo(data, 16);
+            Utils.FloatToBytes(_projectionFOV).CopyTo(data, 20);
+            Utils.FloatToBytes(_projectionAmb).CopyTo(data, 24);
 
             return data;
         }

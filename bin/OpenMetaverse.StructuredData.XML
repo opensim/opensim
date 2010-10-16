@@ -175,7 +175,7 @@
             <param name="toFind"></param>
             <returns></returns>
         </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.FindByteArray(System.IO.Stream,System.Byte[])">
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.FindString(System.IO.Stream,System.String)">
             <summary>
             
             </summary>
