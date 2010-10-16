@@ -181,7 +181,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         }
         
         /// <summary>
-        /// Create the control file for a 0.2 version archive
+        /// Create the control file for the most up to date archive
         /// </summary>
         /// <returns></returns>
         public static string Create0p2ControlFile()
