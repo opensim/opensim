@@ -39,4 +39,18 @@ namespace OpenSim.Framework.Capabilities
         {
         }
     }
+
+    [OSDMap]
+    public class LLSDNewFileAngentInventoryVariablePriceReplyResponse
+    {
+        public int resource_cost;
+        public string state;
+        public int upload_price;
+        public string rsvp;
+        
+        public LLSDNewFileAngentInventoryVariablePriceReplyResponse()
+        {
+            state = "confirm_upload";
+        }
+    }
 }
