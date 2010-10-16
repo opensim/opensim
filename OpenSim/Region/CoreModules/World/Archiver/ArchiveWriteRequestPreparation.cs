@@ -32,6 +32,7 @@ using System.IO.Compression;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Xml;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -167,10 +168,47 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     archiveWriter,
                     m_requestId,
                     options);
+
+            m_log.InfoFormat("[ARCHIVER]: Creating archive file.  This may take some time.");
+
+            // Write out control file
+            archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p2ControlFile());
+            m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
             
             new AssetsRequest(
                 new AssetsArchiver(archiveWriter), assetUuids, 
                 m_scene.AssetService, awre.ReceivedAllAssets).Execute();
         }
+        
+        /// <summary>
+        /// Create the control file for a 0.2 version archive
+        /// </summary>
+        /// <returns></returns>
+        public static string Create0p2ControlFile()
+        {
+            StringWriter sw = new StringWriter();
+            XmlTextWriter xtw = new XmlTextWriter(sw);
+            xtw.Formatting = Formatting.Indented;
+            xtw.WriteStartDocument();
+            xtw.WriteStartElement("archive");
+            xtw.WriteAttributeString("major_version", "0");
+            xtw.WriteAttributeString("minor_version", "3");
+
+            xtw.WriteStartElement("creation_info");
+            DateTime now = DateTime.UtcNow;
+            TimeSpan t = now - new DateTime(1970, 1, 1);
+            xtw.WriteElementString("datetime", ((int)t.TotalSeconds).ToString());
+            xtw.WriteElementString("id", UUID.Random().ToString());
+            xtw.WriteEndElement();
+            xtw.WriteEndElement();
+
+            xtw.Flush();
+            xtw.Close();
+
+            String s = sw.ToString();
+            sw.Close();
+
+            return s;
+        }        
     }
 }
