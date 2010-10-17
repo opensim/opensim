@@ -1,4 +1,4 @@
-=== Building OpenSim ===
+==== Building OpenSim ====
 
 === Building on Windows ===
 
