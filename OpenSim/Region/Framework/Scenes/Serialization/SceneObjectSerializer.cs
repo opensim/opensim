@@ -67,14 +67,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
             //int time = System.Environment.TickCount;
 
-            // libomv.types changes UUID to Guid
-            xmlData = xmlData.Replace("<UUID>", "<Guid>");
-            xmlData = xmlData.Replace("</UUID>", "</Guid>");
-
-            // Handle Nested <UUID><UUID> property
-            xmlData = xmlData.Replace("<Guid><Guid>", "<UUID><Guid>");
-            xmlData = xmlData.Replace("</Guid></Guid>", "</Guid></UUID>");
-
             try
             {
                 StringReader  sr;
@@ -125,6 +117,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 return null;
             }
         }
+
 
         /// <summary>
         /// Serialize a scene object to the original xml format
@@ -181,7 +174,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         protected static void ToOriginalXmlFormat(SceneObjectPart part, XmlTextWriter writer)
         {
-            part.ToXml(writer);
+            SOPToXml2(writer, part, new Dictionary<string, object>());
         }
         
         public static SceneObjectGroup FromXml2Format(string xmlData)
@@ -189,14 +182,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
             //int time = System.Environment.TickCount;
             
-            // libomv.types changes UUID to Guid
-            xmlData = xmlData.Replace("<UUID>", "<Guid>");
-            xmlData = xmlData.Replace("</UUID>", "</Guid>");
-
-            // Handle Nested <UUID><UUID> property
-            xmlData = xmlData.Replace("<Guid><Guid>", "<UUID><Guid>");
-            xmlData = xmlData.Replace("</Guid></Guid>", "</Guid></UUID>");
-
             try
             {
                 XmlDocument doc = new XmlDocument();
@@ -261,41 +246,13 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             {
                 using (XmlTextWriter writer = new XmlTextWriter(sw))
                 {
-                    ToXml2Format(sceneObject, writer);
+                    SOGToXml2(writer, sceneObject, new Dictionary<string,object>());
                 }
 
                 return sw.ToString();
             }
         }
 
-        /// <summary>
-        /// Serialize a scene object to the 'xml2' format.
-        /// </summary>
-        /// <param name="sceneObject"></param>
-        /// <returns></returns>
-        public static void ToXml2Format(SceneObjectGroup sceneObject, XmlTextWriter writer)
-        {
-            //m_log.DebugFormat("[SERIALIZER]: Starting serialization of SOG {0} to XML2", Name);
-            //int time = System.Environment.TickCount;
-
-            writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
-            sceneObject.RootPart.ToXml(writer);
-            writer.WriteStartElement(String.Empty, "OtherParts", String.Empty);
-
-            SceneObjectPart[] parts = sceneObject.Parts;
-            for (int i = 0; i < parts.Length; i++)
-            {
-                SceneObjectPart part = parts[i];
-                if (part.UUID != sceneObject.RootPart.UUID)
-                    part.ToXml(writer);
-            }
-
-            writer.WriteEndElement(); // End of OtherParts
-            sceneObject.SaveScriptedState(writer);
-            writer.WriteEndElement(); // End of SceneObjectGroup
-
-            //m_log.DebugFormat("[SERIALIZER]: Finished serialization of SOG {0} to XML2, {1}ms", Name, System.Environment.TickCount - time);
-        }
 
         #region manual serialization
 
@@ -386,6 +343,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_TaskInventoryXmlProcessors.Add("PermsGranter", ProcessTIPermsGranter);
             m_TaskInventoryXmlProcessors.Add("PermsMask", ProcessTIPermsMask);
             m_TaskInventoryXmlProcessors.Add("Type", ProcessTIType);
+            m_TaskInventoryXmlProcessors.Add("OwnerChanged", ProcessTIOwnerChanged);
+            
             #endregion
 
             #region ShapeXmlProcessors initialization
@@ -817,6 +776,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             item.Type = reader.ReadElementContentAsInt("Type", String.Empty);
         }
 
+        private static void ProcessTIOwnerChanged(TaskInventoryItem item, XmlTextReader reader)
+        {
+            item.OwnerChanged = reader.ReadElementContentAsBoolean("OwnerChanged", String.Empty);
+        }
+
         #endregion
 
         #region ShapeXmlProcessors
@@ -1078,20 +1042,20 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         public static void SOGToXml2(XmlTextWriter writer, SceneObjectGroup sog, Dictionary<string, object>options)
         {
             writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
-            SOPToXml2(writer, sog.RootPart, null, options);
+            SOPToXml2(writer, sog.RootPart, options);
             writer.WriteStartElement(String.Empty, "OtherParts", String.Empty);
 
             sog.ForEachPart(delegate(SceneObjectPart sop)
             {
                 if (sop.UUID != sog.RootPart.UUID)
-                    SOPToXml2(writer, sop, sog.RootPart, options);
+                    SOPToXml2(writer, sop, options);
             });
 
             writer.WriteEndElement();
             writer.WriteEndElement();
         }
 
-        static void SOPToXml2(XmlTextWriter writer, SceneObjectPart sop, SceneObjectPart parent, Dictionary<string, object> options)
+        public static void SOPToXml2(XmlTextWriter writer, SceneObjectPart sop, Dictionary<string, object> options)
         {
             writer.WriteStartElement("SceneObjectPart");
             writer.WriteAttributeString("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
@@ -1229,6 +1193,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     WriteUUID(writer, "PermsGranter", item.PermsGranter, options);
                     writer.WriteElementString("PermsMask", item.PermsMask.ToString());
                     writer.WriteElementString("Type", item.Type.ToString());
+                    writer.WriteElementString("OwnerChanged", item.OwnerChanged.ToString().ToLower());
 
                     writer.WriteEndElement(); // TaskInventoryItem
                 }
@@ -1398,7 +1363,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 }
                 else
                 {
-                    //m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element {0}", nodeName);
+                    m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element {0}", nodeName);
                     reader.ReadOuterXml(); // ignore
                 }
 

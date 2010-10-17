@@ -39,6 +39,7 @@ using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Scripting;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -123,10 +124,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
            get { return ParentGroup.RootPart == this; } 
         }
-
-        // use only one serializer to give the runtime a chance to optimize it (it won't do that if you
-        // use a new instance every time)
-        private static XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
 
         #region Fields
 
@@ -1850,7 +1847,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="xmlReader"></param>
         /// <returns></returns>
-        public static SceneObjectPart FromXml(XmlReader xmlReader)
+        public static SceneObjectPart FromXml(XmlTextReader xmlReader)
         {
             return FromXml(UUID.Zero, xmlReader);
         }
@@ -1861,9 +1858,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="fromUserInventoryItemId">The inventory id from which this part came, if applicable</param>
         /// <param name="xmlReader"></param>
         /// <returns></returns>
-        public static SceneObjectPart FromXml(UUID fromUserInventoryItemId, XmlReader xmlReader)
+        public static SceneObjectPart FromXml(UUID fromUserInventoryItemId, XmlTextReader xmlReader)
         {
-            SceneObjectPart part = (SceneObjectPart)serializer.Deserialize(xmlReader);
+            SceneObjectPart part = SceneObjectSerializer.Xml2ToSOP(xmlReader);
             part.m_fromUserInventoryItemID = fromUserInventoryItemId;
 
             // for tempOnRez objects, we have to fix the Expire date.
@@ -4058,9 +4055,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// Serialize this part to xml.
         /// </summary>
         /// <param name="xmlWriter"></param>
-        public void ToXml(XmlWriter xmlWriter)
+        public void ToXml(XmlTextWriter xmlWriter)
         {
-            serializer.Serialize(xmlWriter, this);
+            SceneObjectSerializer.SOPToXml2(xmlWriter, this, new Dictionary<string, object>());
         }
 
         public void TriggerScriptChangedEvent(Changed val)
