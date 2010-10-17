@@ -32,6 +32,7 @@ using System.IO.Compression;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Xml;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -98,7 +99,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Archive the region requested.
         /// </summary>
         /// <exception cref="System.IO.IOException">if there was an io problem with creating the file</exception>
-        public void ArchiveRegion()
+        public void ArchiveRegion(Dictionary<string, object> options)
         {
             Dictionary<UUID, AssetType> assetUuids = new Dictionary<UUID, AssetType>();
 
@@ -165,11 +166,71 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     m_scene.RequestModuleInterface<IRegionSerialiserModule>(),
                     m_scene,
                     archiveWriter,
-                    m_requestId);
+                    m_requestId,
+                    options);
+
+            m_log.InfoFormat("[ARCHIVER]: Creating archive file.  This may take some time.");
+
+            // Write out control file
+            archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p2ControlFile(options));
+            m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
             
             new AssetsRequest(
                 new AssetsArchiver(archiveWriter), assetUuids, 
                 m_scene.AssetService, awre.ReceivedAllAssets).Execute();
         }
+        
+        /// <summary>
+        /// Create the control file for the most up to date archive
+        /// </summary>
+        /// <returns></returns>
+        public static string Create0p2ControlFile(Dictionary<string, object> options)
+        {
+            int majorVersion = 0, minorVersion = 4;
+            
+            /*
+            if (options.ContainsKey("version") && (string)options["version"] == "0")
+            {
+                majorVersion = 0;
+                minorVersion = 3;
+            }
+            else
+            {
+                majorVersion = 1;
+                minorVersion = 0;
+            }  
+            */
+            
+            m_log.InfoFormat("[ARCHIVER]: Creating version {0}.{1} OAR", majorVersion, minorVersion);
+//            if (majorVersion == 1)
+//            {
+//                m_log.WarnFormat("[ARCHIVER]: Please be aware that version 1.0 OARs are not compatible with OpenSim 0.7.0.2 and earlier.  Please use the --version=0 option if you want to produce a compatible OAR");                
+//            }
+            
+            
+            StringWriter sw = new StringWriter();
+            XmlTextWriter xtw = new XmlTextWriter(sw);
+            xtw.Formatting = Formatting.Indented;
+            xtw.WriteStartDocument();
+            xtw.WriteStartElement("archive");
+            xtw.WriteAttributeString("major_version", majorVersion.ToString());
+            xtw.WriteAttributeString("minor_version", minorVersion.ToString());
+
+            xtw.WriteStartElement("creation_info");
+            DateTime now = DateTime.UtcNow;
+            TimeSpan t = now - new DateTime(1970, 1, 1);
+            xtw.WriteElementString("datetime", ((int)t.TotalSeconds).ToString());
+            xtw.WriteElementString("id", UUID.Random().ToString());
+            xtw.WriteEndElement();
+            xtw.WriteEndElement();
+
+            xtw.Flush();
+            xtw.Close();
+
+            String s = sw.ToString();
+            sw.Close();
+
+            return s;
+        }        
     }
 }

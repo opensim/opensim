@@ -424,6 +424,7 @@ namespace OpenSim.Data.MySQL
                         cmd.CommandText =
                             "SELECT * FROM prims LEFT JOIN primshapes ON prims.UUID = primshapes.UUID WHERE RegionUUID = ?RegionUUID";
                         cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+                        cmd.CommandTimeout = 3600;
 
                         using (IDataReader reader = ExecuteReader(cmd))
                         {

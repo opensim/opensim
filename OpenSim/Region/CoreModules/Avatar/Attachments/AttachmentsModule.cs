@@ -113,6 +113,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 if (!m_scene.Permissions.CanTakeObject(part.UUID, remoteClient.AgentId))
                     return;
 
+                // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
+                // be removed when that functionality is implemented in opensim
+                AttachmentPt &= 0x7f;
+
                 // Calls attach with a Zero position
                 if (AttachObject(remoteClient, part.ParentGroup, AttachmentPt, false))
                 {
@@ -142,6 +146,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             if (m_scene.Permissions.CanTakeObject(group.UUID, remoteClient.AgentId))
             {
+                // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
+                // be removed when that functionality is implemented in opensim
+                AttachmentPt &= 0x7f;
+                
                 // If the attachment point isn't the same as the one previously used
                 // set it's offset position = 0 so that it appears on the attachment point
                 // and not in a weird location somewhere unknown.
@@ -228,6 +236,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 "[ATTACHMENTS MODULE]: Rezzing attachment to point {0} from item {1} for {2}", 
                 (AttachmentPoint)AttachmentPt, itemID, remoteClient.Name);
             
+            // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
+            // be removed when that functionality is implemented in opensim
+            AttachmentPt &= 0x7f;
+
             SceneObjectGroup att = RezSingleAttachmentFromInventoryInternal(remoteClient, itemID, AttachmentPt);
 
             if (updateInventoryStatus)
