@@ -149,7 +149,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
             writer.WriteStartElement(String.Empty, "RootPart", String.Empty);
-            ToOriginalXmlFormat(sceneObject.RootPart, writer);
+            ToXmlFormat(sceneObject.RootPart, writer);
             writer.WriteEndElement();
             writer.WriteStartElement(String.Empty, "OtherParts", String.Empty);
 
@@ -160,7 +160,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 if (part.UUID != sceneObject.RootPart.UUID)
                 {
                     writer.WriteStartElement(String.Empty, "Part", String.Empty);
-                    ToOriginalXmlFormat(part, writer);
+                    ToXmlFormat(part, writer);
                     writer.WriteEndElement();
                 }
             }
@@ -172,7 +172,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             //m_log.DebugFormat("[SERIALIZER]: Finished serialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
         }
 
-        protected static void ToOriginalXmlFormat(SceneObjectPart part, XmlTextWriter writer)
+        protected static void ToXmlFormat(SceneObjectPart part, XmlTextWriter writer)
         {
             SOPToXml2(writer, part, new Dictionary<string, object>());
         }
