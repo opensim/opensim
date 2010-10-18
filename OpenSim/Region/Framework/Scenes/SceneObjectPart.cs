@@ -191,7 +191,6 @@ namespace OpenSim.Region.Framework.Scenes
         
         public UUID FromFolderID;
 
-<<<<<<< HEAD:OpenSim/Region/Framework/Scenes/SceneObjectPart.cs
         // The following two are to hold the attachment data
         // while an object is inworld
         [XmlIgnore]
@@ -201,9 +200,6 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 AttachOffset = Vector3.Zero;
 
         [XmlIgnore]
-=======
-        
->>>>>>> master:OpenSim/Region/Framework/Scenes/SceneObjectPart.cs
         public int STATUS_ROTATE_X;
 
         
@@ -633,20 +629,12 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_LoopSoundSlavePrims = value; }
         }
 
-<<<<<<< HEAD:OpenSim/Region/Framework/Scenes/SceneObjectPart.cs
-=======
-        
->>>>>>> master:OpenSim/Region/Framework/Scenes/SceneObjectPart.cs
         public Byte[] TextureAnimation
         {
             get { return m_TextureAnimation; }
             set { m_TextureAnimation = value; }
         }
 
-<<<<<<< HEAD:OpenSim/Region/Framework/Scenes/SceneObjectPart.cs
-=======
-        
->>>>>>> master:OpenSim/Region/Framework/Scenes/SceneObjectPart.cs
         public Byte[] ParticleSystem
         {
             get { return m_particleSystem; }
