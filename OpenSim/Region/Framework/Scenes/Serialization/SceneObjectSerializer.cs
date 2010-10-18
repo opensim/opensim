@@ -1438,7 +1438,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                         p(item, reader);
                     else
                     {
-                        m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element in TaskInventory {0}, {1}", reader.Name, reader.Value);
+//                        m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element in TaskInventory {0}, {1}", reader.Name, reader.Value);
                         reader.ReadOuterXml();
                     }
                 }
