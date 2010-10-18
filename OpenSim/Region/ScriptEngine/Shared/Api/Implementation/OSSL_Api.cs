@@ -2213,6 +2213,48 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
             m_LSL_Api.SetPrimitiveParamsEx(prim, rules);
         }
+        
+        /// <summary>
+        /// Set parameters for light projection in host prim 
+        /// </summary>
+        public void osSetProjectionParams(bool projection, LSL_Key texture, double fov, double focus, double amb)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osSetProjectionParams");
+
+            osSetProjectionParams(UUID.Zero.ToString(), projection, texture, fov, focus, amb);
+        }
+
+        /// <summary>
+        /// Set parameters for light projection with uuid of target prim
+        /// </summary>
+        public void osSetProjectionParams(LSL_Key prim, bool projection, LSL_Key texture, double fov, double focus, double amb)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osSetProjectionParams");
+            m_host.AddScriptLPS(1);
+
+            SceneObjectPart obj = null;
+            if (prim == UUID.Zero.ToString())
+            {
+                obj = m_host;
+            }
+            else
+            {
+                obj = World.GetSceneObjectPart(new UUID(prim));
+                if (obj == null)
+                    return;
+            }
+
+            obj.Shape.ProjectionEntry = projection;
+            obj.Shape.ProjectionTextureUUID = new UUID(texture);
+            obj.Shape.ProjectionFOV = (float)fov;
+            obj.Shape.ProjectionFocus = (float)focus;
+            obj.Shape.ProjectionAmbiance = (float)amb;
+
+
+            obj.ParentGroup.HasGroupChanged = true;
+            obj.ScheduleFullUpdate();
+
+        }
 
         /// <summary>
         /// Like osGetAgents but returns enough info for a radar

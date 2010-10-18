@@ -802,6 +802,51 @@ namespace OpenSim.Framework
             }
         }
 
+        public bool ProjectionEntry {
+            get {
+                return _projectionEntry;
+            }
+            set {
+                _projectionEntry = value;
+            }
+        }
+
+        public UUID ProjectionTextureUUID {
+            get {
+                return _projectionTextureID;
+            }
+            set {
+                _projectionTextureID = value;
+            }
+        }
+
+        public float ProjectionFOV {
+            get {
+                return _projectionFOV;
+            }
+            set {
+                _projectionFOV = value;
+            }
+        }
+
+        public float ProjectionFocus {
+            get {
+                return _projectionFocus;
+            }
+            set {
+                _projectionFocus = value;
+            }
+        }
+
+        public float ProjectionAmbiance {
+            get {
+                return _projectionAmb;
+            }
+            set {
+                _projectionAmb = value;
+            }
+        }
+
         public byte[] ExtraParamsToBytes()
         {
             ushort FlexiEP = 0x10;
@@ -901,7 +946,7 @@ namespace OpenSim.Framework
                 Array.Copy(ProjectionData, 0, returnbytes, i, ProjectionData.Length);
                 i += ProjectionData.Length;
             }
-            if (!_flexiEntry && !_lightEntry && !_sculptEntry)
+            if (!_flexiEntry && !_lightEntry && !_sculptEntry && !_projectionEntry)
             {
                 byte[] returnbyte = new byte[1];
                 returnbyte[0] = 0;
@@ -1175,16 +1220,16 @@ namespace OpenSim.Framework
                 Array.Copy(data, pos, ProjectionTextureUUID,0, 16);
                 _projectionTextureID = new UUID(ProjectionTextureUUID, 0);
 
-                _projectionFocus = Utils.BytesToFloat(data, pos + 16);
-                _projectionFOV = Utils.BytesToFloat(data, pos + 20);
+                _projectionFOV = Utils.BytesToFloat(data, pos + 16);
+                _projectionFocus = Utils.BytesToFloat(data, pos + 20);
                 _projectionAmb = Utils.BytesToFloat(data, pos + 24);
             }
             else
             {
                 _projectionEntry = false;
                 _projectionTextureID = UUID.Zero;
-                _projectionFocus = 0f;
                 _projectionFOV = 0f;
+                _projectionFocus = 0f;
                 _projectionAmb = 0f;
             }
         }
@@ -1194,8 +1239,8 @@ namespace OpenSim.Framework
             byte[] data = new byte[28];
 
             _projectionTextureID.GetBytes().CopyTo(data, 0);
-            Utils.FloatToBytes(_projectionFocus).CopyTo(data, 16);
-            Utils.FloatToBytes(_projectionFOV).CopyTo(data, 20);
+            Utils.FloatToBytes(_projectionFOV).CopyTo(data, 16);
+            Utils.FloatToBytes(_projectionFocus).CopyTo(data, 20);
             Utils.FloatToBytes(_projectionAmb).CopyTo(data, 24);
 
             return data;

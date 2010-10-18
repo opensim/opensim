@@ -39,6 +39,7 @@ using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Scripting;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -119,33 +120,29 @@ namespace OpenSim.Region.Framework.Scenes
         /// <value>
         /// Is this sop a root part?
         /// </value>
-        [XmlIgnore]
+        
         public bool IsRoot 
         {
            get { return ParentGroup.RootPart == this; } 
         }
 
-        // use only one serializer to give the runtime a chance to optimize it (it won't do that if you
-        // use a new instance every time)
-        private static XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
-
         #region Fields
 
         public bool AllowedDrop;
 
-        [XmlIgnore]
+        
         public bool DIE_AT_EDGE;
 
-        [XmlIgnore]
+        
         public bool RETURN_AT_EDGE;
 
-        [XmlIgnore]
+        
         public bool BlockGrab;
 
-        [XmlIgnore]
+        
         public bool StatusSandbox;
 
-        [XmlIgnore]
+        
         public Vector3 StatusSandboxPos;
 
         // TODO: This needs to be persisted in next XML version update!
@@ -167,33 +164,34 @@ namespace OpenSim.Region.Framework.Scenes
         //  Note: This isn't persisted in the database right now, as the fields for that aren't just there yet.
         //        Not a big problem as long as the script that sets it remains in the prim on startup.
         //        for SL compatibility it should be persisted though (set sound / displaytext / particlesystem, kill script)
-        [XmlIgnore]
+        
         public UUID Sound;
         
-        [XmlIgnore]
+        
         public byte SoundFlags;
         
-        [XmlIgnore]
+        
         public double SoundGain;
         
-        [XmlIgnore]
+        
         public double SoundRadius;
         
-        [XmlIgnore]
+        
         public uint TimeStampFull;
         
-        [XmlIgnore]
+        
         public uint TimeStampLastActivity; // Will be used for AutoReturn
         
-        [XmlIgnore]
+        
         public uint TimeStampTerse;
 
-        [XmlIgnore]
+        
         public UUID FromItemID;
 
-        [XmlIgnore]
+        
         public UUID FromFolderID;
 
+<<<<<<< HEAD:OpenSim/Region/Framework/Scenes/SceneObjectPart.cs
         // The following two are to hold the attachment data
         // while an object is inworld
         [XmlIgnore]
@@ -203,15 +201,18 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 AttachOffset = Vector3.Zero;
 
         [XmlIgnore]
+=======
+        
+>>>>>>> master:OpenSim/Region/Framework/Scenes/SceneObjectPart.cs
         public int STATUS_ROTATE_X;
 
-        [XmlIgnore]
+        
         public int STATUS_ROTATE_Y;
 
-        [XmlIgnore]
+        
         public int STATUS_ROTATE_Z;
         
-        [XmlIgnore]
+        
         private Dictionary<int, string> m_CollisionFilter = new Dictionary<int, string>();
                
         /// <value>
@@ -220,68 +221,68 @@ namespace OpenSim.Region.Framework.Scenes
         /// </value>
         private UUID m_fromUserInventoryItemID;
         
-        [XmlIgnore]
+        
         public UUID FromUserInventoryItemID
         {
             get { return m_fromUserInventoryItemID; }
         }
 
-        [XmlIgnore]
+        
         public bool IsAttachment;
 
-        [XmlIgnore]
+        
         public scriptEvents AggregateScriptEvents;
 
-        [XmlIgnore]
+        
         public UUID AttachedAvatar;
 
-        [XmlIgnore]
+        
         public Vector3 AttachedPos;
 
-        [XmlIgnore]
+        
         public uint AttachmentPoint;
 
-        [XmlIgnore]
+        
         public Vector3 RotationAxis = Vector3.One;
 
-        [XmlIgnore]
+        
         public bool VolumeDetectActive; // XmlIgnore set to avoid problems with persistance until I come to care for this
                                         // Certainly this must be a persistant setting finally
 
-        [XmlIgnore]
+        
         public bool IsWaitingForFirstSpinUpdatePacket;
 
-        [XmlIgnore]
+        
         public Quaternion SpinOldOrientation = Quaternion.Identity;
 
-        [XmlIgnore]
+        
         public Quaternion m_APIDTarget = Quaternion.Identity;
 
-        [XmlIgnore]
+        
         public float m_APIDDamp = 0;
 
-        [XmlIgnore]
+        
         public float m_APIDStrength = 0;
 
         /// <summary>
         /// This part's inventory
         /// </summary>
-        [XmlIgnore]
+        
         public IEntityInventory Inventory
         {
             get { return m_inventory; }
         }
         protected SceneObjectPartInventory m_inventory;
 
-        [XmlIgnore]
+        
         public bool Undoing;
 
-        [XmlIgnore]
+        
         public bool IgnoreUndoUpdate = false;
 
-        [XmlIgnore]
+        
         private PrimFlags LocalFlags;
-        [XmlIgnore]
+        
         private float m_damage = -1.0f;
         private byte[] m_TextureAnimation;
         private byte m_clickAction;
@@ -289,9 +290,9 @@ namespace OpenSim.Region.Framework.Scenes
         private string m_description = String.Empty;
         private readonly List<uint> m_lastColliders = new List<uint>();
         private int m_linkNum;
-        [XmlIgnore]
+        
         private int m_scriptAccessPin;
-        [XmlIgnore]
+        
         private readonly Dictionary<UUID, scriptEvents> m_scriptEvents = new Dictionary<UUID, scriptEvents>();
         private string m_sitName = String.Empty;
         private Quaternion m_sitTargetOrientation = Quaternion.Identity;
@@ -562,7 +563,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         
-        [XmlIgnore]
+        
         public Dictionary<int, string> CollisionFilter
         {
             get { return m_CollisionFilter; }
@@ -572,21 +573,21 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        [XmlIgnore]
+        
         public Quaternion APIDTarget
         {
             get { return m_APIDTarget; }
             set { m_APIDTarget = value; }
         }
 
-        [XmlIgnore]
+        
         public float APIDDamp
         {
             get { return m_APIDDamp; }
             set { m_APIDDamp = value; }
         }
 
-        [XmlIgnore]
+        
         public float APIDStrength
         {
             get { return m_APIDStrength; }
@@ -632,33 +633,41 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_LoopSoundSlavePrims = value; }
         }
 
+<<<<<<< HEAD:OpenSim/Region/Framework/Scenes/SceneObjectPart.cs
+=======
+        
+>>>>>>> master:OpenSim/Region/Framework/Scenes/SceneObjectPart.cs
         public Byte[] TextureAnimation
         {
             get { return m_TextureAnimation; }
             set { m_TextureAnimation = value; }
         }
 
+<<<<<<< HEAD:OpenSim/Region/Framework/Scenes/SceneObjectPart.cs
+=======
+        
+>>>>>>> master:OpenSim/Region/Framework/Scenes/SceneObjectPart.cs
         public Byte[] ParticleSystem
         {
             get { return m_particleSystem; }
             set { m_particleSystem = value; }
         }
 
-        [XmlIgnore]
+        
         public DateTime Expires
         {
             get { return m_expires; }
             set { m_expires = value; }
         }
 
-        [XmlIgnore]
+        
         public DateTime Rezzed
         {
             get { return m_rezzed; }
             set { m_rezzed = value; }
         }
 
-        [XmlIgnore]
+        
         public float Damage
         {
             get { return m_damage; }
@@ -1043,7 +1052,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        [XmlIgnore]
+        
         public bool CreateSelected
         {
             get { return m_createSelected; }
@@ -1233,14 +1242,14 @@ namespace OpenSim.Region.Framework.Scenes
         	set { m_occupied = value; }
         }
 
-        [XmlIgnore]
+        
         public UUID SitTargetAvatar
         {
             get { return m_sitTargetAvatar; }
             set { m_sitTargetAvatar = value; }
         }
 
-        [XmlIgnore]
+        
         public virtual UUID RegionID
         {
             get
@@ -1254,7 +1263,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         private UUID _parentUUID = UUID.Zero;
-        [XmlIgnore]
+        
         public UUID ParentUUID
         {
             get
@@ -1268,7 +1277,7 @@ namespace OpenSim.Region.Framework.Scenes
             set { _parentUUID = value; }
         }
 
-        [XmlIgnore]
+        
         public string SitAnimation
         {
             get { return m_sitAnimation; }
@@ -1884,7 +1893,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="xmlReader"></param>
         /// <returns></returns>
-        public static SceneObjectPart FromXml(XmlReader xmlReader)
+        public static SceneObjectPart FromXml(XmlTextReader xmlReader)
         {
             return FromXml(UUID.Zero, xmlReader);
         }
@@ -1895,9 +1904,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="fromUserInventoryItemId">The inventory id from which this part came, if applicable</param>
         /// <param name="xmlReader"></param>
         /// <returns></returns>
-        public static SceneObjectPart FromXml(UUID fromUserInventoryItemId, XmlReader xmlReader)
+        public static SceneObjectPart FromXml(UUID fromUserInventoryItemId, XmlTextReader xmlReader)
         {
-            SceneObjectPart part = (SceneObjectPart)serializer.Deserialize(xmlReader);
+            SceneObjectPart part = SceneObjectSerializer.Xml2ToSOP(xmlReader);
             part.m_fromUserInventoryItemID = fromUserInventoryItemId;
 
             // for tempOnRez objects, we have to fix the Expire date.
@@ -4087,9 +4096,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// Serialize this part to xml.
         /// </summary>
         /// <param name="xmlWriter"></param>
-        public void ToXml(XmlWriter xmlWriter)
+        public void ToXml(XmlTextWriter xmlWriter)
         {
-            serializer.Serialize(xmlWriter, this);
+            SceneObjectSerializer.SOPToXml2(xmlWriter, this, new Dictionary<string, object>());
         }
 
         public void TriggerScriptChangedEvent(Changed val)
