@@ -303,15 +303,19 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                 {
                     case "UUID":
                         xtr.ReadStartElement("UUID");
-                        uuid = UUID.Parse(xtr.ReadElementString("Guid"));
-                        xtr.ReadEndElement();
+                        try
+                        {
+                            uuid = UUID.Parse(xtr.ReadElementString("UUID"));
+                            xtr.ReadEndElement();
+                        }
+                        catch { } // ignore everything but <UUID><UUID>...</UUID></UUID>
                         break;
                     case "Name":
                         name = xtr.ReadElementContentAsString();
                         break;
                     case "CreatorID":
                         xtr.ReadStartElement("CreatorID");
-                        creatorId = UUID.Parse(xtr.ReadElementString("Guid"));
+                        creatorId = UUID.Parse(xtr.ReadElementString("UUID"));
                         xtr.ReadEndElement();
                         break;
                 }
