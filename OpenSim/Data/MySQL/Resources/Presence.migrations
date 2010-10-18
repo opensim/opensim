@@ -14,7 +14,7 @@ CREATE INDEX UserID ON Presence(UserID);
 
 COMMIT;
 
-:VERSION 1         # -------------------------- 
+:VERSION 2         # -------------------------- 
 
 BEGIN;
 
