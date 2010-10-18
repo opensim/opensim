@@ -307,14 +307,6 @@ namespace OpenSim.Region.Physics.Meshing
                         byte[] decompressed = new byte[physSize * 5];
                         try
                         {
-                            {
-                                string filename = System.IO.Path.Combine(decodedSculptMapPath, "meshInput_" + primShape.SculptTexture.ToString());
-                                using (FileStream fs = new FileStream(filename, FileMode.Create))
-                                {
-                                    fs.Write(meshBytes, 0, meshBytes.Length);
-                                }
-                            }
-
                             using (MemoryStream inMs = new MemoryStream(meshBytes))
                             {
                                 using (MemoryStream outMs = new MemoryStream())
