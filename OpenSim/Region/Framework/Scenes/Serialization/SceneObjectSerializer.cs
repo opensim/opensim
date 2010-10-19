@@ -1435,22 +1435,26 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         static Quaternion ReadQuaternion(XmlTextReader reader, string name)
         {
-            Quaternion quat;
+            Quaternion quat = new Quaternion();
 
             reader.ReadStartElement(name);
-            if (reader.Name == "X") // assume X, Y, Z, W order
+            while (reader.NodeType != XmlNodeType.EndElement)
             {
-                quat.X = reader.ReadElementContentAsFloat("X", String.Empty);
-                quat.Y = reader.ReadElementContentAsFloat("Y", String.Empty);
-                quat.Z = reader.ReadElementContentAsFloat("Z", String.Empty);
-                quat.W = reader.ReadElementContentAsFloat("W", String.Empty);
-            }
-            else // assume w, x, y, z
-            {
-                quat.W = reader.ReadElementContentAsFloat("w", String.Empty);
-                quat.X = reader.ReadElementContentAsFloat("x", String.Empty);
-                quat.Y = reader.ReadElementContentAsFloat("y", String.Empty);
-                quat.Z = reader.ReadElementContentAsFloat("z", String.Empty);
+                switch (reader.Name.ToLower())
+                {
+                    case "x":
+                        quat.X = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+                        break;
+                    case "y":
+                        quat.Y = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+                        break;
+                    case "z":
+                        quat.Z = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+                        break;
+                    case "w":
+                        quat.W = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+                        break;
+                }
             }
 
             reader.ReadEndElement();
