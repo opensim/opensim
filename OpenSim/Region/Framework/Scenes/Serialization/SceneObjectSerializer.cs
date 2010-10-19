@@ -1438,10 +1438,21 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             Quaternion quat;
 
             reader.ReadStartElement(name);
-            quat.X = reader.ReadElementContentAsFloat("X", String.Empty);
-            quat.Y = reader.ReadElementContentAsFloat("Y", String.Empty);
-            quat.Z = reader.ReadElementContentAsFloat("Z", String.Empty);
-            quat.W = reader.ReadElementContentAsFloat("W", String.Empty);
+            if (reader.Name == "X") // assume X, Y, Z, W order
+            {
+                quat.X = reader.ReadElementContentAsFloat("X", String.Empty);
+                quat.Y = reader.ReadElementContentAsFloat("Y", String.Empty);
+                quat.Z = reader.ReadElementContentAsFloat("Z", String.Empty);
+                quat.W = reader.ReadElementContentAsFloat("W", String.Empty);
+            }
+            else // assume w, x, y, z
+            {
+                quat.W = reader.ReadElementContentAsFloat("w", String.Empty);
+                quat.X = reader.ReadElementContentAsFloat("x", String.Empty);
+                quat.Y = reader.ReadElementContentAsFloat("y", String.Empty);
+                quat.Z = reader.ReadElementContentAsFloat("z", String.Empty);
+            }
+
             reader.ReadEndElement();
 
             return quat;
