@@ -1425,9 +1425,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             Vector3 vec;
 
             reader.ReadStartElement(name);
-            vec.X = reader.ReadElementContentAsFloat("X", String.Empty);
-            vec.Y = reader.ReadElementContentAsFloat("Y", String.Empty);
-            vec.Z = reader.ReadElementContentAsFloat("Z", String.Empty);
+            vec.X = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // X or x
+            vec.Y = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // Y or Y
+            vec.Z = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // Z or z
             reader.ReadEndElement();
 
             return vec;
