@@ -159,9 +159,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
         private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
-            m_log.DebugFormat(
-                "[INVENTORY TRANSFER]: {0} IM type received from {1}", 
-                (InstantMessageDialog)im.dialog, client.Name);
+//            m_log.DebugFormat(
+//                "[INVENTORY TRANSFER]: {0} IM type received from {1}", 
+//                (InstantMessageDialog)im.dialog, client.Name);
           
             Scene scene = FindClientScene(client.AgentId);
 
