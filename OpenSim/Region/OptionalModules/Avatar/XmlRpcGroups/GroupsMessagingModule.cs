@@ -212,11 +212,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         
         public void SendMessageToGroup(GridInstantMessage im, UUID groupID)
         {
-            List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(UUID.Zero, groupID);
+            List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(new UUID(im.fromAgentID), groupID);
             
             if (m_debugEnabled) 
                 m_log.DebugFormat(
-                    "[GROUPS-MESSAGING]: SendMessageToGroup called for group {0} with {1} members", 
+                    "[GROUPS-MESSAGING]: SendMessageToGroup called for group {0} with {1} visible members", 
                     groupID, groupMembers.Count);
             
             foreach (GroupMembersData member in groupMembers)

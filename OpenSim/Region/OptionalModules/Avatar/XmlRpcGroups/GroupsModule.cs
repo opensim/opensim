@@ -599,7 +599,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public List<GroupMembersData> GroupMembersRequest(IClientAPI remoteClient, UUID groupID)
         {
-            if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+            if (m_debugEnabled) 
+                m_log.DebugFormat(
+                    "[GROUPS]: GroupMembersRequest called for {0} from client {1}", groupID, remoteClient.Name);
+            
             List<GroupMembersData> data = m_groupData.GetGroupMembers(GetRequestingAgentID(remoteClient), groupID);
 
             if (m_debugEnabled)
