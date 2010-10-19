@@ -1363,7 +1363,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 }
                 else
                 {
-                    m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element {0}", nodeName);
+//                    m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element {0}", nodeName);
                     reader.ReadOuterXml(); // ignore
                 }
 
@@ -1438,7 +1438,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                         p(item, reader);
                     else
                     {
-                        m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element in TaskInventory {0}, {1}", reader.Name, reader.Value);
+//                        m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element in TaskInventory {0}, {1}", reader.Name, reader.Value);
                         reader.ReadOuterXml();
                     }
                 }
@@ -1467,7 +1467,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     p(shape, reader);
                 else
                 {
-                    m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element in Shape {0}", reader.Name);
+//                    m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element in Shape {0}", reader.Name);
                     reader.ReadOuterXml();
                 }
             }

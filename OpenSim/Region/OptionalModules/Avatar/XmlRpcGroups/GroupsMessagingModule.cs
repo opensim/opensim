@@ -212,12 +212,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         
         public void SendMessageToGroup(GridInstantMessage im, UUID groupID)
         {
+            List<GroupMembersData> groupMembers = m_groupData.GetGroupMembers(new UUID(im.fromAgentID), groupID);
+            
             if (m_debugEnabled) 
-                m_log.DebugFormat("[GROUPS-MESSAGING]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
-
-
-            foreach (GroupMembersData member in m_groupData.GetGroupMembers(UUID.Zero, groupID))
-            {
+                m_log.DebugFormat(
+                    "[GROUPS-MESSAGING]: SendMessageToGroup called for group {0} with {1} visible members", 
+                    groupID, groupMembers.Count);
+            
+            foreach (GroupMembersData member in groupMembers)
+            {               
                 if (m_groupData.hasAgentDroppedGroupChatSession(member.AgentID, groupID))
                 {
                     // Don't deliver messages to people who have dropped this session
@@ -263,9 +266,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         void OnClientLogin(IClientAPI client)
         {
-            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: OnInstantMessage registered for {0}", client.Name);
-
-            
+            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: OnInstantMessage registered for {0}", client.Name);           
         }
 
         private void OnNewClient(IClientAPI client)
