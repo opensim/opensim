@@ -318,6 +318,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("CollisionSound", ProcessCollisionSound);
             m_SOPXmlProcessors.Add("CollisionSoundVolume", ProcessCollisionSoundVolume);
             m_SOPXmlProcessors.Add("MediaUrl", ProcessMediaUrl);
+            m_SOPXmlProcessors.Add("TextureAnimation", ProcessTextureAnimation);
+            m_SOPXmlProcessors.Add("ParticleSystem", ProcessParticleSystem);
             #endregion
 
             #region TaskInventoryXmlProcessors initialization
@@ -662,6 +664,16 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessMediaUrl(SceneObjectPart obj, XmlTextReader reader)
         {
             obj.MediaUrl = reader.ReadElementContentAsString("MediaUrl", String.Empty);
+        }
+
+        private static void ProcessTextureAnimation(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.TextureAnimation = Convert.FromBase64String(reader.ReadElementContentAsString("TextureAnimation", String.Empty));
+        }
+
+        private static void ProcessParticleSystem(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.ParticleSystem = Convert.FromBase64String(reader.ReadElementContentAsString("ParticleSystem", String.Empty));
         }
         #endregion
 
@@ -1128,6 +1140,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("CollisionSoundVolume", sop.CollisionSoundVolume.ToString());
             if (sop.MediaUrl != null)
                 writer.WriteElementString("MediaUrl", sop.MediaUrl.ToString());
+            WriteBytes(writer, "TextureAnimation", sop.TextureAnimation);
+            WriteBytes(writer, "ParticleSystem", sop.ParticleSystem);
 
             writer.WriteEndElement();
         }
@@ -1159,6 +1173,19 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("Z", quat.Z.ToString(Utils.EnUsCulture));
             writer.WriteElementString("W", quat.W.ToString(Utils.EnUsCulture));
             writer.WriteEndElement();
+        }
+
+        static void WriteBytes(XmlTextWriter writer, string name, byte[] data)
+        {
+            writer.WriteStartElement(name);
+            byte[] d;
+            if (data != null)
+                d = data;
+            else
+                d = Utils.EmptyBytes;
+            writer.WriteBase64(d, 0, d.Length);
+            writer.WriteEndElement(); // name
+
         }
 
         static void WriteTaskInventory(XmlTextWriter writer, TaskInventoryDictionary tinv, Dictionary<string, object> options)
