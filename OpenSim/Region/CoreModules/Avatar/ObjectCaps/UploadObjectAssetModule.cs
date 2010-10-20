@@ -217,9 +217,12 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
                     switch ((ushort)extraParam.Type)
                     {
                         case (ushort)ExtraParamType.Sculpt:
+                            Primitive.SculptData sculpt = new Primitive.SculptData(extraParam.ExtraParamData, 0);
+
                             pbs.SculptEntry = true;
+
                             pbs.SculptTexture = obj.SculptID;
-                            pbs.SculptType = (byte)SculptType.Mesh;
+                            pbs.SculptType = (byte)sculpt.Type;
 
                             break;
                         case (ushort)ExtraParamType.Flexible:
