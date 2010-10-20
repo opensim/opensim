@@ -113,7 +113,7 @@ namespace OpenSim.Services.Connectors
 
         public virtual UserAccount GetUserAccount(UUID scopeID, UUID userID)
         {
-            m_log.DebugFormat("[ACCOUNTS CONNECTOR]: GetUserAccount {0}", userID);
+            //m_log.DebugFormat("[ACCOUNTS CONNECTOR]: GetUserAccount {0}", userID);
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["SCOPEID"] = scopeID.ToString();
             sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
