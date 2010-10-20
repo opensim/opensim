@@ -533,9 +533,7 @@ namespace OpenSim.Client.MXP.PacketHandler
             agent.InventoryFolder = UUID.Zero;
             agent.startpos = new Vector3(0, 0, 0); // TODO Fill in region start position
             agent.CapsPath = "http://localhost/";
-            AvatarData avatar = scene.AvatarService.GetAvatar(account.PrincipalID);
-            if (avatar != null)
-                agent.Appearance = avatar.ToAvatarAppearance(account.PrincipalID);  //userService.GetUserAppearance(userProfile.ID);
+            agent.Appearance = scene.AvatarService.GetAppearance(account.PrincipalID);
 
             if (agent.Appearance == null)
             {

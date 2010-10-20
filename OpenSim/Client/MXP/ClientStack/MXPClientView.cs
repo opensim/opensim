@@ -596,7 +596,7 @@ namespace OpenSim.Client.MXP.ClientStack
         public event TeleportLandmarkRequest OnTeleportLandmarkRequest;
         public event DeRezObject OnDeRezObject;
         public event Action<IClientAPI> OnRegionHandShakeReply;
-        public event GenericCall2 OnRequestWearables;
+        public event GenericCall1 OnRequestWearables;
         public event GenericCall1 OnCompleteMovementToRegion;
         public event UpdateAgent OnPreAgentUpdate;
         public event UpdateAgent OnAgentUpdate;
@@ -861,7 +861,7 @@ namespace OpenSim.Client.MXP.ClientStack
             OpenSim.Region.Framework.Scenes.Scene scene=(OpenSim.Region.Framework.Scenes.Scene)Scene;
             AvatarAppearance appearance;
             scene.GetAvatarAppearance(this,out appearance);
-            OnSetAppearance(appearance.Texture, (byte[])appearance.VisualParams.Clone());
+            OnSetAppearance(this, appearance.Texture, (byte[])appearance.VisualParams.Clone());
         }
 
         public void Stop()
