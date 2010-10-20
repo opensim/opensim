@@ -47,6 +47,7 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 using OSD = OpenMetaverse.StructuredData.OSD;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 using OpenSim.Framework.Capabilities;
+using ExtraParamType = OpenMetaverse.ExtraParamType;
 
 namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
 {
@@ -188,25 +189,71 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
                     rootrot = obj.Rotation;
                     
                 }
+
+
                 // Combine the extraparams data into it's ugly blob again....
-                int bytelength = 0;
+                //int bytelength = 0;
+                //for (int extparams = 0; extparams < obj.ExtraParams.Length; extparams++)
+                //{
+                //    bytelength += obj.ExtraParams[extparams].ExtraParamData.Length;
+                //}
+                //byte[] extraparams = new byte[bytelength];
+                //int position = 0;
+
+
+
+                //for (int extparams = 0; extparams < obj.ExtraParams.Length; extparams++)
+                //{
+                //    Buffer.BlockCopy(obj.ExtraParams[extparams].ExtraParamData, 0, extraparams, position,
+                //                     obj.ExtraParams[extparams].ExtraParamData.Length);
+                //
+                //    position += obj.ExtraParams[extparams].ExtraParamData.Length;
+               // }
+
+                //pbs.ExtraParams = extraparams;
                 for (int extparams = 0; extparams < obj.ExtraParams.Length; extparams++)
                 {
-                    bytelength += obj.ExtraParams[extparams].ExtraParamData.Length;
+                    UploadObjectAssetMessage.Object.ExtraParam extraParam = obj.ExtraParams[extparams];
+                    switch ((ushort)extraParam.Type)
+                    {
+                        case (ushort)ExtraParamType.Sculpt:
+                            pbs.SculptEntry = true;
+                            pbs.SculptTexture = obj.SculptID;
+                            pbs.SculptType = (byte)SculptType.Mesh;
+
+                            break;
+                        case (ushort)ExtraParamType.Flexible:
+                            Primitive.FlexibleData flex = new Primitive.FlexibleData(extraParam.ExtraParamData, 0);
+                            pbs.FlexiEntry = true;
+                            pbs.FlexiDrag = flex.Drag;
+                            pbs.FlexiForceX = flex.Force.X;
+                            pbs.FlexiForceY = flex.Force.Y;
+                            pbs.FlexiForceZ = flex.Force.Z;
+                            pbs.FlexiGravity = flex.Gravity;
+                            pbs.FlexiSoftness = flex.Softness;
+                            pbs.FlexiTension = flex.Tension;
+                            pbs.FlexiWind = flex.Wind;
+                            break;
+                        case (ushort)ExtraParamType.Light:
+                            Primitive.LightData light = new Primitive.LightData(extraParam.ExtraParamData, 0);
+                            pbs.LightColorA = light.Color.A;
+                            pbs.LightColorB = light.Color.B;
+                            pbs.LightColorG = light.Color.G;
+                            pbs.LightColorR = light.Color.R;
+                            pbs.LightCutoff = light.Cutoff;
+                            pbs.LightEntry = true;
+                            pbs.LightFalloff = light.Falloff;
+                            pbs.LightIntensity = light.Intensity;
+                            pbs.LightRadius = light.Radius;
+                            break;
+                        case 0x40:
+                            pbs.ReadProjectionData(extraParam.ExtraParamData, 0);
+                            break;
+                       
+                    }
+                    
+                    
                 }
-                byte[] extraparams = new byte[bytelength];
-                int position = 0;
-
-                for (int extparams = 0; extparams < obj.ExtraParams.Length; extparams++)
-                {
-                    Buffer.BlockCopy(obj.ExtraParams[extparams].ExtraParamData, 0, extraparams, position,
-                                     obj.ExtraParams[extparams].ExtraParamData.Length);
-
-                    position += obj.ExtraParams[extparams].ExtraParamData.Length;
-                }
-
-                pbs.ExtraParams = extraparams;
-
                 pbs.PathBegin = (ushort) obj.PathBegin;
                 pbs.PathCurve = (byte) obj.PathCurve;
                 pbs.PathEnd = (ushort) obj.PathEnd;
@@ -269,9 +316,7 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
                 pbs.TextureEntry = tmp.GetBytes();
                 prim.Shape = pbs;
                 prim.Scale = obj.Scale;
-                prim.Shape.SculptEntry = true;
-                prim.Shape.SculptTexture = obj.SculptID;
-                prim.Shape.SculptType = (byte) SculptType.Mesh;
+                
 
                 SceneObjectGroup grp = new SceneObjectGroup();
 
