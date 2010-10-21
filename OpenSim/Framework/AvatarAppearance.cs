@@ -51,7 +51,7 @@ namespace OpenSim.Framework
         protected byte[] m_visualparams;
         protected Primitive.TextureEntry m_texture;
         protected AvatarWearable[] m_wearables;
-        protected Dictionary<int, AvatarAttachment> m_attachments;
+        protected Dictionary<int, List<AvatarAttachment>> m_attachments;
         protected float m_avatarHeight = 0;
         protected float m_hipOffset = 0;
 
@@ -83,11 +83,6 @@ namespace OpenSim.Framework
         {
             get { return m_wearables; }
             set { m_wearables = value; }
-        }
-
-        public virtual Dictionary<int, AvatarAttachment> Attachments
-        {
-            get { return m_attachments; }
         }
 
         public virtual UUID BodyItem {
@@ -246,7 +241,7 @@ namespace OpenSim.Framework
             SetDefaultParams();
             SetHeight();
             
-            m_attachments = new Dictionary<int, AvatarAttachment>();
+            m_attachments = new Dictionary<int, List<AvatarAttachment>>();
         }
         
         public AvatarAppearance(UUID avatarID, OSDMap map)
@@ -284,7 +279,7 @@ namespace OpenSim.Framework
 
             SetHeight();
 
-            m_attachments = new Dictionary<int, AvatarAttachment>();
+            m_attachments = new Dictionary<int, List<AvatarAttachment>>();
         }
 
         public AvatarAppearance(AvatarAppearance appearance)
@@ -302,7 +297,7 @@ namespace OpenSim.Framework
                 SetDefaultParams();
                 SetHeight();
 
-                m_attachments = new Dictionary<int, AvatarAttachment>();
+                m_attachments = new Dictionary<int, List<AvatarAttachment>>();
 
                 return;
             }
@@ -329,9 +324,10 @@ namespace OpenSim.Framework
             if (appearance.VisualParams != null)
                 m_visualparams = (byte[])appearance.VisualParams.Clone();
             
-            m_attachments = new Dictionary<int, AvatarAttachment>();
-            foreach (KeyValuePair<int, AvatarAttachment> kvp in appearance.Attachments)
-                m_attachments[kvp.Key] = new AvatarAttachment(kvp.Value);
+            // Copy the attachment, force append mode since that ensures consistency
+            m_attachments = new Dictionary<int, List<AvatarAttachment>>();
+            foreach (AvatarAttachment attachment in appearance.GetAttachments())
+                AppendAttachment(new AvatarAttachment(attachment));
         }
         
         protected virtual void SetDefaultWearables()
@@ -487,12 +483,41 @@ namespace OpenSim.Framework
         }
 // DEBUG OFF
 
-        public void SetAttachments(AvatarAttachment[] data)
+        /// <summary>
+        /// Get a list of the attachments, note that there may be 
+        /// duplicate attachpoints
+        /// </summary>
+        public List<AvatarAttachment> GetAttachments()
         {
-            foreach (AvatarAttachment attach in data)
-                m_attachments[attach.AttachPoint] = new AvatarAttachment(attach);
+            List<AvatarAttachment> alist = new List<AvatarAttachment>();
+            foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
+            {
+                foreach (AvatarAttachment attach in kvp.Value)
+                    alist.Add(new AvatarAttachment(attach));
+            }
+            
+            return alist;
+        }
+        
+        internal void AppendAttachment(AvatarAttachment attach)
+        {
+            if (! m_attachments.ContainsKey(attach.AttachPoint))
+                m_attachments[attach.AttachPoint] = new List<AvatarAttachment>();
+            m_attachments[attach.AttachPoint].Add(attach);
         }
 
+        internal void ReplaceAttachment(AvatarAttachment attach)
+        {
+            m_attachments[attach.AttachPoint] = new List<AvatarAttachment>();
+            m_attachments[attach.AttachPoint].Add(attach);
+        }
+        
+        /// <summary>
+        /// Add an attachment, if the attachpoint has the 
+        /// 0x80 bit set then we assume this is an append
+        /// operation otherwise we replace whatever is 
+        /// currently attached at the attachpoint
+        /// </summary>
         public void SetAttachment(int attachpoint, UUID item, UUID asset)
         {
             if (attachpoint == 0)
@@ -505,67 +530,47 @@ namespace OpenSim.Framework
                 return;
             }
 
-            m_attachments[attachpoint] = new AvatarAttachment(attachpoint,item,asset);
-        }
-
-        public Hashtable GetAttachments()
-        {
-            if (m_attachments.Count == 0)
-                return null;
-
-            Hashtable ret = new Hashtable();
-
-            foreach (KeyValuePair<int, AvatarAttachment> kvp in m_attachments)
+            // check if this is an append or a replace, 0x80 marks it as an append
+            if ((attachpoint & 0x80) > 0)
             {
-                Hashtable data = new Hashtable();
-                data["item"] = kvp.Value.ItemID.ToString();
-                data["asset"] = kvp.Value.AssetID.ToString();
-
-                ret[kvp.Key] = data;
+                // strip the append bit
+                int point = attachpoint & 0x7F;
+                AppendAttachment(new AvatarAttachment(point, item, asset));
             }
-
-            return ret;
-        }
-
-        public List<int> GetAttachedPoints()
-        {
-            return new List<int>(m_attachments.Keys);
-        }
-
-        public UUID GetAttachedItem(int attachpoint)
-        {
-            if (!m_attachments.ContainsKey(attachpoint))
-                return UUID.Zero;
-
-            return m_attachments[attachpoint].ItemID;
-        }
-
-        public UUID GetAttachedAsset(int attachpoint)
-        {
-            if (!m_attachments.ContainsKey(attachpoint))
-                return UUID.Zero;
-
-            return m_attachments[attachpoint].AssetID;
+            else
+            {
+                ReplaceAttachment(new AvatarAttachment(attachpoint,item,asset));
+            }
         }
 
         public int GetAttachpoint(UUID itemID)
         {
-            foreach (KeyValuePair<int, AvatarAttachment> kvp in m_attachments)
+            foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
             {
-                if (kvp.Value.ItemID == itemID)
-                {
+                int index = kvp.Value.FindIndex(delegate(AvatarAttachment a) { return a.ItemID == itemID; });
+                if (index >= 0)
                     return kvp.Key;
-                }
             }
+
             return 0;
         }
 
         public void DetachAttachment(UUID itemID)
         {
-            int attachpoint = GetAttachpoint(itemID);
+            foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
+            {
+                int index = kvp.Value.FindIndex(delegate(AvatarAttachment a) { return a.ItemID == itemID; });
+                if (index >= 0)
+                {
+                    // Remove it from the list of attachments at that attach point
+                    m_attachments[kvp.Key].RemoveAt(index);
 
-            if (attachpoint > 0)
-                m_attachments.Remove(attachpoint);
+                    // And remove the list if there are no more attachments here
+                    if (m_attachments[kvp.Key].Count == 0)
+                        m_attachments.Remove(kvp.Key);
+                    return;
+                }
+            }
         }
 
         public void ClearAttachments()
@@ -607,8 +612,8 @@ namespace OpenSim.Framework
             
             // Attachments
             OSDArray attachs = new OSDArray(m_attachments.Count);
-            foreach (KeyValuePair<int, AvatarAttachment> kvp in m_attachments)
-                attachs.Add(kvp.Value.Pack());
+            foreach (AvatarAttachment attach in GetAttachments())
+                attachs.Add(attach.Pack());
             data["attachments"] = attachs;
 
             return data;
@@ -675,15 +680,12 @@ namespace OpenSim.Framework
                 }
 
                 // Attachments
-                m_attachments = new Dictionary<int, AvatarAttachment>();
+                m_attachments = new Dictionary<int, List<AvatarAttachment>>();
                 if ((data != null) && (data["attachments"] != null) && (data["attachments"]).Type == OSDType.Array)
                 {
                     OSDArray attachs = (OSDArray)(data["attachments"]);
                     for (int i = 0; i < attachs.Count; i++)
-                    {
-                        AvatarAttachment attach = new AvatarAttachment((OSDMap)attachs[i]);
-                        m_attachments[attach.AttachPoint] = attach;
-                    }
+                        AppendAttachment(new AvatarAttachment((OSDMap)attachs[i]));
                 }
             }
             catch (Exception e)

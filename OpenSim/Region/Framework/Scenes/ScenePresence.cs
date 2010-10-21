@@ -3657,15 +3657,16 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            List<int> attPoints = m_appearance.GetAttachedPoints();
-            foreach (int p in attPoints)
+            List<AvatarAttachment> attachments = m_appearance.GetAttachments();
+            foreach (AvatarAttachment attach in attachments)
             {
                 if (m_isDeleted)
                     return;
 
-                UUID itemID = m_appearance.GetAttachedItem(p);
+                int p = attach.AttachPoint;
+                UUID itemID = attach.ItemID;
 
-                //UUID assetID = m_appearance.GetAttachedAsset(p);
+                //UUID assetID = attach.AssetID;
                 // For some reason assetIDs are being written as Zero's in the DB -- need to track tat down
                 // But they're not used anyway, the item is being looked up for now, so let's proceed.
                 //if (UUID.Zero == assetID) 
