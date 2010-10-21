@@ -43,7 +43,7 @@ namespace OpenSim.Framework
 
     public delegate void TextureRequest(Object sender, TextureRequestArgs e);
 
-    public delegate void AvatarNowWearing(Object sender, AvatarWearingArgs e);
+    public delegate void AvatarNowWearing(IClientAPI sender, AvatarWearingArgs e);
 
     public delegate void ImprovedInstantMessage(IClientAPI remoteclient, GridInstantMessage im);
 
@@ -65,7 +65,7 @@ namespace OpenSim.Framework
 
     public delegate void NetworkStats(int inPackets, int outPackets, int unAckedBytes);
 
-    public delegate void SetAppearance(Primitive.TextureEntry textureEntry, byte[] visualParams);
+    public delegate void SetAppearance(IClientAPI remoteClient, Primitive.TextureEntry textureEntry, byte[] visualParams);
 
     public delegate void StartAnim(IClientAPI remoteClient, UUID animID);
 
@@ -711,7 +711,7 @@ namespace OpenSim.Framework
         event TeleportLandmarkRequest OnTeleportLandmarkRequest;
         event DeRezObject OnDeRezObject;
         event Action<IClientAPI> OnRegionHandShakeReply;
-        event GenericCall2 OnRequestWearables;
+        event GenericCall1 OnRequestWearables;
         event GenericCall1 OnCompleteMovementToRegion;
         event UpdateAgent OnPreAgentUpdate;
         event UpdateAgent OnAgentUpdate;
