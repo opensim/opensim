@@ -8404,6 +8404,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 for (j = 0; j < seplen; j++)
                 {
+                    if (separray[j].ToString() == String.Empty)
+                        active[j] = false;
+
                     if (active[j])
                     {
                         // scan all of the markers
@@ -8432,6 +8435,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     for (j = seplen; (j < mlen) && (offset[best] > beginning); j++)
                     {
+                        if (spcarray[j].ToString() == String.Empty)
+                            active[j] = false;
+
                         if (active[j])
                         {
                             // scan all of the markers
