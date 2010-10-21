@@ -7251,7 +7251,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetLinkPrimitiveParamsFast(int linknumber, LSL_List rules)
         {
-             m_host.AddScriptLPS(1);
+            m_host.AddScriptLPS(1);
 
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
             List<ScenePresence> avatars = GetLinkAvatars(linknumber);
@@ -7318,7 +7318,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
                 }
             }
-
         }
 
         protected void SetPrimParams(SceneObjectPart part, LSL_List rules)
