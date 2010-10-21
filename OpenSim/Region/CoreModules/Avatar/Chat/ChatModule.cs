@@ -167,7 +167,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             // sanity check:
             if (c.Sender == null)
             {
-                m_log.ErrorFormat("[CHAT] OnChatFromClient from {0} has empty Sender field!", sender);
+                m_log.ErrorFormat("[CHAT]: OnChatFromClient from {0} has empty Sender field!", sender);
                 return;
             }
 
@@ -220,17 +220,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             if (message.Length >= 1000) // libomv limit
                 message = message.Substring(0, 1000);
 
-            // m_log.DebugFormat("[CHAT]: DCTA: fromID {0} fromName {1}, cType {2}, sType {3}", fromID, fromName, c.Type, sourceType);
+//            m_log.DebugFormat(
+//                "[CHAT]: DCTA: fromID {0} fromName {1}, region{2}, cType {3}, sType {4}", 
+//                fromID, fromName, scene.RegionInfo.RegionName, c.Type, sourceType);
 
+            HashSet<UUID> receiverIDs = new HashSet<UUID>();
+            
             foreach (Scene s in m_scenes)
             {
                 s.ForEachScenePresence(
                     delegate(ScenePresence presence)
                     {
-                        TrySendChatMessage(presence, fromPos, regionPos, fromID, fromName, c.Type, message, sourceType);
+                        if (TrySendChatMessage(presence, fromPos, regionPos, fromID, fromName, c.Type, message, sourceType))
+                            receiverIDs.Add(presence.UUID);
                     }
                 );
             }
+            
+            (scene as Scene).EventManager.TriggerOnChatToClients(
+                fromID, receiverIDs, message, c.Type, fromPos, fromName, sourceType, ChatAudibleLevel.Fully);            
         }
 
         static private Vector3 CenterOfRegion = new Vector3(128, 128, 30);
@@ -269,6 +277,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             
             // m_log.DebugFormat("[CHAT] Broadcast: fromID {0} fromName {1}, cType {2}, sType {3}", fromID, fromName, cType, sourceType);
 
+            HashSet<UUID> receiverIDs = new HashSet<UUID>();
+            
             ((Scene)c.Scene).ForEachScenePresence(
                 delegate(ScenePresence presence)
                 {
@@ -286,16 +296,32 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                     
                     client.SendChatMessage(c.Message, (byte)cType, CenterOfRegion, fromName, fromID, 
                                            (byte)sourceType, (byte)ChatAudibleLevel.Fully);
+                    receiverIDs.Add(presence.UUID);
                 });
+            
+            (c.Scene as Scene).EventManager.TriggerOnChatToClients(
+                fromID, receiverIDs, c.Message, cType, CenterOfRegion, fromName, sourceType, ChatAudibleLevel.Fully);
         }
 
-
-        protected virtual void TrySendChatMessage(ScenePresence presence, Vector3 fromPos, Vector3 regionPos,
+        /// <summary>
+        /// Try to send a message to the given presence
+        /// </summary>
+        /// <param name="presence">The receiver</param>
+        /// <param name="fromPos"></param>
+        /// <param name="regionPos">/param>
+        /// <param name="fromAgentID"></param>
+        /// <param name="fromName"></param>
+        /// <param name="type"></param>
+        /// <param name="message"></param>
+        /// <param name="src"></param>
+        /// <returns>true if the message was sent to the receiver, false if it was not sent due to failing a 
+        /// precondition</returns>
+        protected virtual bool TrySendChatMessage(ScenePresence presence, Vector3 fromPos, Vector3 regionPos,
                                                   UUID fromAgentID, string fromName, ChatTypeEnum type,
                                                   string message, ChatSourceType src)
         {
             // don't send stuff to child agents
-            if (presence.IsChildAgent) return;
+            if (presence.IsChildAgent) return false;
 
             Vector3 fromRegionPos = fromPos + regionPos;
             Vector3 toRegionPos = presence.AbsolutePosition +
@@ -308,12 +334,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 type == ChatTypeEnum.Say && dis > m_saydistance ||
                 type == ChatTypeEnum.Shout && dis > m_shoutdistance)
             {
-                return;
+                return false;
             }
 
             // TODO: should change so the message is sent through the avatar rather than direct to the ClientView
             presence.ControllingClient.SendChatMessage(message, (byte) type, fromPos, fromName,
-                                                       fromAgentID,(byte)src,(byte)ChatAudibleLevel.Fully);
+                                                       fromAgentID, (byte)src, (byte)ChatAudibleLevel.Fully);
+            
+            return true;
         }
     }
 }
