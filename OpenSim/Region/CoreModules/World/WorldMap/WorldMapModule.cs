@@ -147,7 +147,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             string regionimage = "regionImage" + m_scene.RegionInfo.RegionID.ToString();
             regionimage = regionimage.Replace("-", "");
-            m_log.Info("[WORLD MAP]: JPEG Map location: http://" + m_scene.RegionInfo.ExternalEndPoint.Address.ToString() + ":" + m_scene.RegionInfo.HttpPort.ToString() + "/index.php?method=" + regionimage);
+            m_log.Info("[WORLD MAP]: JPEG Map location: " + m_scene.RegionInfo.ServerURI + "/index.php?method=" + regionimage);
 
             MainServer.Instance.AddHTTPHandler(regionimage, OnHTTPGetMapImage);
             MainServer.Instance.AddLLSDHandler(
@@ -579,7 +579,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                 if (mreg != null)
                 {
-                    httpserver = "http://" + mreg.ExternalEndPoint.Address.ToString() + ":" + mreg.HttpPort + "/MAP/MapItems/" + regionhandle.ToString();
+                    httpserver = mreg.ServerURI + "MAP/MapItems/" + regionhandle.ToString();
                     lock (m_cachedRegionMapItemsAddress)
                     {
                         if (!m_cachedRegionMapItemsAddress.ContainsKey(regionhandle))

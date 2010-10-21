@@ -598,7 +598,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             try
             {
 
-                XmlRpcResponse GridResp = GridReq.Send("http://" + reginfo.ExternalHostName + ":" + reginfo.HttpPort, 3000);
+                XmlRpcResponse GridResp = GridReq.Send(reginfo.ServerURI, 3000);
 
                 Hashtable responseData = (Hashtable)GridResp.Value;
 
@@ -620,8 +620,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             }
             catch (WebException e)
             {
-                m_log.ErrorFormat("[GRID INSTANT MESSAGE]: Error sending message to http://{0}:{1} the host didn't respond ({2})", 
-                                  reginfo.ExternalHostName, reginfo.HttpPort, e.Message);
+                m_log.ErrorFormat("[GRID INSTANT MESSAGE]: Error sending message to {0}} the host didn't respond ({2})", 
+                                  reginfo.ServerURI, e.Message);
             }
 
             return false;

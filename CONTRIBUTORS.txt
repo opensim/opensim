@@ -167,6 +167,7 @@ This software uses components from the following developers:
 * GlynnTucker.Cache (http://gtcache.sourceforge.net/)
 * NDesk.Options 0.2.1 (http://www.ndesk.org/Options)
 * Json.NET 3.5 Release 6.  The binary used is actually Newtonsoft.Json.Net20.dll for Mono 2.4 compatability (http://james.newtonking.com/projects/json-net.aspx)
+* zlib.net for C# 1.0.4 (http://www.componentace.com/zlib_.NET.htm)
 
 Some plugins are based on Cable Beach
 Cable Beach is Copyright (c) 2008 Intel Corporation

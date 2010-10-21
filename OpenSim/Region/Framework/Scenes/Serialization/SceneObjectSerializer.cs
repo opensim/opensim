@@ -318,6 +318,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("CollisionSound", ProcessCollisionSound);
             m_SOPXmlProcessors.Add("CollisionSoundVolume", ProcessCollisionSoundVolume);
             m_SOPXmlProcessors.Add("MediaUrl", ProcessMediaUrl);
+            m_SOPXmlProcessors.Add("TextureAnimation", ProcessTextureAnimation);
+            m_SOPXmlProcessors.Add("ParticleSystem", ProcessParticleSystem);
             #endregion
 
             #region TaskInventoryXmlProcessors initialization
@@ -662,6 +664,16 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessMediaUrl(SceneObjectPart obj, XmlTextReader reader)
         {
             obj.MediaUrl = reader.ReadElementContentAsString("MediaUrl", String.Empty);
+        }
+
+        private static void ProcessTextureAnimation(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.TextureAnimation = Convert.FromBase64String(reader.ReadElementContentAsString("TextureAnimation", String.Empty));
+        }
+
+        private static void ProcessParticleSystem(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.ParticleSystem = Convert.FromBase64String(reader.ReadElementContentAsString("ParticleSystem", String.Empty));
         }
         #endregion
 
@@ -1128,6 +1140,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("CollisionSoundVolume", sop.CollisionSoundVolume.ToString());
             if (sop.MediaUrl != null)
                 writer.WriteElementString("MediaUrl", sop.MediaUrl.ToString());
+            WriteBytes(writer, "TextureAnimation", sop.TextureAnimation);
+            WriteBytes(writer, "ParticleSystem", sop.ParticleSystem);
 
             writer.WriteEndElement();
         }
@@ -1159,6 +1173,19 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("Z", quat.Z.ToString(Utils.EnUsCulture));
             writer.WriteElementString("W", quat.W.ToString(Utils.EnUsCulture));
             writer.WriteEndElement();
+        }
+
+        static void WriteBytes(XmlTextWriter writer, string name, byte[] data)
+        {
+            writer.WriteStartElement(name);
+            byte[] d;
+            if (data != null)
+                d = data;
+            else
+                d = Utils.EmptyBytes;
+            writer.WriteBase64(d, 0, d.Length);
+            writer.WriteEndElement(); // name
+
         }
 
         static void WriteTaskInventory(XmlTextWriter writer, TaskInventoryDictionary tinv, Dictionary<string, object> options)
@@ -1398,9 +1425,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             Vector3 vec;
 
             reader.ReadStartElement(name);
-            vec.X = reader.ReadElementContentAsFloat("X", String.Empty);
-            vec.Y = reader.ReadElementContentAsFloat("Y", String.Empty);
-            vec.Z = reader.ReadElementContentAsFloat("Z", String.Empty);
+            vec.X = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // X or x
+            vec.Y = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // Y or Y
+            vec.Z = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // Z or z
             reader.ReadEndElement();
 
             return vec;
@@ -1408,13 +1435,28 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         static Quaternion ReadQuaternion(XmlTextReader reader, string name)
         {
-            Quaternion quat;
+            Quaternion quat = new Quaternion();
 
             reader.ReadStartElement(name);
-            quat.X = reader.ReadElementContentAsFloat("X", String.Empty);
-            quat.Y = reader.ReadElementContentAsFloat("Y", String.Empty);
-            quat.Z = reader.ReadElementContentAsFloat("Z", String.Empty);
-            quat.W = reader.ReadElementContentAsFloat("W", String.Empty);
+            while (reader.NodeType != XmlNodeType.EndElement)
+            {
+                switch (reader.Name.ToLower())
+                {
+                    case "x":
+                        quat.X = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+                        break;
+                    case "y":
+                        quat.Y = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+                        break;
+                    case "z":
+                        quat.Z = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+                        break;
+                    case "w":
+                        quat.W = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+                        break;
+                }
+            }
+
             reader.ReadEndElement();
 
             return quat;
