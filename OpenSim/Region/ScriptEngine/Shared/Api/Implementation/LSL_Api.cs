@@ -6892,7 +6892,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetLinkPrimitiveParamsFast(int linknumber, LSL_List rules)
         {
-            llSetLinkPrimitiveParams(linknumber, rules);
+            m_host.AddScriptLPS(1);
+
+            List<SceneObjectPart> parts = GetLinkParts(linknumber);
+
+            foreach (SceneObjectPart part in parts)
+                SetPrimParams(part, rules);
         }
 
         protected void SetPrimParams(SceneObjectPart part, LSL_List rules)
