@@ -83,7 +83,6 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         // private int m_stipend = 1000;
 
-//        private int ObjectCapacity = 45000;
         private int ObjectCount = 0;
         private int PriceEnergyUnit = 0;
         private int PriceGroupCreate = 0;
@@ -135,7 +134,6 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         public void AddRegion(Scene scene)
         {
-            // Send ObjectCapacity to Scene..  Which sends it to the SimStatsReporter.
             if (m_enabled)
             {
                 scene.RegisterModuleInterface<IMoneyModule>(this);
