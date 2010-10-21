@@ -127,7 +127,7 @@ namespace OpenSim.Services.GridService
             if (MainConsole.Instance != null)
             {
                 MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region",
-                    "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
+                    "link-region <Xloc> <Yloc> <RegionIP> <RegionPort> [<RegionServerURI] [<RemoteRegionName>] <cr>",
                     "Link a hypergrid region", RunCommand);
                 MainConsole.Instance.Commands.AddCommand("hypergrid", false, "unlink-region",
                     "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
@@ -198,11 +198,7 @@ namespace OpenSim.Services.GridService
 
             return null;
         }
-
-
-        // From the command line and the 2 above
-        public bool TryCreateLink(UUID scopeID, int xloc, int yloc,
-            string externalRegionName, uint externalPort, string externalHostName, out GridRegion regInfo, out string reason)
+        public bool TryCreateLink(UUID scopeID, int xloc, int yloc, string externalRegionName, uint externalPort, string externalHostName, out GridRegion regInfo, out string reason)
         {
             m_log.DebugFormat("[HYPERGRID LINKER]: Link to {0}:{1}:{2}, in {3}-{4}", externalHostName, externalPort, externalRegionName, xloc, yloc);
 
@@ -217,8 +213,11 @@ namespace OpenSim.Services.GridService
 
             // Big HACK for Simian Grid !!!
             // We need to clean up all URLs used in OpenSim !!!
-            if (externalHostName.Contains("/"))
+            if (externalHostName.Contains("/")) {
                 regInfo.ServerURI = externalHostName;
+            } else {
+                regInfo.ServerURI = "http://" + externalHostName + ":" + externalPort.ToString();
+            }
 
             try
             {
@@ -509,12 +508,16 @@ namespace OpenSim.Services.GridService
                     int xloc, yloc;
                     uint externalPort;
                     string externalHostName;
+                    string serverURI;
                     try
                     {
                         xloc = Convert.ToInt32(cmdparams[0]);
                         yloc = Convert.ToInt32(cmdparams[1]);
                         externalPort = Convert.ToUInt32(cmdparams[3]);
                         externalHostName = cmdparams[2];
+                        if ( cmdparams.Length == 4 ) {
+                            
+                        }
                         //internalPort = Convert.ToUInt32(cmdparams[4]);
                         //remotingPort = Convert.ToUInt32(cmdparams[5]);
                     }

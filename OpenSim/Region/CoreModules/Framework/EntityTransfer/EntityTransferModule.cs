@@ -327,43 +327,21 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 // OK, it got this agent. Let's close some child agents
                 sp.CloseChildAgents(newRegionX, newRegionY);
-
+                IClientIPEndpoint ipepClient;  
                 if (NeedsNewAgent(oldRegionX, newRegionX, oldRegionY, newRegionY))
                 {
                     //sp.ControllingClient.SendTeleportProgress(teleportFlags, "Creating agent...");
-
                     #region IP Translation for NAT
-                    IClientIPEndpoint ipepClient;
+                    // Uses ipepClient above
                     if (sp.ClientView.TryGet(out ipepClient))
                     {
-                        capsPath
-                            = "http://"
-                              + NetworkUtil.GetHostFor(ipepClient.EndPoint, finalDestination.ExternalHostName)
-                              + ":"
-                              + finalDestination.HttpPort
-                              + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
-                    }
-                    else
-                    {
-                        capsPath
-                            = "http://"
-                              + finalDestination.ExternalHostName
-                              + ":"
-                              + finalDestination.HttpPort
-                              + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
+                        endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
                     }
                     #endregion
+                    capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
 
                     if (eq != null)
                     {
-                        #region IP Translation for NAT
-                        // Uses ipepClient above
-                        if (sp.ClientView.TryGet(out ipepClient))
-                        {
-                            endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
-                        }
-                        #endregion
-
                         eq.EnableSimulator(destinationHandle, endPoint, sp.UUID);
 
                         // ES makes the client send a UseCircuitCode message to the destination, 
@@ -382,8 +360,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 else
                 {
                     agentCircuit.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, reg.RegionHandle);
-                    capsPath = "http://" + finalDestination.ExternalHostName + ":" + finalDestination.HttpPort
-                                + "/CAPS/" + agentCircuit.CapsPath + "0000/";
+                    capsPath = finalDestination.ServerURI + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
                 }
 
                 // Expect avatar crossing is a heavy-duty function at the destination.
@@ -516,8 +493,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected virtual void SetCallbackURL(AgentData agent, RegionInfo region)
         {
-            agent.CallbackURI = "http://" + region.ExternalHostName + ":" + region.HttpPort +
-                "/agent/" + agent.AgentID.ToString() + "/" + region.RegionID.ToString() + "/release/";
+            agent.CallbackURI = region.ServerURI + "agent/" + agent.AgentID.ToString() + "/" + region.RegionID.ToString() + "/release/";
+            m_log.Debug("Set callback URL to " + agent.CallbackURI);
 
         }
 
@@ -842,8 +819,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 cAgent.Position = pos;
                 if (isFlying)
                     cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
-                cAgent.CallbackURI = "http://" + m_scene.RegionInfo.ExternalHostName + ":" + m_scene.RegionInfo.HttpPort +
-                    "/agent/" + agent.UUID.ToString() + "/" + m_scene.RegionInfo.RegionID.ToString() + "/release/";
+                cAgent.CallbackURI = m_scene.RegionInfo.ServerURI +
+                    "agent/" + agent.UUID.ToString() + "/" + m_scene.RegionInfo.RegionID.ToString() + "/release/";
 
                 if (!m_scene.SimulationService.UpdateAgent(neighbourRegion, cAgent))
                 {
@@ -868,10 +845,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                      neighbourRegion.RegionHandle);
                     return agent;
                 }
-                // TODO Should construct this behind a method
-                string capsPath =
-                    "http://" + neighbourRegion.ExternalHostName + ":" + neighbourRegion.HttpPort
-                     + "/CAPS/" + agentcaps /*circuitdata.CapsPath*/ + "0000/";
+                string capsPath = neighbourRegion.ServerURI + CapsUtil.GetCapsSeedPath(agentcaps);
 
                 m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, agent.UUID);
 
@@ -1190,8 +1164,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             y = y / Constants.RegionSize;
             m_log.Info("[ENTITY TRANSFER MODULE]: Starting to inform client about neighbour " + x + ", " + y + "(" + endPoint.ToString() + ")");
 
-            string capsPath = "http://" + reg.ExternalHostName + ":" + reg.HttpPort
-                  + "/CAPS/" + a.CapsPath + "0000/";
+            string capsPath = reg.ServerURI + CapsUtil.GetCapsSeedPath(a.CapsPath);
 
             string reason = String.Empty;
 

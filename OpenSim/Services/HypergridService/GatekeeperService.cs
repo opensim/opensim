@@ -157,7 +157,7 @@ namespace OpenSim.Services.HypergridService
             string regionimage = "regionImage" + region.RegionID.ToString();
             regionimage = regionimage.Replace("-", "");
 
-            imageURL = "http://" + region.ExternalHostName + ":" + region.HttpPort + "/index.php?method=" + regionimage;
+            imageURL = region.ServerURI + "index.php?method=" + regionimage;
 
             return true;
         }
