@@ -8435,7 +8435,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     for (j = seplen; (j < mlen) && (offset[best] > beginning); j++)
                     {
-                        if (spcarray[j].ToString() == String.Empty)
+                        if (spcarray[j-seplen].ToString() == String.Empty)
                             active[j] = false;
 
                         if (active[j])
