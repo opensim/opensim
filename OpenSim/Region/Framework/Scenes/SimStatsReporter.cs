@@ -108,7 +108,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_activeScripts = 0;
         private int m_scriptLinesPerSecond = 0;
 
-        private int objectCapacity = 45000;
+        private int m_objectCapacity = 45000;
 
         private Scene m_scene;
 
@@ -124,6 +124,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene = scene;
             ReportingRegion = scene.RegionInfo;
 
+            m_objectCapacity = scene.RegionInfo.ObjectCapacity;
             m_report.AutoReset = true;
             m_report.Interval = statsUpdatesEveryMS;
             m_report.Elapsed += new ElapsedEventHandler(statsHeartBeat);
@@ -271,7 +272,7 @@ namespace OpenSim.Region.Framework.Scenes
               
                 SimStats simStats 
                     = new SimStats(
-                        ReportingRegion.RegionLocX, ReportingRegion.RegionLocY, regionFlags, (uint)objectCapacity, rb, sb, m_scene.RegionInfo.originRegionID);
+                        ReportingRegion.RegionLocX, ReportingRegion.RegionLocY, regionFlags, (uint)m_objectCapacity, rb, sb, m_scene.RegionInfo.originRegionID);
 
                 handlerSendStatResult = OnSendStatsResult;
                 if (handlerSendStatResult != null)
@@ -433,11 +434,6 @@ namespace OpenSim.Region.Framework.Scenes
         public void SetActiveScripts(int count)
         {
             m_activeScripts = count;
-        }
-
-        public void SetObjectCapacity(int objects)
-        {
-            objectCapacity = objects;
         }
 
         /// <summary>

@@ -599,8 +599,6 @@ namespace OpenSim.Region.Framework.Scenes
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
 
-            StatsReporter.SetObjectCapacity(RegionInfo.ObjectCapacity);
-
             // Old
             /*
             m_simulatorVersion = simulatorVersion
