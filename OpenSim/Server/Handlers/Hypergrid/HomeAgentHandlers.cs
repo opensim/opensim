@@ -124,6 +124,8 @@ namespace OpenSim.Server.Handlers.Hypergrid
             UUID uuid = UUID.Zero;
             string regionname = string.Empty;
             string gatekeeper_host = string.Empty;
+            string gatekeeper_serveruri = string.Empty;
+            string destination_serveruri = string.Empty;
             int gatekeeper_port = 0;
             IPEndPoint client_ipaddress = null;
 
@@ -131,8 +133,13 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 gatekeeper_host = args["gatekeeper_host"].AsString();
             if (args.ContainsKey("gatekeeper_port") && args["gatekeeper_port"] != null)
                 Int32.TryParse(args["gatekeeper_port"].AsString(), out gatekeeper_port);
+            if (args.ContainsKey("gatekeeper_serveruri") && args["gatekeeper_serveruri"] !=null)
+                gatekeeper_serveruri = args["gatekeeper_serveruri"];
+            if (args.ContainsKey("destination_serveruri") && args["destination_serveruri"] !=null)
+                destination_serveruri = args["destination_serveruri"];
 
             GridRegion gatekeeper = new GridRegion();
+            gatekeeper.ServerURI = gatekeeper_serveruri;
             gatekeeper.ExternalHostName = gatekeeper_host;
             gatekeeper.HttpPort = (uint)gatekeeper_port;
             gatekeeper.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
@@ -173,7 +180,8 @@ namespace OpenSim.Server.Handlers.Hypergrid
             destination.RegionLocX = x;
             destination.RegionLocY = y;
             destination.RegionName = regionname;
-
+            destination.ServerURI = destination_serveruri;
+            
             AgentCircuitData aCircuit = new AgentCircuitData();
             try
             {
