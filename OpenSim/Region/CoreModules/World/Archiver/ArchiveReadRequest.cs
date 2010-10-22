@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         /// <summary>
-        /// The maximum major version of OAR that we can read.  Minor versions shouldn't need a number since version
+        /// The maximum major version of OAR that we can read.  Minor versions shouldn't need a max number since version
         /// bumps here should be compatible.
         /// </summary>
         public static int MAX_MAJOR_VERSION = 0;
@@ -481,17 +481,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         /// <param name="path"></param>
         /// <param name="data"></param>
-        private void LoadControlFile(string path, byte[] data)
+        protected void LoadControlFile(string path, byte[] data)
         {
-            //Create the XmlNamespaceManager.
-            NameTable nt = new NameTable();
-            XmlNamespaceManager nsmgr = new XmlNamespaceManager(nt);
-
-            // Create the XmlParserContext.
+            XmlNamespaceManager nsmgr = new XmlNamespaceManager(new NameTable());
             XmlParserContext context = new XmlParserContext(null, nsmgr, null, XmlSpace.None);
-
-            XmlTextReader xtr 
-                = new XmlTextReader(Encoding.ASCII.GetString(data), XmlNodeType.Document, context);
+            XmlTextReader xtr = new XmlTextReader(Encoding.ASCII.GetString(data), XmlNodeType.Document, context);
 
             RegionSettings currentRegionSettings = m_scene.RegionInfo.RegionSettings;
 
@@ -530,7 +524,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         currentRegionSettings.LoadedCreationID = xtr.ReadElementContentAsString();
                     }
                 }
-
             }
             
             currentRegionSettings.Save();
