@@ -33,6 +33,7 @@ using System.Reflection;
 using System.Threading;
 using System.Text;
 using System.Xml;
+using System.Xml.Linq;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -133,7 +134,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                 while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
                 {
-                    if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
+                    if (filePath == ArchiveConstants.CONTROL_FILE_PATH)
+                    {
+                        LoadControlFile(filePath, data);
+                    }                    
+                    else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                     {
                         if (LoadAsset(filePath, data))
                             successfulAssetRestores++;
@@ -460,6 +465,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                 return false;
             }
+        }
+        
+        /// <summary>
+        /// Load control file
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="data"></param>
+        protected void LoadControlFile(string path, byte[] data)
+        {                           
+            XDocument doc = XDocument.Parse(Encoding.ASCII.GetString(data));
+            XElement archiveElement = doc.Element("archive");
+            int.Parse(archiveElement.Attribute("major_version").Value);
+            int.Parse(archiveElement.Attribute("minor_version").Value);                
         }
     }
 }
