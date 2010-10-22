@@ -348,7 +348,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             try
             {
-                //m_log.Debug("[BASE HTTP SERVER]: Handling request to " + request.RawUrl);
+                m_log.Debug("[BASE HTTP SERVER]: Handling request to " + request.RawUrl);
 
                 Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US", true);
 
@@ -376,11 +376,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                 string path = request.RawUrl;
                 string handlerKey = GetHandlerKey(request.HttpMethod, path);
 
-                //m_log.DebugFormat("[BASE HTTP SERVER]: Handling {0} request for {1}", request.HttpMethod, path);
+                m_log.DebugFormat("[BASE HTTP SERVER]: Handling {0} request for {1}", request.HttpMethod, path);
 
                 if (TryGetStreamHandler(handlerKey, out requestHandler))
                 {
-                    //m_log.Debug("[BASE HTTP SERVER]: Found Stream Handler");
+                    m_log.Debug("[BASE HTTP SERVER]: Found Stream Handler");
                     // Okay, so this is bad, but should be considered temporary until everything is IStreamHandler.
                     byte[] buffer = null;
 
@@ -395,7 +395,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     }
                     else if (requestHandler is IGenericHTTPHandler)
                     {
-                        //m_log.Debug("[BASE HTTP SERVER]: Found Caps based HTTP Handler");
+                        m_log.Debug("[BASE HTTP SERVER]: Found Caps based HTTP Handler");
                         IGenericHTTPHandler HTTPRequestHandler = requestHandler as IGenericHTTPHandler;
                         Stream requestStream = request.InputStream;
 
@@ -422,7 +422,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                         foreach (string headername in rHeaders)
                         {
-                            //m_log.Warn("[HEADER]: " + headername + "=" + request.Headers[headername]);
+                            m_log.Warn("[HEADER]: " + headername + "=" + request.Headers[headername]);
                             headervals[headername] = request.Headers[headername];
                         }
 
