@@ -123,9 +123,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if ((flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0)
             {
                 m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Destination region {0} is hyperlink", region.RegionID);
-                GridRegion real_destination = m_GatekeeperConnector.GetHyperlinkRegion(region, region.RegionID);
-                m_log.Debug("GetfinalDestination serveruri -> " + real_destination.ServerURI);
-                return real_destination;
+                return m_GatekeeperConnector.GetHyperlinkRegion(region, region.RegionID);
             }
             return region;
         }
@@ -151,7 +149,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected override bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason, out bool logout)
         {
-            m_log.Debug("CreateAgent " + reg.ServerURI + " " + finalDestination.ServerURI);
             reason = string.Empty;
             logout = false;
             int flags = m_aScene.GridService.GetRegionFlags(m_aScene.RegionInfo.ScopeID, reg.RegionID);

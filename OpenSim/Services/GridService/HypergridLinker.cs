@@ -126,12 +126,11 @@ namespace OpenSim.Services.GridService
 
             if (MainConsole.Instance != null)
             {
-                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region", "link-region <Xloc> <Yloc> <ServerURI> [<RemoteRegionName>]", "Link a HyperGrid Region", RunCommand);
-                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "legacy-link-region",
-                    "legacy-link-region <Xloc> <Yloc> <RegionIP> <RegionPort> [<RemoteRegionName>]",
-                    "Link a hypergrid region (deprecated)", RunCommand);
+                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region",
+                    "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
+                    "Link a hypergrid region", RunCommand);
                 MainConsole.Instance.Commands.AddCommand("hypergrid", false, "unlink-region",
-                    "unlink-region <local name>",
+                    "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
                     "Unlink a hypergrid region", RunCommand);
                 MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-mapping", "link-mapping [<x> <y>] <cr>",
                     "Set local coordinate to map HG regions to", RunCommand);
@@ -199,32 +198,27 @@ namespace OpenSim.Services.GridService
 
             return null;
         }
-                
-        public bool TryCreateLink(UUID scopeID, int xloc, int yloc, string externalRegionName, uint externalPort, string externalHostName, out GridRegion regInfo, out string reason)
-        {
-            return TryCreateLink(scopeID, xloc, yloc, externalRegionName, externalPort, externalHostName, null, out regInfo, out reason);
-        }
-        
-        public bool TryCreateLink(UUID scopeID, int xloc, int yloc, string externalRegionName, uint externalPort, string externalHostName, string serverURI, out GridRegion regInfo, out string reason)
+
+
+        // From the command line and the 2 above
+        public bool TryCreateLink(UUID scopeID, int xloc, int yloc,
+            string externalRegionName, uint externalPort, string externalHostName, out GridRegion regInfo, out string reason)
         {
             m_log.DebugFormat("[HYPERGRID LINKER]: Link to {0}:{1}:{2}, in {3}-{4}", externalHostName, externalPort, externalRegionName, xloc, yloc);
 
             reason = string.Empty;
             regInfo = new GridRegion();
-            if ( externalPort > 0)
-                regInfo.HttpPort = externalPort;
-            else
-                regInfo.HttpPort = 0;
-            if ( externalHostName != null)
-                regInfo.ExternalHostName = externalHostName;
-            else
-                regInfo.ExternalHostName = "0.0.0.0";
-            if ( serverURI != null)
-                regInfo.ServerURI = serverURI;
-                
+            regInfo.RegionName = externalRegionName;
+            regInfo.HttpPort = externalPort;
+            regInfo.ExternalHostName = externalHostName;
             regInfo.RegionLocX = xloc;
             regInfo.RegionLocY = yloc;
             regInfo.ScopeID = scopeID;
+
+            // Big HACK for Simian Grid !!!
+            // We need to clean up all URLs used in OpenSim !!!
+            if (externalHostName.Contains("/"))
+                regInfo.ServerURI = externalHostName;
 
             try
             {
@@ -256,14 +250,9 @@ namespace OpenSim.Services.GridService
                 }
 
                 regInfo.RegionID = regionID;
+                if (regInfo.RegionName == string.Empty)
+                    regInfo.RegionName = regInfo.ExternalHostName;
 
-                if ( externalName == string.Empty )
-                    regInfo.RegionName = regInfo.ServerURI;
-                else
-                    regInfo.RegionName = externalName;
-
-                m_log.Debug("naming linked region " + regInfo.RegionName);
-                
                 // Try get the map image
                 //regInfo.TerrainImage = m_GatekeeperConnector.GetMapImage(regionID, imageURL);
                 // I need a texture that works for this... the one I tried doesn't seem to be working
@@ -445,21 +434,6 @@ namespace OpenSim.Services.GridService
             RunHGCommand(command, cmdparams);
 
         }
-        
-        private void RunLinkRegionCommand(string[] cmdparams)
-        {
-            int xloc, yloc;
-            string serverURI;
-            string remoteName = null;
-            xloc = Convert.ToInt32(cmdparams[0]) * (int)Constants.RegionSize;
-            yloc = Convert.ToInt32(cmdparams[1]) * (int)Constants.RegionSize;
-            serverURI = cmdparams[2];
-            if (cmdparams.Length == 4)
-                remoteName = cmdparams[3];
-            string reason = string.Empty;
-            GridRegion regInfo;
-            TryCreateLink(UUID.Zero, xloc, yloc, remoteName, 0, null, serverURI, out regInfo, out reason);
-        }
 
         private void RunHGCommand(string command, string[] cmdparams)
         {
@@ -482,18 +456,6 @@ namespace OpenSim.Services.GridService
                 }
             }
             else if (command.Equals("link-region"))
-            {
-                if (cmdparams.Length > 0 && cmdparams.Length < 5)
-                {
-                    RunLinkRegionCommand(cmdparams);
-                } 
-                else
-                {
-                    LinkRegionCmdUsage();
-                }
-                return;
-            }
-            else if (command.Equals("legacy-link-region"))
             {
                 if (cmdparams.Length < 3)
                 {
@@ -547,16 +509,12 @@ namespace OpenSim.Services.GridService
                     int xloc, yloc;
                     uint externalPort;
                     string externalHostName;
-                    string serverURI;
                     try
                     {
                         xloc = Convert.ToInt32(cmdparams[0]);
                         yloc = Convert.ToInt32(cmdparams[1]);
                         externalPort = Convert.ToUInt32(cmdparams[3]);
                         externalHostName = cmdparams[2];
-                        if ( cmdparams.Length == 4 ) {
-                            
-                        }
                         //internalPort = Convert.ToUInt32(cmdparams[4]);
                         //remotingPort = Convert.ToUInt32(cmdparams[5]);
                     }
