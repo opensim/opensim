@@ -2925,7 +2925,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ChildAgentDataUpdate(AgentData cAgentData)
         {
-            //m_log.Debug("   >>> ChildAgentDataUpdate <<< " + Scene.RegionInfo.RegionName);
+            m_log.Debug("   >>> ChildAgentDataUpdate <<< " + Scene.RegionInfo.RegionName);
             if (!IsChildAgent)
                 return;
 
@@ -2976,6 +2976,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void CopyTo(AgentData cAgent)
         {
+            cAgent.CallbackURI = m_callbackURI;
+            
             cAgent.AgentID = UUID;
             cAgent.RegionID = Scene.RegionInfo.RegionID;
 

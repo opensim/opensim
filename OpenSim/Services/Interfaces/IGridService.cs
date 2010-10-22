@@ -115,8 +115,20 @@ namespace OpenSim.Services.Interfaces
         /// </summary>
         public string ServerURI
         {
-            get { return m_serverURI; }
-            set { m_serverURI = value; }
+            get { 
+                if ( m_serverURI != string.Empty ) {
+                    return m_serverURI;
+                } else {
+                    return "http://" + m_externalHostName + ":" + m_httpPort + "/";
+                }
+            }
+            set { 
+                if ( value.EndsWith("/") ) {
+                    m_serverURI = value;
+                } else {
+                    m_serverURI = value + '/';
+                }
+            }
         }
         protected string m_serverURI;
 
@@ -164,6 +176,7 @@ namespace OpenSim.Services.Interfaces
 
         public GridRegion()
         {
+            m_serverURI = string.Empty;
         }
 
         public GridRegion(int regionLocX, int regionLocY, IPEndPoint internalEndPoint, string externalUri)
