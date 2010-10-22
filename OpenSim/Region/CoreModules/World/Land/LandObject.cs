@@ -290,28 +290,16 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool HasGroupAccess(UUID avatar)
         {
-            if ((LandData.Flags & (uint)ParcelFlags.UseAccessGroup) == (uint)ParcelFlags.UseAccessGroup)
+            if (LandData.GroupID != UUID.Zero && (LandData.Flags & (uint)ParcelFlags.UseAccessGroup) == (uint)ParcelFlags.UseAccessGroup)
             {
-                IGroupsModule groupsModule =
-                        m_scene.RequestModuleInterface<IGroupsModule>();
+                ScenePresence sp;
+                if (!m_scene.TryGetScenePresence(avatar, out sp))
+                    return false;
 
-                List<UUID> agentGroups = new List<UUID>();
-                if (groupsModule != null)
-                {
-                    GroupMembershipData[] GroupMembership =
-                            groupsModule.GetMembershipData(avatar);
-
-                    if (GroupMembership != null)
-                    {
-                        for (int i = 0; i < GroupMembership.Length; i++)
-                        {
-                            if (LandData.GroupID == GroupMembership[i].GroupID)
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                }
+                if (!sp.ControllingClient.IsGroupMember(LandData.GroupID))
+                    return false;
+                
+                return true;
             }
             return false;
         }
