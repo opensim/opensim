@@ -197,8 +197,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             sp.ControllingClient.SendTeleportFailed("Problem at destination");
                             return;
                         }
-                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Final destination is x={0} y={1} uuid={2}",
-                            finalDestination.RegionLocX / Constants.RegionSize, finalDestination.RegionLocY / Constants.RegionSize, finalDestination.RegionID);
+                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Final destination is x={0} y={1} {2}@{3}",
+                            finalDestination.RegionLocX / Constants.RegionSize, finalDestination.RegionLocY / Constants.RegionSize, finalDestination.RegionID, finalDestination.ServerURI);
 
                         // Check that these are not the same coordinates
                         if (finalDestination.RegionLocX == sp.Scene.RegionInfo.RegionLocX &&
@@ -254,8 +254,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             m_log.DebugFormat(
-                "[ENTITY TRANSFER MODULE]: Request Teleport to {0}:{1}:{2}/{3}",
-                reg.ExternalHostName, reg.HttpPort, finalDestination.RegionName, position);
+                "[ENTITY TRANSFER MODULE]: Request Teleport to {0} ({1}) {2}/{3}",
+                reg.ServerURI, finalDestination.ServerURI, finalDestination.RegionName, position);
 
             uint newRegionX = (uint)(reg.RegionHandle >> 40);
             uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
