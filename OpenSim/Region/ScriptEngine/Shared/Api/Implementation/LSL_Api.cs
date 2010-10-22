@@ -9101,10 +9101,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // do that one last, it will cause a ParcelPropertiesUpdate
                     landObject.SetMediaUrl(url);
 
-                    // now send to all (non-child) agents
+                    // now send to all (non-child) agents in the parcel
                     World.ForEachScenePresence(delegate(ScenePresence sp)
                     {
-                        if (!sp.IsChildAgent)
+                        if (!sp.IsChildAgent && (sp.currentParcelUUID == landData.GlobalID))
                         {
                             sp.ControllingClient.SendParcelMediaUpdate(landData.MediaURL,
                                                                           landData.MediaID,
@@ -9134,10 +9134,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // the commandList contained a start/stop/... command, too
                 if (presence == null)
                 {
-                    // send to all (non-child) agents
+                    // send to all (non-child) agents in the parcel
                     World.ForEachScenePresence(delegate(ScenePresence sp)
                     {
-                        if (!sp.IsChildAgent)
+                        if (!sp.IsChildAgent && (sp.currentParcelUUID == landData.GlobalID))
                         {
                             sp.ControllingClient.SendParcelMediaCommand(0x4, // TODO what is this?
                                                                            (ParcelMediaCommandEnum)commandToSend,
