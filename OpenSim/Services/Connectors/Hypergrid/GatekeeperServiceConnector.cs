@@ -63,12 +63,12 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         protected override string AgentPath()
         {
-            return "foreignagent/";
+            return "/foreignagent/";
         }
 
         protected override string ObjectPath()
         {
-            return "foreignobject/";
+            return "/foreignobject/";
         }
 
         public bool LinkRegion(GridRegion info, out UUID regionID, out ulong realHandle, out string externalName, out string imageURL, out string reason)
@@ -86,11 +86,12 @@ namespace OpenSim.Services.Connectors.Hypergrid
             paramList.Add(hash);
 
             XmlRpcRequest request = new XmlRpcRequest("link_region", paramList);
-            m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: Linking to " + info.ServerURI);
+            string uri = "http://" + ((info.ServerURI != null && info.ServerURI != string.Empty && !info.ServerURI.StartsWith("http:")) ? info.ServerURI : info.ExternalEndPoint.Address + ":" + info.HttpPort + "/");
+            m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: Linking to " + uri);
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(info.ServerURI, 10000);
+                response = request.Send(uri, 10000);
             }
             catch (Exception e)
             {
@@ -107,8 +108,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
 
             hash = (Hashtable)response.Value;
-            foreach (Object o in hash)
-                m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
+            //foreach (Object o in hash)
+            //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
             try
             {
                 bool success = false;
@@ -116,20 +117,16 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 if (success)
                 {
                     UUID.TryParse((string)hash["uuid"], out regionID);
-                    //m_log.Debug(">> HERE, uuid: " + regionID);
+                    //m_log.Debug(">> HERE, uuid: " + uuid);
                     if ((string)hash["handle"] != null)
                     {
                         realHandle = Convert.ToUInt64((string)hash["handle"]);
                         //m_log.Debug(">> HERE, realHandle: " + realHandle);
                     }
-                    if (hash["region_image"] != null) {
+                    if (hash["region_image"] != null)
                         imageURL = (string)hash["region_image"];
-                        //m_log.Debug(">> HERE, imageURL: " + imageURL);
-                    }
-                    if (hash["external_name"] != null) {
+                    if (hash["external_name"] != null)
                         externalName = (string)hash["external_name"];
-                        //m_log.Debug(">> HERE, externalName: " + externalName);
-                    }
                 }
 
             }
@@ -191,15 +188,16 @@ namespace OpenSim.Services.Connectors.Hypergrid
             paramList.Add(hash);
 
             XmlRpcRequest request = new XmlRpcRequest("get_region", paramList);
-            //m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: contacting " + gatekeeper.ServerURI);
+            string uri = "http://" + ((gatekeeper.ServerURI != null && gatekeeper.ServerURI != string.Empty && !gatekeeper.ServerURI.StartsWith("http:")) ? gatekeeper.ServerURI : gatekeeper.ExternalEndPoint.Address + ":" + gatekeeper.HttpPort + "/");
+            m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: contacting " + uri);
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(gatekeeper.ServerURI, 10000);
+                response = request.Send(uri, 10000);
             }
             catch (Exception e)
             {
-                //m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: Exception " + e.Message);
+                m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: Exception " + e.Message);
                 return null;
             }
 
@@ -238,24 +236,21 @@ namespace OpenSim.Services.Connectors.Hypergrid
                     if (hash["region_name"] != null)
                     {
                         region.RegionName = (string)hash["region_name"];
-                        //m_log.Debug(">> HERE, region_name: " + region.RegionName);
+                        //m_log.Debug(">> HERE, name: " + region.RegionName);
                     }
                     if (hash["hostname"] != null)
                         region.ExternalHostName = (string)hash["hostname"];
-                        //m_log.Debug(">> HERE, hostname: " + region.ExternalHostName);
                     if (hash["http_port"] != null)
                     {
                         uint p = 0;
                         UInt32.TryParse((string)hash["http_port"], out p);
                         region.HttpPort = p;
-                        //m_log.Debug(">> HERE, http_port: " + region.HttpPort);
                     }
                     if (hash["internal_port"] != null)
                     {
                         int p = 0;
                         Int32.TryParse((string)hash["internal_port"], out p);
                         region.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), p);
-                        //m_log.Debug(">> HERE, internal_port: " + region.InternalEndPoint);
                     }
 
                     // Successful return

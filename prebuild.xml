@@ -1417,6 +1417,7 @@
       <Reference name="System"/>
       <Reference name="System.Core"/>
       <Reference name="System.Xml"/>
+      <Reference name="System.Xml.Linq"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Web"/>
       <Reference name="NDesk.Options" path="../../../bin/"/>

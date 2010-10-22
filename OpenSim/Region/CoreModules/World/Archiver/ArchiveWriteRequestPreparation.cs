@@ -171,7 +171,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             m_log.InfoFormat("[ARCHIVER]: Creating archive file.  This may take some time.");
 
-            // Write out control file
+            // Write out control file.  This has to be done first so that subsequent loaders will see this file first
+            // XXX: I know this is a weak way of doing it since external non-OAR aware tar executables will not do this
             archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p2ControlFile(options));
             m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
             

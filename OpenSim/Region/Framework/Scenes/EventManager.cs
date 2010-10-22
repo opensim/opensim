@@ -297,6 +297,17 @@ namespace OpenSim.Region.Framework.Scenes
         public event ChatFromClientEvent OnChatFromClient;
         
         /// <summary>
+        /// ChatToClientsEvent is triggered via ChatModule (or
+        /// substitutes thereof) when a chat message is actually sent to clients.  Clients will only be sent a 
+        /// received chat message if they satisfy various conditions (within audible range, etc.)
+        /// </summary>        
+        public delegate void ChatToClientsEvent(
+            UUID senderID, HashSet<UUID> receiverIDs, 
+            string message, ChatTypeEnum type, Vector3 fromPos, string fromName, 
+            ChatSourceType src, ChatAudibleLevel level);
+        public event ChatToClientsEvent OnChatToClients;
+        
+        /// <summary>
         /// ChatBroadcastEvent is called via Scene when a broadcast chat message
         /// from world comes in
         /// </summary>
@@ -1627,6 +1638,30 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
+        
+        public void TriggerOnChatToClients(
+            UUID senderID, HashSet<UUID> receiverIDs, 
+            string message, ChatTypeEnum type, Vector3 fromPos, string fromName, 
+            ChatSourceType src, ChatAudibleLevel level)
+        {
+            ChatToClientsEvent handler = OnChatToClients;
+            if (handler != null)
+            {
+                foreach (ChatToClientsEvent d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(senderID, receiverIDs, message, type, fromPos, fromName, src, level);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnChatToClients failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
+        }        
 
         public void TriggerOnChatBroadcast(Object sender, OSChatMessage chat)
         {
