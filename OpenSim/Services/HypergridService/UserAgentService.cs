@@ -136,7 +136,6 @@ namespace OpenSim.Services.HypergridService
             m_log.DebugFormat("[USER AGENT SERVICE]: Request to login user {0} {1} (@{2}) to grid {3}", 
                 agentCircuit.firstname, agentCircuit.lastname, ((clientIP == null) ? "stored IP" : clientIP.Address.ToString()), 
                 gatekeeper.ExternalHostName +":"+ gatekeeper.HttpPort);
-            m_log.Debug("gatekeeper serveruri -> " + gatekeeper.ServerURI );
 
             // Take the IP address + port of the gatekeeper (reg) plus the info of finalDestination
             GridRegion region = new GridRegion(gatekeeper);

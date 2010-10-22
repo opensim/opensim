@@ -198,7 +198,20 @@ namespace OpenSim.Services.GridService
 
             return null;
         }
+
+        public bool TryCreateLink(UUID scopeID, int xloc, int yloc, string externalRegionName, string serverURI, out GridRegion regInfo, out string reason)
+        {
+            return TryCreateLink(scopeID, xloc, yloc, externalRegionName, 0, null, serverURI, out regInfo, out reason);
+        }
+
         public bool TryCreateLink(UUID scopeID, int xloc, int yloc, string externalRegionName, uint externalPort, string externalHostName, out GridRegion regInfo, out string reason)
+        {
+            return TryCreateLink(scopeID, xloc, yloc, externalRegionName, externalPort, externalHostName, null, out regInfo, out reason);
+        }
+
+        // From the command line and the 2 above
+        public bool TryCreateLink(UUID scopeID, int xloc, int yloc,
+            string externalRegionName, uint externalPort, string externalHostName, string serverURI, out GridRegion regInfo, out string reason)
         {
             m_log.DebugFormat("[HYPERGRID LINKER]: Link to {0}:{1}:{2}, in {3}-{4}", externalHostName, externalPort, externalRegionName, xloc, yloc);
 
@@ -213,11 +226,8 @@ namespace OpenSim.Services.GridService
 
             // Big HACK for Simian Grid !!!
             // We need to clean up all URLs used in OpenSim !!!
-            if (externalHostName.Contains("/")) {
+            if (externalHostName.Contains("/"))
                 regInfo.ServerURI = externalHostName;
-            } else {
-                regInfo.ServerURI = "http://" + externalHostName + ":" + externalPort.ToString();
-            }
 
             try
             {
