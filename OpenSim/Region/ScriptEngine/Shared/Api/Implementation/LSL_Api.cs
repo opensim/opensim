@@ -3824,7 +3824,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (targetPart != null)
             {
-                if (parent != 0) {
+                if (parent != 0)
+                {
                     parentPrim = m_host.ParentGroup;
                     childPrim = targetPart.ParentGroup;
                 }
@@ -5426,7 +5427,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
             }
-            else {
+            else
+            {
                 object[] array = new object[src.Length];
                 Array.Copy(src.Data, 0, array, 0, src.Length);
                 result = new LSL_List(array);
@@ -6271,7 +6273,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SetParticleSystem(m_host, rules);
         }
 
-        private void SetParticleSystem(SceneObjectPart part, LSL_List rules) {
+        private void SetParticleSystem(SceneObjectPart part, LSL_List rules)
+        {
 
 
             if (rules.Length == 0)
@@ -7248,7 +7251,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetLinkPrimitiveParamsFast(int linknumber, LSL_List rules)
         {
-             m_host.AddScriptLPS(1);
+            m_host.AddScriptLPS(1);
 
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
             List<ScenePresence> avatars = GetLinkAvatars(linknumber);
@@ -7315,7 +7318,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
                 }
             }
-
         }
 
         protected void SetPrimParams(SceneObjectPart part, LSL_List rules)
@@ -8965,17 +8967,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
              * Convert separator and spacer lists to C# strings.
              * Also filter out null strings so we don't hang.
              */
-            for (i = 0; i < seplen; i ++) {
+            for (i = 0; i < seplen; i ++)
+            {
                 d = separray[i].ToString();
-                if (d.Length > 0) {
+                if (d.Length > 0)
+                {
                     delarray[dellen++] = d;
                 }
             }
             seplen = dellen;
 
-            for (i = 0; i < spclen; i ++) {
+            for (i = 0; i < spclen; i ++)
+            {
                 d = spcarray[i].ToString();
-                if (d.Length > 0) {
+                if (d.Length > 0)
+                {
                     delarray[dellen++] = d;
                 }
             }
@@ -8983,7 +8989,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             /*
              * Scan through source string from beginning to end.
              */
-            for (i = 0;;) {
+            for (i = 0;;)
+            {
 
                 /*
                  * Find earliest delimeter in src starting at i (if any).
@@ -8991,13 +8998,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 int    earliestDel = -1;
                 int    earliestSrc = srclen;
                 string earliestStr = null;
-                for (j = 0; j < dellen; j ++) {
+                for (j = 0; j < dellen; j ++)
+                {
                     d = delarray[j];
-                    if (d != null) {
+                    if (d != null)
+                    {
                         int index = src.IndexOf(d, i);
-                        if (index < 0) {
+                        if (index < 0)
+                        {
                             delarray[j] = null;     // delim nowhere in src, don't check it anymore
-                        } else if (index < earliestSrc) {
+                        }
+                        else if (index < earliestSrc)
+                        {
                             earliestSrc = index;    // where delimeter starts in source string
                             earliestDel = j;        // where delimeter is in delarray[]
                             earliestStr = d;        // the delimeter string from delarray[]
@@ -9009,7 +9021,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 /*
                  * Output source string starting at i through start of earliest delimeter.
                  */
-                if (keepNulls || (earliestSrc > i)) {
+                if (keepNulls || (earliestSrc > i))
+                {
                     outarray[outlen++] = src.Substring(i, earliestSrc - i);
                 }
 
@@ -9021,7 +9034,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 /*
                  * If delimeter was a spacer, output the spacer.
                  */
-                if (earliestDel >= seplen) {
+                if (earliestDel >= seplen)
+                {
                     outarray[outlen++] = earliestStr;
                 }
 
@@ -9035,7 +9049,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
              * Make up an exact-sized output array suitable for an LSL_List object.
              */
             object[] outlist = new object[outlen];
-            for (i = 0; i < outlen; i ++) {
+            for (i = 0; i < outlen; i ++)
+            {
                 outlist[i] = new LSL_String(outarray[i]);
             }
             return new LSL_List(outlist);
@@ -10002,12 +10017,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             SortedDictionary<int, float> parameters = new SortedDictionary<int, float>();
             object[] data = rules.Data;
-            for (int i = 0; i < data.Length; ++i) {
+            for (int i = 0; i < data.Length; ++i)
+            {
                 int type = Convert.ToInt32(data[i++].ToString());
                 if (i >= data.Length) break; // odd number of entries => ignore the last
 
                 // some special cases: Vector parameters are split into 3 float parameters (with type+1, type+2, type+3)
-                switch (type) {
+                switch (type)
+                {
                 case ScriptBaseClass.CAMERA_FOCUS:
                 case ScriptBaseClass.CAMERA_FOCUS_OFFSET:
                 case ScriptBaseClass.CAMERA_POSITION:
@@ -10213,12 +10230,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Regex r = new Regex(authregex);
             int[] gnums = r.GetGroupNumbers();
             Match m = r.Match(url);
-            if (m.Success) {
-                for (int i = 1; i < gnums.Length; i++) {
+            if (m.Success)
+            {
+                for (int i = 1; i < gnums.Length; i++)
+                {
                     //System.Text.RegularExpressions.Group g = m.Groups[gnums[i]];
                     //CaptureCollection cc = g.Captures;
                 }
-                if (m.Groups.Count == 5) {
+                if (m.Groups.Count == 5)
+                {
                     httpHeaders["Authorization"] = String.Format("Basic {0}", Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(m.Groups[2].ToString() + ":" + m.Groups[3].ToString())));
                     url = m.Groups[1].ToString() + m.Groups[4].ToString();
                 }
