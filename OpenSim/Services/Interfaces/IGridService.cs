@@ -116,13 +116,7 @@ namespace OpenSim.Services.Interfaces
         public string ServerURI
         {
             get { return m_serverURI; }
-            set { 
-                if ( value.EndsWith("/") ) {
-                    m_serverURI = value;
-                } else {
-                    m_serverURI = value + '/';
-                }
-            }
+            set { m_serverURI = value; }
         }
         protected string m_serverURI;
 

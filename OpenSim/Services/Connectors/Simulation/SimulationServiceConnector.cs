@@ -104,7 +104,24 @@ namespace OpenSim.Services.Connectors.Simulation
                 return false;
             }
 
-            string uri = destination.ServerURI + AgentPath() + aCircuit.AgentID + "/";
+            string uri = string.Empty;
+
+            // HACK -- Simian grid make it work!!!
+            if (destination.ServerURI != null && destination.ServerURI != string.Empty && !destination.ServerURI.StartsWith("http:"))
+                uri = "http://" + destination.ServerURI + AgentPath() + aCircuit.AgentID + "/";
+            else
+            {
+                try
+                {
+                    uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + AgentPath() + aCircuit.AgentID + "/";
+                }
+                catch (Exception e)
+                {
+                    m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Unable to resolve external endpoint on agent create. Reason: " + e.Message);
+                    reason = e.Message;
+                    return false;
+                }
+            }
 
             //Console.WriteLine("   >>> DoCreateChildAgentCall <<< " + uri);
 
@@ -260,7 +277,16 @@ namespace OpenSim.Services.Connectors.Simulation
         private bool UpdateAgent(GridRegion destination, IAgentData cAgentData)
         {
             // Eventually, we want to use a caps url instead of the agentID
-            string uri = destination.ServerURI + AgentPath() + cAgentData.AgentID + "/";
+            string uri = string.Empty;
+            try
+            {
+                uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + AgentPath() + cAgentData.AgentID + "/";
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Unable to resolve external endpoint on agent update. Reason: " + e.Message);
+                return false;
+            }
             //Console.WriteLine("   >>> DoAgentUpdateCall <<< " + uri);
 
             HttpWebRequest ChildUpdateRequest = (HttpWebRequest)WebRequest.Create(uri);
@@ -359,7 +385,7 @@ namespace OpenSim.Services.Connectors.Simulation
         {
             agent = null;
             // Eventually, we want to use a caps url instead of the agentID
-            string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
+            string uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
             //Console.WriteLine("   >>> DoRetrieveRootAgentCall <<< " + uri);
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
@@ -453,7 +479,16 @@ namespace OpenSim.Services.Connectors.Simulation
 
         public bool CloseAgent(GridRegion destination, UUID id)
         {
-            string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
+            string uri = string.Empty;
+            try
+            {
+                uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Unable to resolve external endpoint on agent close. Reason: " + e.Message);
+                return false;
+            }
 
             //Console.WriteLine("   >>> DoCloseAgentCall <<< " + uri);
 
@@ -503,7 +538,7 @@ namespace OpenSim.Services.Connectors.Simulation
         public bool CreateObject(GridRegion destination, ISceneObject sog, bool isLocalCall)
         {
             string uri
-                = destination.ServerURI + ObjectPath() + sog.UUID + "/";
+                = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + ObjectPath() + sog.UUID + "/";
             //m_log.Debug("   >>> DoCreateObjectCall <<< " + uri);
 
             WebRequest ObjectCreateRequest = WebRequest.Create(uri);
