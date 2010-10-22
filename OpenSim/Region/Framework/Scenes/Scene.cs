@@ -3740,9 +3740,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             // We have to wait until the viewer contacts this region after receiving EAC.
             // That calls AddNewClient, which finally creates the ScenePresence
+            m_log.Debug("ICADU -> pre wait");
             ScenePresence childAgentUpdate = WaitGetScenePresence(cAgentData.AgentID);
+            m_log.Debug("ICADU -> post wait");
             if (childAgentUpdate != null)
             {
+                m_log.Debug("ICADU -> not child agent!");
                 childAgentUpdate.ChildAgentDataUpdate(cAgentData);
                 return true;
             }
@@ -3758,7 +3761,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>true if we handled it.</returns>
         public virtual bool IncomingChildAgentDataUpdate(AgentPosition cAgentData)
         {
-            //m_log.Debug(" XXX Scene IncomingChildAgentDataUpdate POSITION in " + RegionInfo.RegionName);
+            m_log.Debug(" XXX Scene IncomingChildAgentDataUpdate POSITION in " + RegionInfo.RegionName);
             ScenePresence childAgentUpdate = GetScenePresence(cAgentData.AgentID);
             if (childAgentUpdate != null)
             {
