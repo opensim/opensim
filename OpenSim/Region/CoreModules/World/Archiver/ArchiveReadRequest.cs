@@ -483,15 +483,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <param name="data"></param>
         private void LoadControlFile(string path, byte[] data)
         {
-            //Create the XmlNamespaceManager.
-            NameTable nt = new NameTable();
-            XmlNamespaceManager nsmgr = new XmlNamespaceManager(nt);
-
-            // Create the XmlParserContext.
+            XmlNamespaceManager nsmgr = new XmlNamespaceManager(new NameTable());
             XmlParserContext context = new XmlParserContext(null, nsmgr, null, XmlSpace.None);
-
-            XmlTextReader xtr 
-                = new XmlTextReader(Encoding.ASCII.GetString(data), XmlNodeType.Document, context);
+            XmlTextReader xtr = new XmlTextReader(Encoding.ASCII.GetString(data), XmlNodeType.Document, context);
 
             RegionSettings currentRegionSettings = m_scene.RegionInfo.RegionSettings;
 
@@ -530,7 +524,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         currentRegionSettings.LoadedCreationID = xtr.ReadElementContentAsString();
                     }
                 }
-
             }
             
             currentRegionSettings.Save();
