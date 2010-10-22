@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         /// <summary>
-        /// The maximum major version of OAR that we can read.  Minor versions shouldn't need a number since version
+        /// The maximum major version of OAR that we can read.  Minor versions shouldn't need a max number since version
         /// bumps here should be compatible.
         /// </summary>
         public static int MAX_MAJOR_VERSION = 0;
