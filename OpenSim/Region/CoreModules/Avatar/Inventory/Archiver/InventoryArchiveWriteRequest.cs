@@ -401,13 +401,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <returns></returns>
         public static string Create0p1ControlFile()
         {
+            int majorVersion = 0, minorVersion = 1;
+            
+            m_log.InfoFormat("[INVENTORY ARCHIVER]: Creating version {0}.{1} IAR", majorVersion, minorVersion);
+            
             StringWriter sw = new StringWriter();
             XmlTextWriter xtw = new XmlTextWriter(sw);
             xtw.Formatting = Formatting.Indented;
             xtw.WriteStartDocument();
             xtw.WriteStartElement("archive");
-            xtw.WriteAttributeString("major_version", "0");
-            xtw.WriteAttributeString("minor_version", "1");
+            xtw.WriteAttributeString("major_version", majorVersion.ToString());
+            xtw.WriteAttributeString("minor_version", minorVersion.ToString());
             xtw.WriteEndElement();
 
             xtw.Flush();
