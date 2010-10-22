@@ -72,7 +72,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
         protected virtual string AgentPath()
         {
-            return "agent/";
+            return "/agent/";
         }
 
         public bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint flags, out string reason)
@@ -105,6 +105,8 @@ namespace OpenSim.Services.Connectors.Simulation
             }
 
             string uri = destination.ServerURI + AgentPath() + aCircuit.AgentID + "/";
+
+            //Console.WriteLine("   >>> DoCreateChildAgentCall <<< " + uri);
 
             AgentCreateRequest = (HttpWebRequest)WebRequest.Create(uri);
             AgentCreateRequest.Method = "POST";
@@ -259,6 +261,7 @@ namespace OpenSim.Services.Connectors.Simulation
         {
             // Eventually, we want to use a caps url instead of the agentID
             string uri = destination.ServerURI + AgentPath() + cAgentData.AgentID + "/";
+            //Console.WriteLine("   >>> DoAgentUpdateCall <<< " + uri);
 
             HttpWebRequest ChildUpdateRequest = (HttpWebRequest)WebRequest.Create(uri);
             ChildUpdateRequest.Method = "PUT";
@@ -357,6 +360,7 @@ namespace OpenSim.Services.Connectors.Simulation
             agent = null;
             // Eventually, we want to use a caps url instead of the agentID
             string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
+            //Console.WriteLine("   >>> DoRetrieveRootAgentCall <<< " + uri);
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
             request.Method = "GET";
@@ -377,6 +381,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 sr = new StreamReader(webResponse.GetResponseStream());
                 reply = sr.ReadToEnd().Trim();
 
+                //Console.WriteLine("[REMOTE SIMULATION CONNECTOR]: ChilAgentUpdate reply was " + reply);
 
             }
             catch (WebException ex)
@@ -397,6 +402,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 OSDMap args = Util.GetOSDMap(reply);
                 if (args == null)
                 {
+                    //Console.WriteLine("[REMOTE SIMULATION CONNECTOR]: Error getting OSDMap from reply");
                     return false;
                 }
 
@@ -405,6 +411,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 return true;
             }
 
+            //Console.WriteLine("[REMOTE SIMULATION CONNECTOR]: DoRetrieveRootAgentCall returned status " + webResponse.StatusCode);
             return false;
         }
 
@@ -448,6 +455,7 @@ namespace OpenSim.Services.Connectors.Simulation
         {
             string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
 
+            //Console.WriteLine("   >>> DoCloseAgentCall <<< " + uri);
 
             WebRequest request = WebRequest.Create(uri);
             request.Method = "DELETE";

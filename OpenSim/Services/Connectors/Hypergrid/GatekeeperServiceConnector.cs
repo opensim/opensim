@@ -63,12 +63,12 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         protected override string AgentPath()
         {
-            return "foreignagent/";
+            return "/foreignagent/";
         }
 
         protected override string ObjectPath()
         {
-            return "foreignobject/";
+            return "/foreignobject/";
         }
 
         public bool LinkRegion(GridRegion info, out UUID regionID, out ulong realHandle, out string externalName, out string imageURL, out string reason)
@@ -86,11 +86,12 @@ namespace OpenSim.Services.Connectors.Hypergrid
             paramList.Add(hash);
 
             XmlRpcRequest request = new XmlRpcRequest("link_region", paramList);
-            m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: Linking to " + info.ServerURI);
+            string uri = "http://" + ((info.ServerURI != null && info.ServerURI != string.Empty && !info.ServerURI.StartsWith("http:")) ? info.ServerURI : info.ExternalEndPoint.Address + ":" + info.HttpPort + "/");
+            m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: Linking to " + uri);
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(info.ServerURI, 10000);
+                response = request.Send(uri, 10000);
             }
             catch (Exception e)
             {
@@ -191,11 +192,12 @@ namespace OpenSim.Services.Connectors.Hypergrid
             paramList.Add(hash);
 
             XmlRpcRequest request = new XmlRpcRequest("get_region", paramList);
-            m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: contacting " + gatekeeper.ServerURI);
+            string uri = "http://" + ((gatekeeper.ServerURI != null && gatekeeper.ServerURI != string.Empty && !gatekeeper.ServerURI.StartsWith("http:")) ? gatekeeper.ServerURI : gatekeeper.ExternalEndPoint.Address + ":" + gatekeeper.HttpPort + "/");
+            m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: contacting " + uri);
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(gatekeeper.ServerURI, 10000);
+                response = request.Send(uri, 10000);
             }
             catch (Exception e)
             {
