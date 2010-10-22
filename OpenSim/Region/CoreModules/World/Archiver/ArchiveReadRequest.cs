@@ -481,7 +481,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         /// <param name="path"></param>
         /// <param name="data"></param>
-        private void LoadControlFile(string path, byte[] data)
+        protected void LoadControlFile(string path, byte[] data)
         {
             XmlNamespaceManager nsmgr = new XmlNamespaceManager(new NameTable());
             XmlParserContext context = new XmlParserContext(null, nsmgr, null, XmlSpace.None);
