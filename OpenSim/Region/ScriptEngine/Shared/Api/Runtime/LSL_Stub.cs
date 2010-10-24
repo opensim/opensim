@@ -1849,5 +1849,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_LSL_Functions.llClearPrimMedia(face);
         }
+
+        public LSL_Integer llGetLinkNumberOfSides(LSL_Integer link)
+        {
+            return  m_LSL_Functions.llGetLinkNumberOfSides(link);
+        }
     }
 }

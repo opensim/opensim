@@ -10777,6 +10777,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return GetLinkPrimitiveParams(obj, rules);
         }
+
+        public LSL_Integer llGetLinkNumberOfSides(LSL_Integer link)
+        {
+            List<SceneObjectPart> parts = GetLinkParts(link);
+            if (parts.Count < 1)
+                return 0;
+
+            return GetNumberOfSides(parts[0]);
+        }
     }
 
     public class NotecardCache
