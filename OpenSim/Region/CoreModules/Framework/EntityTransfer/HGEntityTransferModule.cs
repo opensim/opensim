@@ -238,6 +238,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 string url = aCircuit.ServiceURLs["HomeURI"].ToString();
                 IUserAgentService security = new UserAgentServiceConnector(url);
                 return security.VerifyClient(aCircuit.SessionID, token);
+            } else {
+                m_log.Debug("this gent does not have a HomeURI OH NO");
             }
 
             return false;
