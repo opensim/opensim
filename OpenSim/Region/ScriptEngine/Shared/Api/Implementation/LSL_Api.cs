@@ -7691,6 +7691,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         part.SetText(primText, av3, Util.Clip((float)primTextAlpha, 0.0f, 1.0f));
 
                         break;
+                    case (int)ScriptBaseClass.PRIM_NAME:
+                        if (remain < 1)
+                            return;
+                        string primName = rules.GetLSLStringItem(idx++);
+                        part.Name = primName;
+                        break;
+                    case (int)ScriptBaseClass.PRIM_DESC:
+                        if (remain < 1)
+                            return;
+                        string primDesc = rules.GetLSLStringItem(idx++);
+                        part.Description = primDesc;
+                        break;
+                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
+                        if (remain < 1)
+                            return;
+                        LSL_Rotation lr = rules.GetQuaternionItem(idx++);
+                        SetRot(part, Rot2Quaternion(lr));
+                        break;
                 }
             }
         }
@@ -8372,6 +8390,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                                textColor.G,
                                                textColor.B));
                         res.Add(new LSL_Float(textColor.A));
+                        break;
+                    case (int)ScriptBaseClass.PRIM_NAME:
+                        res.Add(part.Name);
+                        break;
+                    case (int)ScriptBaseClass.PRIM_DESC:
+                        res.Add(part.Description);
+                        break;
+                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
+                        res.Add(new LSL_Rotation(part.RotationOffset.X, part.RotationOffset.Y, part.RotationOffset.Z, part.RotationOffset.W));
                         break;
                 }
             }
