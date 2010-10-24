@@ -10138,8 +10138,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (str2 == String.Empty)
                 return str1;
 
-            byte[] data1 = Convert.FromBase64String(str1);
-            byte[] data2 = Convert.FromBase64String(str2);
+            byte[] data1;
+            byte[] data2;
+            try
+            {
+                data1 = Convert.FromBase64String(str1);
+                data2 = Convert.FromBase64String(str2);
+            }
+            catch (Exception)
+            {
+                return new LSL_String(String.Empty);
+            }
 
             byte[] d2 = new Byte[data1.Length];
             int pos = 0;
