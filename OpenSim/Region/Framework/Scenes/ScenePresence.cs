@@ -2865,22 +2865,28 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_syncRoot)
             {
-                if (m_physicsActor != null)
-                {
-                    if (!IsChildAgent)
-                    {
-                        // This may seem like it's redundant, remove the avatar from the physics scene
-                        // just to add it back again, but it saves us from having to update
-                        // 3 variables 10 times a second.
-                        bool flyingTemp = m_physicsActor.Flying;
-                        RemoveFromPhysicalScene();
-                        //m_scene.PhysicsScene.RemoveAvatar(m_physicsActor);
-
-                        //PhysicsActor = null;
-
-                        AddToPhysicalScene(flyingTemp);
-                    }
-                }
+// MT: Commented this because it's no longer needed.
+// It used to be that the avatar height was calculated from the visual
+// params, so any call to this method could change the physical actor's
+// height. Now the height is supplied in the agent circuit data and never
+// changes here. So, we can leave physics alone.
+//
+//                if (m_physicsActor != null)
+//                {
+//                    if (!IsChildAgent)
+//                    {
+//                        // This may seem like it's redundant, remove the avatar from the physics scene
+//                        // just to add it back again, but it saves us from having to update
+//                        // 3 variables 10 times a second.
+//                        bool flyingTemp = m_physicsActor.Flying;
+//                        RemoveFromPhysicalScene();
+//                        //m_scene.PhysicsScene.RemoveAvatar(m_physicsActor);
+//
+//                        //PhysicsActor = null;
+//
+//                        AddToPhysicalScene(flyingTemp);
+//                    }
+//                }
 
                 #region Bake Cache Check
 
