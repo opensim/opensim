@@ -8029,13 +8029,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         LSL_Vector v = new LSL_Vector(part.AbsolutePosition.X,
                                                       part.AbsolutePosition.Y,
                                                       part.AbsolutePosition.Z);
-                        // For some reason, the part.AbsolutePosition.* values do not change if the
-                        // linkset is rotated; they always reflect the child prim's world position
-                        // as though the linkset is unrotated. This is incompatible behavior with SL's
-                        // implementation, so will break scripts imported from there (not to mention it
-                        // makes it more difficult to determine a child prim's actual inworld position).
-                        if (part.ParentID != 0)
-                            v = ((v - llGetRootPosition()) * llGetRootRotation()) + llGetRootPosition();
                         res.Add(v);
                         break;
 
