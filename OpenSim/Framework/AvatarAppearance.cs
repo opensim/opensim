@@ -389,7 +389,7 @@ namespace OpenSim.Framework
                 changed = true;
 // DEBUG ON
                 if (newface != null)
-                    m_log.WarnFormat("[SCENEPRESENCE] index {0}, new texture id {1}",i,newface.TextureID);
+                    m_log.WarnFormat("[AVATAR APPEARANCE] index {0}, new texture id {1}",i,newface.TextureID);
 // DEBUG OFF
             }
 

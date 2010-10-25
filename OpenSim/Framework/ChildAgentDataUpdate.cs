@@ -390,8 +390,11 @@ namespace OpenSim.Framework
             // The code to pack textures, visuals, wearables and attachments
             // should be removed; packed appearance contains the full appearance
             // This is retained for backward compatibility only
-            if ((Appearance.Texture != null) && (Appearance.Texture.Length > 0))
-                args["texture_entry"] = OSD.FromBinary(Appearance.Texture);
+            if (Appearance.Texture != null)
+            {
+                byte[] rawtextures = Appearance.Texture.GetBytes();
+                args["texture_entry"] = OSD.FromBinary(rawtextures);
+            }
 
             if ((Appearance.VisualParams != null) && (Appearance.VisualParams.Length > 0))
                 args["visual_params"] = OSD.FromBinary(Appearance.VisualParams);
@@ -408,10 +411,10 @@ namespace OpenSim.Framework
                 args["wearables"] = wears;
             }
 
-            List<AvatarAttachments> attachments = Appearance.GetAttachments();
-            if ((attachments != null) && (attachments.Length > 0))
+            List<AvatarAttachment> attachments = Appearance.GetAttachments();
+            if ((attachments != null) && (attachments.Count > 0))
             {
-                OSDArray attachs = new OSDArray(attachments.Length);
+                OSDArray attachs = new OSDArray(attachments.Count);
                 foreach (AvatarAttachment att in attachments)
                     attachs.Add(att.Pack());
                 args["attachments"] = attachs;
@@ -560,7 +563,11 @@ namespace OpenSim.Framework
             // should be removed; packed appearance contains the full appearance
             // This is retained for backward compatibility only
             if (args["texture_entry"] != null)
-                Appearance.SetTextureEntries(args["texture_entry"].AsBinary());
+            {
+                byte[] rawtextures = args["texture_entry"].AsBinary();
+                Primitive.TextureEntry textures = new Primitive.TextureEntry(rawtextures,0,rawtextures.Length);
+                Appearance.SetTextureEntries(textures);
+            }
 
             if (args["visual_params"] != null)
                 Appearance.SetVisualParams(args["visual_params"].AsBinary());
@@ -578,21 +585,25 @@ namespace OpenSim.Framework
             if ((args["attachments"] != null) && (args["attachments"]).Type == OSDType.Array)
             {
                 OSDArray attachs = (OSDArray)(args["attachments"]);
-                AvatarAttachment[] attachments = new AvatarAttachment[attachs.Count];
-                int i = 0;
                 foreach (OSD o in attachs)
                 {
                     if (o.Type == OSDType.Map)
                     {
-                        attachments[i++] = new AvatarAttachment((OSDMap)o);
+                        // We know all of these must end up as attachments so we
+                        // append rather than replace to ensure multiple attachments
+                        // per point continues to work
+                        Appearance.AppendAttachment(new AvatarAttachment((OSDMap)o));
                     }
                 }
-                Appearance.SetAttachments(attachments);
             }
             // end of code to remove
 
-            if (args["packed_appearance"] != null)
+            if (args.ContainsKey("packed_appearance") && (args["packed_appearance"]).Type == OSDType.Map)
                 Appearance = new AvatarAppearance(AgentID,(OSDMap)args["packed_appearance"]);
+// DEBUG ON
+            else
+                System.Console.WriteLine("No packed appearance in AgentUpdate");
+// DEBUG OFF
 
             if ((args["controllers"] != null) && (args["controllers"]).Type == OSDType.Array)
             {

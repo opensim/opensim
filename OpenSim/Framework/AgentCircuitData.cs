@@ -368,15 +368,12 @@ namespace OpenSim.Framework
                 }
             }
 
-            if (args["packed_appearance"] != null)
+            if (args.ContainsKey("packed_appearance") && (args["packed_appearance"].Type == OSDType.Map))
             {
-                if (args["packed_appearance"].Type == OSDType.Map)
-                {
-                    Appearance.Unpack((OSDMap)args["packed_appearance"]);
-                    m_log.WarnFormat("[AGENTCIRCUITDATA] unpacked appearance");
-                }
-                else
-                    m_log.WarnFormat("[AGENTCIRCUITDATA] packed_appearance is not a map:\n{0}",args["packed_appearance"].ToString());
+                Appearance.Unpack((OSDMap)args["packed_appearance"]);
+// DEBUG ON
+                m_log.WarnFormat("[AGENTCIRCUITDATA] unpacked appearance");
+// DEBUG OFF
             }
 // DEBUG ON
             else

@@ -136,7 +136,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     {
                         if (m_scene.AssetService.Get(face.TextureID.ToString()) == null)
                         {
-                            m_log.WarnFormat("[AVFACTORY]: Missing baked texture {0} ({1}) for avatar {2}",face.TextureID,j,this.Name);
+                            m_log.WarnFormat("[AVFACTORY]: Missing baked texture {0} ({1}) for avatar {2}",face.TextureID,j,client.Name);
                             client.SendRebakeAvatarTextures(face.TextureID);
                         }
                     }
