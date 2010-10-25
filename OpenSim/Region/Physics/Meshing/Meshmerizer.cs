@@ -287,7 +287,7 @@ namespace OpenSim.Region.Physics.Meshing
                     long start = 0;
                     using (MemoryStream data = new MemoryStream(primShape.SculptData))
                     {
-                        meshOsd = (OSDMap)OSDParser.DeserializeLLSDBinary(data, true);
+                        meshOsd = (OSDMap)OSDParser.DeserializeLLSDBinary(data);
                         start = data.Position;
                     }
 
@@ -324,7 +324,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                                         byte[] decompressedBuf = outMs.GetBuffer();
 
-                                        decodedMeshOsd = OSDParser.DeserializeLLSDBinary(decompressedBuf, true);
+                                        decodedMeshOsd = OSDParser.DeserializeLLSDBinary(decompressedBuf);
                                     }
                                 }
                             }

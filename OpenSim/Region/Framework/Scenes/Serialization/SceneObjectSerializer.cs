@@ -1426,7 +1426,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             reader.ReadStartElement(name);
             vec.X = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // X or x
-            vec.Y = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // Y or Y
+            vec.Y = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // Y or y
             vec.Z = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // Z or z
             reader.ReadEndElement();
 
@@ -1501,15 +1501,28 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             reader.ReadStartElement(name, String.Empty); // Shape
 
+            string nodeName = string.Empty;
             while (reader.NodeType != XmlNodeType.EndElement)
             {
+                nodeName = reader.Name;
                 //m_log.DebugFormat("[XXX] Processing: {0}", reader.Name); 
                 ShapeXmlProcessor p = null;
                 if (m_ShapeXmlProcessors.TryGetValue(reader.Name, out p))
-                    p(shape, reader);
+                {
+                    try
+                    {
+                        p(shape, reader);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.DebugFormat("[SceneObjectSerializer]: exception while parsing Shape {0}: {1}", nodeName, e);
+                        if (reader.NodeType == XmlNodeType.EndElement)
+                            reader.Read();
+                    }
+                }
                 else
                 {
-//                    m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element in Shape {0}", reader.Name);
+                    // m_log.DebugFormat("[SceneObjectSerializer]: caught unknown element in Shape {0}", reader.Name);
                     reader.ReadOuterXml();
                 }
             }
