@@ -10318,12 +10318,13 @@
             <param name="targetID">target avatars <seealso cref="T:OpenMetaverse.UUID"/> to lure</param>
             <param name="message">custom message to send with invitation</param>
         </member>
-        <member name="M:OpenMetaverse.AgentManager.TeleportLureRespond(OpenMetaverse.UUID,System.Boolean)">
+        <member name="M:OpenMetaverse.AgentManager.TeleportLureRespond(OpenMetaverse.UUID,OpenMetaverse.UUID,System.Boolean)">
             <summary>
             Respond to a teleport lure by either accepting it and initiating 
             the teleport, or denying it
             </summary>
             <param name="requesterID"><seealso cref="T:OpenMetaverse.UUID"/> of the avatar sending the lure</param>
+            <param name="sessionID">IM session <seealso cref="T:OpenMetaverse.UUID"/> of the incoming lure request</param>
             <param name="accept">true to accept the lure, false to decline it</param>
         </member>
         <member name="M:OpenMetaverse.AgentManager.UpdateProfile(OpenMetaverse.Avatar.AvatarProperties)">
@@ -19866,9 +19867,6 @@
         <member name="F:OpenMetaverse.AppearanceManager.WEARABLES_PER_LAYER">
             <summary>Total number of wearables per bake layer</summary>
         </member>
-        <member name="F:OpenMetaverse.AppearanceManager.AVATAR_TEXTURE_COUNT">
-            <summary>Total number of textures on an avatar, baked or not</summary>
-        </member>
         <member name="F:OpenMetaverse.AppearanceManager.BakeIndexToTextureIndex">
             <summary>Mapping between BakeType and AvatarTextureIndex</summary>
         </member>
@@ -20314,6 +20312,9 @@
         </member>
         <member name="F:OpenMetaverse.AppearanceManager.TextureData.Color">
             <summary>Tint that should be applied to the texture</summary>
+        </member>
+        <member name="F:OpenMetaverse.AppearanceManager.TextureData.TextureIndex">
+            <summary>Where on avatar does this texture belong</summary>
         </member>
         <member name="T:OpenMetaverse.AgentWearablesReplyEventArgs">
             <summary>Contains the Event data returned from the data server from an AgentWearablesRequest</summary>
