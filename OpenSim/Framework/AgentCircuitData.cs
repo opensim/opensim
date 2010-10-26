@@ -351,8 +351,8 @@ namespace OpenSim.Framework
                 OSDArray wears = (OSDArray)(args["wearables"]);
                 for (int i = 0; i < wears.Count / 2; i++) 
                 {
-                    Appearance.Wearables[i].ItemID = wears[i*2].AsUUID();
-                    Appearance.Wearables[i].AssetID = wears[(i*2)+1].AsUUID();
+                    AvatarWearable awear = new AvatarWearable(wears[i*2].AsUUID(),wears[(i*2)+1].AsUUID());
+                    Appearance.SetWearable(i,awear);
                 }
             }
 

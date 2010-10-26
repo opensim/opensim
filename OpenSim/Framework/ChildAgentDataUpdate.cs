@@ -28,6 +28,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
@@ -310,6 +312,12 @@ namespace OpenSim.Framework
         // Appearance
         public AvatarAppearance Appearance;
 
+// DEBUG ON
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+// DEBUG OFF
+
 /*
         public byte[] AgentTextures;
         public byte[] VisualParams;
@@ -323,6 +331,10 @@ namespace OpenSim.Framework
 
         public virtual OSDMap Pack()
         {
+// DEBUG ON
+            m_log.WarnFormat("[CHILDAGENTDATAUPDATE] Pack data");
+// DEBUG OFF            
+
             OSDMap args = new OSDMap();
             args["message_type"] = OSD.FromString("AgentData");
 
@@ -444,6 +456,10 @@ namespace OpenSim.Framework
         /// <param name="hash"></param>
         public virtual void Unpack(OSDMap args)
         {
+// DEBUG ON
+            m_log.WarnFormat("[CHILDAGENTDATAUPDATE] Unpack data");
+// DEBUG OFF            
+
             if (args.ContainsKey("region_id"))
                 UUID.TryParse(args["region_id"].AsString(), out RegionID);
 
@@ -556,10 +572,9 @@ namespace OpenSim.Framework
             //        AgentTextures[i++] = o.AsUUID();
             //}
 
-
             Appearance = new AvatarAppearance(AgentID);
 
-            // The code to pack textures, visuals, wearables and attachments
+            // The code to unpack textures, visuals, wearables and attachments
             // should be removed; packed appearance contains the full appearance
             // This is retained for backward compatibility only
             if (args["texture_entry"] != null)
@@ -577,8 +592,8 @@ namespace OpenSim.Framework
                 OSDArray wears = (OSDArray)(args["wearables"]);
                 for (int i = 0; i < wears.Count / 2; i++) 
                 {
-                    Appearance.Wearables[i].ItemID = wears[i*2].AsUUID();
-                    Appearance.Wearables[i].AssetID = wears[(i*2)+1].AsUUID();
+                    AvatarWearable awear = new AvatarWearable(wears[i*2].AsUUID(),wears[(i*2)+1].AsUUID());
+                    Appearance.SetWearable(i,awear);
                 }
             }
 
@@ -602,8 +617,8 @@ namespace OpenSim.Framework
                 Appearance = new AvatarAppearance(AgentID,(OSDMap)args["packed_appearance"]);
 // DEBUG ON
             else
-                System.Console.WriteLine("No packed appearance in AgentUpdate");
-// DEBUG OFF
+                m_log.WarnFormat("[CHILDAGENTDATAUPDATE] No packed appearance");
+// DEBUG OFF            
 
             if ((args["controllers"] != null) && (args["controllers"]).Type == OSDType.Array)
             {
