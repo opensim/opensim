@@ -84,6 +84,15 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             // client.OnAvatarNowWearing -= AvatarIsWearing;
         }
 
+        public void CheckBakedTextureAssets(IClientAPI client, UUID textureID, int idx)
+        {
+            if (m_scene.AssetService.Get(textureID.ToString()) == null)
+            {
+                m_log.WarnFormat("[AVFACTORY]: Missing baked texture {0} ({1}) for avatar {2}",textureID,idx,client.Name);
+                client.SendRebakeAvatarTextures(textureID);
+            }
+        }
+        
         /// <summary>
         /// Set appearance data (textureentry and slider settings) received from the client
         /// </summary>
@@ -133,13 +142,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     Primitive.TextureEntryFace face = textureEntry.FaceTextures[j];
 
                     if (face != null && face.TextureID != AppearanceManager.DEFAULT_AVATAR_TEXTURE)
-                    {
-                        if (m_scene.AssetService.Get(face.TextureID.ToString()) == null)
-                        {
-                            m_log.WarnFormat("[AVFACTORY]: Missing baked texture {0} ({1}) for avatar {2}",face.TextureID,j,client.Name);
-                            client.SendRebakeAvatarTextures(face.TextureID);
-                        }
-                    }
+                        Util.FireAndForget(delegate(object o) { CheckBakedTextureAssets(client,face.TextureID,j); });
                 }
                 changed = sp.Appearance.SetTextureEntries(textureEntry);
              
