@@ -199,13 +199,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 majorVersion = 1;
                 minorVersion = 0;
-            }  
+            }
             */
             
             m_log.InfoFormat("[ARCHIVER]: Creating version {0}.{1} OAR", majorVersion, minorVersion);
 //            if (majorVersion == 1)
 //            {
-//                m_log.WarnFormat("[ARCHIVER]: Please be aware that version 1.0 OARs are not compatible with OpenSim 0.7.0.2 and earlier.  Please use the --version=0 option if you want to produce a compatible OAR");                
+//                m_log.WarnFormat("[ARCHIVER]: Please be aware that version 1.0 OARs are not compatible with OpenSim 0.7.0.2 and earlier.  Please use the --version=0 option if you want to produce a compatible OAR");
 //            }
             
             
@@ -232,6 +232,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             sw.Close();
 
             return s;
-        }        
+        }
     }
 }

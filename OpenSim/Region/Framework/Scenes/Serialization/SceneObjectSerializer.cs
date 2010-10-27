@@ -804,7 +804,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessShpTextureEntry(PrimitiveBaseShape shp, XmlTextReader reader)
         {
             byte[] teData = Convert.FromBase64String(reader.ReadElementString("TextureEntry"));
-            shp.Textures = new Primitive.TextureEntry(teData, 0, teData.Length);   
+            shp.Textures = new Primitive.TextureEntry(teData, 0, teData.Length);
         }
 
         private static void ProcessShpExtraParams(PrimitiveBaseShape shp, XmlTextReader reader)
