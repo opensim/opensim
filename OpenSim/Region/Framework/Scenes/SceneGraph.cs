@@ -406,10 +406,13 @@ namespace OpenSim.Region.Framework.Scenes
         public bool DeleteSceneObject(UUID uuid, bool resultOfObjectLinked)
         {
             EntityBase entity;
-            if (!Entities.TryGetValue(uuid, out entity) && entity is SceneObjectGroup)
+            if (!Entities.TryGetValue(uuid, out entity) || (!(entity is SceneObjectGroup)))
                 return false;
 
             SceneObjectGroup grp = (SceneObjectGroup)entity;
+
+            if (entity == null)
+                return false;
 
             if (!resultOfObjectLinked)
             {
