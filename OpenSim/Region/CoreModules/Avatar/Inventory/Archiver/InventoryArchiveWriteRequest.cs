@@ -213,7 +213,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         public void Execute()
         {
             try
-            {                
+            {
                 InventoryFolderBase inventoryFolder = null;
                 InventoryItemBase inventoryItem = null;
                 InventoryFolderBase rootFolder = m_scene.InventoryService.GetRootFolder(m_userInfo.PrincipalID);
@@ -277,7 +277,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 // Write out control file.  This has to be done first so that subsequent loaders will see this file first
                 // XXX: I know this is a weak way of doing it since external non-OAR aware tar executables will not do this
                 m_archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p1ControlFile());
-                m_log.InfoFormat("[INVENTORY ARCHIVER]: Added control file to archive.");              
+                m_log.InfoFormat("[INVENTORY ARCHIVER]: Added control file to archive.");
                 
                 if (inventoryFolder != null)
                 {
