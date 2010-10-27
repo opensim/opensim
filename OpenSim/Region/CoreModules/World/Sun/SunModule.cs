@@ -44,9 +44,7 @@ namespace OpenSim.Region.CoreModules
         /// it is not based on ~06:00 == Sun Rise.   Rather it is based on 00:00 being sun-rise.
         /// </summary>
 
-
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
 
         //
         // Global Constants used to determine where in the sky the sun is
@@ -108,34 +106,31 @@ namespace OpenSim.Region.CoreModules
         private Scene  m_scene          = null;
 
         // Calculated Once in the lifetime of a region
-        private long  TicksToEpoch;              // Elapsed time for 1/1/1970
-        private uint   SecondsPerSunCycle;        // Length of a virtual day in RW seconds
-        private uint   SecondsPerYear;            // Length of a virtual year in RW seconds
-        private double SunSpeed;                  // Rate of passage in radians/second
-        private double SeasonSpeed;               // Rate of change for seasonal effects
-        // private double HoursToRadians;            // Rate of change for seasonal effects
-        private long TicksUTCOffset = 0;                // seconds offset from UTC
+        private long TicksToEpoch;              // Elapsed time for 1/1/1970
+        private uint SecondsPerSunCycle;        // Length of a virtual day in RW seconds
+        private uint SecondsPerYear;            // Length of a virtual year in RW seconds
+        private double SunSpeed;                // Rate of passage in radians/second
+        private double SeasonSpeed;             // Rate of change for seasonal effects
+        // private double HoursToRadians;          // Rate of change for seasonal effects
+        private long TicksUTCOffset = 0;        // seconds offset from UTC
         // Calculated every update
-        private float  OrbitalPosition;           // Orbital placement at a point in time
-        private double HorizonShift;              // Axis offset to skew day and night
-        private double TotalDistanceTravelled;    // Distance since beginning of time (in radians)
-        private double SeasonalOffset;            // Seaonal variation of tilt
-        private float  Magnitude;                 // Normal tilt
-        // private double VWTimeRatio;               // VW time as a ratio of real time
+        private float OrbitalPosition;          // Orbital placement at a point in time
+        private double HorizonShift;            // Axis offset to skew day and night
+        private double TotalDistanceTravelled;  // Distance since beginning of time (in radians)
+        private double SeasonalOffset;          // Seaonal variation of tilt
+        private float  Magnitude;               // Normal tilt
+        // private double VWTimeRatio;             // VW time as a ratio of real time
 
         // Working values
         private Vector3 Position = Vector3.Zero;
         private Vector3 Velocity = Vector3.Zero;
-        private Quaternion  Tilt = new Quaternion(1.0f, 0.0f, 0.0f, 0.0f);
-
+        private Quaternion Tilt = new Quaternion(1.0f, 0.0f, 0.0f, 0.0f);
 
         // Used to fix the sun in the sky so it doesn't move based on current time
         private bool m_SunFixed = false;
         private float m_SunFixedHour = 0f;
 
         private const int TICKS_PER_SECOND = 10000000;
-
-
 
         // Current time in elapsed seconds since Jan 1st 1970
         private ulong CurrentTime
@@ -148,8 +143,6 @@ namespace OpenSim.Region.CoreModules
 
         // Time in seconds since UTC to use to calculate sun position.
         ulong PosTime = 0;
-
-
 
         /// <summary>
         /// Calculate the sun's orbital position and its velocity.
@@ -202,7 +195,6 @@ namespace OpenSim.Region.CoreModules
                         PosTime += (ulong)(((CurDayPercentage - 0.5) / .5) * NightSeconds);
                     }
                 }
-
             }
 
             TotalDistanceTravelled = SunSpeed * PosTime;  // distance measured in radians
@@ -251,7 +243,6 @@ namespace OpenSim.Region.CoreModules
                 Velocity.X = 0;
                 Velocity.Y = 0;
                 Velocity.Z = 0;
-
             }
             else
             {
@@ -271,9 +262,7 @@ namespace OpenSim.Region.CoreModules
         private float GetCurrentTimeAsLindenSunHour()
         {
             if (m_SunFixed)
-            {
                 return m_SunFixedHour + 6;
-            }
 
             return GetCurrentSunHour() + 6.0f;
         }
@@ -296,8 +285,6 @@ namespace OpenSim.Region.CoreModules
             {
                 m_scene.AddCommand(this, String.Format("sun {0}", kvp.Key), String.Format("{0} - {1}", kvp.Key, kvp.Value), "", HandleSunConsoleCommand);
             }
-
-
 
             TimeZone local = TimeZone.CurrentTimeZone;
             TicksUTCOffset = local.GetUtcOffset(local.ToLocalTime(DateTime.Now)).Ticks;
@@ -325,13 +312,11 @@ namespace OpenSim.Region.CoreModules
                 // must hard code to ~.5 to match sun position in LL based viewers
                 m_HorizonShift   = config.Configs["Sun"].GetDouble("day_night_offset", d_day_night);
 
-                
                 // Scales the sun hours 0...12 vs 12...24, essentially makes daylight hours longer/shorter vs nighttime hours
                 m_DayTimeSunHourScale = config.Configs["Sun"].GetDouble("day_time_sun_hour_scale", d_DayTimeSunHourScale);
 
                 // Update frequency in frames
                 m_UpdateInterval   = config.Configs["Sun"].GetInt("update_interval", d_frame_mod);
-
             }
             catch (Exception e)
             {
@@ -391,9 +376,7 @@ namespace OpenSim.Region.CoreModules
             }
 
             scene.RegisterModuleInterface<ISunModule>(this);
-
         }
-
 
         public void PostInitialise()
         {
@@ -402,7 +385,7 @@ namespace OpenSim.Region.CoreModules
         public void Close()
         {
             ready = false;
-            
+
             // Remove our hooks
             m_scene.EventManager.OnFrame     -= SunUpdate;
             m_scene.EventManager.OnAvatarEnteringNewParcel -= AvatarEnteringParcel;
@@ -419,6 +402,7 @@ namespace OpenSim.Region.CoreModules
         {
             get { return false; }
         }
+
         #endregion
 
         #region EventManager Events
@@ -446,9 +430,7 @@ namespace OpenSim.Region.CoreModules
         public void SunUpdate()
         {
             if (((m_frame++ % m_UpdateInterval) != 0) || !ready || m_SunFixed || !receivedEstateToolsSunUpdate)
-            {
                 return;
-            }
 
             GenSunPos();        // Generate shared values once
 
@@ -467,7 +449,7 @@ namespace OpenSim.Region.CoreModules
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="FixedTime">Is the sun's position fixed?</param>
@@ -484,7 +466,6 @@ namespace OpenSim.Region.CoreModules
                 while (FixedSunHour < 0)
                     FixedSunHour += 24;
 
-
                 m_SunFixedHour = FixedSunHour;
                 m_SunFixed = FixedSun;
 
@@ -499,13 +480,11 @@ namespace OpenSim.Region.CoreModules
                 // When sun settings are updated, we should update all clients with new settings.
                 SunUpdateToAllClients();
 
-
                 m_log.DebugFormat("[SUN]: PosTime : {0}", PosTime.ToString());
             }
         }
 
         #endregion
-
 
         private void SunUpdateToAllClients()
         {
@@ -552,7 +531,6 @@ namespace OpenSim.Region.CoreModules
         public float GetCurrentSunHour()
         {
             float ticksleftover = CurrentTime % SecondsPerSunCycle;
-
 
             return (24.0f * (ticksleftover / SecondsPerSunCycle));
         }
@@ -666,7 +644,6 @@ namespace OpenSim.Region.CoreModules
 
                 // When sun settings are updated, we should update all clients with new settings.
                 SunUpdateToAllClients();
-
             }
 
             return Output;

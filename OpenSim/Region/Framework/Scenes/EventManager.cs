@@ -296,7 +296,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// ChatToClientsEvent is triggered via ChatModule (or
         /// substitutes thereof) when a chat message is actually sent to clients.  Clients will only be sent a 
         /// received chat message if they satisfy various conditions (within audible range, etc.)
-        /// </summary>        
+        /// </summary>
         public delegate void ChatToClientsEvent(
             UUID senderID, HashSet<UUID> receiverIDs, 
             string message, ChatTypeEnum type, Vector3 fromPos, string fromName, 
@@ -1636,8 +1636,8 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
-        }        
+            }
+        }
 
         public void TriggerOnChatBroadcast(Object sender, OSChatMessage chat)
         {
