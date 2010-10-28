@@ -50,7 +50,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
-        
+
         private readonly Dictionary<UUID,MRMBase> m_scripts = new Dictionary<UUID, MRMBase>();
 
         private readonly Dictionary<Type,object> m_extensions = new Dictionary<Type, object>();
@@ -77,7 +77,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 {
                     m_log.Info("[MRM] Enabling MRM Module");
                     m_scene = scene;
-                
+
                     // when hidden, we don't listen for client initiated script events
                     // only making the MRM engine available for region modules
                     if (!source.Configs["MRM"].GetBoolean("Hidden", false))
@@ -85,7 +85,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                         scene.EventManager.OnRezScript += EventManager_OnRezScript;
                         scene.EventManager.OnStopScript += EventManager_OnStopScript;
                     }
-                    
+
                     scene.EventManager.OnFrame += EventManager_OnFrame;
 
                     scene.RegisterModuleInterface<IMRMModule>(this);
@@ -291,7 +291,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         public void InitializeMRM(MRMBase mmb, uint localID, UUID itemID)
         {
-
             m_log.Info("[MRM] Created MRM Instance");
 
             IWorld world;
@@ -304,7 +303,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         public void PostInitialise()
         {
-            
         }
 
         public void Close()
@@ -349,7 +347,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             string tmp = Path.Combine("MiniModules", m_scene.RegionInfo.RegionID.ToString());
             if (!Directory.Exists(tmp))
                 Directory.CreateDirectory(tmp);
-
 
             m_log.Info("MRM 2");
 
@@ -396,8 +393,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
             parameters.IncludeDebugInformation = true;
 
-            string rootPath =
-                Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
+            string rootPath = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
 
             List<string> libraries = new List<string>();
             string[] lines = Script.Split(new string[] {"\n"}, StringSplitOptions.RemoveEmptyEntries);

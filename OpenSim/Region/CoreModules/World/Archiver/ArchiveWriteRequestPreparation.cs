@@ -171,7 +171,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             m_log.InfoFormat("[ARCHIVER]: Creating archive file.  This may take some time.");
 
-            // Write out control file
+            // Write out control file.  This has to be done first so that subsequent loaders will see this file first
+            // XXX: I know this is a weak way of doing it since external non-OAR aware tar executables will not do this
             archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p2ControlFile(options));
             m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
             
@@ -198,13 +199,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 majorVersion = 1;
                 minorVersion = 0;
-            }  
+            }
             */
             
             m_log.InfoFormat("[ARCHIVER]: Creating version {0}.{1} OAR", majorVersion, minorVersion);
 //            if (majorVersion == 1)
 //            {
-//                m_log.WarnFormat("[ARCHIVER]: Please be aware that version 1.0 OARs are not compatible with OpenSim 0.7.0.2 and earlier.  Please use the --version=0 option if you want to produce a compatible OAR");                
+//                m_log.WarnFormat("[ARCHIVER]: Please be aware that version 1.0 OARs are not compatible with OpenSim 0.7.0.2 and earlier.  Please use the --version=0 option if you want to produce a compatible OAR");
 //            }
             
             
@@ -231,6 +232,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             sw.Close();
 
             return s;
-        }        
+        }
     }
 }

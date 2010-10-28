@@ -123,9 +123,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
              
             try
             {
-                // We're almost done.  Just need to write out the control file now
-                m_archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p1ControlFile());
-                m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
                 m_archiveWriter.Close();
             }
             catch (Exception e)
@@ -277,6 +274,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             
                 m_archiveWriter = new TarArchiveWriter(m_saveStream);
 
+                // Write out control file.  This has to be done first so that subsequent loaders will see this file first
+                // XXX: I know this is a weak way of doing it since external non-OAR aware tar executables will not do this
+                m_archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p1ControlFile());
+                m_log.InfoFormat("[INVENTORY ARCHIVER]: Added control file to archive.");
+                
                 if (inventoryFolder != null)
                 {
                     m_log.DebugFormat(
@@ -399,13 +401,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <returns></returns>
         public static string Create0p1ControlFile()
         {
+            int majorVersion = 0, minorVersion = 1;
+            
+            m_log.InfoFormat("[INVENTORY ARCHIVER]: Creating version {0}.{1} IAR", majorVersion, minorVersion);
+            
             StringWriter sw = new StringWriter();
             XmlTextWriter xtw = new XmlTextWriter(sw);
             xtw.Formatting = Formatting.Indented;
             xtw.WriteStartDocument();
             xtw.WriteStartElement("archive");
-            xtw.WriteAttributeString("major_version", "0");
-            xtw.WriteAttributeString("minor_version", "1");
+            xtw.WriteAttributeString("major_version", majorVersion.ToString());
+            xtw.WriteAttributeString("minor_version", minorVersion.ToString());
             xtw.WriteEndElement();
 
             xtw.Flush();

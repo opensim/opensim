@@ -593,8 +593,6 @@ namespace OpenSim.Region.Framework.Scenes
             StatsReporter.OnSendStatsResult += SendSimStatsPackets;
             StatsReporter.OnStatsIncorrect += m_sceneGraph.RecalculateStats;
 
-            StatsReporter.SetObjectCapacity(RegionInfo.ObjectCapacity);
-
             // Old
             /*
             m_simulatorVersion = simulatorVersion
@@ -2390,7 +2388,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[SCENE]: Problem casting object: {0}", e.Message);
+                m_log.WarnFormat("[SCENE]: Problem casting object: " + e.ToString());
                 return false;
             }
 
@@ -3273,7 +3271,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", m_regInfo.RegionName);
         }
 
-
         /// <summary>
         /// Do the work necessary to initiate a new user connection for a particular scene.
         /// At the moment, this consists of setting up the caps infrastructure
@@ -3285,6 +3282,23 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>True if the region accepts this agent.  False if it does not.  False will 
         /// also return a reason.</returns>
         public bool NewUserConnection(AgentCircuitData agent, uint teleportFlags, out string reason)
+        {
+            return NewUserConnection(agent, teleportFlags, out reason, true);
+        }
+
+        /// <summary>
+        /// Do the work necessary to initiate a new user connection for a particular scene.
+        /// At the moment, this consists of setting up the caps infrastructure
+        /// The return bool should allow for connections to be refused, but as not all calling paths
+        /// take proper notice of it let, we allowed banned users in still.
+        /// </summary>
+        /// <param name="agent">CircuitData of the agent who is connecting</param>
+        /// <param name="reason">Outputs the reason for the false response on this string</param>
+        /// <param name="requirePresenceLookup">True for normal presence. False for NPC
+        /// or other applications where a full grid/Hypergrid presence may not be required.</param>
+        /// <returns>True if the region accepts this agent.  False if it does not.  False will 
+        /// also return a reason.</returns>
+        public bool NewUserConnection(AgentCircuitData agent, uint teleportFlags, out string reason, bool requirePresenceLookup)
         {
             bool vialogin = ((teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0 ||
                              (teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0);
@@ -3334,16 +3348,18 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (sp == null) // We don't have an [child] agent here already
             {
-
-                try
+                if (requirePresenceLookup)
                 {
-                    if (!VerifyUserPresence(agent, out reason))
+                    try
+                    {
+                        if (!VerifyUserPresence(agent, out reason))
+                            return false;
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[CONNECTION BEGIN]: Exception verifying presence " + e.ToString());
                         return false;
-                }
-                catch (Exception e)
-                {
-                    m_log.DebugFormat("[CONNECTION BEGIN]: Exception verifying presence {0}", e.Message);
-                    return false;
+                    }
                 }
 
                 try
@@ -3353,7 +3369,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 catch (Exception e)
                 {
-                    m_log.DebugFormat("[CONNECTION BEGIN]: Exception authorizing user {0}", e.Message);
+                    m_log.ErrorFormat("[CONNECTION BEGIN]: Exception authorizing user " + e.ToString());
                     return false;
                 }
 

@@ -287,7 +287,7 @@ namespace OpenSim.Region.Physics.Meshing
                     long start = 0;
                     using (MemoryStream data = new MemoryStream(primShape.SculptData))
                     {
-                        meshOsd = (OSDMap)OSDParser.DeserializeLLSDBinary(data, true);
+                        meshOsd = (OSDMap)OSDParser.DeserializeLLSDBinary(data);
                         start = data.Position;
                     }
 
@@ -324,7 +324,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                                         byte[] decompressedBuf = outMs.GetBuffer();
 
-                                        decodedMeshOsd = OSDParser.DeserializeLLSDBinary(decompressedBuf, true);
+                                        decodedMeshOsd = OSDParser.DeserializeLLSDBinary(decompressedBuf);
                                     }
                                 }
                             }
@@ -349,6 +349,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                                     OpenMetaverse.Vector3 posMax = ((OSDMap)subMeshMap["PositionDomain"])["Max"].AsVector3();
                                     OpenMetaverse.Vector3 posMin = ((OSDMap)subMeshMap["PositionDomain"])["Min"].AsVector3();
+                                    ushort faceIndexOffset = (ushort)coords.Count;
 
                                     byte[] posBytes = subMeshMap["Position"].AsBinary();
                                     for (int i = 0; i < posBytes.Length; i += 6)
@@ -368,9 +369,9 @@ namespace OpenSim.Region.Physics.Meshing
                                     byte[] triangleBytes = subMeshMap["TriangleList"].AsBinary();
                                     for (int i = 0; i < triangleBytes.Length; i += 6)
                                     {
-                                        ushort v1 = Utils.BytesToUInt16(triangleBytes, i);
-                                        ushort v2 = Utils.BytesToUInt16(triangleBytes, i + 2);
-                                        ushort v3 = Utils.BytesToUInt16(triangleBytes, i + 4);
+                                        ushort v1 = (ushort)(Utils.BytesToUInt16(triangleBytes, i) + faceIndexOffset);
+                                        ushort v2 = (ushort)(Utils.BytesToUInt16(triangleBytes, i + 2) + faceIndexOffset);
+                                        ushort v3 = (ushort)(Utils.BytesToUInt16(triangleBytes, i + 4) + faceIndexOffset);
                                         Face f = new Face(v1, v2, v3);
                                         faces.Add(f);
                                     }

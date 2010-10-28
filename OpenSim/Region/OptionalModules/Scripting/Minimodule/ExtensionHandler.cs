@@ -32,7 +32,7 @@ using OpenSim.Region.OptionalModules.Scripting.Minimodule.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    class ExtensionHandler : IExtension 
+    class ExtensionHandler : IExtension
     {
         private readonly Dictionary<Type, object> m_instances;
 

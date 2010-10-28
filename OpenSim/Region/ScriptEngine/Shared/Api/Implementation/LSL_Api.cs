@@ -6892,7 +6892,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetLinkPrimitiveParamsFast(int linknumber, LSL_List rules)
         {
-            llSetLinkPrimitiveParams(linknumber, rules);
+            m_host.AddScriptLPS(1);
+
+            List<SceneObjectPart> parts = GetLinkParts(linknumber);
+
+            foreach (SceneObjectPart part in parts)
+                SetPrimParams(part, rules);
         }
 
         protected void SetPrimParams(SceneObjectPart part, LSL_List rules)
@@ -7262,6 +7267,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                       Util.Clip((float)primTextColor.z, 0.0f, 1.0f));
                         part.SetText(primText, av3, Util.Clip((float)primTextAlpha, 0.0f, 1.0f));
 
+                        break;
+                    case (int)ScriptBaseClass.PRIM_NAME:
+                        if (remain < 1)
+                            return;
+                        string primName = rules.GetLSLStringItem(idx++);
+                        part.Name = primName;
+                        break;
+                    case (int)ScriptBaseClass.PRIM_DESC:
+                        if (remain < 1)
+                            return;
+                        string primDesc = rules.GetLSLStringItem(idx++);
+                        part.Description = primDesc;
+                        break;
+                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
+                        if (remain < 1)
+                            return;
+                        LSL_Rotation lr = rules.GetQuaternionItem(idx++);
+                        SetRot(part, Rot2Quaternion(lr));
                         break;
                 }
             }
@@ -7807,6 +7830,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                                textColor.G,
                                                textColor.B));
                         res.Add(new LSL_Float(textColor.A));
+                        break;
+                    case (int)ScriptBaseClass.PRIM_NAME:
+                        res.Add(part.Name);
+                        break;
+                    case (int)ScriptBaseClass.PRIM_DESC:
+                        res.Add(part.Description);
+                        break;
+                    case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
+                        res.Add(new LSL_Rotation(part.RotationOffset.X, part.RotationOffset.Y, part.RotationOffset.Z, part.RotationOffset.W));
                         break;
                 }
             }
@@ -8404,6 +8436,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 for (j = 0; j < seplen; j++)
                 {
+                    if (separray[j].ToString() == String.Empty)
+                        active[j] = false;
+
                     if (active[j])
                     {
                         // scan all of the markers
@@ -8432,6 +8467,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     for (j = seplen; (j < mlen) && (offset[best] > beginning); j++)
                     {
+                        if (spcarray[j-seplen].ToString() == String.Empty)
+                            active[j] = false;
+
                         if (active[j])
                         {
                             // scan all of the markers
@@ -9090,10 +9128,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // do that one last, it will cause a ParcelPropertiesUpdate
                     landObject.SetMediaUrl(url);
 
-                    // now send to all (non-child) agents
+                    // now send to all (non-child) agents in the parcel
                     World.ForEachScenePresence(delegate(ScenePresence sp)
                     {
-                        if (!sp.IsChildAgent)
+                        if (!sp.IsChildAgent && (sp.currentParcelUUID == landData.GlobalID))
                         {
                             sp.ControllingClient.SendParcelMediaUpdate(landData.MediaURL,
                                                                           landData.MediaID,
@@ -9123,10 +9161,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // the commandList contained a start/stop/... command, too
                 if (presence == null)
                 {
-                    // send to all (non-child) agents
+                    // send to all (non-child) agents in the parcel
                     World.ForEachScenePresence(delegate(ScenePresence sp)
                     {
-                        if (!sp.IsChildAgent)
+                        if (!sp.IsChildAgent && (sp.currentParcelUUID == landData.GlobalID))
                         {
                             sp.ControllingClient.SendParcelMediaCommand(0x4, // TODO what is this?
                                                                            (ParcelMediaCommandEnum)commandToSend,
