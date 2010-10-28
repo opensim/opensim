@@ -62,6 +62,12 @@ namespace OpenSim.Region.CoreModules.World.Sound
         public virtual void PlayAttachedSound(
             UUID soundID, UUID ownerID, UUID objectID, double gain, Vector3 position, byte flags, float radius)
         {
+            SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
+            if (part == null)
+                return;
+
+            SceneObjectGroup grp = part.ParentGroup;
+
             m_scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
                 if (sp.IsChildAgent)
@@ -70,6 +76,19 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 double dis = Util.GetDistanceTo(sp.AbsolutePosition, position);
                 if (dis > 100.0) // Max audio distance
                     return;
+
+                if (grp.IsAttachment)
+                {
+
+                    if (grp.GetAttachmentPoint() > 30) // HUD
+                    {
+                        if (sp.ControllingClient.AgentId != grp.OwnerID)
+                            return;
+                    }
+
+                    if (sp.ControllingClient.AgentId == grp.OwnerID)
+                        dis = 0;
+                }
 
                 // Scale by distance
                 if (radius == 0)
