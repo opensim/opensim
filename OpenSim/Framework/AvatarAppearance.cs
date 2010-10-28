@@ -233,7 +233,7 @@ namespace OpenSim.Framework
 // DEBUG ON
             m_log.WarnFormat("[AVATAR APPEARANCE] create empty appearance for {0}",owner);
 // DEBUG OFF
-            m_serial = 0;
+            m_serial = 1;
             m_owner = owner;
 
             SetDefaultWearables();
@@ -289,7 +289,7 @@ namespace OpenSim.Framework
 // DEBUG OFF
             if (appearance == null)
             {
-                m_serial = 0;
+                m_serial = 1;
                 m_owner = UUID.Zero;
 
                 SetDefaultWearables();
@@ -467,6 +467,9 @@ namespace OpenSim.Framework
         public override String ToString()
         {
             String s = "";
+
+            s += String.Format("Serial: {0}\n",m_serial);
+            
             for (uint i = 0; i < AvatarAppearance.TEXTURE_COUNT; i++)
                 if (m_texture.FaceTextures[i] != null)
                     s += String.Format("Texture: {0} --> {1}\n",i,m_texture.FaceTextures[i].TextureID);
@@ -625,8 +628,8 @@ namespace OpenSim.Framework
         /// </summary>
         public void Unpack(OSDMap data)
         {
-            if ((data != null) &&  (data["appearance_serial"] != null))
-                m_serial = data["appearance_serial"].AsInteger();
+            if ((data != null) &&  (data["serial"] != null))
+                m_serial = data["serial"].AsInteger();
             if ((data != null) && (data["height"] != null))
                 m_avatarHeight = (float)data["height"].AsReal();
             if ((data != null) && (data["hipoffset"] != null))
