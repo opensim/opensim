@@ -291,7 +291,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         public void InitializeMRM(MRMBase mmb, uint localID, UUID itemID)
         {
-
             m_log.Info("[MRM] Created MRM Instance");
 
             IWorld world;
