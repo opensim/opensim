@@ -48,19 +48,29 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         private static readonly byte[] BAKE_INDICES = new byte[] { 8, 9, 10, 11, 19, 20 };
         private Scene m_scene = null;
 
-        private static readonly int m_savetime = 5; // seconds to wait before saving changed appearance
-        private static readonly int m_sendtime = 2; // seconds to wait before sending changed appearance
+        private int m_savetime = 5; // seconds to wait before saving changed appearance
+        private int m_sendtime = 2; // seconds to wait before sending changed appearance
 
-        private static readonly int m_checkTime = 500; // milliseconds to wait between checks for appearance updates
+        private int m_checkTime = 500; // milliseconds to wait between checks for appearance updates
         private System.Timers.Timer m_updateTimer = new System.Timers.Timer();
         private Dictionary<UUID,long> m_savequeue = new Dictionary<UUID,long>();
         private Dictionary<UUID,long> m_sendqueue = new Dictionary<UUID,long>();
 
         #region RegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             scene.EventManager.OnNewClient += NewClient;
+
+            if (config != null)
+            {
+                IConfig sconfig = config.Configs["Startup"];
+                if (sconfig != null)
+                {
+                    m_savetime = Convert.ToInt32(sconfig.GetString("DelayBeforeAppearanceSave",Convert.ToString(m_savetime)));
+                    m_sendtime = Convert.ToInt32(sconfig.GetString("DelayBeforeAppearanceSend",Convert.ToString(m_sendtime)));
+                }
+            }
 
             if (m_scene == null)
                 m_scene = scene;
