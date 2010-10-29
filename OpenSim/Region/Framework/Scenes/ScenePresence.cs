@@ -1085,7 +1085,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void CompleteMovement(IClientAPI client)
         {
-            //m_log.Debug("[SCENE PRESENCE]: CompleteMovement");
+            DateTime startTime = DateTime.Now;
+            
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Completing movement of {0} into region {1}", 
+                client.Name, Scene.RegionInfo.RegionName);
 
             Vector3 look = Velocity;
             if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
@@ -1134,6 +1138,9 @@ namespace OpenSim.Region.Framework.Scenes
                     friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
             }
 
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
+                client.Name, Scene.RegionInfo.RegionName, (DateTime.Now - startTime).Milliseconds);            
         }
 
         /// <summary>
