@@ -225,46 +225,6 @@ namespace OpenSim.Framework
         }
     }
 
-    public class AttachmentData
-    {
-        public int AttachPoint;
-        public UUID ItemID;
-        public UUID AssetID;
-
-        public AttachmentData(int point, UUID item, UUID asset)
-        {
-            AttachPoint = point;
-            ItemID = item;
-            AssetID = asset;
-        }
-
-        public AttachmentData(OSDMap args)
-        {
-            UnpackUpdateMessage(args);
-        }
-
-        public OSDMap PackUpdateMessage()
-        {
-            OSDMap attachdata = new OSDMap();
-            attachdata["point"] = OSD.FromInteger(AttachPoint);
-            attachdata["item"] = OSD.FromUUID(ItemID);
-            attachdata["asset"] = OSD.FromUUID(AssetID);
-
-            return attachdata;
-        }
-
-
-        public void UnpackUpdateMessage(OSDMap args)
-        {
-            if (args["point"] != null)
-                AttachPoint = args["point"].AsInteger();
-            if (args["item"] != null)
-                ItemID = args["item"].AsUUID();
-            if (args["asset"] != null)
-                AssetID = args["asset"].AsUUID();
-        }
-    }
-
     public class ControllerData
     {
         public UUID ItemID;
@@ -348,11 +308,14 @@ namespace OpenSim.Framework
         public UUID GranterID;
 
         // Appearance
+        public AvatarAppearance Appearance;
+
+/*
         public byte[] AgentTextures;
         public byte[] VisualParams;
         public UUID[] Wearables;
-        public AttachmentData[] Attachments;
-
+        public AvatarAttachment[] Attachments;
+*/
         // Scripted
         public ControllerData[] Controllers;
 
@@ -413,6 +376,9 @@ namespace OpenSim.Framework
                 args["animations"] = anims;
             }
 
+            if (Appearance != null)
+                args["packed_appearance"] = Appearance.Pack();
+
             //if ((AgentTextures != null) && (AgentTextures.Length > 0))
             //{
             //    OSDArray textures = new OSDArray(AgentTextures.Length);
@@ -421,7 +387,7 @@ namespace OpenSim.Framework
             //    args["agent_textures"] = textures;
             //}
 
-           
+/*
             if ((AgentTextures != null) && (AgentTextures.Length > 0))
                 args["texture_entry"] = OSD.FromBinary(AgentTextures);
 
@@ -441,11 +407,11 @@ namespace OpenSim.Framework
             if ((Attachments != null) && (Attachments.Length > 0))
             {
                 OSDArray attachs = new OSDArray(Attachments.Length);
-                foreach (AttachmentData att in Attachments)
-                    attachs.Add(att.PackUpdateMessage());
+                foreach (AvatarAttachment att in Attachments)
+                    attachs.Add(att.Pack());
                 args["attachments"] = attachs;
             }
-
+*/
             if ((Controllers != null) && (Controllers.Length > 0))
             {
                 OSDArray controls = new OSDArray(Controllers.Length);
@@ -581,6 +547,12 @@ namespace OpenSim.Framework
             //        AgentTextures[i++] = o.AsUUID();
             //}
 
+            if (args["packed_appearance"] != null)
+                Appearance = new AvatarAppearance(AgentID,(OSDMap)args["packed_appearance"]);
+            else
+                Appearance = new AvatarAppearance(AgentID);
+            
+/*
             if (args["texture_entry"] != null)
                 AgentTextures = args["texture_entry"].AsBinary();
 
@@ -599,17 +571,17 @@ namespace OpenSim.Framework
             if ((args["attachments"] != null) && (args["attachments"]).Type == OSDType.Array)
             {
                 OSDArray attachs = (OSDArray)(args["attachments"]);
-                Attachments = new AttachmentData[attachs.Count];
+                Attachments = new AvatarAttachment[attachs.Count];
                 int i = 0;
                 foreach (OSD o in attachs)
                 {
                     if (o.Type == OSDType.Map)
                     {
-                        Attachments[i++] = new AttachmentData((OSDMap)o);
+                        Attachments[i++] = new AvatarAttachment((OSDMap)o);
                     }
                 }
             }
-
+*/
             if ((args["controllers"] != null) && (args["controllers"]).Type == OSDType.Array)
             {
                 OSDArray controls = (OSDArray)(args["controllers"]);

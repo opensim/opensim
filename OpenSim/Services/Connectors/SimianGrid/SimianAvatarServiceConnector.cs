@@ -28,6 +28,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+// DEBUG ON
+using System.Diagnostics;
+// DEBUG OFF
 using System.Reflection;
 using log4net;
 using Mono.Addins;
@@ -106,6 +109,80 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         #region IAvatarService
 
+        // <summary>
+        // Retrieves the LLPackedAppearance field from user data and unpacks
+        // it into an AvatarAppearance structure
+        // </summary>
+        // <param name="userID"></param>
+        public AvatarAppearance GetAppearance(UUID userID)
+        {
+            NameValueCollection requestArgs = new NameValueCollection
+            {
+                { "RequestMethod", "GetUser" },
+                { "UserID", userID.ToString() }
+            };
+
+            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            if (response["Success"].AsBoolean())
+            {
+                OSDMap map = null;                
+                try { map = OSDParser.DeserializeJson(response["LLPackedAppearance"].AsString()) as OSDMap; }
+                catch { }
+
+                if (map != null)
+                {
+                    AvatarAppearance appearance = new AvatarAppearance(map);
+// DEBUG ON
+                    m_log.WarnFormat("[SIMIAN AVATAR CONNECTOR] retrieved appearance for {0}:\n{1}",userID,appearance.ToString());
+// DEBUG OFF                    
+                    return appearance;
+                }
+
+                m_log.WarnFormat("[SIMIAN AVATAR CONNECTOR]: Failed to decode appearance for {0}",userID);
+                return null;
+            }
+
+            m_log.WarnFormat("[SIMIAN AVATAR CONNECTOR]: Failed to get appearance for {0}: {1}",
+                             userID,response["Message"].AsString());
+            return null;
+        }
+        
+        // <summary>
+        // </summary>
+        // <param name=""></param>
+        public bool SetAppearance(UUID userID, AvatarAppearance appearance)
+        {
+            OSDMap map = appearance.Pack();
+            if (map == null)
+            {
+                m_log.WarnFormat("[SIMIAN AVATAR CONNECTOR]: Failed to encode appearance for {0}",userID);
+                return false;
+            }
+
+// DEBUG ON
+            m_log.WarnFormat("[SIMIAN AVATAR CONNECTOR] save appearance for {0}",userID);
+// DEBUG OFF                    
+
+            NameValueCollection requestArgs = new NameValueCollection
+                {
+                        { "RequestMethod", "AddUserData" },
+                        { "UserID", userID.ToString() },
+                        { "LLPackedAppearance", OSDParser.SerializeJsonString(map) }
+                };
+
+            OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
+            bool success = response["Success"].AsBoolean();
+
+            if (! success)
+                m_log.WarnFormat("[SIMIAN AVATAR CONNECTOR]: Failed to save appearance for {0}: {1}",
+                                 userID,response["Message"].AsString());
+
+            return success;
+        }
+            
+        // <summary>
+        // </summary>
+        // <param name=""></param>
         public AvatarData GetAvatar(UUID userID)
         {
             NameValueCollection requestArgs = new NameValueCollection
@@ -154,7 +231,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                         foreach (KeyValuePair<string, OSD> kvp in map)
                             avatar.Data[kvp.Key] = kvp.Value.AsString();
                     }
-
+                
                     return avatar;
                 }
                 else
@@ -173,6 +250,9 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return null;
         }
 
+        // <summary>
+        // </summary>
+        // <param name=""></param>
         public bool SetAvatar(UUID userID, AvatarData avatar)
         {
             m_log.Debug("[SIMIAN AVATAR CONNECTOR]: SetAvatar called for " + userID);

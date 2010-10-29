@@ -64,15 +64,13 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             if (m_appearanceCache.ContainsKey(target))
                 return m_appearanceCache[target];
 
-            AvatarData adata = scene.AvatarService.GetAvatar(target);
-            if (adata != null)
+            AvatarAppearance appearance = scene.AvatarService.GetAppearance(target);
+            if (appearance != null)
             {
-                AvatarAppearance x = adata.ToAvatarAppearance(target);
-
-                m_appearanceCache.Add(target, x);
-
-                return x;
+                m_appearanceCache.Add(target, appearance);
+                return appearance;
             }
+
             return new AvatarAppearance();
         }
 
@@ -169,7 +167,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     {
                         AvatarAppearance x = GetAppearance(p_cloneAppearanceFrom, p_scene);
 
-                        sp.SetAppearance(x.Texture, (byte[])x.VisualParams.Clone());
+                        sp.Appearance.SetTextureEntries(x.Texture);
+                        sp.Appearance.SetVisualParams((byte[])x.VisualParams.Clone());
+                        sp.SendAppearanceToAllOtherAgents();
                     }
 
                     m_avatars.Add(npcAvatar.AgentId, npcAvatar);

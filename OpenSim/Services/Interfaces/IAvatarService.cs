@@ -42,6 +42,21 @@ namespace OpenSim.Services.Interfaces
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>
+        AvatarAppearance GetAppearance(UUID userID);
+
+        /// <summary>
+        /// Called by everyone who can change the avatar data (so, regions)
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="appearance"></param>
+        /// <returns></returns>
+        bool SetAppearance(UUID userID, AvatarAppearance appearance);
+        
+        /// <summary>
+        /// Called by the login service
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns></returns>
         AvatarData GetAvatar(UUID userID);
 
         /// <summary>
@@ -217,23 +232,26 @@ namespace OpenSim.Services.Interfaces
                 foreach (KeyValuePair<string, string> _kvp in Data)
                     if (_kvp.Key.StartsWith("_ap_"))
                         attchs[_kvp.Key] = _kvp.Value;
-                Hashtable aaAttachs = new Hashtable();
+
                 foreach (KeyValuePair<string, string> _kvp in attchs)
                 {
                     string pointStr = _kvp.Key.Substring(4);
                     int point = 0;
                     if (!Int32.TryParse(pointStr, out point))
                         continue;
-                    Hashtable tmp = new Hashtable();
+
                     UUID uuid = UUID.Zero;
                     UUID.TryParse(_kvp.Value, out uuid);
-                    tmp["item"] = uuid;
-                    tmp["asset"] = UUID.Zero.ToString();
-                    aaAttachs[point] = tmp;
+
+                    appearance.SetAttachment(point,uuid,UUID.Zero);
                 }
-                appearance.SetAttachments(aaAttachs);
             }
-            catch { }
+            catch
+            {
+                // We really should report something here, returning null
+                // will at least break the wrapper
+                return null;
+            }
 
             return appearance;
         }

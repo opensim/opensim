@@ -38,48 +38,20 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 {
-    public class AvatarFactoryModule : IAvatarFactory, IRegionModule
+    public class AvatarFactoryModule : IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly byte[] BAKE_INDICES = new byte[] { 8, 9, 10, 11, 19, 20 };
         private Scene m_scene = null;
-        private static readonly AvatarAppearance def = new AvatarAppearance();
 
-        public bool TryGetAvatarAppearance(UUID avatarId, out AvatarAppearance appearance)
-        {
-            AvatarData avatar = m_scene.AvatarService.GetAvatar(avatarId);
-            //if ((profile != null) && (profile.RootFolder != null))
-            if (avatar != null)
-            {
-                appearance = avatar.ToAvatarAppearance(avatarId);
-                return true;
-            }
-
-            m_log.ErrorFormat("[APPEARANCE]: Appearance not found for {0}, creating default", avatarId);
-            appearance = CreateDefault(avatarId);
-            return false;
-        }
-
-        private AvatarAppearance CreateDefault(UUID avatarId)
-        {
-            AvatarAppearance appearance = null;
-            AvatarWearable[] wearables;
-            byte[] visualParams;
-            GetDefaultAvatarAppearance(out wearables, out visualParams);
-            appearance = new AvatarAppearance(avatarId, wearables, visualParams);
-
-            return appearance;
-        }
+        private bool m_startAnimationSet = false;
 
         public void Initialise(Scene scene, IConfigSource source)
         {
-            scene.RegisterModuleInterface<IAvatarFactory>(this);
             scene.EventManager.OnNewClient += NewClient;
 
             if (m_scene == null)
-            {
                 m_scene = scene;
-            }
-
         }
 
         public void PostInitialise()
@@ -102,6 +74,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         public void NewClient(IClientAPI client)
         {
+            client.OnRequestWearables += SendWearables;
+            client.OnSetAppearance += SetAppearance;
             client.OnAvatarNowWearing += AvatarIsWearing;
         }
 
@@ -110,13 +84,167 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             // client.OnAvatarNowWearing -= AvatarIsWearing;
         }
 
-        public void SetAppearanceAssets(UUID userID, ref AvatarAppearance appearance)
+        /// <summary>
+        /// Set appearance data (textureentry and slider settings) received from the client
+        /// </summary>
+        /// <param name="texture"></param>
+        /// <param name="visualParam"></param>
+        public void SetAppearance(IClientAPI client, Primitive.TextureEntry textureEntry, byte[] visualParams)
+        {
+            ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
+            if (sp == null)
+            {
+                m_log.WarnFormat("[AVFACTORY] SetAppearance unable to find presence for {0}",client.AgentId);
+                return;
+            }
+            
+// DEBUG ON
+            m_log.WarnFormat("[AVFACTORY] SetAppearance for {0}",client.AgentId);
+// DEBUG OFF
+
+/*
+            if (m_physicsActor != null)
+            {
+                if (!IsChildAgent)
+                {
+                    // This may seem like it's redundant, remove the avatar from the physics scene
+                    // just to add it back again, but it saves us from having to update
+                    // 3 variables 10 times a second.
+                    bool flyingTemp = m_physicsActor.Flying;
+                    RemoveFromPhysicalScene();
+                    //m_scene.PhysicsScene.RemoveAvatar(m_physicsActor);
+
+                    //PhysicsActor = null;
+
+                    AddToPhysicalScene(flyingTemp);
+                }
+            }
+*/
+            #region Bake Cache Check
+
+            bool changed = false;
+            
+            // Process the texture entry
+            if (textureEntry != null)
+            {
+                for (int i = 0; i < BAKE_INDICES.Length; i++)
+                {
+                    int j = BAKE_INDICES[i];
+                    Primitive.TextureEntryFace face = textureEntry.FaceTextures[j];
+
+                    if (face != null && face.TextureID != AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                    {
+                        if (m_scene.AssetService.Get(face.TextureID.ToString()) == null)
+                        {
+                            m_log.WarnFormat("[AVFACTORY]: Missing baked texture {0} ({1}) for avatar {2}",face.TextureID,j,this.Name);
+                            client.SendRebakeAvatarTextures(face.TextureID);
+                        }
+                    }
+                }
+                changed = sp.Appearance.SetTextureEntries(textureEntry);
+             
+            }
+            
+            #endregion Bake Cache Check
+                
+            changed = sp.Appearance.SetVisualParams(visualParams) || changed;
+
+            // If nothing changed (this happens frequently) just return
+            if (changed)
+            {
+// DEBUG ON
+                m_log.Warn("[AVFACTORY] Appearance changed");
+// DEBUG OFF                
+                sp.Appearance.SetAppearance(textureEntry, visualParams);
+                if (sp.Appearance.AvatarHeight > 0)
+                    sp.SetHeight(sp.Appearance.AvatarHeight);
+
+                m_scene.AvatarService.SetAppearance(client.AgentId, sp.Appearance);
+            }
+// DEBUG ON
+            else
+                m_log.Warn("[AVFACTORY] Appearance did not change");
+// DEBUG OFF
+
+            sp.SendAppearanceToAllOtherAgents();
+            if (!m_startAnimationSet)
+            {
+                sp.Animator.UpdateMovementAnimations();
+                m_startAnimationSet = true;
+            }
+
+            client.SendAvatarDataImmediate(sp);
+            client.SendAppearance(sp.Appearance.Owner,sp.Appearance.VisualParams,sp.Appearance.Texture.GetBytes());
+        }
+
+        /// <summary>
+        /// Tell the client for this scene presence what items it should be wearing now
+        /// </summary>
+        public void SendWearables(IClientAPI client)
+        {
+            ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
+            if (sp == null)
+            {
+                m_log.WarnFormat("[AVFACTORY] SendWearables unable to find presence for {0}",client.AgentId);
+                return;
+            }
+            
+// DEBUG ON
+            m_log.WarnFormat("[AVFACTORY]: Received request for wearables of {0}", client.AgentId);
+// DEBUG OFF            
+            client.SendWearables(sp.Appearance.Wearables,sp.Appearance.Serial++);
+        }
+
+        /// <summary>
+        /// Update what the avatar is wearing using an item from their inventory.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public void AvatarIsWearing(IClientAPI client, AvatarWearingArgs e)
+        {
+            ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
+            if (sp == null)
+            {
+                m_log.WarnFormat("[AVFACTORY] AvatarIsWearing unable to find presence for {0}",client.AgentId);
+                return;
+            }
+            
+// DEBUG ON
+            m_log.WarnFormat("[AVFACTORY]: AvatarIsWearing called for {0}",client.AgentId);
+// DEBUG OFF
+
+            AvatarAppearance avatAppearance = new AvatarAppearance(sp.Appearance);
+
+            //if (!TryGetAvatarAppearance(client.AgentId, out avatAppearance)) 
+            //{
+            //    m_log.Warn("[AVFACTORY]: We didn't seem to find the appearance, falling back to ScenePresence");
+            //    avatAppearance = sp.Appearance;
+            //}
+            
+            //m_log.DebugFormat("[AVFACTORY]: Received wearables for {0}", client.Name);
+            
+            foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
+            {
+                if (wear.Type < AvatarWearable.MAX_WEARABLES)
+                {
+                    AvatarWearable newWearable = new AvatarWearable(wear.ItemID,UUID.Zero);
+                    avatAppearance.SetWearable(wear.Type, newWearable);
+                }
+            }
+            
+            SetAppearanceAssets(sp.UUID, ref avatAppearance);
+
+            m_scene.AvatarService.SetAppearance(client.AgentId, avatAppearance);
+            sp.Appearance = avatAppearance;
+        }
+
+        private void SetAppearanceAssets(UUID userID, ref AvatarAppearance appearance)
         {
             IInventoryService invService = m_scene.InventoryService;
 
             if (invService.GetRootFolder(userID) != null)
             {
-                for (int i = 0; i < 13; i++)
+                for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
                 {
                     if (appearance.Wearables[i].ItemID == UUID.Zero)
                     {
@@ -134,84 +262,19 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         else
                         {
                             m_log.ErrorFormat(
-                                "[APPEARANCE]: Can't find inventory item {0} for {1}, setting to default", 
+                                "[AVFACTORY]: Can't find inventory item {0} for {1}, setting to default", 
                                 appearance.Wearables[i].ItemID, (WearableType)i);
                             
-                            appearance.Wearables[i].AssetID = def.Wearables[i].AssetID;
+                            appearance.Wearables[i].ItemID = UUID.Zero;
+                            appearance.Wearables[i].AssetID = UUID.Zero;
                         }
                     }
                 }
             }
             else
             {
-                m_log.WarnFormat("[APPEARANCE]: user {0} has no inventory, appearance isn't going to work", userID);
+                m_log.WarnFormat("[AVFACTORY]: user {0} has no inventory, appearance isn't going to work", userID);
             }
-        }
-
-        /// <summary>
-        /// Update what the avatar is wearing using an item from their inventory.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        public void AvatarIsWearing(Object sender, AvatarWearingArgs e)
-        {
-            m_log.DebugFormat("[APPEARANCE]: AvatarIsWearing");
-
-            IClientAPI clientView = (IClientAPI)sender;
-            ScenePresence sp = m_scene.GetScenePresence(clientView.AgentId);
-            
-            if (sp == null) 
-            {
-                m_log.Error("[APPEARANCE]: Avatar is child agent, ignoring AvatarIsWearing event");
-                return;
-            }
-
-            AvatarAppearance avatAppearance = sp.Appearance;
-            //if (!TryGetAvatarAppearance(clientView.AgentId, out avatAppearance)) 
-            //{
-            //    m_log.Warn("[APPEARANCE]: We didn't seem to find the appearance, falling back to ScenePresence");
-            //    avatAppearance = sp.Appearance;
-            //}
-            
-            //m_log.DebugFormat("[APPEARANCE]: Received wearables for {0}", clientView.Name);
-            
-            foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
-            {
-                if (wear.Type < 13)
-                {
-                    avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
-                }
-            }
-            
-            SetAppearanceAssets(sp.UUID, ref avatAppearance);
-            AvatarData adata = new AvatarData(avatAppearance);
-            m_scene.AvatarService.SetAvatar(clientView.AgentId, adata);
-
-            sp.Appearance = avatAppearance;
-        }
-
-        public static void GetDefaultAvatarAppearance(out AvatarWearable[] wearables, out byte[] visualParams)
-        {
-            visualParams = GetDefaultVisualParams();
-            wearables = AvatarWearable.DefaultWearables;
-        }
-
-        public void UpdateDatabase(UUID user, AvatarAppearance appearance)
-        {
-            //m_log.DebugFormat("[APPEARANCE]: UpdateDatabase");
-            AvatarData adata = new AvatarData(appearance);
-            m_scene.AvatarService.SetAvatar(user, adata);
-        }
-
-        private static byte[] GetDefaultVisualParams()
-        {
-            byte[] visualParams;
-            visualParams = new byte[218];
-            for (int i = 0; i < 218; i++)
-            {
-                visualParams[i] = 100;
-            }
-            return visualParams;
         }
     }
 }
