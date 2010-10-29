@@ -2003,14 +2003,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             // try to let this work as in SL...
-            if (m_host.LinkNum < 2)
+            if (m_host.ParentID == 0)
             {
-                // Special case: If we are root, rotate complete SOG to new
-                // rotation.
-                // We are root if the link number is 0 (single prim) or 1
-                // (root prim). ParentID may be nonzero in attachments and
-                // using it would cause attachments and HUDs to rotate
-                // to the wrong positions.
+                // special case: If we are root, rotate complete SOG to new rotation
                 SetRot(m_host, Rot2Quaternion(rot));
             }
             else

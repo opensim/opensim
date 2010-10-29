@@ -79,7 +79,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event DeRezObject OnDeRezObject;
         public event ModifyTerrain OnModifyTerrain;
         public event Action<IClientAPI> OnRegionHandShakeReply;
-        public event GenericCall2 OnRequestWearables;
+        public event GenericCall1 OnRequestWearables;
         public event SetAppearance OnSetAppearance;
         public event AvatarNowWearing OnAvatarNowWearing;
         public event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
@@ -5647,11 +5647,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool HandlerAgentWearablesRequest(IClientAPI sender, Packet Pack)
         {
-            GenericCall2 handlerRequestWearables = OnRequestWearables;
+            GenericCall1 handlerRequestWearables = OnRequestWearables;
 
             if (handlerRequestWearables != null)
             {
-                handlerRequestWearables();
+                handlerRequestWearables(sender);
             }
 
             Action<IClientAPI> handlerRequestAvatarsData = OnRequestAvatarsData;
@@ -5694,7 +5694,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (appear.ObjectData.TextureEntry.Length > 1)
                         te = new Primitive.TextureEntry(appear.ObjectData.TextureEntry, 0, appear.ObjectData.TextureEntry.Length);
 
-                    handlerSetAppearance(te, visualparams);
+                    handlerSetAppearance(sender, te, visualparams);
                 }
                 catch (Exception e)
                 {
