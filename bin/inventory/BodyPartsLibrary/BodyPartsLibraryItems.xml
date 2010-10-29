@@ -16,6 +16,34 @@
   </Section>
 --> 
 <!--
+  <Section Name="Tattoo">
+    <Key Name="inventoryID" Value="c47e22bd-3021-4ba4-82aa-2b5cb34d35e1" />
+    <Key Name="assetID" Value="00000000-0000-2222-3333-100000001007" />
+    <Key Name="folderID" Value="d499e5e0-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="description" Value="Tattoo" />
+    <Key Name="name" Value="Tattoo" />
+    <Key Name="assetType" Value="13" />
+    <Key Name="inventoryType" Value="18" />
+    <Key Name="currentPermissions" Value="2147483647" />
+    <Key Name="nextPermissions" Value="2147483647" />
+    <Key Name="everyonePermissions" Value="2147483647" />
+    <Key Name="basePermissions" Value="2147483647" />
+  </Section>
+  
+  <Section Name="Alpha">
+    <Key Name="inventoryID" Value="bfb9923c-4838-4d2d-bf07-608c5b1165c8" />
+    <Key Name="assetID" Value="1578a2b1-5179-4b53-b618-fe00ca5a5594" />
+    <Key Name="folderID" Value="d499e5e0-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="description" Value="Hair" />
+    <Key Name="name" Value="Hair" />
+    <Key Name="assetType" Value="13" />
+    <Key Name="inventoryType" Value="18" />
+    <Key Name="currentPermissions" Value="2147483647" />
+    <Key Name="nextPermissions" Value="2147483647" />
+    <Key Name="everyonePermissions" Value="2147483647" />
+    <Key Name="basePermissions" Value="2147483647" />
+  </Section>
+  
   <Section Name="Hair">
     <Key Name="inventoryID" Value="d342e6c1-b9d2-11dc-95ff-0800200c9a66" />
     <Key Name="assetID" Value="d342e6c0-b9d2-11dc-95ff-0800200c9a66" />
