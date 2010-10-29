@@ -178,17 +178,11 @@ namespace OpenSim.Services.Interfaces
             Data["UnderShirtAsset"] = appearance.UnderShirtAsset.ToString();
 
             // Attachments
-            Hashtable attachs = appearance.GetAttachments();
-            if (attachs != null)
-                foreach (DictionaryEntry dentry in attachs)
-                {
-                    if (dentry.Value != null)
-                    {
-                        Hashtable tab = (Hashtable)dentry.Value;
-                        if (tab.ContainsKey("item") && tab["item"] != null)
-                            Data["_ap_" + dentry.Key] = tab["item"].ToString();
-                    }
-                }
+            List<AvatarAttachment> attachments = appearance.GetAttachments();
+            foreach (AvatarAttachment attach in attachments)
+            {
+                Data["_ap_" + attach.AttachPoint] = attach.ItemID.ToString();
+            }
         }
 
         public AvatarAppearance ToAvatarAppearance(UUID owner)
