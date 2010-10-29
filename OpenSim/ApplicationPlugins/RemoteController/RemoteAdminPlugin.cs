@@ -1732,12 +1732,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
 
             // Attachments
-            Dictionary<int, AvatarAttachment> attachments = avatarAppearance.Attachments;
+            List<AvatarAttachment> attachments = avatarAppearance.GetAttachments();
 
-            foreach (KeyValuePair<int, AvatarAttachment> attachment in attachments)
+            foreach (AvatarAttachment attachment in attachments)
             {
-                int attachpoint = attachment.Value.AttachPoint;
-                UUID itemID = attachment.Value.ItemID;
+                int attachpoint = attachment.AttachPoint;
+                UUID itemID = attachment.ItemID;
 
                 if (itemID != UUID.Zero)
                 {
