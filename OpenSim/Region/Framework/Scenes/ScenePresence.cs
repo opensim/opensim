@@ -2384,7 +2384,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (remoteAvatar == null)
                 return;
 
-            IClientAPI cl=remoteAvatar.ControllingClient;
+            IClientAPI cl = remoteAvatar.ControllingClient;
             if (cl == null)
                 return;
 
@@ -2393,7 +2393,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (LocalId == remoteAvatar.LocalId)
             {
-                m_log.WarnFormat("[SCENEPRESENCE]: An agent is attempting to send data to itself; {0}", UUID);
+                m_log.WarnFormat("[SCENEPRESENCE]: An agent is attempting to send avatar data to itself; {0}", UUID);
                 return;
             }
 
@@ -2524,7 +2524,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (LocalId == avatar.LocalId)
             {
-                m_log.WarnFormat("[SP] An agent is attempting to send data to itself; {0}",UUID);
+                m_log.WarnFormat("[SCENE PRESENCE]: An agent is attempting to send appearance data to itself; {0}", UUID);
                 return;
             }
 
