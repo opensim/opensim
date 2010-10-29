@@ -705,8 +705,8 @@ namespace OpenSim.Region.Framework.Scenes
             // Request info about all the (root) agents in this region
             // Note: This won't send data *to* other clients in that region (children don't send)
 
-// MIC: This should be called by OnCompleteMovement
-//            SendInitialFullUpdateToAllClients();
+// MIC: This gets called again in CompleteMovement
+            SendInitialFullUpdateToAllClients();
 
             RegisterToEvents();
             SetDirectionVectors();
