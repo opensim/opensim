@@ -1075,9 +1075,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void CompleteMovement(IClientAPI client)
         {
-// DEBUG ON
-            m_log.WarnFormat("[SCENE PRESENCE]: CompleteMovement for {0}",UUID);
-// DEBUG OFF
+            DateTime startTime = DateTime.Now;
+            
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Completing movement of {0} into region {1}", 
+                client.Name, Scene.RegionInfo.RegionName);
 
             Vector3 look = Velocity;
             if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
@@ -1125,6 +1127,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if (friendsModule != null)
                     friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
             }
+
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
+                client.Name, Scene.RegionInfo.RegionName, (DateTime.Now - startTime).Milliseconds);            
         }
 
         /// <summary>
@@ -2378,7 +2384,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (remoteAvatar == null)
                 return;
 
-            IClientAPI cl=remoteAvatar.ControllingClient;
+            IClientAPI cl = remoteAvatar.ControllingClient;
             if (cl == null)
                 return;
 
@@ -2387,13 +2393,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (LocalId == remoteAvatar.LocalId)
             {
-                m_log.WarnFormat("[SP] An agent is attempting to send data to itself; {0}",UUID);
+                m_log.WarnFormat("[SCENEPRESENCE]: An agent is attempting to send avatar data to itself; {0}", UUID);
                 return;
             }
 
             if (IsChildAgent)
             {
-                m_log.WarnFormat("[SCENEPRESENCE] A child agent is attempting to send out avatar data");
+                m_log.WarnFormat("[SCENEPRESENCE]: A child agent is attempting to send out avatar data; {0}", UUID);
                 return;
             }
             
@@ -2476,14 +2482,14 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_scene.AvatarFactory.ValidateBakedTextureCache(m_controllingClient))
                 {
-                    m_log.WarnFormat("[SP] baked textures are in the ache for {0}",Name);
+//                    m_log.WarnFormat("[SCENEPRESENCE]: baked textures are in the cache for {0}", Name);
                     m_controllingClient.SendAppearance(
                         m_appearance.Owner,m_appearance.VisualParams,m_appearance.Texture.GetBytes());
                 }
             }
             else
             {
-                m_log.WarnFormat("[SP] AvatarFactory not set");
+                m_log.WarnFormat("[SCENEPRESENCE]: AvatarFactory not set for {0}", Name);
             }
 
             SendInitialFullUpdateToAllClients();
@@ -2495,7 +2501,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendAppearanceToAllOtherAgents()
         {
 // DEBUG ON
-            m_log.WarnFormat("[SP] Send appearance from {0} to all other agents",m_uuid);
+//            m_log.WarnFormat("[SCENEPRESENCE]: Send appearance from {0} to all other agents", m_uuid);
 // DEBUG OFF
             m_perfMonMS = Util.EnvironmentTickCount();
 
@@ -2518,7 +2524,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (LocalId == avatar.LocalId)
             {
-                m_log.WarnFormat("[SP] An agent is attempting to send data to itself; {0}",UUID);
+                m_log.WarnFormat("[SCENE PRESENCE]: An agent is attempting to send appearance data to itself; {0}", UUID);
                 return;
             }
 
