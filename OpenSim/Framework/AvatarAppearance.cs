@@ -35,6 +35,104 @@ using log4net;
 
 namespace OpenSim.Framework
 {
+    // A special dictionary for avatar appearance
+    public struct LayerItem
+    {
+        public UUID ItemID;
+        public UUID AssetID;
+
+        public LayerItem(UUID itemID, UUID assetID)
+        {
+            ItemID = itemID;
+            AssetID = assetID;
+        }
+    }
+
+    public class Layer
+    {
+        protected int m_layerType;
+        protected Dictionary<UUID, UUID> m_items = new Dictionary<UUID, UUID>();
+        protected List<UUID> m_ids = new List<UUID>();
+
+        public Layer(int type)
+        {
+            m_layerType = type;
+        }
+
+        public int LayerType
+        {
+            get { return m_layerType; }
+        }
+
+        public int Count
+        {
+            get { return m_ids.Count; }
+        }
+
+        public void Add(UUID itemID, UUID assetID)
+        {
+            if (m_items.ContainsKey(itemID))
+                return;
+            if (m_ids.Count >= 5)
+                return;
+
+            m_ids.Add(itemID);
+            m_items[itemID] = assetID;
+        }
+
+        public void Wear(UUID itemID, UUID assetID)
+        {
+            Clear();
+            Add(itemID, assetID);
+        }
+
+        public void Clear()
+        {
+            m_ids.Clear();
+            m_items.Clear();
+        }
+
+        public void RemoveItem(UUID itemID)
+        {
+            if (m_items.ContainsKey(itemID))
+            {
+                m_ids.Remove(itemID);
+                m_items.Remove(itemID);
+            }
+        }
+
+        public void RemoveAsset(UUID assetID)
+        {
+            UUID itemID = UUID.Zero;
+
+            foreach (KeyValuePair<UUID, UUID> kvp in m_items)
+            {
+                if (kvp.Value == assetID)
+                {
+                    itemID = kvp.Key;
+                    break;
+                }
+            }
+
+            if (itemID != UUID.Zero)
+            {
+                m_ids.Remove(itemID);
+                m_items.Remove(itemID);
+            }
+        }
+
+        public LayerItem this [int idx]
+        {
+            get
+            {
+                if (idx >= m_ids.Count || idx < 0)
+                    return new LayerItem(UUID.Zero, UUID.Zero);
+
+                return new LayerItem(m_ids[idx], m_items[m_ids[idx]]);
+            }
+        }
+    }
+
     /// <summary>
     /// Contains the Avatar's Appearance and methods to manipulate the appearance.
     /// </summary>
