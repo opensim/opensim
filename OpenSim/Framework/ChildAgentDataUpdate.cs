@@ -414,12 +414,10 @@ namespace OpenSim.Framework
             // We might not pass this in all cases...
             if ((Appearance.Wearables != null) && (Appearance.Wearables.Length > 0))
             {
-                OSDArray wears = new OSDArray(Appearance.Wearables.Length * 2);
+                OSDArray wears = new OSDArray(Appearance.Wearables.Length);
                 foreach (AvatarWearable awear in Appearance.Wearables)
-                {
-                    wears.Add(OSD.FromUUID(awear.ItemID));
-                    wears.Add(OSD.FromUUID(awear.AssetID));
-                }
+                    wears.Add(awear.Pack());
+
                 args["wearables"] = wears;
             }
 
@@ -592,7 +590,7 @@ namespace OpenSim.Framework
                 OSDArray wears = (OSDArray)(args["wearables"]);
                 for (int i = 0; i < wears.Count / 2; i++) 
                 {
-                    AvatarWearable awear = new AvatarWearable(wears[i*2].AsUUID(),wears[(i*2)+1].AsUUID());
+                    AvatarWearable awear = new AvatarWearable((OSDArray)wears[i]);
                     Appearance.SetWearable(i,awear);
                 }
             }
