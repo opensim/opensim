@@ -32,131 +32,31 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
-    // A special dictionary for avatar appearance
-    public struct LayerItem
-    {
-        public UUID ItemID;
-        public UUID AssetID;
-
-        public LayerItem(UUID itemID, UUID assetID)
-        {
-            ItemID = itemID;
-            AssetID = assetID;
-        }
-    }
-
-    public class Layer
-    {
-        protected int m_layerType;
-        protected Dictionary<UUID, UUID> m_items = new Dictionary<UUID, UUID>();
-        protected List<UUID> m_ids = new List<UUID>();
-
-        public Layer(int type)
-        {
-            m_layerType = type;
-        }
-
-        public int LayerType
-        {
-            get { return m_layerType; }
-        }
-
-        public int Count
-        {
-            get { return m_ids.Count; }
-        }
-
-        public void Add(UUID itemID, UUID assetID)
-        {
-            if (m_items.ContainsKey(itemID))
-                return;
-            if (m_ids.Count >= 5)
-                return;
-
-            m_ids.Add(itemID);
-            m_items[itemID] = assetID;
-        }
-
-        public void Wear(UUID itemID, UUID assetID)
-        {
-            Clear();
-            Add(itemID, assetID);
-        }
-
-        public void Clear()
-        {
-            m_ids.Clear();
-            m_items.Clear();
-        }
-
-        public void RemoveItem(UUID itemID)
-        {
-            if (m_items.ContainsKey(itemID))
-            {
-                m_ids.Remove(itemID);
-                m_items.Remove(itemID);
-            }
-        }
-
-        public void RemoveAsset(UUID assetID)
-        {
-            UUID itemID = UUID.Zero;
-
-            foreach (KeyValuePair<UUID, UUID> kvp in m_items)
-            {
-                if (kvp.Value == assetID)
-                {
-                    itemID = kvp.Key;
-                    break;
-                }
-            }
-
-            if (itemID != UUID.Zero)
-            {
-                m_ids.Remove(itemID);
-                m_items.Remove(itemID);
-            }
-        }
-
-        public LayerItem this [int idx]
-        {
-            get
-            {
-                if (idx >= m_ids.Count || idx < 0)
-                    return new LayerItem(UUID.Zero, UUID.Zero);
-
-                return new LayerItem(m_ids[idx], m_items[m_ids[idx]]);
-            }
-        }
-    }
-
-    public enum AppearanceLayer
-    {
-        BODY = 0,
-        SKIN = 1,
-        HAIR = 2,
-        EYES = 3,
-        SHIRT = 4,
-        PANTS = 5,
-        SHOES = 6,
-        SOCKS = 7,
-        JACKET = 8,
-        GLOVES = 9,
-        UNDERSHIRT = 10,
-        UNDERPANTS = 11,
-        SKIRT = 12,
-        ALPHA = 13,
-        TATTOO = 14,
-
-        MAX_WEARABLES = 15
-    }
-
     /// <summary>
     /// Contains the Avatar's Appearance and methods to manipulate the appearance.
     /// </summary>
     public class AvatarAppearance
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        // these are guessed at by the list here -
+        // http://wiki.secondlife.com/wiki/Avatar_Appearance.  We'll
+        // correct them over time for when were are wrong.
+        public readonly static int BODY = 0;
+        public readonly static int SKIN = 1;
+        public readonly static int HAIR = 2;
+        public readonly static int EYES = 3;
+        public readonly static int SHIRT = 4;
+        public readonly static int PANTS = 5;
+        public readonly static int SHOES = 6;
+        public readonly static int SOCKS = 7;
+        public readonly static int JACKET = 8;
+        public readonly static int GLOVES = 9;
+        public readonly static int UNDERSHIRT = 10;
+        public readonly static int UNDERPANTS = 11;
+        public readonly static int SKIRT = 12;
+
+        private readonly static int MAX_WEARABLES = 13;
 
         private static UUID BODY_ASSET = new UUID("66c41e39-38f9-f75a-024e-585989bfab73");
         private static UUID BODY_ITEM = new UUID("66c41e39-38f9-f75a-024e-585989bfaba9");
@@ -168,10 +68,6 @@ namespace OpenSim.Framework
         private static UUID PANTS_ITEM = new UUID("77c41e39-38f9-f75a-0000-5859892f1111");
         private static UUID HAIR_ASSET = new UUID("d342e6c0-b9d2-11dc-95ff-0800200c9a66");
         private static UUID HAIR_ITEM = new UUID("d342e6c1-b9d2-11dc-95ff-0800200c9a66");
-        private static UUID ALPHA_ASSET = new UUID("1578a2b1-5179-4b53-b618-fe00ca5a5594");
-        private static UUID TATTOO_ASSET = new UUID("00000000-0000-2222-3333-100000001007");
-        private static UUID ALPHA_ITEM = new UUID("bfb9923c-4838-4d2d-bf07-608c5b1165c8");
-        private static UUID TATTOO_ITEM = new UUID("c47e22bd-3021-4ba4-82aa-2b5cb34d35e1");
 
         public readonly static int VISUALPARAM_COUNT = 218;
 
@@ -207,156 +103,152 @@ namespace OpenSim.Framework
         }
 
         public virtual UUID BodyItem {
-            get { return m_wearables[(int)AppearanceLayer.BODY].ItemID; }
-            set { m_wearables[(int)AppearanceLayer.BODY].ItemID = value; }
+            get { return m_wearables[BODY].ItemID; }
+            set { m_wearables[BODY].ItemID = value; }
         }
 
         public virtual UUID BodyAsset {
-            get { return m_wearables[(int)AppearanceLayer.BODY].AssetID; }
-            set { m_wearables[(int)AppearanceLayer.BODY].AssetID = value; }
+            get { return m_wearables[BODY].AssetID; }
+            set { m_wearables[BODY].AssetID = value; }
         }
 
         public virtual UUID SkinItem {
-            get { return m_wearables[(int)AppearanceLayer.SKIN].ItemID; }
-            set { m_wearables[(int)AppearanceLayer.SKIN].ItemID = value; }
+            get { return m_wearables[SKIN].ItemID; }
+            set { m_wearables[SKIN].ItemID = value; }
         }
 
         public virtual UUID SkinAsset {
-            get { return m_wearables[(int)AppearanceLayer.SKIN].AssetID; }
-            set { m_wearables[(int)AppearanceLayer.SKIN].AssetID = value; }
+            get { return m_wearables[SKIN].AssetID; }
+            set { m_wearables[SKIN].AssetID = value; }
         }
 
         public virtual UUID HairItem {
-            get { return m_wearables[(int)AppearanceLayer.HAIR].ItemID; }
-            set { m_wearables[(int)AppearanceLayer.HAIR].ItemID = value; }
+            get { return m_wearables[HAIR].ItemID; }
+            set { m_wearables[HAIR].ItemID = value; }
         }
 
         public virtual UUID HairAsset {
-            get { return m_wearables[(int)AppearanceLayer.HAIR].AssetID; }
-            set { m_wearables[(int)AppearanceLayer.HAIR].AssetID = value; }
+            get { return m_wearables[HAIR].AssetID; }
+            set { m_wearables[HAIR].AssetID = value; }
         }
 
         public virtual UUID EyesItem {
-            get { return m_wearables[(int)AppearanceLayer.EYES].ItemID; }
-            set { m_wearables[(int)AppearanceLayer.EYES].ItemID = value; }
+            get { return m_wearables[EYES].ItemID; }
+            set { m_wearables[EYES].ItemID = value; }
         }
 
         public virtual UUID EyesAsset {
-            get { return m_wearables[(int)AppearanceLayer.EYES].AssetID; }
-            set { m_wearables[(int)AppearanceLayer.EYES].AssetID = value; }
+            get { return m_wearables[EYES].AssetID; }
+            set { m_wearables[EYES].AssetID = value; }
         }
 
         public virtual UUID ShirtItem {
-            get { return m_wearables[(int)AppearanceLayer.SHIRT].ItemID; }
-            set { m_wearables[(int)AppearanceLayer.SHIRT].ItemID = value; }
+            get { return m_wearables[SHIRT].ItemID; }
+            set { m_wearables[SHIRT].ItemID = value; }
         }
 
         public virtual UUID ShirtAsset {
-            get { return m_wearables[(int)AppearanceLayer.SHIRT].AssetID; }
-            set { m_wearables[(int)AppearanceLayer.SHIRT].AssetID = value; }
+            get { return m_wearables[SHIRT].AssetID; }
+            set { m_wearables[SHIRT].AssetID = value; }
         }
 
         public virtual UUID PantsItem {
-            get { return m_wearables[(int)AppearanceLayer.PANTS].ItemID; }
-            set { m_wearables[(int)AppearanceLayer.PANTS].ItemID = value; }
+            get { return m_wearables[PANTS].ItemID; }
+            set { m_wearables[PANTS].ItemID = value; }
         }
 
         public virtual UUID PantsAsset {
-            get { return m_wearables[(int)AppearanceLayer.PANTS].AssetID; }
-            set { m_wearables[(int)AppearanceLayer.PANTS].AssetID = value; }
+            get { return m_wearables[PANTS].AssetID; }
+            set { m_wearables[PANTS].AssetID = value; }
         }
 
         public virtual UUID ShoesItem {
-            get { return m_wearables[(int)AppearanceLayer.SHOES].ItemID; }
-            set { m_wearables[(int)AppearanceLayer.SHOES].ItemID = value; }
+            get { return m_wearables[SHOES].ItemID; }
+            set { m_wearables[SHOES].ItemID = value; }
         }
 
         public virtual UUID ShoesAsset {
-            get { return m_wearables[(int)AppearanceLayer.SHOES].AssetID; }
-            set { m_wearables[(int)AppearanceLayer.SHOES].AssetID = value; }
+            get { return m_wearables[SHOES].AssetID; }
+            set { m_wearables[SHOES].AssetID = value; }
         }
 
         public virtual UUID SocksItem {
-            get { return m_wearables[(int)AppearanceLayer.SOCKS].ItemID; }
-            set { m_wearables[(int)AppearanceLayer.SOCKS].ItemID = value; }
+            get { return m_wearables[SOCKS].ItemID; }
+            set { m_wearables[SOCKS].ItemID = value; }
         }
 
         public virtual UUID SocksAsset {
-            get { return m_wearables[(int)AppearanceLayer.SOCKS].AssetID; }
-            set { m_wearables[(int)AppearanceLayer.SOCKS].AssetID = value; }
+            get { return m_wearables[SOCKS].AssetID; }
+            set { m_wearables[SOCKS].AssetID = value; }
         }
 
         public virtual UUID JacketItem {
-            get { return m_wearables[(int)AppearanceLayer.JACKET].ItemID; }
-            set { m_wearables[(int)AppearanceLayer.JACKET].ItemID = value; }
+            get { return m_wearables[JACKET].ItemID; }
+            set { m_wearables[JACKET].ItemID = value; }
         }
 
         public virtual UUID JacketAsset {
-            get { return m_wearables[(int)AppearanceLayer.JACKET].AssetID; }
-            set { m_wearables[(int)AppearanceLayer.JACKET].AssetID = value; }
+            get { return m_wearables[JACKET].AssetID; }
+            set { m_wearables[JACKET].AssetID = value; }
         }
 
         public virtual UUID GlovesItem {
-            get { return m_wearables[(int)AppearanceLayer.GLOVES].ItemID; }
-            set { m_wearables[(int)AppearanceLayer.GLOVES].ItemID = value; }
+            get { return m_wearables[GLOVES].ItemID; }
+            set { m_wearables[GLOVES].ItemID = value; }
         }
 
         public virtual UUID GlovesAsset {
-            get { return m_wearables[(int)AppearanceLayer.GLOVES].AssetID; }
-            set { m_wearables[(int)AppearanceLayer.GLOVES].AssetID = value; }
+            get { return m_wearables[GLOVES].AssetID; }
+            set { m_wearables[GLOVES].AssetID = value; }
         }
 
         public virtual UUID UnderShirtItem {
-            get { return m_wearables[(int)AppearanceLayer.UNDERSHIRT].ItemID; }
-            set { m_wearables[(int)AppearanceLayer.UNDERSHIRT].ItemID = value; }
+            get { return m_wearables[UNDERSHIRT].ItemID; }
+            set { m_wearables[UNDERSHIRT].ItemID = value; }
         }
 
         public virtual UUID UnderShirtAsset {
-            get { return m_wearables[(int)AppearanceLayer.UNDERSHIRT].AssetID; }
-            set { m_wearables[(int)AppearanceLayer.UNDERSHIRT].AssetID = value; }
+            get { return m_wearables[UNDERSHIRT].AssetID; }
+            set { m_wearables[UNDERSHIRT].AssetID = value; }
         }
 
         public virtual UUID UnderPantsItem {
-            get { return m_wearables[(int)AppearanceLayer.UNDERPANTS].ItemID; }
-            set { m_wearables[(int)AppearanceLayer.UNDERPANTS].ItemID = value; }
+            get { return m_wearables[UNDERPANTS].ItemID; }
+            set { m_wearables[UNDERPANTS].ItemID = value; }
         }
 
         public virtual UUID UnderPantsAsset {
-            get { return m_wearables[(int)AppearanceLayer.UNDERPANTS].AssetID; }
-            set { m_wearables[(int)AppearanceLayer.UNDERPANTS].AssetID = value; }
+            get { return m_wearables[UNDERPANTS].AssetID; }
+            set { m_wearables[UNDERPANTS].AssetID = value; }
         }
 
         public virtual UUID SkirtItem {
-            get { return m_wearables[(int)AppearanceLayer.SKIRT].ItemID; }
-            set { m_wearables[(int)AppearanceLayer.SKIRT].ItemID = value; }
+            get { return m_wearables[SKIRT].ItemID; }
+            set { m_wearables[SKIRT].ItemID = value; }
         }
 
         public virtual UUID SkirtAsset {
-            get { return m_wearables[(int)AppearanceLayer.SKIRT].AssetID; }
-            set { m_wearables[(int)AppearanceLayer.SKIRT].AssetID = value; }
+            get { return m_wearables[SKIRT].AssetID; }
+            set { m_wearables[SKIRT].AssetID = value; }
         }
 
         public virtual void SetDefaultWearables()
         {
-            m_wearables[(int)AppearanceLayer.BODY].AssetID = BODY_ASSET;
-            m_wearables[(int)AppearanceLayer.BODY].ItemID = BODY_ITEM;
-            m_wearables[(int)AppearanceLayer.SKIN].AssetID = SKIN_ASSET;
-            m_wearables[(int)AppearanceLayer.SKIN].ItemID = SKIN_ITEM;
-            m_wearables[(int)AppearanceLayer.HAIR].AssetID = HAIR_ASSET;
-            m_wearables[(int)AppearanceLayer.HAIR].ItemID = HAIR_ITEM;
-            m_wearables[(int)AppearanceLayer.SHIRT].AssetID = SHIRT_ASSET;
-            m_wearables[(int)AppearanceLayer.SHIRT].ItemID = SHIRT_ITEM;
-            m_wearables[(int)AppearanceLayer.PANTS].AssetID = PANTS_ASSET;
-            m_wearables[(int)AppearanceLayer.PANTS].ItemID = PANTS_ITEM;
-            m_wearables[(int)AppearanceLayer.ALPHA].AssetID = ALPHA_ASSET;
-            m_wearables[(int)AppearanceLayer.ALPHA].ItemID = ALPHA_ITEM;
-            m_wearables[(int)AppearanceLayer.TATTOO].AssetID = TATTOO_ASSET;
-            m_wearables[(int)AppearanceLayer.TATTOO].ItemID = TATTOO_ITEM;
+            m_wearables[BODY].AssetID = BODY_ASSET;
+            m_wearables[BODY].ItemID = BODY_ITEM;
+            m_wearables[SKIN].AssetID = SKIN_ASSET;
+            m_wearables[SKIN].ItemID = SKIN_ITEM;
+            m_wearables[HAIR].AssetID = HAIR_ASSET;
+            m_wearables[HAIR].ItemID = HAIR_ITEM;
+            m_wearables[SHIRT].AssetID = SHIRT_ASSET;
+            m_wearables[SHIRT].ItemID = SHIRT_ITEM;
+            m_wearables[PANTS].AssetID = PANTS_ASSET;
+            m_wearables[PANTS].ItemID = PANTS_ITEM;
         }
 
         public virtual void ClearWearables()
         {
-            for (int i = 0; i < m_wearables.Length ; i++)
+            for (int i = 0; i < 13; i++)
             {
                 m_wearables[i].AssetID = UUID.Zero;
                 m_wearables[i].ItemID = UUID.Zero;
@@ -394,12 +286,70 @@ namespace OpenSim.Framework
             get { return m_hipOffset; }
         }
 
+        //Builds the VisualParam Enum using LIBOMV's Visual Param NameValues
+        /*
+        public void BuildVisualParamEnum()
+        {
+            Dictionary<string, int> IndexedParams = new Dictionary<string, int>();
+            int vpIndex = 0;
+            IndexedParams = new Dictionary<string, int>();
+
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
+            sb.Append("public enum VPElement: int\n");
+            sb.Append("{\n");
+            foreach (KeyValuePair<int, VisualParam> kvp in OpenMetaverse.VisualParams.Params)
+            {
+                VisualParam vp = kvp.Value;
+
+                // Only Group-0 parameters are sent in AgentSetAppearance packets
+                if (kvp.Value.Group == 0)
+                {
+                    
+                    if (!IndexedParams.ContainsKey(vp.Name))
+                    {
+
+                        if (vp.Label.Length > 0 || vp.LabelMin.Length > 0 || vp.LabelMax.Length > 0)
+                        {
+                            
+                            sb.Append("/// <summary>\n");
+                            if (vp.LabelMin.Length > 0 && vp.LabelMax.Length > 0)
+                                sb.Append(string.Format("/// {0} - {1} 0--+255 {2}\n", vp.Label, vp.LabelMin,
+                                                        vp.LabelMax));
+                            
+                            else
+                                sb.Append(string.Format("/// {0}\n", vp.Label));
+
+                            sb.Append("/// </summary>\n");
+                        }
+                        sb.Append(string.Format("   {0}_{1} = {2}", vp.Wearable.ToUpper(), vp.Name.ToUpper().Replace(" ", "_"),vpIndex));
+
+                        IndexedParams.Add(vp.Name, vpIndex++);
+                    }
+                    else
+                    {
+                        sb.Append(string.Format("   {0}_{1}_{2} = {2}", vp.Wearable.ToUpper(), vp.Name.ToUpper().Replace(" ", "_"), vpIndex));
+                        vpIndex++;
+                        //int i = 0;
+                    }
+                }
+                if (vpIndex < 217)
+                    sb.Append(",\n");
+                else
+                    sb.Append("\n");
+
+            }
+            sb.Append("}\n");
+
+        }
+         */
+
         public AvatarAppearance() : this(UUID.Zero) {}
 
         public AvatarAppearance(UUID owner)
         {
-            m_wearables = new AvatarWearable[(int)AppearanceLayer.MAX_WEARABLES];
-            for (int i = 0; i < (int)AppearanceLayer.MAX_WEARABLES; i++)
+            m_wearables = new AvatarWearable[MAX_WEARABLES];
+            for (int i = 0; i < MAX_WEARABLES; i++)
             {
                 // this makes them all null
                 m_wearables[i] = new AvatarWearable();
@@ -490,6 +440,121 @@ namespace OpenSim.Framework
                 visualParams[i] = 100;
             }
             return visualParams;
+        }
+
+        public override String ToString()
+        {
+            String s = "[Wearables] =>";
+            s += " Body Item: " + BodyItem.ToString() + ";";
+            s += " Skin Item: " + SkinItem.ToString() + ";";
+            s += " Shirt Item: " + ShirtItem.ToString() + ";";
+            s += " Pants Item: " + PantsItem.ToString() + ";";
+            return s;
+        }
+
+        // this is used for OGS1
+        public virtual Hashtable ToHashTable()
+        {
+            Hashtable h = new Hashtable();
+            h["owner"] = Owner.ToString();
+            h["serial"] = Serial.ToString();
+            h["visual_params"] = VisualParams;
+            h["texture"] = Texture.GetBytes();
+            h["avatar_height"] = AvatarHeight.ToString();
+            h["body_item"] = BodyItem.ToString();
+            h["body_asset"] = BodyAsset.ToString();
+            h["skin_item"] = SkinItem.ToString();
+            h["skin_asset"] = SkinAsset.ToString();
+            h["hair_item"] = HairItem.ToString();
+            h["hair_asset"] = HairAsset.ToString();
+            h["eyes_item"] = EyesItem.ToString();
+            h["eyes_asset"] = EyesAsset.ToString();
+            h["shirt_item"] = ShirtItem.ToString();
+            h["shirt_asset"] = ShirtAsset.ToString();
+            h["pants_item"] = PantsItem.ToString();
+            h["pants_asset"] = PantsAsset.ToString();
+            h["shoes_item"] = ShoesItem.ToString();
+            h["shoes_asset"] = ShoesAsset.ToString();
+            h["socks_item"] = SocksItem.ToString();
+            h["socks_asset"] = SocksAsset.ToString();
+            h["jacket_item"] = JacketItem.ToString();
+            h["jacket_asset"] = JacketAsset.ToString();
+            h["gloves_item"] = GlovesItem.ToString();
+            h["gloves_asset"] = GlovesAsset.ToString();
+            h["undershirt_item"] = UnderShirtItem.ToString();
+            h["undershirt_asset"] = UnderShirtAsset.ToString();
+            h["underpants_item"] = UnderPantsItem.ToString();
+            h["underpants_asset"] = UnderPantsAsset.ToString();
+            h["skirt_item"] = SkirtItem.ToString();
+            h["skirt_asset"] = SkirtAsset.ToString();
+
+            string attachments = GetAttachmentsString();
+            if (attachments != String.Empty)
+                h["attachments"] = attachments;
+
+            return h;
+        }
+
+        public AvatarAppearance(Hashtable h)
+        {
+            Owner = new UUID((string)h["owner"]);
+            Serial = Convert.ToInt32((string)h["serial"]);
+            VisualParams = (byte[])h["visual_params"];
+
+            if (h.Contains("texture"))
+            {
+                byte[] te = h["texture"] as byte[];
+                if (te != null && te.Length > 0)
+                    Texture = new Primitive.TextureEntry(te, 0, te.Length);
+            }
+            else
+            {
+                // We shouldn't be receiving appearance hashtables without a TextureEntry,
+                // but in case we do this will prevent a failure when saving to the database
+                Texture = GetDefaultTexture();
+            }
+
+            
+            AvatarHeight = (float)Convert.ToDouble((string)h["avatar_height"]);
+
+            m_wearables = new AvatarWearable[MAX_WEARABLES];
+            for (int i = 0; i < MAX_WEARABLES; i++)
+            {
+                // this makes them all null
+                m_wearables[i] = new AvatarWearable();
+            }
+
+            BodyItem = new UUID((string)h["body_item"]);
+            BodyAsset = new UUID((string)h["body_asset"]);
+            SkinItem = new UUID((string)h["skin_item"]);
+            SkinAsset = new UUID((string)h["skin_asset"]);
+            HairItem = new UUID((string)h["hair_item"]);
+            HairAsset = new UUID((string)h["hair_asset"]);
+            EyesItem = new UUID((string)h["eyes_item"]);
+            EyesAsset = new UUID((string)h["eyes_asset"]);
+            ShirtItem = new UUID((string)h["shirt_item"]);
+            ShirtAsset = new UUID((string)h["shirt_asset"]);
+            PantsItem = new UUID((string)h["pants_item"]);
+            PantsAsset = new UUID((string)h["pants_asset"]);
+            ShoesItem = new UUID((string)h["shoes_item"]);
+            ShoesAsset = new UUID((string)h["shoes_asset"]);
+            SocksItem = new UUID((string)h["socks_item"]);
+            SocksAsset = new UUID((string)h["socks_asset"]);
+            JacketItem = new UUID((string)h["jacket_item"]);
+            JacketAsset = new UUID((string)h["jacket_asset"]);
+            GlovesItem = new UUID((string)h["gloves_item"]);
+            GlovesAsset = new UUID((string)h["gloves_asset"]);
+            UnderShirtItem = new UUID((string)h["undershirt_item"]);
+            UnderShirtAsset = new UUID((string)h["undershirt_asset"]);
+            UnderPantsItem = new UUID((string)h["underpants_item"]);
+            UnderPantsAsset = new UUID((string)h["underpants_asset"]);
+            SkirtItem = new UUID((string)h["skirt_item"]);
+            SkirtAsset = new UUID((string)h["skirt_asset"]);
+
+            if (h.ContainsKey("attachments"))
+            {
+                SetAttachmentsString(h["attachments"].ToString());
+            }
         }
 
         private Dictionary<int, UUID[]> m_attachments = new Dictionary<int, UUID[]>();
