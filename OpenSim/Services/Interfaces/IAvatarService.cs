@@ -149,33 +149,28 @@ namespace OpenSim.Services.Interfaces
             Data["Serial"] = appearance.Serial.ToString();
             // Wearables
             Data["AvatarHeight"] = appearance.AvatarHeight.ToString();
-            Data["BodyItem"] = appearance.Wearables[AvatarWearable.BODY][0].ItemID.ToString();
-            Data["EyesItem"] = appearance.Wearables[AvatarWearable.EYES][0].ItemID.ToString();
-            Data["GlovesItem"] = appearance.Wearables[AvatarWearable.GLOVES][0].ItemID.ToString();
-            Data["HairItem"] = appearance.Wearables[AvatarWearable.HAIR][0].ItemID.ToString();
-            Data["JacketItem"] = appearance.Wearables[AvatarWearable.JACKET][0].ItemID.ToString();
-            Data["PantsItem"] = appearance.Wearables[AvatarWearable.PANTS][0].ItemID.ToString();
-            Data["ShirtItem"] = appearance.Wearables[AvatarWearable.SHIRT][0].ItemID.ToString();
-            Data["ShoesItem"] = appearance.Wearables[AvatarWearable.SHOES][0].ItemID.ToString();
-            Data["SkinItem"] = appearance.Wearables[AvatarWearable.SKIN][0].ItemID.ToString();
-            Data["SkirtItem"] = appearance.Wearables[AvatarWearable.SKIRT][0].ItemID.ToString();
-            Data["SocksItem"] = appearance.Wearables[AvatarWearable.SOCKS][0].ItemID.ToString();
-            Data["UnderPantsItem"] = appearance.Wearables[AvatarWearable.UNDERPANTS][0].ItemID.ToString();
-            Data["UnderShirtItem"] = appearance.Wearables[AvatarWearable.UNDERSHIRT][0].ItemID.ToString();
 
-            Data["BodyAsset"] = appearance.Wearables[AvatarWearable.BODY][0].AssetID.ToString();
-            Data["EyesAsset"] = appearance.Wearables[AvatarWearable.EYES][0].AssetID.ToString();
-            Data["GlovesAsset"] = appearance.Wearables[AvatarWearable.GLOVES][0].AssetID.ToString();
-            Data["HairAsset"] = appearance.Wearables[AvatarWearable.HAIR][0].AssetID.ToString();
-            Data["JacketAsset"] = appearance.Wearables[AvatarWearable.JACKET][0].AssetID.ToString();
-            Data["PantsAsset"] = appearance.Wearables[AvatarWearable.PANTS][0].AssetID.ToString();
-            Data["ShirtAsset"] = appearance.Wearables[AvatarWearable.SHIRT][0].AssetID.ToString();
-            Data["ShoesAsset"] = appearance.Wearables[AvatarWearable.SHOES][0].AssetID.ToString();
-            Data["SkinAsset"] = appearance.Wearables[AvatarWearable.SKIN][0].AssetID.ToString();
-            Data["SkirtAsset"] = appearance.Wearables[AvatarWearable.SKIRT][0].AssetID.ToString();
-            Data["SocksAsset"] = appearance.Wearables[AvatarWearable.SOCKS][0].AssetID.ToString();
-            Data["UnderPantsAsset"] = appearance.Wearables[AvatarWearable.UNDERPANTS][0].AssetID.ToString();
-            Data["UnderShirtAsset"] = appearance.Wearables[AvatarWearable.UNDERSHIRT][0].AssetID.ToString();
+            for (int i = 0 ; i < AvatarWearable.MAX_WEARABLES ; i++)
+            {
+                for (int j = 0 ; j < appearance.Wearables[i].Count ; j++)
+                {
+                    string fieldName = String.Format("Wearable {0}:{1}", i, j);
+                    Data[fieldName] = String.Format("{0}:{1}",
+                            appearance.Wearables[i][j].ItemID.ToString(),
+                            appearance.Wearables[i][j].AssetID.ToString());
+                }
+            }
+
+            // Visual Params
+            string[] vps = new string[AvatarAppearance.VISUALPARAM_COUNT];
+            byte[] binary = appearance.VisualParams;
+
+            for (int i = 0 ; i < AvatarAppearance.VISUALPARAM_COUNT ; i++)
+            {
+                vps[i] = binary[i].ToString();
+            }
+
+            Data["VisualParams"] = String.Join(",", vps);
 
             // Attachments
             List<AvatarAttachment> attachments = appearance.GetAttachments();
@@ -188,12 +183,17 @@ namespace OpenSim.Services.Interfaces
         public AvatarAppearance ToAvatarAppearance(UUID owner)
         {
             AvatarAppearance appearance = new AvatarAppearance(owner);
+
+            if (Data.Count == 0)
+                return appearance;
+
+            appearance.ClearWearables();
             try
             {
                 if (Data.ContainsKey("Serial"))
                     appearance.Serial = Int32.Parse(Data["Serial"]);
 
-                // Wearables
+                // Legacy Wearables
                 if (Data.ContainsKey("BodyItem"))
                     appearance.Wearables[AvatarWearable.BODY].Wear(
                             UUID.Parse(Data["BodyItem"]),
@@ -260,6 +260,35 @@ namespace OpenSim.Services.Interfaces
                             UUID.Parse(Data["SkirtAsset"]));
 
 
+                if (Data.ContainsKey("VisualParams"))
+                {
+                    string[] vps = Data["VisualParams"].Split(new char[] {','});
+                    byte[] binary = new byte[AvatarAppearance.VISUALPARAM_COUNT];
+
+                    for (int i = 0 ; i < vps.Length && i < binary.Length ; i++)
+                        binary[i] = (byte)Convert.ToInt32(vps[i]);
+                    
+                    appearance.VisualParams = binary;
+                }
+
+                // New style wearables
+                foreach (KeyValuePair<string, string> _kvp in Data)
+                {
+                    if (_kvp.Key.StartsWith("Wearable "))
+                    {
+                        string wearIndex = _kvp.Key.Substring(9);
+                        string[] wearIndices = wearIndex.Split(new char[] {':'});
+                        int index = Convert.ToInt32(wearIndices[0]);
+
+                        string[] ids = _kvp.Value.Split(new char[] {':'});
+                        UUID itemID = new UUID(ids[0]);
+                        UUID assetID = new UUID(ids[1]);
+
+                        appearance.Wearables[index].Add(itemID, assetID);
+                    }
+                }
+
+
                 // Attachments
                 Dictionary<string, string> attchs = new Dictionary<string, string>();
                 foreach (KeyValuePair<string, string> _kvp in Data)
@@ -278,6 +307,26 @@ namespace OpenSim.Services.Interfaces
 
                     appearance.SetAttachment(point,uuid,UUID.Zero);
                 }
+
+                if (appearance.Wearables[AvatarWearable.BODY].Count == 0)
+                    appearance.Wearables[AvatarWearable.BODY].Wear(
+                            AvatarWearable.DefaultWearables[
+                            AvatarWearable.BODY][0]);
+
+                if (appearance.Wearables[AvatarWearable.SKIN].Count == 0)
+                    appearance.Wearables[AvatarWearable.SKIN].Wear(
+                            AvatarWearable.DefaultWearables[
+                            AvatarWearable.SKIN][0]);
+
+                if (appearance.Wearables[AvatarWearable.HAIR].Count == 0)
+                    appearance.Wearables[AvatarWearable.HAIR].Wear(
+                            AvatarWearable.DefaultWearables[
+                            AvatarWearable.HAIR][0]);
+
+                if (appearance.Wearables[AvatarWearable.EYES].Count == 0)
+                    appearance.Wearables[AvatarWearable.EYES].Wear(
+                            AvatarWearable.DefaultWearables[
+                            AvatarWearable.EYES][0]);
             }
             catch
             {

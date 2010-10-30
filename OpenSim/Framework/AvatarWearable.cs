@@ -82,12 +82,13 @@ namespace OpenSim.Framework
         public static readonly UUID DEFAULT_PANTS_ITEM = new UUID("77c41e39-38f9-f75a-0000-5859892f1111");
         public static readonly UUID DEFAULT_PANTS_ASSET = new UUID("00000000-38f9-1111-024e-222222111120");
 
-        public static readonly UUID DEFAULT_ALPHA_ITEM = new UUID("bfb9923c-4838-4d2d-bf07-608c5b1165c8");
-        public static readonly UUID DEFAULT_ALPHA_ASSET = new UUID("1578a2b1-5179-4b53-b618-fe00ca5a5594");
+//        public static readonly UUID DEFAULT_ALPHA_ITEM = new UUID("bfb9923c-4838-4d2d-bf07-608c5b1165c8");
+//        public static readonly UUID DEFAULT_ALPHA_ASSET = new UUID("1578a2b1-5179-4b53-b618-fe00ca5a5594");
 
-        public static readonly UUID DEFAULT_TATTOO_ITEM = new UUID("c47e22bd-3021-4ba4-82aa-2b5cb34d35e1");
-        public static readonly UUID DEFAULT_TATTOO_ASSET = new UUID("00000000-0000-2222-3333-100000001007");
+//        public static readonly UUID DEFAULT_TATTOO_ITEM = new UUID("c47e22bd-3021-4ba4-82aa-2b5cb34d35e1");
+//        public static readonly UUID DEFAULT_TATTOO_ASSET = new UUID("00000000-0000-2222-3333-100000001007");
  
+        private static AvatarWearable[] defaultWearables = null;
 
         protected Dictionary<UUID, UUID> m_items = new Dictionary<UUID, UUID>();
         protected List<UUID> m_ids = new List<UUID>();
@@ -152,6 +153,11 @@ namespace OpenSim.Framework
             m_items[itemID] = assetID;
         }
 
+        public void Wear(WearableItem item)
+        {
+            Wear(item.ItemID, item.AssetID);
+        }
+
         public void Wear(UUID itemID, UUID assetID)
         {
             Clear();
@@ -204,11 +210,21 @@ namespace OpenSim.Framework
             }
         }
 
+        public UUID GetAsset(UUID itemID)
+        {
+            if (!m_items.ContainsKey(itemID))
+                return UUID.Zero;
+            return m_items[itemID];
+        }
+
         public static AvatarWearable[] DefaultWearables
         {
             get
             {
-                AvatarWearable[] defaultWearables = new AvatarWearable[MAX_WEARABLES]; //should be 15 of these
+                if (defaultWearables != null)
+                    return defaultWearables;
+
+                defaultWearables = new AvatarWearable[MAX_WEARABLES]; //should be 15 of these
                 for (int i = 0; i < MAX_WEARABLES; i++)
                 {
                     defaultWearables[i] = new AvatarWearable();
@@ -229,11 +245,11 @@ namespace OpenSim.Framework
                 // Pants
                 defaultWearables[PANTS].Add(DEFAULT_PANTS_ITEM, DEFAULT_PANTS_ASSET);
                 
-                // Alpha
-                defaultWearables[ALPHA].Add(DEFAULT_ALPHA_ITEM, DEFAULT_ALPHA_ASSET);
+//                // Alpha
+//                defaultWearables[ALPHA].Add(DEFAULT_ALPHA_ITEM, DEFAULT_ALPHA_ASSET);
                 
-                // Tattoo
-                defaultWearables[TATTOO].Add(DEFAULT_TATTOO_ITEM, DEFAULT_TATTOO_ASSET);
+//                // Tattoo
+//                defaultWearables[TATTOO].Add(DEFAULT_TATTOO_ITEM, DEFAULT_TATTOO_ASSET);
                 
                 return defaultWearables;
             }

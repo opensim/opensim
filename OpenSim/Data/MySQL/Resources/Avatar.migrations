@@ -10,3 +10,11 @@ CREATE TABLE Avatars (
 	KEY(PrincipalID));
 
 COMMIT;
+
+:VERSION 2
+
+BEGIN;
+
+alter table Avatars change column Value Value text;
+
+COMMIT;
