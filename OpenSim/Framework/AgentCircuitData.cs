@@ -212,8 +212,6 @@ namespace OpenSim.Framework
             args["mac"] = OSD.FromString(Mac);
             args["id0"] = OSD.FromString(Id0);
 
-            // Eventually this code should be deprecated, use full appearance
-            // packing in packed_appearance
             if (Appearance != null)
             {
                 args["appearance_serial"] = OSD.FromInteger(Appearance.Serial);
