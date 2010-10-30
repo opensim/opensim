@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Xml;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -765,25 +766,19 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 FormatPart(rdata, "UnderShirt", rdata.userAppearance.UnderShirtItem, rdata.userAppearance.UnderShirtAsset);
                 FormatPart(rdata, "UnderPants", rdata.userAppearance.UnderPantsItem, rdata.userAppearance.UnderPantsAsset);
 
-                Hashtable attachments = rdata.userAppearance.GetAttachments();
+                Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting attachments", MsgId);
 
-                if (attachments != null)
+                rdata.writer.WriteStartElement("Attachments");
+                List<AvatarAttachment> attachments = rdata.userAppearance.GetAttachments();
+                foreach (AvatarAttachment attach in attachments)
                 {
-
-                    Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting attachments", MsgId);
-
-                    rdata.writer.WriteStartElement("Attachments");
-                    for (int i = 0; i < attachments.Count; i++)
-                    {
-                        Hashtable attachment = attachments[i] as Hashtable;
-                        rdata.writer.WriteStartElement("Attachment");
-                        rdata.writer.WriteAttributeString("AtPoint", i.ToString());
-                        rdata.writer.WriteAttributeString("Item", (string) attachment["item"]);
-                        rdata.writer.WriteAttributeString("Asset", (string) attachment["asset"]);
-                        rdata.writer.WriteEndElement();
-                    }
+                    rdata.writer.WriteStartElement("Attachment");
+                    rdata.writer.WriteAttributeString("AtPoint", attach.AttachPoint.ToString());
+                    rdata.writer.WriteAttributeString("Item", attach.ItemID.ToString());
+                    rdata.writer.WriteAttributeString("Asset", attach.AssetID.ToString());
                     rdata.writer.WriteEndElement();
                 }
+                rdata.writer.WriteEndElement();
 
                 Primitive.TextureEntry texture = rdata.userAppearance.Texture;
 

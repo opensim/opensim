@@ -65,9 +65,7 @@ namespace OpenSim.Framework.Tests
             SessionId = UUID.Random();
 
             AvAppearance = new AvatarAppearance(AgentId);
-            AvAppearance.SetDefaultWearables();
             VisualParams = new byte[218];
-            AvAppearance.SetDefaultParams(VisualParams);
 
             //body
             VisualParams[(int)AvatarAppearance.VPElement.SHAPE_HEIGHT] = 155;

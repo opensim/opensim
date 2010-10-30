@@ -245,7 +245,7 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         public event TeleportLandmarkRequest OnTeleportLandmarkRequest = delegate { };
         public event DeRezObject OnDeRezObject = delegate { };
         public event Action<IClientAPI> OnRegionHandShakeReply = delegate { };
-        public event GenericCall2 OnRequestWearables = delegate { };
+        public event GenericCall1 OnRequestWearables = delegate { };
         public event GenericCall1 OnCompleteMovementToRegion = delegate { };
         public event UpdateAgent OnPreAgentUpdate;
         public event UpdateAgent OnAgentUpdate = delegate { };

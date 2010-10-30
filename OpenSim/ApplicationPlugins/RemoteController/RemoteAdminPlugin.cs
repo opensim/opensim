@@ -1472,12 +1472,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.DebugFormat("[RADMIN] Initializing inventory for {0} from {1}", destination, source);
             Scene scene = m_application.SceneManager.CurrentOrFirstScene;
-            AvatarAppearance avatarAppearance = null;
-            AvatarData avatar = scene.AvatarService.GetAvatar(source);
-            if (avatar != null)
-                avatarAppearance = avatar.ToAvatarAppearance(source);
 
             // If the model has no associated appearance we're done.
+            AvatarAppearance avatarAppearance = scene.AvatarService.GetAppearance(source);
             if (avatarAppearance == null)
                 return;
 
@@ -1491,8 +1488,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 {
                     CopyWearablesAndAttachments(destination, source, avatarAppearance);
 
-                    AvatarData avatarData = new AvatarData(avatarAppearance);
-                    scene.AvatarService.SetAvatar(destination, avatarData);
+                    scene.AvatarService.SetAppearance(destination, avatarAppearance);
                 }
                 catch (Exception e)
                 {
@@ -1523,8 +1519,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     }
                 }
 
-                AvatarData avatarData = new AvatarData(avatarAppearance);
-                scene.AvatarService.SetAvatar(destination, avatarData);
+                scene.AvatarService.SetAppearance(destination, avatarAppearance);
             }
             catch (Exception e)
             {
@@ -1619,12 +1614,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
 
             // Attachments
-            Dictionary<int, UUID[]> attachments = avatarAppearance.GetAttachmentDictionary();
+            List<AvatarAttachment> attachments = avatarAppearance.GetAttachments();
 
-            foreach (KeyValuePair<int, UUID[]> attachment in attachments)
+            foreach (AvatarAttachment attachment in attachments)
             {
-                int attachpoint = attachment.Key;
-                UUID itemID = attachment.Value[0];
+                int attachpoint = attachment.AttachPoint;
+                UUID itemID = attachment.ItemID;
 
                 if (itemID != UUID.Zero)
                 {
@@ -1908,10 +1903,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         if (include)
                         {
                             // Setup for appearance processing
-                            AvatarData avatarData = scene.AvatarService.GetAvatar(ID);
-                            if (avatarData != null)
-                                avatarAppearance = avatarData.ToAvatarAppearance(ID);
-                            else
+                            avatarAppearance = scene.AvatarService.GetAppearance(ID);
+                            if (avatarAppearance == null)
                                 avatarAppearance = new AvatarAppearance();
 
                             AvatarWearable[] wearables = avatarAppearance.Wearables;
@@ -2076,8 +2069,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                     m_log.DebugFormat("[RADMIN] Outfit {0} load completed", outfitName);
                                 } // foreach outfit
                                 m_log.DebugFormat("[RADMIN] Inventory update complete for {0}", name);
-                                AvatarData avatarData2 = new AvatarData(avatarAppearance);
-                                scene.AvatarService.SetAvatar(ID, avatarData2);
+                                scene.AvatarService.SetAppearance(ID, avatarAppearance);
                             }
                             catch (Exception e)
                             {

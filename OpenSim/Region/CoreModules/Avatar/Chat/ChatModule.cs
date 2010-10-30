@@ -238,7 +238,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             }
             
             (scene as Scene).EventManager.TriggerOnChatToClients(
-                fromID, receiverIDs, message, c.Type, fromPos, fromName, sourceType, ChatAudibleLevel.Fully);            
+                fromID, receiverIDs, message, c.Type, fromPos, fromName, sourceType, ChatAudibleLevel.Fully);
         }
 
         static private Vector3 CenterOfRegion = new Vector3(128, 128, 30);

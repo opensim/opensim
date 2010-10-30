@@ -26,14 +26,32 @@
  */
 
 using System;
-using System.Runtime.Serialization;
-using System.Security.Permissions;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework
 {
     public class AvatarWearable
     {
+        // these are guessed at by the list here -
+        // http://wiki.secondlife.com/wiki/Avatar_Appearance.  We'll
+        // correct them over time for when were are wrong.
+        public static readonly int BODY = 0;
+        public static readonly int SKIN = 1;
+        public static readonly int HAIR = 2;
+        public static readonly int EYES = 3;
+        public static readonly int SHIRT = 4;
+        public static readonly int PANTS = 5;
+        public static readonly int SHOES = 6;
+        public static readonly int SOCKS = 7;
+        public static readonly int JACKET = 8;
+        public static readonly int GLOVES = 9;
+        public static readonly int UNDERSHIRT = 10;
+        public static readonly int UNDERPANTS = 11;
+        public static readonly int SKIRT = 12;
+
+        public static readonly int MAX_WEARABLES = 13;
+
         public static readonly UUID DEFAULT_BODY_ITEM = new UUID("66c41e39-38f9-f75a-024e-585989bfaba9");
         public static readonly UUID DEFAULT_BODY_ASSET = new UUID("66c41e39-38f9-f75a-024e-585989bfab73");
 
@@ -62,12 +80,32 @@ namespace OpenSim.Framework
             ItemID = itemId;
         }
 
+        public AvatarWearable(OSDMap args)
+        {
+            Unpack(args);
+        }
+
+        public OSDMap Pack()
+        {
+            OSDMap weardata = new OSDMap();
+            weardata["item"] = OSD.FromUUID(ItemID);
+            weardata["asset"] = OSD.FromUUID(AssetID);
+
+            return weardata;
+        }
+
+        public void Unpack(OSDMap args)
+        {
+            ItemID = (args["item"] != null) ? args["item"].AsUUID() : UUID.Zero;
+            AssetID = (args["asset"] != null) ? args["asset"].AsUUID() : UUID.Zero;
+        }
+
         public static AvatarWearable[] DefaultWearables
         {
             get
             {
-                AvatarWearable[] defaultWearables = new AvatarWearable[13]; //should be 13 of these
-                for (int i = 0; i < 13; i++)
+                AvatarWearable[] defaultWearables = new AvatarWearable[MAX_WEARABLES]; //should be 13 of these
+                for (int i = 0; i < MAX_WEARABLES; i++)
                 {
                     defaultWearables[i] = new AvatarWearable();
                 }

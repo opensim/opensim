@@ -143,7 +143,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     if (filePath == ArchiveConstants.CONTROL_FILE_PATH)
                     {
                         LoadControlFile(filePath, data);
-                    }                    
+                    }
                     else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                     {
                         if (LoadAsset(filePath, data))
@@ -479,11 +479,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="path"></param>
         /// <param name="data"></param>
         protected void LoadControlFile(string path, byte[] data)
-        {                           
+        {
             XDocument doc = XDocument.Parse(Encoding.ASCII.GetString(data));
             XElement archiveElement = doc.Element("archive");
             int majorVersion = int.Parse(archiveElement.Attribute("major_version").Value);
-            int minorVersion = int.Parse(archiveElement.Attribute("minor_version").Value);                
+            int minorVersion = int.Parse(archiveElement.Attribute("minor_version").Value);
             string version = string.Format("{0}.{1}", majorVersion, minorVersion);
                         
             if (majorVersion > MAX_MAJOR_VERSION)
@@ -492,7 +492,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     string.Format(
                         "The IAR you are trying to load has major version number of {0} but this version of OpenSim can only load IARs with major version number {1} and below",
                         majorVersion, MAX_MAJOR_VERSION));
-            }       
+            }
             
             m_log.InfoFormat("[INVENTORY ARCHIVER]: Loading IAR with version {0}", version);
         }

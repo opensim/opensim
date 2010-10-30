@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Nini.Config;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Server.Base;
@@ -137,6 +138,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar
 
         #region IAvatarService
 
+        public AvatarAppearance GetAppearance(UUID userID)
+        {
+            return m_AvatarService.GetAppearance(userID);
+        }
+        
+        public bool SetAppearance(UUID userID, AvatarAppearance appearance)
+        {
+            return m_AvatarService.SetAppearance(userID,appearance);
+        }
+            
         public AvatarData GetAvatar(UUID userID)
         {
             return m_AvatarService.GetAvatar(userID);

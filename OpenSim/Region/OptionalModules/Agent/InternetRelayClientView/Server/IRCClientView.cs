@@ -676,7 +676,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event TeleportLandmarkRequest OnTeleportLandmarkRequest;
         public event DeRezObject OnDeRezObject;
         public event Action<IClientAPI> OnRegionHandShakeReply;
-        public event GenericCall2 OnRequestWearables;
+        public event GenericCall1 OnRequestWearables;
         public event GenericCall1 OnCompleteMovementToRegion;
         public event UpdateAgent OnPreAgentUpdate;
         public event UpdateAgent OnAgentUpdate;
@@ -899,7 +899,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             Scene scene = (Scene)Scene;
             AvatarAppearance appearance;
             scene.GetAvatarAppearance(this, out appearance);
-            OnSetAppearance(appearance.Texture, (byte[])appearance.VisualParams.Clone());
+            OnSetAppearance(this, appearance.Texture, (byte[])appearance.VisualParams.Clone());
         }
 
         public void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)

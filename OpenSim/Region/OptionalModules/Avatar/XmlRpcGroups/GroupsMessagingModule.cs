@@ -220,7 +220,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     groupID, groupMembers.Count);
             
             foreach (GroupMembersData member in groupMembers)
-            {               
+            {
                 if (m_groupData.hasAgentDroppedGroupChatSession(member.AgentID, groupID))
                 {
                     // Don't deliver messages to people who have dropped this session
@@ -266,7 +266,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         void OnClientLogin(IClientAPI client)
         {
-            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: OnInstantMessage registered for {0}", client.Name);           
+            if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: OnInstantMessage registered for {0}", client.Name);
         }
 
         private void OnNewClient(IClientAPI client)

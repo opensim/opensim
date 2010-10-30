@@ -330,10 +330,10 @@ namespace OpenSim.Services.LLLoginService
                 //
                 // Get the avatar
                 //
-                AvatarData avatar = null;
+                AvatarAppearance avatar = null;
                 if (m_AvatarService != null)
                 {
-                    avatar = m_AvatarService.GetAvatar(account.PrincipalID);
+                    avatar = m_AvatarService.GetAppearance(account.PrincipalID);
                 }
 
                 //
@@ -602,7 +602,7 @@ namespace OpenSim.Services.LLLoginService
             }
         }
 
-        protected AgentCircuitData LaunchAgentAtGrid(GridRegion gatekeeper, GridRegion destination, UserAccount account, AvatarData avatar,
+        protected AgentCircuitData LaunchAgentAtGrid(GridRegion gatekeeper, GridRegion destination, UserAccount account, AvatarAppearance avatar,
             UUID session, UUID secureSession, Vector3 position, string currentWhere, string viewer, string channel, string mac, string id0,
             IPEndPoint clientIP, out string where, out string reason, out GridRegion dest)
         {
@@ -696,14 +696,14 @@ namespace OpenSim.Services.LLLoginService
         }
 
         private AgentCircuitData MakeAgent(GridRegion region, UserAccount account, 
-            AvatarData avatar, UUID session, UUID secureSession, uint circuit, Vector3 position, 
+            AvatarAppearance avatar, UUID session, UUID secureSession, uint circuit, Vector3 position, 
             string ipaddress, string viewer, string channel, string mac, string id0)
         {
             AgentCircuitData aCircuit = new AgentCircuitData();
 
             aCircuit.AgentID = account.PrincipalID;
             if (avatar != null)
-                aCircuit.Appearance = avatar.ToAvatarAppearance(account.PrincipalID);
+                aCircuit.Appearance = new AvatarAppearance(avatar);
             else
                 aCircuit.Appearance = new AvatarAppearance(account.PrincipalID);
 
