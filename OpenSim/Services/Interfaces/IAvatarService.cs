@@ -193,6 +193,9 @@ namespace OpenSim.Services.Interfaces
                 if (Data.ContainsKey("Serial"))
                     appearance.Serial = Int32.Parse(Data["Serial"]);
 
+                if (Data.ContainsKey("AvatarHeight"))
+                    appearance.AvatarHeight = float.Parse(Data["AvatarHeight"]);
+
                 // Legacy Wearables
                 if (Data.ContainsKey("BodyItem"))
                     appearance.Wearables[AvatarWearable.BODY].Wear(
