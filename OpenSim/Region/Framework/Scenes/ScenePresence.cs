@@ -858,17 +858,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             AbsolutePosition = pos;
 
-            AddToPhysicalScene(isFlying);
-
-            if (m_forceFly)
-            {
-                m_physicsActor.Flying = true;
-            }
-            else if (m_flyDisabled)
-            {
-                m_physicsActor.Flying = false;
-            }
-
             if (m_appearance != null)
             {
                 if (m_appearance.AvatarHeight > 0)
@@ -881,6 +870,17 @@ namespace OpenSim.Region.Framework.Scenes
                 m_appearance = new AvatarAppearance(UUID);
             }
             
+            AddToPhysicalScene(isFlying);
+
+            if (m_forceFly)
+            {
+                m_physicsActor.Flying = true;
+            }
+            else if (m_flyDisabled)
+            {
+                m_physicsActor.Flying = false;
+            }
+
             // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
             // avatar to return to the standing position in mid-air.  On login it looks like this is being sent
             // elsewhere anyway

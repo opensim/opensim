@@ -150,7 +150,11 @@ namespace OpenSim.Framework
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
         }
 
-        public AvatarAppearance(AvatarAppearance appearance)
+        public AvatarAppearance(AvatarAppearance appearance) : this(appearance, true)
+        {
+        }
+
+        public AvatarAppearance(AvatarAppearance appearance, bool copyWearables)
         {
 //            m_log.WarnFormat("[AVATAR APPEARANCE] create from an existing appearance");
 
@@ -175,7 +179,7 @@ namespace OpenSim.Framework
             m_wearables = new AvatarWearable[AvatarWearable.MAX_WEARABLES];
             for (int i = 0 ; i < AvatarWearable.MAX_WEARABLES ; i++ )
                 m_wearables[i] = new AvatarWearable();
-            if (appearance.Wearables != null)
+            if (copyWearables && (appearance.Wearables != null))
             {
                 for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
                     SetWearable(i,appearance.Wearables[i]);
@@ -198,6 +202,28 @@ namespace OpenSim.Framework
                 AppendAttachment(new AvatarAttachment(attachment));
         }
         
+        public void GetAssetsFrom(AvatarAppearance app)
+        {
+            for (int i = 0 ; i < AvatarWearable.MAX_WEARABLES ; i++ )
+            {
+                for (int j = 0 ; j < m_wearables[i].Count ; j++)
+                {
+                    UUID itemID = m_wearables[i][j].ItemID;
+                    UUID assetID = app.Wearables[i].GetAsset(itemID);
+
+                    if (assetID != UUID.Zero)
+                        m_wearables[i].Add(itemID, assetID);
+                }
+            }
+        }
+
+        public void ClearWearables()
+        {
+            m_wearables = new AvatarWearable[AvatarWearable.MAX_WEARABLES];
+            for (int i = 0 ; i < AvatarWearable.MAX_WEARABLES ; i++ )
+                m_wearables[i] = new AvatarWearable();
+        }
+
         protected virtual void SetDefaultWearables()
         {
             m_wearables = AvatarWearable.DefaultWearables;
@@ -205,11 +231,11 @@ namespace OpenSim.Framework
 
         protected virtual void SetDefaultParams()
         {
-            m_visualparams = new byte[VISUALPARAM_COUNT];
-            for (int i = 0; i < VISUALPARAM_COUNT; i++)
-            {
-                m_visualparams[i] = 150;
-            }
+            m_visualparams = new byte[] { 56,23,66,0,0,25,0,124,107,0,0,91,137,36,180,79,78,20,32,255,0,63,137,137,63,122,0,71,127,94,63,0,150,150,150,17,0,0,0,0,0,127,0,0,255,127,114,127,99,63,127,140,127,127,0,0,0,191,0,78,0,0,0,0,0,0,0,0,0,145,216,133,0,0,0,219,107,150,150,165,135,0,150,150,150,63,112,155,150,150,150,150,150,150,150,150,150,150,150,0,0,0,0,188,255,91,219,124,0,150,127,165,127,127,127,127,59,63,107,71,68,89,33,79,114,178,127,2,141,66,0,0,127,127,0,0,0,0,127,0,159,0,0,178,127,0,85,131,117,127,147,163,104,0,140,18,0,107,130,0,150,150,198,0,0,40,38,91,165,209,198,127,127,153,204,51,51,150,150,255,204,0,150,150,150,150,150,150,150,150,150,150,150,0,150,150,150,150,150,0,127,22,150,150,150,150,150,150,150,150,0,0,150,51,132,150,150,150 };
+//            for (int i = 0; i < VISUALPARAM_COUNT; i++)
+//            {
+//                m_visualparams[i] = 150;
+//            }
         }
 
         protected virtual void SetDefaultTexture()

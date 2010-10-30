@@ -356,17 +356,16 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             
 //            m_log.WarnFormat("[AVATAR FACTORY MODULE]: AvatarIsWearing called for {0}",client.AgentId);
 
-            AvatarAppearance avatAppearance = new AvatarAppearance(sp.Appearance);
+            AvatarAppearance avatAppearance = new AvatarAppearance(sp.Appearance, false);
 
             foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
             {
                 if (wear.Type < AvatarWearable.MAX_WEARABLES)
-                {
-                    AvatarWearable newWearable = new AvatarWearable(wear.ItemID,UUID.Zero);
-                    avatAppearance.SetWearable(wear.Type, newWearable);
-                }
+                    avatAppearance.Wearables[wear.Type].Add(wear.ItemID,UUID.Zero);
             }
             
+            avatAppearance.GetAssetsFrom(sp.Appearance);
+
             // This could take awhile since it needs to pull inventory
             SetAppearanceAssets(sp.UUID, ref avatAppearance);
 
@@ -384,6 +383,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     for (int j = 0 ; j < appearance.Wearables[j].Count ; j ++ )
                     {
+                        if (appearance.Wearables[i][j].ItemID == UUID.Zero)
+                            continue;
+                        
+                        // Ignore ruth's assets
+                        if (appearance.Wearables[i][j].ItemID == AvatarWearable.DefaultWearables[i][0].ItemID)
+                            continue;
                         InventoryItemBase baseItem = new InventoryItemBase(appearance.Wearables[i][j].ItemID, userID);
                         baseItem = invService.GetItem(baseItem);
 
