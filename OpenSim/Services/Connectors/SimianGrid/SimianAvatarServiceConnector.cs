@@ -265,32 +265,33 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
                 map["Height"] = OSD.FromReal(appearance.AvatarHeight);
 
-                map["ShapeItem"] = OSD.FromUUID(appearance.BodyItem);
-                map["ShapeAsset"] = OSD.FromUUID(appearance.BodyAsset);
-                map["SkinItem"] = OSD.FromUUID(appearance.SkinItem);
-                map["SkinAsset"] = OSD.FromUUID(appearance.SkinAsset);
-                map["HairItem"] = OSD.FromUUID(appearance.HairItem);
-                map["HairAsset"] = OSD.FromUUID(appearance.HairAsset);
-                map["EyesItem"] = OSD.FromUUID(appearance.EyesItem);
-                map["EyesAsset"] = OSD.FromUUID(appearance.EyesAsset);
-                map["ShirtItem"] = OSD.FromUUID(appearance.ShirtItem);
-                map["ShirtAsset"] = OSD.FromUUID(appearance.ShirtAsset);
-                map["PantsItem"] = OSD.FromUUID(appearance.PantsItem);
-                map["PantsAsset"] = OSD.FromUUID(appearance.PantsAsset);
-                map["ShoesItem"] = OSD.FromUUID(appearance.ShoesItem);
-                map["ShoesAsset"] = OSD.FromUUID(appearance.ShoesAsset);
-                map["SocksItem"] = OSD.FromUUID(appearance.SocksItem);
-                map["SocksAsset"] = OSD.FromUUID(appearance.SocksAsset);
-                map["JacketItem"] = OSD.FromUUID(appearance.JacketItem);
-                map["JacketAsset"] = OSD.FromUUID(appearance.JacketAsset);
-                map["GlovesItem"] = OSD.FromUUID(appearance.GlovesItem);
-                map["GlovesAsset"] = OSD.FromUUID(appearance.GlovesAsset);
-                map["UndershirtItem"] = OSD.FromUUID(appearance.UnderShirtItem);
-                map["UndershirtAsset"] = OSD.FromUUID(appearance.UnderShirtAsset);
-                map["UnderpantsItem"] = OSD.FromUUID(appearance.UnderPantsItem);
-                map["UnderpantsAsset"] = OSD.FromUUID(appearance.UnderPantsAsset);
-                map["SkirtItem"] = OSD.FromUUID(appearance.SkirtItem);
-                map["SkirtAsset"] = OSD.FromUUID(appearance.SkirtAsset);
+                map["BodyItem"] = appearance.Wearables[AvatarWearable.BODY][0].ItemID.ToString();
+                map["EyesItem"] = appearance.Wearables[AvatarWearable.EYES][0].ItemID.ToString();
+                map["GlovesItem"] = appearance.Wearables[AvatarWearable.GLOVES][0].ItemID.ToString();
+                map["HairItem"] = appearance.Wearables[AvatarWearable.HAIR][0].ItemID.ToString();
+                map["JacketItem"] = appearance.Wearables[AvatarWearable.JACKET][0].ItemID.ToString();
+                map["PantsItem"] = appearance.Wearables[AvatarWearable.PANTS][0].ItemID.ToString();
+                map["ShirtItem"] = appearance.Wearables[AvatarWearable.SHIRT][0].ItemID.ToString();
+                map["ShoesItem"] = appearance.Wearables[AvatarWearable.SHOES][0].ItemID.ToString();
+                map["SkinItem"] = appearance.Wearables[AvatarWearable.SKIN][0].ItemID.ToString();
+                map["SkirtItem"] = appearance.Wearables[AvatarWearable.SKIRT][0].ItemID.ToString();
+                map["SocksItem"] = appearance.Wearables[AvatarWearable.SOCKS][0].ItemID.ToString();
+                map["UnderPantsItem"] = appearance.Wearables[AvatarWearable.UNDERPANTS][0].ItemID.ToString();
+                map["UnderShirtItem"] = appearance.Wearables[AvatarWearable.UNDERSHIRT][0].ItemID.ToString();
+                map["BodyAsset"] = appearance.Wearables[AvatarWearable.BODY][0].AssetID.ToString();
+                map["EyesAsset"] = appearance.Wearables[AvatarWearable.EYES][0].AssetID.ToString();
+                map["GlovesAsset"] = appearance.Wearables[AvatarWearable.GLOVES][0].AssetID.ToString();
+                map["HairAsset"] = appearance.Wearables[AvatarWearable.HAIR][0].AssetID.ToString();
+                map["JacketAsset"] = appearance.Wearables[AvatarWearable.JACKET][0].AssetID.ToString();
+                map["PantsAsset"] = appearance.Wearables[AvatarWearable.PANTS][0].AssetID.ToString();
+                map["ShirtAsset"] = appearance.Wearables[AvatarWearable.SHIRT][0].AssetID.ToString();
+                map["ShoesAsset"] = appearance.Wearables[AvatarWearable.SHOES][0].AssetID.ToString();
+                map["SkinAsset"] = appearance.Wearables[AvatarWearable.SKIN][0].AssetID.ToString();
+                map["SkirtAsset"] = appearance.Wearables[AvatarWearable.SKIRT][0].AssetID.ToString();
+                map["SocksAsset"] = appearance.Wearables[AvatarWearable.SOCKS][0].AssetID.ToString();
+                map["UnderPantsAsset"] = appearance.Wearables[AvatarWearable.UNDERPANTS][0].AssetID.ToString();
+                map["UnderShirtAsset"] = appearance.Wearables[AvatarWearable.UNDERSHIRT][0].AssetID.ToString();
+
 
                 OSDMap items = new OSDMap();
                 foreach (KeyValuePair<string, string> kvp in avatar.Data)

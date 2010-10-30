@@ -382,27 +382,22 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             {
                 for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
                 {
-                    if (appearance.Wearables[i].ItemID == UUID.Zero)
+                    for (int j = 0 ; j < appearance.Wearables[j].Count ; j ++ )
                     {
-                        appearance.Wearables[i].AssetID = UUID.Zero;
-                    }
-                    else
-                    {
-                        InventoryItemBase baseItem = new InventoryItemBase(appearance.Wearables[i].ItemID, userID);
+                        InventoryItemBase baseItem = new InventoryItemBase(appearance.Wearables[i][j].ItemID, userID);
                         baseItem = invService.GetItem(baseItem);
 
                         if (baseItem != null)
                         {
-                            appearance.Wearables[i].AssetID = baseItem.AssetID;
+                            appearance.Wearables[i].Add(appearance.Wearables[i][j].ItemID, baseItem.AssetID);
                         }
                         else
                         {
                             m_log.ErrorFormat(
                                 "[AVATAR FACTORY MODULE]: Can't find inventory item {0} for {1}, setting to default", 
-                                appearance.Wearables[i].ItemID, (WearableType)i);
+                                appearance.Wearables[i][j].ItemID, (WearableType)i);
                             
-                            appearance.Wearables[i].ItemID = UUID.Zero;
-                            appearance.Wearables[i].AssetID = UUID.Zero;
+                            appearance.Wearables[i].RemoveItem(appearance.Wearables[i][j].ItemID);
                         }
                     }
                 }
