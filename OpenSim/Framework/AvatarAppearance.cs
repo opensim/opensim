@@ -111,6 +111,10 @@ namespace OpenSim.Framework
             SetDefaultParams();
             SetHeight();
             
+            m_wearables = new AvatarWearable[AvatarWearable.MAX_WEARABLES];
+            for (int i = 0 ; i < AvatarWearable.MAX_WEARABLES ; i++ )
+                m_wearables[i] = new AvatarWearable();
+
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
         }
         
@@ -172,10 +176,11 @@ namespace OpenSim.Framework
             m_serial = appearance.Serial;
             m_owner = appearance.Owner;
 
-            m_wearables = null;
+            m_wearables = new AvatarWearable[AvatarWearable.MAX_WEARABLES];
+            for (int i = 0 ; i < AvatarWearable.MAX_WEARABLES ; i++ )
+                m_wearables[i] = new AvatarWearable();
             if (appearance.Wearables != null)
             {
-                m_wearables = new AvatarWearable[AvatarWearable.MAX_WEARABLES]; //should be 15 of these
                 for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
                     SetWearable(i,appearance.Wearables[i]);
             }
