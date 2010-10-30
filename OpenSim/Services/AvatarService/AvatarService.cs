@@ -51,8 +51,6 @@ namespace OpenSim.Services.AvatarService
             m_log.Debug("[AVATAR SERVICE]: Starting avatar service");
         }
 
-        // Get|SetAppearance should preserve existing semantics
-        // until AvatarData can be removed completely
         public AvatarAppearance GetAppearance(UUID principalID)
         {
             AvatarData avatar = GetAvatar(principalID);
@@ -68,11 +66,14 @@ namespace OpenSim.Services.AvatarService
         public AvatarData GetAvatar(UUID principalID)
         {
             AvatarBaseData[] av = m_Database.Get("PrincipalID", principalID.ToString());
-            if (av.Length == 0)
-                return null;
-
             AvatarData ret = new AvatarData();
             ret.Data = new Dictionary<string,string>();
+
+            if (av.Length == 0)
+            {
+                ret.AvatarType = 1; // SL avatar
+                return ret;
+            }
 
             foreach (AvatarBaseData b in av)
             {

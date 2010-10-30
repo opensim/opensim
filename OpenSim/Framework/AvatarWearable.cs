@@ -63,7 +63,7 @@ namespace OpenSim.Framework
         public static readonly int UNDERPANTS = 11;
         public static readonly int SKIRT = 12;
         public static readonly int ALPHA = 13;
-        public static readonly int TATTOO = 15;
+        public static readonly int TATTOO = 14;
 
         public static readonly int MAX_WEARABLES = 15;
 
