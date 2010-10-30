@@ -1510,11 +1510,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 for (int i=0; i<wearables.Length; i++)
                 {
-                    if (inventoryMap.ContainsKey(wearables[i].ItemID))
+                    if (inventoryMap.ContainsKey(wearables[i][0].ItemID))
                     {
                         AvatarWearable wearable = new AvatarWearable();
-                        wearable.AssetID = wearables[i].AssetID;
-                        wearable.ItemID  = inventoryMap[wearables[i].ItemID];
+                        wearable.Wear(inventoryMap[wearables[i][0].ItemID],
+                                wearables[i][0].AssetID);
                         avatarAppearance.SetWearable(i, wearable);
                     }
                 }
@@ -1568,10 +1568,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             for (int i=0; i<wearables.Length; i++)
             {
                 wearable = wearables[i];
-                if (wearable.ItemID != UUID.Zero)
+                if (wearable[0].ItemID != UUID.Zero)
                 {
                     // Get inventory item and copy it
-                    InventoryItemBase item = new InventoryItemBase(wearable.ItemID, source);
+                    InventoryItemBase item = new InventoryItemBase(wearable[0].ItemID, source);
                     item = inventoryService.GetItem(item);
 
                     if (item != null)
@@ -1602,13 +1602,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                         // Wear item
                         AvatarWearable newWearable = new AvatarWearable();
-                        newWearable.AssetID = wearable.AssetID;
-                        newWearable.ItemID  = destinationItem.ID;
+                        newWearable.Wear(destinationItem.ID, wearable[0].AssetID);
                         avatarAppearance.SetWearable(i, newWearable);
                     }
                     else
                     {
-                        m_log.WarnFormat("[RADMIN]: Error transferring {0} to folder {1}", wearable.ItemID, destinationFolder.ID);
+                        m_log.WarnFormat("[RADMIN]: Error transferring {0} to folder {1}", wearable[0].ItemID, destinationFolder.ID);
                     }
                 }
             }
@@ -2057,8 +2056,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                         {
                                         if (select && (GetStringAttribute(item, "wear", "false") == "true"))
                                             {
-                                                avatarAppearance.Wearables[inventoryItem.Flags].ItemID = inventoryItem.ID;
-                                                avatarAppearance.Wearables[inventoryItem.Flags].AssetID = inventoryItem.AssetID;
+                                                avatarAppearance.Wearables[inventoryItem.Flags].Wear(inventoryItem.ID, inventoryItem.AssetID);
                                             }
                                         }
                                         catch (Exception e)

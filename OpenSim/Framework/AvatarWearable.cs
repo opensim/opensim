@@ -26,11 +26,24 @@
  */
 
 using System;
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework
 {
+    public struct WearableItem
+    {
+        public UUID ItemID;
+        public UUID AssetID;
+
+        public WearableItem(UUID itemID, UUID assetID)
+        {
+            ItemID = itemID;
+            AssetID = assetID;
+        }
+    }
+
     public class AvatarWearable
     {
         // these are guessed at by the list here -
@@ -49,8 +62,10 @@ namespace OpenSim.Framework
         public static readonly int UNDERSHIRT = 10;
         public static readonly int UNDERPANTS = 11;
         public static readonly int SKIRT = 12;
+        public static readonly int ALPHA = 13;
+        public static readonly int TATTOO = 14;
 
-        public static readonly int MAX_WEARABLES = 13;
+        public static readonly int MAX_WEARABLES = 15;
 
         public static readonly UUID DEFAULT_BODY_ITEM = new UUID("66c41e39-38f9-f75a-024e-585989bfaba9");
         public static readonly UUID DEFAULT_BODY_ASSET = new UUID("66c41e39-38f9-f75a-024e-585989bfab73");
@@ -67,68 +82,158 @@ namespace OpenSim.Framework
         public static readonly UUID DEFAULT_PANTS_ITEM = new UUID("77c41e39-38f9-f75a-0000-5859892f1111");
         public static readonly UUID DEFAULT_PANTS_ASSET = new UUID("00000000-38f9-1111-024e-222222111120");
 
-        public UUID AssetID;
-        public UUID ItemID;
+        public static readonly UUID DEFAULT_ALPHA_ITEM = new UUID("bfb9923c-4838-4d2d-bf07-608c5b1165c8");
+        public static readonly UUID DEFAULT_ALPHA_ASSET = new UUID("1578a2b1-5179-4b53-b618-fe00ca5a5594");
+
+        public static readonly UUID DEFAULT_TATTOO_ITEM = new UUID("c47e22bd-3021-4ba4-82aa-2b5cb34d35e1");
+        public static readonly UUID DEFAULT_TATTOO_ASSET = new UUID("00000000-0000-2222-3333-100000001007");
+ 
+
+        protected Dictionary<UUID, UUID> m_items = new Dictionary<UUID, UUID>();
+        protected List<UUID> m_ids = new List<UUID>();
 
         public AvatarWearable()
         {
         }
 
-        public AvatarWearable(UUID itemId, UUID assetId)
+        public AvatarWearable(UUID itemID, UUID assetID)
         {
-            AssetID = assetId;
-            ItemID = itemId;
+            Wear(itemID, assetID);
         }
 
-        public AvatarWearable(OSDMap args)
+        public AvatarWearable(OSDArray args)
         {
             Unpack(args);
         }
 
-        public OSDMap Pack()
+        public OSD Pack()
         {
-            OSDMap weardata = new OSDMap();
-            weardata["item"] = OSD.FromUUID(ItemID);
-            weardata["asset"] = OSD.FromUUID(AssetID);
+            OSDArray wearlist = new OSDArray();
 
-            return weardata;
+            foreach (UUID id in m_ids)
+            {
+                OSDMap weardata = new OSDMap();
+                weardata["item"] = OSD.FromUUID(id);
+                weardata["asset"] = OSD.FromUUID(m_items[id]);
+                wearlist.Add(weardata);
+            }
+
+            return wearlist;
         }
 
-        public void Unpack(OSDMap args)
+        public void Unpack(OSDArray args)
         {
-            ItemID = (args["item"] != null) ? args["item"].AsUUID() : UUID.Zero;
-            AssetID = (args["asset"] != null) ? args["asset"].AsUUID() : UUID.Zero;
+            Clear();
+
+            foreach (OSDMap weardata in args)
+            {
+                Add(weardata["item"].AsUUID(), weardata["asset"].AsUUID());
+            }
+        }
+
+        public int Count
+        {
+            get { return m_ids.Count; }
+        }
+
+        public void Add(UUID itemID, UUID assetID)
+        {
+            if (itemID == UUID.Zero)
+                return;
+            if (m_items.ContainsKey(itemID))
+            {
+                m_items[itemID] = assetID;
+                return;
+            }
+            if (m_ids.Count >= 5)
+                return;
+
+            m_ids.Add(itemID);
+            m_items[itemID] = assetID;
+        }
+
+        public void Wear(UUID itemID, UUID assetID)
+        {
+            Clear();
+            Add(itemID, assetID);
+        }
+
+        public void Clear()
+        {
+            m_ids.Clear();
+            m_items.Clear();
+        }
+
+        public void RemoveItem(UUID itemID)
+        {
+            if (m_items.ContainsKey(itemID))
+            {
+                m_ids.Remove(itemID);
+                m_items.Remove(itemID);
+            }
+        }
+
+        public void RemoveAsset(UUID assetID)
+        {
+            UUID itemID = UUID.Zero;
+
+            foreach (KeyValuePair<UUID, UUID> kvp in m_items)
+            {
+                if (kvp.Value == assetID)
+                {
+                    itemID = kvp.Key;
+                    break;
+                }
+            }
+
+            if (itemID != UUID.Zero)
+            {
+                m_ids.Remove(itemID);
+                m_items.Remove(itemID);
+            }
+        }
+
+        public WearableItem this [int idx]
+        {
+            get
+            {
+                if (idx >= m_ids.Count || idx < 0)
+                    return new WearableItem(UUID.Zero, UUID.Zero);
+
+                return new WearableItem(m_ids[idx], m_items[m_ids[idx]]);
+            }
         }
 
         public static AvatarWearable[] DefaultWearables
         {
             get
             {
-                AvatarWearable[] defaultWearables = new AvatarWearable[MAX_WEARABLES]; //should be 13 of these
+                AvatarWearable[] defaultWearables = new AvatarWearable[MAX_WEARABLES]; //should be 15 of these
                 for (int i = 0; i < MAX_WEARABLES; i++)
                 {
                     defaultWearables[i] = new AvatarWearable();
                 }
                 
                 // Body
-                defaultWearables[0].ItemID  = DEFAULT_BODY_ITEM;
-                defaultWearables[0].AssetID = DEFAULT_BODY_ASSET;
+                defaultWearables[BODY].Add(DEFAULT_BODY_ITEM, DEFAULT_BODY_ASSET);
                 
                 // Hair
-                defaultWearables[2].ItemID  = DEFAULT_HAIR_ITEM;
-                defaultWearables[2].AssetID = DEFAULT_HAIR_ASSET;
+                defaultWearables[HAIR].Add(DEFAULT_HAIR_ITEM, DEFAULT_HAIR_ASSET);
 
                 // Skin
-                defaultWearables[1].ItemID  = DEFAULT_SKIN_ITEM;
-                defaultWearables[1].AssetID = DEFAULT_SKIN_ASSET;
+                defaultWearables[SKIN].Add(DEFAULT_SKIN_ITEM, DEFAULT_SKIN_ASSET);
 
                 // Shirt
-                defaultWearables[4].ItemID  = DEFAULT_SHIRT_ITEM;
-                defaultWearables[4].AssetID = DEFAULT_SHIRT_ASSET;
+                defaultWearables[SHIRT].Add(DEFAULT_SHIRT_ITEM, DEFAULT_SHIRT_ASSET);
 
                 // Pants
-                defaultWearables[5].ItemID  = DEFAULT_PANTS_ITEM;
-                defaultWearables[5].AssetID = DEFAULT_PANTS_ASSET;
+                defaultWearables[PANTS].Add(DEFAULT_PANTS_ITEM, DEFAULT_PANTS_ASSET);
+                
+                // Alpha
+                defaultWearables[ALPHA].Add(DEFAULT_ALPHA_ITEM, DEFAULT_ALPHA_ASSET);
+                
+                // Tattoo
+                defaultWearables[TATTOO].Add(DEFAULT_TATTOO_ITEM, DEFAULT_TATTOO_ASSET);
                 
                 return defaultWearables;
             }
