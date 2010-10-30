@@ -173,28 +173,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             InventoryCollection contents 
                 = m_scene.InventoryService.GetFolderContent(inventoryFolder.Owner, inventoryFolder.ID);
-            //List<InventoryFolderImpl> childFolders = inventoryFolder.RequestListOfFolderImpls();
-            //List<InventoryItemBase> items = inventoryFolder.RequestListOfItems();
-
-            /*
-            Dictionary identicalFolderNames = new Dictionary<string, int>();
-
-            foreach (InventoryFolderImpl folder in inventories)
-            {
-                if (!identicalFolderNames.ContainsKey(folder.Name))
-                    identicalFolderNames[folder.Name] = 0;
-                else
-                    identicalFolderNames[folder.Name] = identicalFolderNames[folder.Name]++;
-
-                int folderNameNumber = identicalFolderName[folder.Name];
-
-                SaveInvDir(
-                    folder,
-                    string.Format(
-                        "{0}{1}{2}/",
-                        path, ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, folderNameNumber));
-            }
-            */
 
             foreach (InventoryFolderBase childFolder in contents.Folders)
             {
