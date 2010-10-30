@@ -1,4 +1,10 @@
 <Nini>
+  <Section Name="Default Alpha">
+    <Key Name="assetID" Value="1578a2b1-5179-4b53-b618-fe00ca5a5594" />
+    <Key Name="name" Value="alpha" />
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="default_alpha.jp2" />
+  </Section>
   <Section Name="texture1">
     <Key Name="assetID" Value="00000000-0000-2222-3333-000000000099" />
     <Key Name="name" Value="femface" />

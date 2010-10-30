@@ -704,20 +704,14 @@ namespace OpenSim.Region.Framework.Scenes
             // we created a new ScenePresence (a new child agent) in a fresh region.
             // Request info about all the (root) agents in this region
             // Note: This won't send data *to* other clients in that region (children don't send)
+
+// MIC: This gets called again in CompleteMovement
             SendInitialFullUpdateToAllClients();
 
             RegisterToEvents();
             SetDirectionVectors();
         }
 
-/*
-        public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, byte[] visualParams,
-                             AvatarWearable[] wearables)
-            : this(client, world, reginfo)
-        {
-            m_appearance = new AvatarAppearance(m_uuid, wearables, visualParams);
-        }
-*/
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance)
             : this(client, world, reginfo)
         {
@@ -1081,7 +1075,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void CompleteMovement(IClientAPI client)
         {
-            //m_log.Debug("[SCENE PRESENCE]: CompleteMovement");
+// DEBUG ON
+            m_log.WarnFormat("[SCENE PRESENCE]: CompleteMovement for {0}",UUID);
+// DEBUG OFF
 
             Vector3 look = Velocity;
             if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
@@ -2381,11 +2377,19 @@ namespace OpenSim.Region.Framework.Scenes
             // 2 stage check is needed.
             if (remoteAvatar == null)
                 return;
+
             IClientAPI cl=remoteAvatar.ControllingClient;
             if (cl == null)
                 return;
+
             if (m_appearance.Texture == null)
                 return;
+
+            if (LocalId == remoteAvatar.LocalId)
+            {
+                m_log.WarnFormat("[SP] An agent is attempting to send data to itself; {0}",UUID);
+                return;
+            }
 
             if (IsChildAgent)
             {
@@ -2407,20 +2411,23 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
             {
                 ++avUpdates;
-                // only send if this is the root (children are only "listening posts" in a foreign region)
+
+                // Don't update ourselves
+                if (avatar.LocalId == LocalId)
+                    return;
+                
+                // If this is a root agent, then get info about the avatar
                 if (!IsChildAgent)
                 {
                     SendFullUpdateToOtherClient(avatar);
                 }
 
-                if (avatar.LocalId != LocalId)
+                // If the other avatar is a root
+                if (!avatar.IsChildAgent)
                 {
-                    if (!avatar.IsChildAgent)
-                    {
-                        avatar.SendFullUpdateToOtherClient(this);
-                        avatar.SendAppearanceToOtherAgent(this);
-                        avatar.Animator.SendAnimPackToClient(ControllingClient);
-                    }
+                    avatar.SendFullUpdateToOtherClient(this);
+                    avatar.SendAppearanceToOtherAgent(this);
+                    avatar.Animator.SendAnimPackToClient(ControllingClient);
                 }
             });
 
@@ -2465,7 +2472,19 @@ namespace OpenSim.Region.Framework.Scenes
             // m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);
 
             m_controllingClient.SendAvatarDataImmediate(this);
-            m_controllingClient.SendAppearance(m_appearance.Owner,m_appearance.VisualParams,m_appearance.Texture.GetBytes());
+            if (m_scene.AvatarFactory != null)
+            {
+                if (m_scene.AvatarFactory.ValidateBakedTextureCache(m_controllingClient))
+                {
+                    m_log.WarnFormat("[SP] baked textures are in the ache for {0}",Name);
+                    m_controllingClient.SendAppearance(
+                        m_appearance.Owner,m_appearance.VisualParams,m_appearance.Texture.GetBytes());
+                }
+            }
+            else
+            {
+                m_log.WarnFormat("[SP] AvatarFactory not set");
+            }
 
             SendInitialFullUpdateToAllClients();
         }
@@ -2497,9 +2516,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="avatar"></param>
         public void SendAppearanceToOtherAgent(ScenePresence avatar)
         {
+            if (LocalId == avatar.LocalId)
+            {
+                m_log.WarnFormat("[SP] An agent is attempting to send data to itself; {0}",UUID);
+                return;
+            }
+
 // DEBUG ON
-            m_log.WarnFormat("[SP] Send appearance from {0} to {1}",m_uuid,avatar.ControllingClient.AgentId);
+//          m_log.WarnFormat("[SP] Send appearance from {0} to {1}",m_uuid,avatar.ControllingClient.AgentId);
 // DEBUG OFF
+
             avatar.ControllingClient.SendAppearance(
                 m_appearance.Owner, m_appearance.VisualParams, m_appearance.Texture.GetBytes());
         }
@@ -2898,7 +2924,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void CopyTo(AgentData cAgent)
         {
             cAgent.CallbackURI = m_callbackURI;
-            
+
             cAgent.AgentID = UUID;
             cAgent.RegionID = Scene.RegionInfo.RegionID;
 

@@ -35,6 +35,104 @@ using log4net;
 
 namespace OpenSim.Framework
 {
+    // A special dictionary for avatar appearance
+    public struct LayerItem
+    {
+        public UUID ItemID;
+        public UUID AssetID;
+
+        public LayerItem(UUID itemID, UUID assetID)
+        {
+            ItemID = itemID;
+            AssetID = assetID;
+        }
+    }
+
+    public class Layer
+    {
+        protected int m_layerType;
+        protected Dictionary<UUID, UUID> m_items = new Dictionary<UUID, UUID>();
+        protected List<UUID> m_ids = new List<UUID>();
+
+        public Layer(int type)
+        {
+            m_layerType = type;
+        }
+
+        public int LayerType
+        {
+            get { return m_layerType; }
+        }
+
+        public int Count
+        {
+            get { return m_ids.Count; }
+        }
+
+        public void Add(UUID itemID, UUID assetID)
+        {
+            if (m_items.ContainsKey(itemID))
+                return;
+            if (m_ids.Count >= 5)
+                return;
+
+            m_ids.Add(itemID);
+            m_items[itemID] = assetID;
+        }
+
+        public void Wear(UUID itemID, UUID assetID)
+        {
+            Clear();
+            Add(itemID, assetID);
+        }
+
+        public void Clear()
+        {
+            m_ids.Clear();
+            m_items.Clear();
+        }
+
+        public void RemoveItem(UUID itemID)
+        {
+            if (m_items.ContainsKey(itemID))
+            {
+                m_ids.Remove(itemID);
+                m_items.Remove(itemID);
+            }
+        }
+
+        public void RemoveAsset(UUID assetID)
+        {
+            UUID itemID = UUID.Zero;
+
+            foreach (KeyValuePair<UUID, UUID> kvp in m_items)
+            {
+                if (kvp.Value == assetID)
+                {
+                    itemID = kvp.Key;
+                    break;
+                }
+            }
+
+            if (itemID != UUID.Zero)
+            {
+                m_ids.Remove(itemID);
+                m_items.Remove(itemID);
+            }
+        }
+
+        public LayerItem this [int idx]
+        {
+            get
+            {
+                if (idx >= m_ids.Count || idx < 0)
+                    return new LayerItem(UUID.Zero, UUID.Zero);
+
+                return new LayerItem(m_ids[idx], m_items[m_ids[idx]]);
+            }
+        }
+    }
+
     /// <summary>
     /// Contains the Avatar's Appearance and methods to manipulate the appearance.
     /// </summary>
@@ -45,6 +143,7 @@ namespace OpenSim.Framework
         public readonly static int VISUALPARAM_COUNT = 218;
 
         public readonly static int TEXTURE_COUNT = 21;
+        public readonly static byte[] BAKE_INDICES = new byte[] { 8, 9, 10, 11, 19, 20 };
         
         protected UUID m_owner;
         protected int m_serial = 1;
@@ -347,14 +446,8 @@ namespace OpenSim.Framework
         protected virtual void SetDefaultTexture()
         {
             m_texture = new Primitive.TextureEntry(new UUID("C228D1CF-4B5D-4BA8-84F4-899A0796AA97"));
-            // The initialization of these seems to force a rebake regardless of whether it is needed
-            // m_textures.CreateFace(0).TextureID = new UUID("00000000-0000-1111-9999-000000000012");
-            // m_textures.CreateFace(1).TextureID = Util.BLANK_TEXTURE_UUID;
-            // m_textures.CreateFace(2).TextureID = Util.BLANK_TEXTURE_UUID;
-            // m_textures.CreateFace(3).TextureID = new UUID("6522E74D-1660-4E7F-B601-6F48C1659A77");
-            // m_textures.CreateFace(4).TextureID = new UUID("7CA39B4C-BD19-4699-AFF7-F93FD03D3E7B");
-            // m_textures.CreateFace(5).TextureID = new UUID("00000000-0000-1111-9999-000000000010");
-            // m_textures.CreateFace(6).TextureID = new UUID("00000000-0000-1111-9999-000000000011");
+            for (uint i = 0; i < TEXTURE_COUNT; i++)
+                m_texture.CreateFace(i).TextureID = new UUID(AppearanceManager.DEFAULT_AVATAR_TEXTURE);
         }
 
         /// <summary>
@@ -371,7 +464,7 @@ namespace OpenSim.Framework
             // made. We determine if any of the textures actually
             // changed to know if the appearance should be saved later
             bool changed = false;
-            for (int i = 0; i < AvatarAppearance.TEXTURE_COUNT; i++)
+            for (uint i = 0; i < AvatarAppearance.TEXTURE_COUNT; i++)
             {
                 Primitive.TextureEntryFace newface = textureEntry.FaceTextures[i];
                 Primitive.TextureEntryFace oldface = m_texture.FaceTextures[i];
@@ -385,7 +478,6 @@ namespace OpenSim.Framework
                     if (oldface != null && oldface.TextureID == newface.TextureID) continue;
                 }
 
-                m_texture.FaceTextures[i] = (newface != null) ? new Primitive.TextureEntryFace(newface) : null;
                 changed = true;
 // DEBUG ON
                 if (newface != null)
@@ -393,6 +485,7 @@ namespace OpenSim.Framework
 // DEBUG OFF
             }
 
+            m_texture = textureEntry;
             return changed;
         }
         
@@ -415,8 +508,8 @@ namespace OpenSim.Framework
                 if (visualParams[i] != m_visualparams[i])
                 {
 // DEBUG ON
-                    m_log.WarnFormat("[AVATARAPPEARANCE] vparams changed [{0}] {1} ==> {2}",
-                                     i,m_visualparams[i],visualParams[i]);
+//                    m_log.WarnFormat("[AVATARAPPEARANCE] vparams changed [{0}] {1} ==> {2}",
+//                                     i,m_visualparams[i],visualParams[i]);
 // DEBUG OFF
                     m_visualparams[i] = visualParams[i];
                     changed = true;
@@ -581,6 +674,8 @@ namespace OpenSim.Framework
             m_attachments.Clear();
         }
 
+        #region Packing Functions
+
         /// <summary>
         /// Create an OSDMap from the appearance data
         /// </summary>
@@ -605,7 +700,7 @@ namespace OpenSim.Framework
                 if (m_texture.FaceTextures[i] != null)
                     textures.Add(OSD.FromUUID(m_texture.FaceTextures[i].TextureID));
                 else
-                    textures.Add(OSD.FromUUID(UUID.Zero));
+                    textures.Add(OSD.FromUUID(AppearanceManager.DEFAULT_AVATAR_TEXTURE));
             }
             data["textures"] = textures;
 
@@ -657,12 +752,10 @@ namespace OpenSim.Framework
                     OSDArray textures = (OSDArray)(data["textures"]);
                     for (int i = 0; i < AvatarAppearance.TEXTURE_COUNT && i < textures.Count; i++)
                     {
+                        UUID textureID = AppearanceManager.DEFAULT_AVATAR_TEXTURE;
                         if (textures[i] != null)
-                        {
-                            UUID textureID = textures[i].AsUUID();
-                            if (textureID != UUID.Zero)
-                                m_texture.CreateFace((uint)i).TextureID = textureID;
-                        }
+                            textureID = textures[i].AsUUID();
+                        m_texture.CreateFace((uint)i).TextureID = new UUID(textureID);
                     }
                 }
                 else
@@ -697,6 +790,9 @@ namespace OpenSim.Framework
             }
         }
 
+        #endregion
+
+        #region VPElement
 
         /// <summary>
         /// Viewer Params Array Element for AgentSetAppearance
@@ -1460,5 +1556,6 @@ namespace OpenSim.Framework
             SKIRT_SKIRT_GREEN = 216,
             SKIRT_SKIRT_BLUE = 217
         }
+        #endregion
     }
 }
