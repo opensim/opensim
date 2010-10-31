@@ -128,8 +128,8 @@ namespace OpenSim.Services.GridService
             if (MainConsole.Instance != null)
             {
                 MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region", "link-region <Xloc> <Yloc> <ServerURI> [<RemoteRegionName>]", "Link a HyperGrid Region", RunCommand);
-                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "legacy-link-region",
-                    "legacy-link-region <Xloc> <Yloc> <RegionIP> <RegionPort> [<RemoteRegionName>]",
+                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region",
+                    "link-region <Xloc> <Yloc> <RegionIP> <RegionPort> [<RemoteRegionName>]",
                     "Link a hypergrid region (deprecated)", RunCommand);
                 MainConsole.Instance.Commands.AddCommand("hypergrid", false, "unlink-region",
                     "unlink-region <local name>",
@@ -206,14 +206,14 @@ namespace OpenSim.Services.GridService
             return null;
         }
                 
-        public bool TryCreateLink(UUID scopeID, int xloc, int yloc, string externalRegionName, uint externalPort, string externalHostName, UUID ownerID, out GridRegion regInfo, out string reason)
+        public bool TryCreateLink(UUID scopeID, int xloc, int yloc, string remoteRegionName, uint externalPort, string externalHostName, UUID ownerID, out GridRegion regInfo, out string reason)
         {
-            return TryCreateLink(scopeID, xloc, yloc, externalRegionName, externalPort, externalHostName, null, ownerID, out regInfo, out reason);
+            return TryCreateLink(scopeID, xloc, yloc, remoteRegionName, externalPort, externalHostName, null, ownerID, out regInfo, out reason);
         }
         
-        public bool TryCreateLink(UUID scopeID, int xloc, int yloc, string externalRegionName, uint externalPort, string externalHostName, string serverURI, UUID ownerID, out GridRegion regInfo, out string reason)
+        public bool TryCreateLink(UUID scopeID, int xloc, int yloc, string remoteRegionName, uint externalPort, string externalHostName, string serverURI, UUID ownerID, out GridRegion regInfo, out string reason)
         {
-            m_log.DebugFormat("[HYPERGRID LINKER]: Link to {0}:{1}:{2}, in {3}-{4}", externalHostName, externalPort, externalRegionName, xloc, yloc);
+            m_log.DebugFormat("[HYPERGRID LINKER]: Link to {0}:{1}:{2}, in {3}-{4}", externalHostName, externalPort, remoteRegionName, xloc, yloc);
 
             reason = string.Empty;
             regInfo = new GridRegion();
@@ -227,6 +227,9 @@ namespace OpenSim.Services.GridService
                 regInfo.ExternalHostName = "0.0.0.0";
             if ( serverURI != null)
                 regInfo.ServerURI = serverURI;
+            
+            if ( remoteRegionName != string.Empty )
+                regInfo.RegionName = remoteRegionName;
                 
             regInfo.RegionLocX = xloc;
             regInfo.RegionLocY = yloc;
@@ -325,13 +328,6 @@ namespace OpenSim.Services.GridService
                     regInfo.ScopeID = m_ScopeID;
                 }
             }
-
-            //foreach (GridRegion r in m_HyperlinkRegions.Values)
-            //{
-            //    m_log.DebugFormat("XXX Comparing {0}:{1} with {2}:{3}", host, port, r.ExternalHostName, r.HttpPort);
-            //    if (host.Equals(r.ExternalHostName) && (port == r.HttpPort))
-            //        regInfo = r;
-            //}
 
             if (regInfo != null)
             {
@@ -500,7 +496,7 @@ namespace OpenSim.Services.GridService
                 }
                 return;
             }
-            else if (command.Equals("legacy-link-region"))
+            else if (command.Equals("link-region"))
             {
                 if (cmdparams.Length < 3)
                 {
@@ -515,7 +511,11 @@ namespace OpenSim.Services.GridService
                     return;
                 }
 
-                if (cmdparams[2].Contains(":"))
+                //this should be the prefererred way of setting up hg links now
+                if ( cmdparams[2].StartsWith("http") && ( cmdparams.Length >= 3 && cmdparams.Length <= 5 )) {
+                    RunLinkRegionCommand(cmdparams);
+                } 
+                else if (cmdparams[2].Contains(":"))
                 {
                     // New format
                     int xloc, yloc;
@@ -578,7 +578,7 @@ namespace OpenSim.Services.GridService
                     xloc = xloc * (int)Constants.RegionSize;
                     yloc = yloc * (int)Constants.RegionSize;
                     string reason = string.Empty;
-                    if (TryCreateLink(UUID.Zero, xloc, yloc, "", externalPort, externalHostName, UUID.Zero, out regInfo, out reason))
+                    if (TryCreateLink(UUID.Zero, xloc, yloc, string.Empty, externalPort, externalHostName, UUID.Zero, out regInfo, out reason))
                     {
                         if (cmdparams.Length >= 5)
                         {
@@ -592,7 +592,7 @@ namespace OpenSim.Services.GridService
             }
             else if (command.Equals("unlink-region"))
             {
-                if (cmdparams.Length < 1)
+                if (cmdparams.Length < 1 || cmdparams.Length > 1)
                 {
                     UnlinkRegionCmdUsage();
                     return;
@@ -680,7 +680,7 @@ namespace OpenSim.Services.GridService
                 xloc = xloc * (int)Constants.RegionSize;
                 yloc = yloc * (int)Constants.RegionSize;
                 string reason = string.Empty;
-                if (TryCreateLink(UUID.Zero, xloc, yloc, "", externalPort, externalHostName, UUID.Zero, out regInfo, out reason))
+                if (TryCreateLink(UUID.Zero, xloc, yloc, string.Empty, externalPort, externalHostName, UUID.Zero, out regInfo, out reason))
                 {
                     regInfo.RegionName = config.GetString("localName", "");
                 }
@@ -692,14 +692,14 @@ namespace OpenSim.Services.GridService
 
         private void LinkRegionCmdUsage()
         {
-            MainConsole.Instance.Output("Usage: link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>]");
-            MainConsole.Instance.Output("Usage: link-region <Xloc> <Yloc> <HostName> <HttpPort> [<LocalName>]");
+            MainConsole.Instance.Output("Usage: link-region <Xloc> <Yloc> <ServerURI> [<RemoteRegionName>]");
+            MainConsole.Instance.Output("Usage (deprecated): link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>]");
+            MainConsole.Instance.Output("Usage (deprecated): link-region <Xloc> <Yloc> <HostName> <HttpPort> [<LocalName>]");
             MainConsole.Instance.Output("Usage: link-region <URI_of_xml> [<exclude>]");
         }
 
         private void UnlinkRegionCmdUsage()
         {
-            MainConsole.Instance.Output("Usage: unlink-region <HostName>:<HttpPort>");
             MainConsole.Instance.Output("Usage: unlink-region <LocalName>");
         }
 
