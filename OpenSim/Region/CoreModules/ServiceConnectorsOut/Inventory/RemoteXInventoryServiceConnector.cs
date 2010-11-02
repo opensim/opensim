@@ -261,7 +261,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public  InventoryItemBase GetItem(InventoryItemBase item)
         {
-            m_log.DebugFormat("[XINVENTORY CONNECTOR]: GetItem {0}", item.ID);
+            //m_log.DebugFormat("[XINVENTORY CONNECTOR]: GetItem {0}", item.ID);
             if (item == null)
                 return null;
 
@@ -272,7 +272,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public  InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
-            m_log.DebugFormat("[XINVENTORY CONNECTOR]: GetFolder {0}", folder.ID);
+            //m_log.DebugFormat("[XINVENTORY CONNECTOR]: GetFolder {0}", folder.ID);
             if (folder == null)
                 return null;
 

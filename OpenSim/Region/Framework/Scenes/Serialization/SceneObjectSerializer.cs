@@ -1135,7 +1135,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("GroupMask", sop.GroupMask.ToString());
             writer.WriteElementString("EveryoneMask", sop.EveryoneMask.ToString());
             writer.WriteElementString("NextOwnerMask", sop.NextOwnerMask.ToString());
-            writer.WriteElementString("Flags", sop.Flags.ToString());
+            WriteFlags(writer, "Flags", sop.Flags.ToString(), options);
             WriteUUID(writer, "CollisionSound", sop.CollisionSound, options);
             writer.WriteElementString("CollisionSoundVolume", sop.CollisionSoundVolume.ToString());
             if (sop.MediaUrl != null)
@@ -1186,6 +1186,20 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteBase64(d, 0, d.Length);
             writer.WriteEndElement(); // name
 
+        }
+
+        static void WriteFlags(XmlTextWriter writer, string name, string flagsStr, Dictionary<string, object> options)
+        {
+            // Older versions of serialization can't cope with commas
+            if (options.ContainsKey("version")) 
+            {
+                float version = 0.5F;
+                float.TryParse(options["version"].ToString(), out version);
+                if (version < 0.5)
+                    flagsStr = flagsStr.Replace(",", "");
+            }
+
+            writer.WriteElementString(name, flagsStr);
         }
 
         static void WriteTaskInventory(XmlTextWriter writer, TaskInventoryDictionary tinv, Dictionary<string, object> options)
@@ -1275,8 +1289,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteElementString("ProfileHollow", shp.ProfileHollow.ToString());
                 writer.WriteElementString("State", shp.State.ToString());
 
-                writer.WriteElementString("ProfileShape", shp.ProfileShape.ToString());
-                writer.WriteElementString("HollowShape", shp.HollowShape.ToString());
+                WriteFlags(writer, "ProfileShape", shp.ProfileShape.ToString(), options);
+                WriteFlags(writer, "HollowShape", shp.HollowShape.ToString(), options);
 
                 WriteUUID(writer, "SculptTexture", shp.SculptTexture, options);
                 writer.WriteElementString("SculptType", shp.SculptType.ToString());

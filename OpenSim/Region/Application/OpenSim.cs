@@ -264,9 +264,10 @@ namespace OpenSim
                                           LoadOar);
 
             m_console.Commands.AddCommand("region", false, "save oar",
-                                          "save oar [<OAR path>]",
+                                          "save oar [-v|version=N] [<OAR path>]",
                                           "Save a region's data to an OAR archive.",
-                                          "The OAR path must be a filesystem path."
+                                          "-v|version=N generates scene objects as per older versions of the serialization (e.g. -v=0)" + Environment.NewLine
+                                          + "The OAR path must be a filesystem path."
                                           + "  If this is not given then the oar is saved to region.oar in the current directory.",
                                           SaveOar);
 
