@@ -176,44 +176,44 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
                     stream = response.GetResponseStream();
                     if (stream != null)
                     {
-                        Bitmap image = new Bitmap(stream);
-                        Size newsize;
-
-                        // TODO: make this a bit less hard coded
-                        if ((image.Height < 64) && (image.Width < 64))
-                        {
-                            newsize = new Size(32, 32);
-                        }
-                        else if ((image.Height < 128) && (image.Width < 128))
-                        {
-                            newsize = new Size(64, 64);
-                        }
-                        else if ((image.Height < 256) && (image.Width < 256))
-                        {
-                            newsize = new Size(128, 128);
-                        }
-                        else if ((image.Height < 512 && image.Width < 512))
-                        {
-                            newsize = new Size(256, 256);
-                        }
-                        else if ((image.Height < 1024 && image.Width < 1024))
-                        {
-                            newsize = new Size(512, 512);
-                        }
-                        else
-                        {
-                            newsize = new Size(1024, 1024);
-                        }
-
-                        Bitmap resize = new Bitmap(image, newsize);
-                        
                         try
                         {
+                            Bitmap image = new Bitmap(stream);
+                            Size newsize;
+
+                            // TODO: make this a bit less hard coded
+                            if ((image.Height < 64) && (image.Width < 64))
+                            {
+                                newsize = new Size(32, 32);
+                            }
+                            else if ((image.Height < 128) && (image.Width < 128))
+                            {
+                                newsize = new Size(64, 64);
+                            }
+                            else if ((image.Height < 256) && (image.Width < 256))
+                            {
+                                newsize = new Size(128, 128);
+                            }
+                            else if ((image.Height < 512 && image.Width < 512))
+                            {
+                                newsize = new Size(256, 256);
+                            }
+                            else if ((image.Height < 1024 && image.Width < 1024))
+                            {
+                                newsize = new Size(512, 512);
+                            }
+                            else
+                            {
+                                newsize = new Size(1024, 1024);
+                            }
+
+                            Bitmap resize = new Bitmap(image, newsize);
+
                             imageJ2000 = OpenJPEG.EncodeFromImage(resize, true);
                         } 
                         catch (Exception)
                         {
-                            m_log.Error("[LOADIMAGEURLMODULE]: OpenJpeg Encode Failed.  Empty byte data returned!");
+                            m_log.Error("[LOADIMAGEURLMODULE]: OpenJpeg Conversion Failed.  Empty byte data returned!");
                         }
                     }
                     else
