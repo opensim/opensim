@@ -872,6 +872,12 @@ namespace OpenSim.Region.Framework.Scenes
             
             AddToPhysicalScene(isFlying);
 
+            if (m_appearance != null)
+            {
+                if (m_appearance.AvatarHeight > 0)
+                    SetHeight(m_appearance.AvatarHeight);
+            }
+
             if (m_forceFly)
             {
                 m_physicsActor.Flying = true;
@@ -2391,11 +2397,14 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_appearance.Texture == null)
                 return;
 
-            if (LocalId == remoteAvatar.LocalId)
-            {
-                m_log.WarnFormat("[SCENEPRESENCE]: An agent is attempting to send avatar data to itself; {0}", UUID);
-                return;
-            }
+// MT: This is needed for sit. It's legal to send it to oneself, and the name
+//     of the method is a misnomer
+//
+//            if (LocalId == remoteAvatar.LocalId)
+//            {
+//                m_log.WarnFormat("[SCENEPRESENCE]: An agent is attempting to send avatar data to itself; {0}", UUID);
+//                return;
+//            }
 
             if (IsChildAgent)
             {
