@@ -212,41 +212,10 @@ namespace OpenSim.Framework
             args["mac"] = OSD.FromString(Mac);
             args["id0"] = OSD.FromString(Id0);
 
-            // Eventually this code should be deprecated, use full appearance
-            // packing in packed_appearance
             if (Appearance != null)
             {
                 args["appearance_serial"] = OSD.FromInteger(Appearance.Serial);
 
-                //System.Console.WriteLine("XXX Before packing Wearables");
-                if ((Appearance.Wearables != null) && (Appearance.Wearables.Length > 0))
-                {
-                    OSDArray wears = new OSDArray(Appearance.Wearables.Length * 2);
-                    foreach (AvatarWearable awear in Appearance.Wearables)
-                    {
-                        wears.Add(OSD.FromUUID(awear.ItemID));
-                        wears.Add(OSD.FromUUID(awear.AssetID));
-                        //System.Console.WriteLine("XXX ItemID=" + awear.ItemID + " assetID=" + awear.AssetID);
-                    }
-                    args["wearables"] = wears;
-                }
-
-                //System.Console.WriteLine("XXX Before packing Attachments");
-                List<AvatarAttachment> attachments = Appearance.GetAttachments();
-                if ((attachments != null) && (attachments.Count > 0))
-                {
-                    OSDArray attachs = new OSDArray(attachments.Count);
-                    foreach (AvatarAttachment attach in attachments)
-                    {
-                        attachs.Add(attach.Pack());
-                        //System.Console.WriteLine("XXX att.pt=" + kvp.Key + "; itemID=" + kvp.Value[0] + "; assetID=" + kvp.Value[1]);
-                    }
-                    args["attachments"] = attachs;
-                }
-            }
-
-            if (Appearance != null)
-            {
                 OSDMap appmap = Appearance.Pack();
                 args["packed_appearance"] = appmap;
             }
@@ -345,28 +314,6 @@ namespace OpenSim.Framework
             // packing in packed_appearance
             if (args["appearance_serial"] != null)
                 Appearance.Serial = args["appearance_serial"].AsInteger();
-
-            if ((args["wearables"] != null) && (args["wearables"]).Type == OSDType.Array)
-            {
-                OSDArray wears = (OSDArray)(args["wearables"]);
-                for (int i = 0; i < wears.Count / 2; i++) 
-                {
-                    AvatarWearable awear = new AvatarWearable(wears[i*2].AsUUID(),wears[(i*2)+1].AsUUID());
-                    Appearance.SetWearable(i,awear);
-                }
-            }
-
-            if ((args["attachments"] != null) && (args["attachments"]).Type == OSDType.Array)
-            {
-                OSDArray attachs = (OSDArray)(args["attachments"]);
-                foreach (OSD o in attachs)
-                {
-                    if (o.Type == OSDType.Map)
-                    {
-                        Appearance.AppendAttachment(new AvatarAttachment((OSDMap)o));
-                    }
-                }
-            }
 
             if (args.ContainsKey("packed_appearance") && (args["packed_appearance"].Type == OSDType.Map))
             {

@@ -3417,20 +3417,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             aw.AgentData.SerialNum = (uint)serial;
             aw.AgentData.SessionID = m_sessionId;
 
+            int count = 0;
+            for (int i = 0; i < wearables.Length; i++)
+                count += wearables[i].Count;
+
             // TODO: don't create new blocks if recycling an old packet
-            aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[13];
+            aw.WearableData = new AgentWearablesUpdatePacket.WearableDataBlock[count];
             AgentWearablesUpdatePacket.WearableDataBlock awb;
+            int idx = 0;
             for (int i = 0; i < wearables.Length; i++)
             {
-                awb = new AgentWearablesUpdatePacket.WearableDataBlock();
-                awb.WearableType = (byte)i;
-                awb.AssetID = wearables[i].AssetID;
-                awb.ItemID = wearables[i].ItemID;
-                aw.WearableData[i] = awb;
+                for (int j = 0; j < wearables[i].Count; j++)
+                {
+                    awb = new AgentWearablesUpdatePacket.WearableDataBlock();
+                    awb.WearableType = (byte)i;
+                    awb.AssetID = wearables[i][j].AssetID;
+                    awb.ItemID = wearables[i][j].ItemID;
+                    aw.WearableData[idx] = awb;
+                    idx++;
 
 //                                m_log.DebugFormat(
 //                                    "[APPEARANCE]: Sending wearable item/asset {0} {1} (index {2}) for {3}",
 //                                    awb.ItemID, awb.AssetID, i, Name);
+                }
             }
 
             OutPacket(aw, ThrottleOutPacketType.Task);
@@ -5759,6 +5768,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 AvatarWearingArgs wearingArgs = new AvatarWearingArgs();
                 for (int i = 0; i < nowWearing.WearableData.Length; i++)
                 {
+                    m_log.DebugFormat("[XXX]: Wearable type {0} item {1}", nowWearing.WearableData[i].WearableType, nowWearing.WearableData[i].ItemID);
                     AvatarWearingArgs.Wearable wearable =
                         new AvatarWearingArgs.Wearable(nowWearing.WearableData[i].ItemID,
                                                        nowWearing.WearableData[i].WearableType);

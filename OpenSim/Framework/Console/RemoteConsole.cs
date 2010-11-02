@@ -32,6 +32,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using OpenMetaverse;
 using Nini.Config;
@@ -62,6 +63,7 @@ namespace OpenSim.Framework.Console
                 new Dictionary<UUID, ConsoleConnection>();
         private string m_UserName = String.Empty;
         private string m_Password = String.Empty;
+        private string m_AllowedOrigin = String.Empty;
 
         public RemoteConsole(string defaultPrompt) : base(defaultPrompt)
         {
@@ -77,6 +79,7 @@ namespace OpenSim.Framework.Console
 
             m_UserName = netConfig.GetString("ConsoleUser", String.Empty);
             m_Password = netConfig.GetString("ConsolePass", String.Empty);
+            m_AllowedOrigin = netConfig.GetString("ConsoleAllowedOrigin", String.Empty);
         }
 
         public void SetServer(IHttpServer server)
@@ -149,6 +152,29 @@ namespace OpenSim.Framework.Console
             }
             return cmdinput;
         }
+
+        private Hashtable CheckOrigin(Hashtable result)
+        {
+            if (!string.IsNullOrEmpty(m_AllowedOrigin))
+                result["access_control_allow_origin"] = m_AllowedOrigin;
+            return result;
+        }
+        /* TODO: Figure out how PollServiceHTTPHandler can access the request headers
+         * in order to use m_AllowedOrigin as a regular expression
+        private Hashtable CheckOrigin(Hashtable headers, Hashtable result)
+        {
+            if (!string.IsNullOrEmpty(m_AllowedOrigin))
+            {
+                if (headers.ContainsKey("origin"))
+                {
+                    string origin = headers["origin"].ToString();
+                    if (Regex.IsMatch(origin, m_AllowedOrigin))
+                        result["access_control_allow_origin"] = origin;
+                }
+            }
+            return result;
+        }
+        */
 
         private void DoExpire()
         {
@@ -235,6 +261,7 @@ namespace OpenSim.Framework.Console
             reply["str_response_string"] = xmldoc.InnerXml;
             reply["int_response_code"] = 200;
             reply["content_type"] = "text/xml";
+            reply = CheckOrigin(reply);
 
             return reply;
         }
@@ -289,6 +316,7 @@ namespace OpenSim.Framework.Console
             reply["str_response_string"] = xmldoc.InnerXml;
             reply["int_response_code"] = 200;
             reply["content_type"] = "text/xml";
+            reply = CheckOrigin(reply);
 
             return reply;
         }
@@ -344,6 +372,7 @@ namespace OpenSim.Framework.Console
             reply["str_response_string"] = xmldoc.InnerXml;
             reply["int_response_code"] = 200;
             reply["content_type"] = "text/xml";
+            reply = CheckOrigin(reply);
 
             return reply;
         }
@@ -457,6 +486,7 @@ namespace OpenSim.Framework.Console
             result["content_type"] = "application/xml";
             result["keepalive"] = false;
             result["reusecontext"] = false;
+            result = CheckOrigin(result);
 
             return result;
         }
@@ -480,6 +510,7 @@ namespace OpenSim.Framework.Console
             result["content_type"] = "text/xml";
             result["keepalive"] = false;
             result["reusecontext"] = false;
+            result = CheckOrigin(result);
 
             return result;
         }

@@ -69,6 +69,6 @@ namespace OpenSim
         /// of the code that is too old. 
         ///
         /// </value>
-        public readonly static int MajorInterfaceVersion = 6;
+        public readonly static int MajorInterfaceVersion = 7;
     }
 }

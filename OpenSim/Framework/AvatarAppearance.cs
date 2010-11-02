@@ -35,104 +35,6 @@ using log4net;
 
 namespace OpenSim.Framework
 {
-    // A special dictionary for avatar appearance
-    public struct LayerItem
-    {
-        public UUID ItemID;
-        public UUID AssetID;
-
-        public LayerItem(UUID itemID, UUID assetID)
-        {
-            ItemID = itemID;
-            AssetID = assetID;
-        }
-    }
-
-    public class Layer
-    {
-        protected int m_layerType;
-        protected Dictionary<UUID, UUID> m_items = new Dictionary<UUID, UUID>();
-        protected List<UUID> m_ids = new List<UUID>();
-
-        public Layer(int type)
-        {
-            m_layerType = type;
-        }
-
-        public int LayerType
-        {
-            get { return m_layerType; }
-        }
-
-        public int Count
-        {
-            get { return m_ids.Count; }
-        }
-
-        public void Add(UUID itemID, UUID assetID)
-        {
-            if (m_items.ContainsKey(itemID))
-                return;
-            if (m_ids.Count >= 5)
-                return;
-
-            m_ids.Add(itemID);
-            m_items[itemID] = assetID;
-        }
-
-        public void Wear(UUID itemID, UUID assetID)
-        {
-            Clear();
-            Add(itemID, assetID);
-        }
-
-        public void Clear()
-        {
-            m_ids.Clear();
-            m_items.Clear();
-        }
-
-        public void RemoveItem(UUID itemID)
-        {
-            if (m_items.ContainsKey(itemID))
-            {
-                m_ids.Remove(itemID);
-                m_items.Remove(itemID);
-            }
-        }
-
-        public void RemoveAsset(UUID assetID)
-        {
-            UUID itemID = UUID.Zero;
-
-            foreach (KeyValuePair<UUID, UUID> kvp in m_items)
-            {
-                if (kvp.Value == assetID)
-                {
-                    itemID = kvp.Key;
-                    break;
-                }
-            }
-
-            if (itemID != UUID.Zero)
-            {
-                m_ids.Remove(itemID);
-                m_items.Remove(itemID);
-            }
-        }
-
-        public LayerItem this [int idx]
-        {
-            get
-            {
-                if (idx >= m_ids.Count || idx < 0)
-                    return new LayerItem(UUID.Zero, UUID.Zero);
-
-                return new LayerItem(m_ids[idx], m_items[m_ids[idx]]);
-            }
-        }
-    }
-
     /// <summary>
     /// Contains the Avatar's Appearance and methods to manipulate the appearance.
     /// </summary>
@@ -184,136 +86,6 @@ namespace OpenSim.Framework
             set { m_wearables = value; }
         }
 
-        public virtual UUID BodyItem {
-            get { return m_wearables[AvatarWearable.BODY].ItemID; }
-            set { m_wearables[AvatarWearable.BODY].ItemID = value; }
-        }
-
-        public virtual UUID BodyAsset {
-            get { return m_wearables[AvatarWearable.BODY].AssetID; }
-            set { m_wearables[AvatarWearable.BODY].AssetID = value; }
-        }
-
-        public virtual UUID SkinItem {
-            get { return m_wearables[AvatarWearable.SKIN].ItemID; }
-            set { m_wearables[AvatarWearable.SKIN].ItemID = value; }
-        }
-
-        public virtual UUID SkinAsset {
-            get { return m_wearables[AvatarWearable.SKIN].AssetID; }
-            set { m_wearables[AvatarWearable.SKIN].AssetID = value; }
-        }
-
-        public virtual UUID HairItem {
-            get { return m_wearables[AvatarWearable.HAIR].ItemID; }
-            set { m_wearables[AvatarWearable.HAIR].ItemID = value; }
-        }
-
-        public virtual UUID HairAsset {
-            get { return m_wearables[AvatarWearable.HAIR].AssetID; }
-            set { m_wearables[AvatarWearable.HAIR].AssetID = value; }
-        }
-
-        public virtual UUID EyesItem {
-            get { return m_wearables[AvatarWearable.EYES].ItemID; }
-            set { m_wearables[AvatarWearable.EYES].ItemID = value; }
-        }
-
-        public virtual UUID EyesAsset {
-            get { return m_wearables[AvatarWearable.EYES].AssetID; }
-            set { m_wearables[AvatarWearable.EYES].AssetID = value; }
-        }
-
-        public virtual UUID ShirtItem {
-            get { return m_wearables[AvatarWearable.SHIRT].ItemID; }
-            set { m_wearables[AvatarWearable.SHIRT].ItemID = value; }
-        }
-
-        public virtual UUID ShirtAsset {
-            get { return m_wearables[AvatarWearable.SHIRT].AssetID; }
-            set { m_wearables[AvatarWearable.SHIRT].AssetID = value; }
-        }
-
-        public virtual UUID PantsItem {
-            get { return m_wearables[AvatarWearable.PANTS].ItemID; }
-            set { m_wearables[AvatarWearable.PANTS].ItemID = value; }
-        }
-
-        public virtual UUID PantsAsset {
-            get { return m_wearables[AvatarWearable.PANTS].AssetID; }
-            set { m_wearables[AvatarWearable.PANTS].AssetID = value; }
-        }
-
-        public virtual UUID ShoesItem {
-            get { return m_wearables[AvatarWearable.SHOES].ItemID; }
-            set { m_wearables[AvatarWearable.SHOES].ItemID = value; }
-        }
-
-        public virtual UUID ShoesAsset {
-            get { return m_wearables[AvatarWearable.SHOES].AssetID; }
-            set { m_wearables[AvatarWearable.SHOES].AssetID = value; }
-        }
-
-        public virtual UUID SocksItem {
-            get { return m_wearables[AvatarWearable.SOCKS].ItemID; }
-            set { m_wearables[AvatarWearable.SOCKS].ItemID = value; }
-        }
-
-        public virtual UUID SocksAsset {
-            get { return m_wearables[AvatarWearable.SOCKS].AssetID; }
-            set { m_wearables[AvatarWearable.SOCKS].AssetID = value; }
-        }
-
-        public virtual UUID JacketItem {
-            get { return m_wearables[AvatarWearable.JACKET].ItemID; }
-            set { m_wearables[AvatarWearable.JACKET].ItemID = value; }
-        }
-
-        public virtual UUID JacketAsset {
-            get { return m_wearables[AvatarWearable.JACKET].AssetID; }
-            set { m_wearables[AvatarWearable.JACKET].AssetID = value; }
-        }
-
-        public virtual UUID GlovesItem {
-            get { return m_wearables[AvatarWearable.GLOVES].ItemID; }
-            set { m_wearables[AvatarWearable.GLOVES].ItemID = value; }
-        }
-
-        public virtual UUID GlovesAsset {
-            get { return m_wearables[AvatarWearable.GLOVES].AssetID; }
-            set { m_wearables[AvatarWearable.GLOVES].AssetID = value; }
-        }
-
-        public virtual UUID UnderShirtItem {
-            get { return m_wearables[AvatarWearable.UNDERSHIRT].ItemID; }
-            set { m_wearables[AvatarWearable.UNDERSHIRT].ItemID = value; }
-        }
-
-        public virtual UUID UnderShirtAsset {
-            get { return m_wearables[AvatarWearable.UNDERSHIRT].AssetID; }
-            set { m_wearables[AvatarWearable.UNDERSHIRT].AssetID = value; }
-        }
-
-        public virtual UUID UnderPantsItem {
-            get { return m_wearables[AvatarWearable.UNDERPANTS].ItemID; }
-            set { m_wearables[AvatarWearable.UNDERPANTS].ItemID = value; }
-        }
-
-        public virtual UUID UnderPantsAsset {
-            get { return m_wearables[AvatarWearable.UNDERPANTS].AssetID; }
-            set { m_wearables[AvatarWearable.UNDERPANTS].AssetID = value; }
-        }
-
-        public virtual UUID SkirtItem {
-            get { return m_wearables[AvatarWearable.SKIRT].ItemID; }
-            set { m_wearables[AvatarWearable.SKIRT].ItemID = value; }
-        }
-
-        public virtual UUID SkirtAsset {
-            get { return m_wearables[AvatarWearable.SKIRT].AssetID; }
-            set { m_wearables[AvatarWearable.SKIRT].AssetID = value; }
-        }
-
         public virtual float AvatarHeight
         {
             get { return m_avatarHeight; }
@@ -329,9 +101,8 @@ namespace OpenSim.Framework
 
         public AvatarAppearance(UUID owner)
         {
-// DEBUG ON
-            m_log.WarnFormat("[AVATAR APPEARANCE] create empty appearance for {0}",owner);
-// DEBUG OFF
+//            m_log.WarnFormat("[AVATAR APPEARANCE]: create empty appearance for {0}",owner);
+
             m_serial = 1;
             m_owner = owner;
 
@@ -345,9 +116,8 @@ namespace OpenSim.Framework
         
         public AvatarAppearance(UUID avatarID, OSDMap map)
         {
-// DEBUG ON
-            m_log.WarnFormat("[AVATAR APPEARANCE] create appearance for {0} from OSDMap",avatarID);
-// DEBUG OFF
+//            m_log.WarnFormat("[AVATAR APPEARANCE]: create appearance for {0} from OSDMap",avatarID);
+
             m_owner = avatarID;
             Unpack(map);
             SetHeight();
@@ -355,9 +125,8 @@ namespace OpenSim.Framework
         
         public AvatarAppearance(UUID avatarID, AvatarWearable[] wearables, Primitive.TextureEntry textureEntry, byte[] visualParams)
         {
-// DEBUG ON
-            m_log.WarnFormat("[AVATAR APPEARANCE] create initialized appearance for {0}",avatarID);
-// DEBUG OFF
+//            m_log.WarnFormat("[AVATAR APPEARANCE] create initialized appearance for {0}",avatarID);
+            
             m_serial = 1;
             m_owner = avatarID;
 
@@ -381,11 +150,14 @@ namespace OpenSim.Framework
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
         }
 
-        public AvatarAppearance(AvatarAppearance appearance)
+        public AvatarAppearance(AvatarAppearance appearance) : this(appearance, true)
         {
-// DEBUG ON
-            m_log.WarnFormat("[AVATAR APPEARANCE] create from an existing appearance");
-// DEBUG OFF
+        }
+
+        public AvatarAppearance(AvatarAppearance appearance, bool copyWearables)
+        {
+//            m_log.WarnFormat("[AVATAR APPEARANCE] create from an existing appearance");
+
             if (appearance == null)
             {
                 m_serial = 1;
@@ -404,10 +176,11 @@ namespace OpenSim.Framework
             m_serial = appearance.Serial;
             m_owner = appearance.Owner;
 
-            m_wearables = null;
-            if (appearance.Wearables != null)
+            m_wearables = new AvatarWearable[AvatarWearable.MAX_WEARABLES];
+            for (int i = 0 ; i < AvatarWearable.MAX_WEARABLES ; i++ )
+                m_wearables[i] = new AvatarWearable();
+            if (copyWearables && (appearance.Wearables != null))
             {
-                m_wearables = new AvatarWearable[AvatarWearable.MAX_WEARABLES]; //should be 13 of these
                 for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
                     SetWearable(i,appearance.Wearables[i]);
             }
@@ -429,6 +202,28 @@ namespace OpenSim.Framework
                 AppendAttachment(new AvatarAttachment(attachment));
         }
         
+        public void GetAssetsFrom(AvatarAppearance app)
+        {
+            for (int i = 0 ; i < AvatarWearable.MAX_WEARABLES ; i++ )
+            {
+                for (int j = 0 ; j < m_wearables[i].Count ; j++)
+                {
+                    UUID itemID = m_wearables[i][j].ItemID;
+                    UUID assetID = app.Wearables[i].GetAsset(itemID);
+
+                    if (assetID != UUID.Zero)
+                        m_wearables[i].Add(itemID, assetID);
+                }
+            }
+        }
+
+        public void ClearWearables()
+        {
+            m_wearables = new AvatarWearable[AvatarWearable.MAX_WEARABLES];
+            for (int i = 0 ; i < AvatarWearable.MAX_WEARABLES ; i++ )
+                m_wearables[i] = new AvatarWearable();
+        }
+
         protected virtual void SetDefaultWearables()
         {
             m_wearables = AvatarWearable.DefaultWearables;
@@ -436,11 +231,11 @@ namespace OpenSim.Framework
 
         protected virtual void SetDefaultParams()
         {
-            m_visualparams = new byte[VISUALPARAM_COUNT];
-            for (int i = 0; i < VISUALPARAM_COUNT; i++)
-            {
-                m_visualparams[i] = 150;
-            }
+            m_visualparams = new byte[] { 33,61,85,23,58,127,63,85,63,42,0,85,63,36,85,95,153,63,34,0,63,109,88,132,63,136,81,85,103,136,127,0,150,150,150,127,0,0,0,0,0,127,0,0,255,127,114,127,99,63,127,140,127,127,0,0,0,191,0,104,0,0,0,0,0,0,0,0,0,145,216,133,0,127,0,127,170,0,0,127,127,109,85,127,127,63,85,42,150,150,150,150,150,150,150,25,150,150,150,0,127,0,0,144,85,127,132,127,85,0,127,127,127,127,127,127,59,127,85,127,127,106,47,79,127,127,204,2,141,66,0,0,127,127,0,0,0,0,127,0,159,0,0,178,127,36,85,131,127,127,127,153,95,0,140,75,27,127,127,0,150,150,198,0,0,63,30,127,165,209,198,127,127,153,204,51,51,255,255,255,204,0,255,150,150,150,150,150,150,150,150,150,150,0,150,150,150,150,150,0,127,127,150,150,150,150,150,150,150,150,0,0,150,51,132,150,150,150 };
+//            for (int i = 0; i < VISUALPARAM_COUNT; i++)
+//            {
+//                m_visualparams[i] = 150;
+//            }
         }
 
         protected virtual void SetDefaultTexture()
@@ -479,10 +274,9 @@ namespace OpenSim.Framework
                 }
 
                 changed = true;
-// DEBUG ON
-                if (newface != null)
-                    m_log.WarnFormat("[AVATAR APPEARANCE] index {0}, new texture id {1}",i,newface.TextureID);
-// DEBUG OFF
+                
+//                if (newface != null)
+//                    m_log.WarnFormat("[AVATAR APPEARANCE]: index {0}, new texture id {1}",i,newface.TextureID);
             }
 
             m_texture = textureEntry;
@@ -552,7 +346,9 @@ namespace OpenSim.Framework
 // DEBUG ON
 //          m_log.WarnFormat("[AVATARAPPEARANCE] set wearable {0} --> {1}:{2}",wearableId,wearable.ItemID,wearable.AssetID);
 // DEBUG OFF
-            m_wearables[wearableId] = new AvatarWearable(wearable.ItemID,wearable.AssetID);
+            m_wearables[wearableId].Clear();
+            for (int i = 0 ; i < wearable.Count ; i++)
+                m_wearables[wearableId].Add(wearable[i].ItemID, wearable[i].AssetID);
         }
 
 
@@ -568,7 +364,10 @@ namespace OpenSim.Framework
                     s += String.Format("Texture: {0} --> {1}\n",i,m_texture.FaceTextures[i].TextureID);
 
             foreach (AvatarWearable awear in m_wearables)
-                s += String.Format("Wearable: item={0}, asset={1}\n",awear.ItemID,awear.AssetID);
+            {
+                for ( int i = 0 ; i < awear.Count ; i++ )
+                    s += String.Format("Wearable: item={0}, asset={1}\n",awear[i].ItemID,awear[i].AssetID);
+            }
 
             s += "Visual Params: ";
             for (uint j = 0; j < AvatarAppearance.VISUALPARAM_COUNT; j++)
@@ -738,11 +537,11 @@ namespace OpenSim.Framework
                 {
                     OSDArray wears = (OSDArray)(data["wearables"]);
                     for (int i = 0; i < wears.Count; i++) 
-                        m_wearables[i] = new AvatarWearable((OSDMap)wears[i]);
+                        m_wearables[i] = new AvatarWearable((OSDArray)wears[i]);
                 }
                 else
                 {
-                    m_log.Warn("[AVATARAPPEARANCE] failed to unpack wearables");
+                    m_log.Warn("[AVATAR APPEARANCE]: failed to unpack wearables");
                 }
 
                 // Avatar Textures
@@ -760,7 +559,7 @@ namespace OpenSim.Framework
                 }
                 else
                 {
-                    m_log.Warn("[AVATARAPPEARANCE] failed to unpack textures");
+                    m_log.Warn("[AVATAR APPEARANCE]: failed to unpack textures");
                 }
 
                 // Visual Parameters
@@ -772,7 +571,7 @@ namespace OpenSim.Framework
                 }
                 else
                 {
-                    m_log.Warn("[AVATARAPPEARANCE] failed to unpack visual parameters");
+                    m_log.Warn("[AVATAR APPEARANCE]: failed to unpack visual parameters");
                 }
 
                 // Attachments
@@ -786,7 +585,7 @@ namespace OpenSim.Framework
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[AVATARAPPEARANCE] unpack failed badly: {0}",e.Message);
+                m_log.ErrorFormat("[AVATAR APPEARANCE]: unpack failed badly: {0}{1}", e.Message, e.StackTrace);
             }
         }
 

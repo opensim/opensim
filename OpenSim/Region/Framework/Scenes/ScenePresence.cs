@@ -177,7 +177,6 @@ namespace OpenSim.Region.Framework.Scenes
         private float m_health = 100f;
 
         // Default AV Height
-        private float m_avHeight = 127.0f;
 
         protected RegionInfo m_regionInfo;
         protected ulong crossingFromRegion;
@@ -974,9 +973,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             float localAVHeight = 1.56f;
-            if (m_avHeight != 127.0f)
+            if (m_appearance != null)
             {
-                localAVHeight = m_avHeight;
+                if (m_appearance.AvatarHeight > 0)
+                    localAVHeight = m_appearance.AvatarHeight;
             }
 
             float posZLimit = 0;
@@ -991,17 +991,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             AbsolutePosition = pos;
 
-            AddToPhysicalScene(isFlying);
-
-            if (m_forceFly)
-            {
-                m_physicsActor.Flying = true;
-            }
-            else if (m_flyDisabled)
-            {
-                m_physicsActor.Flying = false;
-            }
-
             if (m_appearance != null)
             {
                 if (m_appearance.AvatarHeight > 0)
@@ -1014,6 +1003,23 @@ namespace OpenSim.Region.Framework.Scenes
                 m_appearance = new AvatarAppearance(UUID);
             }
             
+            AddToPhysicalScene(isFlying);
+
+            if (m_appearance != null)
+            {
+                if (m_appearance.AvatarHeight > 0)
+                    SetHeight(m_appearance.AvatarHeight);
+            }
+
+            if (m_forceFly)
+            {
+                m_physicsActor.Flying = true;
+            }
+            else if (m_flyDisabled)
+            {
+                m_physicsActor.Flying = false;
+            }
+
             // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
             // avatar to return to the standing position in mid-air.  On login it looks like this is being sent
             // elsewhere anyway
@@ -1200,10 +1206,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SetHeight(float height)
         {
-            m_avHeight = height;
             if (PhysicsActor != null && !IsChildAgent)
             {
-                Vector3 SetSize = new Vector3(0.45f, 0.6f, m_avHeight);
+                Vector3 SetSize = new Vector3(0.45f, 0.6f, height);
                 PhysicsActor.Size = SetSize;
             }
         }
@@ -1215,9 +1220,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void CompleteMovement(IClientAPI client)
         {
-// DEBUG ON
-            m_log.WarnFormat("[SCENE PRESENCE]: CompleteMovement for {0}",UUID);
-// DEBUG OFF
+            DateTime startTime = DateTime.Now;
+            
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Completing movement of {0} into region {1}", 
+                client.Name, Scene.RegionInfo.RegionName);
 
             Vector3 look = Velocity;
             if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
@@ -1264,6 +1271,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if (friendsModule != null)
                     friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
             }
+
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
+                client.Name, Scene.RegionInfo.RegionName, (DateTime.Now - startTime).Milliseconds);            
         }
 
         /// <summary>
@@ -1859,9 +1870,10 @@ namespace OpenSim.Region.Framework.Scenes
                 SendFullUpdateToAllClients();
                 m_requestedSitTargetID = 0;
 
-                if ((m_physicsActor != null) && (m_avHeight > 0))
+                if (m_physicsActor != null && m_appearance != null)
                 {
-                    SetHeight(m_avHeight);
+                    if (m_appearance.AvatarHeight > 0)
+                        SetHeight(m_appearance.AvatarHeight);
                 }
             }
             Animator.TrySetMovementAnimation("STAND");
@@ -2728,22 +2740,25 @@ namespace OpenSim.Region.Framework.Scenes
             if (remoteAvatar == null)
                 return;
 
-            IClientAPI cl=remoteAvatar.ControllingClient;
+            IClientAPI cl = remoteAvatar.ControllingClient;
             if (cl == null)
                 return;
 
             if (m_appearance.Texture == null)
                 return;
 
-            if (LocalId == remoteAvatar.LocalId)
-            {
-                m_log.WarnFormat("[SP] An agent is attempting to send data to itself; {0}",UUID);
-                return;
-            }
+// MT: This is needed for sit. It's legal to send it to oneself, and the name
+//     of the method is a misnomer
+//
+//            if (LocalId == remoteAvatar.LocalId)
+//            {
+//                m_log.WarnFormat("[SCENEPRESENCE]: An agent is attempting to send avatar data to itself; {0}", UUID);
+//                return;
+//            }
 
             if (IsChildAgent)
             {
-                m_log.WarnFormat("[SCENEPRESENCE] A child agent is attempting to send out avatar data");
+                m_log.WarnFormat("[SCENEPRESENCE]: A child agent is attempting to send out avatar data; {0}", UUID);
                 return;
             }
             
@@ -2826,14 +2841,14 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_scene.AvatarFactory.ValidateBakedTextureCache(m_controllingClient))
                 {
-                    m_log.WarnFormat("[SP] baked textures are in the ache for {0}",Name);
+//                    m_log.WarnFormat("[SCENEPRESENCE]: baked textures are in the cache for {0}", Name);
                     m_controllingClient.SendAppearance(
                         m_appearance.Owner,m_appearance.VisualParams,m_appearance.Texture.GetBytes());
                 }
             }
             else
             {
-                m_log.WarnFormat("[SP] AvatarFactory not set");
+                m_log.WarnFormat("[SCENEPRESENCE]: AvatarFactory not set for {0}", Name);
             }
 
             SendInitialFullUpdateToAllClients();
@@ -2845,7 +2860,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendAppearanceToAllOtherAgents()
         {
 // DEBUG ON
-            m_log.WarnFormat("[SP] Send appearance from {0} to all other agents",m_uuid);
+//            m_log.WarnFormat("[SCENEPRESENCE]: Send appearance from {0} to all other agents", m_uuid);
 // DEBUG OFF
             m_perfMonMS = Util.EnvironmentTickCount();
 
@@ -2868,7 +2883,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (LocalId == avatar.LocalId)
             {
-                m_log.WarnFormat("[SP] An agent is attempting to send data to itself; {0}",UUID);
+                m_log.WarnFormat("[SCENE PRESENCE]: An agent is attempting to send appearance data to itself; {0}", UUID);
                 return;
             }
 
@@ -2920,7 +2935,7 @@ namespace OpenSim.Region.Framework.Scenes
                 cadu.ActiveGroupID = UUID.Zero.Guid;
                 cadu.AgentID = UUID.Guid;
                 cadu.alwaysrun = m_setAlwaysRun;
-                cadu.AVHeight = m_avHeight;
+                cadu.AVHeight = m_appearance.AvatarHeight;;
                 Vector3 tempCameraCenter = m_CameraCenter;
                 cadu.cameraPosition = tempCameraCenter;
                 cadu.drawdistance = m_DrawDistance;
@@ -3256,7 +3271,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_CameraCenter = cAgentData.Center + offset;
 
-            m_avHeight = cAgentData.Size.Z;
             //SetHeight(cAgentData.AVHeight);
 
             if ((cAgentData.Throttles != null) && cAgentData.Throttles.Length > 0)
@@ -3281,8 +3295,6 @@ namespace OpenSim.Region.Framework.Scenes
             cAgent.Position = AbsolutePosition;
             cAgent.Velocity = m_velocity;
             cAgent.Center = m_CameraCenter;
-            // Don't copy the size; it is inferred from apearance parameters
-            //cAgent.Size = new Vector3(0, 0, m_avHeight);
             cAgent.AtAxis = m_CameraAtAxis;
             cAgent.LeftAxis = m_CameraLeftAxis;
             cAgent.UpAxis = m_CameraUpAxis;
@@ -3401,7 +3413,6 @@ namespace OpenSim.Region.Framework.Scenes
             
             m_velocity = cAgent.Velocity;
             m_CameraCenter = cAgent.Center;
-            //m_avHeight = cAgent.Size.Z;
             m_CameraAtAxis = cAgent.AtAxis;
             m_CameraLeftAxis = cAgent.LeftAxis;
             m_CameraUpAxis = cAgent.UpAxis;
@@ -3562,17 +3573,8 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
 
             Vector3 pVec = AbsolutePosition;
 
-            // Old bug where the height was in centimeters instead of meters
-            if (m_avHeight == 127.0f)
-            {
-                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new Vector3(0f, 0f, 1.56f),
-                                                 isFlying);
-            }
-            else
-            {
-                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec,
-                                                 new Vector3(0f, 0f, m_avHeight), isFlying);
-            }
+            m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec,
+                                                 new Vector3(0f, 0f, m_appearance.AvatarHeight), isFlying);
             scene.AddPhysicsActorTaint(m_physicsActor);
             //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;

@@ -183,7 +183,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             IConfig config = configSource.Configs["ClientStack.LindenUDP"];
             if (config != null)
             {
-                m_asyncPacketHandling = config.GetBoolean("async_packet_handling", false);
+                m_asyncPacketHandling = config.GetBoolean("async_packet_handling", true);
                 m_recvBufferSize = config.GetInt("client_socket_rcvbuf_size", 0);
                 sceneThrottleBps = config.GetInt("scene_throttle_max_bps", 0);
 
@@ -615,8 +615,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // UseCircuitCode handling
             if (packet.Type == PacketType.UseCircuitCode)
-            {
-                m_log.Debug("[LLUDPSERVER]: Handling UseCircuitCode packet from " + buffer.RemoteEndPoint);
+            {                
                 object[] array = new object[] { buffer, packet };
 
                 if (m_asyncPacketHandling)
@@ -827,9 +826,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void HandleUseCircuitCode(object o)
         {
+            DateTime startTime = DateTime.Now;
             object[] array = (object[])o;
             UDPPacketBuffer buffer = (UDPPacketBuffer)array[0];
             UseCircuitCodePacket packet = (UseCircuitCodePacket)array[1];
+            
+            m_log.DebugFormat("[LLUDPSERVER]: Handling UseCircuitCode request from {0}", buffer.RemoteEndPoint);
 
             IPEndPoint remoteEndPoint = (IPEndPoint)buffer.RemoteEndPoint;
 
@@ -838,6 +840,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Acknowledge the UseCircuitCode packet
             SendAckImmediate(remoteEndPoint, packet.Header.Sequence);
+            
+            m_log.DebugFormat(
+                "[LLUDPSERVER]: Handling UseCircuitCode request from {0} took {1}ms", 
+                buffer.RemoteEndPoint, (DateTime.Now - startTime).Milliseconds);            
         }
 
         private void SendAckImmediate(IPEndPoint remoteEndpoint, uint sequenceNumber)

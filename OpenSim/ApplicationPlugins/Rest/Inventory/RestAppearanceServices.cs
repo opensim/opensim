@@ -499,6 +499,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                     indata = true;
                                 }
                             break;
+/*
                             case "Body" :
                                 if (xml.MoveToAttribute("Item"))
                                 {
@@ -655,6 +656,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                     indata = true;
                                 }
                             break;
+*/
                             case "Attachment" :
                                 {
 
@@ -749,6 +751,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     rdata.writer.WriteAttributeString("Owner", rdata.userAppearance.Owner.ToString());
                 rdata.writer.WriteAttributeString("Serial", rdata.userAppearance.Serial.ToString());
 
+/*
                 FormatPart(rdata, "Body", rdata.userAppearance.BodyItem, rdata.userAppearance.BodyAsset);
                 FormatPart(rdata, "Skin", rdata.userAppearance.SkinItem, rdata.userAppearance.SkinAsset);
                 FormatPart(rdata, "Hair", rdata.userAppearance.HairItem, rdata.userAppearance.HairAsset);
@@ -765,7 +768,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 FormatPart(rdata, "UnderShirt", rdata.userAppearance.UnderShirtItem, rdata.userAppearance.UnderShirtAsset);
                 FormatPart(rdata, "UnderPants", rdata.userAppearance.UnderPantsItem, rdata.userAppearance.UnderPantsAsset);
-
+*/
                 Rest.Log.DebugFormat("{0} FormatUserAppearance: Formatting attachments", MsgId);
 
                 rdata.writer.WriteStartElement("Attachments");
