@@ -176,8 +176,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private float m_health = 100f;
 
-        // Default AV Height
-
         protected RegionInfo m_regionInfo;
         protected ulong crossingFromRegion;
 
@@ -1869,7 +1867,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_offsetRotation = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
                 SendFullUpdateToAllClients();
                 m_requestedSitTargetID = 0;
-
                 if (m_physicsActor != null && m_appearance != null)
                 {
                     if (m_appearance.AvatarHeight > 0)
@@ -2935,7 +2932,7 @@ namespace OpenSim.Region.Framework.Scenes
                 cadu.ActiveGroupID = UUID.Zero.Guid;
                 cadu.AgentID = UUID.Guid;
                 cadu.alwaysrun = m_setAlwaysRun;
-                cadu.AVHeight = m_appearance.AvatarHeight;;
+                cadu.AVHeight = m_appearance.AvatarHeight;
                 Vector3 tempCameraCenter = m_CameraCenter;
                 cadu.cameraPosition = tempCameraCenter;
                 cadu.drawdistance = m_DrawDistance;
