@@ -221,9 +221,6 @@ namespace OpenSim.Framework
         {
             get
             {
-                if (defaultWearables != null)
-                    return defaultWearables;
-
                 defaultWearables = new AvatarWearable[MAX_WEARABLES]; //should be 15 of these
                 for (int i = 0; i < MAX_WEARABLES; i++)
                 {
