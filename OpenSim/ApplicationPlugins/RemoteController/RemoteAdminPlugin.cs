@@ -116,7 +116,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     int port = m_config.GetInt("port", 0);
 
                     m_application = openSim;
-                    m_httpServer = MainServer.GetHttpServer((uint)port);
+                    string bind_ip_address = m_config.GetString("bind_ip_address", "127.0.0.1");
+                    IPAddress ipaddr = IPAddress.Parse( bind_ip_address );
+                    m_httpServer = MainServer.GetHttpServer((uint)port,ipaddr);
 
                     Dictionary<string, XmlRpcMethod> availableMethods = new Dictionary<string, XmlRpcMethod>();
                     availableMethods["admin_create_region"] = XmlRpcCreateRegionMethod;

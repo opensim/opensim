@@ -27,6 +27,7 @@
 
 using System.Collections.Generic;
 using System.Reflection;
+using System.Net;
 using log4net;
 using OpenSim.Framework.Servers.HttpServer;
 
@@ -48,6 +49,11 @@ namespace OpenSim.Framework
 
         public static IHttpServer GetHttpServer(uint port)
         {
+            return GetHttpServer(port,null);
+        }
+
+        public static IHttpServer GetHttpServer(uint port, IPAddress ipaddr)
+        {
             if (port == 0)
                 return Instance;
             if (instance != null && port == Instance.Port)
@@ -57,6 +63,9 @@ namespace OpenSim.Framework
                 return m_Servers[port];
 
             m_Servers[port] = new BaseHttpServer(port);
+
+            if (ipaddr != null ) 
+                m_Servers[port].ListenIPAddress = ipaddr; 
 
             m_log.InfoFormat("[MAIN HTTP SERVER]: Starting main http server on port {0}", port);
             m_Servers[port].Start();
