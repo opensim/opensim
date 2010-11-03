@@ -144,5 +144,9 @@ namespace OpenSim.Services.Connectors
         {
             m_database.StoreRegionWindlightSettings(wl);
         }
+        public void RemoveRegionWindlightSettings(UUID regionID)
+        {
+            m_database.RemoveRegionWindlightSettings(regionID);
+        }
     }
 }

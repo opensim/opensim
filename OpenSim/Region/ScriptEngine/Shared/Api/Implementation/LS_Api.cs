@@ -466,6 +466,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             return success;
         }
+        public void lsClearWindlightScene()
+        {
+            if (!m_LSFunctionsEnabled)
+            {
+                LSShoutError("LightShare functions are not enabled.");
+                return;
+            }
+            if (!World.RegionInfo.EstateSettings.IsEstateManager(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
+            {
+                LSShoutError("lsSetWindlightScene can only be used by estate managers or owners.");
+                return;
+            }
+
+            m_host.ParentGroup.Scene.RegionInfo.WindlightSettings.valid = false;
+            if (m_host.ParentGroup.Scene.SimulationDataService != null)
+                m_host.ParentGroup.Scene.SimulationDataService.RemoveRegionWindlightSettings(m_host.ParentGroup.Scene.RegionInfo.RegionID);
+        }
         /// <summary>
         /// Set the current Windlight scene to a target avatar
         /// </summary>

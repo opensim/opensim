@@ -965,6 +965,21 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        public void RemoveRegionWindlightSettings(UUID regionID)
+        {
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+
+                using (MySqlCommand cmd = dbcon.CreateCommand())
+                {
+                    cmd.CommandText = "delete from `regionwindlight` where `region_id`=?regionID";
+                    cmd.Parameters.AddWithValue("?regionID", regionID.ToString());
+                    ExecuteNonQuery(cmd);
+                }
+            }
+        }
+
         public void StoreRegionSettings(RegionSettings rs)
         {
             lock (m_dbLock)
