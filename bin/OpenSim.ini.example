@@ -326,9 +326,6 @@
     ;; Set this to a nonzero value to have remote admin use a different port
     ; port = 0
 
-    ;; Set this to the ip address that you want the admin server to bind to
-    ; bind_ip_address = 127.0.0.1
-
     ;# {access_password} {enabled:true} {Password for the remote admin interface} {}
     ;; This password is required to make any XMLRPC call (should be set as
     ;; the "password" parameter)
