@@ -116,7 +116,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     int port = m_config.GetInt("port", 0);
 
                     m_application = openSim;
-                    string bind_ip_address = m_config.GetString("bind_ip_address", "127.0.0.1");
+                    string bind_ip_address = m_config.GetString("bind_ip_address", "0.0.0.0");
                     IPAddress ipaddr = IPAddress.Parse( bind_ip_address );
                     m_httpServer = MainServer.GetHttpServer((uint)port,ipaddr);
 
