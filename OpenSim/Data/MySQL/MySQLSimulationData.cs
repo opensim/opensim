@@ -817,6 +817,7 @@ namespace OpenSim.Data.MySQL
                         nWP.cloudScrollY = Convert.ToSingle(result["cloud_scroll_y"]);
                         nWP.cloudScrollYLock = Convert.ToBoolean(result["cloud_scroll_y_lock"]);
                         nWP.drawClassicClouds = Convert.ToBoolean(result["draw_classic_clouds"]);
+                        nWP.valid = true;
                     }
                 }
             }
