@@ -73,6 +73,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LS_Functions.lsSetWindlightSceneTargeted(rules, target);
         }
 
+        public void lsClearWindlightScene()
+        {
+            m_LS_Functions.lsClearWindlightScene();
+        }
+
         public LSL_List cmGetWindlightScene(LSL_List rules)
         {
             return m_LS_Functions.lsGetWindlightScene(rules);
@@ -86,6 +91,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public int cmSetWindlightSceneTargeted(LSL_List rules, key target)
         {
             return m_LS_Functions.lsSetWindlightSceneTargeted(rules, target);
+        }
+
+        public void cmClearWindlightScene()
+        {
+            m_LS_Functions.lsClearWindlightScene();
         }
     }
 }

@@ -43,6 +43,7 @@ namespace OpenSim.Framework
     [Serializable]
     public class RegionLightShareData : ICloneable
     {
+        public bool valid = false;
         public UUID regionID = UUID.Zero;
         public Vector3 waterColor = new Vector3(4.0f,38.0f,64.0f);
         public float waterFogDensityExponent = 4.0f;
