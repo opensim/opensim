@@ -3428,6 +3428,12 @@ namespace OpenSim.Region.Framework.Scenes
             m_setAlwaysRun = cAgent.AlwaysRun;
 
             m_appearance = new AvatarAppearance(cAgent.Appearance);
+            if (m_physicsActor != null)
+            {
+                bool isFlying = m_physicsActor.Flying;
+                RemoveFromPhysicalScene();
+                AddToPhysicalScene(isFlying);
+            }
             
 /*
             uint i = 0;
@@ -3566,6 +3572,9 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
         /// </summary>
         public void AddToPhysicalScene(bool isFlying)
         {
+            if (m_appearance.AvatarHeight == 0)
+                m_appearance.SetHeight();
+
             PhysicsScene scene = m_scene.PhysicsScene;
 
             Vector3 pVec = AbsolutePosition;
