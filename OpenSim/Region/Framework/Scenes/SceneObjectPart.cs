@@ -3115,14 +3115,6 @@ namespace OpenSim.Region.Framework.Scenes
             UUID objectID = ParentGroup.RootPart.UUID;
             UUID parentID = GetRootPartUUID();
 
-            if (ParentGroup.IsAttachment && ParentGroup.RootPart.Shape.State > 30)
-            {
-                // Use the avatar as the parent for HUDs, since the prims
-                // are not sent to other avatars
-                objectID = _ownerID;
-                parentID = _ownerID;
-            }
-
             UUID soundID = UUID.Zero;
             Vector3 position = AbsolutePosition; // region local
             ulong regionHandle = m_parentGroup.Scene.RegionInfo.RegionHandle;
