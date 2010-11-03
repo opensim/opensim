@@ -455,6 +455,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (LightShareModule.EnableWindlight)
             {
                 RegionLightShareData wl = getWindlightProfileFromRules(rules);
+                wl.valid = true;
                 m_host.ParentGroup.Scene.StoreWindlightProfile(wl);
                 success = 1;
             }
