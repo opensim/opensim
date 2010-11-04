@@ -1704,23 +1704,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (userExposed)
                     dupe.m_rootPart.TrimPermissions();
 
-                /// may need to create a new Physics actor.
-                if (dupe.RootPart.PhysActor != null && userExposed)
-                {
-                    PrimitiveBaseShape pbs = dupe.RootPart.Shape;
-
-                    dupe.RootPart.PhysActor = m_scene.PhysicsScene.AddPrimShape(
-                        dupe.RootPart.Name,
-                        pbs,
-                        dupe.RootPart.AbsolutePosition,
-                        dupe.RootPart.Scale,
-                        dupe.RootPart.RotationOffset,
-                        dupe.RootPart.PhysActor.IsPhysical);
-
-                    dupe.RootPart.PhysActor.LocalID = dupe.RootPart.LocalId;
-                    dupe.RootPart.DoPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
-                }
-
                 List<SceneObjectPart> partList = new List<SceneObjectPart>(m_parts.GetArray());
 
                 partList.Sort(delegate(SceneObjectPart p1, SceneObjectPart p2)
