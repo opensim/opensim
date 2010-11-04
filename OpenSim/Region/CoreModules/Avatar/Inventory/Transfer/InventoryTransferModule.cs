@@ -175,8 +175,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 if (im.binaryBucket.Length < 17) // Invalid
                     return;
             
-                UUID receipientID = new UUID(im.toAgentID);
-                ScenePresence user = scene.GetScenePresence(receipientID);
+                UUID recipientID = new UUID(im.toAgentID);
+                ScenePresence user = scene.GetScenePresence(recipientID);
                 UUID copyID;
 
                 // First byte is the asset type
@@ -191,7 +191,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                             folderID, new UUID(im.toAgentID));
                     
                     InventoryFolderBase folderCopy 
-                        = scene.GiveInventoryFolder(receipientID, client.AgentId, folderID, UUID.Zero);
+                        = scene.GiveInventoryFolder(recipientID, client.AgentId, folderID, UUID.Zero);
                     
                     if (folderCopy == null)
                     {
@@ -419,22 +419,64 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         ///
         /// </summary>
         /// <param name="msg"></param>
-        private void OnGridInstantMessage(GridInstantMessage msg)
+        private void OnGridInstantMessage(GridInstantMessage im)
         {
             // Check if this is ours to handle
             //
-            Scene scene = FindClientScene(new UUID(msg.toAgentID));
+            Scene scene = FindClientScene(new UUID(im.toAgentID));
 
             if (scene == null)
                 return;
 
             // Find agent to deliver to
             //
-            ScenePresence user = scene.GetScenePresence(new UUID(msg.toAgentID));
+            ScenePresence user = scene.GetScenePresence(new UUID(im.toAgentID));
+            if (user == null)
+                return;
 
-            // Just forward to local handling
-            OnInstantMessage(user.ControllingClient, msg);
+            // This requires a little bit of processing because we have to make the
+            // new item visible in the recipient's inventory here
+            //
+            if (im.dialog == (byte) InstantMessageDialog.InventoryOffered)
+            {
+                if (im.binaryBucket.Length < 17) // Invalid
+                    return;
+            
+                UUID recipientID = new UUID(im.toAgentID);
 
+                // First byte is the asset type
+                AssetType assetType = (AssetType)im.binaryBucket[0];
+                
+                if (AssetType.Folder == assetType)
+                {
+                    UUID folderID = new UUID(im.binaryBucket, 1);
+
+                    InventoryFolderBase given =
+                            new InventoryFolderBase(folderID, recipientID);
+                    InventoryFolderBase folder =
+                            scene.InventoryService.GetFolder(given);
+
+                    if (folder != null)
+                        user.ControllingClient.SendBulkUpdateInventory(folder);
+                }
+                else
+                {
+                    UUID itemID = new UUID(im.binaryBucket, 1);
+
+                    InventoryItemBase given =
+                            new InventoryItemBase(itemID, recipientID);
+                    InventoryItemBase item =
+                            scene.InventoryService.GetItem(given);
+
+                    if (item != null)
+                    {
+                        user.ControllingClient.SendBulkUpdateInventory(item);
+                    }
+                }
+            }
+
+            // Just forward to the client
+            user.ControllingClient.SendInstantMessage(im);
         }
     }
 }
