@@ -107,6 +107,9 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [PresenceService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.PresenceService.dll:PresenceService"
+    ; Set this to true to allow the use of advanced web services and multiple
+    ; bots using one account
+    AllowDuplicatePresences = false;
 
 [AvatarService]
     ; for the server connector
