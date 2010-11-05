@@ -11358,12 +11358,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void ProcessInPacket(Packet packet)
         {
             if (m_debugPacketLevel >= 255)
-                m_log.DebugFormat("[CLIENT]: Packet IN {0}", Pack.Type);
+                m_log.DebugFormat("[CLIENT]: Packet IN {0}", packet.Type);
 
-            if (!ProcessPacketMethod(Pack))
-                m_log.Warn("[CLIENT]: unhandled packet " + Pack.Type);
+            if (!ProcessPacketMethod(packet))
+                m_log.Warn("[CLIENT]: unhandled packet " + packet.Type);
 
-            PacketPool.Instance.ReturnPacket(Pack);
+            PacketPool.Instance.ReturnPacket(packet);
         }
 
         private static PrimitiveBaseShape GetShapeFromAddPacket(ObjectAddPacket addPacket)

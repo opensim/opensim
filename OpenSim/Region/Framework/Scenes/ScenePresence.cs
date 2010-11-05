@@ -892,11 +892,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_rootRegionHandle = m_scene.RegionInfo.RegionHandle;
 
-<<<<<<< HEAD
             m_scene.EventManager.TriggerSetRootAgentScene(m_uuid, m_scene);
-=======
-            m_scene.SetRootAgentScene(m_uuid);
->>>>>>> 91b1d17... Fix for hanging on "Connecting to region".. caused by packets being processed before the presence has bound to receive events. Fixed this by adding packets to a queue and then processing them when the presence is ready.
 
             // Moved this from SendInitialData to ensure that m_appearance is initialized
             // before the inventory is processed in MakeRootAgent. This fixes a race condition
@@ -912,7 +908,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.N);
                 pos.Y = crossedBorder.BorderLine.Z - 1;
-<<<<<<< HEAD
             }
 
             //If they're TP'ing in or logging in, we haven't had time to add any known child regions yet.
@@ -929,24 +924,6 @@ namespace OpenSim.Region.Framework.Scenes
                         pos = land.LandData.UserLocation;
                     }
                 }
-=======
-            }
-
-            //If they're TP'ing in or logging in, we haven't had time to add any known child regions yet.
-            //This has the unfortunate consequence that if somebody is TP'ing who is already a child agent,
-            //they'll bypass the landing point. But I can't think of any decent way of fixing this.
-            if (KnownChildRegionHandles.Count == 0)
-            {
-                ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
-                if (land != null)
-                {
-                    //Don't restrict gods, estate managers, or land owners to the TP point. This behaviour mimics agni.
-                    if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero && m_userLevel < 200 && !m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid) && land.LandData.OwnerID != m_uuid)
-                    {
-                        pos = land.LandData.UserLocation;
-                    }
-                }
->>>>>>> 91b1d17... Fix for hanging on "Connecting to region".. caused by packets being processed before the presence has bound to receive events. Fixed this by adding packets to a queue and then processing them when the presence is ready.
             }
 
             if (pos.X < 0 || pos.Y < 0 || pos.Z < 0)
@@ -1863,7 +1840,6 @@ namespace OpenSim.Region.Framework.Scenes
 				Quaternion avatarRot = Quaternion.Inverse(Quaternion.Inverse(Rotation) * partIRot); // world or. of the av
 				Vector3 avStandUp = new Vector3(1.0f, 0f, 0f) * avatarRot;		// 1M infront of av
 
-<<<<<<< HEAD
                 
                 if (m_physicsActor == null)
                 {
@@ -1876,19 +1852,6 @@ namespace OpenSim.Region.Framework.Scenes
                     AbsolutePosition = avWorldStandUp;                	 //KF: Fix stand up.
                     part.IsOccupied = false;
                     part.ParentGroup.DeleteAvatar(ControllingClient.AgentId);
-=======
-                
-                if (m_physicsActor == null)
-                {
-                    AddToPhysicalScene(false);
->>>>>>> 91b1d17... Fix for hanging on "Connecting to region".. caused by packets being processed before the presence has bound to receive events. Fixed this by adding packets to a queue and then processing them when the presence is ready.
-                }
-                //CW: If the part isn't null then we can set the current position 
-                if (part != null)
-                {
-                    Vector3 avWorldStandUp = avStandUp + part.GetWorldPosition() + (m_pos * partRot);			// + av sit offset!
-                    AbsolutePosition = avWorldStandUp;                	 //KF: Fix stand up.
-                    part.IsOccupied = false;
                 }
                 else
                 {
