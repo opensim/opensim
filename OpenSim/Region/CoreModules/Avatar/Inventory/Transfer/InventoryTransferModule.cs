@@ -473,10 +473,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         user.ControllingClient.SendBulkUpdateInventory(item);
                     }
                 }
+                user.ControllingClient.SendInstantMessage(im);
             }
-
-            // Just forward to the client
-            user.ControllingClient.SendInstantMessage(im);
+            else if (im.dialog == (byte) InstantMessageDialog.InventoryAccepted ||
+                     im.dialog == (byte) InstantMessageDialog.InventoryDeclined)
+            {
+                user.ControllingClient.SendInstantMessage(im);
+            }
         }
     }
 }
