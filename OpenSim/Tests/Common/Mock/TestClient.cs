@@ -879,10 +879,6 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public void ProcessPendingPackets()
-        {
-        }
-
         public void ProcessInPacket(Packet NewPack)
         {
         }

@@ -342,7 +342,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private AgentUpdateArgs lastarg;
         private bool m_IsActive = true;
         private bool m_IsLoggingOut = false;
-        private bool m_IsPresenceReady = false;
 
         protected Dictionary<PacketType, PacketProcessor> m_packetHandlers = new Dictionary<PacketType, PacketProcessor>();
         protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers
@@ -365,7 +364,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private Timer m_propertiesPacketTimer;
         private List<ObjectPropertiesPacket.ObjectDataBlock> m_propertiesBlocks = new List<ObjectPropertiesPacket.ObjectDataBlock>();
-        private List<Packet> m_pendingPackets;
 
         #endregion Class Members
 
@@ -418,7 +416,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_IsActive; }
             set { m_IsActive = value; }
         }
-
         public bool IsLoggingOut
         {
             get { return m_IsLoggingOut; }
@@ -11355,47 +11352,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// This processes packets which have accumulated while the presence was still in the process of initialising.
-        /// </summary>
-        public void ProcessPendingPackets()
-        {
-            m_IsPresenceReady = true;
-            if (m_pendingPackets == null)
-                return; 
-            foreach (Packet p in m_pendingPackets)
-            {
-                ProcessInPacket(p);
-            }
-            m_pendingPackets.Clear();
-        }
-
-        /// <summary>
         /// Entryway from the client to the simulator.  All UDP packets from the client will end up here
         /// </summary>
         /// <param name="Pack">OpenMetaverse.packet</param>
         public void ProcessInPacket(Packet packet)
         {
-            if (m_debugPacketLevel > 0)
-            {
-                bool outputPacket = true;
+            if (m_debugPacketLevel >= 255)
+                m_log.DebugFormat("[CLIENT]: Packet IN {0}", Pack.Type);
 
-                if (m_debugPacketLevel <= 255 && packet.Type == PacketType.AgentUpdate)
-                    outputPacket = false;
+            if (!ProcessPacketMethod(Pack))
+                m_log.Warn("[CLIENT]: unhandled packet " + Pack.Type);
 
-                if (m_debugPacketLevel <= 200 && packet.Type == PacketType.RequestImage)
-                    outputPacket = false;
-
-                if (m_debugPacketLevel <= 100 && (packet.Type == PacketType.ViewerEffect || packet.Type == PacketType.AgentAnimation))
-                    outputPacket = false;
-
-                if (outputPacket)
-                    m_log.DebugFormat("[CLIENT]: Packet IN {0}", packet.Type);
-            }
-
-            if (!ProcessPacketMethod(packet))
-                m_log.Warn("[CLIENT]: unhandled packet " + packet.Type);
-
-            PacketPool.Instance.ReturnPacket(packet);
+            PacketPool.Instance.ReturnPacket(Pack);
         }
 
         private static PrimitiveBaseShape GetShapeFromAddPacket(ObjectAddPacket addPacket)

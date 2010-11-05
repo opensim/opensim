@@ -820,10 +820,6 @@ namespace OpenSim.Client.MXP.ClientStack
             //throw new System.NotImplementedException();
         }
 
-        public void ProcessPendingPackets()
-        {
-        }
-
         public void ProcessInPacket(Packet NewPack)
         {
             //throw new System.NotImplementedException();

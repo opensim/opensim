@@ -944,7 +944,6 @@ namespace OpenSim.Framework
         void SetDebugPacketLevel(int newDebug);
 
         void InPacket(object NewPack);
-        void ProcessPendingPackets();
         void ProcessInPacket(Packet NewPack);
         void Close();
         void Close(bool sendStop);

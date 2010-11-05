@@ -821,10 +821,6 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public void ProcessPendingPackets()
-        {
-        }
-
         public void ProcessInPacket(Packet NewPack)
         {
         }
