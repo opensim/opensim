@@ -1760,6 +1760,11 @@ namespace OpenSim.Region.Framework.Scenes
                 //
                 foreach (SceneObjectGroup g in affectedGroups)
                 {
+                    // Child prims that have been unlinked and deleted will
+                    // return unless the root is deleted. This will remove them
+                    // from the database. They will be rewritten immediately,
+                    // minus the rows for the unlinked child prims.
+                    m_parentScene.SimulationDataService.RemoveObject(g.UUID, m_parentScene.RegionInfo.RegionID);
                     g.TriggerScriptChangedEvent(Changed.LINK);
                     g.HasGroupChanged = true; // Persist
                     g.areUpdatesSuspended = false;
