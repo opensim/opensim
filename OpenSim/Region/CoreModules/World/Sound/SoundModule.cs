@@ -31,12 +31,14 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using System.Reflection;
+using log4net;
 
 namespace OpenSim.Region.CoreModules.World.Sound
 {
     public class SoundModule : IRegionModule, ISoundModule
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Scene m_scene;
         
@@ -79,7 +81,6 @@ namespace OpenSim.Region.CoreModules.World.Sound
 
                 if (grp.IsAttachment)
                 {
-
                     if (grp.GetAttachmentPoint() > 30) // HUD
                     {
                         if (sp.ControllingClient.AgentId != grp.OwnerID)
@@ -96,6 +97,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 else
                     gain = (float)((double)gain * ((radius - dis) / radius));
 
+                m_log.DebugFormat("Play sound, gain {0}", gain);
                 sp.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, (float)gain, flags);
             });
         }
@@ -103,6 +105,18 @@ namespace OpenSim.Region.CoreModules.World.Sound
         public virtual void TriggerSound(
             UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, UInt64 handle, float radius)
         {
+            SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
+            if (part == null)
+                return;
+
+            SceneObjectGroup grp = part.ParentGroup;
+
+            if (grp.IsAttachment && grp.GetAttachmentPoint() > 30)
+            {
+                objectID = ownerID;
+                parentID = ownerID;
+            }
+
             m_scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
                 if (sp.IsChildAgent)

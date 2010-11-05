@@ -3100,6 +3100,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID ownerID = _ownerID;
             UUID objectID = ParentGroup.RootPart.UUID;
             UUID parentID = GetRootPartUUID();
+
             UUID soundID = UUID.Zero;
             Vector3 position = AbsolutePosition; // region local
             ulong regionHandle = m_parentGroup.Scene.RegionInfo.RegionHandle;
