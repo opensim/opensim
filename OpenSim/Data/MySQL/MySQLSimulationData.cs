@@ -817,6 +817,7 @@ namespace OpenSim.Data.MySQL
                         nWP.cloudScrollY = Convert.ToSingle(result["cloud_scroll_y"]);
                         nWP.cloudScrollYLock = Convert.ToBoolean(result["cloud_scroll_y_lock"]);
                         nWP.drawClassicClouds = Convert.ToBoolean(result["draw_classic_clouds"]);
+                        nWP.valid = true;
                     }
                 }
             }
@@ -959,6 +960,21 @@ namespace OpenSim.Data.MySQL
                     cmd.Parameters.AddWithValue("cloud_scroll_y_lock", wl.cloudScrollYLock);
                     cmd.Parameters.AddWithValue("draw_classic_clouds", wl.drawClassicClouds);
                     
+                    ExecuteNonQuery(cmd);
+                }
+            }
+        }
+
+        public void RemoveRegionWindlightSettings(UUID regionID)
+        {
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+
+                using (MySqlCommand cmd = dbcon.CreateCommand())
+                {
+                    cmd.CommandText = "delete from `regionwindlight` where `region_id`=?regionID";
+                    cmd.Parameters.AddWithValue("?regionID", regionID.ToString());
                     ExecuteNonQuery(cmd);
                 }
             }

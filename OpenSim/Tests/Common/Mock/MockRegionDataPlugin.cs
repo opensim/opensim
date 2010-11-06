@@ -104,6 +104,10 @@ namespace OpenSim.Data.Null
             return m_store.LoadRegionWindlightSettings(regionUUID);
         }
 
+        public void RemoveRegionWindlightSettings(UUID regionID)
+        {
+        }
+
         public void StoreRegionWindlightSettings(RegionLightShareData wl)
         {
             m_store.StoreRegionWindlightSettings(wl);
@@ -146,6 +150,10 @@ namespace OpenSim.Data.Null
             return new RegionLightShareData();
         }
         
+        public void RemoveRegionWindlightSettings(UUID regionID)
+        {
+        }
+
         public void StoreRegionWindlightSettings(RegionLightShareData wl)
         {
             //This connector doesn't support the windlight module yet

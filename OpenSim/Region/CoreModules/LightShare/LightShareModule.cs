@@ -194,7 +194,8 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         }
         private void EventManager_OnSaveNewWindlightProfile()
         {
-            m_scene.ForEachScenePresence(SendProfileToClient);
+            if (m_scene.RegionInfo.WindlightSettings.valid)
+                m_scene.ForEachScenePresence(SendProfileToClient);
         }
 
         public void PostInitialise()

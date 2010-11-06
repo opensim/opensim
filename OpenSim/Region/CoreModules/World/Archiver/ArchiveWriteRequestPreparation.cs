@@ -187,20 +187,17 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <returns></returns>
         public static string Create0p2ControlFile(Dictionary<string, object> options)
         {
-            int majorVersion = 0, minorVersion = 4;
-            
-            /*
-            if (options.ContainsKey("version") && (string)options["version"] == "0")
+            int majorVersion = 0, minorVersion = 5;
+
+            if (options.ContainsKey("version"))
             {
-                majorVersion = 0;
-                minorVersion = 3;
-            }
-            else
-            {
-                majorVersion = 1;
                 minorVersion = 0;
+                string[] parts = options["version"].ToString().Split('.');
+                if (parts.Length >= 1)
+                    majorVersion = Int32.Parse(parts[0]);
+                if (parts.Length >= 2)
+                    minorVersion = Int32.Parse(parts[1]);
             }
-            */
             
             m_log.InfoFormat("[ARCHIVER]: Creating version {0}.{1} OAR", majorVersion, minorVersion);
 //            if (majorVersion == 1)

@@ -1450,6 +1450,10 @@ namespace OpenSim.Framework.Servers.HttpServer
             if (responsedata.ContainsKey("reusecontext"))
                 response.ReuseContext = (bool) responsedata["reusecontext"];
 
+            // Cross-Origin Resource Sharing with simple requests
+            if (responsedata.ContainsKey("access_control_allow_origin"))
+                response.AddHeader("Access-Control-Allow-Origin", (string)responsedata["access_control_allow_origin"]);
+
             //Even though only one other part of the entire code uses HTTPHandlers, we shouldn't expect this
             //and should check for NullReferenceExceptions
 

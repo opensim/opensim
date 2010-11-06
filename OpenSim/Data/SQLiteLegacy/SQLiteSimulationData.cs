@@ -286,6 +286,9 @@ namespace OpenSim.Data.SQLiteLegacy
             //Return default LL windlight settings
             return new RegionLightShareData();
         }
+        public void RemoveRegionWindlightSettings(UUID regionID)
+        {
+        }
         public void StoreRegionWindlightSettings(RegionLightShareData wl)
         {
             //This connector doesn't support the windlight module yet

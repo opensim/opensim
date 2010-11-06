@@ -45,10 +45,20 @@ namespace OpenSim.Services.PresenceService
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
+        protected bool m_allowDuplicatePresences = false;
+
         public PresenceService(IConfigSource config)
             : base(config)
         {
             m_log.Debug("[PRESENCE SERVICE]: Starting presence service");
+
+            IConfig presenceConfig = config.Configs["PresenceService"];
+            if (presenceConfig != null)
+            {
+                m_allowDuplicatePresences =
+                        presenceConfig.GetBoolean("AllowDuplicatePresences",
+                                                  m_allowDuplicatePresences);
+            }
         }
 
         public bool LoginAgent(string userID, UUID sessionID,
@@ -56,6 +66,9 @@ namespace OpenSim.Services.PresenceService
         {
             //PresenceData[] d = m_Database.Get("UserID", userID);
             //m_Database.Get("UserID", userID);
+
+            if (!m_allowDuplicatePresences)
+                m_Database.Delete("UserID", userID.ToString());
 
             PresenceData data = new PresenceData();
 
