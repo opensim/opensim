@@ -86,9 +86,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         private void OnMapNameRequest(IClientAPI remoteClient, string mapName)
         {
-            if (mapName.Length < 3)
+            if (mapName.Length < 2)
             {
-                remoteClient.SendAlertMessage("Use a search string with at least 3 characters");
+                remoteClient.SendAlertMessage("Use a search string with at least 2 characters");
                 return;
             }
             
