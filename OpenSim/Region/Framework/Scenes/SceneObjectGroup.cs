@@ -1553,6 +1553,9 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
+            if ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0)
+                return;
+
             // Since this is the top of the section of call stack for backing up a particular scene object, don't let
             // any exception propogate upwards.
             try
