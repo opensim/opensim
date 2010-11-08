@@ -3154,7 +3154,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                     }
                     m_eventManager.TriggerClientClosed(agentID, this);
-                    CleanDroppedAttachments();
                 }
                 catch (NullReferenceException)
                 {
@@ -3163,6 +3162,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_eventManager.TriggerOnRemovePresence(agentID);
+
+                CleanDroppedAttachments();
+
                 ForEachClient(
                     delegate(IClientAPI client)
                     {
