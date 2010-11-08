@@ -4999,8 +4999,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (grp.RootPart.Shape.State != 0)
                         {
-                            UUID agentID = grp.OwnerID;
-                            if (agentID == UUID.Zero)
+                            if (grp.RootPart.Shape.PCode == 0 && grp.RootPart.Shape.State != 0 && (!objectsToDelete.Contains(grp)))
                             {
                                 objectsToDelete.Add(grp);
                                 return;
