@@ -174,6 +174,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_firstHeartbeat = true;
 
         private object m_deleting_scene_object = new object();
+        private object m_cleaningAttachments = new object();
 
         private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
         private bool m_reprioritizationEnabled = true;
@@ -3163,8 +3164,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_eventManager.TriggerOnRemovePresence(agentID);
 
-                CleanDroppedAttachments();
-
                 ForEachClient(
                     delegate(IClientAPI client)
                     {
@@ -3197,6 +3196,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_authenticateHandler.RemoveCircuit(avatar.ControllingClient.CircuitCode);
+                CleanDroppedAttachments();
                 //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
                 //m_log.InfoFormat("[SCENE] Memory post GC {0}", System.GC.GetTotalMemory(true));
             }
@@ -4995,25 +4995,29 @@ namespace OpenSim.Region.Framework.Scenes
             List<SceneObjectGroup> objectsToDelete =
                     new List<SceneObjectGroup>();
 
-            ForEachSOG(delegate (SceneObjectGroup grp)
-                    {
-                        if (grp.RootPart.Shape.State != 0)
+            lock (m_cleaningAttachments)
+            {
+                ForEachSOG(delegate (SceneObjectGroup grp)
                         {
                             if (grp.RootPart.Shape.PCode == 0 && grp.RootPart.Shape.State != 0 && (!objectsToDelete.Contains(grp)))
                             {
-                                objectsToDelete.Add(grp);
-                                return;
-                            }
+                                UUID agentID = grp.OwnerID;
+                                if (agentID == UUID.Zero)
+                                {
+                                    objectsToDelete.Add(grp);
+                                    return;
+                                }
 
-                            ScenePresence sp = GetScenePresence(agentID);
-                            if (sp == null)
-                            {
-                                objectsToDelete.Add(grp);
-                                return;
+                                ScenePresence sp = GetScenePresence(agentID);
+                                if (sp == null)
+                                {
+                                    objectsToDelete.Add(grp);
+                                    return;
+                                }
                             }
-                        }
-                    });
-            
+                        });
+            }
+
             foreach (SceneObjectGroup grp in objectsToDelete)
             {
                 m_log.InfoFormat("[SCENE]: Deleting dropped attachment {0} of user {1}", grp.UUID, grp.OwnerID);
