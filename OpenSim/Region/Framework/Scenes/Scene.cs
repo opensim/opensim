@@ -5165,6 +5165,7 @@ namespace OpenSim.Region.Framework.Scenes
                         });
             }
 
+<<<<<<< HEAD:OpenSim/Region/Framework/Scenes/Scene.cs
             if (objectsToDelete.Count > 0)
             {
                 m_log.DebugFormat("[SCENE]: Starting delete of {0} dropped attachments", objectsToDelete.Count);
@@ -5174,6 +5175,12 @@ namespace OpenSim.Region.Framework.Scenes
                     DeleteSceneObject(grp, true);
                 }
                 m_log.Debug("[SCENE]: Finished dropped attachment deletion");
+=======
+            foreach (SceneObjectGroup grp in objectsToDelete)
+            {
+                m_log.InfoFormat("[SCENE]: Deleting dropped attachment {0} of user {1}", grp.UUID, grp.OwnerID);
+                DeleteSceneObject(grp, true);
+>>>>>>> master:OpenSim/Region/Framework/Scenes/Scene.cs
             }
         }
     }
