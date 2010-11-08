@@ -615,7 +615,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // UseCircuitCode handling
             if (packet.Type == PacketType.UseCircuitCode)
-            {                
+            {
                 object[] array = new object[] { buffer, packet };
 
                 if (m_asyncPacketHandling)
@@ -843,7 +843,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
             m_log.DebugFormat(
                 "[LLUDPSERVER]: Handling UseCircuitCode request from {0} took {1}ms", 
-                buffer.RemoteEndPoint, (DateTime.Now - startTime).Milliseconds);            
+                buffer.RemoteEndPoint, (DateTime.Now - startTime).Milliseconds);
         }
 
         private void SendAckImmediate(IPEndPoint remoteEndpoint, uint sequenceNumber)

@@ -125,7 +125,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean())
             {
-                OSDMap map = null;                
+                OSDMap map = null;
                 try { map = OSDParser.DeserializeJson(response["LLPackedAppearance"].AsString()) as OSDMap; }
                 catch { }
 
@@ -134,7 +134,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     AvatarAppearance appearance = new AvatarAppearance(map);
 // DEBUG ON
                     m_log.WarnFormat("[SIMIAN AVATAR CONNECTOR] retrieved appearance for {0}:\n{1}",userID,appearance.ToString());
-// DEBUG OFF                    
+// DEBUG OFF
                     return appearance;
                 }
 
@@ -161,7 +161,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
 // DEBUG ON
             m_log.WarnFormat("[SIMIAN AVATAR CONNECTOR] save appearance for {0}",userID);
-// DEBUG OFF                    
+// DEBUG OFF
 
             NameValueCollection requestArgs = new NameValueCollection
                 {

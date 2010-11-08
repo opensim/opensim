@@ -178,7 +178,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 UUID itemID = UUID.Zero;
                 if (sp != null)
                 {
-                    foreach(SceneObjectGroup grp in sp.Attachments)
+                    foreach (SceneObjectGroup grp in sp.Attachments)
                     {
                         if (grp.GetAttachmentPoint() == (byte)AttachmentPt)
                         {
