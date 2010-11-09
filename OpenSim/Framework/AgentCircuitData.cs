@@ -203,7 +203,7 @@ namespace OpenSim.Framework
             args["inventory_folder"] = OSD.FromUUID(InventoryFolder);
             args["secure_session_id"] = OSD.FromUUID(SecureSessionID);
             args["session_id"] = OSD.FromUUID(SessionID);
-            
+
             args["service_session_id"] = OSD.FromString(ServiceSessionID);
             args["start_pos"] = OSD.FromString(startpos.ToString());
             args["client_ip"] = OSD.FromString(IPAddress);
@@ -219,7 +219,7 @@ namespace OpenSim.Framework
                 OSDMap appmap = Appearance.Pack();
                 args["packed_appearance"] = appmap;
             }
-            
+
             if (ServiceURLs != null && ServiceURLs.Count > 0)
             {
                 OSDArray urls = new OSDArray(ServiceURLs.Count * 2);
@@ -307,7 +307,7 @@ namespace OpenSim.Framework
 // DEBUG OFF
             
             try {
-            // Unpack various appearance elements                                                                           
+            // Unpack various appearance elements
             Appearance = new AvatarAppearance(AgentID);
 
             // Eventually this code should be deprecated, use full appearance
