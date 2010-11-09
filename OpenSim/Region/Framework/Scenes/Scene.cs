@@ -4878,7 +4878,6 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 nearestRegionEdgePoint = GetNearestRegionEdgePosition(avatar);
             //Debug.WriteLine("They are really in a place they don't belong, sending them to: " + nearestRegionEdgePoint.ToString());
             return nearestRegionEdgePoint;
-            return null;
         }
 
         private Vector3 GetParcelCenterAtGround(ILandObject parcel)

@@ -90,7 +90,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         // caches ExtendedLandData
         private Cache parcelInfoCache;
-        private Vector3? forcedPosition = null;
+        private Dictionary<UUID, Vector3> forcedPosition =
+                new Dictionary<UUID, Vector3>();
 
         #region INonSharedRegionModule Members
 
@@ -185,7 +186,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         void ClientOnPreAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
             //If we are forcing a position for them to go
-            if (forcedPosition != null)
+            if (forcedPosition.ContainsKey(remoteClient.AgentId))
             {
                 ScenePresence clientAvatar = m_scene.GetScenePresence(remoteClient.AgentId);
 
@@ -195,23 +196,23 @@ namespace OpenSim.Region.CoreModules.World.Land
 
 
                 //Make sure we stop if they get about to the right place to prevent yoyo and prevents getting stuck on banlines
-                if (Vector3.Distance(clientAvatar.AbsolutePosition, forcedPosition.Value) < .2)
+                if (Vector3.Distance(clientAvatar.AbsolutePosition, forcedPosition[remoteClient.AgentId]) < .2)
                 {
-                    Debug.WriteLine(string.Format("Stopping force position because {0} is close enough to position {1}", forcedPosition.Value, clientAvatar.AbsolutePosition));
-                    forcedPosition = null;
+                    Debug.WriteLine(string.Format("Stopping force position because {0} is close enough to position {1}", forcedPosition[remoteClient.AgentId], clientAvatar.AbsolutePosition));
+                    forcedPosition.Remove(remoteClient.AgentId);
                 }
                 //if we are far away, teleport
-                else if (Vector3.Distance(clientAvatar.AbsolutePosition, forcedPosition.Value) > 3)
+                else if (Vector3.Distance(clientAvatar.AbsolutePosition, forcedPosition[remoteClient.AgentId]) > 3)
                 {
-                    Debug.WriteLine(string.Format("Teleporting out because {0} is too far from avatar position {1}", forcedPosition.Value, clientAvatar.AbsolutePosition));
-                    clientAvatar.Teleport(forcedPosition.Value);
-                    forcedPosition = null;
+                    Debug.WriteLine(string.Format("Teleporting out because {0} is too far from avatar position {1}", forcedPosition[remoteClient.AgentId], clientAvatar.AbsolutePosition));
+                    clientAvatar.Teleport(forcedPosition[remoteClient.AgentId]);
+                    forcedPosition.Remove(remoteClient.AgentId);
                 }
                 else
                 {
                     //Forces them toward the forced position we want if they aren't there yet
                     agentData.UseClientAgentPosition = true;
-                    agentData.ClientAgentPosition = forcedPosition.Value;
+                    agentData.ClientAgentPosition = forcedPosition[remoteClient.AgentId];
                 }
             }
         }
@@ -334,7 +335,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (m_scene.Permissions.IsGod(avatar.UUID)) return;
             if (position.HasValue)
             {
-                forcedPosition = position;
+                forcedPosition[avatar.ControllingClient.AgentId] = (Vector3)position;
             }
         }
 
@@ -465,7 +466,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                              parcel.IsBannedFromLand(clientAvatar.UUID))
                     {
                         //once we've sent the message once, keep going toward the target until we are done
-                        if (forcedPosition == null)
+                        if (forcedPosition.ContainsKey(clientAvatar.ControllingClient.AgentId))
                         {
                             SendYouAreBannedNotice(clientAvatar);
                             ForceAvatarToPosition(clientAvatar, m_scene.GetNearestAllowedPosition(clientAvatar));
@@ -474,7 +475,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     else if (parcel.IsRestrictedFromLand(clientAvatar.UUID))
                     {
                         //once we've sent the message once, keep going toward the target until we are done
-                        if (forcedPosition == null)
+                        if (forcedPosition.ContainsKey(clientAvatar.ControllingClient.AgentId))
                         {
                             SendYouAreRestrictedNotice(clientAvatar);
                             ForceAvatarToPosition(clientAvatar, m_scene.GetNearestAllowedPosition(clientAvatar));
@@ -483,7 +484,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     else
                     {
                         //when we are finally in a safe place, lets release the forced position lock
-                        forcedPosition = null;
+                        forcedPosition.Remove(clientAvatar.ControllingClient.AgentId);
                     }
                 }
             }
