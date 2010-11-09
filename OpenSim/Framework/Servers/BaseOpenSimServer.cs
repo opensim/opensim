@@ -280,7 +280,7 @@ namespace OpenSim.Framework.Servers
 
             EnhanceVersionInformation();
             
-            m_log.Info("[STARTUP]: OpenSimulator version: " + m_version + Environment.NewLine);
+            m_log.Info("[STARTUP]: Careminster version: " + m_version + Environment.NewLine);
             // clr version potentially is more confusing than helpful, since it doesn't tell us if we're running under Mono/MS .NET and
             // the clr version number doesn't match the project version number under Mono.
             //m_log.Info("[STARTUP]: Virtual machine runtime version: " + Environment.Version + Environment.NewLine);
