@@ -97,7 +97,6 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 else
                     gain = (float)((double)gain * ((radius - dis) / radius));
 
-                m_log.DebugFormat("Play sound, gain {0}", gain);
                 sp.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, (float)gain, flags);
             });
         }
