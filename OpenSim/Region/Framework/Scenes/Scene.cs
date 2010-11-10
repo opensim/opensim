@@ -3886,6 +3886,13 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
+            ILandObject nearestParcel = GetNearestAllowedParcel(cAgentData.AgentID, Constants.RegionSize / 2, Constants.RegionSize / 2);
+            if (nearestParcel == null)
+            {
+                m_log.DebugFormat("[SCENE]: Denying root agent entry to {0}: no allowed parcel", cAgentData.AgentID);
+                return false;
+            }
+
             int num = m_sceneGraph.GetNumberOfScenePresences();
 
             if (num >= RegionInfo.RegionSettings.AgentLimit)
