@@ -3761,6 +3761,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             // We have to wait until the viewer contacts this region after receiving EAC.
             // That calls AddNewClient, which finally creates the ScenePresence
+            ILandObject nearestParcel = GetNearestAllowedParcel(cAgentData.AgentID, Constants.RegionSize / 2, Constants.RegionSize / 2);
+            if (nearestParcel == null)
+            {
+                m_log.DebugFormat("[SCENE]: Denying root agent entry to {0}: no allowed parcel", cAgentData.AgentID);
+                return false;
+            }
+
             ScenePresence childAgentUpdate = WaitGetScenePresence(cAgentData.AgentID);
             if (childAgentUpdate != null)
             {
