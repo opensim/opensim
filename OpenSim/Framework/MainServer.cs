@@ -36,7 +36,7 @@ namespace OpenSim.Framework
     public class MainServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private static BaseHttpServer instance = null;
         private static Dictionary<uint, BaseHttpServer> m_Servers =
                 new Dictionary<uint, BaseHttpServer>();
@@ -64,8 +64,8 @@ namespace OpenSim.Framework
 
             m_Servers[port] = new BaseHttpServer(port);
 
-            if (ipaddr != null ) 
-                m_Servers[port].ListenIPAddress = ipaddr; 
+            if (ipaddr != null)
+                m_Servers[port].ListenIPAddress = ipaddr;
 
             m_log.InfoFormat("[MAIN HTTP SERVER]: Starting main http server on port {0}", port);
             m_Servers[port].Start();

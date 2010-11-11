@@ -84,6 +84,7 @@ namespace OpenSim.Region.Framework.Scenes
         // TODO: need to figure out how allow client agents but deny
         // root agents when ACL denies access to root agent
         public bool m_strictAccessControl = true;
+        public bool m_seeIntoBannedRegion = false;
         public int MaxUndoCount = 5;
         public bool LoginsDisabled = true;
         public bool LoadingPrims;
@@ -683,6 +684,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
+                m_seeIntoBannedRegion = startupConfig.GetBoolean("SeeIntoBannedRegion", m_seeIntoBannedRegion);
                 CombineRegions = startupConfig.GetBoolean("CombineContiguousRegions", false);
 
                 m_generateMaptiles = startupConfig.GetBoolean("GenerateMaptiles", true);
@@ -3688,7 +3690,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_regInfo.EstateSettings != null)
             {
-                if (m_regInfo.EstateSettings.IsBanned(agent.AgentID))
+                if ((!m_seeIntoBannedRegion) && m_regInfo.EstateSettings.IsBanned(agent.AgentID))
                 {
                     m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user is on the banlist",
                                      agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
@@ -3878,6 +3880,19 @@ namespace OpenSim.Region.Framework.Scenes
 
             // We have to wait until the viewer contacts this region after receiving EAC.
             // That calls AddNewClient, which finally creates the ScenePresence
+            if (m_regInfo.EstateSettings.IsBanned(cAgentData.AgentID))
+            {
+                m_log.DebugFormat("[SCENE]: Denying root agent entry to {0}: banned", cAgentData.AgentID);
+                return false;
+            }
+
+            ILandObject nearestParcel = GetNearestAllowedParcel(cAgentData.AgentID, Constants.RegionSize / 2, Constants.RegionSize / 2);
+            if (nearestParcel == null)
+            {
+                m_log.DebugFormat("[SCENE]: Denying root agent entry to {0}: no allowed parcel", cAgentData.AgentID);
+                return false;
+            }
+
             int num = m_sceneGraph.GetNumberOfScenePresences();
 
             if (num >= RegionInfo.RegionSettings.AgentLimit)
@@ -4878,7 +4893,6 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 nearestRegionEdgePoint = GetNearestRegionEdgePosition(avatar);
             //Debug.WriteLine("They are really in a place they don't belong, sending them to: " + nearestRegionEdgePoint.ToString());
             return nearestRegionEdgePoint;
-            return null;
         }
 
         private Vector3 GetParcelCenterAtGround(ILandObject parcel)
