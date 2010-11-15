@@ -639,6 +639,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //
             CheckThreatLevel(ThreatLevel.High, "osTeleportAgent");
 
+            TeleportAgent(agent, regionName, position, lookat);
+        }
+
+        private void TeleportAgent(string agent, string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
+        {
             m_host.AddScriptLPS(1);
             UUID agentId = new UUID();
             if (UUID.TryParse(agent, out agentId))
@@ -651,7 +656,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         == World.LandChannel.GetLandObject(
                             presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
                     {
-
                         // Check for hostname , attempt to make a hglink
                         // and convert the regionName to the target region
                         if (regionName.Contains(".") && regionName.Contains(":"))
@@ -674,13 +678,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        // Teleport functions
         public void osTeleportAgent(string agent, int regionX, int regionY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
             // High because there is no security check. High griefer potential
             //
             CheckThreatLevel(ThreatLevel.High, "osTeleportAgent");
 
+            TeleportAgent(agent, regionX, regionY, position, lookat);
+        }
+
+        private void TeleportAgent(string agent, int regionX, int regionY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
+        {
             ulong regionHandle = Util.UIntsToLong(((uint)regionX * (uint)Constants.RegionSize), ((uint)regionY * (uint)Constants.RegionSize));
 
             m_host.AddScriptLPS(1);
@@ -707,6 +715,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osTeleportAgent(string agent, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
             osTeleportAgent(agent, World.RegionInfo.RegionName, position, lookat);
+        }
+
+        public void osTeleportOwner(string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
+        {
+            // Threat level None because this is what can already be done with the World Map in the viewer
+            CheckThreatLevel(ThreatLevel.None, "osTeleportOwner");
+
+            TeleportAgent(m_host.OwnerID.ToString(), regionName, position, lookat);
+        }
+
+        public void osTeleportOwner(LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
+        {
+            osTeleportOwner(World.RegionInfo.RegionName, position, lookat);
+        }
+
+        public void osTeleportOwner(int regionX, int regionY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osTeleportOwner");
+
+            TeleportAgent(m_host.OwnerID.ToString(), regionX, regionY, position, lookat);
         }
 
         // Functions that get information from the agent itself.
