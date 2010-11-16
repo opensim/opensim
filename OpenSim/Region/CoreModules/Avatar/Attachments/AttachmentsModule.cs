@@ -273,6 +273,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 
                 if (objatt != null)
                 {
+                    // Loading the inventory from XML will have set this, but
+                    // there is no way the object could have changed yet,
+                    // since scripts aren't running yet. So, clear it here.
+                    objatt.HasGroupChanged = false;
                     bool tainted = false;
                     if (AttachmentPt != 0 && AttachmentPt != objatt.GetAttachmentPoint())
                         tainted = true;
@@ -470,31 +474,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         m_scene.EventManager.TriggerOnAttach(group.LocalId, itemID, UUID.Zero);
                         group.DetachToInventoryPrep();
                         m_log.Debug("[ATTACHMENTS MODULE]: Saving attachpoint: " + ((uint)group.GetAttachmentPoint()).ToString());
+
+                        // If an item contains scripts, it's always changed.
+                        // This ensures script state is saved on detach
+                        foreach (SceneObjectPart p in group.Parts)
+                            if (p.Inventory.ContainsScripts())
+                                group.HasGroupChanged = true;
+
                         UpdateKnownItem(remoteClient, group, group.GetFromItemID(), group.OwnerID);
                         m_scene.DeleteSceneObject(group, false);
                         return;
                     }
                 }
             }
-        }
-        
-        public void UpdateAttachmentPosition(IClientAPI client, SceneObjectGroup sog, Vector3 pos)
-        {
-            // If this is an attachment, then we need to save the modified
-            // object back into the avatar's inventory. First we save the
-            // attachment point information, then we update the relative 
-            // positioning (which caused this method to get driven in the
-            // first place. Then we have to mark the object as NOT an
-            // attachment. This is necessary in order to correctly save
-            // and retrieve GroupPosition information for the attachment.
-            // Then we save the asset back into the appropriate inventory
-            // entry. Finally, we restore the object's attachment status.
-            byte attachmentPoint = sog.GetAttachmentPoint();
-            sog.UpdateGroupPosition(pos);
-            sog.RootPart.IsAttachment = false;
-            sog.AbsolutePosition = sog.RootPart.AttachedPos;
-            UpdateKnownItem(client, sog, sog.GetFromItemID(), sog.OwnerID);
-            sog.SetAttachmentPoint(attachmentPoint);
         }
         
         /// <summary>
@@ -508,7 +500,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="grp"></param>
         /// <param name="itemID"></param>
         /// <param name="agentID"></param>
-        protected void UpdateKnownItem(IClientAPI remoteClient, SceneObjectGroup grp, UUID itemID, UUID agentID)
+        public void UpdateKnownItem(IClientAPI remoteClient, SceneObjectGroup grp, UUID itemID, UUID agentID)
         {
             if (grp != null)
             {
@@ -523,7 +515,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     grp.UUID, grp.GetAttachmentPoint());
 
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp);
-
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
                 item = m_scene.InventoryService.GetItem(item);
 
@@ -617,7 +608,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             // In case it is later dropped again, don't let
             // it get cleaned up
             so.RootPart.RemFlag(PrimFlags.TemporaryOnRez);
-            so.HasGroupChanged = false;
         }
     }
 }

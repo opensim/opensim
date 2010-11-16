@@ -39,5 +39,6 @@ namespace OpenSim.Framework
         void ExtraFromXmlString(string xmlstr);
         string GetStateSnapshot();
         void SetState(string xmlstr, IScene s);
+        bool HasGroupChanged { get; set; }
     }
 }
