@@ -4822,7 +4822,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 TaskInventoryItem item = Inventory.GetInventoryItem(itemID);
                 item.OwnerChanged = false;
-                Inventory.UpdateInventoryItem(item);
+                Inventory.UpdateInventoryItem(item, false, false);
             }
         }
     }

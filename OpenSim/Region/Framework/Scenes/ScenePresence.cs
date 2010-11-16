@@ -4340,6 +4340,24 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
 	        return(new Vector3(x,y,z));
 	    }
 
+        public void SaveChangedAttachments()
+        {
+            // Need to copy this list because DetachToInventoryPrep mods it
+            List<SceneObjectGroup> attachments = new List<SceneObjectGroup>(Attachments.ToArray());
 
+            IAttachmentsModule attachmentsModule = m_scene.AttachmentsModule;
+            if (attachmentsModule != null)
+            {
+                foreach (SceneObjectGroup grp in attachments)
+                {
+                    if (grp.HasGroupChanged) // Resizer scripts?
+                    {
+                        grp.DetachToInventoryPrep();
+                        attachmentsModule.UpdateKnownItem(ControllingClient,
+                                grp, grp.GetFromItemID(), grp.OwnerID);
+                    }
+                }
+            }
+        }
     }
 }

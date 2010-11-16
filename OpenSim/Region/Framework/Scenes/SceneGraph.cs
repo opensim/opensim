@@ -281,7 +281,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (!alreadyPersisted)
+            if (attachToBackup && (!alreadyPersisted))
             {
                 sceneObject.ForceInventoryPersistence();
                 sceneObject.HasGroupChanged = true;
@@ -304,8 +304,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </returns>
         protected internal bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
-            // Ensure that we persist this new scene object
-            sceneObject.HasGroupChanged = true;
+            // Ensure that we persist this new scene object if it's not an
+            // attachment
+            if (attachToBackup)
+                sceneObject.HasGroupChanged = true;
 
             return AddSceneObject(sceneObject, attachToBackup, sendClientUpdates);
         }
@@ -1342,8 +1344,13 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (group.IsAttachment || (group.RootPart.Shape.PCode == 9 && group.RootPart.Shape.State != 0))
                 {
-                    if (m_parentScene.AttachmentsModule != null)
-                        m_parentScene.AttachmentsModule.UpdateAttachmentPosition(remoteClient, group, pos);
+                    // Set the new attachment point data in the object
+                    byte attachmentPoint = group.GetAttachmentPoint();
+                    group.UpdateGroupPosition(pos);
+                    group.RootPart.IsAttachment = false;
+                    group.AbsolutePosition = group.RootPart.AttachedPos;
+                    group.SetAttachmentPoint(attachmentPoint);
+                    group.HasGroupChanged = true;
                 }
                 else
                 {
