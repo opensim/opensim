@@ -133,5 +133,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="sog"></param>
         /// <param name="pos"></param>
         void UpdateAttachmentPosition(IClientAPI client, SceneObjectGroup sog, Vector3 pos);
+
+        void UpdateKnownItem(IClientAPI remoteClient, SceneObjectGroup grp, UUID itemID, UUID agentID);
     }
 }

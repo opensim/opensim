@@ -527,10 +527,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="grp"></param>
         /// <param name="itemID"></param>
         /// <param name="agentID"></param>
-        protected void UpdateKnownItem(IClientAPI remoteClient, SceneObjectGroup grp, UUID itemID, UUID agentID)
+        public void UpdateKnownItem(IClientAPI remoteClient, SceneObjectGroup grp, UUID itemID, UUID agentID)
         {
             if (grp != null)
             {
+                // If an item contains scripts, it's always changed.
+                // This ensures script state is saved on detach
+                foreach (SceneObjectPart p in grp.Parts)
+                    if (p.Inventory.ContainsScripts())
+                        grp.HasGroupChanged = true;
+
                 if (!grp.HasGroupChanged)
                 {
                     m_log.WarnFormat("[ATTACHMENTS MODULE]: Save request for {0} which is unchanged", grp.UUID);
