@@ -2983,15 +2983,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
             {
-                SceneObjectGroup grp = m_host.ParentGroup;
-                UUID itemID = grp.GetFromItemID();
-
-                ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
-
                 IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
                 if (attachmentsModule != null)
-                    attachmentsModule.ShowDetachInUserInventory(itemID, presence.ControllingClient);
+                    Util.FireAndForget(DetachWrapper, m_host);
             }
+        }
+
+        private void DetachWrapper(object o)
+        {
+            SceneObjectPart host = (SceneObjectPart)o;
+
+            SceneObjectGroup grp = host.ParentGroup;
+            UUID itemID = grp.GetFromItemID();
+            ScenePresence presence = World.GetScenePresence(host.OwnerID);
+
+            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
+            if (attachmentsModule != null)
+                attachmentsModule.ShowDetachInUserInventory(itemID, presence.ControllingClient);
         }
 
         public void llTakeCamera(string avatar)
