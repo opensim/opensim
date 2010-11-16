@@ -161,6 +161,8 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_setAlwaysRun;
         private bool m_forceFly;
         private bool m_flyDisabled;
+        private bool m_flyingOld;		// add for fly velocity control
+        public bool m_wasFlying;		// add for fly velocity control
 
         private float m_speedModifier = 1.0f;
 
@@ -2564,14 +2566,22 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 direc = vec * rotation;
             direc.Normalize();
             PhysicsActor actor = m_physicsActor;
+
+            if (actor.Flying != m_flyingOld)	            // add for fly velocity control
+            {
+                m_flyingOld = actor.Flying;	                // add for fly velocity control
+                if (!actor.Flying) m_wasFlying = true;	    // add for fly velocity control
+            }
+
+            if (m_physicsActor.IsColliding == true) m_wasFlying = false;	    // add for fly velocity control
+
             if ((vec.Z == 0f) && !actor.Flying) direc.Z = 0f; // Prevent camera WASD up.
 
             direc *= 0.03f * 128f * m_speedModifier;
 
             if (actor != null)
             {
-// rm falling                if (actor.Flying)
-                if ((actor.Flying) || Animator.m_falling)    // add for falling lateral speed
+                if (actor.Flying)
                 {
 // rm speed mod                    direc *= 4.0f;
                     direc *= 5.2f;      // for speed mod
@@ -2586,6 +2596,10 @@ namespace OpenSim.Region.Framework.Scenes
                     //    StopFlying();
                     //    m_log.Info("[AGENT]: Stop FLying");
                     //}
+                }
+                if (Animator.m_falling && m_wasFlying)    // if falling from flying, disable motion add
+                {
+                    direc *= 0.0f;
                 }
  /* This jumping section removed to SPA
                 else if (!actor.Flying && actor.IsColliding)

@@ -248,7 +248,7 @@ TrySetMovementAnimation("STAND");
                     m_animTickFall = Environment.TickCount;
                 }
 //                else if (!jumping && fallElapsed > FALL_DELAY)
-                else if (!m_jumping && (fallElapsed > FALL_DELAY) && (fallVelocity < -3.0f) )        // add for falling and jumping
+                else if (!m_jumping && (fallElapsed > FALL_DELAY) && (fallVelocity < -3.0f) && (m_scenePresence.m_wasFlying)) // add for falling and jumping
                 {
                     // Falling long enough to trigger the animation
 //Console.WriteLine("FALLDOWN");  //##
