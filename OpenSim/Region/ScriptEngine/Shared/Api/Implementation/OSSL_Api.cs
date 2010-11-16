@@ -665,7 +665,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             if (regions != null && regions.Count > 0)
                             {
                                 GridRegion regInfo = regions[0];
-                                regionName = regInfo.RegionName;
+                                string[] parts = regInfo.RegionName.Split(new char[] { ':' });
+                                if (parts.Length > 2)
+                                    regionName = parts[2];
+                                else
+                                    regionName = parts[0];
                             }
                         }
                         World.RequestTeleportLocation(presence.ControllingClient, regionName,
