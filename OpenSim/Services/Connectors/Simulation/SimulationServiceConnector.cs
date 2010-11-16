@@ -549,6 +549,7 @@ namespace OpenSim.Services.Connectors.Simulation
             OSDMap args = new OSDMap(2);
             args["sog"] = OSD.FromString(sog.ToXml2());
             args["extra"] = OSD.FromString(sog.ExtraToXmlString());
+            args["modified"] = OSD.FromBoolean(sog.HasGroupChanged);
             string state = sog.GetStateSnapshot();
             if (state.Length > 0)
                 args["state"] = OSD.FromString(state);

@@ -3152,7 +3152,6 @@ namespace OpenSim.Region.Framework.Scenes
                         List<ulong> regions = new List<ulong>(avatar.KnownChildRegionHandles);
                         regions.Remove(RegionInfo.RegionHandle);
                         m_sceneGridService.SendCloseChildAgentConnections(agentID, regions);
-
                     }
                     m_eventManager.TriggerClientClosed(agentID, this);
                 }
@@ -3163,6 +3162,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_eventManager.TriggerOnRemovePresence(agentID);
+
+                if (avatar != null && (!avatar.IsChildAgent))
+                    avatar.SaveChangedAttachments();
 
                 ForEachClient(
                     delegate(IClientAPI client)
