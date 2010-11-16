@@ -227,6 +227,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osTeleportAgent(agent, position, lookat);
         }
 
+        public void osTeleportOwner(string regionName, vector position, vector lookat)
+        {
+            m_OSSL_Functions.osTeleportOwner(regionName, position, lookat);
+        }
+
+        public void osTeleportOwner(int regionX, int regionY, vector position, vector lookat)
+        {
+            m_OSSL_Functions.osTeleportOwner(regionX, regionY, position, lookat);
+        }
+
+        public void osTeleportOwner(vector position, vector lookat)
+        {
+            m_OSSL_Functions.osTeleportOwner(position, lookat);
+        }
+
         // Avatar info functions
         public string osGetAgentIP(string agent)
         {

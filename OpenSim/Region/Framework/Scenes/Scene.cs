@@ -3273,6 +3273,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (avatar != null && (!avatar.IsChildAgent))
                     avatar.SaveChangedAttachments();
 
+                if (avatar != null && (!avatar.IsChildAgent))
+                    avatar.SaveChangedAttachments();
+
                 ForEachClient(
                     delegate(IClientAPI client)
                     {
