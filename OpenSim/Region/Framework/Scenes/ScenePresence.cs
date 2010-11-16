@@ -4366,9 +4366,12 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
                 {
                     if (grp.HasGroupChanged) // Resizer scripts?
                     {
-                        grp.DetachToInventoryPrep();
+                        grp.RootPart.IsAttachment = false;
+                        grp.AbsolutePosition = grp.RootPart.AttachedPos;
+//                        grp.DetachToInventoryPrep();
                         attachmentsModule.UpdateKnownItem(ControllingClient,
                                 grp, grp.GetFromItemID(), grp.OwnerID);
+                        grp.RootPart.IsAttachment = true;
                     }
                 }
             }
