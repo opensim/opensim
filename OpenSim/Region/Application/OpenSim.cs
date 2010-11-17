@@ -30,6 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Timers;
 using log4net;
 using Nini.Config;
@@ -988,38 +989,74 @@ namespace OpenSim
         /// <returns></returns>
         private string GetQueuesReport()
         {
-            string report = String.Empty;
+            StringBuilder report = new StringBuilder();            
+            
+            int columnPadding = 2;
+            int maxNameLength = 18;                                    
+            int maxRegionNameLength = 14;
+            int maxTypeLength = 5;
+            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;                        
+                        
+            report.AppendFormat("{0,-" + maxNameLength +  "}{1,-" + columnPadding + "}", "User", "");
+            report.AppendFormat("{0,-" + maxRegionNameLength +  "}{1,-" + columnPadding + "}", "Region", "");
+            report.AppendFormat("{0,-" + maxTypeLength +  "}{1,-" + columnPadding + "}", "Type", "");
+            
+            report.AppendFormat(
+                "{0,9} {1,10} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7} {9,7}\n",
+                "Packets",
+                "Packets",
+                "Bytes",
+                "Bytes",
+                "Bytes",
+                "Bytes",
+                "Bytes",
+                "Bytes",
+                "Bytes",
+                "Bytes");
+    
+            report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
+            report.AppendFormat(
+                "{0,9} {1,10} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7} {9,7}\n",
+                "Sent",
+                "Received",
+                "Resend",
+                "Land",
+                "Wind",
+                "Cloud",
+                "Task",
+                "Texture",
+                "Asset",
+                "State");            
+            
+            m_sceneManager.ForEachScene(
+                delegate(Scene scene)
+                {
+                    scene.ForEachClient(
+                        delegate(IClientAPI client)
+                        {
+                            if (client is IStatsCollector)
+                            {
+                                string name = client.Name;
+                                string regionName = scene.RegionInfo.RegionName;
+                                
+                                report.AppendFormat(
+                                    "{0,-" + maxNameLength + "}{1,-" + columnPadding + "}", 
+                                    name.Length > maxNameLength ? name.Substring(0, maxNameLength) : name, "");
+                                report.AppendFormat(
+                                    "{0,-" + maxRegionNameLength + "}{1,-" + columnPadding + "}", 
+                                    regionName.Length > maxRegionNameLength ? regionName.Substring(0, maxRegionNameLength) : regionName, "");
+                                report.AppendFormat(
+                                    "{0,-" + maxTypeLength + "}{1,-" + columnPadding + "}", 
+                                    scene.PresenceChildStatus(client.AgentId) ? "Child" : "Root", "");                                    
 
-            m_sceneManager.ForEachScene(delegate(Scene scene)
-                                            {
-                                                scene.ForEachClient(delegate(IClientAPI client)
-                                                                        {
-                                                                            if (client is IStatsCollector)
-                                                                            {
-                                                                                report = report + client.FirstName +
-                                                                                         " " + client.LastName;
+                                IStatsCollector stats = (IStatsCollector)client;
+                        
+                                report.AppendLine(stats.Report());
+                            }
+                        });
+                });
 
-                                                                                IStatsCollector stats =
-                                                                                    (IStatsCollector) client;
-
-                                                                                report = report + string.Format("{0,7} {1,7} {2,7} {3,7} {4,7} {5,7} {6,7} {7,7} {8,7} {9,7}\n",
-                                                                                             "Send",
-                                                                                             "In",
-                                                                                             "Out",
-                                                                                             "Resend",
-                                                                                             "Land",
-                                                                                             "Wind",
-                                                                                             "Cloud",
-                                                                                             "Task",
-                                                                                             "Texture",
-                                                                                             "Asset");
-                                                                                report = report + stats.Report() +
-                                                                                         "\n";
-                                                                            }
-                                                                        });
-                                            });
-
-            return report;
+            return report.ToString();
         }
 
         /// <summary>
