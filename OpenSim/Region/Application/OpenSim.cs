@@ -286,15 +286,14 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("region", false, "show users",
                                           "show users [full]",
-                                          "Show user data", HandleShow);
+                                          "Show user data for users currently on the region", 
+                                          "Without the 'full' option, only users actually on the region are shown."
+                                            + "  With the 'full' option child agents of users in neighbouring regions are also shown.",
+                                          HandleShow);
 
             m_console.Commands.AddCommand("region", false, "show connections",
                                           "show connections",
                                           "Show connection data", HandleShow);
-
-            m_console.Commands.AddCommand("region", false, "show users full",
-                                          "show users full",
-                                          String.Empty, HandleShow);
 
             m_console.Commands.AddCommand("region", false, "show modules",
                                           "show modules",
@@ -305,8 +304,10 @@ namespace OpenSim
                                           "Show region data", HandleShow);
 
             m_console.Commands.AddCommand("region", false, "show queues",
-                                          "show queues",
+                                          "show queues [full]",
                                           "Show queue data for each client", 
+                                          "Without the 'full' option, only users actually on the region are shown."
+                                            + "  With the 'full' option child agents of users in neighbouring regions are also shown.",                                          
                                           HandleShow);
             
             m_console.Commands.AddCommand("region", false, "show ratings",
@@ -879,7 +880,7 @@ namespace OpenSim
                     {
                         agents = m_sceneManager.GetCurrentSceneAvatars();
                     }
-
+                
                     MainConsole.Instance.Output(String.Format("\nAgents connected: {0}\n", agents.Count));
 
                     MainConsole.Instance.Output(
@@ -956,7 +957,7 @@ namespace OpenSim
                     break;
 
                 case "queues":
-                    Notice(GetQueuesReport());
+                    Notice(GetQueuesReport(showParams));
                     break;
 
                 case "ratings":
@@ -986,11 +987,17 @@ namespace OpenSim
         }
 
         /// <summary>
-        /// print UDP Queue data for each client
+        /// Generate UDP Queue data report for each client
         /// </summary>
+        /// <param name="showParams"></param>
         /// <returns></returns>
-        private string GetQueuesReport()
+        private string GetQueuesReport(string[] showParams)
         {
+            bool showChildren = false;
+            
+            if (showParams.Length > 1 && showParams[1] == "full")
+                showChildren = true;               
+                
             StringBuilder report = new StringBuilder();            
             
             int columnPadding = 2;
@@ -1040,6 +1047,10 @@ namespace OpenSim
                         {
                             if (client is IStatsCollector)
                             {
+                                bool isChild = scene.PresenceChildStatus(client.AgentId);
+                                if (isChild && !showChildren)
+                                    return;
+                        
                                 string name = client.Name;
                                 string regionName = scene.RegionInfo.RegionName;
                                 
@@ -1051,7 +1062,7 @@ namespace OpenSim
                                     regionName.Length > maxRegionNameLength ? regionName.Substring(0, maxRegionNameLength) : regionName, "");
                                 report.AppendFormat(
                                     "{0,-" + maxTypeLength + "}{1,-" + columnPadding + "}", 
-                                    scene.PresenceChildStatus(client.AgentId) ? "Cd" : "Rt", "");                                    
+                                    isChild ? "Cd" : "Rt", "");                                    
 
                                 IStatsCollector stats = (IStatsCollector)client;
                         
