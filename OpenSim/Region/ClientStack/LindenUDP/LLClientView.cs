@@ -6016,8 +6016,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             SoundTrigger handlerSoundTrigger = OnSoundTrigger;
             if (handlerSoundTrigger != null)
             {
-                handlerSoundTrigger(soundTriggerPacket.SoundData.SoundID, soundTriggerPacket.SoundData.OwnerID,
-                    soundTriggerPacket.SoundData.ObjectID, soundTriggerPacket.SoundData.ParentID,
+                // UUIDS are sent as zeroes by the client, substitute agent's id
+                handlerSoundTrigger(soundTriggerPacket.SoundData.SoundID, AgentId,
+                    AgentId, AgentId,
                     soundTriggerPacket.SoundData.Gain, soundTriggerPacket.SoundData.Position,
                     soundTriggerPacket.SoundData.Handle, 0);
 

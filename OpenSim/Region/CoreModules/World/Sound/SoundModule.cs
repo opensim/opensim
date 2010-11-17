@@ -106,14 +106,20 @@ namespace OpenSim.Region.CoreModules.World.Sound
         {
             SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
             if (part == null)
-                return;
-
-            SceneObjectGroup grp = part.ParentGroup;
-
-            if (grp.IsAttachment && grp.GetAttachmentPoint() > 30)
             {
-                objectID = ownerID;
-                parentID = ownerID;
+                ScenePresence sp;
+                if (!m_scene.TryGetScenePresence(objectID, out sp))
+                    return;
+            }
+            else
+            {
+                SceneObjectGroup grp = part.ParentGroup;
+
+                if (grp.IsAttachment && grp.GetAttachmentPoint() > 30)
+                {
+                    objectID = ownerID;
+                    parentID = ownerID;
+                }
             }
 
             m_scene.ForEachScenePresence(delegate(ScenePresence sp)
