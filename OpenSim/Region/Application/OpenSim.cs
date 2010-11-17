@@ -306,7 +306,9 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("region", false, "show queues",
                                           "show queues",
-                                          "Show queue data", HandleShow);
+                                          "Show queue data for each client", 
+                                          HandleShow);
+            
             m_console.Commands.AddCommand("region", false, "show ratings",
                                           "show ratings",
                                           "Show rating data", HandleShow);
@@ -994,7 +996,7 @@ namespace OpenSim
             int columnPadding = 2;
             int maxNameLength = 18;                                    
             int maxRegionNameLength = 14;
-            int maxTypeLength = 5;
+            int maxTypeLength = 4;
             int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;                        
                         
             report.AppendFormat("{0,-" + maxNameLength +  "}{1,-" + columnPadding + "}", "User", "");
@@ -1002,9 +1004,10 @@ namespace OpenSim
             report.AppendFormat("{0,-" + maxTypeLength +  "}{1,-" + columnPadding + "}", "Type", "");
             
             report.AppendFormat(
-                "{0,9} {1,10} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7} {9,7}\n",
+                "{0,9} {1,9} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
                 "Packets",
                 "Packets",
+                "Bytes",
                 "Bytes",
                 "Bytes",
                 "Bytes",
@@ -1016,9 +1019,10 @@ namespace OpenSim
     
             report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
             report.AppendFormat(
-                "{0,9} {1,10} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7} {9,7}\n",
-                "Sent",
-                "Received",
+                "{0,9} {1,9} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
+                "Out",
+                "In",
+                "Unacked",
                 "Resend",
                 "Land",
                 "Wind",
@@ -1047,7 +1051,7 @@ namespace OpenSim
                                     regionName.Length > maxRegionNameLength ? regionName.Substring(0, maxRegionNameLength) : regionName, "");
                                 report.AppendFormat(
                                     "{0,-" + maxTypeLength + "}{1,-" + columnPadding + "}", 
-                                    scene.PresenceChildStatus(client.AgentId) ? "Child" : "Root", "");                                    
+                                    scene.PresenceChildStatus(client.AgentId) ? "Cd" : "Rt", "");                                    
 
                                 IStatsCollector stats = (IStatsCollector)client;
                         

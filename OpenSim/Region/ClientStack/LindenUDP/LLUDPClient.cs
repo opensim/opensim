@@ -256,9 +256,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public string GetStats()
         {
             return string.Format(
-                "{0,9} {1,10} {2,8} {3,7} {4,7} {5,7} {6,7} {7,9} {8,7} {9,7}",
+                "{0,9} {1,9} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}",
                 PacketsSent,
                 PacketsReceived,
+                UnackedBytes,
                 m_throttleCategories[(int)ThrottleOutPacketType.Resend].Content,
                 m_throttleCategories[(int)ThrottleOutPacketType.Land].Content,
                 m_throttleCategories[(int)ThrottleOutPacketType.Wind].Content,
