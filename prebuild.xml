@@ -1214,6 +1214,7 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Core"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Capabilities"/>
       <Reference name="OpenSim.Framework.Console"/>
