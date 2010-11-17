@@ -569,12 +569,20 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     {
                         group.RootPart.Flags |= PrimFlags.Phantom;
                         group.RootPart.IsAttachment = true;
-                    }
 
-                    // If we're rezzing an attachment then don't ask AddNewSceneObject() to update the client since
-                    // we'll be doing that later on.  Scheduling more than one full update during the attachment
-                    // process causes some clients to fail to display the attachment properly.
-                    m_Scene.AddNewSceneObject(group, true, false);
+                        // If we're rezzing an attachment then don't ask
+                        // AddNewSceneObject() to update the client since
+                        // we'll be doing that later on.  Scheduling more
+                        // than one full update during the attachment
+                        // process causes some clients to fail to display
+                        // the attachment properly.
+                        // Also, don't persist attachments.
+                        m_Scene.AddNewSceneObject(group, false, false);
+                    }
+                    else
+                    {
+                        m_Scene.AddNewSceneObject(group, true, false);
+                    }
 
                     //  m_log.InfoFormat("ray end point for inventory rezz is {0} {1} {2} ", RayEnd.X, RayEnd.Y, RayEnd.Z);
                     // if attachment we set it's asset id so object updates can reflect that

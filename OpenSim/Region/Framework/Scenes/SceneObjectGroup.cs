@@ -491,13 +491,15 @@ namespace OpenSim.Region.Framework.Scenes
             XmlNodeList nodes = doc.GetElementsByTagName("SavedScriptState");
             if (nodes.Count > 0)
             {
-                m_savedScriptState = new Dictionary<UUID, string>();
+                if (m_savedScriptState == null)
+                    m_savedScriptState = new Dictionary<UUID, string>();
                 foreach (XmlNode node in nodes)
                 {
                     if (node.Attributes["UUID"] != null)
                     {
                         UUID itemid = new UUID(node.Attributes["UUID"].Value);
-                        m_savedScriptState.Add(itemid, node.InnerXml);
+                        if (itemid != UUID.Zero)
+                            m_savedScriptState[itemid] = node.InnerXml;
                     }
                 } 
             }
