@@ -1297,7 +1297,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 land.DeedToGroup(groupID);
             }
-
+            EventManagerOnParcelPrimCountTainted();
         }
 
 
