@@ -2311,5 +2311,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             });
             return result;
         }
+
+        /// <summary>
+        /// Convert a unix time to a llGetTimestamp() like string
+        /// </summary>
+        /// <param name="unixTime"></param>
+        /// <returns></returns>
+        public LSL_String osUnixTimeToTimestamp(long time)
+        {
+            CheckThreatLevel(ThreatLevel.VeryLow, "osUnixTimeToTimestamp");
+            long baseTicks = 621355968000000000;
+            long tickResolution = 10000000;
+            long epochTicks = (time * tickResolution) + baseTicks;
+            DateTime date = new DateTime(epochTicks);
+
+            return date.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ");
+        }
     }
 }
