@@ -6736,8 +6736,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             if (buttons.Length < 1)
             {
-                LSLError("No less than 1 button can be shown");
-                return;
+                buttons.Add("OK");
             }
             if (buttons.Length > 12)
             {
