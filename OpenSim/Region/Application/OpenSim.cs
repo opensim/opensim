@@ -30,6 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Timers;
 using log4net;
 using Nini.Config;
@@ -285,15 +286,14 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("region", false, "show users",
                                           "show users [full]",
-                                          "Show user data", HandleShow);
+                                          "Show user data for users currently on the region", 
+                                          "Without the 'full' option, only users actually on the region are shown."
+                                            + "  With the 'full' option child agents of users in neighbouring regions are also shown.",
+                                          HandleShow);
 
             m_console.Commands.AddCommand("region", false, "show connections",
                                           "show connections",
                                           "Show connection data", HandleShow);
-
-            m_console.Commands.AddCommand("region", false, "show users full",
-                                          "show users full",
-                                          String.Empty, HandleShow);
 
             m_console.Commands.AddCommand("region", false, "show modules",
                                           "show modules",
@@ -304,8 +304,12 @@ namespace OpenSim
                                           "Show region data", HandleShow);
 
             m_console.Commands.AddCommand("region", false, "show queues",
-                                          "show queues",
-                                          "Show queue data", HandleShow);
+                                          "show queues [full]",
+                                          "Show queue data for each client", 
+                                          "Without the 'full' option, only users actually on the region are shown."
+                                            + "  With the 'full' option child agents of users in neighbouring regions are also shown.",                                          
+                                          HandleShow);
+            
             m_console.Commands.AddCommand("region", false, "show ratings",
                                           "show ratings",
                                           "Show rating data", HandleShow);
@@ -876,7 +880,7 @@ namespace OpenSim
                     {
                         agents = m_sceneManager.GetCurrentSceneAvatars();
                     }
-
+                
                     MainConsole.Instance.Output(String.Format("\nAgents connected: {0}\n", agents.Count));
 
                     MainConsole.Instance.Output(
@@ -953,7 +957,7 @@ namespace OpenSim
                     break;
 
                 case "queues":
-                    Notice(GetQueuesReport());
+                    Notice(GetQueuesReport(showParams));
                     break;
 
                 case "ratings":
@@ -983,43 +987,91 @@ namespace OpenSim
         }
 
         /// <summary>
-        /// print UDP Queue data for each client
+        /// Generate UDP Queue data report for each client
         /// </summary>
+        /// <param name="showParams"></param>
         /// <returns></returns>
-        private string GetQueuesReport()
+        private string GetQueuesReport(string[] showParams)
         {
-            string report = String.Empty;
+            bool showChildren = false;
+            
+            if (showParams.Length > 1 && showParams[1] == "full")
+                showChildren = true;               
+                
+            StringBuilder report = new StringBuilder();            
+            
+            int columnPadding = 2;
+            int maxNameLength = 18;                                    
+            int maxRegionNameLength = 14;
+            int maxTypeLength = 4;
+            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;                        
+                        
+            report.AppendFormat("{0,-" + maxNameLength +  "}{1,-" + columnPadding + "}", "User", "");
+            report.AppendFormat("{0,-" + maxRegionNameLength +  "}{1,-" + columnPadding + "}", "Region", "");
+            report.AppendFormat("{0,-" + maxTypeLength +  "}{1,-" + columnPadding + "}", "Type", "");
+            
+            report.AppendFormat(
+                "{0,9} {1,9} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
+                "Packets",
+                "Packets",
+                "Bytes",
+                "Bytes",
+                "Bytes",
+                "Bytes",
+                "Bytes",
+                "Bytes",
+                "Bytes",
+                "Bytes",
+                "Bytes");
+    
+            report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
+            report.AppendFormat(
+                "{0,9} {1,9} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
+                "Out",
+                "In",
+                "Unacked",
+                "Resend",
+                "Land",
+                "Wind",
+                "Cloud",
+                "Task",
+                "Texture",
+                "Asset",
+                "State");            
+            
+            m_sceneManager.ForEachScene(
+                delegate(Scene scene)
+                {
+                    scene.ForEachClient(
+                        delegate(IClientAPI client)
+                        {
+                            if (client is IStatsCollector)
+                            {
+                                bool isChild = scene.PresenceChildStatus(client.AgentId);
+                                if (isChild && !showChildren)
+                                    return;
+                        
+                                string name = client.Name;
+                                string regionName = scene.RegionInfo.RegionName;
+                                
+                                report.AppendFormat(
+                                    "{0,-" + maxNameLength + "}{1,-" + columnPadding + "}", 
+                                    name.Length > maxNameLength ? name.Substring(0, maxNameLength) : name, "");
+                                report.AppendFormat(
+                                    "{0,-" + maxRegionNameLength + "}{1,-" + columnPadding + "}", 
+                                    regionName.Length > maxRegionNameLength ? regionName.Substring(0, maxRegionNameLength) : regionName, "");
+                                report.AppendFormat(
+                                    "{0,-" + maxTypeLength + "}{1,-" + columnPadding + "}", 
+                                    isChild ? "Cd" : "Rt", "");                                    
 
-            m_sceneManager.ForEachScene(delegate(Scene scene)
-                                            {
-                                                scene.ForEachClient(delegate(IClientAPI client)
-                                                                        {
-                                                                            if (client is IStatsCollector)
-                                                                            {
-                                                                                report = report + client.FirstName +
-                                                                                         " " + client.LastName;
+                                IStatsCollector stats = (IStatsCollector)client;
+                        
+                                report.AppendLine(stats.Report());
+                            }
+                        });
+                });
 
-                                                                                IStatsCollector stats =
-                                                                                    (IStatsCollector) client;
-
-                                                                                report = report + string.Format("{0,7} {1,7} {2,7} {3,7} {4,7} {5,7} {6,7} {7,7} {8,7} {9,7}\n",
-                                                                                             "Send",
-                                                                                             "In",
-                                                                                             "Out",
-                                                                                             "Resend",
-                                                                                             "Land",
-                                                                                             "Wind",
-                                                                                             "Cloud",
-                                                                                             "Task",
-                                                                                             "Texture",
-                                                                                             "Asset");
-                                                                                report = report + stats.Report() +
-                                                                                         "\n";
-                                                                            }
-                                                                        });
-                                            });
-
-            return report;
+            return report.ToString();
         }
 
         /// <summary>
