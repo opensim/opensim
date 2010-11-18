@@ -497,7 +497,7 @@ namespace OpenSim.Framework.Console
                         if (echo && commandLine != "")
                             AddToHistory(commandLine);
                         
-                        return cmdline.ToString();
+                        return commandLine;
                     default:
                         break;
                     }
