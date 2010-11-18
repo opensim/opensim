@@ -2706,12 +2706,19 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (GetScenePresence(client.AgentId) != null)
+            if (TryGetScenePresence(client.AgentId, out presence))
             {
                 m_LastLogin = Util.EnvironmentTickCount();
                 EventManager.TriggerOnNewClient(client);
                 if (vialogin)
+                {
                     EventManager.TriggerOnClientLogin(client);
+
+                    // Send initial parcel data
+                    Vector3 pos = presence.AbsolutePosition;
+                    ILandObject land = LandChannel.GetLandObject(pos.X, pos.Y);
+                    land.SendLandUpdateToClient(presence.ControllingClient);
+                }
             }
         }
 
