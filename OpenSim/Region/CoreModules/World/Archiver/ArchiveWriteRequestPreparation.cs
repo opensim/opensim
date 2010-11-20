@@ -192,9 +192,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     new AssetsArchiver(archiveWriter), assetUuids, 
                     m_scene.AssetService, awre.ReceivedAllAssets).Execute();
             }
-            finally 
+            catch (Exception) 
             {
                 m_saveStream.Close();
+                throw;
             }    
         }
 

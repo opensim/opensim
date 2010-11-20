@@ -128,7 +128,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         public void TestSaveOarV0_2()
         {
             TestHelper.InMethod();
-            //log4net.Config.XmlConfigurator.Configure();
+//            log4net.Config.XmlConfigurator.Configure();
 
             SceneObjectPart part1 = CreateSceneObjectPart1();
             SceneObjectGroup sog1 = new SceneObjectGroup(part1);

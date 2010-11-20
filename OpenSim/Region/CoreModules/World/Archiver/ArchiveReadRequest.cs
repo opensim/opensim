@@ -56,7 +56,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// The maximum major version of OAR that we can read.  Minor versions shouldn't need a max number since version
         /// bumps here should be compatible.
         /// </summary>
-        public static int MAX_MAJOR_VERSION = 0;
+        public static int MAX_MAJOR_VERSION = 1;
 
         protected Scene m_scene;
         protected Stream m_loadStream;
