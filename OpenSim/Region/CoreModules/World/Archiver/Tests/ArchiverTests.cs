@@ -122,10 +122,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         }
 
         /// <summary>
-        /// Test saving a V0.2 OpenSim Region Archive.
+        /// Test saving an OpenSim Region Archive.
         /// </summary>
         [Test]
-        public void TestSaveOarV0_2()
+        public void TestSaveOar()
         {
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -212,10 +212,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         }
 
         /// <summary>
-        /// Test loading a V0.2 OpenSim Region Archive.
+        /// Test loading an OpenSim Region Archive.
         /// </summary>
         [Test]
-        public void TestLoadOarV0_2()
+        public void TestLoadOar()
         {
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -317,10 +317,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         }
 
         /// <summary>
-        /// Test loading the region settings of a V0.2 OpenSim Region Archive.
+        /// Test loading the region settings of an OpenSim Region Archive.
         /// </summary>
         [Test]
-        public void TestLoadOarV0_2RegionSettings()
+        public void TestLoadOarRegionSettings()
         {
             TestHelper.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
@@ -409,10 +409,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         }
         
         /// <summary>
-        /// Test merging a V0.2 OpenSim Region Archive into an existing scene
+        /// Test merging an OpenSim Region Archive into an existing scene
         /// </summary>
         //[Test]
-        public void TestMergeOarV0_2()
+        public void TestMergeOar()
         {
             TestHelper.InMethod();
             //XmlConfigurator.Configure();
