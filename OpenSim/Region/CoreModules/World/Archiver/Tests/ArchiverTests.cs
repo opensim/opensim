@@ -230,7 +230,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             // upset load
             tar.WriteDir(ArchiveConstants.TERRAINS_PATH);
             
-            tar.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestPreparation.Create0p2ControlFile(new Dictionary<string, Object>()));
+            tar.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestPreparation.CreateControlFile(new Dictionary<string, Object>()));
 
             SceneObjectPart part1 = CreateSceneObjectPart1();
             SceneObjectGroup object1 = new SceneObjectGroup(part1);
@@ -329,7 +329,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
             
             tar.WriteDir(ArchiveConstants.TERRAINS_PATH);
-            tar.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestPreparation.Create0p2ControlFile(new Dictionary<string, Object>()));
+            tar.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestPreparation.CreateControlFile(new Dictionary<string, Object>()));
 
             RegionSettings rs = new RegionSettings();
             rs.AgentLimit = 17;
