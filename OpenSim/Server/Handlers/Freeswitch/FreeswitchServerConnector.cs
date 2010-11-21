@@ -26,18 +26,25 @@
  */
 
 using System;
+using System.Collections;
+using System.Web;
+using System.Reflection;
 using Nini.Config;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
+using log4net;
 
 namespace OpenSim.Server.Handlers.Freeswitch
 {
     public class FreeswitchServerConnector : ServiceConnector
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private IFreeswitchService m_FreeswitchService;
         private string m_ConfigName = "FreeswitchService";
+        protected readonly string m_freeSwitchAPIPrefix = "/fsapi";
 
         public FreeswitchServerConnector(IConfigSource config, IHttpServer server, string configName) :
                 base(config, server, configName)
@@ -59,7 +66,44 @@ namespace OpenSim.Server.Handlers.Freeswitch
             m_FreeswitchService =
                     ServerUtils.LoadPlugin<IFreeswitchService>(freeswitchService, args);
 
-            server.AddStreamHandler(new FreeswitchServerGetHandler(m_FreeswitchService));
+            server.AddHTTPHandler(String.Format("{0}/freeswitch-config", m_freeSwitchAPIPrefix), FreeSwitchConfigHTTPHandler);
+        }
+
+        public Hashtable FreeSwitchConfigHTTPHandler(Hashtable request)
+        {
+            Hashtable response = new Hashtable();
+            response["str_response_string"] = string.Empty;
+
+            Hashtable requestBody = ParseRequestBody((string) request["body"]);
+
+            string section = (string) requestBody["section"];
+
+            if (section == "directory")
+                response = m_FreeswitchService.HandleDirectoryRequest(requestBody);
+            else if (section == "dialplan")
+                response = m_FreeswitchService.HandleDialplanRequest(requestBody);
+            else
+                m_log.WarnFormat("[FreeSwitchVoice]: section was {0}", section);
+
+            return response;
+        }
+
+        private Hashtable ParseRequestBody(string body)
+        {
+            Hashtable bodyParams = new Hashtable();
+            // split string
+            string [] nvps = body.Split(new Char [] {'&'});
+
+            foreach (string s in nvps)
+            {
+                if (s.Trim() != "")
+                {
+                    string [] nvp = s.Split(new Char [] {'='});
+                    bodyParams.Add(HttpUtility.UrlDecode(nvp[0]), HttpUtility.UrlDecode(nvp[1]));
+                }
+            }
+
+            return bodyParams;
         }
     }
 }
