@@ -70,11 +70,11 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [FreeswitchService]
     LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"
     ;; IP of your FS server
-    ; FreeswitchService = 127.0.0.1
+    ; ServerAddress = 127.0.0.1
 
     ;; All other options are - well - optional
-    ; Realm = 1"27.0.0.1"
-    ; SIPProxy = 1"27.0.0.1:5060"
+    ; Realm = "127.0.0.1"
+    ; SIPProxy = "127.0.0.1:5060"
     ; EchoServer = "127.0.0.1"
     ; EchoPort = 50505
     ; AttemptSTUN = "false"

@@ -9283,7 +9283,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 switch (data)
                 {
-                    case 5: // DATA_SIM_POS
+                    case ScriptBaseClass.DATA_SIM_POS:
                         if (info == null)
                         {
                             ScriptSleep(1000);
@@ -9294,13 +9294,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             info.RegionLocY,
                             0).ToString();
                         break;
-                    case 6: // DATA_SIM_STATUS
+                    case ScriptBaseClass.DATA_SIM_STATUS:
                         if (info != null)
                             reply = "up"; // Duh!
                         else
                             reply = "unknown";
                         break;
-                    case 7: // DATA_SIM_RATING
+                    case ScriptBaseClass.DATA_SIM_RATING:
                         if (info == null)
                         {
                             ScriptSleep(1000);
@@ -9316,7 +9316,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         else
                             reply = "UNKNOWN";
                         break;
-                    case 128:
+                    case ScriptBaseClass.DATA_SIM_RELEASE:
                         if (ossl != null)
                             ossl.CheckThreatLevel(ThreatLevel.High, "llRequestSimulatorData");
                         reply = "OpenSim";

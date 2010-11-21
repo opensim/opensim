@@ -580,44 +580,33 @@
 [FreeSwitchVoice]
     ;; In order for this to work you need a functioning FreeSWITCH PBX set up.
     ;; Configuration details at http://opensimulator.org/wiki/Freeswitch_Module
-    ; enabled = false
+    ; Enabled = false
 
-    ;; FreeSWITCH server is going to contact us and ask us all sorts of things
-    ; freeswitch_server_user = freeswitch
-    ; freeswitch_server_pass = password
-    ; freeswitch_api_prefix = /api
+    ;; You need to load a local service for a standalone, and a remote service
+    ;; for a grid region. Use one of the lines below, as appropriate
+    ; LocalServiceModule = OpenSim.Services.FreeswitchService.dll:FreeswitchService
+    ; LocalServiceModule = OpenSim.Services.Connectors.dll:RemoteFreeswitchConnector
 
-    ;; external IP address of your OpenSim voice enabled region
-    ;; note: all regions running on same OpenSim.exe will be enabled
-    ; freeswitch_service_server = ip.address.of.your.sim
+    ;; If using a remote module, specify the server URL
+    ; FreeswitchServiceURL = http://my.grid.server:8003/fsapi
 
-    ;; this should be the same port the region listens on
-    ; freeswitch_service_port = 9000
-    ; freeswitch_realm = ip.address.of.freeswitch.server
-    ; freeswitch_sip_proxy = ip.address.of.freeswitch.server:5060
+[FreeswitchService]
+    ;; !!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ;; !!!!!!STANDALONE ONLY!!!!!!
+    ;; !!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ;; IP of your FS server
+    ;ServerAddress = 85.25.142.92
 
-    ;; STUN = Simple Traversal of UDP through NATs
-    ;; See http://wiki.freeswitch.org/wiki/NAT_Traversal
-    ;; stun.freeswitch.org is not guaranteed to be running so use it in
-    ;; production at your own risk
-    ; freeswitch_attempt_stun = false
-    ; freeswitch_stun_server = ip.address.of.stun.server
-    ; freeswitch_echo_server = ip.address.of.freeswitch.server
-    ; freeswitch_echo_port = 50505
-    ; freeswitch_well_known_ip = ip.address.of.freeswitch.server
-
-    ;; Type the address of your http server here, hostname is allowed.
-    ;; This is provided so you can specify a hostname
-    ;; This is used by client for account verification. By default, it's the
-    ;; same as the freeswitch service server.
-    ; opensim_well_known_http_address = Address_Of_Your_SIM_HTTP_Server
-
-    ;; Timeouts
-    ; freeswitch_default_timeout = 5000
-    ; freeswitch_subscribe_retry = 120
-
-    ;; Misc
-    ; freeswitch_password_reset_url =
+    ;; All other options are - well - optional
+    ; Realm = "127.0.0.1"
+    ; SIPProxy = "127.0.0.1:5060"
+    ; EchoServer = "127.0.0.1"
+    ; EchoPort = 50505
+    ; AttemptSTUN = "false"
+    ; DefaultTimeout = 5000
+    ; Context = "default"
+    ; UserName = "freeswitch"
+    ; Password = "password"
 
 [Groups]
     ;# {Enabled} {} {Enable groups?} {true false} false

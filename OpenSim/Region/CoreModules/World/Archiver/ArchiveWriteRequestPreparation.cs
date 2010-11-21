@@ -49,7 +49,17 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     public class ArchiveWriteRequestPreparation
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+                
+        /// <summary>
+        /// The minimum major version of OAR that we can write.
+        /// </summary>
+        public static int MIN_MAJOR_VERSION = 0;       
+                
+        /// <summary>
+        /// The maximum major version of OAR that we can write.
+        /// </summary>
+        public static int MAX_MAJOR_VERSION = 1;        
+        
         protected Scene m_scene;
         protected Stream m_saveStream;
         protected Guid m_requestId;
@@ -101,110 +111,137 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <exception cref="System.IO.IOException">if there was an io problem with creating the file</exception>
         public void ArchiveRegion(Dictionary<string, object> options)
         {
-            Dictionary<UUID, AssetType> assetUuids = new Dictionary<UUID, AssetType>();
-
-            EntityBase[] entities = m_scene.GetEntities();
-            List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
-
-            /*
-                foreach (ILandObject lo in m_scene.LandChannel.AllParcels())
-                {
-                    if (name == lo.LandData.Name)
+            try
+            {
+                Dictionary<UUID, AssetType> assetUuids = new Dictionary<UUID, AssetType>();
+    
+                EntityBase[] entities = m_scene.GetEntities();
+                List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
+    
+                /*
+                    foreach (ILandObject lo in m_scene.LandChannel.AllParcels())
                     {
-                        // This is the parcel we want
+                        if (name == lo.LandData.Name)
+                        {
+                            // This is the parcel we want
+                        }
+                    }
+                    */
+         
+                // Filter entities so that we only have scene objects.
+                // FIXME: Would be nicer to have this as a proper list in SceneGraph, since lots of methods
+                // end up having to do this
+                foreach (EntityBase entity in entities)
+                {
+                    if (entity is SceneObjectGroup)
+                    {
+                        SceneObjectGroup sceneObject = (SceneObjectGroup)entity;
+                        
+                        if (!sceneObject.IsDeleted && !sceneObject.IsAttachment)
+                            sceneObjects.Add((SceneObjectGroup)entity);
                     }
                 }
-                */
-     
-            // Filter entities so that we only have scene objects.
-            // FIXME: Would be nicer to have this as a proper list in SceneGraph, since lots of methods
-            // end up having to do this
-            foreach (EntityBase entity in entities)
-            {
-                if (entity is SceneObjectGroup)
+                
+                UuidGatherer assetGatherer = new UuidGatherer(m_scene.AssetService);
+    
+                foreach (SceneObjectGroup sceneObject in sceneObjects)
                 {
-                    SceneObjectGroup sceneObject = (SceneObjectGroup)entity;
-                    
-                    if (!sceneObject.IsDeleted && !sceneObject.IsAttachment)
-                        sceneObjects.Add((SceneObjectGroup)entity);
+                    assetGatherer.GatherAssetUuids(sceneObject, assetUuids);
                 }
+    
+                m_log.DebugFormat(
+                    "[ARCHIVER]: {0} scene objects to serialize requiring save of {1} assets",
+                    sceneObjects.Count, assetUuids.Count);
+                
+                // Make sure that we also request terrain texture assets
+                RegionSettings regionSettings = m_scene.RegionInfo.RegionSettings;
+    
+                if (regionSettings.TerrainTexture1 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_1)
+                    assetUuids[regionSettings.TerrainTexture1] = AssetType.Texture;
+                
+                if (regionSettings.TerrainTexture2 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_2)
+                    assetUuids[regionSettings.TerrainTexture2] = AssetType.Texture;
+                
+                if (regionSettings.TerrainTexture3 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_3)
+                    assetUuids[regionSettings.TerrainTexture3] = AssetType.Texture;
+                
+                if (regionSettings.TerrainTexture4 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_4)
+                    assetUuids[regionSettings.TerrainTexture4] = AssetType.Texture;
+    
+                TarArchiveWriter archiveWriter = new TarArchiveWriter(m_saveStream);
+                
+                // Asynchronously request all the assets required to perform this archive operation
+                ArchiveWriteRequestExecution awre
+                    = new ArchiveWriteRequestExecution(
+                        sceneObjects,
+                        m_scene.RequestModuleInterface<ITerrainModule>(),
+                        m_scene.RequestModuleInterface<IRegionSerialiserModule>(),
+                        m_scene,
+                        archiveWriter,
+                        m_requestId,
+                        options);
+    
+                m_log.InfoFormat("[ARCHIVER]: Creating archive file.  This may take some time.");
+    
+                // Write out control file.  This has to be done first so that subsequent loaders will see this file first
+                // XXX: I know this is a weak way of doing it since external non-OAR aware tar executables will not do this
+                archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, CreateControlFile(options));
+                m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
+                
+                new AssetsRequest(
+                    new AssetsArchiver(archiveWriter), assetUuids, 
+                    m_scene.AssetService, awre.ReceivedAllAssets).Execute();
             }
-            
-            UuidGatherer assetGatherer = new UuidGatherer(m_scene.AssetService);
-
-            foreach (SceneObjectGroup sceneObject in sceneObjects)
+            catch (Exception) 
             {
-                assetGatherer.GatherAssetUuids(sceneObject, assetUuids);
-            }
-
-            m_log.DebugFormat(
-                "[ARCHIVER]: {0} scene objects to serialize requiring save of {1} assets",
-                sceneObjects.Count, assetUuids.Count);
-            
-            // Make sure that we also request terrain texture assets
-            RegionSettings regionSettings = m_scene.RegionInfo.RegionSettings;
-
-            if (regionSettings.TerrainTexture1 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_1)
-                assetUuids[regionSettings.TerrainTexture1] = AssetType.Texture;
-            
-            if (regionSettings.TerrainTexture2 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_2)
-                assetUuids[regionSettings.TerrainTexture2] = AssetType.Texture;
-            
-            if (regionSettings.TerrainTexture3 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_3)
-                assetUuids[regionSettings.TerrainTexture3] = AssetType.Texture;
-            
-            if (regionSettings.TerrainTexture4 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_4)
-                assetUuids[regionSettings.TerrainTexture4] = AssetType.Texture;
-
-            TarArchiveWriter archiveWriter = new TarArchiveWriter(m_saveStream);
-            
-            // Asynchronously request all the assets required to perform this archive operation
-            ArchiveWriteRequestExecution awre
-                = new ArchiveWriteRequestExecution(
-                    sceneObjects,
-                    m_scene.RequestModuleInterface<ITerrainModule>(),
-                    m_scene.RequestModuleInterface<IRegionSerialiserModule>(),
-                    m_scene,
-                    archiveWriter,
-                    m_requestId,
-                    options);
-
-            m_log.InfoFormat("[ARCHIVER]: Creating archive file.  This may take some time.");
-
-            // Write out control file.  This has to be done first so that subsequent loaders will see this file first
-            // XXX: I know this is a weak way of doing it since external non-OAR aware tar executables will not do this
-            archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p2ControlFile(options));
-            m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
-            
-            new AssetsRequest(
-                new AssetsArchiver(archiveWriter), assetUuids, 
-                m_scene.AssetService, awre.ReceivedAllAssets).Execute();
+                m_saveStream.Close();
+                throw;
+            }    
         }
-        
+
         /// <summary>
         /// Create the control file for the most up to date archive
         /// </summary>
         /// <returns></returns>
-        public static string Create0p2ControlFile(Dictionary<string, object> options)
+        public static string CreateControlFile(Dictionary<string, object> options)
         {
-            int majorVersion = 0, minorVersion = 5;
+            int majorVersion = MAX_MAJOR_VERSION, minorVersion = 0;
 
             if (options.ContainsKey("version"))
             {
-                minorVersion = 0;
                 string[] parts = options["version"].ToString().Split('.');
                 if (parts.Length >= 1)
-                    majorVersion = Int32.Parse(parts[0]);
-                if (parts.Length >= 2)
-                    minorVersion = Int32.Parse(parts[1]);
+                {
+                    majorVersion = Int32.Parse(parts[0]);                    
+                                        
+                    if (parts.Length >= 2)
+                        minorVersion = Int32.Parse(parts[1]);
+                }
+            }
+            
+            if (majorVersion < MIN_MAJOR_VERSION || majorVersion > MAX_MAJOR_VERSION)
+            {
+                throw new Exception(
+                    string.Format(
+                        "OAR version number for save must be between {0} and {1}", 
+                        MIN_MAJOR_VERSION, MAX_MAJOR_VERSION));
+            }
+            else if (majorVersion == MAX_MAJOR_VERSION)
+            {
+                // Force 1.0
+                minorVersion = 0;
+            }
+            else if (majorVersion == MIN_MAJOR_VERSION)
+            {
+                // Force 0.4
+                minorVersion = 4;                                        
             }
             
             m_log.InfoFormat("[ARCHIVER]: Creating version {0}.{1} OAR", majorVersion, minorVersion);
-//            if (majorVersion == 1)
-//            {
-//                m_log.WarnFormat("[ARCHIVER]: Please be aware that version 1.0 OARs are not compatible with OpenSim 0.7.0.2 and earlier.  Please use the --version=0 option if you want to produce a compatible OAR");
-//            }
-            
+            if (majorVersion == 1)
+            {
+                m_log.WarnFormat("[ARCHIVER]: Please be aware that version 1.0 OARs are not compatible with OpenSim 0.7.0.2 and earlier.  Please use the --version=0 option if you want to produce a compatible OAR");
+            }            
             
             StringWriter sw = new StringWriter();
             XmlTextWriter xtw = new XmlTextWriter(sw);

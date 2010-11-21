@@ -35,6 +35,8 @@ using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
 using log4net;
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Server.Handlers.Freeswitch
 {
@@ -67,12 +69,16 @@ namespace OpenSim.Server.Handlers.Freeswitch
                     ServerUtils.LoadPlugin<IFreeswitchService>(freeswitchService, args);
 
             server.AddHTTPHandler(String.Format("{0}/freeswitch-config", m_freeSwitchAPIPrefix), FreeSwitchConfigHTTPHandler);
+            server.AddHTTPHandler(String.Format("{0}/region-config", m_freeSwitchAPIPrefix), RegionConfigHTTPHandler);
         }
 
         public Hashtable FreeSwitchConfigHTTPHandler(Hashtable request)
         {
             Hashtable response = new Hashtable();
             response["str_response_string"] = string.Empty;
+            response["content_type"] = "text/plain";
+            response["keepalive"] = false;
+            response["int_response_code"] = 500;
 
             Hashtable requestBody = ParseRequestBody((string) request["body"]);
 
@@ -105,5 +111,18 @@ namespace OpenSim.Server.Handlers.Freeswitch
 
             return bodyParams;
         }
+
+        public Hashtable RegionConfigHTTPHandler(Hashtable request)
+        {
+            Hashtable response = new Hashtable();
+            response["content_type"] = "text/json";
+            response["keepalive"] = false;
+            response["int_response_code"] = 200;
+
+            response["str_response_string"] = m_FreeswitchService.GetJsonConfig();
+
+            return response;
+        }
+
     }
 }
