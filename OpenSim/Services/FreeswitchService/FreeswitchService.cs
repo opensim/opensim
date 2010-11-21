@@ -33,19 +33,27 @@ using OpenSim.Framework;
 using OpenSim.Data;
 using OpenSim.Services.Interfaces;
 using OpenMetaverse;
+using System.Collections;
 
 namespace OpenSim.Services.FreeswitchService
 {
     public class FreeswitchService : FreeswitchServiceBase, IFreeswitchService
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public FreeswitchService(IConfigSource config) : base(config)
         {
             // Perform initilialization here
         }
 
+        public Hashtable HandleDirectoryRequest(Hashtable requestBody)
+        {
+            return new Hashtable();
+        }
 
-        // Implement IFreeswitchService here
+        public Hashtable HandleDialplanRequest(Hashtable requestBody)
+        {
+            return new Hashtable();
+        }
     }
 }

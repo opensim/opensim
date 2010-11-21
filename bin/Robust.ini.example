@@ -69,6 +69,19 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 ; * This is the configuration for the freeswitch server in grid mode
 [FreeswitchService]
     LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"
+    ;; IP of your FS server
+    ; FreeswitchService = 127.0.0.1
+
+    ;; All other options are - well - optional
+    ; Realm = 1"27.0.0.1"
+    ; SIPProxy = 1"27.0.0.1:5060"
+    ; EchoServer = "127.0.0.1"
+    ; EchoPort = 50505
+    ; AttemptSTUN = "false"
+    ; DefaultTimeout = 5000
+    ; Context = "default"
+    ; UserName = "freeswitch"
+    ; Password = "password"
 
 ; * This is the new style authentication service. Currently, only MySQL
 ; * is implemented. "Realm" is the table that is used for user lookup.
