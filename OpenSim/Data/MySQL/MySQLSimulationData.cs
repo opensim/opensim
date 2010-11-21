@@ -1090,7 +1090,7 @@ namespace OpenSim.Data.MySQL
 
             // depending on the MySQL connector version, CHAR(36) may be already converted to Guid! 
             prim.UUID = DBGuid.FromDB(row["UUID"]);
-            prim.CreatorID = DBGuid.FromDB(row["CreatorID"]);
+            prim.CreatorIdentification = (string)row["CreatorID"];
             prim.OwnerID = DBGuid.FromDB(row["OwnerID"]);
             prim.GroupID = DBGuid.FromDB(row["GroupID"]);
             prim.LastOwnerID = DBGuid.FromDB(row["LastOwnerID"]);
@@ -1453,7 +1453,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("TouchName", prim.TouchName);
             // permissions
             cmd.Parameters.AddWithValue("ObjectFlags", (uint)prim.Flags);
-            cmd.Parameters.AddWithValue("CreatorID", prim.CreatorID.ToString());
+            cmd.Parameters.AddWithValue("CreatorID", prim.CreatorIdentification.ToString());
             cmd.Parameters.AddWithValue("OwnerID", prim.OwnerID.ToString());
             cmd.Parameters.AddWithValue("GroupID", prim.GroupID.ToString());
             cmd.Parameters.AddWithValue("LastOwnerID", prim.LastOwnerID.ToString());

@@ -78,6 +78,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         private IDictionary<UUID, bool> m_validUserUuids = new Dictionary<UUID, bool>();
 
+        private IUserManagement m_UserMan;
+        private IUserManagement UserManager
+        {
+            get
+            {
+                if (m_UserMan == null)
+                {
+                    m_UserMan = m_scene.RequestModuleInterface<IUserManagement>();
+                }
+                return m_UserMan;
+            }
+        }
+
         public ArchiveReadRequest(Scene scene, string loadPath, bool merge, bool skipAssets, Guid requestId)
         {
             m_scene = scene;
@@ -251,8 +264,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 foreach (SceneObjectPart part in sceneObject.Parts)
                 {
-                    if (!ResolveUserUuid(part.CreatorID))
-                        part.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                    if (part.CreatorData == null || part.CreatorData == string.Empty)
+                    {
+                        if (!ResolveUserUuid(part.CreatorID))
+                            part.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                    }
+                    UserManager.AddUser(part.CreatorID, part.CreatorData);
 
                     if (!ResolveUserUuid(part.OwnerID))
                         part.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;

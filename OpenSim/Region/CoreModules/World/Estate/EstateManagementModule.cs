@@ -771,8 +771,14 @@ namespace OpenSim.Region.CoreModules.World.Estate
             for (int i = 0; i < uuidarr.Length; i++)
             {
                 // string lookupname = m_scene.CommsManager.UUIDNameRequestString(uuidarr[i]);
-                m_scene.GetUserName(uuidarr[i]);
+
+                IUserManagement userManager = m_scene.RequestModuleInterface<IUserManagement>();
+                string userName = "Unkown User";
+                if (userManager != null)
+                    userName = userManager.GetUserName(uuidarr[i]);
+                
                 // we drop it.  It gets cached though...  so we're ready for the next request.
+                // diva commnent 11/21/2010: uh?!? wft?
             }
         }
         #endregion
