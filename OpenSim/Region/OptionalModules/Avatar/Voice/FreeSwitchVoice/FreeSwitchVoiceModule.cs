@@ -96,9 +96,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         private string m_openSimWellKnownHTTPAddress;
         private string m_freeSwitchContext;
 
-        private FreeSwitchDirectory m_FreeSwitchDirectory;
-        private FreeSwitchDialplan m_FreeSwitchDialplan;
-
         private readonly Dictionary<string, string> m_UUIDName = new Dictionary<string, string>();
         private Dictionary<string, string> m_ParcelAddress = new Dictionary<string, string>();
 
@@ -172,40 +169,23 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     // - buddies: viv_buddy.php
                     // - ???: viv_watcher.php
                     // - signout: viv_signout.php
-                    if (UseProxy)
-                    {
-                        MainServer.Instance.AddHTTPHandler(String.Format("{0}/", m_freeSwitchAPIPrefix),
-                                ForwardProxyRequest);
-                    }
-                    else
-                    {
-                        MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix),
-                                                             FreeSwitchSLVoiceGetPreloginHTTPHandler);
+                    MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix),
+                                                         FreeSwitchSLVoiceGetPreloginHTTPHandler);
 
-                        // RestStreamHandler h = new
-                        // RestStreamHandler("GET",
-                        // String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix), FreeSwitchSLVoiceGetPreloginHTTPHandler);
-                        //  MainServer.Instance.AddStreamHandler(h);
+                    // RestStreamHandler h = new
+                    // RestStreamHandler("GET",
+                    // String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix), FreeSwitchSLVoiceGetPreloginHTTPHandler);
+                    //  MainServer.Instance.AddStreamHandler(h);
 
 
 
-                        MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_signin.php", m_freeSwitchAPIPrefix),
-                                         FreeSwitchSLVoiceSigninHTTPHandler);
+                    MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_signin.php", m_freeSwitchAPIPrefix),
+                                     FreeSwitchSLVoiceSigninHTTPHandler);
 
-                        // set up http request handlers to provide
-                        // on-demand FreeSwitch configuration to
-                        // FreeSwitch's mod_curl_xml
-                        MainServer.Instance.AddHTTPHandler(String.Format("{0}/freeswitch-config", m_freeSwitchAPIPrefix),
-                                                             FreeSwitchConfigHTTPHandler);
-
-                        MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_buddy.php", m_freeSwitchAPIPrefix),
-                                         FreeSwitchSLVoiceBuddyHTTPHandler);
-                    }
+                    MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_buddy.php", m_freeSwitchAPIPrefix),
+                                     FreeSwitchSLVoiceBuddyHTTPHandler);
 
                     m_log.InfoFormat("[FreeSwitchVoice] using FreeSwitch server {0}", m_freeSwitchRealm);
-
-                    m_FreeSwitchDirectory = new FreeSwitchDirectory();
-                    m_FreeSwitchDialplan = new FreeSwitchDialplan();
 
                     m_pluginEnabled = true;
                     m_WOF = false;
@@ -724,46 +704,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 </response>", userid, pos, avatarName);
 
             response["int_response_code"] = 200;
-            return response;
-            /*
-            <level0>
-               <status>OK</status><body><status>Ok</status><cookie_name>lib_session</cookie_name>
-             * <cookie>xMj1QJSc7TA-G7XqcW6QXAg==:1290551700:050d35c6fef96f132f780d8039ff7592::</cookie>
-             * <auth_token>xMj1QJSc7TA-G7XqcW6QXAg==:1290551700:050d35c6fef96f132f780d8039ff7592::</auth_token>
-             * <primary>1</primary>
-             * <account_id>7449</account_id>
-             * <displayname>Teravus Ousley</displayname></body></level0>
-            */
-        }
-
-        public Hashtable FreeSwitchConfigHTTPHandler(Hashtable request)
-        {
-            m_log.DebugFormat("[FreeSwitchVoice] FreeSwitchConfigHTTPHandler called with {0}", (string)request["body"]);
-
-            Hashtable response = new Hashtable();
-            response["str_response_string"] = string.Empty;
-            // all the params come as NVPs in the request body
-            Hashtable requestBody = parseRequestBody((string) request["body"]);
-
-            // is this a dialplan or directory request
-            string section = (string) requestBody["section"];
-
-            if (section == "directory")
-                response = m_FreeSwitchDirectory.HandleDirectoryRequest(m_freeSwitchContext, m_freeSwitchRealm, requestBody);
-            else if (section == "dialplan")
-                response = m_FreeSwitchDialplan.HandleDialplanRequest(m_freeSwitchContext, m_freeSwitchRealm, requestBody);
-            else
-                m_log.WarnFormat("[FreeSwitchVoice]: section was {0}", section);
-
-            // XXX: re-generate dialplan:
-            //      - conf == region UUID
-            //      - conf number = region port
-            //      -> TODO Initialise(): keep track of regions via events
-            //      re-generate accounts for all avatars
-            //      -> TODO Initialise(): keep track of avatars via events
-            Regex normalizeEndLines = new Regex(@"\r\n", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.Multiline);
-
-            m_log.DebugFormat("[FreeSwitchVoice] FreeSwitchConfigHTTPHandler return {0}",normalizeEndLines.Replace(((string)response["str_response_string"]), ""));
             return response;
         }
 
