@@ -41,6 +41,7 @@ using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
+using Mono.Addins;
 
 using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Servers;
@@ -52,7 +53,8 @@ using System.Text.RegularExpressions;
 
 namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 {
-    public class FreeSwitchVoiceModule : IRegionModule, IVoiceModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "FreeSwitchVoiceModule")]
+    public class FreeSwitchVoiceModule : INonSharedRegionModule, IVoiceModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -64,8 +66,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         private static readonly string m_chatSessionRequestPath = "0009/";
 
         // Control info
-        private static bool   m_WOF = true;
-        private static bool   m_pluginEnabled  = false;
+        private static bool   m_Enabled  = false;
 
         // FreeSwitch server is going to contact us and ask us all
         // sorts of things.
@@ -104,9 +105,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
         private IConfig m_config;
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            m_scene = scene;
             m_config = config.Configs["FreeSwitchVoice"];
 
             if (null == m_config)
@@ -121,86 +121,106 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 return;
             }
 
-            // This is only done the FIRST time this method is invoked.
-            if (m_WOF)
+            m_Enabled = true;
+
+            try
             {
-                m_pluginEnabled = true;
-                m_WOF = false;
+                m_freeSwitchServerUser = m_config.GetString("freeswitch_server_user", String.Empty);
+                m_freeSwitchServerPass = m_config.GetString("freeswitch_server_pass", String.Empty);
+                m_freeSwitchAPIPrefix = m_config.GetString("freeswitch_api_prefix", String.Empty);
 
-                try
+                // XXX: get IP address of HTTP server. (This can be this OpenSim server or another, or could be a dedicated grid service or may live on the freeswitch server)
+
+                string serviceIP = m_config.GetString("freeswitch_service_server", String.Empty);
+                int servicePort = m_config.GetInt("freeswitch_service_port", 80);
+                IPAddress serviceIPAddress = IPAddress.Parse(serviceIP);
+                // m_FreeSwitchServiceIP = new IPEndPoint(serviceIPAddress, servicePort);
+                m_freeSwitchServicePort = servicePort;
+                m_freeSwitchRealm = m_config.GetString("freeswitch_realm", String.Empty);
+                m_freeSwitchSIPProxy = m_config.GetString("freeswitch_sip_proxy", m_freeSwitchRealm);
+                m_freeSwitchAttemptUseSTUN = m_config.GetBoolean("freeswitch_attempt_stun", true);
+                // m_freeSwitchSTUNServer = m_config.GetString("freeswitch_stun_server", m_freeSwitchRealm);
+                m_freeSwitchEchoServer = m_config.GetString("freeswitch_echo_server", m_freeSwitchRealm);
+                m_freeSwitchEchoPort = m_config.GetInt("freeswitch_echo_port", 50505);
+                m_freeSwitchDefaultWellKnownIP = m_config.GetString("freeswitch_well_known_ip", m_freeSwitchRealm);
+                m_openSimWellKnownHTTPAddress = m_config.GetString("opensim_well_known_http_address", serviceIPAddress.ToString());
+                m_freeSwitchDefaultTimeout = m_config.GetInt("freeswitch_default_timeout", 5000);
+                // m_freeSwitchSubscribeRetry = m_config.GetInt("freeswitch_subscribe_retry", 120);
+                m_freeSwitchUrlResetPassword = m_config.GetString("freeswitch_password_reset_url", String.Empty);
+                m_freeSwitchContext = m_config.GetString("freeswitch_context", "default");
+
+                if (String.IsNullOrEmpty(m_freeSwitchServerUser) ||
+                    String.IsNullOrEmpty(m_freeSwitchServerPass) ||
+                    String.IsNullOrEmpty(m_freeSwitchRealm) ||
+                    String.IsNullOrEmpty(m_freeSwitchAPIPrefix))
                 {
-                    m_freeSwitchServerUser = m_config.GetString("freeswitch_server_user", String.Empty);
-                    m_freeSwitchServerPass = m_config.GetString("freeswitch_server_pass", String.Empty);
-                    m_freeSwitchAPIPrefix = m_config.GetString("freeswitch_api_prefix", String.Empty);
-
-                    // XXX: get IP address of HTTP server. (This can be this OpenSim server or another, or could be a dedicated grid service or may live on the freeswitch server)
-
-                    string serviceIP = m_config.GetString("freeswitch_service_server", String.Empty);
-                    int servicePort = m_config.GetInt("freeswitch_service_port", 80);
-                    IPAddress serviceIPAddress = IPAddress.Parse(serviceIP);
-                    // m_FreeSwitchServiceIP = new IPEndPoint(serviceIPAddress, servicePort);
-                    m_freeSwitchServicePort = servicePort;
-                    m_freeSwitchRealm = m_config.GetString("freeswitch_realm", String.Empty);
-                    m_freeSwitchSIPProxy = m_config.GetString("freeswitch_sip_proxy", m_freeSwitchRealm);
-                    m_freeSwitchAttemptUseSTUN = m_config.GetBoolean("freeswitch_attempt_stun", true);
-                    // m_freeSwitchSTUNServer = m_config.GetString("freeswitch_stun_server", m_freeSwitchRealm);
-                    m_freeSwitchEchoServer = m_config.GetString("freeswitch_echo_server", m_freeSwitchRealm);
-                    m_freeSwitchEchoPort = m_config.GetInt("freeswitch_echo_port", 50505);
-                    m_freeSwitchDefaultWellKnownIP = m_config.GetString("freeswitch_well_known_ip", m_freeSwitchRealm);
-                    m_openSimWellKnownHTTPAddress = m_config.GetString("opensim_well_known_http_address", serviceIPAddress.ToString());
-                    m_freeSwitchDefaultTimeout = m_config.GetInt("freeswitch_default_timeout", 5000);
-                    // m_freeSwitchSubscribeRetry = m_config.GetInt("freeswitch_subscribe_retry", 120);
-                    m_freeSwitchUrlResetPassword = m_config.GetString("freeswitch_password_reset_url", String.Empty);
-                    m_freeSwitchContext = m_config.GetString("freeswitch_context", "default");
-
-                    if (String.IsNullOrEmpty(m_freeSwitchServerUser) ||
-                        String.IsNullOrEmpty(m_freeSwitchServerPass) ||
-                        String.IsNullOrEmpty(m_freeSwitchRealm) ||
-                        String.IsNullOrEmpty(m_freeSwitchAPIPrefix))
-                    {
-                        m_log.Error("[FreeSwitchVoice] plugin mis-configured");
-                        m_log.Info("[FreeSwitchVoice] plugin disabled: incomplete configuration");
-                        return;
-                    }
-
-                    // set up http request handlers for
-                    // - prelogin: viv_get_prelogin.php
-                    // - signin: viv_signin.php
-                    // - buddies: viv_buddy.php
-                    // - ???: viv_watcher.php
-                    // - signout: viv_signout.php
-                    MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix),
-                                                         FreeSwitchSLVoiceGetPreloginHTTPHandler);
-
-                    // RestStreamHandler h = new
-                    // RestStreamHandler("GET",
-                    // String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix), FreeSwitchSLVoiceGetPreloginHTTPHandler);
-                    //  MainServer.Instance.AddStreamHandler(h);
-
-
-
-                    MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_signin.php", m_freeSwitchAPIPrefix),
-                                     FreeSwitchSLVoiceSigninHTTPHandler);
-
-                    MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_buddy.php", m_freeSwitchAPIPrefix),
-                                     FreeSwitchSLVoiceBuddyHTTPHandler);
-
-                    m_log.InfoFormat("[FreeSwitchVoice] using FreeSwitch server {0}", m_freeSwitchRealm);
-
-                    m_pluginEnabled = true;
-                    m_WOF = false;
-
-                    m_log.Info("[FreeSwitchVoice] plugin enabled");
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("[FreeSwitchVoice] plugin initialization failed: {0}", e.Message);
-                    m_log.DebugFormat("[FreeSwitchVoice] plugin initialization failed: {0}", e.ToString());
+                    m_log.Error("[FreeSwitchVoice] plugin mis-configured");
+                    m_log.Info("[FreeSwitchVoice] plugin disabled: incomplete configuration");
                     return;
                 }
+
+                // set up http request handlers for
+                // - prelogin: viv_get_prelogin.php
+                // - signin: viv_signin.php
+                // - buddies: viv_buddy.php
+                // - ???: viv_watcher.php
+                // - signout: viv_signout.php
+                MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix),
+                                                     FreeSwitchSLVoiceGetPreloginHTTPHandler);
+
+                // RestStreamHandler h = new
+                // RestStreamHandler("GET",
+                // String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix), FreeSwitchSLVoiceGetPreloginHTTPHandler);
+                //  MainServer.Instance.AddStreamHandler(h);
+
+
+
+                MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_signin.php", m_freeSwitchAPIPrefix),
+                                 FreeSwitchSLVoiceSigninHTTPHandler);
+
+                MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_buddy.php", m_freeSwitchAPIPrefix),
+                                 FreeSwitchSLVoiceBuddyHTTPHandler);
+
+                m_log.InfoFormat("[FreeSwitchVoice] using FreeSwitch server {0}", m_freeSwitchRealm);
+
+                m_Enabled = true;
+
+                m_log.Info("[FreeSwitchVoice] plugin enabled");
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[FreeSwitchVoice] plugin initialization failed: {0}", e.Message);
+                m_log.DebugFormat("[FreeSwitchVoice] plugin initialization failed: {0}", e.ToString());
+                return;
             }
 
-            if (m_pluginEnabled)
+            // This here is a region module trying to make a global setting.
+            // Not really a good idea but it's Windows only, so I can't test.
+            try
+            {
+                ServicePointManager.ServerCertificateValidationCallback += CustomCertificateValidation;
+            }
+            catch (NotImplementedException)
+            {
+                try
+                {
+#pragma warning disable 0612, 0618
+                    // Mono does not implement the ServicePointManager.ServerCertificateValidationCallback yet!  Don't remove this!
+                    ServicePointManager.CertificatePolicy = new MonoCert();
+#pragma warning restore 0612, 0618
+                }
+                catch (Exception)
+                {
+                    //m_log.Error("[FreeSwitchVoice]: Certificate validation handler change not supported.  You may get ssl certificate validation errors teleporting from your region to some SSL regions.");
+                }
+            }
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            m_scene = scene;
+
+            if (m_Enabled)
             {
                 // we need to capture scene in an anonymous method
                 // here as we need it later in the callbacks
@@ -208,36 +228,21 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     {
                         OnRegisterCaps(scene, agentID, caps);
                     };
-
-                try
-                {
-                    ServicePointManager.ServerCertificateValidationCallback += CustomCertificateValidation;
-                }
-                catch (NotImplementedException)
-                {
-                    try
-                    {
-#pragma warning disable 0612, 0618
-                        // Mono does not implement the ServicePointManager.ServerCertificateValidationCallback yet!  Don't remove this!
-                        ServicePointManager.CertificatePolicy = new MonoCert();
-#pragma warning restore 0612, 0618
-                    }
-                    catch (Exception)
-                    {
-                        m_log.Error("[FreeSwitchVoice]: Certificate validation handler change not supported.  You may get ssl certificate validation errors teleporting from your region to some SSL regions.");
-                    }
-                }
             }
         }
 
-        public void PostInitialise()
+        public void RemoveRegion(Scene scene)
         {
-            if (m_pluginEnabled)
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (m_Enabled)
             {
                 m_log.Info("[FreeSwitchVoice] registering IVoiceModule with the scene");
 
                 // register the voice interface for this module, so the script engine can call us
-                m_scene.RegisterModuleInterface<IVoiceModule>(this);
+                scene.RegisterModuleInterface<IVoiceModule>(this);
             }
         }
 
@@ -250,9 +255,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             get { return "FreeSwitchVoiceModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
         }
 
         // <summary>
