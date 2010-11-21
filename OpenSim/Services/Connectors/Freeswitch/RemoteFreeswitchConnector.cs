@@ -54,7 +54,7 @@ namespace OpenSim.Services.Connectors
 
         public RemoteFreeswitchConnector(string serverURI)
         {
-            m_ServerURI = Path.Combine(serverURI.TrimEnd('/'), "region-config");
+            m_ServerURI = serverURI.TrimEnd('/') + "/region-config";
         }
 
         public RemoteFreeswitchConnector(IConfigSource source)
@@ -79,7 +79,7 @@ namespace OpenSim.Services.Connectors
                 m_log.Error("[FREESWITCH CONNECTOR]: No FreeswitchServiceURL named in section FreeSwitchVoice");
                 throw new Exception("Freeswitch connector init error");
             }
-            m_ServerURI = serviceURI;
+            m_ServerURI = serviceURI.TrimEnd('/') + "/region-config";
         }
 
         public Hashtable HandleDirectoryRequest(Hashtable requestBody)
@@ -96,6 +96,7 @@ namespace OpenSim.Services.Connectors
 
         public string GetJsonConfig()
         {
+            m_log.DebugFormat("[FREESWITCH CONNECTOR]: Requesting config from {0}", m_ServerURI);
             return SynchronousRestFormsRequester.MakeRequest("GET",
                     m_ServerURI, String.Empty);
         }
