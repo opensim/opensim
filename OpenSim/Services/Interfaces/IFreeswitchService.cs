@@ -35,5 +35,6 @@ namespace OpenSim.Services.Interfaces
     {
         Hashtable HandleDirectoryRequest(Hashtable requestBody);
         Hashtable HandleDialplanRequest(Hashtable requestBody);
+        string GetJsonConfig();
     }
 }

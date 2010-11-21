@@ -34,6 +34,7 @@ using OpenSim.Framework;
 using OpenSim.Data;
 using OpenSim.Services.Interfaces;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using System.Collections;
 
 namespace OpenSim.Services.FreeswitchService
@@ -383,6 +384,25 @@ namespace OpenSim.Services.FreeswitchService
                 domain, Context); 
              
             return response;
+        }
+
+        public string GetJsonConfig()
+        {
+            OSDMap map = new OSDMap(11);
+
+            map.Add("Realm", m_freeSwitchRealm);
+            map.Add("SIPProxy", m_freeSwitchSIPProxy);
+            map.Add("AttemptUseSTUN", m_freeSwitchAttemptUseSTUN);
+            map.Add("EchoServer", m_freeSwitchEchoServer);
+            map.Add("EchoPort", m_freeSwitchEchoPort);
+            map.Add("DefaultWellKnownIP", m_freeSwitchDefaultWellKnownIP);
+            map.Add("DefaultTimeout", m_freeSwitchDefaultTimeout);
+            map.Add("Context", m_freeSwitchContext);
+            map.Add("ServerUser", m_freeSwitchServerUser);
+            map.Add("ServerPass", m_freeSwitchServerPass);
+            map.Add("APIPrefix", m_freeSwitchAPIPrefix);
+
+            return OSDParser.SerializeJsonString(map);
         }
     }
 }
