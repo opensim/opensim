@@ -388,7 +388,7 @@ namespace OpenSim.Services.FreeswitchService
 
         public string GetJsonConfig()
         {
-            OSDMap map = new OSDMap(11);
+            OSDMap map = new OSDMap(9);
 
             map.Add("Realm", m_freeSwitchRealm);
             map.Add("SIPProxy", m_freeSwitchSIPProxy);
@@ -398,8 +398,6 @@ namespace OpenSim.Services.FreeswitchService
             map.Add("DefaultWellKnownIP", m_freeSwitchDefaultWellKnownIP);
             map.Add("DefaultTimeout", m_freeSwitchDefaultTimeout);
             map.Add("Context", m_freeSwitchContext);
-            map.Add("ServerUser", m_freeSwitchServerUser);
-            map.Add("ServerPass", m_freeSwitchServerPass);
             map.Add("APIPrefix", m_freeSwitchAPIPrefix);
 
             return OSDParser.SerializeJsonString(map);
