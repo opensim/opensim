@@ -150,7 +150,7 @@ namespace OpenSim.Data.SQLiteLegacy
             item.InvType = Convert.ToInt32(row["invType"]);
             item.Folder = new UUID((string) row["parentFolderID"]);
             item.Owner = new UUID((string) row["avatarID"]);
-            item.CreatorId = (string)row["creatorsID"];
+            item.CreatorIdentification = (string)row["creatorsID"];
             item.Name = (string) row["inventoryName"];
             item.Description = (string) row["inventoryDescription"];
 
@@ -195,7 +195,7 @@ namespace OpenSim.Data.SQLiteLegacy
             row["invType"] = item.InvType;
             row["parentFolderID"] = item.Folder.ToString();
             row["avatarID"] = item.Owner.ToString();
-            row["creatorsID"] = item.CreatorId.ToString();
+            row["creatorsID"] = item.CreatorIdentification.ToString();
             row["inventoryName"] = item.Name;
             row["inventoryDescription"] = item.Description;
 

@@ -408,6 +408,7 @@ namespace OpenSim.Region.Framework.Scenes
                 InventoryItemBase itemCopy = new InventoryItemBase();
                 itemCopy.Owner = recipient;
                 itemCopy.CreatorId = item.CreatorId;
+                itemCopy.CreatorData = item.CreatorData;
                 itemCopy.ID = UUID.Random();
                 itemCopy.AssetID = item.AssetID;
                 itemCopy.Description = item.Description;
@@ -683,13 +684,13 @@ namespace OpenSim.Region.Framework.Scenes
                 if (remoteClient.AgentId == oldAgentID)
                 {
                     CreateNewInventoryItem(
-                        remoteClient, item.CreatorId, newFolderID, newName, item.Flags, callbackID, asset, (sbyte)item.InvType,
+                        remoteClient, item.CreatorId, item.CreatorData, newFolderID, newName, item.Flags, callbackID, asset, (sbyte)item.InvType,
                         item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions, item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch());
                 }
                 else
                 {
                     CreateNewInventoryItem(
-                        remoteClient, item.CreatorId, newFolderID, newName, item.Flags, callbackID, asset, (sbyte)item.InvType,
+                        remoteClient, item.CreatorId, item.CreatorData, newFolderID, newName, item.Flags, callbackID, asset, (sbyte)item.InvType,
                         item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions, item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch());
                 }
             }
@@ -757,11 +758,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="asset"></param>
         /// <param name="invType"></param>
         /// <param name="nextOwnerMask"></param>
-        private void CreateNewInventoryItem(IClientAPI remoteClient, string creatorID, UUID folderID, string name, uint flags, uint callbackID,
+        private void CreateNewInventoryItem(IClientAPI remoteClient, string creatorID, string creatorData, UUID folderID, string name, uint flags, uint callbackID,
                                             AssetBase asset, sbyte invType, uint nextOwnerMask, int creationDate)
         {
             CreateNewInventoryItem(
-                remoteClient, creatorID, folderID, name, flags, callbackID, asset, invType,
+                remoteClient, creatorID, creatorData, folderID, name, flags, callbackID, asset, invType,
                 (uint)PermissionMask.All, (uint)PermissionMask.All, 0, nextOwnerMask, 0, creationDate);
         }
 
@@ -776,12 +777,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="nextOwnerMask"></param>
         /// <param name="creationDate"></param>
         private void CreateNewInventoryItem(
-            IClientAPI remoteClient, string creatorID, UUID folderID, string name, uint flags, uint callbackID, AssetBase asset, sbyte invType,
+            IClientAPI remoteClient, string creatorID, string creatorData, UUID folderID, string name, uint flags, uint callbackID, AssetBase asset, sbyte invType,
             uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask, uint groupMask, int creationDate)
         {
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = remoteClient.AgentId;
             item.CreatorId = creatorID;
+            item.CreatorData = creatorData;
             item.ID = UUID.Random();
             item.AssetID = asset.FullID;
             item.Description = asset.Description;
@@ -861,7 +863,7 @@ namespace OpenSim.Region.Framework.Scenes
                     AssetBase asset = CreateAsset(name, description, assetType, data, remoteClient.AgentId);
                     AssetService.Store(asset);
 
-                    CreateNewInventoryItem(remoteClient, remoteClient.AgentId.ToString(), folderID, asset.Name, 0, callbackID, asset, invType, nextOwnerMask, creationDate);
+                    CreateNewInventoryItem(remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID, asset.Name, 0, callbackID, asset, invType, nextOwnerMask, creationDate);
                 }
                 else
                 {
@@ -903,7 +905,7 @@ namespace OpenSim.Region.Framework.Scenes
                 asset.Description = description;
                 
                 CreateNewInventoryItem(
-                    remoteClient, remoteClient.AgentId.ToString(), folderID, name, 0, callbackID, asset, invType, 
+                    remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID, name, 0, callbackID, asset, invType, 
                     (uint)PermissionMask.All, (uint)PermissionMask.All, (uint)PermissionMask.All, 
                     (uint)PermissionMask.All, (uint)PermissionMask.All, Util.UnixTimeSinceEpoch());
             }
@@ -1031,6 +1033,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             agentItem.ID = UUID.Random();
             agentItem.CreatorId = taskItem.CreatorID.ToString();
+            agentItem.CreatorData = taskItem.CreatorData;
             agentItem.Owner = destAgent;
             agentItem.AssetID = taskItem.AssetID;
             agentItem.Description = taskItem.Description;
@@ -1232,6 +1235,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             destTaskItem.ItemID = UUID.Random();
             destTaskItem.CreatorID = srcTaskItem.CreatorID;
+            destTaskItem.CreatorData = srcTaskItem.CreatorData;
             destTaskItem.AssetID = srcTaskItem.AssetID;
             destTaskItem.GroupID = destPart.GroupID;
             destTaskItem.OwnerID = destPart.OwnerID;
@@ -1637,6 +1641,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             destTaskItem.ItemID = UUID.Random();
             destTaskItem.CreatorID = srcTaskItem.CreatorID;
+            destTaskItem.CreatorData = srcTaskItem.CreatorData;
             destTaskItem.AssetID = srcTaskItem.AssetID;
             destTaskItem.GroupID = destPart.GroupID;
             destTaskItem.OwnerID = destPart.OwnerID;
@@ -1873,6 +1878,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 InventoryItemBase item = new InventoryItemBase();
                 item.CreatorId = grp.RootPart.CreatorID.ToString();
+                item.CreatorData = grp.RootPart.CreatorData;
                 item.Owner = remoteClient.AgentId;
                 item.ID = UUID.Random();
                 item.AssetID = asset.FullID;

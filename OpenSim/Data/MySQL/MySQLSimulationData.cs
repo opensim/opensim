@@ -1090,7 +1090,7 @@ namespace OpenSim.Data.MySQL
 
             // depending on the MySQL connector version, CHAR(36) may be already converted to Guid! 
             prim.UUID = DBGuid.FromDB(row["UUID"]);
-            prim.CreatorID = DBGuid.FromDB(row["CreatorID"]);
+            prim.CreatorIdentification = (string)row["CreatorID"];
             prim.OwnerID = DBGuid.FromDB(row["OwnerID"]);
             prim.GroupID = DBGuid.FromDB(row["GroupID"]);
             prim.LastOwnerID = DBGuid.FromDB(row["LastOwnerID"]);
@@ -1243,7 +1243,7 @@ namespace OpenSim.Data.MySQL
             taskItem.Name          = (String)row["name"];
             taskItem.Description   = (String)row["description"];
             taskItem.CreationDate  = Convert.ToUInt32(row["creationDate"]);
-            taskItem.CreatorID     = DBGuid.FromDB(row["creatorID"]);
+            taskItem.CreatorIdentification = (String)row["creatorID"];
             taskItem.OwnerID       = DBGuid.FromDB(row["ownerID"]);
             taskItem.LastOwnerID   = DBGuid.FromDB(row["lastOwnerID"]);
             taskItem.GroupID       = DBGuid.FromDB(row["groupID"]);
@@ -1453,7 +1453,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("TouchName", prim.TouchName);
             // permissions
             cmd.Parameters.AddWithValue("ObjectFlags", (uint)prim.Flags);
-            cmd.Parameters.AddWithValue("CreatorID", prim.CreatorID.ToString());
+            cmd.Parameters.AddWithValue("CreatorID", prim.CreatorIdentification.ToString());
             cmd.Parameters.AddWithValue("OwnerID", prim.OwnerID.ToString());
             cmd.Parameters.AddWithValue("GroupID", prim.GroupID.ToString());
             cmd.Parameters.AddWithValue("LastOwnerID", prim.LastOwnerID.ToString());
@@ -1583,7 +1583,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("name", taskItem.Name);
             cmd.Parameters.AddWithValue("description", taskItem.Description);
             cmd.Parameters.AddWithValue("creationDate", taskItem.CreationDate);
-            cmd.Parameters.AddWithValue("creatorID", taskItem.CreatorID);
+            cmd.Parameters.AddWithValue("creatorID", taskItem.CreatorIdentification);
             cmd.Parameters.AddWithValue("ownerID", taskItem.OwnerID);
             cmd.Parameters.AddWithValue("lastOwnerID", taskItem.LastOwnerID);
             cmd.Parameters.AddWithValue("groupID", taskItem.GroupID);
