@@ -449,12 +449,17 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public string CreatorData
+        public string CreatorData // = <profile url>;<name>
         {
             get { return m_creatorData; }
             set { m_creatorData = value; }
         }
 
+        /// <summary>
+        /// Used by the DB layer to retrieve / store the entire user identification.
+        /// The identification can either be a simple UUID or a string of the form
+        /// uuid[;profile_url[;name]]
+        /// </summary>
         public string CreatorIdentification
         {
             get

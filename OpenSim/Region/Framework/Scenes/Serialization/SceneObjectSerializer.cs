@@ -331,6 +331,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_TaskInventoryXmlProcessors.Add("BasePermissions", ProcessTIBasePermissions);
             m_TaskInventoryXmlProcessors.Add("CreationDate", ProcessTICreationDate);
             m_TaskInventoryXmlProcessors.Add("CreatorID", ProcessTICreatorID);
+            m_TaskInventoryXmlProcessors.Add("CreatorData", ProcessTICreatorData);
             m_TaskInventoryXmlProcessors.Add("Description", ProcessTIDescription);
             m_TaskInventoryXmlProcessors.Add("EveryonePermissions", ProcessTIEveryonePermissions);
             m_TaskInventoryXmlProcessors.Add("Flags", ProcessTIFlags);
@@ -705,6 +706,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessTICreatorID(TaskInventoryItem item, XmlTextReader reader)
         {
             item.CreatorID = ReadUUID(reader, "CreatorID");
+        }
+
+        private static void ProcessTICreatorData(TaskInventoryItem item, XmlTextReader reader)
+        {
+            item.CreatorData = reader.ReadElementContentAsString("CreatorData", String.Empty);
         }
 
         private static void ProcessTIDescription(TaskInventoryItem item, XmlTextReader reader)
@@ -1102,7 +1108,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             WriteUUID(writer, "FolderID", sop.FolderID, options);
             writer.WriteElementString("InventorySerial", sop.InventorySerial.ToString());
 
-            WriteTaskInventory(writer, sop.TaskInventory, options);
+            WriteTaskInventory(writer, sop.TaskInventory, options, sop.ParentGroup.Scene);
 
             WriteUUID(writer, "UUID", sop.UUID, options);
             writer.WriteElementString("LocalId", sop.LocalId.ToString());
@@ -1226,7 +1232,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString(name, flagsStr);
         }
 
-        static void WriteTaskInventory(XmlTextWriter writer, TaskInventoryDictionary tinv, Dictionary<string, object> options)
+        static void WriteTaskInventory(XmlTextWriter writer, TaskInventoryDictionary tinv, Dictionary<string, object> options, Scene scene)
         {
             if (tinv.Count > 0) // otherwise skip this
             {
@@ -1239,7 +1245,20 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     WriteUUID(writer, "AssetID", item.AssetID, options);
                     writer.WriteElementString("BasePermissions", item.BasePermissions.ToString());
                     writer.WriteElementString("CreationDate", item.CreationDate.ToString());
+
+                    
                     WriteUUID(writer, "CreatorID", item.CreatorID, options);
+
+                    if (item.CreatorData != null && item.CreatorData != string.Empty)
+                        writer.WriteElementString("CreatorData", item.CreatorData);
+                    else if (options.ContainsKey("profile"))
+                    {
+                        if (m_UserManagement == null)
+                            m_UserManagement = scene.RequestModuleInterface<IUserManagement>();
+                        string name = m_UserManagement.GetUserName(item.CreatorID);
+                        writer.WriteElementString("CreatorData", (string)options["profile"] + "/" + item.CreatorID + ";" + name);
+                    }
+
                     writer.WriteElementString("Description", item.Description);
                     writer.WriteElementString("EveryonePermissions", item.EveryonePermissions.ToString());
                     writer.WriteElementString("Flags", item.Flags.ToString());

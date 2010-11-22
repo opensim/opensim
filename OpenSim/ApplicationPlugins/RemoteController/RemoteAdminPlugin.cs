@@ -1584,6 +1584,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         destinationItem.InvType = item.InvType;
                         destinationItem.CreatorId = item.CreatorId;
                         destinationItem.CreatorIdAsUuid = item.CreatorIdAsUuid;
+                        destinationItem.CreatorData = item.CreatorData;
                         destinationItem.NextPermissions = item.NextPermissions;
                         destinationItem.CurrentPermissions = item.CurrentPermissions;
                         destinationItem.BasePermissions = item.BasePermissions;
@@ -1636,6 +1637,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         destinationItem.InvType = item.InvType;
                         destinationItem.CreatorId = item.CreatorId;
                         destinationItem.CreatorIdAsUuid = item.CreatorIdAsUuid;
+                        destinationItem.CreatorData = item.CreatorData;
                         destinationItem.NextPermissions = item.NextPermissions;
                         destinationItem.CurrentPermissions = item.CurrentPermissions;
                         destinationItem.BasePermissions = item.BasePermissions;
@@ -1743,6 +1745,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     destinationItem.InvType = item.InvType;
                     destinationItem.CreatorId = item.CreatorId;
                     destinationItem.CreatorIdAsUuid = item.CreatorIdAsUuid;
+                    destinationItem.CreatorData = item.CreatorData;
                     destinationItem.NextPermissions = item.NextPermissions;
                     destinationItem.CurrentPermissions = item.CurrentPermissions;
                     destinationItem.BasePermissions = item.BasePermissions;
@@ -2026,7 +2029,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                             inventoryItem.InvType = GetIntegerAttribute(item,"invtype",-1);
                                             inventoryItem.CreatorId = GetStringAttribute(item,"creatorid","");
                                             inventoryItem.CreatorIdAsUuid = (UUID)GetStringAttribute(item,"creatoruuid","");
-                                            inventoryItem.NextPermissions = GetUnsignedAttribute(perms,"next",0x7fffffff);
+                                            inventoryItem.CreatorData = GetStringAttribute(item, "creatordata", "");
+                                            inventoryItem.NextPermissions = GetUnsignedAttribute(perms, "next", 0x7fffffff);
                                             inventoryItem.CurrentPermissions = GetUnsignedAttribute(perms,"current",0x7fffffff);
                                             inventoryItem.BasePermissions = GetUnsignedAttribute(perms,"base",0x7fffffff);
                                             inventoryItem.EveryOnePermissions = GetUnsignedAttribute(perms,"everyone",0x7fffffff);

@@ -164,7 +164,11 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             AddUser(sog.RootPart.CreatorID, sog.RootPart.CreatorData);
 
             foreach (SceneObjectPart sop in sog.Parts)
+            {
                 AddUser(sop.CreatorID, sop.CreatorData);
+                foreach (TaskInventoryItem item in sop.TaskInventory.Values)
+                    AddUser(item.CreatorID, item.CreatorData);
+            }
         }
 
 
@@ -226,40 +230,49 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             UserData user = new UserData();
             user.Id = id;
 
-            if (creatorData != null && creatorData != string.Empty)
-            {
-                //creatorData = <endpoint>;<name>
+            UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, id);
 
-                string[] parts = creatorData.Split(';');
-                if (parts.Length >= 1)
-                {
-                    user.ProfileURL = parts[0];
-                    try
-                    {
-                        Uri uri = new Uri(parts[0]);
-                        user.LastName = "@" + uri.Authority;
-                    }
-                    catch
-                    {
-                        m_log.DebugFormat("[SCENE]: Unable to parse Uri {0}", parts[0]);
-                        user.LastName = "@unknown";
-                    }
-                }
-                if (parts.Length >= 2)
-                    user.FirstName = parts[1].Replace(' ', '.');
-            }
-            else
+            if (account != null)
             {
-                UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, id);
                 user.FirstName = account.FirstName;
                 user.LastName = account.LastName;
                 // user.ProfileURL = we should initialize this to the default
+            }
+            else
+            {
+                if (creatorData != null && creatorData != string.Empty)
+                {
+                    //creatorData = <endpoint>;<name>
+
+                    string[] parts = creatorData.Split(';');
+                    if (parts.Length >= 1)
+                    {
+                        user.ProfileURL = parts[0];
+                        try
+                        {
+                            Uri uri = new Uri(parts[0]);
+                            user.LastName = "@" + uri.Authority;
+                        }
+                        catch
+                        {
+                            m_log.DebugFormat("[SCENE]: Unable to parse Uri {0}", parts[0]);
+                            user.LastName = "@unknown";
+                        }
+                    }
+                    if (parts.Length >= 2)
+                        user.FirstName = parts[1].Replace(' ', '.');
+                }
+                else
+                {
+                    user.FirstName = "Unknown";
+                    user.LastName = "User";
+                }
             }
 
             lock (m_UserCache)
                 m_UserCache[id] = user;
 
-            //m_log.DebugFormat("[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}", user.Id, user.FirstName, user.LastName, user.ProfileURL);
+            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}", user.Id, user.FirstName, user.LastName, user.ProfileURL);
         }
 
         //public void AddUser(UUID uuid, string userData)

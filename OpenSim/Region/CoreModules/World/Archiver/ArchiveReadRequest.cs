@@ -269,7 +269,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         if (!ResolveUserUuid(part.CreatorID))
                             part.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                     }
-                    UserManager.AddUser(part.CreatorID, part.CreatorData);
+                    if (UserManager != null)
+                        UserManager.AddUser(part.CreatorID, part.CreatorData);
 
                     if (!ResolveUserUuid(part.OwnerID))
                         part.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
@@ -293,10 +294,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                             {
                                 kvp.Value.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                             }
-                            if (!ResolveUserUuid(kvp.Value.CreatorID))
+                            if (kvp.Value.CreatorData == null || kvp.Value.CreatorData == string.Empty)
                             {
-                                kvp.Value.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                                if (!ResolveUserUuid(kvp.Value.CreatorID))
+                                    kvp.Value.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                             }
+                            if (UserManager != null)
+                                UserManager.AddUser(kvp.Value.CreatorID, kvp.Value.CreatorData);
                         }
                     }
                 }

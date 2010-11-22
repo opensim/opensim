@@ -1385,7 +1385,7 @@ namespace OpenSim.Data.SQLite
             taskItem.Name          = (String)row["name"];
             taskItem.Description   = (String)row["description"];
             taskItem.CreationDate  = Convert.ToUInt32(row["creationDate"]);
-            taskItem.CreatorID     = new UUID((String)row["creatorID"]);
+            taskItem.CreatorIdentification = (String)row["creatorID"];
             taskItem.OwnerID       = new UUID((String)row["ownerID"]);
             taskItem.LastOwnerID   = new UUID((String)row["lastOwnerID"]);
             taskItem.GroupID       = new UUID((String)row["groupID"]);
@@ -1716,7 +1716,7 @@ namespace OpenSim.Data.SQLite
             row["name"] = taskItem.Name;
             row["description"] = taskItem.Description;
             row["creationDate"] = taskItem.CreationDate;
-            row["creatorID"] = taskItem.CreatorID.ToString();
+            row["creatorID"] = taskItem.CreatorIdentification.ToString();
             row["ownerID"] = taskItem.OwnerID.ToString();
             row["lastOwnerID"] = taskItem.LastOwnerID.ToString();
             row["groupID"] = taskItem.GroupID.ToString();
