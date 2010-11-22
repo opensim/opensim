@@ -27,11 +27,14 @@
 
 using System;
 using OpenSim.Framework;
+using System.Collections;
 
 namespace OpenSim.Services.Interfaces
 {
     public interface IFreeswitchService
     {
-        // Place anything the connector eeds to access here!
+        Hashtable HandleDirectoryRequest(Hashtable requestBody);
+        Hashtable HandleDialplanRequest(Hashtable requestBody);
+        string GetJsonConfig();
     }
 }
