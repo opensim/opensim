@@ -227,6 +227,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osTeleportAgent(agent, position, lookat);
         }
 
+        public void osTeleportOwner(string regionName, vector position, vector lookat)
+        {
+            m_OSSL_Functions.osTeleportOwner(regionName, position, lookat);
+        }
+
+        public void osTeleportOwner(int regionX, int regionY, vector position, vector lookat)
+        {
+            m_OSSL_Functions.osTeleportOwner(regionX, regionY, position, lookat);
+        }
+
+        public void osTeleportOwner(vector position, vector lookat)
+        {
+            m_OSSL_Functions.osTeleportOwner(position, lookat);
+        }
+
         // Avatar info functions
         public string osGetAgentIP(string agent)
         {
@@ -663,26 +678,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osGetSimulatorMemory();
         }
+        
         public void osKickAvatar(string FirstName,string SurName,string alert)
         {
             m_OSSL_Functions.osKickAvatar(FirstName, SurName, alert);
         }
+        
         public void osSetSpeed(string UUID, float SpeedModifier)
         {
             m_OSSL_Functions.osSetSpeed(UUID, SpeedModifier);
         }
+        
         public void osCauseDamage(string avatar, double damage)
         {
             m_OSSL_Functions.osCauseDamage(avatar, damage);
         }
+        
         public void osCauseHealing(string avatar, double healing)
         {
             m_OSSL_Functions.osCauseHealing(avatar, healing);
         }
+        
         public LSL_List osGetPrimitiveParams(LSL_Key prim, LSL_List rules)
         {
             return m_OSSL_Functions.osGetPrimitiveParams(prim, rules);
         }
+        
         public void osSetPrimitiveParams(LSL_Key prim, LSL_List rules)
         {
             m_OSSL_Functions.osSetPrimitiveParams(prim, rules);
@@ -701,6 +722,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_List osGetAvatarList()
         {
             return m_OSSL_Functions.osGetAvatarList();
+        }
+
+        public LSL_String osUnixTimeToTimestamp(long time)
+        {
+            return m_OSSL_Functions.osUnixTimeToTimestamp(time);
         }
     }
 }

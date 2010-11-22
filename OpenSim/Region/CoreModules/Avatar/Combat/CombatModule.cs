@@ -115,10 +115,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
                         // Try to find the avatar wielding the killing object
                         killingAvatar = deadAvatar.Scene.GetScenePresence(part.OwnerID);
                         if (killingAvatar == null)
-                            deadAvatarMessage = String.Format("You impaled yourself on {0} owned by {1}!", part.Name, deadAvatar.Scene.GetUserName(part.OwnerID));
+                        {
+                            IUserManagement userManager = deadAvatar.Scene.RequestModuleInterface<IUserManagement>();
+                            string userName = "Unkown User";
+                            if (userManager != null)
+                                userName = userManager.GetUserName(part.OwnerID);
+                            deadAvatarMessage = String.Format("You impaled yourself on {0} owned by {1}!", part.Name, userName);
+                        }
                         else
                         {
-//                            killingAvatarMessage = String.Format("You fragged {0}!", deadAvatar.Name);
+                            //                            killingAvatarMessage = String.Format("You fragged {0}!", deadAvatar.Name);
                             deadAvatarMessage = String.Format("You got killed by {0}!", killingAvatar.Name);
                         }
                     }

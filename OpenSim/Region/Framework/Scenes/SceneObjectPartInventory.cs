@@ -127,8 +127,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (0 == m_items.Count)
                     return;
 
-                HasInventoryChanged = true;
-                m_part.ParentGroup.HasGroupChanged = true;
                 IList<TaskInventoryItem> items = GetInventoryItems();
                 m_items.Clear();
 
@@ -144,17 +142,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (Items)
             {
-                if (Items.Count == 0)
-                {
-                    return;
-                }
-    
-                HasInventoryChanged = true;
-                if (m_part.ParentGroup != null)
-                {
-                    m_part.ParentGroup.HasGroupChanged = true;
-                }
-                
                 IList<TaskInventoryItem> items = new List<TaskInventoryItem>(Items.Values);
                 Items.Clear();
     
@@ -208,8 +195,15 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            HasInventoryChanged = true;
-            m_part.ParentGroup.HasGroupChanged = true;
+            // Don't let this set the HasGroupChanged flag for attachments
+            // as this happens during rez and we don't want a new asset
+            // for each attachment each time
+            if (!m_part.ParentGroup.RootPart.IsAttachment)
+            {
+                HasInventoryChanged = true;
+                m_part.ParentGroup.HasGroupChanged = true;
+            }
+
             List<TaskInventoryItem> items = GetInventoryItems();
             foreach (TaskInventoryItem item in items)
             {
@@ -674,13 +668,19 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>false if the item did not exist, true if the update occurred successfully</returns>
         public bool UpdateInventoryItem(TaskInventoryItem item)
         {
-            return UpdateInventoryItem(item, true);
+            return UpdateInventoryItem(item, true, true);
         }
 
         public bool UpdateInventoryItem(TaskInventoryItem item, bool fireScriptEvents)
         {
+            return UpdateInventoryItem(item, fireScriptEvents, true);
+        }
+
+        public bool UpdateInventoryItem(TaskInventoryItem item, bool fireScriptEvents, bool considerChanged)
+        {
             TaskInventoryItem it = GetInventoryItem(item.ItemID);
             if (it != null)
+
             {
                 item.ParentID = m_part.UUID;
                 item.ParentPartID = m_part.UUID;
@@ -702,9 +702,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (fireScriptEvents)
                     m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
-
-                HasInventoryChanged = true;
-                m_part.ParentGroup.HasGroupChanged = true;
+                if (considerChanged)
+                {
+                    HasInventoryChanged = true;
+                    m_part.ParentGroup.HasGroupChanged = true;
+                }
                 return true;
             }
             else

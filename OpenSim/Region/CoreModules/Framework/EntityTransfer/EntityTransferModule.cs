@@ -1200,11 +1200,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
 
                 m_log.Debug("[ENTITY TRANSFER MODULE]: Completed inform client about neighbour " + endPoint.ToString());
-
             }
-
         }
 
+        /// <summary>
+        /// Return the list of regions that are considered to be neighbours to the given scene.
+        /// </summary>
+        /// <param name="pScene"></param>
+        /// <param name="pRegionLocX"></param>
+        /// <param name="pRegionLocY"></param>
+        /// <returns></returns>        
         protected List<GridRegion> RequestNeighbours(Scene pScene, uint pRegionLocX, uint pRegionLocY)
         {
             RegionInfo m_regionInfo = pScene.RegionInfo;

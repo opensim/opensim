@@ -2983,15 +2983,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
             {
-                SceneObjectGroup grp = m_host.ParentGroup;
-                UUID itemID = grp.GetFromItemID();
-
-                ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
-
                 IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
                 if (attachmentsModule != null)
-                    attachmentsModule.ShowDetachInUserInventory(itemID, presence.ControllingClient);
+                    Util.FireAndForget(DetachWrapper, m_host);
             }
+        }
+
+        private void DetachWrapper(object o)
+        {
+            SceneObjectPart host = (SceneObjectPart)o;
+
+            SceneObjectGroup grp = host.ParentGroup;
+            UUID itemID = grp.GetFromItemID();
+            ScenePresence presence = World.GetScenePresence(host.OwnerID);
+
+            IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
+            if (attachmentsModule != null)
+                attachmentsModule.ShowDetachInUserInventory(itemID, presence.ControllingClient);
         }
 
         public void llTakeCamera(string avatar)
@@ -8742,24 +8750,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 switch (data)
                 {
-                    case 5: // DATA_SIM_POS
+                    case ScriptBaseClass.DATA_SIM_POS:
                         if (info == null)
                         {
                             ScriptSleep(1000);
                             return UUID.Zero.ToString();
                         }
                         reply = new LSL_Vector(
-                            info.RegionLocX * Constants.RegionSize,
-                            info.RegionLocY * Constants.RegionSize,
+                            info.RegionLocX,
+                            info.RegionLocY,
                             0).ToString();
                         break;
-                    case 6: // DATA_SIM_STATUS
+                    case ScriptBaseClass.DATA_SIM_STATUS:
                         if (info != null)
                             reply = "up"; // Duh!
                         else
                             reply = "unknown";
                         break;
-                    case 7: // DATA_SIM_RATING
+                    case ScriptBaseClass.DATA_SIM_RATING:
                         if (info == null)
                         {
                             ScriptSleep(1000);
@@ -8775,7 +8783,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         else
                             reply = "UNKNOWN";
                         break;
-                    case 128:
+                    case ScriptBaseClass.DATA_SIM_RELEASE:
                         if (ossl != null)
                             ossl.CheckThreatLevel(ThreatLevel.High, "llRequestSimulatorData");
                         reply = "OpenSim";

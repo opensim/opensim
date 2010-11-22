@@ -3746,5 +3746,28 @@ namespace OpenSim.Region.Framework.Scenes
                 m_reprioritization_called = false;
             }
         }
+
+        public void SaveChangedAttachments()
+        {
+            // Need to copy this list because DetachToInventoryPrep mods it
+            List<SceneObjectGroup> attachments = new List<SceneObjectGroup>(Attachments.ToArray());
+
+            IAttachmentsModule attachmentsModule = m_scene.AttachmentsModule;
+            if (attachmentsModule != null)
+            {
+                foreach (SceneObjectGroup grp in attachments)
+                {
+                    if (grp.HasGroupChanged) // Resizer scripts?
+                    {
+                        grp.RootPart.IsAttachment = false;
+                        grp.AbsolutePosition = grp.RootPart.AttachedPos;
+//                        grp.DetachToInventoryPrep();
+                        attachmentsModule.UpdateKnownItem(ControllingClient,
+                                grp, grp.GetFromItemID(), grp.OwnerID);
+                        grp.RootPart.IsAttachment = true;
+                    }
+                }
+            }
+        }
     }
 }

@@ -185,6 +185,8 @@ namespace OpenSim.Region.Framework.Scenes
         private Timer m_mapGenerationTimer = new Timer();
         private bool m_generateMaptiles;
 
+        private Dictionary<UUID, string[]> m_UserNamesCache = new Dictionary<UUID, string[]>();
+
         #endregion Fields
 
         #region Properties
@@ -790,36 +792,6 @@ namespace OpenSim.Region.Framework.Scenes
         public override string GetSimulatorVersion()
         {
             return m_simulatorVersion;
-        }
-
-        public string[] GetUserNames(UUID uuid)
-        {
-            string[] returnstring = new string[0];
-
-            UserAccount account = UserAccountService.GetUserAccount(RegionInfo.ScopeID, uuid);
-
-            if (account != null)
-            {
-                returnstring = new string[2];
-                returnstring[0] = account.FirstName;
-                returnstring[1] = account.LastName;
-            }
-
-            return returnstring;
-        }
-
-        public string GetUserName(UUID uuid)
-        {
-            string[] names = GetUserNames(uuid);
-            if (names.Length == 2)
-            {
-                string firstname = names[0];
-                string lastname = names[1];
-
-                return firstname + " " + lastname;
-
-            }
-            return "(hippos)";
         }
 
         /// <summary>
@@ -2808,7 +2780,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void SubscribeToClientGridEvents(IClientAPI client)
         {
-            client.OnNameFromUUIDRequest += HandleUUIDNameRequest;
+            //client.OnNameFromUUIDRequest += HandleUUIDNameRequest;
             client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;
             client.OnAvatarPickerRequest += ProcessAvatarPickerRequest;
             client.OnSetStartLocationRequest += SetHomeRezPoint;
@@ -2935,7 +2907,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void UnSubscribeToClientGridEvents(IClientAPI client)
         {
-            client.OnNameFromUUIDRequest -= HandleUUIDNameRequest;
+            //client.OnNameFromUUIDRequest -= HandleUUIDNameRequest;
             client.OnMoneyTransferRequest -= ProcessMoneyTransferRequest;
             client.OnAvatarPickerRequest -= ProcessAvatarPickerRequest;
             client.OnSetStartLocationRequest -= SetHomeRezPoint;
@@ -3152,7 +3124,6 @@ namespace OpenSim.Region.Framework.Scenes
                         List<ulong> regions = new List<ulong>(avatar.KnownChildRegionHandles);
                         regions.Remove(RegionInfo.RegionHandle);
                         m_sceneGridService.SendCloseChildAgentConnections(agentID, regions);
-
                     }
                     m_eventManager.TriggerClientClosed(agentID, this);
                 }
@@ -3163,6 +3134,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_eventManager.TriggerOnRemovePresence(agentID);
+
+                if (avatar != null && (!avatar.IsChildAgent))
+                    avatar.SaveChangedAttachments();
 
                 ForEachClient(
                     delegate(IClientAPI client)

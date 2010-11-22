@@ -451,6 +451,14 @@ namespace OpenSim.Framework
             return (x + y - (min >> 1) - (min >> 2) + (min >> 4));
         }
 
+        /// <summary>
+        /// Are the co-ordinates of the new region visible from the old region?
+        /// </summary>
+        /// <param name="oldx">Old region x-coord</param>
+        /// <param name="newx">New region x-coord</param>
+        /// <param name="oldy">Old region y-coord</param>
+        /// <param name="newy">New region y-coord</param>
+        /// <returns></returns>        
         public static bool IsOutsideView(uint oldx, uint newx, uint oldy, uint newy)
         {
             // Eventually this will be a function of the draw distance / camera position too.

@@ -47,8 +47,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         private bool m_Enabled = false;
         private bool m_Initialized = false;
-//        private Scene m_Scene;
+        private Scene m_Scene;
         private InventoryServicesConnector m_RemoteConnector;
+
+        private IUserManagement m_UserManager;
+        private IUserManagement UserManager
+        {
+            get
+            {
+                if (m_UserManager == null)
+                {
+                    m_UserManager = m_Scene.RequestModuleInterface<IUserManagement>();
+                }
+                return m_UserManager;
+            }
+        }
+
 
         public Type ReplaceableInterface 
         {
@@ -116,6 +130,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             scene.RegisterModuleInterface<IInventoryService>(this);
             m_cache.AddRegion(scene);
+
+            if (m_Scene == null)
+                m_Scene = scene;
         }
 
         public void RemoveRegion(Scene scene)
@@ -186,7 +203,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             UUID sessionID = GetSessionID(userID);
             try
             {
-                return m_RemoteConnector.GetFolderContent(userID.ToString(), folderID, sessionID);
+                InventoryCollection invCol = m_RemoteConnector.GetFolderContent(userID.ToString(), folderID, sessionID);
+                foreach (InventoryItemBase item in invCol.Items)
+                    UserManager.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+                return invCol;
             }
             catch (Exception e)
             {

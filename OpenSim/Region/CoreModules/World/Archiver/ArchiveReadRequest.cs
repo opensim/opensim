@@ -56,7 +56,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// The maximum major version of OAR that we can read.  Minor versions shouldn't need a max number since version
         /// bumps here should be compatible.
         /// </summary>
-        public static int MAX_MAJOR_VERSION = 0;
+        public static int MAX_MAJOR_VERSION = 1;
 
         protected Scene m_scene;
         protected Stream m_loadStream;
@@ -77,6 +77,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Used to cache lookups for valid uuids.
         /// </summary>
         private IDictionary<UUID, bool> m_validUserUuids = new Dictionary<UUID, bool>();
+
+        private IUserManagement m_UserMan;
+        private IUserManagement UserManager
+        {
+            get
+            {
+                if (m_UserMan == null)
+                {
+                    m_UserMan = m_scene.RequestModuleInterface<IUserManagement>();
+                }
+                return m_UserMan;
+            }
+        }
 
         public ArchiveReadRequest(Scene scene, string loadPath, bool merge, bool skipAssets, Guid requestId)
         {
@@ -251,8 +264,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 foreach (SceneObjectPart part in sceneObject.Parts)
                 {
-                    if (!ResolveUserUuid(part.CreatorID))
-                        part.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                    if (part.CreatorData == null || part.CreatorData == string.Empty)
+                    {
+                        if (!ResolveUserUuid(part.CreatorID))
+                            part.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                    }
+                    if (UserManager != null)
+                        UserManager.AddUser(part.CreatorID, part.CreatorData);
 
                     if (!ResolveUserUuid(part.OwnerID))
                         part.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
@@ -276,10 +294,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                             {
                                 kvp.Value.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                             }
-                            if (!ResolveUserUuid(kvp.Value.CreatorID))
+                            if (kvp.Value.CreatorData == null || kvp.Value.CreatorData == string.Empty)
                             {
-                                kvp.Value.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                                if (!ResolveUserUuid(kvp.Value.CreatorID))
+                                    kvp.Value.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                             }
+                            if (UserManager != null)
+                                UserManager.AddUser(kvp.Value.CreatorID, kvp.Value.CreatorData);
                         }
                     }
                 }

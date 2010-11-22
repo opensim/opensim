@@ -162,6 +162,11 @@ namespace OpenSim.Server.Handlers.Simulation
                 return;
             }
 
+            if (args.ContainsKey("modified"))
+                sog.HasGroupChanged = args["modified"].AsBoolean();
+            else
+                sog.HasGroupChanged = false;
+
             if ((args["state"] != null) && s.AllowScriptCrossings)
             {
                 stateXmlStr = args["state"].AsString();

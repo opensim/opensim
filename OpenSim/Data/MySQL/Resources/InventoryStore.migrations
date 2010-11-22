@@ -99,3 +99,11 @@ BEGIN;
 alter table inventoryitems modify column creatorID varchar(128) not NULL default '00000000-0000-0000-0000-000000000000';
 
 COMMIT;
+
+:VERSION 6		# ------------
+
+BEGIN;
+
+alter table inventoryitems modify column creatorID varchar(255) not NULL default '00000000-0000-0000-0000-000000000000';
+
+COMMIT;
