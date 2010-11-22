@@ -603,7 +603,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             response["str_response_string"] = string.Empty;
             response["content-type"] = "text/xml";
 
-            Hashtable requestBody = parseRequestBody((string)request["body"]);
+            Hashtable requestBody = ParseRequestBody((string)request["body"]);
 
             if (!requestBody.ContainsKey("auth_token"))
                 return response;
@@ -675,7 +675,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             string uri = (string)request["uri"];
             string contenttype = (string)request["content-type"];
 
-            Hashtable requestBody = parseRequestBody((string)request["body"]);
+            Hashtable requestBody = ParseRequestBody((string)request["body"]);
 
             //string pwd = (string) requestBody["pwd"];
             string userid = (string) requestBody["userid"];
@@ -719,7 +719,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             return response;
         }
 
-        public Hashtable parseRequestBody(string body)
+        public Hashtable ParseRequestBody(string body)
         {
             Hashtable bodyParams = new Hashtable();
             // split string
