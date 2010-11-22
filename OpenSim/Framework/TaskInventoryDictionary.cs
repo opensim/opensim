@@ -151,6 +151,7 @@ namespace OpenSim.Framework
                 while (!m_itemLock.TryEnterWriteLock(60000))
                 {
                     m_log.Error("Thread lock detected while trying to aquire WRITE lock in TaskInventoryDictionary. Locked by thread " + LockedByThread.Name + ". I'm going to try to solve the thread lock automatically to preserve region stability, but this needs to be fixed.");
+                    System.Console.WriteLine("My call stack:\n" + Environment.StackTrace);
                     if (m_itemLock.IsWriteLockHeld)
                     {
                         m_itemLock = new System.Threading.ReaderWriterLockSlim();

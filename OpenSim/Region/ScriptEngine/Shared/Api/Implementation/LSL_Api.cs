@@ -10177,6 +10177,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (str2 == String.Empty)
                 return str1;
 
+            int len = str2.Length;
+            if ((len % 4) != 0) // LL is EVIL!!!!
+            {
+                while (str2.EndsWith("="))
+                    str2 = str2.Substring(0, str2.Length - 1);
+
+                len = str2.Length;
+                int mod = len % 4;
+
+                if (mod == 1)
+                    str2 = str2.Substring(0, str2.Length - 1);
+                else if (mod == 2)
+                    str2 += "==";
+                else if (mod == 3)
+                    str2 += "=";
+            }
+
             byte[] data1;
             byte[] data2;
             try
@@ -10200,7 +10217,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 while (pos < data1.Length)
                 {
-                    int len = data1.Length - pos;
+                    len = data1.Length - pos;
                     if (len > data2.Length)
                         len = data2.Length;
 

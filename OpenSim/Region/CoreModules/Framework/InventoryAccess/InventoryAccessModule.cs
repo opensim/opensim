@@ -436,9 +436,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     item = new InventoryItemBase();
                     // Can't know creator is the same, so null it in inventory
                     if (objlist.Count > 1)
+                    {
                         item.CreatorId = UUID.Zero.ToString();
+                        item.CreatorData = String.Empty;
+                    }
                     else
+                    {
                         item.CreatorId = objlist[0].RootPart.CreatorID.ToString();
+                        item.CreatorData = objlist[0].RootPart.CreatorData;
+                    }
                     item.ID = UUID.Random();
                     item.InvType = (int)InventoryType.Object;
                     item.Folder = folder.ID;
