@@ -65,6 +65,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [TestFixtureSetUp]
         public void Init()
         {
+            TestHelper.InMethod();
+            
             scene = SceneSetupHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
             scene2 = SceneSetupHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000);
             scene3 = SceneSetupHelpers.SetupScene("Neighbour x-1", UUID.Random(), 999, 1000);
