@@ -601,8 +601,10 @@ namespace OpenSim.Server.Handlers.Asset
             ret["AssetType"] = item.AssetType.ToString();
             ret["BasePermissions"] = item.BasePermissions.ToString();
             ret["CreationDate"] = item.CreationDate.ToString();
-            ret["CreatorId"] = item.CreatorId.ToString();
-            ret["CreatorData"] = item.CreatorData.ToString();
+            if (item.CreatorId != null)
+                ret["CreatorId"] = item.CreatorId.ToString();
+            else
+                ret["CreatorId"] = String.Empty;
             ret["CurrentPermissions"] = item.CurrentPermissions.ToString();
             ret["Description"] = item.Description.ToString();
             ret["EveryOnePermissions"] = item.EveryOnePermissions.ToString();
