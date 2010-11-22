@@ -370,6 +370,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                 item = new InventoryItemBase();
                 item.CreatorId = objectGroup.RootPart.CreatorID.ToString();
+                item.CreatorData = objectGroup.RootPart.CreatorData;
                 item.ID = UUID.Random();
                 item.InvType = (int)InventoryType.Object;
                 item.Folder = folder.ID;

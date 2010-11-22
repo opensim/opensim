@@ -1243,7 +1243,7 @@ namespace OpenSim.Data.SQLite
             prim.TouchName = (String) row["TouchName"];
             // permissions
             prim.ObjectFlags = Convert.ToUInt32(row["ObjectFlags"]);
-            prim.CreatorID = new UUID((String) row["CreatorID"]);
+            prim.CreatorIdentification = (String) row["CreatorID"];
             prim.OwnerID = new UUID((String) row["OwnerID"]);
             prim.GroupID = new UUID((String) row["GroupID"]);
             prim.LastOwnerID = new UUID((String) row["LastOwnerID"]);
@@ -1385,7 +1385,7 @@ namespace OpenSim.Data.SQLite
             taskItem.Name          = (String)row["name"];
             taskItem.Description   = (String)row["description"];
             taskItem.CreationDate  = Convert.ToUInt32(row["creationDate"]);
-            taskItem.CreatorID     = new UUID((String)row["creatorID"]);
+            taskItem.CreatorIdentification = (String)row["creatorID"];
             taskItem.OwnerID       = new UUID((String)row["ownerID"]);
             taskItem.LastOwnerID   = new UUID((String)row["lastOwnerID"]);
             taskItem.GroupID       = new UUID((String)row["groupID"]);
@@ -1583,7 +1583,7 @@ namespace OpenSim.Data.SQLite
             row["TouchName"] = prim.TouchName;
             // permissions
             row["ObjectFlags"] = prim.ObjectFlags;
-            row["CreatorID"] = prim.CreatorID.ToString();
+            row["CreatorID"] = prim.CreatorIdentification.ToString();
             row["OwnerID"] = prim.OwnerID.ToString();
             row["GroupID"] = prim.GroupID.ToString();
             row["LastOwnerID"] = prim.LastOwnerID.ToString();
@@ -1716,7 +1716,7 @@ namespace OpenSim.Data.SQLite
             row["name"] = taskItem.Name;
             row["description"] = taskItem.Description;
             row["creationDate"] = taskItem.CreationDate;
-            row["creatorID"] = taskItem.CreatorID.ToString();
+            row["creatorID"] = taskItem.CreatorIdentification.ToString();
             row["ownerID"] = taskItem.OwnerID.ToString();
             row["lastOwnerID"] = taskItem.LastOwnerID.ToString();
             row["groupID"] = taskItem.GroupID.ToString();

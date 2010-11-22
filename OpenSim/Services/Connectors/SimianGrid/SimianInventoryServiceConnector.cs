@@ -612,6 +612,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "Name", item.Name },
                 { "Description", item.Description },
                 { "CreatorID", item.CreatorId },
+                { "CreatorData", item.CreatorData },
                 { "ContentType", invContentType },
                 { "ExtraData", OSDParser.SerializeJsonString(extraData) }
             };
@@ -776,6 +777,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     invItem.AssetType = SLUtil.ContentTypeToSLAssetType(item["ContentType"].AsString());
                     invItem.CreationDate = item["CreationDate"].AsInteger();
                     invItem.CreatorId = item["CreatorID"].AsString();
+                    invItem.CreatorData = item["CreatorData"].AsString();
                     invItem.CreatorIdAsUuid = item["CreatorID"].AsUUID();
                     invItem.Description = item["Description"].AsString();
                     invItem.Folder = item["ParentID"].AsUUID();

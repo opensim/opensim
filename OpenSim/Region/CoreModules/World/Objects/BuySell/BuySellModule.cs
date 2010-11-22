@@ -189,6 +189,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
 
                 InventoryItemBase item = new InventoryItemBase();
                 item.CreatorId = part.CreatorID.ToString();
+                item.CreatorData = part.CreatorData;
 
                 item.ID = UUID.Random();
                 item.Owner = remoteClient.AgentId;

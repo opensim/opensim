@@ -524,7 +524,7 @@ namespace OpenSim.Services.InventoryService
             newItem.ID = item.inventoryID;
             newItem.InvType = item.invType;
             newItem.Folder = item.parentFolderID;
-            newItem.CreatorId = item.creatorID;
+            newItem.CreatorIdentification = item.creatorID;
             newItem.Description = item.inventoryDescription;
             newItem.NextPermissions = (uint)item.inventoryNextPermissions;
             newItem.CurrentPermissions = (uint)item.inventoryCurrentPermissions;
@@ -555,7 +555,7 @@ namespace OpenSim.Services.InventoryService
             newItem.inventoryID = item.ID;
             newItem.invType = item.InvType;
             newItem.parentFolderID = item.Folder;
-            newItem.creatorID = item.CreatorId;
+            newItem.creatorID = item.CreatorIdentification;
             newItem.inventoryDescription = item.Description;
             newItem.inventoryNextPermissions = (int)item.NextPermissions;
             newItem.inventoryCurrentPermissions = (int)item.CurrentPermissions;
