@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Nini.Config;
 using NUnit.Framework;
@@ -76,8 +77,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 = new SceneObjectPart(userId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero);
             part.Name = "obj1";
             scene.AddNewSceneObject(new SceneObjectGroup(part), false);
+            List<uint> localIds = new List<uint>();
+            localIds.Add(part.LocalId);
 
-            scene.DeRezObject(client, part.LocalId, UUID.Zero, DeRezAction.Delete, UUID.Zero);
+            scene.DeRezObjects(client, localIds, UUID.Zero, DeRezAction.Delete, UUID.Zero);
             sogd.InventoryDeQueueAndDelete();
             
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
@@ -113,8 +116,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 = new SceneObjectPart(objectOwnerId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero);
             part.Name = "obj1";
             scene.AddNewSceneObject(new SceneObjectGroup(part), false);
+            List<uint> localIds = new List<uint>();
+            localIds.Add(part.LocalId);            
 
-            scene.DeRezObject(client, part.LocalId, UUID.Zero, DeRezAction.Delete, UUID.Zero);
+            scene.DeRezObjects(client, localIds, UUID.Zero, DeRezAction.Delete, UUID.Zero);
             sogd.InventoryDeQueueAndDelete();
             
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
