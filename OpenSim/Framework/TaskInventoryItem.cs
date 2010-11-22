@@ -102,6 +102,7 @@ namespace OpenSim.Framework
         private uint _baseMask = FULL_MASK_PERMISSIONS_GENERAL;
         private uint _creationDate = 0;
         private UUID _creatorID = UUID.Zero;
+        private string _creatorData = String.Empty;
         private string _description = String.Empty;
         private uint _everyoneMask = FULL_MASK_PERMISSIONS_GENERAL;
         private uint _flags = 0;
@@ -157,6 +158,61 @@ namespace OpenSim.Framework
             }
             set {
                 _creatorID = value;
+            }
+        }
+
+        public string CreatorData // = <profile url>;<name>
+        {
+            get { return _creatorData; }
+            set { _creatorData = value; }
+        }
+
+        /// <summary>
+        /// Used by the DB layer to retrieve / store the entire user identification.
+        /// The identification can either be a simple UUID or a string of the form
+        /// uuid[;profile_url[;name]]
+        /// </summary>
+        public string CreatorIdentification
+        {
+            get
+            {
+                if (_creatorData != null && _creatorData != string.Empty)
+                    return _creatorID.ToString() + ';' + _creatorData;
+                else
+                    return _creatorID.ToString();
+            }
+            set
+            {
+                if ((value == null) || (value != null && value == string.Empty))
+                {
+                    _creatorData = string.Empty;
+                    return;
+                }
+
+                if (!value.Contains(";")) // plain UUID
+                {
+                    UUID uuid = UUID.Zero;
+                    UUID.TryParse(value, out uuid);
+                    _creatorID = uuid;
+                }
+                else // <uuid>[;<endpoint>[;name]]
+                {
+                    string name = "Unknown User";
+                    string[] parts = value.Split(';');
+                    if (parts.Length >= 1)
+                    {
+                        UUID uuid = UUID.Zero;
+                        UUID.TryParse(parts[0], out uuid);
+                        _creatorID = uuid;
+                    }
+                    if (parts.Length >= 2)
+                        _creatorData = parts[1];
+                    if (parts.Length >= 3)
+                        name = parts[2];
+
+                    _creatorData += ';' + name;
+
+                }
             }
         }
 

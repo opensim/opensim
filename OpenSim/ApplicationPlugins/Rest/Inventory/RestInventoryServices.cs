@@ -1295,6 +1295,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             rdata.writer.WriteAttributeString("folder", String.Empty, i.Folder.ToString());
             rdata.writer.WriteAttributeString("owner", String.Empty, i.Owner.ToString());
             rdata.writer.WriteAttributeString("creator", String.Empty, i.CreatorId);
+            rdata.writer.WriteAttributeString("creatordata", String.Empty, i.CreatorData);
             rdata.writer.WriteAttributeString("creationdate", String.Empty, i.CreationDate.ToString());
             rdata.writer.WriteAttributeString("invtype", String.Empty, i.InvType.ToString());
             rdata.writer.WriteAttributeString("assettype", String.Empty, i.AssetType.ToString());

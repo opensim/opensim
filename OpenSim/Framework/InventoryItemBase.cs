@@ -117,6 +117,56 @@ namespace OpenSim.Framework
         }
         protected UUID m_creatorIdAsUuid = UUID.Zero;
 
+        protected string m_creatorData;
+        public string CreatorData // = <profile url>;<name>
+        {
+            get { return m_creatorData; }
+            set { m_creatorData = value; }
+        }
+
+        /// <summary>
+        /// Used by the DB layer to retrieve / store the entire user identification.
+        /// The identification can either be a simple UUID or a string of the form
+        /// uuid[;profile_url[;name]]
+        /// </summary>
+        public string CreatorIdentification
+        {
+            get
+            {
+                if (m_creatorData != null && m_creatorData != string.Empty)
+                    return m_creatorId + ';' + m_creatorData;
+                else
+                    return m_creatorId;
+            }
+            set
+            {
+                if ((value == null) || (value != null && value == string.Empty))
+                {
+                    m_creatorData = string.Empty;
+                    return;
+                }
+
+                if (!value.Contains(";")) // plain UUID
+                {
+                    m_creatorId = value;
+                }
+                else // <uuid>[;<endpoint>[;name]]
+                {
+                    string name = "Unknown User";
+                    string[] parts = value.Split(';');
+                    if (parts.Length >= 1)
+                        m_creatorId = parts[0];
+                    if (parts.Length >= 2)
+                        m_creatorData = parts[1];
+                    if (parts.Length >= 3)
+                        name = parts[2];
+
+                    m_creatorData += ';' + name;
+
+                }
+            }
+        }
+
         /// <value>
         /// The description of the inventory item (must be less than 64 characters)
         /// </value>
