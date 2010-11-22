@@ -37,6 +37,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
@@ -50,6 +51,9 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using System.Text.RegularExpressions;
+using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
+using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
 namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 {
@@ -57,8 +61,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
     public class FreeSwitchVoiceModule : INonSharedRegionModule, IVoiceModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        private bool UseProxy = false;
 
         // Capability string prefixes
         private static readonly string m_parcelVoiceInfoRequestPath = "0007/";
@@ -70,8 +72,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
         // FreeSwitch server is going to contact us and ask us all
         // sorts of things.
-        private static string m_freeSwitchServerUser;
-        private static string m_freeSwitchServerPass;
 
         // SLVoice client will do a GET on this prefix
         private static string m_freeSwitchAPIPrefix;
@@ -85,73 +85,69 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         private static string m_freeSwitchRealm;
         private static string m_freeSwitchSIPProxy;
         private static bool m_freeSwitchAttemptUseSTUN;
-        // private static string m_freeSwitchSTUNServer;
         private static string m_freeSwitchEchoServer;
         private static int m_freeSwitchEchoPort;
         private static string m_freeSwitchDefaultWellKnownIP;
         private static int m_freeSwitchDefaultTimeout;
-        // private static int m_freeSwitchSubscribeRetry;
         private static string m_freeSwitchUrlResetPassword;
-        // private static IPEndPoint m_FreeSwitchServiceIP;
-        private int m_freeSwitchServicePort;
+        private uint m_freeSwitchServicePort;
         private string m_openSimWellKnownHTTPAddress;
         private string m_freeSwitchContext;
 
         private readonly Dictionary<string, string> m_UUIDName = new Dictionary<string, string>();
         private Dictionary<string, string> m_ParcelAddress = new Dictionary<string, string>();
 
-        private Scene m_scene;
+        private Scene m_Scene;
 
+        private IConfig m_Config;
 
-        private IConfig m_config;
+        private IFreeswitchService m_FreeswitchService;
 
         public void Initialise(IConfigSource config)
         {
-            m_config = config.Configs["FreeSwitchVoice"];
+            m_Config = config.Configs["FreeSwitchVoice"];
 
-            if (null == m_config)
+            if (m_Config == null)
             {
                 m_log.Info("[FreeSwitchVoice] no config found, plugin disabled");
                 return;
             }
 
-            if (!m_config.GetBoolean("enabled", false))
+            if (!m_Config.GetBoolean("Enabled", false))
             {
                 m_log.Info("[FreeSwitchVoice] plugin disabled by configuration");
                 return;
             }
 
-            m_Enabled = true;
-
             try
             {
-                m_freeSwitchServerUser = m_config.GetString("freeswitch_server_user", String.Empty);
-                m_freeSwitchServerPass = m_config.GetString("freeswitch_server_pass", String.Empty);
-                m_freeSwitchAPIPrefix = m_config.GetString("freeswitch_api_prefix", String.Empty);
+                string serviceDll = m_Config.GetString("LocalServiceModule",
+                        String.Empty);
 
-                // XXX: get IP address of HTTP server. (This can be this OpenSim server or another, or could be a dedicated grid service or may live on the freeswitch server)
+                if (serviceDll == String.Empty)
+                {
+                    m_log.Error("[FreeSwitchVoice]: No LocalServiceModule named in section FreeSwitchVoice");
+                    return;
+                }
 
-                string serviceIP = m_config.GetString("freeswitch_service_server", String.Empty);
-                int servicePort = m_config.GetInt("freeswitch_service_port", 80);
-                IPAddress serviceIPAddress = IPAddress.Parse(serviceIP);
-                // m_FreeSwitchServiceIP = new IPEndPoint(serviceIPAddress, servicePort);
-                m_freeSwitchServicePort = servicePort;
-                m_freeSwitchRealm = m_config.GetString("freeswitch_realm", String.Empty);
-                m_freeSwitchSIPProxy = m_config.GetString("freeswitch_sip_proxy", m_freeSwitchRealm);
-                m_freeSwitchAttemptUseSTUN = m_config.GetBoolean("freeswitch_attempt_stun", true);
-                // m_freeSwitchSTUNServer = m_config.GetString("freeswitch_stun_server", m_freeSwitchRealm);
-                m_freeSwitchEchoServer = m_config.GetString("freeswitch_echo_server", m_freeSwitchRealm);
-                m_freeSwitchEchoPort = m_config.GetInt("freeswitch_echo_port", 50505);
-                m_freeSwitchDefaultWellKnownIP = m_config.GetString("freeswitch_well_known_ip", m_freeSwitchRealm);
-                m_openSimWellKnownHTTPAddress = m_config.GetString("opensim_well_known_http_address", serviceIPAddress.ToString());
-                m_freeSwitchDefaultTimeout = m_config.GetInt("freeswitch_default_timeout", 5000);
-                // m_freeSwitchSubscribeRetry = m_config.GetInt("freeswitch_subscribe_retry", 120);
-                m_freeSwitchUrlResetPassword = m_config.GetString("freeswitch_password_reset_url", String.Empty);
-                m_freeSwitchContext = m_config.GetString("freeswitch_context", "default");
+                Object[] args = new Object[] { config };
+                m_FreeswitchService = ServerUtils.LoadPlugin<IFreeswitchService>(serviceDll, args);
 
-                if (String.IsNullOrEmpty(m_freeSwitchServerUser) ||
-                    String.IsNullOrEmpty(m_freeSwitchServerPass) ||
-                    String.IsNullOrEmpty(m_freeSwitchRealm) ||
+                string jsonConfig = m_FreeswitchService.GetJsonConfig();
+                OSDMap map = (OSDMap)OSDParser.DeserializeJson(jsonConfig);
+
+                m_freeSwitchAPIPrefix = map["APIPrefix"].AsString();
+                m_freeSwitchRealm = map["Realm"].AsString();
+                m_freeSwitchSIPProxy = map["SIPProxy"].AsString();
+                m_freeSwitchAttemptUseSTUN = map["AttemptUseSTUN"].AsBoolean();
+                m_freeSwitchEchoServer = map["EchoServer"].AsString();
+                m_freeSwitchEchoPort = map["EchoPort"].AsInteger();
+                m_freeSwitchDefaultWellKnownIP = map["DefaultWellKnownIP"].AsString();
+                m_freeSwitchDefaultTimeout = map["DefaultTimeout"].AsInteger();
+                m_freeSwitchUrlResetPassword = String.Empty;
+                m_freeSwitchContext = map["Context"].AsString();
+
+                if (String.IsNullOrEmpty(m_freeSwitchRealm) ||
                     String.IsNullOrEmpty(m_freeSwitchAPIPrefix))
                 {
                     m_log.Error("[FreeSwitchVoice] plugin mis-configured");
@@ -211,6 +207,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 }
                 catch (Exception)
                 {
+                    // COmmented multiline spam log message
                     //m_log.Error("[FreeSwitchVoice]: Certificate validation handler change not supported.  You may get ssl certificate validation errors teleporting from your region to some SSL regions.");
                 }
             }
@@ -218,7 +215,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
         public void AddRegion(Scene scene)
         {
-            m_scene = scene;
+            m_Scene = scene;
+
+            // We generate these like this: The region's external host name
+            // as defined in Regions.ini is a good address to use. It's a
+            // dotted quad (or should be!) and it can reach this host from
+            // a client. The port is grabbed from the region's HTTP server.
+            m_openSimWellKnownHTTPAddress = m_Scene.RegionInfo.ExternalHostName;
+            m_freeSwitchServicePort = MainServer.Instance.Port;
 
             if (m_Enabled)
             {
