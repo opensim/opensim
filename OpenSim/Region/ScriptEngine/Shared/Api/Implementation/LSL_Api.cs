@@ -9882,6 +9882,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case "4":
                         ret = ret + new LSL_List(land.Area);
                         break;
+                    case "5":
+                        ret = ret + new LSL_List(land.GlobalID);
+                        break;
                     default:
                         ret = ret + new LSL_List(0);
                         break;

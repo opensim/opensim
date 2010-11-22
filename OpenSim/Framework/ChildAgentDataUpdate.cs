@@ -333,7 +333,7 @@ namespace OpenSim.Framework
         {
 // DEBUG ON
             m_log.WarnFormat("[CHILDAGENTDATAUPDATE] Pack data");
-// DEBUG OFF            
+// DEBUG OFF
 
             OSDMap args = new OSDMap();
             args["message_type"] = OSD.FromString("AgentData");
@@ -456,7 +456,7 @@ namespace OpenSim.Framework
         {
 // DEBUG ON
             m_log.WarnFormat("[CHILDAGENTDATAUPDATE] Unpack data");
-// DEBUG OFF            
+// DEBUG OFF
 
             if (args.ContainsKey("region_id"))
                 UUID.TryParse(args["region_id"].AsString(), out RegionID);
@@ -616,7 +616,7 @@ namespace OpenSim.Framework
 // DEBUG ON
             else
                 m_log.WarnFormat("[CHILDAGENTDATAUPDATE] No packed appearance");
-// DEBUG OFF            
+// DEBUG OFF
 
             if ((args["controllers"] != null) && (args["controllers"]).Type == OSDType.Array)
             {

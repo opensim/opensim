@@ -61,7 +61,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         {
             scene.RegisterModuleInterface<IAvatarFactory>(this);
             scene.EventManager.OnNewClient += NewClient;
-             
+
             if (config != null)
             {
                 IConfig sconfig = config.Configs["Startup"];
@@ -138,7 +138,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             return cached;
         }
-        
 
         /// <summary>
         /// Set appearance data (textureentry and slider settings) received from the client
@@ -155,9 +154,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 m_log.WarnFormat("[AVATAR FACTORY MODULE]: SetAppearance unable to find presence for {0}",client.AgentId);
                 return;
             }
-            
+
             bool changed = false;
-            
+
             // Process the texture entry
             if (textureEntry != null)
             {
@@ -174,7 +173,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                             });
                 }
             }
-            
+
             // Process the visual params, this may change height as well
             if (visualParams != null)
             {
@@ -185,14 +184,14 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         sp.SetHeight(sp.Appearance.AvatarHeight);
                 }
             }
-            
+
             // If something changed in the appearance then queue an appearance save
             if (changed)
                 QueueAppearanceSave(client.AgentId);
 
             // And always queue up an appearance update to send out
             QueueAppearanceSend(client.AgentId);
-            
+
             // Send the appearance back to the avatar
             // AvatarAppearance avp = sp.Appearance;
             // sp.ControllingClient.SendAvatarDataImmediate(sp);
@@ -216,35 +215,35 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
             return true;
         }
-        
+
         #region UpdateAppearanceTimer
 
         public void QueueAppearanceSend(UUID agentid)
         {
-//            m_log.WarnFormat("[AVATAR FACTORY MODULE]: Queue appearance send for {0}",agentid);              
+//            m_log.WarnFormat("[AVATAR FACTORY MODULE]: Queue appearance send for {0}", agentid);
 
             // 100 nanoseconds (ticks) we should wait
-            long timestamp = DateTime.Now.Ticks + Convert.ToInt64(m_sendtime * 10000000); 
+            long timestamp = DateTime.Now.Ticks + Convert.ToInt64(m_sendtime * 10000000);
             lock (m_sendqueue)
             {
                 m_sendqueue[agentid] = timestamp;
                 m_updateTimer.Start();
             }
         }
-        
+
         public void QueueAppearanceSave(UUID agentid)
         {
-//            m_log.WarnFormat("[AVATAR FACTORY MODULE]: Queue appearance save for {0}",agentid);             
+//            m_log.WarnFormat("[AVATAR FACTORY MODULE]: Queue appearance save for {0}", agentid);
 
             // 100 nanoseconds (ticks) we should wait
-            long timestamp = DateTime.Now.Ticks + Convert.ToInt64(m_savetime * 10000000); 
+            long timestamp = DateTime.Now.Ticks + Convert.ToInt64(m_savetime * 10000000);
             lock (m_savequeue)
             {
                 m_savequeue[agentid] = timestamp;
                 m_updateTimer.Start();
             }
         }
-        
+
         private void HandleAppearanceSend(UUID agentid)
         {
             ScenePresence sp = m_scene.GetScenePresence(agentid);
@@ -254,7 +253,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 return;
             }
 
-//            m_log.WarnFormat("[AVATAR FACTORY MODULE]: Handle appearance send for {0}", agentid);             
+//            m_log.WarnFormat("[AVATAR FACTORY MODULE]: Handle appearance send for {0}", agentid);
 
             // Send the appearance to everyone in the scene
             sp.SendAppearanceToAllOtherAgents();
@@ -262,7 +261,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             // Send the appearance back to the avatar
             // AvatarAppearance avp = sp.Appearance;
-            // sp.ControllingClient.SendAppearance(avp.Owner,avp.VisualParams,avp.Texture.GetBytes());
+            // sp.ControllingClient.SendAppearance(avp.Owner, avp.VisualParams, avp.Texture.GetBytes());
 
 /*
 //  this needs to be fixed, the flag should be on scene presence not the region module
@@ -290,11 +289,11 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         private void HandleAppearanceUpdateTimer(object sender, EventArgs ea)
         {
             long now = DateTime.Now.Ticks;
-            
+
             lock (m_sendqueue)
             {
-                Dictionary<UUID,long> sends = new Dictionary<UUID,long>(m_sendqueue);
-                foreach (KeyValuePair<UUID,long> kvp in sends)
+                Dictionary<UUID, long> sends = new Dictionary<UUID, long>(m_sendqueue);
+                foreach (KeyValuePair<UUID, long> kvp in sends)
                 {
                     if (kvp.Value < now)
                     {
@@ -306,8 +305,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             lock (m_savequeue)
             {
-                Dictionary<UUID,long> saves = new Dictionary<UUID,long>(m_savequeue);
-                foreach (KeyValuePair<UUID,long> kvp in saves)
+                Dictionary<UUID, long> saves = new Dictionary<UUID, long>(m_savequeue);
+                foreach (KeyValuePair<UUID, long> kvp in saves)
                 {
                     if (kvp.Value < now)
                     {
@@ -320,7 +319,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             if (m_savequeue.Count == 0 && m_sendqueue.Count == 0)
                 m_updateTimer.Stop();
         }
-        
+
         #endregion
 
         /// <summary>
@@ -336,8 +335,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
 
 //            m_log.WarnFormat("[AVATAR FACTORY MODULE]: Received request for wearables of {0}", client.AgentId);
-           
-            client.SendWearables(sp.Appearance.Wearables,sp.Appearance.Serial++);
+
+            client.SendWearables(sp.Appearance.Wearables, sp.Appearance.Serial++);
         }
 
         /// <summary>
@@ -353,17 +352,17 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 m_log.WarnFormat("[AVATAR FACTORY MODULE]: AvatarIsWearing unable to find presence for {0}", client.AgentId);
                 return;
             }
-            
-//            m_log.WarnFormat("[AVATAR FACTORY MODULE]: AvatarIsWearing called for {0}",client.AgentId);
+
+//            m_log.WarnFormat("[AVATAR FACTORY MODULE]: AvatarIsWearing called for {0}", client.AgentId);
 
             AvatarAppearance avatAppearance = new AvatarAppearance(sp.Appearance, false);
 
             foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
             {
                 if (wear.Type < AvatarWearable.MAX_WEARABLES)
-                    avatAppearance.Wearables[wear.Type].Add(wear.ItemID,UUID.Zero);
+                    avatAppearance.Wearables[wear.Type].Add(wear.ItemID, UUID.Zero);
             }
-            
+
             avatAppearance.GetAssetsFrom(sp.Appearance);
 
             // This could take awhile since it needs to pull inventory
@@ -381,11 +380,11 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             {
                 for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
                 {
-                    for (int j = 0 ; j < appearance.Wearables[j].Count ; j ++ )
+                    for (int j = 0; j < appearance.Wearables[j].Count; j++)
                     {
                         if (appearance.Wearables[i][j].ItemID == UUID.Zero)
                             continue;
-                        
+
                         // Ignore ruth's assets
                         if (appearance.Wearables[i][j].ItemID == AvatarWearable.DefaultWearables[i][0].ItemID)
                             continue;
@@ -399,9 +398,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         else
                         {
                             m_log.ErrorFormat(
-                                "[AVATAR FACTORY MODULE]: Can't find inventory item {0} for {1}, setting to default", 
+                                "[AVATAR FACTORY MODULE]: Can't find inventory item {0} for {1}, setting to default",
                                 appearance.Wearables[i][j].ItemID, (WearableType)i);
-                            
+
                             appearance.Wearables[i].RemoveItem(appearance.Wearables[i][j].ItemID);
                         }
                     }
