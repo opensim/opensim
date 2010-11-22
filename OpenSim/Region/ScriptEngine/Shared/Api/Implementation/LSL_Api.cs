@@ -4469,7 +4469,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID av = new UUID();
             if (!UUID.TryParse(agent,out av))
             {
-                LSLError("First parameter to llDialog needs to be a key");
+                //LSLError("First parameter to llDialog needs to be a key");
                 return;
             }
 
@@ -6731,7 +6731,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID av = new UUID();
             if (!UUID.TryParse(avatar,out av))
             {
-                LSLError("First parameter to llDialog needs to be a key");
+                //LSLError("First parameter to llDialog needs to be a key");
                 return;
             }
             if (buttons.Length < 1)
