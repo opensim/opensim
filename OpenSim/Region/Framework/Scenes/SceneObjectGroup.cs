@@ -2950,6 +2950,7 @@ namespace OpenSim.Region.Framework.Scenes
                 part.Resize(scale);
 
                 HasGroupChanged = true;
+                part.TriggerScriptChangedEvent(Changed.SCALE);
                 ScheduleGroupForFullUpdate();
 
                 //if (part.UUID == m_rootPart.UUID)
@@ -3110,6 +3111,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 part.IgnoreUndoUpdate = false;
                 HasGroupChanged = true;
+                m_rootPart.TriggerScriptChangedEvent(Changed.SCALE);
                 ScheduleGroupForTerseUpdate();
             }
         }

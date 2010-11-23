@@ -117,7 +117,7 @@ namespace OpenSim.Framework
         }
         protected UUID m_creatorIdAsUuid = UUID.Zero;
 
-        protected string m_creatorData;
+        protected string m_creatorData = string.Empty;
         public string CreatorData // = <profile url>;<name>
         {
             get { return m_creatorData; }
