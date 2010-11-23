@@ -657,6 +657,7 @@ namespace OpenSim.Data.SQLiteLegacy
                 DataRow landRow = land.Rows.Find(globalID.ToString());
                 if (landRow != null)
                 {
+                    landRow.Delete();
                     land.Rows.Remove(landRow);
                 }
                 List<DataRow> rowsToDelete = new List<DataRow>();
@@ -667,6 +668,7 @@ namespace OpenSim.Data.SQLiteLegacy
                 }
                 for (int iter = 0; iter < rowsToDelete.Count; iter++)
                 {
+                    rowsToDelete[iter].Delete();
                     landaccesslist.Rows.Remove(rowsToDelete[iter]);
                 }
 
@@ -717,6 +719,7 @@ namespace OpenSim.Data.SQLiteLegacy
                 }
                 for (int iter = 0; iter < rowsToDelete.Count; iter++)
                 {
+                    rowsToDelete[iter].Delete();
                     landaccesslist.Rows.Remove(rowsToDelete[iter]);
                 }
                 rowsToDelete.Clear();
