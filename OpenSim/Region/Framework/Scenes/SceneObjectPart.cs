@@ -1002,21 +1002,7 @@ namespace OpenSim.Region.Framework.Scenes
         public PrimitiveBaseShape Shape
         {
             get { return m_shape; }
-            set
-            {
-                bool shape_changed = false;
-                // TODO: this should really be restricted to the right
-                // set of attributes on shape change.  For instance,
-                // changing the lighting on a shape shouldn't cause
-                // this.
-                if (m_shape != null)
-                    shape_changed = true;
-
-                m_shape = value;
-
-                if (shape_changed)
-                    TriggerScriptChangedEvent(Changed.SHAPE);
-            }
+            set { m_shape = value; }
         }
         
         public Vector3 Scale
@@ -4570,6 +4556,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ParentGroup.RootPart.Rezzed = DateTime.UtcNow;
 
             ParentGroup.HasGroupChanged = true;
+            TriggerScriptChangedEvent(Changed.SHAPE);
             ScheduleFullUpdate();
         }
 
