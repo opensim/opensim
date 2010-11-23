@@ -4007,6 +4007,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     linknum -= (m_host.ParentGroup.PrimCount) + 1;
 
+                    if (linknum < 0)
+                        return UUID.Zero.ToString();
+
                     List<ScenePresence> avatars = GetLinkAvatars(ScriptBaseClass.LINK_SET);
                     if (avatars.Count > linknum)
                     {
