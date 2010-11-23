@@ -1733,7 +1733,12 @@ namespace OpenSim.Region.Framework.Scenes
                     // Autoreturn has a null client. Nothing else does. So
                     // allow only returns
                     if (action != DeRezAction.Return)
+                    {
+                        m_log.WarnFormat(
+                            "[AGENT INVENTORY]: Ignoring attempt to {0} {1} {2} without a client", 
+                            action, grp.Name, grp.UUID);
                         return;
+                    }
 
                     permissionToTakeCopy = false;
                 }
@@ -1741,13 +1746,13 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (!Permissions.CanTakeCopyObject(grp.UUID, remoteClient.AgentId))
                         permissionToTakeCopy = false;
+                    
                     if (!Permissions.CanTakeObject(grp.UUID, remoteClient.AgentId))
                         permissionToTake = false;
-
+                    
                     if (!Permissions.CanDeleteObject(grp.UUID, remoteClient.AgentId))
                         permissionToDelete = false;
                 }
-
             }
 
             // Handle god perms

@@ -27,13 +27,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
+using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
-{
+{        
     #region Delegates
     public delegate uint GenerateClientFlagsHandler(UUID userID, UUID objectID);
     public delegate void SetBypassPermissionsHandler(bool value);
@@ -88,6 +90,8 @@ namespace OpenSim.Region.Framework.Scenes
 
     public class ScenePermissions
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private Scene m_scene;
 
         public ScenePermissions(Scene scene)
@@ -242,6 +246,8 @@ namespace OpenSim.Region.Framework.Scenes
         #region DELETE OBJECT
         public bool CanDeleteObject(UUID objectID, UUID deleter)
         {
+            bool result = true;
+            
             DeleteObjectHandler handler = OnDeleteObject;
             if (handler != null)
             {
@@ -249,10 +255,18 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (DeleteObjectHandler h in list)
                 {
                     if (h(objectID, deleter, m_scene) == false)
-                        return false;
+                    {
+                        result = false;
+                        break;
+                    }
                 }
             }
-            return true;
+            
+//            m_log.DebugFormat(
+//                "[SCENE PERMISSIONS]: CanDeleteObject() fired for object {0}, deleter {1}, result {2}", 
+//                objectID, deleter, result);
+                        
+            return result;
         }
 
         #endregion
@@ -260,6 +274,8 @@ namespace OpenSim.Region.Framework.Scenes
         #region TAKE OBJECT
         public bool CanTakeObject(UUID objectID, UUID AvatarTakingUUID)
         {
+            bool result = true;
+            
             TakeObjectHandler handler = OnTakeObject;
             if (handler != null)
             {
@@ -267,10 +283,18 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (TakeObjectHandler h in list)
                 {
                     if (h(objectID, AvatarTakingUUID, m_scene) == false)
-                        return false;
+                    {
+                        result = false;
+                        break;
+                    }
                 }
             }
-            return true;
+            
+//            m_log.DebugFormat(
+//                "[SCENE PERMISSIONS]: CanTakeObject() fired for object {0}, taker {1}, result {2}", 
+//                objectID, AvatarTakingUUID, result);
+                        
+            return result;
         }
 
         #endregion
@@ -278,6 +302,8 @@ namespace OpenSim.Region.Framework.Scenes
         #region TAKE COPY OBJECT
         public bool CanTakeCopyObject(UUID objectID, UUID userID)
         {
+            bool result = true;
+            
             TakeCopyObjectHandler handler = OnTakeCopyObject;
             if (handler != null)
             {
@@ -285,10 +311,18 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (TakeCopyObjectHandler h in list)
                 {
                     if (h(objectID, userID, m_scene) == false)
-                        return false;
+                    {
+                        result = false;
+                        break;
+                    }
                 }
             }
-            return true;
+            
+//            m_log.DebugFormat(
+//                "[SCENE PERMISSIONS]: CanTakeCopyObject() fired for object {0}, user {1}, result {2}", 
+//                objectID, userID, result);
+            
+            return result;
         }
 
         #endregion
@@ -383,6 +417,8 @@ namespace OpenSim.Region.Framework.Scenes
         #region RETURN OBJECT
         public bool CanReturnObjects(ILandObject land, UUID user, List<SceneObjectGroup> objects)
         {
+            bool result = true;
+            
             ReturnObjectsHandler handler = OnReturnObjects;
             if (handler != null)
             {
@@ -390,10 +426,18 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (ReturnObjectsHandler h in list)
                 {
                     if (h(land, user, objects, m_scene) == false)
-                        return false;
+                    {
+                        result = false;
+                        break;
+                    }
                 }
             }
-            return true;
+            
+//            m_log.DebugFormat(
+//                "[SCENE PERMISSIONS]: CanReturnObjects() fired for user {0} for {1} objects on {2}, result {3}", 
+//                user, objects.Count, land.LandData.Name, result);
+                        
+            return result;
         }
 
         #endregion
