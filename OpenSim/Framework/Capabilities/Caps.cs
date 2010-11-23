@@ -967,6 +967,7 @@ namespace OpenSim.Framework.Capabilities
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = m_agentID;
             item.CreatorId = m_agentID.ToString();
+            item.CreatorData = String.Empty;
             item.ID = inventoryItem;
             item.AssetID = asset.FullID;
             item.Description = assetDescription;
