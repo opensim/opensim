@@ -130,7 +130,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             List<string> mainParams = ops.Parse(cmdparams);
 
-            if (cmdparams.Length > 2)
+            if (mainParams.Count > 2)
             {
                 ArchiveRegion(mainParams[2], options);
             }
