@@ -58,7 +58,7 @@ using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "FreeSwitchVoiceModule")]
-    public class FreeSwitchVoiceModule : INonSharedRegionModule, IVoiceModule
+    public class FreeSwitchVoiceModule : ISharedRegionModule, IVoiceModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -96,8 +96,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
         private readonly Dictionary<string, string> m_UUIDName = new Dictionary<string, string>();
         private Dictionary<string, string> m_ParcelAddress = new Dictionary<string, string>();
-
-        private Scene m_Scene;
 
         private IConfig m_Config;
 
@@ -165,6 +163,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix),
                                                      FreeSwitchSLVoiceGetPreloginHTTPHandler);
 
+                MainServer.Instance.AddHTTPHandler(String.Format("{0}/freeswitch-config", m_freeSwitchAPIPrefix), FreeSwitchConfigHTTPHandler);
+
                 // RestStreamHandler h = new
                 // RestStreamHandler("GET",
                 // String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix), FreeSwitchSLVoiceGetPreloginHTTPHandler);
@@ -214,15 +214,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             }
         }
 
+        public void PostInitialise()
+        {
+        }
+
         public void AddRegion(Scene scene)
         {
-            m_Scene = scene;
-
             // We generate these like this: The region's external host name
             // as defined in Regions.ini is a good address to use. It's a
             // dotted quad (or should be!) and it can reach this host from
             // a client. The port is grabbed from the region's HTTP server.
-            m_openSimWellKnownHTTPAddress = m_Scene.RegionInfo.ExternalHostName;
+            m_openSimWellKnownHTTPAddress = scene.RegionInfo.ExternalHostName;
             m_freeSwitchServicePort = MainServer.Instance.Port;
 
             if (m_Enabled)
@@ -601,7 +603,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             response["str_response_string"] = string.Empty;
             response["content-type"] = "text/xml";
 
-            Hashtable requestBody = parseRequestBody((string)request["body"]);
+            Hashtable requestBody = ParseRequestBody((string)request["body"]);
 
             if (!requestBody.ContainsKey("auth_token"))
                 return response;
@@ -673,7 +675,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             string uri = (string)request["uri"];
             string contenttype = (string)request["content-type"];
 
-            Hashtable requestBody = parseRequestBody((string)request["body"]);
+            Hashtable requestBody = ParseRequestBody((string)request["body"]);
 
             //string pwd = (string) requestBody["pwd"];
             string userid = (string) requestBody["userid"];
@@ -717,7 +719,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             return response;
         }
 
-        public Hashtable parseRequestBody(string body)
+        public Hashtable ParseRequestBody(string body)
         {
             Hashtable bodyParams = new Hashtable();
             // split string
@@ -789,6 +791,28 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         private static bool CustomCertificateValidation(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors error)
         {
             return true;
+        }
+
+        public Hashtable FreeSwitchConfigHTTPHandler(Hashtable request)
+        {
+            Hashtable response = new Hashtable();
+            response["str_response_string"] = string.Empty;
+            response["content_type"] = "text/plain";
+            response["keepalive"] = false;
+            response["int_response_code"] = 500;
+
+            Hashtable requestBody = ParseRequestBody((string) request["body"]);
+
+            string section = (string) requestBody["section"];
+
+            if (section == "directory")
+                response = m_FreeswitchService.HandleDirectoryRequest(requestBody);
+            else if (section == "dialplan")
+                response = m_FreeswitchService.HandleDialplanRequest(requestBody);
+            else
+                m_log.WarnFormat("[FreeSwitchVoice]: section was {0}", section);
+
+            return response;
         }
     }
 
