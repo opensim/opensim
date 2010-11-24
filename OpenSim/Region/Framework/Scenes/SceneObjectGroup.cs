@@ -398,7 +398,7 @@ namespace OpenSim.Region.Framework.Scenes
                             Vector3 offset = p.GetWorldPosition() - av.ParentPosition;
                             av.AbsolutePosition += offset;
                             av.ParentPosition = p.GetWorldPosition(); //ParentPosition gets cleared by AbsolutePosition
-                            av.SendFullUpdateToAllClients();
+                            av.SendAvatarDataToAllAgents();
                         }
                     }
                 }

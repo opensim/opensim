@@ -6756,7 +6756,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
                 if (buttons.Data[i].ToString().Length > 24)
                 {
-                    LSLError("button label cannot be longer than 24 characters");
+                    llWhisper(ScriptBaseClass.DEBUG_CHANNEL, "button label cannot be longer than 24 characters");
                     return;
                 }
                 buts[i] = buttons.Data[i].ToString();
@@ -7319,7 +7319,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         LSL_Vector v;
                         v = rules.GetVector3Item(idx++);
                         av.OffsetPosition = new Vector3((float)v.x, (float)v.y, (float)v.z);
-                        av.SendFullUpdateToAllClients();
+                        av.SendAvatarDataToAllAgents();
 
                         break;
 
@@ -7329,7 +7329,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         LSL_Rotation r;
                         r = rules.GetQuaternionItem(idx++);
                         av.OffsetRotation = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
-                        av.SendFullUpdateToAllClients();
+                        av.SendAvatarDataToAllAgents();
                         break;
                 }
             }

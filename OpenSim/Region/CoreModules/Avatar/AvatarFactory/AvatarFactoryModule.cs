@@ -183,7 +183,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                                 });
                     }
 
-                    // m_log.WarnFormat("[AVFACTORY]: Complete texture check for {0}",client.AgentId);
+                    m_log.WarnFormat("[AVFACTORY]: Complete texture check for {0}",client.AgentId);
                 }
 
                 // Process the visual params, this may change height as well
@@ -196,12 +196,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                             sp.SetHeight(sp.Appearance.AvatarHeight);
                     }
                 }
-
-                // Send the appearance back to the avatar, not clear that this is needed
-                sp.ControllingClient.SendAvatarDataImmediate(sp);
-                // AvatarAppearance avp = sp.Appearance;
-                // sp.ControllingClient.SendAppearance(avp.Owner,avp.VisualParams,avp.Texture.GetBytes());
-
             }
             
 
@@ -274,21 +268,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             // Send the appearance to everyone in the scene
             sp.SendAppearanceToAllOtherAgents();
-            // sp.ControllingClient.SendAvatarDataImmediate(sp);
-
-            // Send the appearance back to the avatar
-            // AvatarAppearance avp = sp.Appearance;
-            // sp.ControllingClient.SendAppearance(avp.Owner, avp.VisualParams, avp.Texture.GetBytes());
-
-/*
-//  this needs to be fixed, the flag should be on scene presence not the region module
-            // Start the animations if necessary
-            if (!m_startAnimationSet)
-            {
-                sp.Animator.UpdateMovementAnimations();
-                m_startAnimationSet = true;
-            }
-*/
         }
 
         private void HandleAppearanceSave(UUID agentid)
@@ -374,6 +353,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             // m_log.WarnFormat("[AVFACTORY]: AvatarIsWearing called for {0}", client.AgentId);
 
+            // operate on a copy of the appearance so we don't have to lock anything
             AvatarAppearance avatAppearance = new AvatarAppearance(sp.Appearance, false);
 
             foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
@@ -388,9 +368,11 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             SetAppearanceAssets(sp.UUID, ref avatAppearance);
 
             // could get fancier with the locks here, but in the spirit of "last write wins"
-            // this should work correctly
+            // this should work correctly, also, we don't need to send the appearance here
+            // since the "iswearing" will trigger a new set of visual param and baked texture changes
+            // when those complete, the new appearance will be sent
             sp.Appearance = avatAppearance;
-            m_scene.AvatarService.SetAppearance(client.AgentId, sp.Appearance);
+            QueueAppearanceSave(client.AgentId);
         }
 
         private void SetAppearanceAssets(UUID userID, ref AvatarAppearance appearance)
