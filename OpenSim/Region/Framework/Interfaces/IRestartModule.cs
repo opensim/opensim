@@ -33,7 +33,7 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IRestartModule
     {
         TimeSpan TimeUntilRestart { get; }
-        void ScheduleRestart(UUID initiator, string message, int seconds, int[] alerts, bool notice);
+        void ScheduleRestart(UUID initiator, string message, int[] alerts, bool notice);
         void AbortRestart(string message);
     }
 }
