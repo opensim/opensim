@@ -34,12 +34,15 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Timer=System.Timers.Timer;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.World.Region
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "RestartModule")]
     public class RestartModule : INonSharedRegionModule, IRestartModule
     {
         private static readonly ILog m_log =
@@ -62,6 +65,18 @@ namespace OpenSim.Region.CoreModules.World.Region
         {
             m_Scene = scene;
             m_DialogModule = m_Scene.RequestModuleInterface<IDialogModule>();
+            MainConsole.Instance.Commands.AddCommand("RestartModule",
+                    false, "region restart bluebox",
+                    "region restart bluebox <message> <time> ...",
+                    "Restart the region", HandleRegionRestart);
+            MainConsole.Instance.Commands.AddCommand("RestartModule",
+                    false, "region restart notice",
+                    "region restart notice <message> <time> ...",
+                    "Restart the region", HandleRegionRestart);
+            MainConsole.Instance.Commands.AddCommand("RestartModule",
+                    false, "region restart abort",
+                    "region restart abort [<message>]",
+                    "Restart the region", HandleRegionRestart);
         }
 
         public void RegionLoaded(Scene scene)
@@ -137,6 +152,7 @@ namespace OpenSim.Region.CoreModules.World.Region
                     continue;
                 }
                 nextAlert = m_Alerts[1];
+                break;
             }
             
             int currentAlert = m_Alerts[0];
@@ -144,7 +160,7 @@ namespace OpenSim.Region.CoreModules.World.Region
             m_Alerts.RemoveAt(0);
 
             int minutes = currentAlert / 60;
-            string currentAlertString = "";
+            string currentAlertString = String.Empty;
             if (minutes > 0)
             {
                 if (minutes == 1)
@@ -165,7 +181,7 @@ namespace OpenSim.Region.CoreModules.World.Region
 
             string msg = String.Format(m_Message, currentAlertString);
 
-            if (m_DialogModule != null)
+            if (m_DialogModule != null && msg != String.Empty)
             {
                 if (m_Notice)
                     m_DialogModule.SendGeneralAlert(msg);
@@ -198,7 +214,49 @@ namespace OpenSim.Region.CoreModules.World.Region
             {
                 m_CountdownTimer.Stop();
                 m_CountdownTimer = null;
+                if (m_DialogModule != null && message != String.Empty)
+                    m_DialogModule.SendGeneralAlert(message);
             }
+        }
+        
+        private void HandleRegionRestart(string module, string[] args)
+        {
+            if (!(MainConsole.Instance.ConsoleScene is Scene))
+                return;
+
+            if (MainConsole.Instance.ConsoleScene != m_Scene)
+                return;
+
+            if (args.Length < 5)
+            {
+                if (args.Length > 2)
+                {
+                    if (args[2] == "abort")
+                    {
+                        string msg = String.Empty;
+                        if (args.Length > 3)
+                            msg = args[3];
+
+                        AbortRestart(msg);
+
+                        MainConsole.Instance.Output("Region restart aborted");
+                        return;
+                    }
+                }
+
+                MainConsole.Instance.Output("Error: restart region <mode> <name> <time> ...");
+                return;
+            }
+
+            bool notice = false;
+            if (args[2] == "notice")
+                notice = true;
+
+            List<int> times = new List<int>();
+            for (int i = 4 ; i < args.Length ; i++)
+                times.Add(Convert.ToInt32(args[i]));
+
+            ScheduleRestart(UUID.Zero, args[3], times.ToArray(), notice);
         }
     }
 }
