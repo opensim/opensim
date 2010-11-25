@@ -73,7 +73,7 @@ namespace OpenSim.Framework
         void AddNewClient(IClientAPI client);
         void RemoveClient(UUID agentID);
 
-        void Restart(int seconds);
+        void Restart();
         //RegionInfo OtherRegionUp(RegionInfo thisRegion);
 
         string GetSimulatorVersion();

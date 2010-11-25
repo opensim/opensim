@@ -404,10 +404,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //
             CheckThreatLevel(ThreatLevel.High, "osRegionRestart");
 
+            IRestartModule restartModule = World.RequestModuleInterface<IRestartModule>();
             m_host.AddScriptLPS(1);
-            if (World.Permissions.CanIssueEstateCommand(m_host.OwnerID, false))
+            if (World.Permissions.CanIssueEstateCommand(m_host.OwnerID, false) && (restartModule != null))
             {
-                World.Restart((float)seconds);
+                if (seconds < 15)
+                {
+                    restartModule.AbortRestart("Restart aborted");
+                    return 1;
+                }
+
+                List<int> times = new List<int>();
+                while (seconds > 0)
+                {
+                    times.Add((int)seconds);
+                    if (seconds > 300)
+                        seconds -= 120;
+                    else if (seconds > 30)
+                        seconds -= 30;
+                    else
+                        seconds -= 15;
+                }
+
+                restartModule.ScheduleRestart(UUID.Zero, "Region will restart in {0}", times.ToArray(), true);
                 return 1;
             }
             else

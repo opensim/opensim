@@ -209,68 +209,43 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 UUID regionID = new UUID((string) requestData["regionID"]);
 
-                responseData["accepted"] = true;
-                responseData["success"] = true;
-                response.Value = responseData;
-
                 Scene rebootedScene;
 
+                responseData["success"] = false;
+                responseData["accepted"] = true;
                 if (!m_application.SceneManager.TryGetScene(regionID, out rebootedScene))
                     throw new Exception("region not found");
 
-                int timeout = 30000;
+                int timeout = 30;
                 string message;
 
                 if (requestData.ContainsKey("restart")
                     && ((string)requestData["restart"] == "delayed")
                     && requestData.ContainsKey("milliseconds"))
                 {
-                    timeout = Int32.Parse(requestData["milliseconds"].ToString());
-
-                    if (timeout < 15000)
-                    {
-                        //It must be at least 15 seconds or we'll cancel the reboot request
-                        timeout = 15000;
-                    }
-
-                    message
-                        = "Region is restarting in " + ((int)(timeout / 1000)).ToString()
-                          + " second(s). Please save what you are doing and log out.";
-                }
-                else
-                {
-                    message = "Region is restarting in 30 second(s). Please save what you are doing and log out.";
+                    timeout = Int32.Parse(requestData["milliseconds"].ToString()) / 1000;
                 }
 
+                message = "Region is restarting in {0}. Please save what you are doing and log out.";
+
+                bool notice = true;
                 if (requestData.ContainsKey("noticetype")
                     && ((string)requestData["noticetype"] == "dialog"))
                 {
-                    m_application.SceneManager.ForEachScene(
-                    delegate(Scene scene)
-                    {
-                        IDialogModule dialogModule = scene.RequestModuleInterface<IDialogModule>();
-                        if (dialogModule != null)
-                            dialogModule.SendNotificationToUsersInRegion(UUID.Zero, "System", message);
-                    });
-                }
-                else
-                {
-                    if (!requestData.ContainsKey("noticetype")
-                    || ((string)requestData["noticetype"] != "none"))
-                    {
-                        m_application.SceneManager.ForEachScene(
-                        delegate(Scene scene)
-                        {
-                            IDialogModule dialogModule = scene.RequestModuleInterface<IDialogModule>();
-                            if (dialogModule != null)
-                                dialogModule.SendGeneralAlert(message);
-                        });
-                    }
+                    notice = false;
                 }
 
                 responseData["rebooting"] = true;
+
+                IRestartModule restartModule = rebootedScene.RequestModuleInterface<IRestartModule>();
+                if (restartModule != null)
+                {
+                    List<int> times = new List<int> { 30, 15 };
+
+                    restartModule.ScheduleRestart(UUID.Zero, "Region will restart in {0}", times.ToArray(), notice);
+                    responseData["success"] = true;
+                }
                 response.Value = responseData;
-                rebootedScene.Restart(timeout / 1000,false);
             }
             catch (Exception e)
             {
