@@ -803,7 +803,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 Vector3 offset = (m_offsetPosition - oldpos);
                                 av.OffsetPosition += offset;
-                                av.SendFullUpdateToAllClients();
+                                av.SendAvatarDataToAllAgents();
                             }
                         }
                     }

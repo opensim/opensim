@@ -767,7 +767,9 @@ namespace OpenSim.Region.Framework.Scenes
             // Note: This won't send data *to* other clients in that region (children don't send)
 
 // MIC: This gets called again in CompleteMovement
-            SendInitialFullUpdateToAllClients();
+            // SendInitialFullUpdateToAllClients();
+            SendOtherAgentsAvatarDataToMe();
+            SendOtherAgentsAppearanceToMe();
 
             RegisterToEvents();
             SetDirectionVectors();
@@ -1757,7 +1759,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         AbsolutePosition = part.AbsolutePosition;
                         Velocity = Vector3.Zero;
-                        SendFullUpdateToAllClients();
+                        SendAvatarDataToAllAgents();
 
                         HandleAgentSit(ControllingClient, m_requestedSitTargetUUID);  //KF ??
                     }
@@ -1867,7 +1869,7 @@ namespace OpenSim.Region.Framework.Scenes
 				m_parentID = 0;
                 m_linkedPrim = UUID.Zero;
                 m_offsetRotation = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
-                SendFullUpdateToAllClients();
+                SendAvatarDataToAllAgents();
                 m_requestedSitTargetID = 0;
                 if (m_physicsActor != null && m_appearance != null)
                 {
@@ -2462,8 +2464,8 @@ namespace OpenSim.Region.Framework.Scenes
             Velocity = Vector3.Zero;
             RemoveFromPhysicalScene();
             Animator.TrySetMovementAnimation(sitAnimation);
-            SendFullUpdateToAllClients();
-            SendTerseUpdateToAllClients();
+            SendAvatarDataToAllAgents();
+            //SendTerseUpdateToAllClients();
         }
         
         public void SitAltitudeCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 normal)
@@ -2742,165 +2744,169 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Tell other client about this avatar (The client previously didn't know or had outdated details about this avatar)
+        /// Do everything required once a client completes its movement into a region and becomes
+        /// a root agent.
         /// </summary>
-        /// <param name="remoteAvatar"></param>
-        public void SendFullUpdateToOtherClient(ScenePresence remoteAvatar)
-        {
-            // 2 stage check is needed.
-            if (remoteAvatar == null)
-                return;
-
-            IClientAPI cl = remoteAvatar.ControllingClient;
-            if (cl == null)
-                return;
-
-            if (m_appearance.Texture == null)
-                return;
-
-// MT: This is needed for sit. It's legal to send it to oneself, and the name
-//     of the method is a misnomer
-//
-//            if (LocalId == remoteAvatar.LocalId)
-//            {
-//                m_log.WarnFormat("[SCENEPRESENCE]: An agent is attempting to send avatar data to itself; {0}", UUID);
-//                return;
-//            }
-
-            if (IsChildAgent)
-            {
-                m_log.WarnFormat("[SCENEPRESENCE]: A child agent is attempting to send out avatar data; {0}", UUID);
-                return;
-            }
-            
-            remoteAvatar.m_controllingClient.SendAvatarDataImmediate(this);
-            m_scene.StatsReporter.AddAgentUpdates(1);
-        }
-
-        /// <summary>
-        /// Tell *ALL* agents about this agent
-        /// </summary>
-        public void SendInitialFullUpdateToAllClients()
-        {
-            m_perfMonMS = Util.EnvironmentTickCount();
-            int avUpdates = 0;
-            m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
-            {
-                ++avUpdates;
-
-                // Don't update ourselves
-                if (avatar.LocalId == LocalId)
-                    return;
-                
-                // If this is a root agent, then get info about the avatar
-                if (!IsChildAgent)
-                {
-                    SendFullUpdateToOtherClient(avatar);
-                }
-
-                // If the other avatar is a root
-                if (!avatar.IsChildAgent)
-                {
-                    avatar.SendFullUpdateToOtherClient(this);
-                    avatar.SendAppearanceToOtherAgent(this);
-                    avatar.Animator.SendAnimPackToClient(ControllingClient);
-                }
-            });
-
-            m_scene.StatsReporter.AddAgentUpdates(avUpdates);
-            m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
-
-            //Animator.SendAnimPack();
-        }
-
-        public void SendFullUpdateToAllClients()
-        {
-            m_perfMonMS = Util.EnvironmentTickCount();
-
-            // only send update from root agents to other clients; children are only "listening posts"
-            if (IsChildAgent)
-            {
-                m_log.Warn("[SCENEPRESENCE] attempt to send update from a childagent");
-                return;
-            }
-            
-            int count = 0;
-            m_scene.ForEachScenePresence(delegate(ScenePresence sp)
-            {
-                if (sp.IsChildAgent)
-                    return;
-                SendFullUpdateToOtherClient(sp);
-                ++count;
-            });
-            m_scene.StatsReporter.AddAgentUpdates(count);
-            m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
-
-            Animator.SendAnimPack();
-        }
-
-        /// <summary>
-        /// Do everything required once a client completes its movement into a region
-        /// </summary>
-        public void SendInitialData()
+        private void SendInitialData()
         {
             // Moved this into CompleteMovement to ensure that m_appearance is initialized before
             // the inventory arrives
             // m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);
 
-            m_controllingClient.SendAvatarDataImmediate(this);
+            // This agent just became root. We are going to tell everyone about it. The process of
+            // getting other avatars information was initiated in the constructor... don't do it 
+            // again here... 
+            SendAvatarDataToAllAgents();
+
+            // We have an appearance but we may not have the baked textures. Check the asset cache 
+            // to see if all the baked textures are already here. 
             if (m_scene.AvatarFactory != null)
             {
                 if (m_scene.AvatarFactory.ValidateBakedTextureCache(m_controllingClient))
                 {
 //                    m_log.WarnFormat("[SCENEPRESENCE]: baked textures are in the cache for {0}", Name);
-                    m_controllingClient.SendAppearance(
-                        m_appearance.Owner,m_appearance.VisualParams,m_appearance.Texture.GetBytes());
+                    SendAppearanceToAgent(this);
+
+                    // If the avatars baked textures are all in the cache, then we have a 
+                    // complete appearance... send it out, if not, then we'll send it when
+                    // the avatar finishes updating its appearance
+                    SendAppearanceToAllOtherAgents();
                 }
             }
             else
             {
                 m_log.WarnFormat("[SCENEPRESENCE]: AvatarFactory not set for {0}", Name);
             }
-
-            SendInitialFullUpdateToAllClients();
         }
 
         /// <summary>
-        ///
+        /// Send this agent's avatar data to all other root and child agents in the scene
+        /// This agent must be root. This avatar will receive its own update. 
         /// </summary>
-        public void SendAppearanceToAllOtherAgents()
+        public void SendAvatarDataToAllAgents()
         {
-// DEBUG ON
-//            m_log.WarnFormat("[SCENEPRESENCE]: Send appearance from {0} to all other agents", m_uuid);
-// DEBUG OFF
+            // only send update from root agents to other clients; children are only "listening posts"
+            if (IsChildAgent)
+            {
+                m_log.Warn("[SCENEPRESENCE] attempt to send avatar data from a child agent");
+                return;
+            }
+            
             m_perfMonMS = Util.EnvironmentTickCount();
 
+            int count = 0;
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
                                          {
-                                             if (scenePresence.UUID != UUID)
-                                             {
-                                                 SendAppearanceToOtherAgent(scenePresence);
-                                             }
+                                             SendAvatarDataToAgent(scenePresence);
+                                             count++;
                                          });
 
+            m_scene.StatsReporter.AddAgentUpdates(count);
             m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
         }
 
         /// <summary>
-        /// Send appearance data to an agent that isn't this one.
+        /// Send avatar data for all other root agents to this agent, this agent
+        /// can be either a child or root
+        /// </summary>
+        public void SendOtherAgentsAvatarDataToMe()
+        {
+            m_perfMonMS = Util.EnvironmentTickCount();
+
+            int count = 0;
+            m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
+                                         {
+                                             // only send information about root agents
+                                             if (scenePresence.IsChildAgent)
+                                                 return;
+                                             
+                                             // only send information about other root agents
+                                             if (scenePresence.UUID == UUID)
+                                                 return;
+                                             
+                                             scenePresence.SendAvatarDataToAgent(this);
+                                             count++;
+                                         });
+
+            m_scene.StatsReporter.AddAgentUpdates(count);
+            m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
+        }
+
+        /// <summary>
+        /// Send avatar data to an agent.
         /// </summary>
         /// <param name="avatar"></param>
-        public void SendAppearanceToOtherAgent(ScenePresence avatar)
+        private void SendAvatarDataToAgent(ScenePresence avatar)
         {
-            if (LocalId == avatar.LocalId)
+//            m_log.WarnFormat("[SP] Send avatar data from {0} to {1}",m_uuid,avatar.ControllingClient.AgentId);
+
+            avatar.ControllingClient.SendAvatarDataImmediate(this);
+            Animator.SendAnimPackToClient(avatar.ControllingClient);
+        }
+
+        /// <summary>
+        /// Send this agent's appearance to all other root and child agents in the scene
+        /// This agent must be root.
+        /// </summary>
+        public void SendAppearanceToAllOtherAgents()
+        {
+            // only send update from root agents to other clients; children are only "listening posts"
+            if (IsChildAgent)
             {
-                m_log.WarnFormat("[SCENE PRESENCE]: An agent is attempting to send appearance data to itself; {0}", UUID);
+                m_log.Warn("[SCENEPRESENCE] attempt to send avatar data from a child agent");
                 return;
             }
+            
+            m_perfMonMS = Util.EnvironmentTickCount();
 
-// DEBUG ON
+            int count = 0;
+            m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
+                                         {
+                                             if (scenePresence.UUID == UUID)
+                                                 return;
+
+                                             SendAppearanceToAgent(scenePresence);
+                                             count++;
+                                         });
+
+            m_scene.StatsReporter.AddAgentUpdates(count);
+            m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
+        }
+
+        /// <summary>
+        /// Send appearance from all other root agents to this agent. this agent
+        /// can be either root or child
+        /// </summary>
+        public void SendOtherAgentsAppearanceToMe()
+        {
+            m_perfMonMS = Util.EnvironmentTickCount();
+
+            int count = 0;
+            m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
+                                         {
+                                             // only send information about root agents
+                                             if (scenePresence.IsChildAgent)
+                                                 return;
+                                             
+                                             // only send information about other root agents
+                                             if (scenePresence.UUID == UUID)
+                                                 return;
+                                             
+                                             scenePresence.SendAppearanceToAgent(this);
+                                             count++;
+                                         });
+
+            m_scene.StatsReporter.AddAgentUpdates(count);
+            m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
+        }
+
+        /// <summary>
+        /// Send appearance data to an agent.
+        /// </summary>
+        /// <param name="avatar"></param>
+        private void SendAppearanceToAgent(ScenePresence avatar)
+        {
 //          m_log.WarnFormat("[SP] Send appearance from {0} to {1}",m_uuid,avatar.ControllingClient.AgentId);
-// DEBUG OFF
 
             avatar.ControllingClient.SendAppearance(
                 m_appearance.Owner, m_appearance.VisualParams, m_appearance.Texture.GetBytes());
@@ -3413,9 +3419,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void CopyFrom(AgentData cAgent)
         {
-// DEBUG ON
-            m_log.ErrorFormat("[SCENEPRESENCE] CALLING COPYFROM");
-// DEBUG OFF
             m_originRegionID = cAgent.RegionID;
 
             m_callbackURI = cAgent.CallbackURI;

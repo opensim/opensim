@@ -1173,10 +1173,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 presence = scene.GetScenePresence(AgentID);
                 if (presence != null)
                 {
-                    presence.Grouptitle = Title;
+                    if (presence.Grouptitle != Title)
+                    {
+                        presence.Grouptitle = Title;
 
-                    // FixMe: Ter suggests a "Schedule" method that I can't find.
-                    presence.SendFullUpdateToAllClients();
+                        if (! presence.IsChildAgent)
+                            presence.SendAvatarDataToAllAgents();
+                    }
                 }
             }
         }
