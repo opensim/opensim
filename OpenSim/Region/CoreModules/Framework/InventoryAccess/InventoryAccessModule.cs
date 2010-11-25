@@ -53,6 +53,17 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         protected bool m_Enabled = false;
         protected Scene m_Scene;
+        protected IUserManagement m_UserManagement;
+        protected IUserManagement UserManagementModule
+        {
+            get
+            {
+                if (m_UserManagement == null)
+                    m_UserManagement = m_Scene.RequestModuleInterface<IUserManagement>();
+                return m_UserManagement;
+            }
+        }
+
 
         #region INonSharedRegionModule
 
@@ -542,6 +553,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     SceneObjectGroup group
                         = SceneObjectSerializer.FromOriginalXmlFormat(itemId, xmlData);
 
+                    Util.FireAndForget(delegate { AddUserData(group); });
+ 
                     group.RootPart.FromFolderID = item.Folder;
 
                     // If it's rezzed in world, select it. Much easier to 
@@ -697,6 +710,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
 
             return null;
+        }
+
+        protected void AddUserData(SceneObjectGroup sog)
+        {
+            UserManagementModule.AddUser(sog.RootPart.CreatorID, sog.RootPart.CreatorData);
+            foreach (SceneObjectPart sop in sog.Parts)
+                UserManagementModule.AddUser(sop.CreatorID, sop.CreatorData);
         }
 
         public virtual void TransferInventoryAssets(InventoryItemBase item, UUID sender, UUID receiver)

@@ -2616,6 +2616,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                         m_log.DebugFormat("[SCENE]: User Client Verification for {0} {1} in {2} returned true", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
+
                 }
             }
 

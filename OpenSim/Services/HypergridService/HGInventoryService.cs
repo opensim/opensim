@@ -33,10 +33,12 @@ using Nini.Config;
 using System.Reflection;
 using OpenSim.Services.Base;
 using OpenSim.Services.Interfaces;
+using OpenSim.Services.InventoryService;
 using OpenSim.Data;
 using OpenSim.Framework;
+using OpenSim.Server.Base;
 
-namespace OpenSim.Services.InventoryService
+namespace OpenSim.Services.HypergridService
 {
     public class HGInventoryService : XInventoryService, IInventoryService
     {
@@ -46,9 +48,16 @@ namespace OpenSim.Services.InventoryService
 
         protected new IXInventoryData m_Database;
 
+        private string m_ProfileServiceURL;
+        private IUserAccountService m_UserAccountService;
+
+        private UserAccountCache m_Cache;
+
         public HGInventoryService(IConfigSource config)
             : base(config)
         {
+            m_log.Debug("[HGInventory Service]: Starting");
+
             string dllName = String.Empty;
             string connString = String.Empty;
             //string realm = "Inventory"; // OSG version doesn't use this
@@ -68,12 +77,25 @@ namespace OpenSim.Services.InventoryService
             //
             // Try reading the [InventoryService] section, if it exists
             //
-            IConfig authConfig = config.Configs["InventoryService"];
-            if (authConfig != null)
+            IConfig invConfig = config.Configs["HGInventoryService"];
+            if (invConfig != null)
             {
-                dllName = authConfig.GetString("StorageProvider", dllName);
-                connString = authConfig.GetString("ConnectionString", connString);
+                dllName = invConfig.GetString("StorageProvider", dllName);
+                connString = invConfig.GetString("ConnectionString", connString);
+                
                 // realm = authConfig.GetString("Realm", realm);
+                string userAccountsDll = invConfig.GetString("UserAccountsService", string.Empty);
+                if (userAccountsDll == string.Empty)
+                    throw new Exception("Please specify UserAccountsService in HGInventoryService configuration");
+
+                Object[] args = new Object[] { config };
+                m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(userAccountsDll, args);
+                if (m_UserAccountService == null)
+                    throw new Exception(String.Format("Unable to create UserAccountService from {0}", userAccountsDll));
+
+                m_ProfileServiceURL = invConfig.GetString("ProfileServerURI", string.Empty);
+
+                m_Cache = UserAccountCache.CreateUserAccountCache(m_UserAccountService);
             }
 
             //
@@ -282,9 +304,18 @@ namespace OpenSim.Services.InventoryService
         //{
         //}
 
-        //public InventoryItemBase GetItem(InventoryItemBase item)
-        //{
-        //}
+        public override InventoryItemBase GetItem(InventoryItemBase item)
+        {
+            InventoryItemBase it = base.GetItem(item);
+
+            UserAccount user = m_Cache.GetUser(it.CreatorId);
+
+            // Adjust the creator data
+            if (user != null && it != null && (it.CreatorData == null || it.CreatorData == string.Empty))
+                it.CreatorData = m_ProfileServiceURL + "/" + it.CreatorId + ";" + user.FirstName + " " + user.LastName;
+
+            return it;
+        }
 
         //public InventoryFolderBase GetFolder(InventoryFolderBase folder)
         //{
