@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.World.Region
         public void AddRegion(Scene scene)
         {
             m_Scene = scene;
-            m_DialogModule = m_Scene.RequestModuleInterface<IDialogModule>();
+            scene.RegisterModuleInterface<IRestartModule>(this);
             MainConsole.Instance.Commands.AddCommand("RestartModule",
                     false, "region restart bluebox",
                     "region restart bluebox <message> <time> ...",
@@ -81,6 +81,7 @@ namespace OpenSim.Region.CoreModules.World.Region
 
         public void RegionLoaded(Scene scene)
         {
+            m_DialogModule = m_Scene.RequestModuleInterface<IDialogModule>();
         }
 
         public void RemoveRegion(Scene scene)
