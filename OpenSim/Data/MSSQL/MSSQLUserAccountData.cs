@@ -238,5 +238,10 @@ namespace OpenSim.Data.MSSQL
                 return DoQuery(cmd);
             }
         }
+
+        public UserAccountData[] GetUsersWhere(UUID scopeID, string where)
+        {
+            return null;
+        }
     }
 }

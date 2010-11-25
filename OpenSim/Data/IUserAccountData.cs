@@ -50,5 +50,6 @@ namespace OpenSim.Data
         bool Store(UserAccountData data);
         bool Delete(string field, string val);
         UserAccountData[] GetUsers(UUID scopeID, string query);
+        UserAccountData[] GetUsersWhere(UUID scopeID, string where);
     }
 }

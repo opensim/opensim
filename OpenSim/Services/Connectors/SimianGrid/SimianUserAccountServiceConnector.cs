@@ -191,6 +191,11 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return accounts;
         }
 
+        public List<UserAccount> GetUserAccountsWhere(UUID scopeID, string query)
+        {
+            return null;
+        }
+
         public bool StoreUserAccount(UserAccount data)
         {
             m_log.InfoFormat("[SIMIAN ACCOUNT CONNECTOR]: Storing user account for " + data.Name);

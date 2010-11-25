@@ -77,5 +77,10 @@ namespace OpenSim.Data.SQLiteLegacy
 
             return DoQuery(cmd);
         }
+
+        public UserAccountData[] GetUsersWhere(UUID scopeID, string where)
+        {
+            return null;
+        }
     }
 }

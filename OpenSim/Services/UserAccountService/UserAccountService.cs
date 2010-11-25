@@ -282,6 +282,21 @@ namespace OpenSim.Services.UserAccountService
             return ret;
         }
 
+        public List<UserAccount> GetUserAccountsWhere(UUID scopeID, string where)
+        {
+            UserAccountData[] d = m_Database.GetUsersWhere(scopeID, where);
+
+            if (d == null)
+                return new List<UserAccount>();
+
+            List<UserAccount> ret = new List<UserAccount>();
+
+            foreach (UserAccountData data in d)
+                ret.Add(MakeUserAccount(data));
+
+            return ret;
+        }
+
         #endregion
 
         #region Console commands

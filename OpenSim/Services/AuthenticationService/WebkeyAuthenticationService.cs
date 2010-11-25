@@ -47,6 +47,11 @@ namespace OpenSim.Services.AuthenticationService
 //                LogManager.GetLogger(
 //                MethodBase.GetCurrentMethod().DeclaringType);
  
+        public WebkeyAuthenticationService(IConfigSource config, IUserAccountService userService) :
+                base(config, userService)
+        {
+        }
+
         public WebkeyAuthenticationService(IConfigSource config) :
                 base(config)
         {

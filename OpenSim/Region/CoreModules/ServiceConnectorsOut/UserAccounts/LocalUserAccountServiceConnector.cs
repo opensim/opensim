@@ -172,6 +172,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             return m_UserService.GetUserAccount(scopeID, Email);
         }
 
+        public List<UserAccount> GetUserAccountsWhere(UUID scopeID, string query)
+        {
+            return null;
+        }
+
         public List<UserAccount> GetUserAccounts(UUID scopeID, string query)
         {
             return m_UserService.GetUserAccounts(scopeID, query);

@@ -113,7 +113,8 @@ namespace OpenSim.Services.LLLoginService
             Object[] args = new Object[] { config };
             m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(accountService, args);
             m_GridUserService = ServerUtils.LoadPlugin<IGridUserService>(gridUserService, args);
-            m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authService, args);
+            Object[] authArgs = new Object[] { config, m_UserAccountService };
+            m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authService, authArgs);
             m_InventoryService = ServerUtils.LoadPlugin<IInventoryService>(invService, args);
 
             if (gridService != string.Empty)

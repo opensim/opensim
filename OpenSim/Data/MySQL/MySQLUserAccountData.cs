@@ -80,5 +80,20 @@ namespace OpenSim.Data.MySQL
 
             return DoQuery(cmd);
         }
+
+        public UserAccountData[] GetUsersWhere(UUID scopeID, string where)
+        {
+            MySqlCommand cmd = new MySqlCommand();
+
+            if (scopeID != UUID.Zero)
+            {
+                where = "(ScopeID=?ScopeID or ScopeID='00000000-0000-0000-0000-000000000000') and (" + where + ")";
+                cmd.Parameters.AddWithValue("?ScopeID", scopeID.ToString());
+            }
+
+            cmd.CommandText = String.Format("select * from {0} where " + where, m_Realm);
+
+            return DoQuery(cmd);
+        }
     }
 }
