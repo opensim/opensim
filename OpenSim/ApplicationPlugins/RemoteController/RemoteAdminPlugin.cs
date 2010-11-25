@@ -242,10 +242,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     }
                 }
 
-                if (requestData.ContainsKey("restart")
-                    && ((string)requestData["restart"] == "delayed"))
-
-
                 message = "Region is restarting in {0}. Please save what you are doing and log out.";
 
                 if (requestData.ContainsKey("message"))
