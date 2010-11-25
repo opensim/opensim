@@ -294,7 +294,22 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 ScenePresence sp;
                 if (!m_scene.TryGetScenePresence(avatar, out sp))
+                {
+                    IGroupsModule groupsModule = m_scene.RequestModuleInterface<IGroupsModule>();
+                    if (groupsModule == null)
+                        return false;
+
+                    GroupMembershipData[] membership = groupsModule.GetMembershipData(avatar);
+                    if (membership == null || membership.Length == 0)
+                        return false;
+
+                    foreach (GroupMembershipData d in membership)
+                    {
+                        if (d.GroupID == LandData.GroupID)
+                            return true;
+                    }
                     return false;
+                }
 
                 if (!sp.ControllingClient.IsGroupMember(LandData.GroupID))
                     return false;
