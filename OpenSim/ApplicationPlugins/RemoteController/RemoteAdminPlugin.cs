@@ -216,17 +216,40 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (!m_application.SceneManager.TryGetScene(regionID, out rebootedScene))
                     throw new Exception("region not found");
 
-                int timeout = 30;
                 string message;
+                List<int> times = new List<int>();
 
-                if (requestData.ContainsKey("restart")
-                    && ((string)requestData["restart"] == "delayed")
-                    && requestData.ContainsKey("milliseconds"))
+                if (requestData.ContainsKey("alerts"))
                 {
-                    timeout = Int32.Parse(requestData["milliseconds"].ToString()) / 1000;
+                    string[] alertTimes = requestData["alerts"].ToString().Split( new char[] {','});
+                    foreach (string a in alertTimes)
+                        times.Add(Convert.ToInt32(a));
+                }
+                else
+                {
+                    int timeout = 30;
+                    if (requestData.ContainsKey("milliseconds"))
+                        timeout = Int32.Parse(requestData["milliseconds"].ToString()) / 1000;
+                    while (timeout > 0)
+                    {
+                        times.Add(timeout);
+                        if (timeout > 300)
+                            timeout -= 120;
+                        else if (timeout > 30)
+                            timeout -= 30;
+                        else
+                            timeout -= 15;
+                    }
                 }
 
+                if (requestData.ContainsKey("restart")
+                    && ((string)requestData["restart"] == "delayed"))
+
+
                 message = "Region is restarting in {0}. Please save what you are doing and log out.";
+
+                if (requestData.ContainsKey("message"))
+                    message = requestData["message"].ToString();
 
                 bool notice = true;
                 if (requestData.ContainsKey("noticetype")
@@ -240,9 +263,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 IRestartModule restartModule = rebootedScene.RequestModuleInterface<IRestartModule>();
                 if (restartModule != null)
                 {
-                    List<int> times = new List<int> { 30, 15 };
-
-                    restartModule.ScheduleRestart(UUID.Zero, "Region will restart in {0}", times.ToArray(), notice);
+                    restartModule.ScheduleRestart(UUID.Zero, message, times.ToArray(), notice);
                     responseData["success"] = true;
                 }
                 response.Value = responseData;
