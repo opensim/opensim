@@ -218,18 +218,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region admin stuff
 
-        /// <summary>
-        /// Region Restart - Seconds till restart.
-        /// </summary>
-        /// <param name="seconds"></param>
-        public virtual void Restart(int seconds)
-        {
-            m_log.Error("[REGION]: passing Restart Message up the namespace");
-            restart handlerPhysicsCrash = OnRestart;
-            if (handlerPhysicsCrash != null)
-                handlerPhysicsCrash(RegionInfo);
-        }
-
         public virtual bool PresenceChildStatus(UUID avatarID)
         {
             return false;
@@ -560,6 +548,14 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual bool AllowScriptCrossings
         {
             get { return false; }
+        }
+
+        public void Restart()
+        {
+            // This has to be here to fire the event
+            restart handlerPhysicsCrash = OnRestart;
+            if (handlerPhysicsCrash != null)
+                handlerPhysicsCrash(RegionInfo);
         }
 
         public abstract bool CheckClient(UUID agentID, System.Net.IPEndPoint ep);
