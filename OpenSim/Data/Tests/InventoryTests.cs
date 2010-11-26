@@ -323,7 +323,7 @@ namespace OpenSim.Data.Tests
                                     .IgnoreProperty(x => x.InvType)
                                     .IgnoreProperty(x => x.CreatorIdAsUuid)
                                     .IgnoreProperty(x => x.Description)
-                                    .IgnoreProperty(x => x.CreatorId)
+                                    .IgnoreProperty(x => x.CreatorIdentification)
                                     .IgnoreProperty(x => x.CreatorData));
 
             inventoryScrambler.Scramble(expected);
@@ -334,7 +334,7 @@ namespace OpenSim.Data.Tests
                                     .IgnoreProperty(x => x.InvType)
                                     .IgnoreProperty(x => x.CreatorIdAsUuid)
                                     .IgnoreProperty(x => x.Description)
-                                    .IgnoreProperty(x => x.CreatorId)
+                                    .IgnoreProperty(x => x.CreatorIdentification)
                                     .IgnoreProperty(x => x.CreatorData));
         }
 
