@@ -231,7 +231,23 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void handleEstateRestartSimRequest(IClientAPI remoteClient, int timeInSeconds)
         {
-            m_scene.Restart(timeInSeconds);
+            IRestartModule restartModule = m_scene.RequestModuleInterface<IRestartModule>();
+            if (restartModule != null)
+            {
+                List<int> times = new List<int>();
+                while (timeInSeconds > 0)
+                {
+                    times.Add(timeInSeconds);
+                    if (timeInSeconds > 300)
+                        timeInSeconds -= 120;
+                    else if (timeInSeconds > 30)
+                        timeInSeconds -= 30;
+                    else
+                        timeInSeconds -= 15;
+                }
+
+                restartModule.ScheduleRestart(UUID.Zero, "Region will restart in {0}", times.ToArray(), true);
+            }
         }
 
         private void handleChangeEstateCovenantRequest(IClientAPI remoteClient, UUID estateCovenantID)

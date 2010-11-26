@@ -893,60 +893,6 @@ namespace OpenSim.Region.Framework.Scenes
             return new GridRegion(RegionInfo);
         }
 
-        /// <summary>
-        /// Given float seconds, this will restart the region.
-        /// </summary>
-        /// <param name="seconds">float indicating duration before restart.</param>
-        public virtual void Restart(float seconds)
-        {
-            // notifications are done in 15 second increments
-            // so ..   if the number of seconds is less then 15 seconds, it's not really a restart request
-            // It's a 'Cancel restart' request.
-
-            // RestartNow() does immediate restarting.
-            if (seconds < 15)
-            {
-                m_restartTimer.Stop();
-                m_dialogModule.SendGeneralAlert("Restart Aborted");
-            }
-            else
-            {
-                // Now we figure out what to set the timer to that does the notifications and calls, RestartNow()
-                m_restartTimer.Interval = 15000;
-                m_incrementsof15seconds = (int)seconds / 15;
-                m_RestartTimerCounter = 0;
-                m_restartTimer.AutoReset = true;
-                m_restartTimer.Elapsed += new ElapsedEventHandler(RestartTimer_Elapsed);
-                m_log.Info("[REGION]: Restarting Region in " + (seconds / 60) + " minutes");
-                m_restartTimer.Start();
-                m_dialogModule.SendNotificationToUsersInRegion(
-                    UUID.Random(), String.Empty, RegionInfo.RegionName + String.Format(": Restarting in {0} Minutes", (int)(seconds / 60.0)));
-            }
-        }
-
-        // The Restart timer has occured.
-        // We have to figure out if this is a notification or if the number of seconds specified in Restart
-        // have elapsed.
-        // If they have elapsed, call RestartNow()
-        public void RestartTimer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            m_RestartTimerCounter++;
-            if (m_RestartTimerCounter <= m_incrementsof15seconds)
-            {
-                if (m_RestartTimerCounter == 4 || m_RestartTimerCounter == 6 || m_RestartTimerCounter == 7)
-                    m_dialogModule.SendNotificationToUsersInRegion(
-                        UUID.Random(),
-                        String.Empty,
-                        RegionInfo.RegionName + ": Restarting in " + ((8 - m_RestartTimerCounter) * 15) + " seconds");
-            }
-            else
-            {
-                m_restartTimer.Stop();
-                m_restartTimer.AutoReset = false;
-                RestartNow();
-            }
-        }
-
         // This causes the region to restart immediatley.
         public void RestartNow()
         {
@@ -969,7 +915,8 @@ namespace OpenSim.Region.Framework.Scenes
             Close();
 
             m_log.Error("[REGION]: Firing Region Restart Message");
-            base.Restart(0);
+
+            base.Restart();
         }
 
         // This is a helper function that notifies root agents in this region that a new sim near them has come up

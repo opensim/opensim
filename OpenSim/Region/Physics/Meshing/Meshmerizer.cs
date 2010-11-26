@@ -276,7 +276,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                     m_log.Debug("[MESH]: experimental mesh proxy generation");
 
-                    OSD meshOsd;
+                    OSD meshOsd = null;
 
                     if (primShape.SculptData.Length <= 0)
                     {
@@ -287,7 +287,14 @@ namespace OpenSim.Region.Physics.Meshing
                     long start = 0;
                     using (MemoryStream data = new MemoryStream(primShape.SculptData))
                     {
-                        meshOsd = (OSDMap)OSDParser.DeserializeLLSDBinary(data);
+                        try
+                        {
+                            meshOsd = (OSDMap)OSDParser.DeserializeLLSDBinary(data);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.Error("[MESH]: Exception deserializing mesh asset header:" + e.ToString());
+                        }
                         start = data.Position;
                     }
 
