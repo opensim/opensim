@@ -195,14 +195,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
                     im.offline = 1;
 
-                    // Reconstruct imSessionID
-                    if (im.dialog == (byte)InstantMessageDialog.MessageFromAgent)
-                    {
-                        UUID fromAgentID = new UUID(im.fromAgentID);
-                        UUID sessionID = fromAgentID ^ client.AgentId;
-                        im.imSessionID = new Guid(sessionID.ToString());
-                    }
-
                     Scene s = FindScene(client.AgentId);
                     if (s != null)
                         s.EventManager.TriggerIncomingInstantMessage(im);
@@ -226,10 +218,10 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             Scene scene = FindScene(new UUID(im.fromAgentID));
             if (scene == null)
                 scene = m_SceneList[0];
-            im.imSessionID = new Guid(scene.RegionInfo.ScopeID.ToString());
 
             bool success = SynchronousRestObjectPoster.BeginPostObject<GridInstantMessage, bool>(
-                    "POST", m_RestURL+"/SaveMessage/", im);
+                    "POST", m_RestURL+"/SaveMessage/?scope=" +
+                    scene.RegionInfo.ScopeID.ToString(), im);
 
             if (im.dialog == (byte)InstantMessageDialog.MessageFromAgent)
             {
