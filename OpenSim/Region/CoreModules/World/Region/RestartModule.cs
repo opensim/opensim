@@ -28,6 +28,8 @@
 using System;
 using System.Reflection;
 using System.Timers;
+using System.IO;
+using System.Diagnostics;
 using System.Threading;
 using System.Collections.Generic;
 using log4net;
@@ -56,13 +58,23 @@ namespace OpenSim.Region.CoreModules.World.Region
         protected UUID m_Initiator;
         protected bool m_Notice = false;
         protected IDialogModule m_DialogModule = null;
+        protected string m_MarkerPath;
 
         public void Initialise(IConfigSource config)
         {
+            IConfig restartConfig = config.Configs["RestartModule"];
+            if (restartConfig != null)
+            {
+                m_MarkerPath = restartConfig.GetString("MarkerPath", String.Empty);
+            }
         }
 
         public void AddRegion(Scene scene)
         {
+            if (m_MarkerPath != String.Empty)
+                File.Delete(Path.Combine(m_MarkerPath,
+                        scene.RegionInfo.RegionID.ToString()));
+
             m_Scene = scene;
             scene.RegisterModuleInterface<IRestartModule>(this);
             MainConsole.Instance.Commands.AddCommand("RestartModule",
@@ -114,6 +126,7 @@ namespace OpenSim.Region.CoreModules.World.Region
 
             if (alerts == null)
             {
+                CreateMarkerFile();
                 m_Scene.RestartNow();
                 return;
             }
@@ -127,6 +140,7 @@ namespace OpenSim.Region.CoreModules.World.Region
 
             if (m_Alerts[0] == 0)
             {
+                CreateMarkerFile();
                 m_Scene.RestartNow();
                 return;
             }
@@ -140,6 +154,7 @@ namespace OpenSim.Region.CoreModules.World.Region
         {
             if (m_Alerts.Count == 0 || m_Alerts[0] == 0)
             {
+                CreateMarkerFile();
                 m_Scene.RestartNow();
                 return 0;
             }
@@ -258,6 +273,26 @@ namespace OpenSim.Region.CoreModules.World.Region
                 times.Add(Convert.ToInt32(args[i]));
 
             ScheduleRestart(UUID.Zero, args[3], times.ToArray(), notice);
+        }
+
+        protected void CreateMarkerFile()
+        {
+            if (m_MarkerPath == String.Empty)
+                return;
+
+            string path = Path.Combine(m_MarkerPath, m_Scene.RegionInfo.RegionID.ToString());
+            try
+            {
+                string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
+                FileStream fs = File.Create(path);
+                System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+                Byte[] buf = enc.GetBytes(pidstring);
+                fs.Write(buf, 0, buf.Length);
+                fs.Close();
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 }
