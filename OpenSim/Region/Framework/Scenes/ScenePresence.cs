@@ -464,16 +464,36 @@ namespace OpenSim.Region.Framework.Scenes
 //                if (actor != null)
                 if ((actor != null) && (m_parentID == 0))   // KF Do NOT update m_pos here if Av is sitting!
                     m_pos = actor.Position;
-
-                // If we're sitting, we need to update our position
-                if (m_parentID != 0)
+                else
                 {
-                    SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
-                    if (part != null)
-                        m_parentPosition = part.AbsolutePosition;
+                    // Obtain the correct position of a seated avatar.
+                    // In addition to providing the correct position while
+                    // the avatar is seated, this value will also
+                    // be used as the location to unsit to.
+                    //
+                    // If m_parentID is not 0, assume we are a seated avatar
+                    // and we should return the position based on the sittarget
+                    // offset and rotation of the prim we are seated on.
+                    //
+                    // Generally, m_pos will contain the position of the avatar
+                    // in the sim unless the avatar is on a sit target. While
+                    // on a sit target, m_pos will contain the desired offset
+                    // without the parent rotation applied.
+                    if (m_parentID != 0)
+                    {
+                        SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
+                        if (part != null)
+                        {
+                            return m_parentPosition + (m_pos * part.GetWorldRotation());
+                        }
+                        else
+                        {
+                            return m_parentPosition + m_pos;
+                        }
+                    }
                 }
 
-                return m_parentPosition + m_pos;
+                return m_pos;
             }
             set
             {

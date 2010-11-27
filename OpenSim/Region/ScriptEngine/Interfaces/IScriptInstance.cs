@@ -42,7 +42,8 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         NewRez = 1,
         PrimCrossing = 2,
         ScriptedRez = 3,
-        AttachedRez = 4
+        AttachedRez = 4,
+        Teleporting = 5
     }
 
     public interface IScriptWorkItem

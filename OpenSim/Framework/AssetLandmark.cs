@@ -51,8 +51,16 @@ namespace OpenSim.Framework
             string[] parts = temp.Split('\n');
             int.TryParse(parts[0].Substring(17, 1), out Version);
             UUID.TryParse(parts[1].Substring(10, 36), out RegionID);
-            // the vector is stored with spaces as separators, not with commas ("10.3 32.5 43" instead of "10.3, 32.5, 43")
-            Vector3.TryParse(parts[2].Substring(10, parts[2].Length - 10).Replace(" ", ","), out Position);
+            // The position is a vector with spaces as separators ("10.3 32.5 43").
+            // Parse each scalar separately to take into account the system's culture setting.
+            string[] scalars = parts[2].Substring(10, parts[2].Length - 10).Split(' ');
+            if (scalars.Length > 0)
+                System.Single.TryParse(scalars[0], out Position.X);
+            if (scalars.Length > 1)
+                System.Single.TryParse(scalars[1], out Position.Y);
+            if (scalars.Length > 2)
+                System.Single.TryParse(scalars[2], out Position.Z);
+
             ulong.TryParse(parts[3].Substring(14, parts[3].Length - 14), out RegionHandle);
         }
     }

@@ -47,6 +47,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     {
 
         private const double ANGLE_ACCURACY_IN_RADIANS = 1E-6;
+        private const double VECTOR_COMPONENT_ACCURACY = 0.0000005d;
         private LSL_Api m_lslApi;
 
         [SetUp]
@@ -163,6 +164,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             Assert.Less(eulerCalc.y, eulerCheck.y + ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler Y upper bounds check fail");
             Assert.Greater(eulerCalc.z, eulerCheck.z - ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler Z lower bounds check fail");
             Assert.Less(eulerCalc.z, eulerCheck.z + ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler Z upper bounds check fail");
+        }
+
+        [Test]
+        // llVecNorm test.
+        public void TestllVecNorm()
+        {
+            // Check special case for normalizing zero vector.
+            CheckllVecNorm(new LSL_Types.Vector3(0.0d, 0.0d, 0.0d), new LSL_Types.Vector3(0.0d, 0.0d, 0.0d));
+            // Check various vectors.
+            CheckllVecNorm(new LSL_Types.Vector3(10.0d, 25.0d, 0.0d), new LSL_Types.Vector3(0.371391d, 0.928477d, 0.0d));
+            CheckllVecNorm(new LSL_Types.Vector3(1.0d, 0.0d, 0.0d), new LSL_Types.Vector3(1.0d, 0.0d, 0.0d));
+            CheckllVecNorm(new LSL_Types.Vector3(-90.0d, 55.0d, 2.0d), new LSL_Types.Vector3(-0.853128d, 0.521356d, 0.018958d));
+            CheckllVecNorm(new LSL_Types.Vector3(255.0d, 255.0d, 255.0d), new LSL_Types.Vector3(0.577350d, 0.577350d, 0.577350d));
+        }
+
+        public void CheckllVecNorm(LSL_Types.Vector3 vec, LSL_Types.Vector3 vecNormCheck)
+        {
+            // Call LSL function to normalize the vector.
+            LSL_Types.Vector3 vecNorm = m_lslApi.llVecNorm(vec);
+            // Check each vector component against expected result.
+            Assert.AreEqual(vecNorm.x, vecNormCheck.x, VECTOR_COMPONENT_ACCURACY, "TestllVecNorm vector check fail on x component");
+            Assert.AreEqual(vecNorm.y, vecNormCheck.y, VECTOR_COMPONENT_ACCURACY, "TestllVecNorm vector check fail on y component");
+            Assert.AreEqual(vecNorm.z, vecNormCheck.z, VECTOR_COMPONENT_ACCURACY, "TestllVecNorm vector check fail on z component");
         }
     }
 }
