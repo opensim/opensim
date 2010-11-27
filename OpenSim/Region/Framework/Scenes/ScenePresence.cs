@@ -464,33 +464,36 @@ namespace OpenSim.Region.Framework.Scenes
 //                if (actor != null)
                 if ((actor != null) && (m_parentID == 0))   // KF Do NOT update m_pos here if Av is sitting!
                     m_pos = actor.Position;
-                else                                                                        // OS Mantis #4063
-                {                                                                           // OS Mantis #4063
-                    // OpenSim Mantis #4063. Obtain the correct position of a seated avatar. In addition
-                    // to providing the correct position while the avatar is seated, this value will also
+                else
+                {
+                    // Obtain the correct position of a seated avatar.
+                    // In addition to providing the correct position while
+                    // the avatar is seated, this value will also
                     // be used as the location to unsit to.
                     //
-                    // If m_parentID is not 0, assume we are a seated avatar and we should return the
-                    // position based on the sittarget offset and rotation of the prim we are seated on.
+                    // If m_parentID is not 0, assume we are a seated avatar
+                    // and we should return the position based on the sittarget
+                    // offset and rotation of the prim we are seated on.
                     //
-                    // Generally, m_pos will contain the position of the avator in the sim unless the avatar
-                    // is on a sit target. While on a sit target, m_pos will contain the desired offset
+                    // Generally, m_pos will contain the position of the avatar
+                    // in the sim unless the avatar is on a sit target. While
+                    // on a sit target, m_pos will contain the desired offset
                     // without the parent rotation applied.
-                    if (m_parentID != 0)                                                    // OS Mantis #4063
+                    if (m_parentID != 0)
                     {
-                        SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);      // OS Mantis #4063
-                        if (part != null)                                                   // OS Mantis #4063
-                        {                                                                   // OS Mantis #4064
-                            return m_parentPosition + (m_pos * part.GetWorldRotation());    // OS Mantis #4063
+                        SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
+                        if (part != null)
+                        {
+                            return m_parentPosition + (m_pos * part.GetWorldRotation());
                         }
-                        else                                                                // OS Mantis #4064
-                        {                                                                   // OS Mantis #4063
-                            return m_parentPosition + m_pos;                                // OS Mantis #4064
-                        }                                                                   // OS Mantis #4063
-                    }                                                                       // OS Mantis #4063
-                }                                                                           // OS Mantis #4063
+                        else
+                        {
+                            return m_parentPosition + m_pos;
+                        }
+                    }
+                }
 
-                return m_pos;                                                               // OS Mantis #4063
+                return m_pos;
             }
             set
             {
