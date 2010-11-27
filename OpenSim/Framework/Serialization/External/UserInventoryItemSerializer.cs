@@ -26,9 +26,13 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Xml;
+
+using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
     
@@ -40,6 +44,133 @@ namespace OpenSim.Framework.Serialization.External
     /// XXX: Please do not use yet.
     public class UserInventoryItemSerializer
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private delegate void InventoryItemXmlProcessor(InventoryItemBase item, XmlTextReader reader);
+        private static Dictionary<string, InventoryItemXmlProcessor> m_InventoryItemXmlProcessors = new Dictionary<string, InventoryItemXmlProcessor>();
+
+        #region InventoryItemBase Processor initialization 
+        static UserInventoryItemSerializer()
+        {
+            m_InventoryItemXmlProcessors.Add("Name", ProcessName);
+            m_InventoryItemXmlProcessors.Add("ID", ProcessID);
+            m_InventoryItemXmlProcessors.Add("InvType", ProcessInvType);
+            m_InventoryItemXmlProcessors.Add("CreatorUUID", ProcessCreatorUUID);
+            m_InventoryItemXmlProcessors.Add("CreationDate", ProcessCreationDate);
+            m_InventoryItemXmlProcessors.Add("Owner", ProcessOwner);
+            m_InventoryItemXmlProcessors.Add("Description", ProcessDescription);
+            m_InventoryItemXmlProcessors.Add("AssetType", ProcessAssetType);
+            m_InventoryItemXmlProcessors.Add("AssetID", ProcessAssetID);
+            m_InventoryItemXmlProcessors.Add("SaleType", ProcessSaleType);
+            m_InventoryItemXmlProcessors.Add("SalePrice", ProcessSalePrice);
+            m_InventoryItemXmlProcessors.Add("BasePermissions", ProcessBasePermissions);
+            m_InventoryItemXmlProcessors.Add("CurrentPermissions", ProcessCurrentPermissions);
+            m_InventoryItemXmlProcessors.Add("EveryOnePermissions", ProcessEveryOnePermissions);
+            m_InventoryItemXmlProcessors.Add("NextPermissions", ProcessNextPermissions);
+            m_InventoryItemXmlProcessors.Add("Flags", ProcessFlags);
+            m_InventoryItemXmlProcessors.Add("GroupID", ProcessGroupID);
+            m_InventoryItemXmlProcessors.Add("GroupOwned", ProcessGroupOwned);
+        }
+        #endregion 
+
+        #region InventoryItemBase Processors
+        private static void ProcessName(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.Name = reader.ReadElementContentAsString("Name", String.Empty);
+        }
+
+        private static void ProcessID(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.ID = Util.ReadUUID(reader, "ID");
+        }
+
+        private static void ProcessInvType(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.InvType = reader.ReadElementContentAsInt("InvType", String.Empty);
+        }
+
+        private static void ProcessCreatorUUID(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.CreatorId = reader.ReadElementContentAsString("CreatorUUID", String.Empty);
+        }
+
+        private static void ProcessCreationDate(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.CreationDate = reader.ReadElementContentAsInt("CreationDate", String.Empty);
+        }
+
+        private static void ProcessOwner(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.Owner = Util.ReadUUID(reader, "Owner");
+        }
+
+        private static void ProcessDescription(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.Description = reader.ReadElementContentAsString("Description", String.Empty);
+        }
+
+        private static void ProcessAssetType(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.AssetType = reader.ReadElementContentAsInt("AssetType", String.Empty);
+        }
+
+        private static void ProcessAssetID(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.AssetID = Util.ReadUUID(reader, "AssetID");
+        }
+
+        private static void ProcessSaleType(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.SaleType = (byte)reader.ReadElementContentAsInt("SaleType", String.Empty);
+        }
+
+        private static void ProcessSalePrice(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.SalePrice = reader.ReadElementContentAsInt("SalePrice", String.Empty);
+        }
+
+        private static void ProcessBasePermissions(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.BasePermissions = (uint)reader.ReadElementContentAsInt("BasePermissions", String.Empty);
+        }
+
+        private static void ProcessCurrentPermissions(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.CurrentPermissions = (uint)reader.ReadElementContentAsInt("CurrentPermissions", String.Empty);
+        }
+
+        private static void ProcessEveryOnePermissions(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.EveryOnePermissions = (uint)reader.ReadElementContentAsInt("EveryOnePermissions", String.Empty);
+        }
+
+        private static void ProcessNextPermissions(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.NextPermissions = (uint)reader.ReadElementContentAsInt("NextPermissions", String.Empty);
+        }
+
+        private static void ProcessFlags(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.Flags = (uint)reader.ReadElementContentAsInt("Flags", String.Empty);
+        }
+
+        private static void ProcessGroupID(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.GroupID = Util.ReadUUID(reader, "GroupID");
+        }
+
+        private static void ProcessGroupOwned(InventoryItemBase item, XmlTextReader reader)
+        {
+            //item.GroupOwned = reader.ReadElementContentAsBoolean("GroupOwned", String.Empty);
+            // We don't do that, because ReadElementContentAsBoolean assumes lower case strings,
+            // and they may not be lower case
+            reader.ReadStartElement(); // GroupOwned
+            item.GroupOwned = Boolean.Parse(reader.ReadContentAsString().ToLower());
+            reader.ReadEndElement();
+        }
+
+        #endregion
+
         /// <summary>
         /// Deserialize item
         /// </summary>
@@ -60,37 +191,44 @@ namespace OpenSim.Framework.Serialization.External
         public static InventoryItemBase Deserialize(string serialization)
         {
             InventoryItemBase item = new InventoryItemBase();
-            
-            StringReader sr = new StringReader(serialization);
-            XmlTextReader xtr = new XmlTextReader(sr);
-            
-            xtr.ReadStartElement("InventoryItem");
-            
-            item.Name                   =                   xtr.ReadElementString("Name");
-            item.ID                     = UUID.Parse(       xtr.ReadElementString("ID"));
-            item.InvType                = Convert.ToInt32(  xtr.ReadElementString("InvType"));            
-            item.CreatorId              =                   xtr.ReadElementString("CreatorUUID");
-            item.CreationDate           = Convert.ToInt32(  xtr.ReadElementString("CreationDate"));
-            item.Owner                  = UUID.Parse(       xtr.ReadElementString("Owner"));
-            item.Description            =                   xtr.ReadElementString("Description");
-            item.AssetType              = Convert.ToInt32(  xtr.ReadElementString("AssetType"));
-            item.AssetID                = UUID.Parse(       xtr.ReadElementString("AssetID"));
-            item.SaleType               = Convert.ToByte(   xtr.ReadElementString("SaleType"));
-            item.SalePrice              = Convert.ToInt32(  xtr.ReadElementString("SalePrice"));
-            item.BasePermissions        = Convert.ToUInt32( xtr.ReadElementString("BasePermissions"));
-            item.CurrentPermissions     = Convert.ToUInt32( xtr.ReadElementString("CurrentPermissions"));
-            item.EveryOnePermissions    = Convert.ToUInt32( xtr.ReadElementString("EveryOnePermissions"));
-            item.NextPermissions        = Convert.ToUInt32( xtr.ReadElementString("NextPermissions"));
-            item.Flags                  = Convert.ToUInt32( xtr.ReadElementString("Flags"));
-            item.GroupID                = UUID.Parse(       xtr.ReadElementString("GroupID"));
-            item.GroupOwned             = Convert.ToBoolean(xtr.ReadElementString("GroupOwned"));
-            
-            xtr.ReadEndElement();
-            
-            xtr.Close();
-            sr.Close();
-            
+
+            using (XmlTextReader reader = new XmlTextReader(new StringReader(serialization)))
+            {
+                reader.ReadStartElement("InventoryItem");
+
+                string nodeName = string.Empty;
+                while (reader.NodeType != XmlNodeType.EndElement)
+                {
+                    nodeName = reader.Name;
+                    InventoryItemXmlProcessor p = null;
+                    if (m_InventoryItemXmlProcessors.TryGetValue(reader.Name, out p))
+                    {
+                        //m_log.DebugFormat("[XXX] Processing: {0}", reader.Name);
+                        try
+                        {
+                            p(item, reader);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.DebugFormat("[InventoryItemSerializer]: exception while parsing {0}: {1}", nodeName, e);
+                            if (reader.NodeType == XmlNodeType.EndElement)
+                                reader.Read();
+                        }
+                    }
+                    else
+                    {
+                        // m_log.DebugFormat("[InventoryItemSerializer]: caught unknown element {0}", nodeName);
+                        reader.ReadOuterXml(); // ignore
+                    }
+
+                }
+
+                reader.ReadEndElement(); // InventoryItem
+            }
+
+            //m_log.DebugFormat("[XXX]: parsed InventoryItemBase {0} - {1}", obj.Name, obj.UUID);
             return item;
+
         }      
         
         public static string Serialize(InventoryItemBase inventoryItem)
