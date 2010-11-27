@@ -52,6 +52,11 @@ namespace OpenSim.Framework
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private Thread LockedByThread;
+        private string WriterStack;
+
+        private Dictionary<Thread, string> ReadLockers =
+                new Dictionary<Thread, string>();
+
         /// <value>
         /// An advanced lock for inventory data
         /// </value>
@@ -118,6 +123,13 @@ namespace OpenSim.Framework
                     if (m_itemLock.IsWriteLockHeld)
                     {
                         m_itemLock = new System.Threading.ReaderWriterLockSlim();
+                        System.Console.WriteLine("------------------------------------------");
+                        System.Console.WriteLine("My call stack:\n" + Environment.StackTrace);
+                        System.Console.WriteLine("------------------------------------------");
+                        System.Console.WriteLine("Locker's call stack:\n" + WriterStack);
+                        System.Console.WriteLine("------------------------------------------");
+                        LockedByThread = null;
+                        ReadLockers.Clear();
                     }
                 }
             }
@@ -150,15 +162,33 @@ namespace OpenSim.Framework
                 }
                 while (!m_itemLock.TryEnterWriteLock(60000))
                 {
-                    m_log.Error("Thread lock detected while trying to aquire WRITE lock in TaskInventoryDictionary. Locked by thread " + LockedByThread.Name + ". I'm going to try to solve the thread lock automatically to preserve region stability, but this needs to be fixed.");
-                    System.Console.WriteLine("My call stack:\n" + Environment.StackTrace);
                     if (m_itemLock.IsWriteLockHeld)
                     {
-                        m_itemLock = new System.Threading.ReaderWriterLockSlim();
+                        m_log.Error("Thread lock detected while trying to aquire WRITE lock in TaskInventoryDictionary. Locked by thread " + LockedByThread.Name + ". I'm going to try to solve the thread lock automatically to preserve region stability, but this needs to be fixed.");
+                        System.Console.WriteLine("------------------------------------------");
+                        System.Console.WriteLine("My call stack:\n" + Environment.StackTrace);
+                        System.Console.WriteLine("------------------------------------------");
+                        System.Console.WriteLine("Locker's call stack:\n" + WriterStack);
+                        System.Console.WriteLine("------------------------------------------");
                     }
+                    else
+                    {
+                        m_log.Error("Thread lock detected while trying to aquire WRITE lock in TaskInventoryDictionary. Locked by a reader. I'm going to try to solve the thread lock automatically to preserve region stability, but this needs to be fixed.");
+                        System.Console.WriteLine("------------------------------------------");
+                        System.Console.WriteLine("My call stack:\n" + Environment.StackTrace);
+                        System.Console.WriteLine("------------------------------------------");
+                        foreach (KeyValuePair<Thread, string> kvp in ReadLockers)
+                        {
+                            System.Console.WriteLine("Locker name {0} call stack:\n" + kvp.Value, kvp.Key.Name);
+                            System.Console.WriteLine("------------------------------------------");
+                        }
+                    }
+                    m_itemLock = new System.Threading.ReaderWriterLockSlim();
+                    ReadLockers.Clear();
                 }
 
                 LockedByThread = Thread.CurrentThread;
+                WriterStack = Environment.StackTrace;
             }
             else
             {
