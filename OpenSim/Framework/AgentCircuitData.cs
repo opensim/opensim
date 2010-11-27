@@ -302,31 +302,26 @@ namespace OpenSim.Framework
             if (args["start_pos"] != null)
                 Vector3.TryParse(args["start_pos"].AsString(), out startpos);
 
-// DEBUG ON
-            m_log.WarnFormat("[AGENTCIRCUITDATA] agentid={0}, child={1}, startpos={2}",AgentID,child,startpos.ToString());
-// DEBUG OFF
+            m_log.InfoFormat("[AGENTCIRCUITDATA] agentid={0}, child={1}, startpos={2}",AgentID,child,startpos.ToString());
             
             try {
-            // Unpack various appearance elements
-            Appearance = new AvatarAppearance(AgentID);
+                // Unpack various appearance elements
+                Appearance = new AvatarAppearance(AgentID);
 
-            // Eventually this code should be deprecated, use full appearance
-            // packing in packed_appearance
-            if (args["appearance_serial"] != null)
-                Appearance.Serial = args["appearance_serial"].AsInteger();
+                // Eventually this code should be deprecated, use full appearance
+                // packing in packed_appearance
+                if (args["appearance_serial"] != null)
+                    Appearance.Serial = args["appearance_serial"].AsInteger();
 
-            if (args.ContainsKey("packed_appearance") && (args["packed_appearance"].Type == OSDType.Map))
-            {
-                Appearance.Unpack((OSDMap)args["packed_appearance"]);
-// DEBUG ON
-                m_log.WarnFormat("[AGENTCIRCUITDATA] unpacked appearance");
-// DEBUG OFF
+                if (args.ContainsKey("packed_appearance") && (args["packed_appearance"].Type == OSDType.Map))
+                {
+                    Appearance.Unpack((OSDMap)args["packed_appearance"]);
+                    m_log.InfoFormat("[AGENTCIRCUITDATA] unpacked appearance");
+                }
+                else
+                    m_log.Warn("[AGENTCIRCUITDATA] failed to find a valid packed_appearance");
             }
-// DEBUG ON
-            else
-                m_log.Warn("[AGENTCIRCUITDATA] failed to find a valid packed_appearance");
-// DEBUG OFF
-            } catch (Exception e)
+            catch (Exception e)
             {
                 m_log.ErrorFormat("[AGENTCIRCUITDATA] failed to unpack appearance; {0}",e.Message);
             }
