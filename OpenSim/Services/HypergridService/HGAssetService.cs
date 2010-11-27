@@ -126,7 +126,6 @@ namespace OpenSim.Services.HypergridService
             UserAccount creator = m_Cache.GetUser(meta.CreatorID);
             if (creator != null)
                 meta.CreatorID = m_ProfileServiceURL + "/" + meta.CreatorID + ";" + creator.FirstName + " " + creator.LastName;
-
         }
 
         protected byte[] AdjustIdentifiers(byte[] data)
