@@ -4432,14 +4432,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (notifyCount > 0)
             {
-                if (notifyCount > 32)
-                {
-                    m_log.InfoFormat(
-                        "[LAND]: More than {0} avatars own prims on this parcel.  Only sending back details of first {0}"
-                        + " - a developer might want to investigate whether this is a hard limit", 32);
-
-                    notifyCount = 32;
-                }
+//                if (notifyCount > 32)
+//                {
+//                    m_log.InfoFormat(
+//                        "[LAND]: More than {0} avatars own prims on this parcel.  Only sending back details of first {0}"
+//                        + " - a developer might want to investigate whether this is a hard limit", 32);
+//
+//                    notifyCount = 32;
+//                }
 
                 ParcelObjectOwnersReplyPacket.DataBlock[] dataBlock
                     = new ParcelObjectOwnersReplyPacket.DataBlock[notifyCount];
