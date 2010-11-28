@@ -946,6 +946,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             while (base.IsRunning)
             {
+                m_scene.ThreadAlive(1);
                 try
                 {
                     IncomingPacket incomingPacket = null;
@@ -988,6 +989,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             while (base.IsRunning)
             {
+                m_scene.ThreadAlive(2);
                 try
                 {
                     m_packetSent = false;

@@ -174,6 +174,8 @@ namespace OpenSim.Region.Framework.Scenes
         private volatile bool shuttingdown;
 
         private int m_lastUpdate;
+        private int m_lastIncoming;
+        private int m_lastOutgoing;
         private bool m_firstHeartbeat = true;
 
         private object m_deleting_scene_object = new object();
@@ -567,6 +569,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_regionName = m_regInfo.RegionName;
             m_datastore = m_regInfo.DataStore;
             m_lastUpdate = Util.EnvironmentTickCount();
+            m_lastIncoming = Util.EnvironmentTickCount();
+            m_lastOutgoing = Util.EnvironmentTickCount();
 
             m_physicalPrim = physicalPrim;
             m_seeIntoRegionFromNeighbor = SeeIntoRegionFromNeighbor;
@@ -4543,16 +4547,32 @@ namespace OpenSim.Region.Framework.Scenes
             // 1 = sim is up and accepting http requests. The heartbeat has
             // stopped and the sim is probably locked up, but a remote
             // admin restart may succeed
-            //
+            // 
             // 2 = Sim is up and the heartbeat is running. The sim is likely
-            // usable for people within and logins _may_ work
+            // usable for people within
             //
-            // 3 = We have seen a new user enter within the past 4 minutes
+            // 3 = Sim is up and one packet thread is running. Sim is
+            // unstable and will not accept new logins
+            //
+            // 4 = Sim is up and both packet threads are running. Sim is
+            // likely usable
+            //
+            // 5 = We have seen a new user enter within the past 4 minutes
             // which can be seen as positive confirmation of sim health
             //
             int health=1; // Start at 1, means we're up
 
             if (m_firstHeartbeat || ((Util.EnvironmentTickCountSubtract(m_lastUpdate)) < 1000))
+                health+=1;
+            else
+                return health;
+
+            if (m_firstHeartbeat || ((Util.EnvironmentTickCountSubtract(m_lastIncoming)) < 1000))
+                health+=1;
+            else
+                return health;
+
+            if (m_firstHeartbeat || ((Util.EnvironmentTickCountSubtract(m_lastOutgoing)) < 1000))
                 health+=1;
             else
                 return health;
@@ -5104,6 +5124,19 @@ namespace OpenSim.Region.Framework.Scenes
                     DeleteSceneObject(grp, true);
                 }
                 m_log.Debug("[SCENE]: Finished dropped attachment deletion");
+            }
+        }
+
+        public void ThreadAlive(int threadCode)
+        {
+            switch(threadCode)
+            {
+                case 1: // Incoming
+                    m_lastIncoming = Util.EnvironmentTickCount();
+                    break;
+                case 2: // Incoming
+                    m_lastOutgoing = Util.EnvironmentTickCount();
+                    break;
             }
         }
     }
