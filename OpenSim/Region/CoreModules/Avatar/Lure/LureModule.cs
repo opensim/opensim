@@ -150,12 +150,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
             m_log.DebugFormat("TP invite with message {0}", message);
 
-            GridInstantMessage m = new GridInstantMessage(scene, client.AgentId,
-                    client.FirstName+" "+client.LastName, targetid,
-                    (byte)InstantMessageDialog.RequestTeleport, false,
-                    message, dest, false, presence.AbsolutePosition,
-                    new Byte[0]);
-                    
+            GridInstantMessage m;
+
+            if (scene.Permissions.IsAdministrator(client.AgentId) && presence.GodLevel >= 200 && (scene.Permissions.IsAdministrator(targetid)))
+            {
+                m = new GridInstantMessage(scene, client.AgentId,
+                        client.FirstName+" "+client.LastName, targetid,
+                        (byte)InstantMessageDialog.GodLikeRequestTeleport, false,
+                        message, dest, false, presence.AbsolutePosition,
+                        new Byte[0]);
+            }
+            else
+            {
+                m = new GridInstantMessage(scene, client.AgentId,
+                        client.FirstName+" "+client.LastName, targetid,
+                        (byte)InstantMessageDialog.RequestTeleport, false,
+                        message, dest, false, presence.AbsolutePosition,
+                        new Byte[0]);
+            }
+
             if (m_TransferModule != null)
             {
                 m_TransferModule.SendInstantMessage(m,
@@ -190,7 +203,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
         {
             // Forward remote teleport requests
             //
-            if (msg.dialog != 22)
+            if (msg.dialog != (byte)InstantMessageDialog.RequestTeleport &&
+                msg.dialog != (byte)InstantMessageDialog.GodLikeRequestTeleport)
                 return;
 
             if (m_TransferModule != null)
