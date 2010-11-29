@@ -364,7 +364,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             try
             {
                 //m_log.DebugFormat("[FreeSwitchVoice][PROVISIONVOICE]: request: {0}, path: {1}, param: {2}",
-                                  request, path, param);
+                //                  request, path, param);
 
                 //XmlElement    resp;
                 string agentname = "x" + Convert.ToBase64String(agentID.GetBytes());
@@ -446,7 +446,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 LandData land = scene.GetLandData(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
 
                 //m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": request: {4}, path: {5}, param: {6}",
-                                  scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName, request, path, param);
+                //                  scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName, request, path, param);
 
                 // TODO: EstateSettings don't seem to get propagated...
                 // if (!scene.RegionInfo.EstateSettings.AllowVoice)
@@ -697,7 +697,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             }
 
             //m_log.DebugFormat("[FreeSwitchVoice]: AUTH, URI: {0}, Content-Type:{1}, Body{2}", uri, contenttype,
-                              requestbody);
+            //                  requestbody);
             Hashtable response = new Hashtable();
             response["str_response_string"] = string.Format(@"<response xsi:schemaLocation=""/xsd/signin.xsd"">
                     <level0>
