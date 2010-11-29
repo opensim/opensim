@@ -38,7 +38,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Osp;
 using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.Framework.Scenes;
@@ -96,14 +95,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.Name = m_item1Name;
             item1.AssetID = UUID.Random();
             item1.GroupID = UUID.Random();
-            item1.CreatorId = OspResolver.MakeOspa(m_ua2.FirstName, m_ua2.LastName);
+            //item1.CreatorId = OspResolver.MakeOspa(m_ua2.FirstName, m_ua2.LastName);
             //item1.CreatorId = userUuid.ToString();
-            //item1.CreatorId = "00000000-0000-0000-0000-000000000444";
+            item1.CreatorId = m_ua2.PrincipalID.ToString(); 
             item1.Owner = UUID.Zero;
-            
+
+            Scene scene = SceneSetupHelpers.SetupScene("Inventory");
+            UserProfileTestUtils.CreateUserWithInventory(scene, m_ua2, "hampshire");
+
             string item1FileName 
                 = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, archiveItemName);
-            tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1));
+            tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1, new Dictionary<string, object>(), scene.UserAccountService));
             tar.Close();
             m_iarStream = new MemoryStream(archiveWriteStream.ToArray());
         }
@@ -386,7 +388,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Scene scene = SceneSetupHelpers.SetupScene("inventory");
             
             SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
-            
+
             UserProfileTestUtils.CreateUserWithInventory(scene, m_ua1, "meowfood");
             UserProfileTestUtils.CreateUserWithInventory(scene, m_ua2, "hampshire");
             
@@ -551,7 +553,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             string item1FileName 
                 = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, archiveItemName);
-            tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1));
+            tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1, new Dictionary<string,object>(), null));
             tar.Close();
 
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());

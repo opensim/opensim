@@ -153,7 +153,7 @@ namespace OpenSim.Server.Handlers.Asset
             }
             catch (Exception e)
             {
-                m_log.Debug("[XINVENTORY HANDLER]: Exception {0}", e);
+                m_log.DebugFormat("[XINVENTORY HANDLER]: Exception {0}", e);
             }
 
             return FailureResult();
@@ -604,6 +604,10 @@ namespace OpenSim.Server.Handlers.Asset
                 ret["CreatorId"] = item.CreatorId.ToString();
             else
                 ret["CreatorId"] = String.Empty;
+            if (item.CreatorData != null)
+                ret["CreatorData"] = item.CreatorData;
+            else
+                ret["CreatorData"] = String.Empty;
             ret["CurrentPermissions"] = item.CurrentPermissions.ToString();
             ret["Description"] = item.Description.ToString();
             ret["EveryOnePermissions"] = item.EveryOnePermissions.ToString();

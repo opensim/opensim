@@ -25,6 +25,15 @@
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
 
+[HGInventoryService]
+    ProfileServerURI = "http://127.0.0.1:9000/profiles"
+
+[HGAssetService]
+    ProfileServerURI = "http://127.0.0.1:9000/profiles"
+
+[HGInventoryAccessModule]
+    ProfileServerURI = "http://127.0.0.1:9000/profiles"
+
 [Modules]
     ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.
     ;; Copy the config .example file into your own .ini file and change configs there
@@ -68,11 +77,12 @@
 
 [LoginService]
     WelcomeMessage = "Welcome, Avatar!"
-
-    HomeURI = "http://127.0.0.1:9000"
     GatekeeperURI = "http://127.0.0.1:9000"
-    InventoryServerURI = "http://127.0.0.1:9000"
-    AssetServerURI = "http://127.0.0.1:9000"
+
+    SRV_HomeURI = "http://127.0.0.1:9000"    
+    SRV_InventoryServerURI = "http://127.0.0.1:9000"
+    SRV_AssetServerURI = "http://127.0.0.1:9000"
+    SRV_ProfileServerURI = "http://127.0.0.1:9000"
 
 [GatekeeperService]
     ExternalName = "http://127.0.0.1:9000"
