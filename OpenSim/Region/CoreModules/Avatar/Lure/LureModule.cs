@@ -148,11 +148,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                     (uint)presence.AbsolutePosition.Y,
                     (uint)presence.AbsolutePosition.Z);
 
-            m_log.DebugFormat("TP invite with message {0}", message);
+            m_log.DebugFormat("[LURE]: TP invite with message {0}", message);
 
             GridInstantMessage m;
 
-            if (scene.Permissions.IsAdministrator(client.AgentId) && presence.GodLevel >= 200 && (scene.Permissions.IsAdministrator(targetid)))
+            if (scene.Permissions.IsAdministrator(client.AgentId) && presence.GodLevel >= 200 && (!scene.Permissions.IsAdministrator(targetid)))
             {
                 m = new GridInstantMessage(scene, client.AgentId,
                         client.FirstName+" "+client.LastName, targetid,

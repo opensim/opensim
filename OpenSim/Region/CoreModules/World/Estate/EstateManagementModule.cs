@@ -248,7 +248,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         timeInSeconds -= 15;
                 }
 
-                restartModule.ScheduleRestart(UUID.Zero, "Region will restart in {0}", times.ToArray(), true);
+                restartModule.ScheduleRestart(UUID.Zero, "Region will restart in {0}", times.ToArray(), false);
             }
         }
 
