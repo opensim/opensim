@@ -412,7 +412,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 item.CreatorIdAsUuid = m_userInfo.PrincipalID;
             }
-            
+
             item.Owner = m_userInfo.PrincipalID;
 
             // Reset folder ID to the one in which we want to load it

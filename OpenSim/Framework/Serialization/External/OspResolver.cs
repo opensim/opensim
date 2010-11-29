@@ -57,6 +57,12 @@ namespace OpenSim.Framework.Serialization
         /// <returns>The OSPA.  Null if a user with the given UUID could not be found.</returns>
         public static string MakeOspa(UUID userId, IUserAccountService userService)
         {
+            if (userService == null)
+            {
+                m_log.Warn("[OSP RESOLVER]: UserService is null");
+                return userId.ToString();
+            }
+
             UserAccount account = userService.GetUserAccount(UUID.Zero, userId);
             if (account != null)
                 return MakeOspa(account.FirstName, account.LastName);

@@ -254,14 +254,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (m_scenes.Count > 0)
             {
                 UserAccount userInfo = GetUserInfo(firstName, lastName, pass);
-                        
+
                 if (userInfo != null)
                 {
                     if (CheckPresence(userInfo.PrincipalID))
                     {
+
                         InventoryArchiveReadRequest request;
                         bool merge = (options.ContainsKey("merge") ? (bool)options["merge"] : false);
-                        
+
                         try
                         {
                             request = new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadStream, merge);
@@ -275,7 +276,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                             return false;
                         }
-                    
+
                         UpdateClientWithLoadedNodes(userInfo, request.Execute());
 
                         return true;
@@ -287,6 +288,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                             userInfo.FirstName, userInfo.LastName, userInfo.PrincipalID);
                     }
                 }
+                else
+                    m_log.ErrorFormat("[INVENTORY ARCHIVER]: User {0} {1} not found",
+                            firstName, lastName);
             }
 
             return false;
