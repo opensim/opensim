@@ -36,8 +36,6 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Osp;
 using OpenSim.Region.CoreModules.World.Archiver;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
@@ -139,20 +137,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 m_id, succeeded, m_userInfo, m_invPath, m_saveStream, reportedException);
         }
 
-        protected void SaveInvItem(InventoryItemBase inventoryItem, string path)
+        protected void SaveInvItem(InventoryItemBase inventoryItem, string path, Dictionary<string, object> options, IUserAccountService userAccountService)
         {
             string filename = path + CreateArchiveItemName(inventoryItem);
 
             // Record the creator of this item for user record purposes (which might go away soon)
             m_userUuids[inventoryItem.CreatorIdAsUuid] = 1;
 
-            InventoryItemBase saveItem = (InventoryItemBase)inventoryItem.Clone();
-            saveItem.CreatorId = OspResolver.MakeOspa(saveItem.CreatorIdAsUuid, m_scene.UserAccountService);
-
-            string serialization = UserInventoryItemSerializer.Serialize(saveItem);
+            string serialization = UserInventoryItemSerializer.Serialize(inventoryItem, options, userAccountService);
             m_archiveWriter.WriteFile(filename, serialization);
 
-            m_assetGatherer.GatherAssetUuids(saveItem.AssetID, (AssetType)saveItem.AssetType, m_assetUuids);
+            m_assetGatherer.GatherAssetUuids(inventoryItem.AssetID, (AssetType)inventoryItem.AssetType, m_assetUuids);
         }
 
         /// <summary>
@@ -161,7 +156,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="inventoryFolder">The inventory folder to save</param>
         /// <param name="path">The path to which the folder should be saved</param>
         /// <param name="saveThisFolderItself">If true, save this folder itself.  If false, only saves contents</param>
-        protected void SaveInvFolder(InventoryFolderBase inventoryFolder, string path, bool saveThisFolderItself)
+        protected void SaveInvFolder(InventoryFolderBase inventoryFolder, string path, bool saveThisFolderItself, Dictionary<string, object> options, IUserAccountService userAccountService)
         {
             if (saveThisFolderItself)
             {
@@ -176,19 +171,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             foreach (InventoryFolderBase childFolder in contents.Folders)
             {
-                SaveInvFolder(childFolder, path, true);
+                SaveInvFolder(childFolder, path, true, options, userAccountService);
             }
 
             foreach (InventoryItemBase item in contents.Items)
             {
-                SaveInvItem(item, path);
+                SaveInvItem(item, path, options, userAccountService);
             }
         }
 
         /// <summary>
         /// Execute the inventory write request
         /// </summary>
-        public void Execute()
+        public void Execute(Dictionary<string, object> options, IUserAccountService userAccountService)
         {
             try
             {
@@ -266,7 +261,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         m_invPath == String.Empty ? InventoryFolderImpl.PATH_DELIMITER : m_invPath);
     
                     //recurse through all dirs getting dirs and files
-                    SaveInvFolder(inventoryFolder, ArchiveConstants.INVENTORY_PATH, !saveFolderContentsOnly);
+                    SaveInvFolder(inventoryFolder, ArchiveConstants.INVENTORY_PATH, !saveFolderContentsOnly, options, userAccountService);
                 }
                 else if (inventoryItem != null)
                 {
@@ -274,14 +269,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         "[INVENTORY ARCHIVER]: Found item {0} {1} at {2}",
                         inventoryItem.Name, inventoryItem.ID, m_invPath);
     
-                    SaveInvItem(inventoryItem, ArchiveConstants.INVENTORY_PATH);
+                    SaveInvItem(inventoryItem, ArchiveConstants.INVENTORY_PATH, options, userAccountService);
                 }
             
                 // Don't put all this profile information into the archive right now.
                 //SaveUsers();
                             
                 new AssetsRequest(
-                    new AssetsArchiver(m_archiveWriter), m_assetUuids, m_scene.AssetService, ReceivedAllAssets).Execute();
+                    new AssetsArchiver(m_archiveWriter), 
+                    m_assetUuids, m_scene.AssetService, 
+                    m_scene.UserAccountService, m_scene.RegionInfo.ScopeID,
+                    options, ReceivedAllAssets).Execute();
             }
             catch (Exception)
             {

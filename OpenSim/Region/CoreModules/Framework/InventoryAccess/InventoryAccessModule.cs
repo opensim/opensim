@@ -799,9 +799,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         protected virtual InventoryItemBase GetItem(UUID agentID, UUID itemID)
         {
             IInventoryService invService = m_Scene.RequestModuleInterface<IInventoryService>();
-            InventoryItemBase assetRequestItem = new InventoryItemBase(itemID, agentID);
-            assetRequestItem = invService.GetItem(assetRequestItem);
-            return assetRequestItem;
+            InventoryItemBase item = new InventoryItemBase(itemID, agentID);
+            item = invService.GetItem(item);
+            
+            if (item.CreatorData != null && item.CreatorData != string.Empty)
+                UserManagementModule.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+
+            return item;
         }
 
         #endregion

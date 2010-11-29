@@ -35,6 +35,7 @@ using log4net;
 using OpenMetaverse;
 
 using OpenSim.Framework;
+using OpenSim.Framework.Serialization.External;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.AssetService;
@@ -131,48 +132,7 @@ namespace OpenSim.Services.HypergridService
         protected byte[] AdjustIdentifiers(byte[] data)
         {
             string xml = Utils.BytesToString(data);
-            return Utils.StringToBytes(RewriteSOP(xml));
-        }
-
-        protected string RewriteSOP(string xml)
-        {
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml(xml);
-            XmlNodeList sops = doc.GetElementsByTagName("SceneObjectPart");
-
-            foreach (XmlNode sop in sops)
-            {
-                UserAccount creator = null;
-                bool hasCreatorData = false;
-                XmlNodeList nodes = sop.ChildNodes;
-                foreach (XmlNode node in nodes)
-                {
-                    if (node.Name == "CreatorID")
-                        creator = m_Cache.GetUser(node.InnerText);
-                    if (node.Name == "CreatorData" && node.InnerText != null && node.InnerText != string.Empty)
-                        hasCreatorData = true;
-
-                    //if (node.Name == "OwnerID")
-                    //{
-                    //    UserAccount owner = GetUser(node.InnerText);
-                    //    if (owner != null)
-                    //        node.InnerText = m_ProfileServiceURL + "/" + node.InnerText + "/" + owner.FirstName + " " + owner.LastName;
-                    //}
-                }
-                if (!hasCreatorData && creator != null)
-                {
-                    XmlElement creatorData = doc.CreateElement("CreatorData");
-                    creatorData.InnerText = m_ProfileServiceURL + "/" + creator.PrincipalID + ";" + creator.FirstName + " " + creator.LastName;
-                    sop.AppendChild(creatorData);
-                }
-            }
-
-            using (StringWriter wr = new StringWriter())
-            {
-                doc.Save(wr);
-                return wr.ToString();
-            }
- 
+            return Utils.StringToBytes(ExternalRepresentationUtils.RewriteSOP(xml, m_ProfileServiceURL, m_Cache, UUID.Zero));
         }
 
     }

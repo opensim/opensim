@@ -32,7 +32,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 
-namespace OpenSim.Framework.Communications.Osp
+namespace OpenSim.Framework.Serialization
 {
     /// <summary>
     /// Resolves OpenSim Profile Anchors (OSPA).  An OSPA is a string used to provide information for 

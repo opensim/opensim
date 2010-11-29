@@ -409,7 +409,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         #region SOPXmlProcessors
         private static void ProcessAllowedDrop(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.AllowedDrop = reader.ReadElementContentAsBoolean("AllowedDrop", String.Empty);
+            obj.AllowedDrop = Util.ReadBoolean(reader);
         }
 
         private static void ProcessCreatorID(SceneObjectPart obj, XmlTextReader reader)
@@ -459,7 +459,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessPassTouches(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.PassTouches = reader.ReadElementContentAsBoolean("PassTouches", String.Empty);
+            obj.PassTouches = Util.ReadBoolean(reader);
         }
 
         private static void ProcessRegionHandle(SceneObjectPart obj, XmlTextReader reader)
@@ -654,11 +654,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessFlags(SceneObjectPart obj, XmlTextReader reader)
         {
-            string value = reader.ReadElementContentAsString("Flags", String.Empty);
-            // !!!!! to deal with flags without commas
-            if (value.Contains(" ") && !value.Contains(","))
-                value = value.Replace(" ", ", ");
-            obj.Flags = (PrimFlags)Enum.Parse(typeof(PrimFlags), value);
+            obj.Flags = Util.ReadEnum<PrimFlags>(reader, "Flags");
         }
 
         private static void ProcessCollisionSound(SceneObjectPart obj, XmlTextReader reader)
@@ -808,7 +804,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessTIOwnerChanged(TaskInventoryItem item, XmlTextReader reader)
         {
-            item.OwnerChanged = reader.ReadElementContentAsBoolean("OwnerChanged", String.Empty);
+            item.OwnerChanged = Util.ReadBoolean(reader);
         }
 
         #endregion
@@ -932,20 +928,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShpProfileShape(PrimitiveBaseShape shp, XmlTextReader reader)
         {
-            string value = reader.ReadElementContentAsString("ProfileShape", String.Empty);
-            // !!!!! to deal with flags without commas
-            if (value.Contains(" ") && !value.Contains(","))
-                value = value.Replace(" ", ", ");
-            shp.ProfileShape = (ProfileShape)Enum.Parse(typeof(ProfileShape), value);
+            shp.ProfileShape = Util.ReadEnum<ProfileShape>(reader, "ProfileShape");
         }
 
         private static void ProcessShpHollowShape(PrimitiveBaseShape shp, XmlTextReader reader)
         {
-            string value = reader.ReadElementContentAsString("HollowShape", String.Empty);
-            // !!!!! to deal with flags without commas
-            if (value.Contains(" ") && !value.Contains(","))
-                value = value.Replace(" ", ", ");
-            shp.HollowShape = (HollowShape)Enum.Parse(typeof(HollowShape), value);
+            shp.HollowShape = Util.ReadEnum<HollowShape>(reader, "HollowShape");
         }
         
         private static void ProcessShpSculptTexture(PrimitiveBaseShape shp, XmlTextReader reader)
@@ -1045,17 +1033,17 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShpFlexiEntry(PrimitiveBaseShape shp, XmlTextReader reader)
         {
-            shp.FlexiEntry = reader.ReadElementContentAsBoolean("FlexiEntry", String.Empty);
+            shp.FlexiEntry = Util.ReadBoolean(reader);
         }
 
         private static void ProcessShpLightEntry(PrimitiveBaseShape shp, XmlTextReader reader)
         {
-            shp.LightEntry = reader.ReadElementContentAsBoolean("LightEntry", String.Empty);
+            shp.LightEntry = Util.ReadBoolean(reader);
         }
 
         private static void ProcessShpSculptEntry(PrimitiveBaseShape shp, XmlTextReader reader)
         {
-            shp.SculptEntry = reader.ReadElementContentAsBoolean("SculptEntry", String.Empty);
+            shp.SculptEntry = Util.ReadBoolean(reader);
         }
 
         private static void ProcessShpMedia(PrimitiveBaseShape shp, XmlTextReader reader)
@@ -1220,16 +1208,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         static void WriteFlags(XmlTextWriter writer, string name, string flagsStr, Dictionary<string, object> options)
         {
-            // Older versions of serialization can't cope with commas
-            if (options.ContainsKey("version")) 
-            {
-                float version = 0.5F;
-                float.TryParse(options["version"].ToString(), out version);
-                if (version < 0.5)
-                    flagsStr = flagsStr.Replace(",", "");
-            }
-
-            writer.WriteElementString(name, flagsStr);
+            // Older versions of serialization can't cope with commas, so we eliminate the commas
+            writer.WriteElementString(name, flagsStr.Replace(",", ""));
         }
 
         static void WriteTaskInventory(XmlTextWriter writer, TaskInventoryDictionary tinv, Dictionary<string, object> options, Scene scene)

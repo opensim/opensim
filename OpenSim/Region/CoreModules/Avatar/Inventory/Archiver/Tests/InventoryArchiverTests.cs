@@ -38,7 +38,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Osp;
 using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.Framework.Scenes;
@@ -103,7 +102,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             string item1FileName 
                 = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, archiveItemName);
-            tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1));
+            tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1, new Dictionary<string, object>(), null));
             tar.Close();
             m_iarStream = new MemoryStream(archiveWriteStream.ToArray());
         }
@@ -551,7 +550,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             string item1FileName 
                 = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, archiveItemName);
-            tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1));
+            tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1, new Dictionary<string,object>(), null));
             tar.Close();
 
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());

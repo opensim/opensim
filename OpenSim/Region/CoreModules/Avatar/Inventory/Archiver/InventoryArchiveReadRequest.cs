@@ -37,12 +37,11 @@ using System.Xml.Linq;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Osp;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Region.CoreModules.World.Archiver;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
@@ -398,16 +397,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             // Don't use the item ID that's in the file
             item.ID = UUID.Random();
 
-            UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_scene.UserAccountService); 
-            if (UUID.Zero != ospResolvedId)
+            UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_scene.UserAccountService);
+            if (UUID.Zero != ospResolvedId) // The user exists in this grid
             {
                 item.CreatorIdAsUuid = ospResolvedId;
 
                 // XXX: For now, don't preserve the OSPA in the creator id (which actually gets persisted to the
                 // database).  Instead, replace with the UUID that we found.
                 item.CreatorId = ospResolvedId.ToString();
+
+                item.CreatorData = string.Empty;
             }
-            else
+            else if (item.CreatorData == null || item.CreatorData == String.Empty)
             {
                 item.CreatorIdAsUuid = m_userInfo.PrincipalID;
             }

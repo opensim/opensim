@@ -1558,6 +1558,16 @@ namespace OpenSim.Framework
             return string.Empty;
         }
 
+        #region Xml Serialization Utilities
+        public static bool ReadBoolean(XmlTextReader reader)
+        {
+            reader.ReadStartElement();
+            bool result = Boolean.Parse(reader.ReadContentAsString().ToLower());
+            reader.ReadEndElement();
+
+            return result;
+        }
+
         public static UUID ReadUUID(XmlTextReader reader, string name)
         {
             UUID id;
@@ -1619,5 +1629,15 @@ namespace OpenSim.Framework
             return quat;
         }
 
+        public static T ReadEnum<T>(XmlTextReader reader, string name)
+        {
+            string value = reader.ReadElementContentAsString(name, String.Empty);
+            // !!!!! to deal with flags without commas
+            if (value.Contains(" ") && !value.Contains(","))
+                value = value.Replace(" ", ", ");
+
+            return (T)Enum.Parse(typeof(T), value); ;
+        }
+        #endregion
     }
 }

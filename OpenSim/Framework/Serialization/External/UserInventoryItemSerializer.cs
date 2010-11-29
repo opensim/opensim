@@ -35,6 +35,7 @@ using System.Xml;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Services.Interfaces;
     
 namespace OpenSim.Framework.Serialization.External
 {        
@@ -56,6 +57,8 @@ namespace OpenSim.Framework.Serialization.External
             m_InventoryItemXmlProcessors.Add("ID", ProcessID);
             m_InventoryItemXmlProcessors.Add("InvType", ProcessInvType);
             m_InventoryItemXmlProcessors.Add("CreatorUUID", ProcessCreatorUUID);
+            m_InventoryItemXmlProcessors.Add("CreatorID", ProcessCreatorID); 
+            m_InventoryItemXmlProcessors.Add("CreatorData", ProcessCreatorData);
             m_InventoryItemXmlProcessors.Add("CreationDate", ProcessCreationDate);
             m_InventoryItemXmlProcessors.Add("Owner", ProcessOwner);
             m_InventoryItemXmlProcessors.Add("Description", ProcessDescription);
@@ -92,6 +95,12 @@ namespace OpenSim.Framework.Serialization.External
         private static void ProcessCreatorUUID(InventoryItemBase item, XmlTextReader reader)
         {
             item.CreatorId = reader.ReadElementContentAsString("CreatorUUID", String.Empty);
+        }
+
+        private static void ProcessCreatorID(InventoryItemBase item, XmlTextReader reader)
+        {
+            // when it exists, this overrides the previous
+            item.CreatorId = reader.ReadElementContentAsString("CreatorID", String.Empty);
         }
 
         private static void ProcessCreationDate(InventoryItemBase item, XmlTextReader reader)
@@ -161,12 +170,12 @@ namespace OpenSim.Framework.Serialization.External
 
         private static void ProcessGroupOwned(InventoryItemBase item, XmlTextReader reader)
         {
-            //item.GroupOwned = reader.ReadElementContentAsBoolean("GroupOwned", String.Empty);
-            // We don't do that, because ReadElementContentAsBoolean assumes lower case strings,
-            // and they may not be lower case
-            reader.ReadStartElement(); // GroupOwned
-            item.GroupOwned = Boolean.Parse(reader.ReadContentAsString().ToLower());
-            reader.ReadEndElement();
+            item.GroupOwned = Util.ReadBoolean(reader);
+        }
+
+        private static void ProcessCreatorData(InventoryItemBase item, XmlTextReader reader)
+        {
+            item.CreatorData = reader.ReadElementContentAsString("CreatorData", String.Empty);
         }
 
         #endregion
@@ -231,7 +240,7 @@ namespace OpenSim.Framework.Serialization.External
 
         }      
         
-        public static string Serialize(InventoryItemBase inventoryItem)
+        public static string Serialize(InventoryItemBase inventoryItem, Dictionary<string, object> options, IUserAccountService userAccountService)
         {
             StringWriter sw = new StringWriter();
             XmlTextWriter writer = new XmlTextWriter(sw);
@@ -250,7 +259,7 @@ namespace OpenSim.Framework.Serialization.External
             writer.WriteString(inventoryItem.InvType.ToString());
             writer.WriteEndElement();
             writer.WriteStartElement("CreatorUUID");
-            writer.WriteString(inventoryItem.CreatorId);
+            writer.WriteString(OspResolver.MakeOspa(inventoryItem.CreatorIdAsUuid, userAccountService));
             writer.WriteEndElement();
             writer.WriteStartElement("CreationDate");
             writer.WriteString(inventoryItem.CreationDate.ToString());
@@ -294,6 +303,20 @@ namespace OpenSim.Framework.Serialization.External
             writer.WriteStartElement("GroupOwned");
             writer.WriteString(inventoryItem.GroupOwned.ToString());
             writer.WriteEndElement();
+            if (inventoryItem.CreatorData != null && inventoryItem.CreatorData != string.Empty)
+                writer.WriteElementString("CreatorData", inventoryItem.CreatorData);
+            else if (options.ContainsKey("profile"))
+            {
+                if (userAccountService != null)
+                {
+                    UserAccount account = userAccountService.GetUserAccount(UUID.Zero, inventoryItem.CreatorIdAsUuid);
+                    if (account != null)
+                    {
+                        writer.WriteElementString("CreatorData", (string)options["profile"] + "/" + inventoryItem.CreatorIdAsUuid + ";" + account.FirstName + " " + account.LastName);
+                    }
+                    writer.WriteElementString("CreatorID", inventoryItem.CreatorId);
+                }
+            }
 
             writer.WriteEndElement();
             
