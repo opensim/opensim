@@ -7759,24 +7759,59 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
-                        // TODO--------------
                         if (remain < 1)
                             return res;
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
-                        res.Add(new LSL_Integer(0));
-                        res.Add(new LSL_Integer(0));
+                        tex = part.Shape.Textures;
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < GetNumberOfSides(part); face++)
+                            {
+                                Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
+                                // Convert Shininess to PRIM_SHINY_*
+                                res.Add(new LSL_Integer((uint)texface.Shiny >> 6));
+                                // PRIM_BUMP_*
+                                res.Add(new LSL_Integer((int)texface.Bump));
+                            }
+                        }
+                        else
+                        {
+                            if (face >= 0 && face < GetNumberOfSides(part))
+                            {
+                                Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
+                                // Convert Shininess to PRIM_SHINY_*
+                                res.Add(new LSL_Integer((uint)texface.Shiny >> 6));
+                                // PRIM_BUMP_*
+                                res.Add(new LSL_Integer((int)texface.Bump));
+                            }
+                        }
                         break;
 
                     case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
-                        // TODO--------------
                         if (remain < 1)
                             return res;
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
-                        res.Add(new LSL_Integer(0));
+                        tex = part.Shape.Textures;
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < GetNumberOfSides(part); face++)
+                            {
+                                Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
+                                res.Add(new LSL_Integer(texface.Fullbright ? 1 : 0));
+                            }
+                        }
+                        else
+                        {
+                            if (face >= 0 && face < GetNumberOfSides(part))
+                            {
+                                Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
+                                res.Add(new LSL_Integer(texface.Fullbright ? 1 : 0));
+                            }
+                        }
                         break;
 
                     case (int)ScriptBaseClass.PRIM_FLEXIBLE:
@@ -7797,14 +7832,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case (int)ScriptBaseClass.PRIM_TEXGEN:
-                        // TODO--------------
-                        // (PRIM_TEXGEN_DEFAULT, PRIM_TEXGEN_PLANAR)
                         if (remain < 1)
                             return res;
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
-                        res.Add(new LSL_Integer(0));
+                        tex = part.Shape.Textures;
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < GetNumberOfSides(part); face++)
+                            {
+                                MappingType texgen = tex.GetFace((uint)face).TexMapType;
+                                // Convert MappingType to PRIM_TEXGEN_DEFAULT, PRIM_TEXGEN_PLANAR etc.
+                                res.Add(new LSL_Integer((uint)texgen >> 1));
+                            }
+                        }
+                        else
+                        {
+                            if (face >= 0 && face < GetNumberOfSides(part))
+                            {
+                                MappingType texgen = tex.GetFace((uint)face).TexMapType;
+                                res.Add(new LSL_Integer((uint)texgen >> 1));
+                            }
+                        }
                         break;
 
                     case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
@@ -7823,14 +7873,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case (int)ScriptBaseClass.PRIM_GLOW:
-                        // TODO--------------
                         if (remain < 1)
                             return res;
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
-                        res.Add(new LSL_Float(0));
+                        tex = part.Shape.Textures;
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < GetNumberOfSides(part); face++)
+                            {
+                                Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
+                                res.Add(new LSL_Float(texface.Glow));
+                            }
+                        }
+                        else
+                        {
+                            if (face >= 0 && face < GetNumberOfSides(part))
+                            {
+                                Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
+                                res.Add(new LSL_Float(texface.Glow));
+                            }
+                        }
                         break;
+
                     case (int)ScriptBaseClass.PRIM_TEXT:
                         Color4 textColor = part.GetTextColor();
                         res.Add(part.Text);
