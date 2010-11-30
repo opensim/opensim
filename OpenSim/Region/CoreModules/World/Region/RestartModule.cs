@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.World.Region
         protected UUID m_Initiator;
         protected bool m_Notice = false;
         protected IDialogModule m_DialogModule = null;
-        protected string m_MarkerPath;
+        protected string m_MarkerPath = String.Empty;
 
         public void Initialise(IConfigSource config)
         {
