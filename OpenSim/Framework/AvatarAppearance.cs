@@ -238,11 +238,27 @@ namespace OpenSim.Framework
 //            }
         }
 
+        /// <summary>
+        /// Invalidate all of the baked textures in the appearance, useful
+        /// if you know that none are valid
+        /// </summary>
+        public virtual void ResetBakedTextures()
+        {
+            SetDefaultTexture();
+            
+            //for (int i = 0; i < BAKE_INDICES.Length; i++)
+            // {
+            //     int idx = BAKE_INDICES[i];
+            //     m_texture.FaceTextures[idx].TextureID = UUID.Zero;
+            // }
+        }
+        
         protected virtual void SetDefaultTexture()
         {
             m_texture = new Primitive.TextureEntry(new UUID("C228D1CF-4B5D-4BA8-84F4-899A0796AA97"));
-            for (uint i = 0; i < TEXTURE_COUNT; i++)
-                m_texture.CreateFace(i).TextureID = new UUID(AppearanceManager.DEFAULT_AVATAR_TEXTURE);
+
+            // for (uint i = 0; i < TEXTURE_COUNT; i++)
+            //     m_texture.CreateFace(i).TextureID = new UUID(AppearanceManager.DEFAULT_AVATAR_TEXTURE);
         }
 
         /// <summary>
@@ -274,9 +290,6 @@ namespace OpenSim.Framework
                 }
 
                 changed = true;
-
-//                if (newface != null)
-//                    m_log.WarnFormat("[AVATAR APPEARANCE]: index {0}, new texture id {1}",i,newface.TextureID);
             }
 
             m_texture = textureEntry;

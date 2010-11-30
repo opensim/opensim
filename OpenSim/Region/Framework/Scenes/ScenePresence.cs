@@ -2773,29 +2773,43 @@ namespace OpenSim.Region.Framework.Scenes
             // the inventory arrives
             // m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);
 
-            // This agent just became root. We are going to tell everyone about it. The process of
-            // getting other avatars information was initiated in the constructor... don't do it 
-            // again here... 
-            SendAvatarDataToAllAgents();
+            bool cachedappearance = false;
 
             // We have an appearance but we may not have the baked textures. Check the asset cache 
             // to see if all the baked textures are already here. 
             if (m_scene.AvatarFactory != null)
             {
-                if (m_scene.AvatarFactory.ValidateBakedTextureCache(m_controllingClient))
-                {
-//                    m_log.WarnFormat("[SCENEPRESENCE]: baked textures are in the cache for {0}", Name);
-                    SendAppearanceToAgent(this);
-
-                    // If the avatars baked textures are all in the cache, then we have a 
-                    // complete appearance... send it out, if not, then we'll send it when
-                    // the avatar finishes updating its appearance
-                    SendAppearanceToAllOtherAgents();
-                }
+                cachedappearance = m_scene.AvatarFactory.ValidateBakedTextureCache(m_controllingClient);
             }
             else
             {
                 m_log.WarnFormat("[SCENEPRESENCE]: AvatarFactory not set for {0}", Name);
+            }
+            
+            // If we aren't using a cached appearance, then clear out the baked textures
+            if (! cachedappearance) 
+            {
+                m_appearance.ResetBakedTextures();
+                if (m_scene.AvatarFactory != null)
+                    m_scene.AvatarFactory.QueueAppearanceSave(UUID);
+            }
+            
+            // This agent just became root. We are going to tell everyone about it. The process of
+            // getting other avatars information was initiated in the constructor... don't do it 
+            // again here... this comes after the cached appearance check because the avatars
+            // appearance goes into the avatar update packet
+            SendAvatarDataToAllAgents();
+
+            // If we are using the the cached appearance then send it out to everyone
+            if (cachedappearance)
+            {
+                m_log.WarnFormat("[SCENEPRESENCE]: baked textures are in the cache for {0}", Name);
+                SendAppearanceToAgent(this);
+
+                // If the avatars baked textures are all in the cache, then we have a 
+                // complete appearance... send it out, if not, then we'll send it when
+                // the avatar finishes updating its appearance
+                SendAppearanceToAllOtherAgents();
             }
         }
 
@@ -2856,7 +2870,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Send avatar data to an agent.
         /// </summary>
         /// <param name="avatar"></param>
-        private void SendAvatarDataToAgent(ScenePresence avatar)
+        public void SendAvatarDataToAgent(ScenePresence avatar)
         {
 //            m_log.WarnFormat("[SP] Send avatar data from {0} to {1}",m_uuid,avatar.ControllingClient.AgentId);
 
@@ -2924,7 +2938,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Send appearance data to an agent.
         /// </summary>
         /// <param name="avatar"></param>
-        private void SendAppearanceToAgent(ScenePresence avatar)
+        public void SendAppearanceToAgent(ScenePresence avatar)
         {
 //          m_log.WarnFormat("[SP] Send appearance from {0} to {1}",m_uuid,avatar.ControllingClient.AgentId);
 
