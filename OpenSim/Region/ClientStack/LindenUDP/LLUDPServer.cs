@@ -312,6 +312,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        /// <summary>
+        /// Start the process of sending a packet to the client.
+        /// </summary>
+        /// <param name="udpClient"></param>
+        /// <param name="packet"></param>
+        /// <param name="category"></param>
+        /// <param name="allowSplitting"></param>
         public void SendPacket(LLUDPClient udpClient, Packet packet, ThrottleOutPacketType category, bool allowSplitting)
         {
             // CoarseLocationUpdate packets cannot be split in an automated way
@@ -339,6 +346,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        /// <summary>
+        /// Start the process of sending a packet to the client.
+        /// </summary>
+        /// <param name="udpClient"></param>
+        /// <param name="data"></param>
+        /// <param name="type"></param>
+        /// <param name="category"></param>        
         public void SendPacketData(LLUDPClient udpClient, byte[] data, PacketType type, ThrottleOutPacketType category)
         {
             int dataLength = data.Length;

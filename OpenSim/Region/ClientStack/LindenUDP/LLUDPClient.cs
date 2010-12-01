@@ -399,6 +399,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return data;
         }
 
+        /// <summary>
+        /// Queue an outgoing packet if appropriate.
+        /// </summary>
+        /// <param name="packet"></param>
+        /// <returns>
+        /// true if the packet has been queued, 
+        /// false if the packet has not been queued and should be sent immediately.
+        /// </returns>
         public bool EnqueueOutgoing(OutgoingPacket packet)
         {
             int category = (int)packet.Category;
