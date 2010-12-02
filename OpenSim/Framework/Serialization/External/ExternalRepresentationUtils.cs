@@ -34,8 +34,20 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Framework.Serialization.External
 {
+    /// <summary>
+    /// Utilities for manipulating external representations of data structures in OpenSim
+    /// </summary>
     public class ExternalRepresentationUtils
     {
+        /// <summary>
+        /// Takes a XML representation of a SceneObjectPart and returns another XML representation
+        /// with creator data added to it.
+        /// </summary>
+        /// <param name="xml">The SceneObjectPart represented in XML2</param>
+        /// <param name="profileURL">The URL of the profile service for the creator</param>
+        /// <param name="userService">The service for retrieving user account information</param>
+        /// <param name="scopeID">The scope of the user account information (Grid ID)</param>
+        /// <returns>The SceneObjectPart represented in XML2</returns>
         public static string RewriteSOP(string xml, string profileURL, IUserAccountService userService, UUID scopeID)
         {
             if (xml == string.Empty || profileURL == string.Empty || userService == null)
