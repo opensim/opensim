@@ -40,6 +40,13 @@ using OpenSim.Server.Base;
 
 namespace OpenSim.Services.HypergridService
 {
+    /// <summary>
+    /// Hypergrid inventory service. It serves the IInventoryService interface,
+    /// but implements it in ways that are appropriate for inter-grid
+    /// inventory exchanges. Specifically, it does not performs deletions
+    /// and it responds to GetRootFolder requests with the ID of the
+    /// Suitcase folder, not the actual "My Inventory" folder.
+    /// </summary>
     public class HGInventoryService : XInventoryService, IInventoryService
     {
         private static readonly ILog m_log =

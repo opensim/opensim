@@ -42,6 +42,11 @@ using OpenSim.Services.AssetService;
 
 namespace OpenSim.Services.HypergridService
 {
+    /// <summary>
+    /// Hypergrid asset service. It serves the IAssetService interface,
+    /// but implements it in ways that are appropriate for inter-grid
+    /// asset exchanges.
+    /// </summary>
     public class HGAssetService : OpenSim.Services.AssetService.AssetService, IAssetService
     {
         private static readonly ILog m_log =
