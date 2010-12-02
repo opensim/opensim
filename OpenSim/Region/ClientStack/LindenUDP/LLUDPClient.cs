@@ -403,11 +403,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Queue an outgoing packet if appropriate.
         /// </summary>
         /// <param name="packet"></param>
+        /// <param name="forceQueue">Always queue the packet if at all possible.</param>
         /// <returns>
         /// true if the packet has been queued, 
         /// false if the packet has not been queued and should be sent immediately.
         /// </returns>
-        public bool EnqueueOutgoing(OutgoingPacket packet)
+        public bool EnqueueOutgoing(OutgoingPacket packet, bool forceQueue)
         {
             int category = (int)packet.Category;
 
@@ -416,14 +417,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OpenSim.Framework.LocklessQueue<OutgoingPacket> queue = m_packetOutboxes[category];
                 TokenBucket bucket = m_throttleCategories[category];
 
-                if (bucket.RemoveTokens(packet.Buffer.DataLength))
+                if (!forceQueue && bucket.RemoveTokens(packet.Buffer.DataLength))
                 {
                     // Enough tokens were removed from the bucket, the packet will not be queued
                     return false;
                 }
                 else
                 {
-                    // Not enough tokens in the bucket, queue this packet
+                    // Force queue specified or not enough tokens in the bucket, queue this packet
                     queue.Enqueue(packet);
                     return true;
                 }
