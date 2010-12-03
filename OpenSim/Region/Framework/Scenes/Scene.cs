@@ -1997,7 +1997,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="group">Object Id</param>
         /// <param name="silent">Suppress broadcasting changes to other clients.</param>
         public void DeleteSceneObject(SceneObjectGroup group, bool silent)
-        {
+        {            
 //            m_log.DebugFormat("[SCENE]: Deleting scene object {0} {1}", group.Name, group.UUID);
             
             //SceneObjectPart rootPart = group.GetChildPart(group.UUID);
@@ -2038,7 +2038,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             group.DeleteGroupFromScene(silent);
 
-//            m_log.DebugFormat("[SCENE]: Exit DeleteSceneObject() for {0} {1}", group.Name, group.UUID);
+//            m_log.DebugFormat("[SCENE]: Exit DeleteSceneObject() for {0} {1}", group.Name, group.UUID);            
         }
 
         /// <summary>
@@ -2057,9 +2057,12 @@ namespace OpenSim.Region.Framework.Scenes
                     // Force a database update so that the scene object group ID is accurate.  It's possible that the
                     // group has recently been delinked from another group but that this change has not been persisted
                     // to the DB.
-                    ForceSceneObjectBackup(so);
+                    // This is an expensive thing to do so only do it if absolutely necessary.
+                    if (so.HasGroupChangedDueToDelink)
+                        ForceSceneObjectBackup(so);                
+                    
                     so.DetachFromBackup();
-                    SimulationDataService.RemoveObject(so.UUID, m_regInfo.RegionID);
+                    SimulationDataService.RemoveObject(so.UUID, m_regInfo.RegionID);                                        
                 }
                                     
                 // We need to keep track of this state in case this group is still queued for further backup.

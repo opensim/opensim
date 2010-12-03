@@ -121,13 +121,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 "Not exactly sure what this is asserting...");
 
             // Delink part 2
-            grp1.DelinkFromGroup(part2.LocalId);
+            SceneObjectGroup grp3 = grp1.DelinkFromGroup(part2.LocalId);
 
             if (debugtest)
                 m_log.Debug("Group2: Prim2: OffsetPosition:" + part2.AbsolutePosition + ", OffsetRotation:" + part2.RotationOffset);
 
             Assert.That(grp1.Parts.Length, Is.EqualTo(1), "Group 1 still contained part2 after delink.");
             Assert.That(part2.AbsolutePosition == Vector3.Zero, "The absolute position should be zero");
+            Assert.That(grp3.HasGroupChangedDueToDelink, Is.True);
         }
 
         [Test]
@@ -325,7 +326,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             SceneObjectGroup sog = new SceneObjectGroup(rootPart);
             sog.AddPart(linkPart);
-            scene.AddNewSceneObject(sog, true);
+            scene.AddNewSceneObject(sog, true);            
             
             // In a test, we have to crank the backup handle manually.  Normally this would be done by the timer invoked
             // scene backup thread.
@@ -333,7 +334,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                         
             // These changes should occur immediately without waiting for a backup pass
             SceneObjectGroup groupToDelete = sog.DelinkFromGroup(linkPart, false);
+            
+            Assert.That(groupToDelete.HasGroupChangedDueToDelink, Is.True);
             scene.DeleteSceneObject(groupToDelete, false);
+            Assert.That(groupToDelete.HasGroupChangedDueToDelink, Is.False);
             
             List<SceneObjectGroup> storedObjects = scene.SimulationDataService.LoadObjects(scene.RegionInfo.RegionID);
             
