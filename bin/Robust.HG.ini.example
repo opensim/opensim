@@ -21,7 +21,7 @@
 ; * [[<ConfigName>@]<port>/]<dll name>[:<class name>]
 ; *
 [Startup]
-ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector,8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector,HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector,8002/OpenSim.Server.Handlers.dll:AssetServiceConnector,8002/OpenSim.Server.Handlers.dll:HeloServiceInConnector"
+ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector,8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector,HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector,HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector,8002/OpenSim.Server.Handlers.dll:HeloServiceInConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none if specified above
@@ -154,10 +154,12 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     
     ; Defaults for the users, if none is specified in the useraccounts table entry (ServiceURLs)
     ; CHANGE THIS
-    HomeURI = "http://127.0.0.1:8002"
-    GatekeeperURI = "http://127.0.0.1:8002"
-    InventoryServerURI = "http://127.0.0.1:8002"
-    AssetServerURI = "http://127.0.0.1:8002"
+	GatekeeperURI = "http://127.0.0.1:8002"
+
+    SRV_HomeURI = "http://127.0.0.1:8002"
+    SRV_InventoryServerURI = "http://127.0.0.1:8002"
+    SRV_AssetServerURI = "http://127.0.0.1:8002"
+	SRV_ProfileServerURI = "http://127.0.0.1:8002"
 
 [GridInfoService]
     ; These settings are used to return information on a get_grid_info call.
@@ -169,7 +171,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; See http://opensimulator.org/wiki/GridInfo
 
     ; login uri: for grid this is the login server URI
-    login = http://127.0.0.1:9000/
+    login = http://127.0.0.1:8002/
 
     ; long grid name: the long name of your grid
     gridname = "the lost continent of hippo"
@@ -183,7 +185,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 
     ; helper uri: optional: if it exists if will be used to tell the client to use
     ;                       this for all economy related things
-    ;economy = http://127.0.0.1:9000/
+    ;economy = http://127.0.0.1:8002/
 
     ; web page of grid: optional: page providing further information about your grid
     ;about = http://127.0.0.1/about/
@@ -241,4 +243,15 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 ; * 
 [HGInventoryService]
     ; For the InventoryServiceInConnector
-    LocalServiceModule = "OpenSim.Services.InventoryService.dll:HGInventoryService"
+    LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGInventoryService"
+	UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+	ProfileServerURI = "http://127.0.0.1:8002/user"
+
+; * The interface that local users get when they are in other grids.
+; * This restricts the access that the rest of the world has to
+; * the assets of this world.
+; * 
+[HGAssetService]
+    LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGAssetService"
+    UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+    ProfileServerURI = "http://127.0.0.1:8002/user"

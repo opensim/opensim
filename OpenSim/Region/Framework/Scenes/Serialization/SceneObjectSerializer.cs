@@ -409,12 +409,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         #region SOPXmlProcessors
         private static void ProcessAllowedDrop(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.AllowedDrop = reader.ReadElementContentAsBoolean("AllowedDrop", String.Empty);
+            obj.AllowedDrop = Util.ReadBoolean(reader);
         }
 
         private static void ProcessCreatorID(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.CreatorID = ReadUUID(reader, "CreatorID");
+            obj.CreatorID = Util.ReadUUID(reader, "CreatorID");
         }
 
         private static void ProcessCreatorData(SceneObjectPart obj, XmlTextReader reader)
@@ -424,7 +424,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessFolderID(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.FolderID = ReadUUID(reader, "FolderID");
+            obj.FolderID = Util.ReadUUID(reader, "FolderID");
         }
 
         private static void ProcessInventorySerial(SceneObjectPart obj, XmlTextReader reader)
@@ -439,7 +439,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessUUID(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.UUID = ReadUUID(reader, "UUID");
+            obj.UUID = Util.ReadUUID(reader, "UUID");
         }
 
         private static void ProcessLocalId(SceneObjectPart obj, XmlTextReader reader)
@@ -459,7 +459,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessPassTouches(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.PassTouches = reader.ReadElementContentAsBoolean("PassTouches", String.Empty);
+            obj.PassTouches = Util.ReadBoolean(reader);
         }
 
         private static void ProcessRegionHandle(SceneObjectPart obj, XmlTextReader reader)
@@ -474,32 +474,32 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessGroupPosition(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.GroupPosition = ReadVector(reader, "GroupPosition");
+            obj.GroupPosition = Util.ReadVector(reader, "GroupPosition");
         }
 
         private static void ProcessOffsetPosition(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.OffsetPosition = ReadVector(reader, "OffsetPosition"); ;
+            obj.OffsetPosition = Util.ReadVector(reader, "OffsetPosition"); ;
         }
 
         private static void ProcessRotationOffset(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.RotationOffset = ReadQuaternion(reader, "RotationOffset");
+            obj.RotationOffset = Util.ReadQuaternion(reader, "RotationOffset");
         }
 
         private static void ProcessVelocity(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.Velocity = ReadVector(reader, "Velocity");
+            obj.Velocity = Util.ReadVector(reader, "Velocity");
         }
 
         private static void ProcessAngularVelocity(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.AngularVelocity = ReadVector(reader, "AngularVelocity");
+            obj.AngularVelocity = Util.ReadVector(reader, "AngularVelocity");
         }
 
         private static void ProcessAcceleration(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.Acceleration = ReadVector(reader, "Acceleration");
+            obj.Acceleration = Util.ReadVector(reader, "Acceleration");
         }
 
         private static void ProcessDescription(SceneObjectPart obj, XmlTextReader reader)
@@ -553,7 +553,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessScale(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.Scale = ReadVector(reader, "Scale");
+            obj.Scale = Util.ReadVector(reader, "Scale");
         }
 
         private static void ProcessUpdateFlag(SceneObjectPart obj, XmlTextReader reader)
@@ -563,22 +563,22 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessSitTargetOrientation(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.SitTargetOrientation = ReadQuaternion(reader, "SitTargetOrientation");
+            obj.SitTargetOrientation = Util.ReadQuaternion(reader, "SitTargetOrientation");
         }
 
         private static void ProcessSitTargetPosition(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.SitTargetPosition = ReadVector(reader, "SitTargetPosition");
+            obj.SitTargetPosition = Util.ReadVector(reader, "SitTargetPosition");
         }
 
         private static void ProcessSitTargetPositionLL(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.SitTargetPositionLL = ReadVector(reader, "SitTargetPositionLL");
+            obj.SitTargetPositionLL = Util.ReadVector(reader, "SitTargetPositionLL");
         }
 
         private static void ProcessSitTargetOrientationLL(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.SitTargetOrientationLL = ReadQuaternion(reader, "SitTargetOrientationLL");
+            obj.SitTargetOrientationLL = Util.ReadQuaternion(reader, "SitTargetOrientationLL");
         }
 
         private static void ProcessParentID(SceneObjectPart obj, XmlTextReader reader)
@@ -614,17 +614,17 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessGroupID(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.GroupID = ReadUUID(reader, "GroupID");
+            obj.GroupID = Util.ReadUUID(reader, "GroupID");
         }
 
         private static void ProcessOwnerID(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.OwnerID = ReadUUID(reader, "OwnerID");
+            obj.OwnerID = Util.ReadUUID(reader, "OwnerID");
         }
 
         private static void ProcessLastOwnerID(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.LastOwnerID = ReadUUID(reader, "LastOwnerID");
+            obj.LastOwnerID = Util.ReadUUID(reader, "LastOwnerID");
         }
 
         private static void ProcessBaseMask(SceneObjectPart obj, XmlTextReader reader)
@@ -654,16 +654,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessFlags(SceneObjectPart obj, XmlTextReader reader)
         {
-            string value = reader.ReadElementContentAsString("Flags", String.Empty);
-            // !!!!! to deal with flags without commas
-            if (value.Contains(" ") && !value.Contains(","))
-                value = value.Replace(" ", ", ");
-            obj.Flags = (PrimFlags)Enum.Parse(typeof(PrimFlags), value);
+            obj.Flags = Util.ReadEnum<PrimFlags>(reader, "Flags");
         }
 
         private static void ProcessCollisionSound(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.CollisionSound = ReadUUID(reader, "CollisionSound");
+            obj.CollisionSound = Util.ReadUUID(reader, "CollisionSound");
         }
 
         private static void ProcessCollisionSoundVolume(SceneObjectPart obj, XmlTextReader reader)
@@ -690,7 +686,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         #region TaskInventoryXmlProcessors
         private static void ProcessTIAssetID(TaskInventoryItem item, XmlTextReader reader)
         {
-            item.AssetID = ReadUUID(reader, "AssetID");
+            item.AssetID = Util.ReadUUID(reader, "AssetID");
         }
 
         private static void ProcessTIBasePermissions(TaskInventoryItem item, XmlTextReader reader)
@@ -705,7 +701,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessTICreatorID(TaskInventoryItem item, XmlTextReader reader)
         {
-            item.CreatorID = ReadUUID(reader, "CreatorID");
+            item.CreatorID = Util.ReadUUID(reader, "CreatorID");
         }
 
         private static void ProcessTICreatorData(TaskInventoryItem item, XmlTextReader reader)
@@ -730,7 +726,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessTIGroupID(TaskInventoryItem item, XmlTextReader reader)
         {
-            item.GroupID = ReadUUID(reader, "GroupID");
+            item.GroupID = Util.ReadUUID(reader, "GroupID");
         }
 
         private static void ProcessTIGroupPermissions(TaskInventoryItem item, XmlTextReader reader)
@@ -745,20 +741,20 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessTIItemID(TaskInventoryItem item, XmlTextReader reader)
         {
-            item.ItemID = ReadUUID(reader, "ItemID");
+            item.ItemID = Util.ReadUUID(reader, "ItemID");
         }
 
         private static void ProcessTIOldItemID(TaskInventoryItem item, XmlTextReader reader)
         {
-            ReadUUID(reader, "OldItemID");
+            Util.ReadUUID(reader, "OldItemID");
             // On deserialization, the old item id MUST BE UUID.Zero!!!!!
             // Setting this to the saved value will BREAK script persistence!
-            // item.OldItemID = ReadUUID(reader, "OldItemID");
+            // item.OldItemID = Util.ReadUUID(reader, "OldItemID");
         }
 
         private static void ProcessTILastOwnerID(TaskInventoryItem item, XmlTextReader reader)
         {
-            item.LastOwnerID = ReadUUID(reader, "LastOwnerID");
+            item.LastOwnerID = Util.ReadUUID(reader, "LastOwnerID");
         }
 
         private static void ProcessTIName(TaskInventoryItem item, XmlTextReader reader)
@@ -773,7 +769,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessTIOwnerID(TaskInventoryItem item, XmlTextReader reader)
         {
-            item.OwnerID = ReadUUID(reader, "OwnerID");
+            item.OwnerID = Util.ReadUUID(reader, "OwnerID");
         }
 
         private static void ProcessTICurrentPermissions(TaskInventoryItem item, XmlTextReader reader)
@@ -783,17 +779,17 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessTIParentID(TaskInventoryItem item, XmlTextReader reader)
         {
-            item.ParentID = ReadUUID(reader, "ParentID");
+            item.ParentID = Util.ReadUUID(reader, "ParentID");
         }
 
         private static void ProcessTIParentPartID(TaskInventoryItem item, XmlTextReader reader)
         {
-            item.ParentPartID = ReadUUID(reader, "ParentPartID");
+            item.ParentPartID = Util.ReadUUID(reader, "ParentPartID");
         }
 
         private static void ProcessTIPermsGranter(TaskInventoryItem item, XmlTextReader reader)
         {
-            item.PermsGranter = ReadUUID(reader, "PermsGranter");
+            item.PermsGranter = Util.ReadUUID(reader, "PermsGranter");
         }
 
         private static void ProcessTIPermsMask(TaskInventoryItem item, XmlTextReader reader)
@@ -808,7 +804,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessTIOwnerChanged(TaskInventoryItem item, XmlTextReader reader)
         {
-            item.OwnerChanged = reader.ReadElementContentAsBoolean("OwnerChanged", String.Empty);
+            item.OwnerChanged = Util.ReadBoolean(reader);
         }
 
         #endregion
@@ -922,7 +918,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShpScale(PrimitiveBaseShape shp, XmlTextReader reader)
         {
-            shp.Scale = ReadVector(reader, "Scale");
+            shp.Scale = Util.ReadVector(reader, "Scale");
         }
 
         private static void ProcessShpState(PrimitiveBaseShape shp, XmlTextReader reader)
@@ -932,25 +928,17 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShpProfileShape(PrimitiveBaseShape shp, XmlTextReader reader)
         {
-            string value = reader.ReadElementContentAsString("ProfileShape", String.Empty);
-            // !!!!! to deal with flags without commas
-            if (value.Contains(" ") && !value.Contains(","))
-                value = value.Replace(" ", ", ");
-            shp.ProfileShape = (ProfileShape)Enum.Parse(typeof(ProfileShape), value);
+            shp.ProfileShape = Util.ReadEnum<ProfileShape>(reader, "ProfileShape");
         }
 
         private static void ProcessShpHollowShape(PrimitiveBaseShape shp, XmlTextReader reader)
         {
-            string value = reader.ReadElementContentAsString("HollowShape", String.Empty);
-            // !!!!! to deal with flags without commas
-            if (value.Contains(" ") && !value.Contains(","))
-                value = value.Replace(" ", ", ");
-            shp.HollowShape = (HollowShape)Enum.Parse(typeof(HollowShape), value);
+            shp.HollowShape = Util.ReadEnum<HollowShape>(reader, "HollowShape");
         }
         
         private static void ProcessShpSculptTexture(PrimitiveBaseShape shp, XmlTextReader reader)
         {
-            shp.SculptTexture = ReadUUID(reader, "SculptTexture");
+            shp.SculptTexture = Util.ReadUUID(reader, "SculptTexture");
         }
 
         private static void ProcessShpSculptType(PrimitiveBaseShape shp, XmlTextReader reader)
@@ -1045,17 +1033,17 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShpFlexiEntry(PrimitiveBaseShape shp, XmlTextReader reader)
         {
-            shp.FlexiEntry = reader.ReadElementContentAsBoolean("FlexiEntry", String.Empty);
+            shp.FlexiEntry = Util.ReadBoolean(reader);
         }
 
         private static void ProcessShpLightEntry(PrimitiveBaseShape shp, XmlTextReader reader)
         {
-            shp.LightEntry = reader.ReadElementContentAsBoolean("LightEntry", String.Empty);
+            shp.LightEntry = Util.ReadBoolean(reader);
         }
 
         private static void ProcessShpSculptEntry(PrimitiveBaseShape shp, XmlTextReader reader)
         {
-            shp.SculptEntry = reader.ReadElementContentAsBoolean("SculptEntry", String.Empty);
+            shp.SculptEntry = Util.ReadBoolean(reader);
         }
 
         private static void ProcessShpMedia(PrimitiveBaseShape shp, XmlTextReader reader)
@@ -1220,16 +1208,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         static void WriteFlags(XmlTextWriter writer, string name, string flagsStr, Dictionary<string, object> options)
         {
-            // Older versions of serialization can't cope with commas
-            if (options.ContainsKey("version")) 
-            {
-                float version = 0.5F;
-                float.TryParse(options["version"].ToString(), out version);
-                if (version < 0.5)
-                    flagsStr = flagsStr.Replace(",", "");
-            }
-
-            writer.WriteElementString(name, flagsStr);
+            // Older versions of serialization can't cope with commas, so we eliminate the commas
+            writer.WriteElementString(name, flagsStr.Replace(",", ""));
         }
 
         static void WriteTaskInventory(XmlTextWriter writer, TaskInventoryDictionary tinv, Dictionary<string, object> options, Scene scene)
@@ -1457,66 +1437,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             //m_log.DebugFormat("[XXX]: parsed SOP {0} - {1}", obj.Name, obj.UUID);
             return obj;
-        }
-
-        static UUID ReadUUID(XmlTextReader reader, string name)
-        {
-            UUID id;
-            string idStr;
-
-            reader.ReadStartElement(name);
-
-            if (reader.Name == "Guid")
-                idStr = reader.ReadElementString("Guid");
-            else // UUID
-                idStr = reader.ReadElementString("UUID");
-
-            UUID.TryParse(idStr, out id);
-            reader.ReadEndElement();
-
-            return id;
-        }
-
-        static Vector3 ReadVector(XmlTextReader reader, string name)
-        {
-            Vector3 vec;
-
-            reader.ReadStartElement(name);
-            vec.X = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // X or x
-            vec.Y = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // Y or y
-            vec.Z = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // Z or z
-            reader.ReadEndElement();
-
-            return vec;
-        }
-
-        static Quaternion ReadQuaternion(XmlTextReader reader, string name)
-        {
-            Quaternion quat = new Quaternion();
-
-            reader.ReadStartElement(name);
-            while (reader.NodeType != XmlNodeType.EndElement)
-            {
-                switch (reader.Name.ToLower())
-                {
-                    case "x":
-                        quat.X = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
-                        break;
-                    case "y":
-                        quat.Y = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
-                        break;
-                    case "z":
-                        quat.Z = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
-                        break;
-                    case "w":
-                        quat.W = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
-                        break;
-                }
-            }
-
-            reader.ReadEndElement();
-
-            return quat;
         }
 
         static TaskInventoryDictionary ReadTaskInventory(XmlTextReader reader, string name)

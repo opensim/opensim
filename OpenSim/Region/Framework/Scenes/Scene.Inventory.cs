@@ -398,6 +398,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             if ((item != null) && (item.Owner == senderId))
             {
+                IUserManagement uman = RequestModuleInterface<IUserManagement>();
+                if (uman != null)
+                    uman.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+
                 if (!Permissions.BypassPermissions())
                 {
                     if ((item.CurrentPermissions & (uint)PermissionMask.Transfer) == 0)

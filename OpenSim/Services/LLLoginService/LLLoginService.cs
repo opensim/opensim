@@ -769,6 +769,7 @@ namespace OpenSim.Services.LLLoginService
             if (account.ServiceURLs == null)
                 return;
 
+            // Old style: get the service keys from the DB 
             foreach (KeyValuePair<string, object> kvp in account.ServiceURLs)
             {
                 if (kvp.Value == null || (kvp.Value != null && kvp.Value.ToString() == string.Empty))
@@ -780,6 +781,21 @@ namespace OpenSim.Services.LLLoginService
                     aCircuit.ServiceURLs[kvp.Key] = kvp.Value;
                 }
             }
+
+            // New style: service keys  start with SRV_; override the previous
+            string[] keys = m_LoginServerConfig.GetKeys();
+
+            if (keys.Length > 0)
+            {
+                IEnumerable<string> serviceKeys = keys.Where(value => value.StartsWith("SRV_"));
+                foreach (string serviceKey in serviceKeys)
+                {
+                    string keyName = serviceKey.Replace("SRV_", "");
+                    aCircuit.ServiceURLs[keyName] = m_LoginServerConfig.GetString(serviceKey, string.Empty);
+                    m_log.DebugFormat("[LLLOGIN SERVICE]: found new key {0} {1}", keyName, aCircuit.ServiceURLs[keyName]);
+                }
+            }
+
         }
 
         private bool LaunchAgentDirectly(ISimulationService simConnector, GridRegion region, AgentCircuitData aCircuit, out string reason)

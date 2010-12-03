@@ -78,6 +78,14 @@
     ;
     FriendsServerURI = "http://mygridserver.com:8003"
 
+[HGInventoryAccessModule]
+    ;
+    ; === HG ONLY ===
+    ; Change this to your profile server 
+    ; accessible from other grids
+    ;
+    ProfileServerURI = "http://mygridserver.com:8002/profiles"
+
 [Modules]
     ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.
     ;; Copy the config .example file into your own .ini file and change configs there

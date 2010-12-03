@@ -54,6 +54,17 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         protected bool m_Enabled = false;
         protected Scene m_Scene;
+        protected IUserManagement m_UserManagement;
+        protected IUserManagement UserManagementModule
+        {
+            get
+            {
+                if (m_UserManagement == null)
+                    m_UserManagement = m_Scene.RequestModuleInterface<IUserManagement>();
+                return m_UserManagement;
+            }
+        }
+
 
         #region INonSharedRegionModule
 
@@ -416,7 +427,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     //
                     if (action == DeRezAction.Take || action == DeRezAction.TakeCopy)
                     {
-                        if (objlist[0].RootPart.FromFolderID != UUID.Zero)
+                        if (objlist[0].RootPart.FromFolderID != UUID.Zero && objlist[0].OwnerID == remoteClient.AgentId)
                         {
                             InventoryFolderBase f = new InventoryFolderBase(objlist[0].RootPart.FromFolderID, userID);
                             folder = m_Scene.InventoryService.GetFolder(f);
@@ -863,6 +874,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             return null;
         }
 
+        protected void AddUserData(SceneObjectGroup sog)
+        {
+            UserManagementModule.AddUser(sog.RootPart.CreatorID, sog.RootPart.CreatorData);
+            foreach (SceneObjectPart sop in sog.Parts)
+                UserManagementModule.AddUser(sop.CreatorID, sop.CreatorData);
+        }
+
         public virtual void TransferInventoryAssets(InventoryItemBase item, UUID sender, UUID receiver)
         {
         }
@@ -943,9 +961,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         protected virtual InventoryItemBase GetItem(UUID agentID, UUID itemID)
         {
             IInventoryService invService = m_Scene.RequestModuleInterface<IInventoryService>();
-            InventoryItemBase assetRequestItem = new InventoryItemBase(itemID, agentID);
-            assetRequestItem = invService.GetItem(assetRequestItem);
-            return assetRequestItem;
+            InventoryItemBase item = new InventoryItemBase(itemID, agentID);
+            item = invService.GetItem(item);
+            
+            if (item.CreatorData != null && item.CreatorData != string.Empty)
+                UserManagementModule.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+
+            return item;
         }
 
         #endregion

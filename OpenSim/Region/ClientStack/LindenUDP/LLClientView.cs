@@ -3598,14 +3598,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 EntityUpdate update;
                 while (updatesThisCall < maxUpdates && m_entityUpdates.TryDequeue(out update))
                 {
-                    // If we have sent a kill packet for this object
-                    // drop any updates on the floor
                     if (update.Entity is SceneObjectPart)
                     {
                         SceneObjectPart part = (SceneObjectPart)update.Entity;
                         if (m_killRecord.Contains(part.ParentGroup.RootPart.LocalId))
                             continue;
 
+                        // Please do not remove this unless you can demonstrate on the OpenSim mailing list that a client
+                        // will never receive an update after a prim kill.  Even then, keeping the kill record may be a good
+                        // safety measure.
+                        //
+                        // If a Linden Lab 1.23.5 client (and possibly later and earlier) receives an object update
+                        // after a kill, it will keep displaying the deleted object until relog.  OpenSim currently performs
+                        // updates and kills on different threads with different scheduling strategies, hence this protection.
+                        // 
+                        // This doesn't appear to apply to child prims - a client will happily ignore these updates
+                        // after the root prim has been deleted.
+                        if (m_killRecord.Contains(part.LocalId))
+                        {
+        //                        m_log.WarnFormat(
+        //                            "[CLIENT]: Preventing update for prim with local id {0} after client for user {1} told it was deleted",
+        //                            part.LocalId, Name);
+                            continue;
+                        }                        
+                        
                         if (part.ParentGroup.IsAttachment && m_disableFacelights)
                         {
                             if (part.ParentGroup.RootPart.Shape.State != (byte)AttachmentPoint.LeftHand &&

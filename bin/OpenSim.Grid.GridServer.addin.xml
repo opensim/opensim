@@ -1,9 +1,0 @@
-<Addin id="OpenSim.Grid.GridServer" isroot="true" version="0.5">
-    <Runtime>
-        <Import assembly="OpenSim.Grid.GridServer.exe"/>
-        <Import assembly="OpenSim.Framework.dll"/>
-    </Runtime>
-    <ExtensionPoint path = "/OpenSim/GridServer">
-        <ExtensionNode name="Plugin" type="OpenSim.Framework.PluginExtensionNode" objectType="OpenSim.Grid.GridServer.IGridPlugin"/>
-    </ExtensionPoint>
-</Addin>

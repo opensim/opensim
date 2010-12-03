@@ -275,6 +275,11 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             m_log.DebugFormat("[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}", user.Id, user.FirstName, user.LastName, user.ProfileURL);
         }
 
+        public void AddUser(UUID uuid, string first, string last, string profileURL)
+        {
+            AddUser(uuid, profileURL + ";" + first + " " + last);
+        }
+
         //public void AddUser(UUID uuid, string userData)
         //{
         //    if (m_UserCache.ContainsKey(uuid))

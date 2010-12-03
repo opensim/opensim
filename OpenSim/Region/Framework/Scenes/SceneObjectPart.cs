@@ -459,7 +459,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public string CreatorData // = <profile url>;<name>
+        /// <summary>
+        /// Data about the creator in the form profile_url;name
+        /// </summary>
+        public string CreatorData 
         {
             get { return m_creatorData; }
             set { m_creatorData = value; }

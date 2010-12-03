@@ -171,10 +171,19 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
                 m_hasGroupChanged = value;
+                
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT GROUP]: HasGroupChanged set to {0} for {1} {2}", m_hasGroupChanged, Name, LocalId);
             }
 
             get { return m_hasGroupChanged; }
         }
+        
+        /// <summary>
+        /// Has the group changed due to an unlink operation?  We record this in order to optimize deletion, since
+        /// an unlinked group currently has to be persisted to the database before we can perform an unlink operation.
+        /// </summary>
+        public bool HasGroupChangedDueToDelink { get; private set; }
 
         private bool isTimeToPersist()
         {
@@ -1622,6 +1631,7 @@ namespace OpenSim.Region.Framework.Scenes
                         backup_group.RootPart.AngularVelocity = RootPart.AngularVelocity;
                         backup_group.RootPart.ParticleSystem = RootPart.ParticleSystem;
                         HasGroupChanged = false;
+                        HasGroupChangedDueToDelink = false;
 
                         m_scene.EventManager.TriggerOnSceneObjectPreSave(backup_group, this);
                         datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
@@ -2540,8 +2550,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             linkPart.Rezzed = RootPart.Rezzed;
 
-            //HasGroupChanged = true;
-            //ScheduleGroupForFullUpdate();
+            // When we delete a group, we currently have to force persist to the database if the object id has changed
+            // (since delete works by deleting all rows which have a given object id)
+            objectGroup.HasGroupChangedDueToDelink = true;
 
             return objectGroup;
         }

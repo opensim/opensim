@@ -54,6 +54,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             get { return m_assMapper; }
         }
 
+        private string m_ProfileServerURI;
+
 //        private bool m_Initialized = false;
 
         #region INonSharedRegionModule
@@ -73,6 +75,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     m_Enabled = true;
                     m_log.InfoFormat("[HG INVENTORY ACCESS MODULE]: {0} enabled.", Name);
+
+                    IConfig thisModuleConfig = source.Configs["HGInventoryAccessModule"];
+                    if (thisModuleConfig != null)
+                        m_ProfileServerURI = thisModuleConfig.GetString("ProfileServerURI", string.Empty);
+                    else
+                        m_log.Warn("[HG INVENTORY ACCESS MODULE]: HGInventoryAccessModule configs not found. ProfileServerURI not set!");
                 }
             }
         }
@@ -83,7 +91,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 return;
 
             base.AddRegion(scene);
-            m_assMapper = new HGAssetMapper(scene);
+            m_assMapper = new HGAssetMapper(scene, m_ProfileServerURI);
             scene.EventManager.OnNewInventoryItemUploadComplete += UploadInventoryItem;
 
         }
@@ -97,7 +105,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             string userAssetServer = string.Empty;
             if (IsForeignUser(avatarID, out userAssetServer))
             {
-                m_assMapper.Post(assetID, avatarID, userAssetServer);
+                Util.FireAndForget(delegate { m_assMapper.Post(assetID, avatarID, userAssetServer); });
             }
         }
 

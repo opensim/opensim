@@ -34,6 +34,7 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
+using OpenSim.Framework.Serialization.External;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
@@ -100,17 +101,26 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Asset service used to request the assets
         /// </value>
         protected IAssetService m_assetService;
+        protected IUserAccountService m_userAccountService;
+        protected UUID m_scopeID; // the grid ID 
 
         protected AssetsArchiver m_assetsArchiver;
 
+        protected Dictionary<string, object> m_options;
+
         protected internal AssetsRequest(
             AssetsArchiver assetsArchiver, IDictionary<UUID, AssetType> uuids, 
-            IAssetService assetService, AssetsRequestCallback assetsRequestCallback)
+            IAssetService assetService, IUserAccountService userService, 
+            UUID scope, Dictionary<string, object> options, 
+            AssetsRequestCallback assetsRequestCallback)
         {
             m_assetsArchiver = assetsArchiver;
             m_uuids = uuids;
             m_assetsRequestCallback = assetsRequestCallback;
             m_assetService = assetService;
+            m_userAccountService = userService;
+            m_scopeID = scope;
+            m_options = options;
             m_repliesRequired = uuids.Count;
 
             m_requestCallbackTimer = new System.Timers.Timer(TIMEOUT);
@@ -241,7 +251,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     {
 //                        m_log.DebugFormat("[ARCHIVER]: Writing asset {0}", id);
                         m_foundAssetUuids.Add(asset.FullID);
-                        m_assetsArchiver.WriteAsset(asset);
+
+                        m_assetsArchiver.WriteAsset(PostProcess(asset));
                     }
                     else
                     {
@@ -287,6 +298,17 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_log.ErrorFormat(
                     "[ARCHIVER]: Terminating archive creation since asset requster callback failed with {0}", e);
             }
+        }
+
+        protected AssetBase PostProcess(AssetBase asset)
+        {
+            if (asset.Type == (sbyte)AssetType.Object && asset.Data != null && m_options.ContainsKey("profile"))
+            {
+                //m_log.DebugFormat("[ARCHIVER]: Rewriting object data for {0}", asset.ID);
+                string xml = ExternalRepresentationUtils.RewriteSOP(Utils.BytesToString(asset.Data), m_options["profile"].ToString(), m_userAccountService, m_scopeID);
+                asset.Data = Utils.StringToBytes(xml);
+            }
+            return asset;
         }
     }
 }

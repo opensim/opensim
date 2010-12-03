@@ -312,6 +312,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        /// <summary>
+        /// Start the process of sending a packet to the client.
+        /// </summary>
+        /// <param name="udpClient"></param>
+        /// <param name="packet"></param>
+        /// <param name="category"></param>
+        /// <param name="allowSplitting"></param>
         public void SendPacket(LLUDPClient udpClient, Packet packet, ThrottleOutPacketType category, bool allowSplitting)
         {
             // CoarseLocationUpdate packets cannot be split in an automated way
@@ -339,6 +346,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        /// <summary>
+        /// Start the process of sending a packet to the client.
+        /// </summary>
+        /// <param name="udpClient"></param>
+        /// <param name="data"></param>
+        /// <param name="type"></param>
+        /// <param name="category"></param>        
         public void SendPacketData(LLUDPClient udpClient, byte[] data, PacketType type, ThrottleOutPacketType category)
         {
             int dataLength = data.Length;
@@ -396,7 +410,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category);
 
-            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
+            // If a Linden Lab 1.23.5 client receives an update packet after a kill packet for an object, it will 
+            // continue to display the deleted object until relog.  Therefore, we need to always queue a kill object
+            // packet so that it isn't sent before a queued update packet.
+            bool requestQueue = type == PacketType.KillObject;
+            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, requestQueue))
                 SendPacketFinal(outgoingPacket);
 
             #endregion Queue or Send
@@ -489,7 +507,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //Interlocked.Increment(ref Stats.ResentPackets);
 
                     // Requeue or resend the packet
-                    if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
+                    if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, false))
                         SendPacketFinal(outgoingPacket);
                 }
             }
