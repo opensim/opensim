@@ -89,6 +89,11 @@ namespace OpenSim.Services.HypergridService
             return null;
         }
 
+        public List<UserAccount> GetUserAccountsWhere(UUID scopeID, string query)
+        {
+            return null;
+        }
+
         public List<UserAccount> GetUserAccounts(UUID scopeID, string query)
         {
             return null;
