@@ -2632,8 +2632,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 else throw new Exception("neither region_name nor region_uuid given");
 
                 Scene scene = m_application.SceneManager.CurrentScene;
-                int health = scene.GetHealth();
+                int flags;
+                string text;
+                int health = scene.GetHealth(out flags, out text);
                 responseData["health"] = health;
+                responseData["flags"] = health;
+                responseData["message"] = health;
 
                 response.Value = responseData;
             }

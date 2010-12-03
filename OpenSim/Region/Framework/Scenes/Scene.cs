@@ -4548,7 +4548,7 @@ namespace OpenSim.Region.Framework.Scenes
             SimulationDataService.RemoveObject(uuid, m_regInfo.RegionID);
         }
 
-        public int GetHealth()
+        public int GetHealth(out int flags, out string message)
         {
             // Returns:
             // 1 = sim is up and accepting http requests. The heartbeat has
@@ -4567,6 +4567,12 @@ namespace OpenSim.Region.Framework.Scenes
             // 5 = We have seen a new user enter within the past 4 minutes
             // which can be seen as positive confirmation of sim health
             //
+
+            flags = 0;
+            message = String.Empty;
+
+            CheckHeartbeat();
+
             if (m_firstHeartbeat || (m_lastIncoming == 0 && m_lastOutgoing == 0))
             {
                 // We're still starting
@@ -4578,28 +4584,30 @@ namespace OpenSim.Region.Framework.Scenes
             int health=1; // Start at 1, means we're up
 
             if (Util.EnvironmentTickCountSubtract(m_lastUpdate) < 1000)
+            {
                 health+=1;
-            else
-                return health;
+                flags |= 1;
+            }
 
             if (Util.EnvironmentTickCountSubtract(m_lastIncoming) < 1000)
+            {
                 health+=1;
-            else
-                return health;
+                flags |= 2;
+            }
 
             if (Util.EnvironmentTickCountSubtract(m_lastOutgoing) < 1000)
+            {
                 health+=1;
-            else
+                flags |= 4;
+            }
+
+            if (flags != 7)
                 return health;
 
             // A login in the last 4 mins? We can't be doing too badly
             //
             if (Util.EnvironmentTickCountSubtract(m_LastLogin) < 240000)
                 health++;
-            else
-                return health;
-
-            CheckHeartbeat();
 
             return health;
         }
