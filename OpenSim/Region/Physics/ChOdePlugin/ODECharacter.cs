@@ -469,7 +469,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
 
                     Velocity = Vector3.Zero;
-
+					m_taintPosition = _position; // update the stale taint position
                     _parent_scene.AddPhysicsActorTaint(this);
                 }
                 else
