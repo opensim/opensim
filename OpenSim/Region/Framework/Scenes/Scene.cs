@@ -569,8 +569,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_regionName = m_regInfo.RegionName;
             m_datastore = m_regInfo.DataStore;
             m_lastUpdate = Util.EnvironmentTickCount();
-            m_lastIncoming = Util.EnvironmentTickCount();
-            m_lastOutgoing = Util.EnvironmentTickCount();
+            m_lastIncoming = 0;
+            m_lastOutgoing = 0;
 
             m_physicalPrim = physicalPrim;
             m_seeIntoRegionFromNeighbor = SeeIntoRegionFromNeighbor;
@@ -4560,26 +4560,34 @@ namespace OpenSim.Region.Framework.Scenes
             // 5 = We have seen a new user enter within the past 4 minutes
             // which can be seen as positive confirmation of sim health
             //
+            if (m_firstHeartbeat || (m_lastIncoming == 0 && m_lastOutgoing == 0))
+            {
+                // We're still starting
+                // 0 means "in startup", it can't happen another way, since
+                // to get here, we must be able to accept http connections
+                return 0;
+            }
+
             int health=1; // Start at 1, means we're up
 
-            if (m_firstHeartbeat || ((Util.EnvironmentTickCountSubtract(m_lastUpdate)) < 1000))
+            if (Util.EnvironmentTickCountSubtract(m_lastUpdate) < 1000)
                 health+=1;
             else
                 return health;
 
-            if (m_firstHeartbeat || ((Util.EnvironmentTickCountSubtract(m_lastIncoming)) < 1000))
+            if (Util.EnvironmentTickCountSubtract(m_lastIncoming) < 1000)
                 health+=1;
             else
                 return health;
 
-            if (m_firstHeartbeat || ((Util.EnvironmentTickCountSubtract(m_lastOutgoing)) < 1000))
+            if (Util.EnvironmentTickCountSubtract(m_lastOutgoing) < 1000)
                 health+=1;
             else
                 return health;
 
             // A login in the last 4 mins? We can't be doing too badly
             //
-            if ((Util.EnvironmentTickCountSubtract(m_LastLogin)) < 240000)
+            if (Util.EnvironmentTickCountSubtract(m_LastLogin) < 240000)
                 health++;
             else
                 return health;
