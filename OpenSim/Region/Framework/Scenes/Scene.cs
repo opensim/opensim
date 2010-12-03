@@ -1213,9 +1213,6 @@ namespace OpenSim.Region.Framework.Scenes
             try
             {
                 Update();
-
-                m_lastUpdate = Util.EnvironmentTickCount();
-                m_firstHeartbeat = false;
             }
             catch (ThreadAbortException)
             {
@@ -1405,6 +1402,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Tell the watchdog that this thread is still alive
                 Watchdog.UpdateThread();
+
+                m_lastUpdate = Util.EnvironmentTickCount();
+                m_firstHeartbeat = false;
             }
         }
 
