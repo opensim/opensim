@@ -2391,14 +2391,16 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.DebugFormat("[SCENE]: Problem adding scene object {0} in {1} ", sog.UUID, RegionInfo.RegionName);
                 return false;
             }
-
-            newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, GetStateSource(newObject));
+            
+            newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, 2);
 
             newObject.ResumeScripts();
 
             // Do this as late as possible so that listeners have full access to the incoming object
             EventManager.TriggerOnIncomingSceneObject(newObject);
 
+            TriggerChangedTeleport(newObject);
+            
             return true;
         }
 
@@ -2525,7 +2527,7 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
-        private int GetStateSource(SceneObjectGroup sog)
+        private void TriggerChangedTeleport(SceneObjectGroup sog)
         {
             ScenePresence sp = GetScenePresence(sog.OwnerID);
 
@@ -2536,12 +2538,13 @@ namespace OpenSim.Region.Framework.Scenes
                 if (aCircuit != null && (aCircuit.teleportFlags != (uint)TeleportFlags.Default))
                 {
                     // This will get your attention
-                    //m_log.Error("[XXX] Triggering CHANGED_TELEPORT");
+                    //m_log.Error("[XXX] Triggering ");
 
-                    return 5; // StateSource.Teleporting
+                    // Trigger CHANGED_TELEPORT
+                    sp.Scene.EventManager.TriggerOnScriptChangedEvent(sog.LocalId, (uint)Changed.TELEPORT);
                 }
+
             }
-            return 2; // StateSource.PrimCrossing
         }
 
         #endregion
