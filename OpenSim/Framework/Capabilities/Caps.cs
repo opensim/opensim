@@ -990,6 +990,7 @@ namespace OpenSim.Framework.Capabilities
         public void BakedTextureUploaded(UUID assetID, byte[] data)
         {
 //            m_log.WarnFormat("[CAPS]: Received baked texture {0}", assetID.ToString());
+            
             AssetBase asset;
             asset = new AssetBase(assetID, "Baked Texture", (sbyte)AssetType.Texture, m_agentID.ToString());
             asset.Data = data;
@@ -1331,6 +1332,7 @@ namespace OpenSim.Framework.Capabilities
                 newAssetID = UUID.Random();
                 uploaderPath = path;
                 httpListener = httpServer;
+                m_log.InfoFormat("[CAPS] baked texture upload starting for {0}",newAssetID);
             }
 
             /// <summary>
@@ -1357,6 +1359,8 @@ namespace OpenSim.Framework.Capabilities
                 {
                     handlerUpLoad(newAssetID, data);
                 }
+
+                m_log.InfoFormat("[CAPS] baked texture upload completed for {0}",newAssetID);
 
                 return res;
             }
