@@ -42,6 +42,8 @@ namespace OpenSim.Region.Examples.SimpleModule
     /// OpenSim by default.  If you want to try enabling it, look in the bin folder of this project.
     /// Please see the README.txt in this project on the filesystem for some more information.  
     /// Nonetheless, it may contain some useful example code so has been left here for now.
+    /// 
+    /// You can see bare bones examples of the more modern region module system in OpenSim/Region/OptionalModules/Example
     /// </remarks>
     public class RegionModule : IRegionModule
     {
