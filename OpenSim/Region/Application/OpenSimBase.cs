@@ -361,13 +361,13 @@ namespace OpenSim
             m_moduleLoader.InitialiseSharedModules(scene);
 
             // Use this in the future, the line above will be deprecated soon
-            m_log.Info("[MODULES]: Loading Region's modules (new style)");
+            m_log.Info("[REGIONMODULE]: Loading Region's modules (new style)");
             IRegionModulesController controller;
             if (ApplicationRegistry.TryGet(out controller))
             {
                 controller.AddRegionToModules(scene);
             }
-            else m_log.Error("[MODULES]: The new RegionModulesController is missing...");
+            else m_log.Error("[REGIONMODULE]: The new RegionModulesController is missing...");
 
             if (m_securePermissionsLoading)
             {

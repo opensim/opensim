@@ -115,7 +115,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         #endregion
 
-
+        /// <summary>
+        /// Check for the existence of the baked texture assets. Request a rebake
+        /// unless checkonly is true.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="checkonly"></param>
         public bool ValidateBakedTextureCache(IClientAPI client)
         {
             return ValidateBakedTextureCache(client, true);
@@ -157,12 +162,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     // one and we're done otherwise, ask for a rebake
                     if (checkonly) return false;
 
-                    m_log.WarnFormat("[AVFACTORY] missing baked texture {0}, request rebake",face.TextureID);
+                    m_log.InfoFormat("[AVFACTORY] missing baked texture {0}, request rebake",face.TextureID);
                     client.SendRebakeAvatarTextures(face.TextureID);
                 }
             }
 
-            m_log.WarnFormat("[AVFACTORY]: complete texture check for {0}",client.AgentId);
+            m_log.InfoFormat("[AVFACTORY]: complete texture check for {0}",client.AgentId);
 
             // If we only found default textures, then the appearance is not cached
             return (defonly ? false : true);
@@ -182,8 +187,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 return;
             }
 
-            m_log.WarnFormat("[AVFACTORY]: start SetAppearance for {0}",client.AgentId);
+            m_log.InfoFormat("[AVFACTORY]: start SetAppearance for {0}",client.AgentId);
 
+            // TODO: This is probably not necessary any longer, just assume the
+            // textureEntry set implies that the appearance transaction is complete
             bool changed = false;
 
             // Process the texture entry transactionally, this doesn't guarantee that Appearance is
@@ -203,7 +210,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     changed = sp.Appearance.SetTextureEntries(textureEntry) || changed;
 
-                    m_log.WarnFormat("[AVFACTORY]: received texture update for {0}",client.AgentId);
+                    m_log.InfoFormat("[AVFACTORY]: received texture update for {0}",client.AgentId);
                     Util.FireAndForget(delegate(object o) { ValidateBakedTextureCache(client,false); });
 
                     // This appears to be set only in the final stage of the appearance
@@ -215,13 +222,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 }
 
             }
-
-//             // If something changed in the appearance then queue an appearance save
-//             if (changed)
-//                 QueueAppearanceSave(client.AgentId);
-
-//             // And always queue up an appearance update to send out
-//             QueueAppearanceSend(client.AgentId);
 
             // m_log.WarnFormat("[AVFACTORY]: complete SetAppearance for {0}:\n{1}",client.AgentId,sp.Appearance.ToString());
         }
@@ -377,9 +377,11 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             // m_log.WarnFormat("[AVFACTORY]: AvatarIsWearing called for {0}", client.AgentId);
 
+            // we need to clean out the existing textures
+            sp.Appearance.ResetAppearance(); 
+
             // operate on a copy of the appearance so we don't have to lock anything
             AvatarAppearance avatAppearance = new AvatarAppearance(sp.Appearance, false);
-            sp.Appearance.ResetBakedTextures(); // this makes sure we don't reuse old textures if the baking takes time
             
             foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
             {
