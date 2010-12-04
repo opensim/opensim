@@ -1639,6 +1639,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 parentGroup.areUpdatesSuspended = false;
                 parentGroup.HasGroupChanged = true;
+                parentGroup.ProcessBackup(m_parentScene.SimulationDataService, true);
                 parentGroup.ScheduleGroupForFullUpdate();
                 Monitor.Exit(m_updateLock);
             }

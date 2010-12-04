@@ -48,7 +48,7 @@ namespace OpenSim.Framework
         public readonly static byte[] BAKE_INDICES = new byte[] { 8, 9, 10, 11, 19, 20 };
 
         protected UUID m_owner;
-        protected int m_serial = 1;
+        protected int m_serial = 0;
         protected byte[] m_visualparams;
         protected Primitive.TextureEntry m_texture;
         protected AvatarWearable[] m_wearables;
@@ -103,7 +103,7 @@ namespace OpenSim.Framework
         {
 //            m_log.WarnFormat("[AVATAR APPEARANCE]: create empty appearance for {0}",owner);
 
-            m_serial = 1;
+            m_serial = 0;
             m_owner = owner;
 
             SetDefaultWearables();
@@ -127,7 +127,7 @@ namespace OpenSim.Framework
         {
 //            m_log.WarnFormat("[AVATAR APPEARANCE] create initialized appearance for {0}",avatarID);
 
-            m_serial = 1;
+            m_serial = 0;
             m_owner = avatarID;
 
             if (wearables != null)
@@ -160,7 +160,7 @@ namespace OpenSim.Framework
 
             if (appearance == null)
             {
-                m_serial = 1;
+                m_serial = 0;
                 m_owner = UUID.Zero;
 
                 SetDefaultWearables();
@@ -229,6 +229,24 @@ namespace OpenSim.Framework
             m_wearables = AvatarWearable.DefaultWearables;
         }
 
+        /// <summary>
+        /// Invalidate all of the baked textures in the appearance, useful
+        /// if you know that none are valid
+        /// </summary>
+        public virtual void ResetAppearance()
+        {
+            m_serial = 0;
+
+            SetDefaultParams();
+            SetDefaultTexture();
+            
+            //for (int i = 0; i < BAKE_INDICES.Length; i++)
+            // {
+            //     int idx = BAKE_INDICES[i];
+            //     m_texture.FaceTextures[idx].TextureID = UUID.Zero;
+            // }
+        }
+        
         protected virtual void SetDefaultParams()
         {
             m_visualparams = new byte[] { 33,61,85,23,58,127,63,85,63,42,0,85,63,36,85,95,153,63,34,0,63,109,88,132,63,136,81,85,103,136,127,0,150,150,150,127,0,0,0,0,0,127,0,0,255,127,114,127,99,63,127,140,127,127,0,0,0,191,0,104,0,0,0,0,0,0,0,0,0,145,216,133,0,127,0,127,170,0,0,127,127,109,85,127,127,63,85,42,150,150,150,150,150,150,150,25,150,150,150,0,127,0,0,144,85,127,132,127,85,0,127,127,127,127,127,127,59,127,85,127,127,106,47,79,127,127,204,2,141,66,0,0,127,127,0,0,0,0,127,0,159,0,0,178,127,36,85,131,127,127,127,153,95,0,140,75,27,127,127,0,150,150,198,0,0,63,30,127,165,209,198,127,127,153,204,51,51,255,255,255,204,0,255,150,150,150,150,150,150,150,150,150,150,0,150,150,150,150,150,0,127,127,150,150,150,150,150,150,150,150,0,0,150,51,132,150,150,150 };
@@ -255,7 +273,7 @@ namespace OpenSim.Framework
         
         protected virtual void SetDefaultTexture()
         {
-            m_texture = new Primitive.TextureEntry(new UUID("C228D1CF-4B5D-4BA8-84F4-899A0796AA97"));
+            m_texture = new Primitive.TextureEntry(new UUID(AppearanceManager.DEFAULT_AVATAR_TEXTURE));
 
             // for (uint i = 0; i < TEXTURE_COUNT; i++)
             //     m_texture.CreateFace(i).TextureID = new UUID(AppearanceManager.DEFAULT_AVATAR_TEXTURE);

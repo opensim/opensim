@@ -2636,8 +2636,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 string text;
                 int health = scene.GetHealth(out flags, out text);
                 responseData["health"] = health;
-                responseData["flags"] = health;
-                responseData["message"] = health;
+                responseData["flags"] = flags;
+                responseData["message"] = text;
 
                 response.Value = responseData;
             }
