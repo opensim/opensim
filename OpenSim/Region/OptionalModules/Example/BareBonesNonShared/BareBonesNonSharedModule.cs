@@ -41,10 +41,13 @@ namespace OpenSim.Region.OptionalModules.Example.BareBonesNonShared
     /// <remarks>
     /// This module is the simplest possible example of a non-shared region module (a module where each scene/region
     /// in the simulator has its own copy).  If anybody wants to create a more complex example in the future then 
-    /// please create a separate example.
+    /// please create a separate class.
     /// 
     /// This module is not active by default.  If you want to see it in action, 
     /// then just uncomment the line below starting with [Extension(Path...
+    /// 
+    /// When the module is enabled it will print messages when it receives certain events to the screen and the log
+    /// file.
     /// </remarks>
     //[Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BareBonesNonSharedModule")]
     public class BareBonesNonSharedModule : INonSharedRegionModule
@@ -57,27 +60,27 @@ namespace OpenSim.Region.OptionalModules.Example.BareBonesNonShared
         
         public void Initialise(IConfigSource source)
         {
-            m_log.DebugFormat("[BARE BONES]: INITIALIZED MODULE");
+            m_log.DebugFormat("[BARE BONES NON SHARED]: INITIALIZED MODULE");
         }
         
         public void Close()
         {
-            m_log.DebugFormat("[BARE BONES]: CLOSED MODULE");
+            m_log.DebugFormat("[BARE BONES NON SHARED]: CLOSED MODULE");
         }
         
         public void AddRegion(Scene scene)
         {
-            m_log.DebugFormat("[BARE BONES]: REGION {0} ADDED", scene.RegionInfo.RegionName);
+            m_log.DebugFormat("[BARE BONES NON SHARED]: REGION {0} ADDED", scene.RegionInfo.RegionName);
         }
         
         public void RemoveRegion(Scene scene)
         {
-            m_log.DebugFormat("[BARE BONES]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
+            m_log.DebugFormat("[BARE BONES NON SHARED]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
         }        
         
         public void RegionLoaded(Scene scene)
         {
-            m_log.DebugFormat("[BARE BONES]: REGION {0} LOADED", scene.RegionInfo.RegionName);
+            m_log.DebugFormat("[BARE BONES NON SHARED]: REGION {0} LOADED", scene.RegionInfo.RegionName);
         }                
     }
 }
