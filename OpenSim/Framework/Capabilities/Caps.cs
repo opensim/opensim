@@ -1332,7 +1332,7 @@ namespace OpenSim.Framework.Capabilities
                 newAssetID = UUID.Random();
                 uploaderPath = path;
                 httpListener = httpServer;
-                // m_log.WarnFormat("[CAPS] baked texture upload starting for {0}",newAssetID);
+                m_log.InfoFormat("[CAPS] baked texture upload starting for {0}",newAssetID);
             }
 
             /// <summary>
@@ -1361,6 +1361,8 @@ namespace OpenSim.Framework.Capabilities
                 {
                     handlerUpLoad(newAssetID, data);
                 }
+
+                m_log.InfoFormat("[CAPS] baked texture upload completed for {0}",newAssetID);
 
                 return res;
             }

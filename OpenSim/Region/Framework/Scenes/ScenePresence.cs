@@ -2789,7 +2789,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If we aren't using a cached appearance, then clear out the baked textures
             if (! cachedappearance) 
             {
-                m_appearance.ResetBakedTextures();
+                m_appearance.ResetAppearance();
                 if (m_scene.AvatarFactory != null)
                     m_scene.AvatarFactory.QueueAppearanceSave(UUID);
             }
@@ -2799,12 +2799,12 @@ namespace OpenSim.Region.Framework.Scenes
             // again here... this comes after the cached appearance check because the avatars
             // appearance goes into the avatar update packet
             SendAvatarDataToAllAgents();
+            SendAppearanceToAgent(this);
 
             // If we are using the the cached appearance then send it out to everyone
             if (cachedappearance)
             {
-                m_log.WarnFormat("[SCENEPRESENCE]: baked textures are in the cache for {0}", Name);
-                SendAppearanceToAgent(this);
+                m_log.InfoFormat("[SCENEPRESENCE]: baked textures are in the cache for {0}", Name);
 
                 // If the avatars baked textures are all in the cache, then we have a 
                 // complete appearance... send it out, if not, then we'll send it when
