@@ -34,6 +34,15 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Examples.SimpleModule
 {
+    /// <summary>
+    /// Example region module.
+    /// </summary>
+    /// <remarks>
+    /// This is an old and unmaintained region module which uses the old style module interface.  It is not loaded into
+    /// OpenSim by default.  If you want to try enabling it, look in the bin folder of this project.
+    /// Please see the README.txt in this project on the filesystem for some more information.  
+    /// Nonetheless, it may contain some useful example code so has been left here for now.
+    /// </remarks>
     public class RegionModule : IRegionModule
     {
         #region IRegionModule Members
