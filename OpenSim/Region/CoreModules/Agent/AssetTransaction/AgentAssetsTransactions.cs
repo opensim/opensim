@@ -149,10 +149,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
                 if (asset != null)
                 {
-                    m_log.DebugFormat(
-                        "[ASSET TRANSACTIONS]: Updating task item {0} in {1} with asset in transaction {2}",
-                        item.Name, part.Name, transactionID);
-
+                    asset.FullID = UUID.Random();
                     asset.Name = item.Name;
                     asset.Description = item.Description;
                     asset.Type = (sbyte)item.Type;
@@ -170,20 +167,10 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         {
             if (XferUploaders.ContainsKey(transactionID))
             {
-                UUID assetID = UUID.Combine(transactionID,
-                        remoteClient.SecureSessionId);
+                AssetBase asset = GetTransactionAsset(transactionID);
 
-                AssetBase asset = m_Scene.AssetService.Get(
-                        assetID.ToString());
-
-                if (asset == null)
+                if (asset != null)
                 {
-                    asset = GetTransactionAsset(transactionID);
-                }
-
-                if (asset != null && asset.FullID == assetID)
-                {
-                    // Assets never get updated, new ones get created
                     asset.FullID = UUID.Random();
                     asset.Name = item.Name;
                     asset.Description = item.Description;
@@ -191,10 +178,10 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                     item.AssetID = asset.FullID;
 
                     m_Scene.AssetService.Store(asset);
-                }
 
-                IInventoryService invService = m_Scene.InventoryService;
-                invService.UpdateItem(item);
+                    IInventoryService invService = m_Scene.InventoryService;
+                    invService.UpdateItem(item);
+                }
             }
         }
     }
