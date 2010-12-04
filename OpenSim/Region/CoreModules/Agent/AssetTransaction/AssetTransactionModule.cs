@@ -34,22 +34,19 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using Mono.Addins;
 
 namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 {
-    public class AssetTransactionModule : IRegionModule, IAgentAssetTransactions
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "AssetTransactionModule")]
+    public class AssetTransactionModule : INonSharedRegionModule,
+            IAgentAssetTransactions
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(
+//                MethodBase.GetCurrentMethod().DeclaringType);
         
-        private readonly Dictionary<UUID, Scene> RegisteredScenes = new Dictionary<UUID, Scene>();
+        protected Scene m_Scene;
         private bool m_dumpAssetsToFile = false;
-        private Scene m_scene = null;
-
-        [Obsolete]
-        public Scene MyScene
-        {
-            get{ return m_scene;}
-        }
 
         /// <summary>
         /// Each agent has its own singleton collection of transactions
@@ -57,33 +54,24 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         private Dictionary<UUID, AgentAssetTransactions> AgentTransactions =
             new Dictionary<UUID, AgentAssetTransactions>();
         
-
-        public AssetTransactionModule()
-        {
-            //m_log.Debug("creating AgentAssetTransactionModule");
-        }
-
         #region IRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
-            {
-                // m_log.Debug("initialising AgentAssetTransactionModule");
-                RegisteredScenes.Add(scene.RegionInfo.RegionID, scene);
-                scene.RegisterModuleInterface<IAgentAssetTransactions>(this);
-
-                scene.EventManager.OnNewClient += NewClient;
-            }
-
-            // EVIL HACK!
-            // This needs killing!
-            //
-            if (m_scene == null)
-                m_scene = scene;
         }
 
-        public void PostInitialise()
+        public void AddRegion(Scene scene)
+        {
+            m_Scene = scene;
+            scene.RegisterModuleInterface<IAgentAssetTransactions>(this);
+            scene.EventManager.OnNewClient += NewClient;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
         {
         }
 
@@ -96,9 +84,9 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             get { return "AgentTransactionModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return typeof(IAgentAssetTransactions); }
         }
 
         #endregion
@@ -111,8 +99,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
         #region AgentAssetTransactions
         /// <summary>
-        /// Get the collection of asset transactions for the given user.  If one does not already exist, it
-        /// is created.
+        /// Get the collection of asset transactions for the given user.
+        /// If one does not already exist, it is created.
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>
@@ -122,7 +110,10 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             {
                 if (!AgentTransactions.ContainsKey(userID))
                 {
-                    AgentAssetTransactions transactions  = new AgentAssetTransactions(userID, this, m_dumpAssetsToFile);
+                    AgentAssetTransactions transactions =
+                            new AgentAssetTransactions(userID, m_Scene,
+                            m_dumpAssetsToFile);
+
                     AgentTransactions.Add(userID, transactions);
                 }
 
@@ -131,8 +122,9 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         }
 
         /// <summary>
-        /// Remove the given agent asset transactions.  This should be called when a client is departing
-        /// from a scene (and hence won't be making any more transactions here).
+        /// Remove the given agent asset transactions. This should be called
+        /// when a client is departing from a scene (and hence won't be making
+        /// any more transactions here).
         /// </summary>
         /// <param name="userID"></param>
         public void RemoveAgentAssetTransactions(UUID userID)
@@ -146,10 +138,10 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         }
 
         /// <summary>
-        /// Create an inventory item from data that has been received through a transaction.
-        ///
-        /// This is called when new clothing or body parts are created.  It may also be called in other
-        /// situations.
+        /// Create an inventory item from data that has been received through
+        /// a transaction.
+        /// This is called when new clothing or body parts are created.
+        /// It may also be called in other situations.
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="transactionID"></param>
@@ -161,61 +153,72 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         /// <param name="type"></param>
         /// <param name="wearableType"></param>
         /// <param name="nextOwnerMask"></param>
-        public void HandleItemCreationFromTransaction(IClientAPI remoteClient, UUID transactionID, UUID folderID,
-                                                      uint callbackID, string description, string name, sbyte invType,
-                                                      sbyte type, byte wearableType, uint nextOwnerMask)
+        public void HandleItemCreationFromTransaction(IClientAPI remoteClient,
+                UUID transactionID, UUID folderID, uint callbackID,
+                string description, string name, sbyte invType,
+                sbyte type, byte wearableType, uint nextOwnerMask)
         {
-            //            m_log.DebugFormat(
-            //                "[TRANSACTIONS MANAGER] Called HandleItemCreationFromTransaction with item {0}", name);
+//            m_log.DebugFormat(
+//                "[TRANSACTIONS MANAGER] Called HandleItemCreationFromTransaction with item {0}", name);
 
-            AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
+            AgentAssetTransactions transactions =
+                    GetUserTransactions(remoteClient.AgentId);
 
-            transactions.RequestCreateInventoryItem(
-                remoteClient, transactionID, folderID, callbackID, description,
-                name, invType, type, wearableType, nextOwnerMask);
+            transactions.RequestCreateInventoryItem(remoteClient, transactionID,
+                    folderID, callbackID, description, name, invType, type,
+                    wearableType, nextOwnerMask);
         }
 
         /// <summary>
-        /// Update an inventory item with data that has been received through a transaction.
+        /// Update an inventory item with data that has been received through a
+        /// transaction.
         ///
-        /// This is called when clothing or body parts are updated (for instance, with new textures or
-        /// colours).  It may also be called in other situations.
+        /// This is called when clothing or body parts are updated (for
+        /// instance, with new textures or colours). It may also be called in
+        /// other situations.
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="transactionID"></param>
         /// <param name="item"></param>
-        public void HandleItemUpdateFromTransaction(IClientAPI remoteClient, UUID transactionID,
-                                                    InventoryItemBase item)
+        public void HandleItemUpdateFromTransaction(IClientAPI remoteClient,
+                UUID transactionID, InventoryItemBase item)
         {
-            //            m_log.DebugFormat(
-            //                "[TRANSACTIONS MANAGER] Called HandleItemUpdateFromTransaction with item {0}",
-            //                item.Name);
+//            m_log.DebugFormat(
+//                "[TRANSACTIONS MANAGER] Called HandleItemUpdateFromTransaction with item {0}",
+//                item.Name);
 
-            AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
+            AgentAssetTransactions transactions =
+                    GetUserTransactions(remoteClient.AgentId);
 
-            transactions.RequestUpdateInventoryItem(remoteClient, transactionID, item);
+            transactions.RequestUpdateInventoryItem(remoteClient,
+                    transactionID, item);
         }
 
         /// <summary>
-        /// Update a task inventory item with data that has been received through a transaction.
+        /// Update a task inventory item with data that has been received
+        /// through a transaction.
         ///
-        /// This is currently called when, for instance, a notecard in a prim is saved.  The data is sent
-        /// up through a single AssetUploadRequest.  A subsequent UpdateTaskInventory then references the transaction
+        /// This is currently called when, for instance, a notecard in a prim
+        /// is saved. The data is sent up through a single AssetUploadRequest.
+        /// A subsequent UpdateTaskInventory then references the transaction
         /// and comes through this method.
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="transactionID"></param>
         /// <param name="item"></param>
-        public void HandleTaskItemUpdateFromTransaction(
-            IClientAPI remoteClient, SceneObjectPart part, UUID transactionID, TaskInventoryItem item)
+        public void HandleTaskItemUpdateFromTransaction(IClientAPI remoteClient,
+                SceneObjectPart part, UUID transactionID,
+                TaskInventoryItem item)
         {
-            //            m_log.DebugFormat(
-            //                "[TRANSACTIONS MANAGER] Called HandleTaskItemUpdateFromTransaction with item {0}",
-            //                item.Name);
+//            m_log.DebugFormat(
+//                "[TRANSACTIONS MANAGER] Called HandleTaskItemUpdateFromTransaction with item {0}",
+//                item.Name);
 
-            AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
+            AgentAssetTransactions transactions =
+                    GetUserTransactions(remoteClient.AgentId);
 
-            transactions.RequestUpdateTaskInventoryItem(remoteClient, part, transactionID, item);
+            transactions.RequestUpdateTaskInventoryItem(remoteClient, part,
+                    transactionID, item);
         }
 
         /// <summary>
@@ -227,8 +230,9 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         /// <param name="type"></param>
         /// <param name="data"></param></param>
         /// <param name="tempFile"></param>
-        public void HandleUDPUploadRequest(IClientAPI remoteClient, UUID assetID, UUID transaction, sbyte type,
-                                           byte[] data, bool storeLocal, bool tempFile)
+        public void HandleUDPUploadRequest(IClientAPI remoteClient,
+                UUID assetID, UUID transaction, sbyte type, byte[] data,
+                bool storeLocal, bool tempFile)
         {
 //            m_log.Debug("HandleUDPUploadRequest - assetID: " + assetID.ToString() + " transaction: " + transaction.ToString() + " type: " + type.ToString() + " storelocal: " + storeLocal + " tempFile: " + tempFile);
             
@@ -251,27 +255,33 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 }
             }
 
-            AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
+            AgentAssetTransactions transactions =
+                    GetUserTransactions(remoteClient.AgentId);
 
-            AssetXferUploader uploader = transactions.RequestXferUploader(transaction);
+            AssetXferUploader uploader =
+                    transactions.RequestXferUploader(transaction);
+
             if (uploader != null)
             {
-                uploader.Initialise(remoteClient, assetID, transaction, type, data, storeLocal, tempFile);
+                uploader.Initialise(remoteClient, assetID, transaction, type,
+                        data, storeLocal, tempFile);
             }
         }
 
         /// <summary>
-        /// Handle asset transfer data packets received in response to the asset upload request in
-        /// HandleUDPUploadRequest()
+        /// Handle asset transfer data packets received in response to the
+        /// asset upload request in HandleUDPUploadRequest()
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="xferID"></param>
         /// <param name="packetID"></param>
         /// <param name="data"></param>
-        public void HandleXfer(IClientAPI remoteClient, ulong xferID, uint packetID, byte[] data)
+        public void HandleXfer(IClientAPI remoteClient, ulong xferID,
+                uint packetID, byte[] data)
         {
             //m_log.Debug("xferID: " + xferID + "  packetID: " + packetID + "  data!");
-            AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
+            AgentAssetTransactions transactions =
+                    GetUserTransactions(remoteClient.AgentId);
 
             transactions.HandleXfer(xferID, packetID, data);
         }
