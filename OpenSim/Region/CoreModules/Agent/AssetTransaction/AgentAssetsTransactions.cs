@@ -167,6 +167,16 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         {
             if (XferUploaders.ContainsKey(transactionID))
             {
+                // Here we need to get the old asset to extract the
+                // texture UUIDs if it's a wearable.
+                if (item.AssetType == (int)AssetType.Bodypart ||
+                    item.AssetType == (int)AssetType.Clothing)
+                {
+                    AssetBase oldAsset = m_Scene.AssetService.Get(item.AssetID.ToString());
+                    if (oldAsset != null)
+                        XferUploaders[transactionID].SetOldData(oldAsset.Data);
+                }
+
                 AssetBase asset = GetTransactionAsset(transactionID);
 
                 if (asset != null)

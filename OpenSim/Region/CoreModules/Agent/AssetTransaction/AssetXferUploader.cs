@@ -28,6 +28,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Collections.Generic;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -38,6 +39,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 {
     public class AssetXferUploader
     {
+        // Viewer's notion of the default texture
+        private UUID defaultID = new UUID("5748decc-f629-461c-9a36-a35a221fe21f");
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private AssetBase m_asset;
@@ -55,6 +58,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         private UUID TransactionID = UUID.Zero;
         private sbyte type = 0;
         private byte wearableType = 0;
+        private byte[] m_oldData = null;
         public ulong XferID;
         private Scene m_Scene;
 
@@ -219,6 +223,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
         private void DoCreateItem(uint callbackID)
         {
+            ValidateAssets();
             m_Scene.AssetService.Store(m_asset);
 
             InventoryItemBase item = new InventoryItemBase();
@@ -245,6 +250,71 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 ourClient.SendAlertMessage("Unable to create inventory item");
         }
 
+        private void ValidateAssets()
+        {
+            if (m_asset.Type == (sbyte)AssetType.Clothing ||
+                m_asset.Type == (sbyte)AssetType.Bodypart)
+            {
+                string content = System.Text.Encoding.ASCII.GetString(m_asset.Data);
+                string[] lines = content.Split(new char[] {'\n'});
+
+                List<string> validated = new List<string>();
+
+                Dictionary<int, UUID> allowed = ExtractTexturesFromOldData();
+
+                int textures = 0;
+
+                foreach (string line in lines)
+                {
+                    try
+                    {
+                        if (line.StartsWith("textures "))
+                        {
+                            textures = Convert.ToInt32(line.Substring(9));
+                            validated.Add(line);
+                        }
+                        else if (textures > 0)
+                        {
+                            string[] parts = line.Split(new char[] {' '});
+
+                            UUID tx = new UUID(parts[1]);
+                            int id = Convert.ToInt32(parts[0]);
+
+                            if (tx == defaultID || tx == UUID.Zero ||
+                                (allowed.ContainsKey(id) && allowed[id] == tx))
+                            {
+                                validated.Add(parts[0] + " " + tx.ToString());
+                            }
+                            else
+                            {
+                                int perms = m_Scene.InventoryService.GetAssetPermissions(ourClient.AgentId, tx);
+                                int full = (int)(PermissionMask.Modify | PermissionMask.Transfer | PermissionMask.Copy);
+
+                                if ((perms & full) != full)
+                                {
+                                    m_log.ErrorFormat("[ASSET UPLOADER]: REJECTED update with texture {0} from {1} because they do not own the texture", tx, ourClient.AgentId);
+                                    validated.Add(parts[0] + " " + defaultID.ToString());
+                                }
+                            }
+                            textures--;
+                        }
+                        else
+                        {
+                            validated.Add(line);
+                        }
+                    }
+                    catch
+                    {
+                        // If it's malformed, skip it
+                    }
+                }
+
+                string final = String.Join("\n", validated.ToArray());
+
+                m_asset.Data = System.Text.Encoding.ASCII.GetBytes(final);
+            }
+        }
+
         /// <summary>
         /// Get the asset data uploaded in this transfer.
         /// </summary>
@@ -253,10 +323,55 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         {
             if (m_finished)
             {
+                ValidateAssets();
                 return m_asset;
             }
 
             return null;
         }
+
+        public void SetOldData(byte[] d)
+        {
+            m_oldData = d;
+        }
+
+        private Dictionary<int,UUID> ExtractTexturesFromOldData()
+        {
+            Dictionary<int,UUID> result = new Dictionary<int,UUID>();
+            if (m_oldData == null)
+                return result;
+
+            string content = System.Text.Encoding.ASCII.GetString(m_oldData);
+            string[] lines = content.Split(new char[] {'\n'});
+
+            int textures = 0;
+
+            foreach (string line in lines)
+            {
+                try
+                {
+                    if (line.StartsWith("textures "))
+                    {
+                        textures = Convert.ToInt32(line.Substring(9));
+                    }
+                    else if (textures > 0)
+                    {
+                        string[] parts = line.Split(new char[] {' '});
+
+                        UUID tx = new UUID(parts[1]);
+                        int id = Convert.ToInt32(parts[0]);
+                        result[id] = tx;
+                        textures--;
+                    }
+                }
+                catch
+                {
+                    // If it's malformed, skip it
+                }
+            }
+
+            return result;
+        }
     }
 }
+
