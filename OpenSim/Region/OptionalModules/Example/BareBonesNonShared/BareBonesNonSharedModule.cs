@@ -27,88 +27,60 @@
 
 using System;
 using System.Reflection;
-using System.Collections.Generic;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
-using OpenSim.Framework;
-using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Server.Base;
-using OpenSim.Server.Handlers.Base;
+using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset
+namespace OpenSim.Region.OptionalModules.Example.BareBonesNonShared
 {
-    public class AssetServiceInConnectorModule : ISharedRegionModule
+    /// <summary>
+    /// Simplest possible example of a non-shared region module.
+    /// </summary>
+    /// <remarks>
+    /// This module is the simplest possible example of a non-shared region module (a module where each scene/region
+    /// in the simulator has its own copy).  If anybody wants to create a more complex example in the future then 
+    /// please create a separate class.
+    /// 
+    /// This module is not active by default.  If you want to see it in action, 
+    /// then just uncomment the line below starting with [Extension(Path...
+    /// 
+    /// When the module is enabled it will print messages when it receives certain events to the screen and the log
+    /// file.
+    /// </remarks>
+    //[Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BareBonesNonSharedModule")]
+    public class BareBonesNonSharedModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static bool m_Enabled = false;
         
-        private IConfigSource m_Config;
-        bool m_Registered = false;
-
-        #region IRegionModule interface
-
-        public void Initialise(IConfigSource config)
+        public string Name { get { return "Bare Bones Non Shared Module"; } }        
+        
+        public Type ReplaceableInterface { get { return null; } }
+        
+        public void Initialise(IConfigSource source)
         {
-            m_Config = config;
-            IConfig moduleConfig = config.Configs["Modules"];
-            if (moduleConfig != null)
-            {
-                m_Enabled = moduleConfig.GetBoolean("AssetServiceInConnector", false);
-                if (m_Enabled)
-                {
-                    m_log.Info("[ASSET IN CONNECTOR]: AssetServiceInConnector enabled");
-                }
-
-            }
+            m_log.DebugFormat("[BARE BONES NON SHARED]: INITIALIZED MODULE");
         }
-
-        public void PostInitialise()
-        {
-        }
-
+        
         public void Close()
         {
+            m_log.DebugFormat("[BARE BONES NON SHARED]: CLOSED MODULE");
         }
-
-        public Type ReplaceableInterface 
-        {
-            get { return null; }
-        }
-
-        public string Name
-        {
-            get { return "RegionAssetService"; }
-        }
-
+        
         public void AddRegion(Scene scene)
         {
-            if (!m_Enabled)
-                return;
-
-            if (!m_Registered)
-            {
-                m_Registered = true;
-
-                m_log.Info("[HGAssetService]: Starting...");
-
-                
-                Object[] args = new Object[] { m_Config, MainServer.Instance, "HGAssetService" };
-
-                ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:AssetServiceConnector", args);
-            }
+            m_log.DebugFormat("[BARE BONES NON SHARED]: REGION {0} ADDED", scene.RegionInfo.RegionName);
         }
-
+        
         public void RemoveRegion(Scene scene)
         {
-        }
-
+            m_log.DebugFormat("[BARE BONES NON SHARED]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
+        }        
+        
         public void RegionLoaded(Scene scene)
         {
-        }
-
-        #endregion
-
+            m_log.DebugFormat("[BARE BONES NON SHARED]: REGION {0} LOADED", scene.RegionInfo.RegionName);
+        }                
     }
 }

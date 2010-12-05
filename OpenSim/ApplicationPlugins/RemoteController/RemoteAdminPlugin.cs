@@ -208,18 +208,25 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 UUID regionID = new UUID((string) requestData["regionID"]);
 
-                responseData["accepted"] = true;
-                responseData["success"] = true;
-                response.Value = responseData;
-
                 Scene rebootedScene;
 
+                responseData["success"] = false;
+                responseData["accepted"] = true;
                 if (!m_application.SceneManager.TryGetScene(regionID, out rebootedScene))
                     throw new Exception("region not found");
 
                 responseData["rebooting"] = true;
+
+                IRestartModule restartModule = rebootedScene.RequestModuleInterface<IRestartModule>();
+                if (restartModule != null)
+                {
+                    List<int> times = new List<int> { 30, 15 };
+
+                    restartModule.ScheduleRestart(UUID.Zero, "Region will restart in {0}", times.ToArray(), true);
+                    responseData["success"] = true;
+                }
                 response.Value = responseData;
-                rebootedScene.Restart(30);
+
             }
             catch (Exception e)
             {

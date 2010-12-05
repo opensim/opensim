@@ -876,8 +876,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 }
 
                 agent.MakeChildAgent();
+
                 // now we have a child agent in this region. Request all interesting data about other (root) agents
-                agent.SendInitialFullUpdateToAllClients();
+                agent.SendOtherAgentsAvatarDataToMe();
+                agent.SendOtherAgentsAppearanceToMe();
 
                 CrossAttachmentsIntoNewRegion(neighbourRegion, agent, true);
 

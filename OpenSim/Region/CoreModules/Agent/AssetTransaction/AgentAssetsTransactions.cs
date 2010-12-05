@@ -41,19 +41,22 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
     /// </summary>
     public class AgentAssetTransactions
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
 
         // Fields
         private bool m_dumpAssetsToFile;
-        public AssetTransactionModule Manager;
+        private Scene m_Scene;
         public UUID UserID;
-        public Dictionary<UUID, AssetXferUploader> XferUploaders = new Dictionary<UUID, AssetXferUploader>();
+        public Dictionary<UUID, AssetXferUploader> XferUploaders =
+                new Dictionary<UUID, AssetXferUploader>();
 
         // Methods
-        public AgentAssetTransactions(UUID agentID, AssetTransactionModule manager, bool dumpAssetsToFile)
+        public AgentAssetTransactions(UUID agentID, Scene scene,
+                bool dumpAssetsToFile)
         {
+            m_Scene = scene;
             UserID = agentID;
-            Manager = manager;
             m_dumpAssetsToFile = dumpAssetsToFile;
         }
 
@@ -61,7 +64,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         {
             if (!XferUploaders.ContainsKey(transactionID))
             {
-                AssetXferUploader uploader = new AssetXferUploader(this, m_dumpAssetsToFile);
+                AssetXferUploader uploader = new AssetXferUploader(m_Scene,
+                        m_dumpAssetsToFile);
 
                 lock (XferUploaders)
                 {
@@ -88,22 +92,25 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             }
         }
 
-        public void RequestCreateInventoryItem(IClientAPI remoteClient, UUID transactionID, UUID folderID,
-                                               uint callbackID, string description, string name, sbyte invType,
-                                               sbyte type, byte wearableType, uint nextOwnerMask)
+        public void RequestCreateInventoryItem(IClientAPI remoteClient,
+                UUID transactionID, UUID folderID, uint callbackID,
+                string description, string name, sbyte invType,
+               sbyte type, byte wearableType, uint nextOwnerMask)
         {
             if (XferUploaders.ContainsKey(transactionID))
             {
-                XferUploaders[transactionID].RequestCreateInventoryItem(remoteClient, transactionID, folderID,
-                                                                        callbackID, description, name, invType, type,
-                                                                        wearableType, nextOwnerMask);
+                XferUploaders[transactionID].RequestCreateInventoryItem(
+                        remoteClient, transactionID, folderID,
+                        callbackID, description, name, invType, type,
+                        wearableType, nextOwnerMask);
             }
         }
 
 
 
         /// <summary>
-        /// Get an uploaded asset.  If the data is successfully retrieved, the transaction will be removed.
+        /// Get an uploaded asset. If the data is successfully retrieved,
+        /// the transaction will be removed.
         /// </summary>
         /// <param name="transactionID"></param>
         /// <returns>The asset if the upload has completed, null if it has not.</returns>
@@ -125,105 +132,56 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             return null;
         }
 
-        //private void CreateItemFromUpload(AssetBase asset, IClientAPI ourClient, UUID inventoryFolderID, uint nextPerms, uint wearableType)
-        //{
-        //    Manager.MyScene.CommsManager.AssetCache.AddAsset(asset);
-        //    CachedUserInfo userInfo = Manager.MyScene.CommsManager.UserProfileCacheService.GetUserDetails(
-        //            ourClient.AgentId);
-
-        //    if (userInfo != null)
-        //    {
-        //        InventoryItemBase item = new InventoryItemBase();
-        //        item.Owner = ourClient.AgentId;
-        //        item.Creator = ourClient.AgentId;
-        //        item.ID = UUID.Random();
-        //        item.AssetID = asset.FullID;
-        //        item.Description = asset.Description;
-        //        item.Name = asset.Name;
-        //        item.AssetType = asset.Type;
-        //        item.InvType = asset.Type;
-        //        item.Folder = inventoryFolderID;
-        //        item.BasePermissions = 0x7fffffff;
-        //        item.CurrentPermissions = 0x7fffffff;
-        //        item.EveryOnePermissions = 0;
-        //        item.NextPermissions = nextPerms;
-        //        item.Flags = wearableType;
-        //        item.CreationDate = Util.UnixTimeSinceEpoch();
-
-        //        userInfo.AddItem(item);
-        //        ourClient.SendInventoryItemCreateUpdate(item);
-        //    }
-        //    else
-        //    {
-        //        m_log.ErrorFormat(
-        //            "[ASSET TRANSACTIONS]: Could not find user {0} for inventory item creation",
-        //            ourClient.AgentId);
-        //    }
-        //}
-
-        public void RequestUpdateTaskInventoryItem(
-           IClientAPI remoteClient, SceneObjectPart part, UUID transactionID, TaskInventoryItem item)
+        public void RequestUpdateTaskInventoryItem(IClientAPI remoteClient,
+                SceneObjectPart part, UUID transactionID,
+                TaskInventoryItem item)
         {
             if (XferUploaders.ContainsKey(transactionID))
             {
-                AssetBase asset = XferUploaders[transactionID].GetAssetData();
+                AssetBase asset = GetTransactionAsset(transactionID);
+
+                // Only legacy viewers use this, and they prefer CAPS, which 
+                // we have, so this really never runs.
+                // Allow it, but only for "safe" types.
+                if ((InventoryType)item.InvType != InventoryType.Notecard &&
+                    (InventoryType)item.InvType != InventoryType.LSL)
+                    return;
+
                 if (asset != null)
                 {
-                    m_log.DebugFormat(
-                        "[ASSET TRANSACTIONS]: Updating task item {0} in {1} with asset in transaction {2}",
-                        item.Name, part.Name, transactionID);
-
+                    asset.FullID = UUID.Random();
                     asset.Name = item.Name;
                     asset.Description = item.Description;
                     asset.Type = (sbyte)item.Type;
                     item.AssetID = asset.FullID;
 
-                    Manager.MyScene.AssetService.Store(asset);
+                    m_Scene.AssetService.Store(asset);
 
-                    if (part.Inventory.UpdateInventoryItem(item))
-                    {
-                        if ((InventoryType)item.InvType == InventoryType.Notecard)
-                            remoteClient.SendAgentAlertMessage("Notecard saved", false);
-                        else if ((InventoryType)item.InvType == InventoryType.LSL)
-                            remoteClient.SendAgentAlertMessage("Script saved", false);
-                        else
-                            remoteClient.SendAgentAlertMessage("Item saved", false);
-
-                        part.GetProperties(remoteClient);
-                    }
+                    part.Inventory.UpdateInventoryItem(item);
                 }
             }
         }
 
-
-        public void RequestUpdateInventoryItem(IClientAPI remoteClient, UUID transactionID,
-                                               InventoryItemBase item)
+        public void RequestUpdateInventoryItem(IClientAPI remoteClient,
+                UUID transactionID, InventoryItemBase item)
         {
-             if (XferUploaders.ContainsKey(transactionID))
+            if (XferUploaders.ContainsKey(transactionID))
             {
-                UUID assetID = UUID.Combine(transactionID, remoteClient.SecureSessionId);
+                AssetBase asset = GetTransactionAsset(transactionID);
 
-                AssetBase asset = Manager.MyScene.AssetService.Get(assetID.ToString());
-
-                if (asset == null)
+                if (asset != null)
                 {
-                    asset = GetTransactionAsset(transactionID);
-                }
-
-                if (asset != null && asset.FullID == assetID)
-                {
-                    // Assets never get updated, new ones get created
                     asset.FullID = UUID.Random();
                     asset.Name = item.Name;
                     asset.Description = item.Description;
                     asset.Type = (sbyte)item.AssetType;
                     item.AssetID = asset.FullID;
 
-                    Manager.MyScene.AssetService.Store(asset);
-                }
+                    m_Scene.AssetService.Store(asset);
 
-                IInventoryService invService = Manager.MyScene.InventoryService;
-                invService.UpdateItem(item);
+                    IInventoryService invService = m_Scene.InventoryService;
+                    invService.UpdateItem(item);
+                }
             }
         }
     }

@@ -27,8 +27,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Threading;
+using System.Xml;
+
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -52,14 +55,16 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 //        private Dictionary<string, InventoryClient> m_inventoryServers = new Dictionary<string, InventoryClient>();
 
         private Scene m_scene;
+        private string m_ProfileServerURI;
 
         #endregion
 
         #region Constructor
 
-        public HGAssetMapper(Scene scene)
+        public HGAssetMapper(Scene scene, string profileURL)
         {
             m_scene = scene;
+            m_ProfileServerURI = profileURL;
         }
 
         #endregion
@@ -95,15 +100,17 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     try
                     {
                         asset1.ID = url + "/" + asset.ID;
-//                        UUID temp = UUID.Zero;
-                        // TODO: if the creator is local, stick this grid's URL in front
-                        //if (UUID.TryParse(asset.Metadata.CreatorID, out temp))
-                        //    asset1.Metadata.CreatorID = ??? + "/" + asset.Metadata.CreatorID;
                     }
                     catch
                     {
                         m_log.Warn("[HG ASSET MAPPER]: Oops.");
                     }
+
+                    AdjustIdentifiers(asset1.Metadata);
+                    if (asset1.Metadata.Type == (sbyte)AssetType.Object)
+                        asset1.Data = AdjustIdentifiers(asset.Data);
+                    else
+                        asset1.Data = asset.Data;
 
                     m_scene.AssetService.Store(asset1);
                     m_log.DebugFormat("[HG ASSET MAPPER]: Posted copy of asset {0} from local asset server to {1}", asset1.ID, url);
@@ -118,7 +125,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         private void Copy(AssetBase from, AssetBase to)
         {
-            to.Data        = from.Data;
+            //to.Data        = from.Data; // don't copy this, it's copied elsewhere
             to.Description = from.Description;
             to.FullID      = from.FullID;
             to.ID          = from.ID;
@@ -126,6 +133,70 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             to.Name        = from.Name;
             to.Temporary   = from.Temporary;
             to.Type        = from.Type;
+
+        }
+
+        private void AdjustIdentifiers(AssetMetadata meta)
+        {
+            if (meta.CreatorID != null && meta.CreatorID != string.Empty)
+            {
+                UUID uuid = UUID.Zero;
+                UUID.TryParse(meta.CreatorID, out uuid);
+                UserAccount creator = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, uuid); 
+                if (creator != null)
+                    meta.CreatorID = m_ProfileServerURI + "/" + meta.CreatorID + ";" + creator.FirstName + " " + creator.LastName;
+            }
+        }
+
+        protected byte[] AdjustIdentifiers(byte[] data)
+        {
+            string xml = Utils.BytesToString(data);
+            return Utils.StringToBytes(RewriteSOP(xml));
+        }
+
+        protected string RewriteSOP(string xml)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(xml);
+            XmlNodeList sops = doc.GetElementsByTagName("SceneObjectPart");
+
+            foreach (XmlNode sop in sops)
+            {
+                UserAccount creator = null;
+                bool hasCreatorData = false;
+                XmlNodeList nodes = sop.ChildNodes;
+                foreach (XmlNode node in nodes)
+                {
+                    if (node.Name == "CreatorID")
+                    {
+                        UUID uuid = UUID.Zero;
+                        UUID.TryParse(node.InnerText, out uuid);
+                        creator = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, uuid);
+                    }
+                    if (node.Name == "CreatorData" && node.InnerText != null && node.InnerText != string.Empty)
+                        hasCreatorData = true;
+
+                    //if (node.Name == "OwnerID")
+                    //{
+                    //    UserAccount owner = GetUser(node.InnerText);
+                    //    if (owner != null)
+                    //        node.InnerText = m_ProfileServiceURL + "/" + node.InnerText + "/" + owner.FirstName + " " + owner.LastName;
+                    //}
+                }
+
+                if (!hasCreatorData && creator != null)
+                {
+                    XmlElement creatorData = doc.CreateElement("CreatorData");
+                    creatorData.InnerText = m_ProfileServerURI + "/" + creator.PrincipalID + ";" + creator.FirstName + " " + creator.LastName;
+                    sop.AppendChild(creatorData);
+                }
+            }
+
+            using (StringWriter wr = new StringWriter())
+            {
+                doc.Save(wr);
+                return wr.ToString();
+            }
 
         }
 

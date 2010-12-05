@@ -190,7 +190,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 
                 new AssetsRequest(
                     new AssetsArchiver(archiveWriter), assetUuids, 
-                    m_scene.AssetService, awre.ReceivedAllAssets).Execute();
+                    m_scene.AssetService, m_scene.UserAccountService, 
+                    m_scene.RegionInfo.ScopeID, options, awre.ReceivedAllAssets).Execute();
             }
             catch (Exception) 
             {
@@ -238,10 +239,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
             
             m_log.InfoFormat("[ARCHIVER]: Creating version {0}.{1} OAR", majorVersion, minorVersion);
-            if (majorVersion == 1)
-            {
-                m_log.WarnFormat("[ARCHIVER]: Please be aware that version 1.0 OARs are not compatible with OpenSim 0.7.0.2 and earlier.  Please use the --version=0 option if you want to produce a compatible OAR");
-            }            
+            //if (majorVersion == 1)
+            //{
+            //    m_log.WarnFormat("[ARCHIVER]: Please be aware that version 1.0 OARs are not compatible with OpenSim 0.7.0.2 and earlier.  Please use the --version=0 option if you want to produce a compatible OAR");
+            //}            
             
             StringWriter sw = new StringWriter();
             XmlTextWriter xtw = new XmlTextWriter(sw);

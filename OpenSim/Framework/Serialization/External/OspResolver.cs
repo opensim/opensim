@@ -32,7 +32,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 
-namespace OpenSim.Framework.Communications.Osp
+namespace OpenSim.Framework.Serialization
 {
     /// <summary>
     /// Resolves OpenSim Profile Anchors (OSPA).  An OSPA is a string used to provide information for 
@@ -57,6 +57,12 @@ namespace OpenSim.Framework.Communications.Osp
         /// <returns>The OSPA.  Null if a user with the given UUID could not be found.</returns>
         public static string MakeOspa(UUID userId, IUserAccountService userService)
         {
+            if (userService == null)
+            {
+                m_log.Warn("[OSP RESOLVER]: UserService is null");
+                return userId.ToString();
+            }
+
             UserAccount account = userService.GetUserAccount(UUID.Zero, userId);
             if (account != null)
                 return MakeOspa(account.FirstName, account.LastName);

@@ -31,7 +31,7 @@ using System.Reflection;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
@@ -50,17 +50,17 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         private bool m_finished = false;
         private string m_name = String.Empty;
         private bool m_storeLocal;
-        private AgentAssetTransactions m_userTransactions;
         private uint nextPerm = 0;
         private IClientAPI ourClient;
         private UUID TransactionID = UUID.Zero;
         private sbyte type = 0;
         private byte wearableType = 0;
         public ulong XferID;
+        private Scene m_Scene;
 
-        public AssetXferUploader(AgentAssetTransactions transactions, bool dumpAssetToFile)
+        public AssetXferUploader(Scene scene, bool dumpAssetToFile)
         {
-            m_userTransactions = transactions;
+            m_Scene = scene;
             m_dumpAssetToFile = dumpAssetToFile;
         }
 
@@ -108,11 +108,13 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         /// <param name="packetID"></param>
         /// <param name="data"></param>
         /// <returns>True if the transfer is complete, false otherwise</returns>
-        public bool Initialise(IClientAPI remoteClient, UUID assetID, UUID transaction, sbyte type, byte[] data,
-                               bool storeLocal, bool tempFile)
+        public bool Initialise(IClientAPI remoteClient, UUID assetID,
+                UUID transaction, sbyte type, byte[] data, bool storeLocal,
+                bool tempFile)
         {
             ourClient = remoteClient;
-            m_asset = new AssetBase(assetID, "blank", type, remoteClient.AgentId.ToString());
+            m_asset = new AssetBase(assetID, "blank", type,
+                    remoteClient.AgentId.ToString());
             m_asset.Data = data;
             m_asset.Description = "empty";
             m_asset.Local = storeLocal;
@@ -137,12 +139,14 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         protected void RequestStartXfer()
         {
             XferID = Util.GetNextXferID();
-            ourClient.SendXferRequest(XferID, m_asset.Type, m_asset.FullID, 0, new byte[0]);
+            ourClient.SendXferRequest(XferID, m_asset.Type, m_asset.FullID,
+                    0, new byte[0]);
         }
 
         protected void SendCompleteMessage()
         {
-            ourClient.SendAssetUploadCompleteMessage(m_asset.Type, true, m_asset.FullID);
+            ourClient.SendAssetUploadCompleteMessage(m_asset.Type, true,
+                    m_asset.FullID);
 
             m_finished = true;
             if (m_createItem)
@@ -151,18 +155,20 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             }
             else if (m_storeLocal)
             {
-                m_userTransactions.Manager.MyScene.AssetService.Store(m_asset);
+                m_Scene.AssetService.Store(m_asset);
             }
 
             m_log.DebugFormat(
-                "[ASSET TRANSACTIONS]: Uploaded asset {0} for transaction {1}", m_asset.FullID, TransactionID);
+                "[ASSET TRANSACTIONS]: Uploaded asset {0} for transaction {1}",
+                m_asset.FullID, TransactionID);
 
             if (m_dumpAssetToFile)
             {
                 DateTime now = DateTime.Now;
                 string filename =
-                    String.Format("{6}_{7}_{0:d2}{1:d2}{2:d2}_{3:d2}{4:d2}{5:d2}.dat", now.Year, now.Month, now.Day,
-                                  now.Hour, now.Minute, now.Second, m_asset.Name, m_asset.Type);
+                        String.Format("{6}_{7}_{0:d2}{1:d2}{2:d2}_{3:d2}{4:d2}{5:d2}.dat",
+                        now.Year, now.Month, now.Day, now.Hour, now.Minute,
+                        now.Second, m_asset.Name, m_asset.Type);
                 SaveAssetToFile(filename, m_asset.Data);
             }
         }
@@ -181,9 +187,10 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             fs.Close();
         }
 
-        public void RequestCreateInventoryItem(IClientAPI remoteClient, UUID transactionID, UUID folderID,
-                                               uint callbackID, string description, string name, sbyte invType,
-                                               sbyte type, byte wearableType, uint nextOwnerMask)
+        public void RequestCreateInventoryItem(IClientAPI remoteClient,
+                UUID transactionID, UUID folderID, uint callbackID,
+                string description, string name, sbyte invType,
+                sbyte type, byte wearableType, uint nextOwnerMask)
         {
             if (TransactionID == transactionID)
             {
@@ -212,7 +219,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
         private void DoCreateItem(uint callbackID)
         {
-            m_userTransactions.Manager.MyScene.AssetService.Store(m_asset);
+            m_Scene.AssetService.Store(m_asset);
 
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = ourClient.AgentId;
@@ -232,7 +239,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             item.Flags = (uint) wearableType;
             item.CreationDate = Util.UnixTimeSinceEpoch();
 
-            if (m_userTransactions.Manager.MyScene.AddInventoryItem(item))
+            if (m_Scene.AddInventoryItem(item))
                 ourClient.SendInventoryItemCreateUpdate(item, callbackID);
             else
                 ourClient.SendAlertMessage("Unable to create inventory item");

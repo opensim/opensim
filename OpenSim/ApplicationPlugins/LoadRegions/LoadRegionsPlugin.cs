@@ -106,8 +106,8 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             m_openSim.ModuleLoader.LoadDefaultSharedModule(new LoadImageURLModule());
             m_log.Info("[LOADREGIONSPLUGIN]: XMLRPCModule...");
             m_openSim.ModuleLoader.LoadDefaultSharedModule(new XMLRPCModule());
-            m_log.Info("[LOADREGIONSPLUGIN]: AssetTransactionModule...");
-            m_openSim.ModuleLoader.LoadDefaultSharedModule(new AssetTransactionModule());
+//            m_log.Info("[LOADREGIONSPLUGIN]: AssetTransactionModule...");
+//            m_openSim.ModuleLoader.LoadDefaultSharedModule(new AssetTransactionModule());
             m_log.Info("[LOADREGIONSPLUGIN]: Done.");
 
             if (!CheckRegionsForSanity(regionsToLoad))
