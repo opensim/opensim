@@ -107,8 +107,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
 
             hash = (Hashtable)response.Value;
-            foreach (Object o in hash)
-                m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
+            //foreach (Object o in hash)
+            //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
             try
             {
                 bool success = false;
@@ -116,19 +116,19 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 if (success)
                 {
                     UUID.TryParse((string)hash["uuid"], out regionID);
-                    m_log.Debug(">> HERE, uuid: " + regionID);
+                    //m_log.Debug(">> HERE, uuid: " + regionID);
                     if ((string)hash["handle"] != null)
                     {
                         realHandle = Convert.ToUInt64((string)hash["handle"]);
-                        m_log.Debug(">> HERE, realHandle: " + realHandle);
+                        //m_log.Debug(">> HERE, realHandle: " + realHandle);
                     }
                     if (hash["region_image"] != null) {
                         imageURL = (string)hash["region_image"];
-                        m_log.Debug(">> HERE, imageURL: " + imageURL);
+                        //m_log.Debug(">> HERE, imageURL: " + imageURL);
                     }
                     if (hash["external_name"] != null) {
                         externalName = (string)hash["external_name"];
-                        m_log.Debug(">> HERE, externalName: " + externalName);
+                        //m_log.Debug(">> HERE, externalName: " + externalName);
                     }
                 }
 
@@ -221,48 +221,48 @@ namespace OpenSim.Services.Connectors.Hypergrid
                     GridRegion region = new GridRegion();
 
                     UUID.TryParse((string)hash["uuid"], out region.RegionID);
-                    m_log.Debug(">> HERE, uuid: " + region.RegionID);
+                    //m_log.Debug(">> HERE, uuid: " + region.RegionID);
                     int n = 0;
                     if (hash["x"] != null)
                     {
                         Int32.TryParse((string)hash["x"], out n);
                         region.RegionLocX = n;
-                        m_log.Debug(">> HERE, x: " + region.RegionLocX);
+                        //m_log.Debug(">> HERE, x: " + region.RegionLocX);
                     }
                     if (hash["y"] != null)
                     {
                         Int32.TryParse((string)hash["y"], out n);
                         region.RegionLocY = n;
-                        m_log.Debug(">> HERE, y: " + region.RegionLocY);
+                        //m_log.Debug(">> HERE, y: " + region.RegionLocY);
                     }
                     if (hash["region_name"] != null)
                     {
                         region.RegionName = (string)hash["region_name"];
-                        m_log.Debug(">> HERE, region_name: " + region.RegionName);
+                        //m_log.Debug(">> HERE, region_name: " + region.RegionName);
                     }
                     if (hash["hostname"] != null) {
                         region.ExternalHostName = (string)hash["hostname"];
-                        m_log.Debug(">> HERE, hostname: " + region.ExternalHostName);
+                        //m_log.Debug(">> HERE, hostname: " + region.ExternalHostName);
                     }
                     if (hash["http_port"] != null)
                     {
                         uint p = 0;
                         UInt32.TryParse((string)hash["http_port"], out p);
                         region.HttpPort = p;
-                        m_log.Debug(">> HERE, http_port: " + region.HttpPort);
+                        //m_log.Debug(">> HERE, http_port: " + region.HttpPort);
                     }
                     if (hash["internal_port"] != null)
                     {
                         int p = 0;
                         Int32.TryParse((string)hash["internal_port"], out p);
                         region.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), p);
-                        m_log.Debug(">> HERE, internal_port: " + region.InternalEndPoint);
+                        //m_log.Debug(">> HERE, internal_port: " + region.InternalEndPoint);
                     }
                     
                     if (hash["server_uri"] != null)
                     {
                         region.ServerURI = (string) hash["server_uri"];
-                        m_log.Debug(">> HERE, server_uri: " + region.ServerURI);
+                        //m_log.Debug(">> HERE, server_uri: " + region.ServerURI);
                     }
 
                     // Successful return

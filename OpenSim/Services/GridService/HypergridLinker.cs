@@ -127,16 +127,18 @@ namespace OpenSim.Services.GridService
 
             if (MainConsole.Instance != null)
             {
-                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region", "link-region <Xloc> <Yloc> <ServerURI> [<RemoteRegionName>]", "Link a HyperGrid Region", RunCommand);
+                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region", 
+                    "link-region <Xloc> <Yloc> <ServerURI> [<RemoteRegionName>]", 
+                    "Link a HyperGrid Region", RunCommand);
                 MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region",
                     "link-region <Xloc> <Yloc> <RegionIP> <RegionPort> [<RemoteRegionName>]",
                     "Link a hypergrid region (deprecated)", RunCommand);
                 MainConsole.Instance.Commands.AddCommand("hypergrid", false, "unlink-region",
                     "unlink-region <local name>",
                     "Unlink a hypergrid region", RunCommand);
-                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-mapping", "link-mapping [<x> <y>] <cr>",
+                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-mapping", "link-mapping [<x> <y>]",
                     "Set local coordinate to map HG regions to", RunCommand);
-                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "show hyperlinks", "show hyperlinks <cr>",
+                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "show hyperlinks", "show hyperlinks",
                     "List the HG regions", HandleShow);
             }
         }
@@ -281,7 +283,7 @@ namespace OpenSim.Services.GridService
                 else
                     regInfo.RegionName = externalName;
 
-                m_log.Debug("naming linked region " + regInfo.RegionName);
+                m_log.Debug("[HYPERGRID LINKER]: naming linked region " + regInfo.RegionName);
                 
                 // Try get the map image
                 //regInfo.TerrainImage = m_GatekeeperConnector.GetMapImage(regionID, imageURL);

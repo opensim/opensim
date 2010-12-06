@@ -101,6 +101,8 @@ namespace OpenSim.Services.HypergridService
                     serverConfig = config.Configs["GatekeeperService"];
                     m_GridName = serverConfig.GetString("ExternalName", string.Empty);
                 }
+                else if (!m_GridName.EndsWith("/"))
+                    m_GridName = m_GridName + "/";
             }
         }
 
@@ -152,8 +154,8 @@ namespace OpenSim.Services.HypergridService
             bool success = false;
             string myExternalIP = string.Empty;
             string gridName = gatekeeper.ServerURI;
-            
-            m_log.Debug("m_grid - " + m_GridName + ", gn - " + gridName);
+
+            m_log.DebugFormat("[USER AGENT SERVICE]: m_grid - {0}, gn - {1}", m_GridName, gridName);
             
             if (m_GridName == gridName)
                 success = m_GatekeeperService.LoginAgent(agentCircuit, finalDestination, out reason);

@@ -495,7 +495,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected virtual void SetCallbackURL(AgentData agent, RegionInfo region)
         {
             agent.CallbackURI = region.ServerURI + "agent/" + agent.AgentID.ToString() + "/" + region.RegionID.ToString() + "/release/";
-            m_log.Debug("Set callback URL to " + agent.CallbackURI);
+            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Set callback URL to {0}", agent.CallbackURI);
 
         }
 

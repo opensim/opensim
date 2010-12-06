@@ -87,3 +87,10 @@ ALTER TABLE `regions` ADD COLUMN `Token` varchar(255) NOT NULL;
 COMMIT;
 
 
+:VERSION 8		# ------------
+
+BEGIN;
+
+alter table regions modify column regionName varchar(128) default NULL;
+
+COMMIT;

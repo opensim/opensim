@@ -87,6 +87,8 @@ namespace OpenSim.Services.HypergridService
                 //m_WelcomeMessage = serverConfig.GetString("WelcomeMessage", "Welcome to OpenSim!");
                 m_AllowTeleportsToAnyRegion = serverConfig.GetBoolean("AllowTeleportsToAnyRegion", true);
                 m_ExternalName = serverConfig.GetString("ExternalName", string.Empty);
+                if (m_ExternalName != string.Empty && !m_ExternalName.EndsWith("/"))
+                    m_ExternalName = m_ExternalName + "/";
 
                 Object[] args = new Object[] { config };
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
@@ -118,7 +120,7 @@ namespace OpenSim.Services.HypergridService
         {
             regionID = UUID.Zero;
             regionHandle = 0;
-            externalName = m_ExternalName;
+            externalName = m_ExternalName + ((regionName != string.Empty) ? " " + regionName : "");
             imageURL = string.Empty;
             reason = string.Empty;
 

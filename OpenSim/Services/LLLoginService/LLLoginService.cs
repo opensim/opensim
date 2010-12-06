@@ -586,7 +586,7 @@ namespace OpenSim.Services.LLLoginService
 
         private GridRegion FindForeignRegion(string domainName, uint port, string regionName, out GridRegion gatekeeper)
         {
-            m_log.Debug("attempting to findforeignregion " + domainName + ":" + port.ToString() + ":" + regionName);
+            m_log.Debug("[LLLOGIN SERVICE]: attempting to findforeignregion " + domainName + ":" + port.ToString() + ":" + regionName);
             gatekeeper = new GridRegion();
             gatekeeper.ExternalHostName = domainName;
             gatekeeper.HttpPort = port;
@@ -654,7 +654,7 @@ namespace OpenSim.Services.LLLoginService
                     gatekeeper.HttpPort = (uint)port;
                     gatekeeper.ServerURI = m_GatekeeperURL;
                 }
-                m_log.Debug("no gatekeeper detected..... using " + m_GatekeeperURL);
+                m_log.Debug("[LLLOGIN SERVICE]: no gatekeeper detected..... using " + m_GatekeeperURL);
             }
 
             bool success = false;

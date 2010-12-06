@@ -3691,10 +3691,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             ScenePresence childAgentUpdate = WaitGetScenePresence(cAgentData.AgentID);
-            m_log.Debug("ICADU -> post wait");
+
             if (childAgentUpdate != null)
             {
-                m_log.Debug("ICADU -> not child agent!");
                 childAgentUpdate.ChildAgentDataUpdate(cAgentData);
                 return true;
             }
@@ -3710,7 +3709,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>true if we handled it.</returns>
         public virtual bool IncomingChildAgentDataUpdate(AgentPosition cAgentData)
         {
-            m_log.Debug(" XXX Scene IncomingChildAgentDataUpdate POSITION in " + RegionInfo.RegionName);
+            //m_log.Debug(" XXX Scene IncomingChildAgentDataUpdate POSITION in " + RegionInfo.RegionName);
             ScenePresence childAgentUpdate = GetScenePresence(cAgentData.AgentID);
             if (childAgentUpdate != null)
             {
