@@ -232,12 +232,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 m_log.Debug("[USER AGENT CONNECTOR]: PackAgentCircuitData failed with exception: " + e.Message);
             }
             // Add the input arguments
+            args["gatekeeper_serveruri"] = OSD.FromString(gatekeeper.ServerURI);
             args["gatekeeper_host"] = OSD.FromString(gatekeeper.ExternalHostName);
             args["gatekeeper_port"] = OSD.FromString(gatekeeper.HttpPort.ToString());
             args["destination_x"] = OSD.FromString(destination.RegionLocX.ToString());
             args["destination_y"] = OSD.FromString(destination.RegionLocY.ToString());
             args["destination_name"] = OSD.FromString(destination.RegionName);
             args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
+            args["destination_serveruri"] = OSD.FromString(destination.ServerURI);
 
             // 10/3/2010
             // I added the client_ip up to the regular AgentCircuitData, so this doesn't need to be here.

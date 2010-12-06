@@ -147,8 +147,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
             Vector3d minPosition = new Vector3d(regionInfo.RegionLocX, regionInfo.RegionLocY, 0.0);
             Vector3d maxPosition = minPosition + new Vector3d(Constants.RegionSize, Constants.RegionSize, 4096.0);
 
-            string httpAddress = "http://" + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort + "/";
-
             OSDMap extraData = new OSDMap
             {
                 { "ServerURI", OSD.FromString(regionInfo.ServerURI) },
@@ -170,7 +168,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "Name", regionInfo.RegionName },
                 { "MinPosition", minPosition.ToString() },
                 { "MaxPosition", maxPosition.ToString() },
-                { "Address", httpAddress },
+                { "Address", regionInfo.ServerURI },
                 { "Enabled", "1" },
                 { "ExtraData", OSDParser.SerializeJsonString(extraData) }
             };

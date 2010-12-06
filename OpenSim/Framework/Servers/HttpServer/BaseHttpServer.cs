@@ -348,7 +348,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             try
             {
-//                m_log.Debug("[BASE HTTP SERVER]: Handling request to " + request.RawUrl);
+                //m_log.Debug("[BASE HTTP SERVER]: Handling request to " + request.RawUrl);
 
                 Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US", true);
 
@@ -376,7 +376,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 string path = request.RawUrl;
                 string handlerKey = GetHandlerKey(request.HttpMethod, path);
 
-//                m_log.DebugFormat("[BASE HTTP SERVER]: Handling {0} request for {1}", request.HttpMethod, path);
+                //m_log.DebugFormat("[BASE HTTP SERVER]: Handling {0} request for {1}", request.HttpMethod, path);
 
                 if (TryGetStreamHandler(handlerKey, out requestHandler))
                 {
