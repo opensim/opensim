@@ -117,8 +117,20 @@ namespace OpenSim.Framework
         /// </summary>
         public string ServerURI
         {
-            get { return m_serverURI; }
-            set { m_serverURI = value; }
+            get { 
+                if ( m_serverURI != string.Empty ) {
+                    return m_serverURI;
+                } else {
+                    return "http://" + m_externalHostName + ":" + m_httpPort + "/";
+                }
+            }
+            set { 
+                if ( value.EndsWith("/") ) {
+                    m_serverURI = value;
+                } else {
+                    m_serverURI = value + '/';
+                }
+            }
         }
         protected string m_serverURI;
 
@@ -143,6 +155,7 @@ namespace OpenSim.Framework
 
         public SimpleRegionInfo()
         {
+            m_serverURI = string.Empty;
         }
 
         public SimpleRegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri)
@@ -152,6 +165,7 @@ namespace OpenSim.Framework
 
             m_internalEndPoint = internalEndPoint;
             m_externalHostName = externalUri;
+            m_serverURI = string.Empty;
         }
 
         public SimpleRegionInfo(uint regionLocX, uint regionLocY, string externalUri, uint port)
@@ -162,6 +176,7 @@ namespace OpenSim.Framework
             m_externalHostName = externalUri;
 
             m_internalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int) port);
+            m_serverURI = string.Empty;
         }
 
         public SimpleRegionInfo(RegionInfo ConvertFrom)
@@ -451,6 +466,7 @@ namespace OpenSim.Framework
             configMember =
                 new ConfigurationMember(xmlNode, description, loadConfigurationOptions, handleIncomingConfiguration, !skipConsoleConfig);
             configMember.performConfigurationRetrieve();
+            m_serverURI = string.Empty;
         }
 
         public RegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri)
@@ -460,10 +476,12 @@ namespace OpenSim.Framework
 
             m_internalEndPoint = internalEndPoint;
             m_externalHostName = externalUri;
+            m_serverURI = string.Empty;
         }
 
         public RegionInfo()
         {
+            m_serverURI = string.Empty;
         }
 
         public EstateSettings EstateSettings
@@ -553,10 +571,23 @@ namespace OpenSim.Framework
         /// <summary>
         /// A well-formed URI for the host region server (namely "http://" + ExternalHostName)
         /// </summary>
+        
         public string ServerURI
         {
-            get { return m_serverURI; }
-            set { m_serverURI = value; }
+            get { 
+                if ( m_serverURI != string.Empty ) {
+                    return m_serverURI;
+                } else {
+                    return "http://" + m_externalHostName + ":" + m_httpPort + "/";
+                }
+            }            
+            set { 
+                if ( value.EndsWith("/") ) {
+                    m_serverURI = value;
+                } else {
+                    m_serverURI = value + '/';
+                }
+            }
         }
 
         public string RegionName

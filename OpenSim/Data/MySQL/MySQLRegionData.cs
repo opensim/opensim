@@ -212,8 +212,8 @@ namespace OpenSim.Data.MySQL
             if (data.Data.ContainsKey("locY"))
                 data.Data.Remove("locY");
 
-            if (data.RegionName.Length > 32)
-                data.RegionName = data.RegionName.Substring(0, 32);
+            if (data.RegionName.Length > 128)
+                data.RegionName = data.RegionName.Substring(0, 128);
 
             string[] fields = new List<string>(data.Data.Keys).ToArray();
 
