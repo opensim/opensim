@@ -10501,11 +10501,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             StartLure handlerStartLure = OnStartLure;
             if (handlerStartLure != null)
-                handlerStartLure(startLureRequest.Info.LureType,
-                                 Utils.BytesToString(
-                                    startLureRequest.Info.Message),
-                                 startLureRequest.TargetData[0].TargetID,
-                                 this);
+            {
+                for (int i = 0 ; i < startLureRequest.TargetData.Length ; i++)
+                {
+                    handlerStartLure(startLureRequest.Info.LureType,
+                                     Utils.BytesToString(
+                                             startLureRequest.Info.Message),
+                                     startLureRequest.TargetData[i].TargetID,
+                                     this);
+                }
+            }
             return true;
         }
         private bool HandleTeleportLureRequest(IClientAPI sender, Packet Pack)
