@@ -8,6 +8,6 @@ namespace OpenSim.Framework
 {
     public interface ICallingCardModule
     {
-        void CreateCallingCard(UUID userID, UUID creatorID, UUID folderID);
+        UUID CreateCallingCard(UUID userID, UUID creatorID, UUID folderID);
     }
 }
