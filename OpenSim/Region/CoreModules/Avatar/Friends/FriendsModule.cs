@@ -516,6 +516,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             FriendsService.StoreFriend(agentID, friendID.ToString(), 1);
             FriendsService.StoreFriend(friendID, agentID.ToString(), 1);
 
+            ICallingCardModule ccm = client.Scene.RequestModuleInterface<ICallingCardModule>();
+            if (ccm != null)
+            {
+                ccm.CreateCallingCard(agentID, friendID, UUID.Zero);
+            }
+
             // Update the local cache
             UpdateFriendsCache(agentID);
 
@@ -678,6 +684,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 GridInstantMessage im = new GridInstantMessage(Scene, userID, userName, friendID,
                     (byte)OpenMetaverse.InstantMessageDialog.FriendshipAccepted, userID.ToString(), false, Vector3.Zero);
                 friendClient.SendInstantMessage(im);
+
+                ICallingCardModule ccm = friendClient.Scene.RequestModuleInterface<ICallingCardModule>();
+                if (ccm != null)
+                {
+                    ccm.CreateCallingCard(friendID, userID, UUID.Zero);
+                }
+
 
                 // Update the local cache
                 UpdateFriendsCache(friendID);

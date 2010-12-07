@@ -40,7 +40,12 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
     public class AssetXferUploader
     {
         // Viewer's notion of the default texture
-        private UUID defaultID = new UUID("5748decc-f629-461c-9a36-a35a221fe21f");
+        private List<UUID> defaultIDs = new List<UUID> {
+                new UUID("5748decc-f629-461c-9a36-a35a221fe21f"),
+                new UUID("7ca39b4c-bd19-4699-aff7-f93fd03d3e7b"),
+                new UUID("6522e74d-1660-4e7f-b601-6f48c1659a77"),
+                new UUID("c228d1cf-4b5d-4ba8-84f4-899a0796aa97")
+                };
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private AssetBase m_asset;
@@ -244,6 +249,9 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             item.Flags = (uint) wearableType;
             item.CreationDate = Util.UnixTimeSinceEpoch();
 
+            m_log.DebugFormat("[XFER]: Created item {0} with asset {1}",
+                    item.ID, item.AssetID);
+
             if (m_Scene.AddInventoryItem(item))
                 ourClient.SendInventoryItemCreateUpdate(item, callbackID);
             else
@@ -280,7 +288,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                             UUID tx = new UUID(parts[1]);
                             int id = Convert.ToInt32(parts[0]);
 
-                            if (tx == defaultID || tx == UUID.Zero ||
+                            if (defaultIDs.Contains(tx) || tx == UUID.Zero ||
                                 (allowed.ContainsKey(id) && allowed[id] == tx))
                             {
                                 validated.Add(parts[0] + " " + tx.ToString());
@@ -293,7 +301,11 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                                 if ((perms & full) != full)
                                 {
                                     m_log.ErrorFormat("[ASSET UPLOADER]: REJECTED update with texture {0} from {1} because they do not own the texture", tx, ourClient.AgentId);
-                                    validated.Add(parts[0] + " " + defaultID.ToString());
+                                    validated.Add(parts[0] + " " + UUID.Zero.ToString());
+                                }
+                                else
+                                {
+                                    validated.Add(line);
                                 }
                             }
                             textures--;

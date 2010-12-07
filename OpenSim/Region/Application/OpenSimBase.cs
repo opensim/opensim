@@ -222,6 +222,12 @@ namespace OpenSim
             m_moduleLoader = new ModuleLoader(m_config.Source);
 
             LoadPlugins();
+
+            if (m_plugins.Count == 0) // We failed to load any modules. Mono Addins glitch!
+            {
+                Environment.Exit(1);
+            }
+
             foreach (IApplicationPlugin plugin in m_plugins)
             {
                 plugin.PostInitialise();
