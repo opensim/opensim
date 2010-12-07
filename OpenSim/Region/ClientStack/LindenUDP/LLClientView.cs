@@ -3615,6 +3615,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             if (part.ParentGroup.OwnerID != AgentId &&
                                 part.ParentGroup.RootPart.Shape.State >= 30)
                                 continue;
+                            ScenePresence sp;
+                            // Owner is not in the sim, don't update it to
+                            // anyone
+                            if (!m_scene.TryGetScenePresence(part.OwnerID, out sp))
+                                continue;
+
+                            List<SceneObjectGroup> atts = sp.Attachments;
+                            bool found = false;
+                            foreach (SceneObjectGroup att in atts)
+                            {
+                                if (att == part.ParentGroup)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            // It's an attachment of a valid avatar, but
+                            // doesn't seem to be attached, skip
+                            if (!found)
+                                continue;
                         }
 
                         if (part.ParentGroup.IsAttachment && m_disableFacelights)
