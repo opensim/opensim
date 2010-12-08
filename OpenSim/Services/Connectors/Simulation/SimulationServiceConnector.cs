@@ -489,7 +489,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
         protected virtual string ObjectPath()
         {
-            return "/object/";
+            return "object/";
         }
 
         public bool CreateObject(GridRegion destination, ISceneObject sog, bool isLocalCall)
