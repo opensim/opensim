@@ -84,32 +84,43 @@ namespace OpenSim.Server.Handlers.Simulation
                 return responsedata;
             }
 
-            // Next, let's parse the verb
-            string method = (string)request["http-method"];
-            if (method.Equals("POST"))
+            try
             {
-                DoObjectPost(request, responsedata, regionID);
-                return responsedata;
+                // Next, let's parse the verb
+                string method = (string)request["http-method"];
+                if (method.Equals("POST"))
+                {
+                    DoObjectPost(request, responsedata, regionID);
+                    return responsedata;
+                }
+                else if (method.Equals("PUT"))
+                {
+                    DoObjectPut(request, responsedata, regionID);
+                    return responsedata;
+                }
+                //else if (method.Equals("DELETE"))
+                //{
+                //    DoObjectDelete(request, responsedata, agentID, action, regionHandle);
+                //    return responsedata;
+                //}
+                else
+                {
+                    m_log.InfoFormat("[OBJECT HANDLER]: method {0} not supported in object message", method);
+                    responsedata["int_response_code"] = HttpStatusCode.MethodNotAllowed;
+                    responsedata["str_response_string"] = "Method not allowed";
+
+                    return responsedata;
+                }
             }
-            else if (method.Equals("PUT"))
+            catch (Exception e)
             {
-                DoObjectPut(request, responsedata, regionID);
-                return responsedata;
-            }
-            //else if (method.Equals("DELETE"))
-            //{
-            //    DoObjectDelete(request, responsedata, agentID, action, regionHandle);
-            //    return responsedata;
-            //}
-            else
-            {
-                m_log.InfoFormat("[OBJECT HANDLER]: method {0} not supported in object message", method);
-                responsedata["int_response_code"] = HttpStatusCode.MethodNotAllowed;
-                responsedata["str_response_string"] = "Mthod not allowed";
+                m_log.WarnFormat("[OBJECT HANDLER]: Caught exception {0}", e.StackTrace);
+                responsedata["int_response_code"] = HttpStatusCode.InternalServerError;
+                responsedata["str_response_string"] = "Internal server error";
 
                 return responsedata;
-            }
 
+            }
         }
 
         protected void DoObjectPost(Hashtable request, Hashtable responsedata, UUID regionID)
