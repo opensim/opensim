@@ -4394,7 +4394,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        ///
+        /// Perform the given action for each object
         /// </summary>
         /// <param name="action"></param>
         //        public void ForEachObject(Action<SceneObjectGroup> action)
