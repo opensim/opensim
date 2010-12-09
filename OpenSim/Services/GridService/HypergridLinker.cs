@@ -215,7 +215,9 @@ namespace OpenSim.Services.GridService
         
         public bool TryCreateLink(UUID scopeID, int xloc, int yloc, string remoteRegionName, uint externalPort, string externalHostName, string serverURI, UUID ownerID, out GridRegion regInfo, out string reason)
         {
-            m_log.DebugFormat("[HYPERGRID LINKER]: Link to {0}:{1}:{2}, in {3}-{4}", externalHostName, externalPort, remoteRegionName, xloc, yloc);
+            m_log.DebugFormat("[HYPERGRID LINKER]: Link to {0}:{1}, in {2}-{3}", 
+                ((serverURI == null) ? (externalHostName + ":" + externalPort) : serverURI),
+                remoteRegionName, xloc / Constants.RegionSize, yloc / Constants.RegionSize);
 
             reason = string.Empty;
             regInfo = new GridRegion();
