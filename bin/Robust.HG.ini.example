@@ -24,7 +24,7 @@
 ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector,8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector,HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector,HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector,8002/OpenSim.Server.Handlers.dll:HeloServiceInConnector"
 
 ; * This is common for all services, it's the network setup for the entire
-; * server instance, if none if specified above
+; * server instance, if none is specified above
 ; *
 [Network]
     port = 8003
@@ -48,7 +48,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [AssetService]
     LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
-    AssetLoaderArgs = "assets/AssetSets.xml"
+    AssetLoaderArgs = "./assets/AssetSets.xml"
 
 ; * This configuration loads the inventory server modules. It duplicates
 ; * the function of the legacy inventory server
@@ -79,11 +79,22 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 ; * This is the configuration for the freeswitch server in grid mode
 [FreeswitchService]
     LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"
+    ;; IP of your FS server
+    ; ServerAddress = 127.0.0.1
+
+    ;; All other options are - well - optional
+    ; Realm = "127.0.0.1"
+    ; SIPProxy = "127.0.0.1:5060"
+    ; EchoServer = "127.0.0.1"
+    ; EchoPort = 50505
+    ; AttemptSTUN = "false"
+    ; DefaultTimeout = 5000
+    ; Context = "default"
+    ; UserName = "freeswitch"
+    ; Password = "password"
 
 ; * This is the new style authentication service. Currently, only MySQL
-; * is implemented. "Realm" is the table that is used for user lookup.
-; * It defaults to "useraccounts", which uses the new style.
-; * Realm = "users" will use the legacy tables as an authentication source
+; * is implemented. 
 ; *
 [AuthenticationService]
     ; for the server connector
@@ -97,7 +108,8 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 	
 ; * This is the new style user service.
 ; * "Realm" is the table that is used for user lookup.
-; * It defaults to "users", which uses the legacy tables
+; * It defaults to "useraccounts", which uses the new style.
+; * Realm = "users" will use the legacy tables as an authentication source
 ; *
 [UserAccountService]
     ; for the server connector
@@ -150,7 +162,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     AllowRemoteSetLoginLevel = "false"
     
     ; If you run this login server behind a proxy, set this to true
-    ; HasProxy = true
+    ; HasProxy = false
     
     ; Defaults for the users, if none is specified in the useraccounts table entry (ServiceURLs)
     ; CHANGE THIS
@@ -159,7 +171,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     SRV_HomeURI = "http://127.0.0.1:8002"
     SRV_InventoryServerURI = "http://127.0.0.1:8002"
     SRV_AssetServerURI = "http://127.0.0.1:8002"
-	SRV_ProfileServerURI = "http://127.0.0.1:8002"
+    SRV_ProfileServerURI = "http://127.0.0.1:8002/user"
 
 [GridInfoService]
     ; These settings are used to return information on a get_grid_info call.
@@ -218,7 +230,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     AllowTeleportsToAnyRegion = true
     
     ; If you run this gatekeeper server behind a proxy, set this to true
-    ; HasProxy = true
+    ; HasProxy = false
 
 
 [UserAgentService]
@@ -229,7 +241,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     GatekeeperService = "OpenSim.Services.HypergridService.dll:GatekeeperService"
     
     ; If you run this user agent server behind a proxy, set this to true
-    ; HasProxy = true
+    ; HasProxy = false
 
     ;; If you separate the UserAgentService from the LoginService, set this to
     ;; the IP address of the machine where your LoginService is
