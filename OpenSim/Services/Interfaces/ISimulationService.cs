@@ -60,6 +60,8 @@ namespace OpenSim.Services.Interfaces
 
         bool RetrieveAgent(GridRegion destination, UUID id, out IAgentData agent);
 
+        bool QueryAccess(GridRegion destination, UUID id);
+
         /// <summary>
         /// Message from receiving region to departing region, telling it got contacted by the client.
         /// When sent over REST, it invokes the opaque uri.
