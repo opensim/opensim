@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
@@ -363,5 +364,85 @@ namespace OpenSim.Framework
         }
 
         #endregion Stream
+
+        public class QBasedComparer : IComparer
+        {
+            public int Compare(Object x, Object y)
+            {
+                float qx = GetQ(x);
+                float qy = GetQ(y);
+                if (qx < qy)
+                    return -1;
+                if (qx == qy)
+                    return 0;
+                return 1;
+            }
+
+            private float GetQ(Object o)
+            {
+                // Example: image/png;q=0.9
+
+                if (o is String)
+                {
+                    string mime = (string)o;
+                    string[] parts = mime.Split(new char[] { ';' });
+                    if (parts.Length > 1)
+                    {
+                        string[] kvp = parts[1].Split(new char[] { '=' });
+                        if (kvp.Length == 2 && kvp[0] == "q")
+                        {
+                            float qvalue = 1F;
+                            float.TryParse(kvp[1], out qvalue);
+                            return qvalue;
+                        }
+                    }
+                }
+
+                return 1F;
+            }
+        }
+
+        /// <summary>
+        /// Takes the value of an Accept header and returns the preferred types
+        /// ordered by q value (if it exists).
+        /// Example input: image/jpg;q=0.7, image/png;q=0.8, image/jp2
+        /// Exmaple output: ["jp2", "png", "jpg"]
+        /// NOTE: This doesn't handle the semantics of *'s...
+        /// </summary>
+        /// <param name="accept"></param>
+        /// <returns></returns>
+        public static string[] GetPreferredImageTypes(string accept)
+        {
+
+            if (accept == null || accept == string.Empty)
+                return new string[0];
+
+            string[] types = accept.Split(new char[] { ',' });
+            if (types.Length > 0)
+            {
+                List<string> list = new List<string>(types);
+                list.RemoveAll(delegate(string s) { return !s.ToLower().StartsWith("image"); });
+                ArrayList tlist = new ArrayList(list);
+                tlist.Sort(new QBasedComparer());
+
+                string[] result = new string[tlist.Count];
+                for (int i = 0; i < tlist.Count; i++)
+                {
+                    string mime = (string)tlist[i];
+                    string[] parts = mime.Split(new char[] { ';' });
+                    string[] pair = parts[0].Split(new char[] { '/' });
+                    if (pair.Length == 2)
+                        result[i] = pair[1].ToLower();
+                    else // oops, we don't know what this is...
+                        result[i] = pair[0];
+                }
+
+                return result;
+            }
+
+            return new string[0];
+        }
+
+
     }
 }
