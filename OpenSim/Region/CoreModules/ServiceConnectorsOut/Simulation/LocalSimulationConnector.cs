@@ -257,6 +257,23 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return false;
         }
 
+        public bool QueryAccess(GridRegion destination, UUID id)
+        {
+            if (destination == null)
+                return false;
+
+            foreach (Scene s in m_sceneList)
+            {
+                if (s.RegionInfo.RegionHandle == destination.RegionHandle)
+                {
+                    //m_log.Debug("[LOCAL COMMS]: Found region to send QueryAccess");
+                    return s.QueryAccess(id);
+                }
+            }
+            //m_log.Debug("[LOCAL COMMS]: region not found for QueryAccess");
+            return false;
+        }
+
         public bool ReleaseAgent(UUID origin, UUID id, string uri)
         {
             foreach (Scene s in m_sceneList)

@@ -115,6 +115,11 @@ namespace OpenSim.Server.Handlers.Simulation
                 DoChildAgentDelete(request, responsedata, agentID, action, regionID);
                 return responsedata;
             }
+            else if (method.Equals("QUERYACCESSS"))
+            {
+                DoQueryAccess(request, responsedata, agentID, regionID);
+                return responsedata;
+            }
             else
             {
                 m_log.InfoFormat("[AGENT HANDLER]: method {0} not supported in agent message", method);
@@ -303,6 +308,27 @@ namespace OpenSim.Server.Handlers.Simulation
         protected virtual bool UpdateAgent(GridRegion destination, AgentData agent)
         {
             return m_SimulationService.UpdateAgent(destination, agent);
+        }
+
+        protected virtual void DoQueryAccess(Hashtable request, Hashtable responsedata, UUID id, UUID regionID)
+        {
+            if (m_SimulationService == null)
+            {
+                m_log.Debug("[AGENT HANDLER]: Agent QUERY called. Harmless but useless.");
+                responsedata["content_type"] = "application/json";
+                responsedata["int_response_code"] = HttpStatusCode.NotImplemented;
+                responsedata["str_response_string"] = string.Empty;
+
+                return;
+            }
+
+            GridRegion destination = new GridRegion();
+            destination.RegionID = regionID;
+
+            bool result = m_SimulationService.QueryAccess(destination, id);
+
+            responsedata["int_response_code"] = HttpStatusCode.OK;
+            responsedata["str_response_string"] = result.ToString();
         }
 
         protected virtual void DoAgentGet(Hashtable request, Hashtable responsedata, UUID id, UUID regionID)

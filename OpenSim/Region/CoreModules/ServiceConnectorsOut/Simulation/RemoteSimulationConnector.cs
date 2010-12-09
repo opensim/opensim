@@ -239,6 +239,23 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         }
 
+        public bool QueryAccess(GridRegion destination, UUID id)
+        {
+            if (destination == null)
+                return false;
+
+            // Try local first
+            if (m_localBackend.QueryAccess(destination, id))
+                return true;
+
+            // else do the remote thing
+            if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
+                return m_remoteConnector.QueryAccess(destination, id);
+
+            return false;
+
+        }
+
         public bool ReleaseAgent(UUID origin, UUID id, string uri)
         {
             // Try local first

@@ -411,6 +411,65 @@ namespace OpenSim.Services.Connectors.Simulation
             return false;
         }
 
+        public bool QueryAccess(GridRegion destination, UUID id)
+        {
+            IPEndPoint ext = destination.ExternalEndPoint;
+            if (ext == null) return false;
+            // Eventually, we want to use a caps url instead of the agentID
+            string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+            request.Method = "QUERYACCESS";
+            request.Timeout = 10000;
+            //request.Headers.Add("authorization", ""); // coming soon
+
+            HttpWebResponse webResponse = null;
+            string reply = string.Empty;
+            StreamReader sr = null;
+            try
+            {
+                webResponse = (HttpWebResponse)request.GetResponse();
+                if (webResponse == null)
+                {
+                    m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Null reply on agent query ");
+                }
+
+                sr = new StreamReader(webResponse.GetResponseStream());
+                reply = sr.ReadToEnd().Trim();
+
+
+            }
+            catch (WebException ex)
+            {
+                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: exception on reply of agent query {0}", ex.Message);
+                // ignore, really
+                return false;
+            }
+            finally
+            {
+                if (sr != null)
+                    sr.Close();
+            }
+
+            if (webResponse.StatusCode == HttpStatusCode.OK)
+            {
+                try
+                {
+                    bool result;
+
+                    result = bool.Parse(reply);
+
+                    return result;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            return false;
+        }
+
         public bool ReleaseAgent(UUID origin, UUID id, string uri)
         {
             WebRequest request = WebRequest.Create(uri);

@@ -5160,5 +5160,16 @@ namespace OpenSim.Region.Framework.Scenes
                     break;
             }
         }
+
+        // This method is called across the simulation connector to
+        // determine if a given agent is allowed in this region
+        // AS A ROOT AGENT. Returning false here will prevent them
+        // from logging into the region, teleporting into the region
+        // or corssing the broder walking, but will NOT prevent
+        // child agent creation, thereby emulating the SL behavior.
+        public bool QueryAccess(UUID agentID)
+        {
+            return true;
+        }
     }
 }
