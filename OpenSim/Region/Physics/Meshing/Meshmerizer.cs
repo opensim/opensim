@@ -311,7 +311,7 @@ namespace OpenSim.Region.Physics.Meshing
                         OSD decodedMeshOsd = new OSD();
                         byte[] meshBytes = new byte[physSize];
                         System.Buffer.BlockCopy(primShape.SculptData, physOffset, meshBytes, 0, physSize);
-                        byte[] decompressed = new byte[physSize * 5];
+//                        byte[] decompressed = new byte[physSize * 5];
                         try
                         {
                             using (MemoryStream inMs = new MemoryStream(meshBytes))

@@ -1845,7 +1845,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     /// property in StartHttp() for the HttpListener
     public class HttpServerLogWriter : ILogWriter
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public void Write(object source, LogPrio priority, string message)
         {
