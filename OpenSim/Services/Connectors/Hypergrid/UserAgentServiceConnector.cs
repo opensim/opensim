@@ -104,7 +104,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 return false;
             }
 
-            string uri = m_ServerURL + "/homeagent/" + aCircuit.AgentID + "/";
+            string uri = m_ServerURL + "homeagent/" + aCircuit.AgentID + "/";
 
             Console.WriteLine("   >>> LoginAgentToGrid <<< " + uri);
 

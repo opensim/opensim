@@ -433,7 +433,7 @@ namespace OpenSim.Services.GridService
                 MainConsole.Instance.Output(String.Format("{0,-39} {1}\n{2,-39} {3}\n",
                         r.RegionName, r.RegionID,
                         String.Format("{0},{1} ({2},{3})", r.posX, r.posY, r.posX / 256, r.posY / 256),
-                        "http://" + r.Data["serverIP"].ToString() + ":" + r.Data["serverHttpPort"].ToString()));
+                        r.Data["serverURI"].ToString()));
             }
             return;
         }
