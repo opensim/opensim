@@ -215,7 +215,7 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectPart sop = m_parentScene.GetSceneObjectPart(sp.ParentID);
                     if (sop != null)
                     {
-                        coarseLocations.Add(sop.AbsolutePosition + sp.AbsolutePosition);
+                        coarseLocations.Add(sop.AbsolutePosition + sp.OffsetPosition);
                         avatarUUIDs.Add(sp.UUID);
                     }
                     else
