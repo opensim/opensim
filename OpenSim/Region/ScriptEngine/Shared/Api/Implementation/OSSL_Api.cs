@@ -1310,7 +1310,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osParcelSetDetails(LSL_Vector pos, LSL_List rules)
         {
-            CheckThreatLevel(ThreatLevel.High, "osParcelSetDetails");
+            const string functionName = "osParcelSetDetails";
+            CheckThreatLevel(ThreatLevel.High, functionName);
+            OSSLDeprecated(functionName, "osSetParcelDetails");
+            SetParcelDetails(pos, rules, functionName);
+        }
+        public void osSetParcelDetails(LSL_Vector pos, LSL_List rules)
+        {
+            const string functionName = "osSetParcelDetails";
+            CheckThreatLevel(ThreatLevel.High, functionName);
+            SetParcelDetails(pos, rules, functionName);
+        }
+        private void SetParcelDetails(LSL_Vector pos, LSL_List rules, string functionName)
+        {
             m_host.AddScriptLPS(1);
 
             // Get a reference to the land data and make sure the owner of the script
@@ -1349,13 +1361,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                       break;
 
                     case 2:
-                      CheckThreatLevel(ThreatLevel.VeryHigh, "osParcelSetDetails");
+                      CheckThreatLevel(ThreatLevel.VeryHigh, functionName);
                       if (UUID.TryParse(arg , out uuid))
                           newLand.OwnerID = uuid;
                       break;
 
                     case 3:
-                      CheckThreatLevel(ThreatLevel.VeryHigh, "osParcelSetDetails");
+                      CheckThreatLevel(ThreatLevel.VeryHigh, functionName);
                       if (UUID.TryParse(arg , out uuid))
                           newLand.GroupID = uuid;
                       break;

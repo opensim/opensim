@@ -126,7 +126,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osParcelSubdivide(pos1, pos2);
         }
-        
+
+        public void osSetParcelDetails(vector pos, LSL_List rules)
+        {
+            m_OSSL_Functions.osSetParcelDetails(pos, rules);
+        }
+        // Deprecated
         public void osParcelSetDetails(vector pos, LSL_List rules)
         {
             m_OSSL_Functions.osParcelSetDetails(pos,rules);
