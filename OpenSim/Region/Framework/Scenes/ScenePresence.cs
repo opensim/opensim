@@ -1217,8 +1217,6 @@ namespace OpenSim.Region.Framework.Scenes
             //    return;
             //}
 
-            //m_log.DebugFormat("DEBUG: HandleAgentUpdate {0}", (AgentManager.ControlFlags)agentData.ControlFlags);
-
             m_perfMonMS = Util.EnvironmentTickCount();
 
             ++m_movementUpdateCount;
@@ -1395,7 +1393,7 @@ namespace OpenSim.Region.Framework.Scenes
                             try
                             {
                                 agent_control_v3 += dirVectors[i];
-                                //m_log.DebugFormat("[Motion]: (0) {0}, {1}",i, dirVectors[i]);
+                                //m_log.DebugFormat("[Motion]: {0}, {1}",i, dirVectors[i]);
                             }
                             catch (IndexOutOfRangeException)
                             {
@@ -1473,7 +1471,6 @@ namespace OpenSim.Region.Framework.Scenes
                                 Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
                                 LocalVectorToTarget2D.Normalize();
                                 agent_control_v3 += LocalVectorToTarget2D;
-                                //m_log.DebugFormat("[Motion]: (1) {0}, {1}", i, dirVectors[i]);
 
                                 // update avatar movement flags. the avatar coordinate system is as follows:
                                 //
@@ -1557,11 +1554,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // If the agent update does move the avatar, then calculate the force ready for the velocity update,
                 // which occurs later in the main scene loop
-                if ((update_movementflag) || (update_rotation && DCFlagKeyPressed))
+                if (update_movementflag || (update_rotation && DCFlagKeyPressed))
                 {
-                    //m_log.DebugFormat("{0} {1}", update_movementflag, (update_rotation && DCFlagKeyPressed));
-                    //m_log.DebugFormat(
-                    //    "In {0} adding velocity to {1} of {2}", m_scene.RegionInfo.RegionName, Name, agent_control_v3);
+                    //                    m_log.DebugFormat("{0} {1}", update_movementflag, (update_rotation && DCFlagKeyPressed));
+                    //                    m_log.DebugFormat(
+                    //                        "In {0} adding velocity to {1} of {2}", m_scene.RegionInfo.RegionName, Name, agent_control_v3);
 
                     AddNewMovement(agent_control_v3, q);
 
@@ -2330,9 +2327,6 @@ namespace OpenSim.Region.Framework.Scenes
                     !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
                     //Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
                 {
-                    //m_log.DebugFormat("XXX SendTerseUpdateToAllClients {0}-{1}  {2}-{3}  {4}-{5}",
-                    //    m_bodyRot, m_lastRotation, Velocity, m_lastVelocity, m_pos, m_lastPosition);
-
                     SendTerseUpdateToAllClients();
 
                     // Update the "last" values
@@ -3232,7 +3226,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 force = m_forceToApply.Value;
 
                 m_updateflag = true;
-                //                movementvector = force;
+//                movementvector = force;
                 Velocity = force;
 
                 m_forceToApply = null;

@@ -3706,22 +3706,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
                 const float TIME_DILATION = 1.0f;
                 ushort timeDilation = Utils.FloatToUInt16(TIME_DILATION, 0.0f, 1.0f);
-
-                if (terseUpdateBlocks.IsValueCreated)
-                {
-                    List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> blocks = terseUpdateBlocks.Value;
-
-                    ImprovedTerseObjectUpdatePacket packet = new ImprovedTerseObjectUpdatePacket();
-                    packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-                    packet.RegionData.TimeDilation = timeDilation;
-                    packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[blocks.Count];
-
-                    for (int i = 0; i < blocks.Count; i++)
-                        packet.ObjectData[i] = blocks[i];
-
-                    OutPacket(packet, ThrottleOutPacketType.Unknown, true);
-                }
-
+    
                 if (objectUpdateBlocks.IsValueCreated)
                 {
                     List<ObjectUpdatePacket.ObjectDataBlock> blocks = objectUpdateBlocks.Value;
@@ -3733,8 +3718,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
                     for (int i = 0; i < blocks.Count; i++)
                         packet.ObjectData[i] = blocks[i];
-
-                    OutPacket(packet, ThrottleOutPacketType.Unknown, true);
+    
+                    OutPacket(packet, ThrottleOutPacketType.Task, true);
                 }
     
                 if (compressedUpdateBlocks.IsValueCreated)
@@ -3748,10 +3733,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
                     for (int i = 0; i < blocks.Count; i++)
                         packet.ObjectData[i] = blocks[i];
-
-                    OutPacket(packet, ThrottleOutPacketType.Unknown, true);
+    
+                    OutPacket(packet, ThrottleOutPacketType.Task, true);
                 }
     
+                if (terseUpdateBlocks.IsValueCreated)
+                {
+                    List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> blocks = terseUpdateBlocks.Value;
+    
+                    ImprovedTerseObjectUpdatePacket packet = new ImprovedTerseObjectUpdatePacket();
+                    packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
+                    packet.RegionData.TimeDilation = timeDilation;
+                    packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[blocks.Count];
+    
+                    for (int i = 0; i < blocks.Count; i++)
+                        packet.ObjectData[i] = blocks[i];
+    
+                    OutPacket(packet, ThrottleOutPacketType.Task, true);
+                }
             }
 
             #endregion Packet Sending
