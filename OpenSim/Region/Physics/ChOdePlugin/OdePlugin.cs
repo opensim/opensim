@@ -224,7 +224,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public float bodyPIDG = 25;
 
         public int geomCrossingFailuresBeforeOutofbounds = 5;
-        public int geomRegionFence = 0;
+        public float geomRegionFence = 0.0f;
 
         public float bodyMotorJointMaxforceTensor = 2;
 
@@ -448,7 +448,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     geomContactPointsStartthrottle = physicsconfig.GetInt("geom_contactpoints_start_throttling", 3);
                     geomUpdatesPerThrottledUpdate = physicsconfig.GetInt("geom_updates_before_throttled_update", 15);
                     geomCrossingFailuresBeforeOutofbounds = physicsconfig.GetInt("geom_crossing_failures_before_outofbounds", 5);
-                    geomRegionFence = physicsconfig.GetInt("region_border_fence", 0);
+                    geomRegionFence = physicsconfig.GetFloat("region_border_fence", 0.0f);
 
                     geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", 10.000006836f);
                     bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", 20);

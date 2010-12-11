@@ -3001,12 +3001,9 @@ Console.WriteLine(" JointCreateFixed");
             // This is a temp patch until proper region crossing is developed. 
             
             int failureLimit = _parent_scene.geomCrossingFailuresBeforeOutofbounds;
-            int fence = _parent_scene.geomRegionFence;
+            float fence = _parent_scene.geomRegionFence;
             
-			float border_limit = 0.05f;	// original limit
-			if (fence == 1) border_limit = 0.5f;		// bounce point
-
-            frcount++;					// used to limit debug comment output
+	        frcount++;					// used to limit debug comment output
             if (frcount > 50)
                 frcount = 0;
                 
@@ -3049,35 +3046,34 @@ Console.WriteLine(" JointCreateFixed");
                     
 				// Check if outside region
 				// In Scene.cs/CrossPrimGroupIntoNewRegion the object is checked for 0.1M from border!
-                if (l_position.X > ((float)_parent_scene.WorldExtents.X - border_limit))
+                if (l_position.X > ((float)_parent_scene.WorldExtents.X - fence))
                 {
-                    l_position.X = ((float)_parent_scene.WorldExtents.X - border_limit);
+                    l_position.X = ((float)_parent_scene.WorldExtents.X - fence);
                  	outside = 1;
                 }
                 
-                if (l_position.X < border_limit)
+                if (l_position.X < fence)
                 {
-					l_position.X = border_limit;
+					l_position.X = fence;
 					outside = 2;
 				}
-				if (l_position.Y > ((float)_parent_scene.WorldExtents.Y - border_limit))
+				if (l_position.Y > ((float)_parent_scene.WorldExtents.Y - fence))
 				{
-                    l_position.Y = ((float)_parent_scene.WorldExtents.Y - border_limit);
+                    l_position.Y = ((float)_parent_scene.WorldExtents.Y - fence);
                  	outside = 3;
                 }
 				
-                if (l_position.Y < border_limit)
+                if (l_position.Y < fence)
                 {
-					l_position.Y = border_limit;
+					l_position.Y = fence;
 					outside = 4;
 				}
                 
                 if (outside > 0)
                 {
-//Console.WriteLine("   fence = {0}",fence);     
         
-//Console.WriteLine("Border {0}",  l_position);               
-                    if (fence == 1)		// bounce object off boundary 
+//Console.WriteLine("Border {0}   fence={1}", l_position, fence);               
+                    if (fence > 0.0f)		// bounce object off boundary 
                     {
                     	if (revcount == 0)
 	                    {
@@ -3647,75 +3643,6 @@ Console.WriteLine("AxisZ {0} set to {1}", i,  m_lockZ);
                         }
 	                } // end PID MoveToTarget
 	                
-    /* Original OS implementation: Does not work correctly as another phys object resting on THIS object purturbs its position.
-       This is incorrect behavior. llMoveToTarget must move the Body no matter what phys object is resting on it.	                
-       
-                    	//if (!d.BodyIsEnabled(Body))
-	                    //d.BodySetForce(Body, 0f, 0f, 0f);
-
-	                    //  no lock; for now it's only called from within Simulate()
-	
-	                    // If the PID Controller isn't active then we set our force
-	                    // calculating base velocity to the current position
-
-	                    if ((m_PIDTau < 1) && (m_PIDTau != 0))
-	                    {
-	                        //PID_G = PID_G / m_PIDTau;
-	                        m_PIDTau = 1;
-	                    }
-	
-	                    if ((PID_G - m_PIDTau) <= 0)
-	                    {
-	                        PID_G = m_PIDTau + 1;
-	                    }
-	                    //PidStatus = true;
-
-	                    // PhysicsVector vec = new PhysicsVector();
-//	                    d.Vector3 vel = d.BodyGetLinearVel(Body);
-
-	                    d.Vector3 pos = d.BodyGetPosition(Body);
-	                    _target_velocity =
-                            new Vector3(
-	                            (m_PIDTarget.X - pos.X) * ((PID_G - m_PIDTau) * timestep),
-	                            (m_PIDTarget.Y - pos.Y) * ((PID_G - m_PIDTau) * timestep),
-	                            (m_PIDTarget.Z - pos.Z) * ((PID_G - m_PIDTau) * timestep)
-	                            );
-
-if(frcount == 0) Console.WriteLine("PID {0}  b={1}  fz={2}  vel={3}", m_primName, m_buoyancy, fz, _target_velocity);           	
-	                    //  if velocity is zero, use position control; otherwise, velocity control
-
-	                    if (_target_velocity.ApproxEquals(Vector3.Zero,0.1f))
-	                    {
-	                        //  keep track of where we stopped.  No more slippin' & slidin'
-	
-	                        // We only want to deactivate the PID Controller if we think we want to have our surrogate
-	                        // react to the physics scene by moving it's position.
-	                        // Avatar to Avatar collisions
-	                        // Prim to avatar collisions
-
-	                        //fx = (_target_velocity.X - vel.X) * (PID_D) + (_zeroPosition.X - pos.X) * (PID_P * 2);
-	                        //fy = (_target_velocity.Y - vel.Y) * (PID_D) + (_zeroPosition.Y - pos.Y) * (PID_P * 2);
-	                        //fz = fz + (_target_velocity.Z - vel.Z) * (PID_D) + (_zeroPosition.Z - pos.Z) * PID_P;
-	                        d.BodySetPosition(Body, m_PIDTarget.X, m_PIDTarget.Y, m_PIDTarget.Z);
-	                        d.BodySetLinearVel(Body, 0, 0, 0);
-	                        d.BodyAddForce(Body, 0, 0, fz);
-	                //        return;
-	                    }
-	                    else
-	                    {
-	                        _zeroFlag = false;
-
-	                        // We're flying and colliding with something
-	                        fx = ((_target_velocity.X) - vel.X) * (PID_D);
-	                        fy = ((_target_velocity.Y) - vel.Y) * (PID_D);
-	
-	                        // vec.Z = (_target_velocity.Z - vel.Z) * PID_D + (_zeroPosition.Z - pos.Z) * PID_P;
-
-	                        fz = fz + ((_target_velocity.Z - vel.Z) * (PID_D) * m_mass);
-	                    }
-	                }		// end if (m_usePID)
- End of old PID  system */
- 
  	                
 	                /// Dynamics Hover ===================================================================================
 	                // Hover PID Controller can only run if the PIDcontroller is not in use.
@@ -3802,51 +3729,6 @@ if(frcount == 0) Console.WriteLine("PID {0}  b={1}  fz={2}  vel={3}", m_primName
     	                }
     	            } // end m_useHoverPID && !m_usePID
     	            
-    	            /// Dynamics RotLookAt =================================================================================
-	                if (m_useAPID)
-	                {
-	                	// RotLookAt, apparently overrides all other rotation sources. Inputs:
-	                	// Quaternion m_APIDTarget
-						// float m_APIDStrength		// From SL experiments, this is the time to get there
-						// float m_APIDDamping		// From SL experiments, this is damping, 1.0 = damped, 0.1 = wobbly
-													// Also in SL the mass of the object has no effect on time to get there.
-						// Factors:
-			    	    // get present body rotation
-			    	    float limit = 1.0f;
-			    	    float scaler = 50f;		// adjusts damping time
-			    	    float RLAservo = 0f;
-			    	    
-			    	    d.Quaternion rot = d.BodyGetQuaternion(Body);
-			    	    Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
-			    	    Quaternion rot_diff = Quaternion.Inverse(rotq) * m_APIDTarget;
-                        float diff_angle;
-                        Vector3 diff_axis;
-                        rot_diff.GetAxisAngle(out diff_axis, out diff_angle);
-                        diff_axis.Normalize();
-						if(diff_angle > 0.01f)			// diff_angle is always +ve
-						{
-//	                        PhysicsVector rotforce = new PhysicsVector(diff_axis.X, diff_axis.Y, diff_axis.Z);
-	                        Vector3 rotforce = new Vector3(diff_axis.X, diff_axis.Y, diff_axis.Z);
-    	                    rotforce = rotforce * rotq;
-    	                    if(diff_angle > limit) diff_angle = limit;		// cap the rotate rate
-//    	                    RLAservo = timestep / m_APIDStrength * m_mass * scaler;
-  //  	                    rotforce = rotforce * RLAservo * diff_angle ;
-    //	                    d.BodyAddRelTorque(Body, rotforce.X, rotforce.Y, rotforce.Z);
-    	                    RLAservo = timestep / m_APIDStrength * scaler;
-    	                    rotforce = rotforce * RLAservo * diff_angle ;
-    	             /*       
-		                    if (m_angularEnable.X == 0)
-		                        rotforce.X = 0;
-		                    if (m_angularEnable.Y == 0)
-		                        rotforce.Y = 0;
-		                    if (m_angularEnable.Z == 0)
-		                        rotforce.Z = 0;
-    	               */     
-							d.BodySetAngularVel (Body,  rotforce.X, rotforce.Y, rotforce.Z);
-//Console.WriteLine("axis= " + diff_axis + "    angle= " + diff_angle + "servo= " + RLAservo);							
-						}
-//if(frcount == 0) Console.WriteLine("mass= " + m_mass + "  servo= " + RLAservo + "   angle= " + diff_angle);							
-	                } // end m_useAPID
 	                
 	                /// Dynamics Apply Forces ===================================================================================
     	            fx *= m_mass;
@@ -3889,29 +3771,55 @@ if(frcount == 0) Console.WriteLine("PID {0}  b={1}  fz={2}  vel={3}", m_primName
     	                d.BodyAddForce(Body, fx, fy, fz);
 //Console.WriteLine("AddForce " + fx + "," + fy + "," + fz);    	                
     	            }  // end apply forces
-				} // end Dynamics
+				} // end Vehicle/Dynamics
+
+   	            /// RotLookAt =================================================================================
+                if (m_useAPID)
+                {
+                	// RotLookAt, apparently overrides all other rotation sources. Inputs:
+                	// Quaternion m_APIDTarget
+					// float m_APIDStrength		// From SL experiments, this is the time to get there
+					// float m_APIDDamping		// From SL experiments, this is damping, 1.0 = damped, 0.1 = wobbly
+												// Also in SL the mass of the object has no effect on time to get there.
+					// Factors:
+		    	    // get present body rotation
+		    	    float limit = 1.0f;
+		    	    float scaler = 50f;		// adjusts damping time
+		    	    float RLAservo = 0f;
+		    	    
+		    	    d.Quaternion rot = d.BodyGetQuaternion(Body);
+		    	    Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
+		    	    Quaternion rot_diff = Quaternion.Inverse(rotq) * m_APIDTarget;
+                    float diff_angle;
+                    Vector3 diff_axis;
+                    rot_diff.GetAxisAngle(out diff_axis, out diff_angle);
+                    diff_axis.Normalize();
+					if(diff_angle > 0.01f)			// diff_angle is always +ve
+					{
+//	                        PhysicsVector rotforce = new PhysicsVector(diff_axis.X, diff_axis.Y, diff_axis.Z);
+	                        Vector3 rotforce = new Vector3(diff_axis.X, diff_axis.Y, diff_axis.Z);
+    	                    rotforce = rotforce * rotq;
+    	                    if(diff_angle > limit) diff_angle = limit;		// cap the rotate rate
+//    	                    RLAservo = timestep / m_APIDStrength * m_mass * scaler;
+  //  	                    rotforce = rotforce * RLAservo * diff_angle ;
+    //	                    d.BodyAddRelTorque(Body, rotforce.X, rotforce.Y, rotforce.Z);
+    	                    RLAservo = timestep / m_APIDStrength * scaler;
+    	                    rotforce = rotforce * RLAservo * diff_angle ;
+    	             /*       
+		                    if (m_angularEnable.X == 0)
+		                        rotforce.X = 0;
+		                    if (m_angularEnable.Y == 0)
+		                        rotforce.Y = 0;
+		                    if (m_angularEnable.Z == 0)
+		                        rotforce.Z = 0;
+    	               */     
+							d.BodySetAngularVel (Body,  rotforce.X, rotforce.Y, rotforce.Z);
+//Console.WriteLine("axis= " + diff_axis + "    angle= " + diff_angle + "servo= " + RLAservo);							
+					}
+//if(frcount == 0) Console.WriteLine("mass= " + m_mass + "  servo= " + RLAservo + "   angle= " + diff_angle);							
+                } // end m_useAPID
 				
-/* obsolete?				
-                else
-                {	// is not physical, or is not a body or is selected
-                     // from old UpdatePositionAndVelocity, ... Not a body..   so Make sure the client isn't interpolating
-                    _velocity.X = 0;
-                    _velocity.Y = 0;
-                    _velocity.Z = 0;
-
-                    _acceleration.X = 0;
-                    _acceleration.Y = 0;
-                    _acceleration.Z = 0;
-
-                    m_rotationalVelocity.X = 0;
-                    m_rotationalVelocity.Y = 0;
-                    m_rotationalVelocity.Z = 0;
-                    _zeroFlag = true;
-                   return;
-	    		}   
- */	    		
             } // end root prims
-            
        }  // end Move()
 	} // end class
 }
