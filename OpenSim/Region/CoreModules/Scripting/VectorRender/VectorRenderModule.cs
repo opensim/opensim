@@ -165,7 +165,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             int width = 256;
             int height = 256;
             int alpha = 255; // 0 is transparent
-            Color bgColour = Color.White;  // Default background color
+            Color bgColor = Color.White;  // Default background color
             char altDataDelim = ';';
             
             char[] paramDelimiter = { ',' };
@@ -253,15 +253,16 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                                alpha = 256;
                           }
                           break;
+                     case "bgcolor":
                      case "bgcolour":
-                         int hex = 0;
+                          int hex = 0;
                          if (Int32.TryParse(value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
                          {
-                             bgColour = Color.FromArgb(hex);
+                             bgColor = Color.FromArgb(hex);
                          } 
                          else
                          {
-                             bgColour = Color.FromName(value);
+                             bgColor = Color.FromName(value);
                          }
                          break;
                      case "altdatadelim":
@@ -315,7 +316,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             // background color in their scripts, only do when fully opaque
             if (alpha >= 255)
             {
-                graph.FillRectangle(new SolidBrush(bgColour), 0, 0, width, height); 
+                graph.FillRectangle(new SolidBrush(bgColor), 0, 0, width, height); 
             }
 
             for (int w = 0; w < bitmap.Width; w++)
@@ -616,25 +617,25 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                         }
                     }
                 }
-                else if (nextLine.StartsWith("PenColour"))
+                else if (nextLine.StartsWith("PenColour") || nextLine.StartsWith("PenColor"))
                 {
                     nextLine = nextLine.Remove(0, 9);
                     nextLine = nextLine.Trim();
                     int hex = 0;
 
-                    Color newColour;
+                    Color newColor;
                     if (Int32.TryParse(nextLine, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
                     {
-                        newColour = Color.FromArgb(hex);
+                        newColor = Color.FromArgb(hex);
                     }
                     else
                     {
                         // this doesn't fail, it just returns black if nothing is found
-                        newColour = Color.FromName(nextLine);
+                        newColor = Color.FromName(nextLine);
                     }
 
-                    myBrush.Color = newColour;
-                    drawPen.Color = newColour;
+                    myBrush.Color = newColor;
+                    drawPen.Color = newColor;
                 }
             }
         }
