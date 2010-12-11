@@ -156,7 +156,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="inventoryFolder">The inventory folder to save</param>
         /// <param name="path">The path to which the folder should be saved</param>
         /// <param name="saveThisFolderItself">If true, save this folder itself.  If false, only saves contents</param>
-        protected void SaveInvFolder(InventoryFolderBase inventoryFolder, string path, bool saveThisFolderItself, Dictionary<string, object> options, IUserAccountService userAccountService)
+        /// <param name="options"></param>
+        /// <param name="userAccountService"></param>
+        protected void SaveInvFolder(
+            InventoryFolderBase inventoryFolder, string path, bool saveThisFolderItself, 
+            Dictionary<string, object> options, IUserAccountService userAccountService)
         {
             if (saveThisFolderItself)
             {
@@ -249,7 +253,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                 // Write out control file.  This has to be done first so that subsequent loaders will see this file first
                 // XXX: I know this is a weak way of doing it since external non-OAR aware tar executables will not do this
-                m_archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p1ControlFile());
+                // not sure how to fix this though, short of going with a completely different file format.
+                m_archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, CreateControlFile(options));
                 m_log.InfoFormat("[INVENTORY ARCHIVER]: Added control file to archive.");
                 
                 if (inventoryFolder != null)
@@ -372,12 +377,24 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
 
         /// <summary>
-        /// Create the control file for a 0.1 version archive
+        /// Create the control file for the archive
         /// </summary>
+        /// <param name="options"></param>
         /// <returns></returns>
-        public static string Create0p1ControlFile()
+        public static string CreateControlFile(Dictionary<string, object> options)
         {
-            int majorVersion = 0, minorVersion = 1;
+            int majorVersion, minorVersion;
+            
+            if (options.ContainsKey("profile"))
+            {
+                majorVersion = 1;
+                minorVersion = 0;
+            }
+            else
+            {
+                majorVersion = 0;
+                minorVersion = 1;
+            }            
             
             m_log.InfoFormat("[INVENTORY ARCHIVER]: Creating version {0}.{1} IAR", majorVersion, minorVersion);
             
