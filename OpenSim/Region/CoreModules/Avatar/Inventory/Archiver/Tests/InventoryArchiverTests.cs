@@ -120,7 +120,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
 
             Scene scene = SceneSetupHelpers.SetupScene("Inventory");
             SceneSetupHelpers.SetupSceneModules(scene, archiverModule);
@@ -238,7 +238,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
 
             Scene scene = SceneSetupHelpers.SetupScene("Inventory");
             SceneSetupHelpers.SetupSceneModules(scene, archiverModule);
@@ -355,7 +355,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //            log4net.Config.XmlConfigurator.Configure();
             
             SerialiserModule serialiserModule = new SerialiserModule();
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
             Scene scene = SceneSetupHelpers.SetupScene("inventory");
             SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
             
@@ -382,7 +382,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             //log4net.Config.XmlConfigurator.Configure();
             
             SerialiserModule serialiserModule = new SerialiserModule();
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
             
             // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
             Scene scene = SceneSetupHelpers.SetupScene("inventory");
@@ -443,7 +443,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string humanEscapedItemName = @"You & you are a mean\/man\/";
             string userPassword = "meowfood";
 
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
 
             Scene scene = SceneSetupHelpers.SetupScene("Inventory");
             SceneSetupHelpers.SetupSceneModules(scene, archiverModule);
@@ -558,7 +558,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
             SerialiserModule serialiserModule = new SerialiserModule();
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
             
             // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
             Scene scene = SceneSetupHelpers.SetupScene("inventory");
@@ -619,7 +619,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
         //    MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
         //    SerialiserModule serialiserModule = new SerialiserModule();
-        //    InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
+        //    InventoryArchiverModule archiverModule = new InventoryArchiverModule();
             
         //    // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
         //    Scene scene = SceneSetupHelpers.SetupScene();

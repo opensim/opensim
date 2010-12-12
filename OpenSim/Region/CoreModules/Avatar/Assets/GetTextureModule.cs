@@ -336,7 +336,7 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
 
             try
             {
-                // Taking our jpeg2000 data, decoding it, then saving it to a byte array with regular jpeg data
+                // Taking our jpeg2000 data, decoding it, then saving it to a byte array with regular data
 
                 imgstream = new MemoryStream();
 

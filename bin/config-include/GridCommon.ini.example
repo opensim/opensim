@@ -84,7 +84,7 @@
     ; Change this to your profile server 
     ; accessible from other grids
     ;
-    ProfileServerURI = "http://mygridserver.com:8002/profiles"
+    ProfileServerURI = "http://mygridserver.com:8002/user"
 
 [Modules]
     ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.

@@ -779,6 +779,8 @@ namespace OpenSim.Services.LLLoginService
                 {
                     aCircuit.ServiceURLs[kvp.Key] = kvp.Value;
                 }
+                if (!aCircuit.ServiceURLs[kvp.Key].ToString().EndsWith("/"))
+                    aCircuit.ServiceURLs[kvp.Key] = aCircuit.ServiceURLs[kvp.Key] + "/";
             }
 
             // New style: service keys  start with SRV_; override the previous
@@ -791,6 +793,9 @@ namespace OpenSim.Services.LLLoginService
                 {
                     string keyName = serviceKey.Replace("SRV_", "");
                     aCircuit.ServiceURLs[keyName] = m_LoginServerConfig.GetString(serviceKey, string.Empty);
+                    if (!aCircuit.ServiceURLs[keyName].ToString().EndsWith("/"))
+                        aCircuit.ServiceURLs[keyName] = aCircuit.ServiceURLs[keyName] + "/";
+
                     m_log.DebugFormat("[LLLOGIN SERVICE]: found new key {0} {1}", keyName, aCircuit.ServiceURLs[keyName]);
                 }
             }

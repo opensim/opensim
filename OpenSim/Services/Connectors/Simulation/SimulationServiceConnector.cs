@@ -235,6 +235,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 m_log.Warn("[REMOTE SIMULATION CONNECTOR]: PackAgentCircuitData failed with exception: " + e.Message);
                 return null;
             }
+            
             // Add the input arguments
             args["destination_x"] = OSD.FromString(destination.RegionLocX.ToString());
             args["destination_y"] = OSD.FromString(destination.RegionLocY.ToString());
