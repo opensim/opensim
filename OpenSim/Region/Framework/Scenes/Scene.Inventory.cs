@@ -1902,21 +1902,29 @@ namespace OpenSim.Region.Framework.Scenes
                 else // oopsies
                     item.Folder = UUID.Zero;
 
+                // Set up base perms properly
+                uint permsBase = (uint)(PermissionMask.Move | PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify);
+                permsBase &= grp.RootPart.BaseMask;
+                permsBase |= (uint)PermissionMask.Move;
+
+                // Make sure we don't lock it
+                grp.RootPart.NextOwnerMask |= (uint)PermissionMask.Move;
+
                 if ((remoteClient.AgentId != grp.RootPart.OwnerID) && Permissions.PropagatePermissions())
                 {
-                    item.BasePermissions = grp.RootPart.NextOwnerMask;
-                    item.CurrentPermissions = grp.RootPart.NextOwnerMask;
-                    item.NextPermissions = grp.RootPart.NextOwnerMask;
-                    item.EveryOnePermissions = grp.RootPart.EveryoneMask & grp.RootPart.NextOwnerMask;
-                    item.GroupPermissions = grp.RootPart.GroupMask & grp.RootPart.NextOwnerMask;
+                    item.BasePermissions = permsBase & grp.RootPart.NextOwnerMask;
+                    item.CurrentPermissions = permsBase & grp.RootPart.NextOwnerMask;
+                    item.NextPermissions = permsBase & grp.RootPart.NextOwnerMask;
+                    item.EveryOnePermissions = permsBase & grp.RootPart.EveryoneMask & grp.RootPart.NextOwnerMask;
+                    item.GroupPermissions = permsBase & grp.RootPart.GroupMask & grp.RootPart.NextOwnerMask;
                 }
                 else
                 {
-                    item.BasePermissions = grp.RootPart.BaseMask;
-                    item.CurrentPermissions = grp.RootPart.OwnerMask;
-                    item.NextPermissions = grp.RootPart.NextOwnerMask;
-                    item.EveryOnePermissions = grp.RootPart.EveryoneMask;
-                    item.GroupPermissions = grp.RootPart.GroupMask;
+                    item.BasePermissions = permsBase;
+                    item.CurrentPermissions = permsBase & grp.RootPart.OwnerMask;
+                    item.NextPermissions = permsBase & grp.RootPart.NextOwnerMask;
+                    item.EveryOnePermissions = permsBase & grp.RootPart.EveryoneMask;
+                    item.GroupPermissions = permsBase & grp.RootPart.GroupMask;
                 }
                 item.CreationDate = Util.UnixTimeSinceEpoch();
 
