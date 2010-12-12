@@ -135,7 +135,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         // Parcel commands
         void osParcelJoin(vector pos1, vector pos2);
         void osParcelSubdivide(vector pos1, vector pos2);
-        void osParcelSetDetails(vector pos, LSL_List rules);
+        void osSetParcelDetails(vector pos, LSL_List rules);
+        void osParcelSetDetails(vector pos, LSL_List rules); // Deprecated
 
         string osGetScriptEngineName();
         string osGetSimulatorVersion();
