@@ -2225,33 +2225,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // WHAT???
                 m_log.Debug("[SCENEPRESENCE]: AddNewMovement() called on child agent, making root agent!");
-
-                // we have to reset the user's child agent connections.
-                // Likely, here they've lost the eventqueue for other regions so border 
-                // crossings will fail at this point unless we reset them.
-
-                List<ulong> regions = new List<ulong>(KnownChildRegionHandles);
-                regions.Remove(m_scene.RegionInfo.RegionHandle);
-
-                MakeRootAgent(new Vector3(127f, 127f, 127f), true);
-
-                // Async command
-                if (m_scene.SceneGridService != null)
-                {
-                    m_scene.SceneGridService.SendCloseChildAgentConnections(UUID, regions);
-
-                    // Give the above command some time to try and close the connections.
-                    // this is really an emergency..   so sleep, or we'll get all discombobulated.
-                    System.Threading.Thread.Sleep(500);
-                }
-                
-                if (m_scene.SceneGridService != null)
-                {
-                    IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
-                    if (m_agentTransfer != null)
-                        m_agentTransfer.EnableChildAgents(this);
-                }
-                
                 return;
             }
 

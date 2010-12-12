@@ -218,20 +218,28 @@ namespace OpenSim.Region.Framework.Scenes
 
         private double GetPriorityByBestAvatarResponsiveness(IClientAPI client, ISceneEntity entity)
         {
+            // If this is an update for our own avatar give it the highest priority
+            if (client.AgentId == entity.UUID)
+                return 0.0;
+            if (entity == null)
+                return double.NaN;
+
+            // Use group position for child prims
+            Vector3 entityPos = entity.AbsolutePosition;
+            if (entity is SceneObjectPart)
+            {
+                SceneObjectGroup group = (entity as SceneObjectPart).ParentGroup;
+                if (group != null)
+                    entityPos = group.AbsolutePosition;
+                else
+                    entityPos = entity.AbsolutePosition;
+            }
+            else
+                entityPos = entity.AbsolutePosition;
+
             ScenePresence presence = m_scene.GetScenePresence(client.AgentId);
             if (presence != null)
             {
-                // If this is an update for our own avatar give it the highest priority
-                if (presence == entity)
-                    return 0.0;
-
-                // Use group position for child prims
-                Vector3 entityPos = entity.AbsolutePosition;
-                if (entity is SceneObjectPart)
-                    entityPos = m_scene.GetGroupByPrim(entity.LocalId).AbsolutePosition;
-                else
-                    entityPos = entity.AbsolutePosition;
-
                 if (!presence.IsChildAgent)
                 {
                     if (entity is ScenePresence)

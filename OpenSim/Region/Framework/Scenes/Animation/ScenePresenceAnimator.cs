@@ -316,16 +316,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         public void UpdateMovementAnimations()
         {
             m_movementAnimation = GetMovementAnimation();
-
-            if (m_movementAnimation == "PREJUMP" && !m_scenePresence.Scene.m_usePreJump)
-            {
-                // This was the previous behavior before PREJUMP
-                TrySetMovementAnimation("JUMP");
-            }
-            else
-            {
-                TrySetMovementAnimation(m_movementAnimation);
-            }
+            TrySetMovementAnimation(m_movementAnimation);
         }
 
         public UUID[] GetAnimationArray()
