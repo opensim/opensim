@@ -301,7 +301,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             float dy;
             float dz;
 
-            Quaternion q = SensePoint.RotationOffset;
+//            Quaternion q = SensePoint.RotationOffset;
+            Quaternion q = SensePoint.GetWorldRotation();		// non-attached prim Sensor *always* uses World rotation!
             if (SensePoint.ParentGroup.RootPart.IsAttachment)
             {
                 // In attachments, the sensor cone always orients with the
