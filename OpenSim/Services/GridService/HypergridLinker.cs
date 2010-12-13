@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -52,8 +53,6 @@ namespace OpenSim.Services.GridService
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static UUID m_HGMapImage = new UUID("00000000-0000-1111-9999-000000000013");
-
         private static uint m_autoMappingX = 0;
         private static uint m_autoMappingY = 0;
         private static bool m_enableAutoMapping = false;
@@ -65,6 +64,7 @@ namespace OpenSim.Services.GridService
 
         protected UUID m_ScopeID = UUID.Zero;
         protected bool m_Check4096 = true;
+        protected string m_MapTileDirectory = string.Empty;
 
         // Hyperlink regions are hyperlinks on the map
         public readonly Dictionary<UUID, GridRegion> m_HyperlinkRegions = new Dictionary<UUID, GridRegion>();
@@ -121,9 +121,24 @@ namespace OpenSim.Services.GridService
 
                 m_Check4096 = gridConfig.GetBoolean("Check4096", true);
 
+                m_MapTileDirectory = gridConfig.GetString("MapTileDirectory", string.Empty);
+
                 m_GatekeeperConnector = new GatekeeperServiceConnector(m_AssetService);
 
-                m_log.DebugFormat("[HYPERGRID LINKER]: Loaded all services...");
+                m_log.Debug("[HYPERGRID LINKER]: Loaded all services...");
+            }
+
+            if (!string.IsNullOrEmpty(m_MapTileDirectory))
+            {
+                try
+                {
+                    Directory.CreateDirectory(m_MapTileDirectory);
+                }
+                catch (Exception e)
+                {
+                    m_log.WarnFormat("[HYPERGRID LINKER]: Could not create map tile storage directory {0}: {1}", m_MapTileDirectory, e);
+                    m_MapTileDirectory = string.Empty;
+                }
             }
 
             if (MainConsole.Instance != null)
@@ -271,40 +286,20 @@ namespace OpenSim.Services.GridService
             if (!m_GatekeeperConnector.LinkRegion(regInfo, out regionID, out handle, out externalName, out imageURL, out reason))
                 return false;
 
-            if (regionID != UUID.Zero)
-            {
-                region = m_GridService.GetRegionByUUID(scopeID, regionID);
-                if (region != null)
-                {
-                    m_log.DebugFormat("[HYPERGRID LINKER]: Region already exists in coordinates {0} {1}",
-                        region.RegionLocX / Constants.RegionSize, region.RegionLocY / Constants.RegionSize);
-                    regInfo = region;
-                    return true;
-                }
-
-                regInfo.RegionID = regionID;
-
-                if ( externalName == string.Empty )
-                    regInfo.RegionName = regInfo.ServerURI;
-                else
-                    regInfo.RegionName = externalName;
-
-                m_log.Debug("[HYPERGRID LINKER]: naming linked region " + regInfo.RegionName);
-                
-                // Try get the map image
-                //regInfo.TerrainImage = m_GatekeeperConnector.GetMapImage(regionID, imageURL);
-                // I need a texture that works for this... the one I tried doesn't seem to be working
-                regInfo.TerrainImage = m_HGMapImage;
-
-                AddHyperlinkRegion(regInfo, handle);
-                m_log.Info("[HYPERGRID LINKER]: Successfully linked to region_uuid " + regInfo.RegionID);
-
-            }
-            else
+            if (regionID == UUID.Zero)
             {
                 m_log.Warn("[HYPERGRID LINKER]: Unable to link region");
                 reason = "Remote region could not be found";
                 return false;
+            }
+
+            region = m_GridService.GetRegionByUUID(scopeID, regionID);
+            if (region != null)
+            {
+                m_log.DebugFormat("[HYPERGRID LINKER]: Region already exists in coordinates {0} {1}",
+                    region.RegionLocX / Constants.RegionSize, region.RegionLocY / Constants.RegionSize);
+                regInfo = region;
+                return true;
             }
 
             uint x, y;
@@ -316,7 +311,20 @@ namespace OpenSim.Services.GridService
                 return false;
             }
 
-            m_log.Debug("[HYPERGRID LINKER]: link region succeeded");
+            regInfo.RegionID = regionID;
+
+            if ( externalName == string.Empty )
+                regInfo.RegionName = regInfo.ServerURI;
+            else
+                regInfo.RegionName = externalName;
+
+            m_log.Debug("[HYPERGRID LINKER]: naming linked region " + regInfo.RegionName);
+                
+            // Get the map image
+            regInfo.TerrainImage = m_GatekeeperConnector.GetMapImage(regionID, imageURL, m_MapTileDirectory);
+
+            AddHyperlinkRegion(regInfo, handle);
+            m_log.Info("[HYPERGRID LINKER]: Successfully linked to region_uuid " + regInfo.RegionID);
             return true;
         }
 
