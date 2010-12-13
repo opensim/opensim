@@ -68,6 +68,12 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ;; Perform distance check for the creation of a linked region
     ; Check4096 = "True"
 
+    ;; Needed to display non-default map tile images for linked regions
+    AssetService = "OpenSim.Services.AssetService.dll:AssetService"
+
+    ;; Directory for map tile images of linked regions
+    ; MapTileDirectory = "./"
+ 
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegionName> = "<flags>"
     ;; or:            Region_<RegionID> = "<flags>"

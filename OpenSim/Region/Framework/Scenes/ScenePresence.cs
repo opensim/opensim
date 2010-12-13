@@ -1836,7 +1836,10 @@ namespace OpenSim.Region.Framework.Scenes
                     part.TaskInventory.LockItemsForRead(false);
                     // Reset sit target.
                     if (part.GetAvatarOnSitTarget() == UUID)
-                        part.SetAvatarOnSitTarget(UUID.Zero);
+                        part.SitTargetAvatar = UUID.Zero;
+                    if (part.ParentGroup != null)
+                        part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
+
                     m_parentPosition = part.GetWorldPosition();
                     ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
                 }
@@ -1986,7 +1989,7 @@ namespace OpenSim.Region.Framework.Scenes
 				if (!part.IsOccupied)
 				{
 //Console.WriteLine("Scripted, unoccupied");
-    	            part.SetAvatarOnSitTarget(UUID);		// set that Av will be on it
+    	            part.SitTargetAvatar = UUID;		// set that Av will be on it
     	            offset = new Vector3(avSitOffSet.X, avSitOffSet.Y, avSitOffSet.Z);	// change ofset to the scripted one
 
                     Quaternion nrot = avSitOrientation;

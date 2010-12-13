@@ -3264,13 +3264,6 @@ namespace OpenSim.Region.Framework.Scenes
             //}
         }
 
-        public void SetAvatarOnSitTarget(UUID avatarID)
-        {
-            m_sitTargetAvatar = avatarID;
-            if (ParentGroup != null)
-                ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
-        }
-
         public void SetAxisRotation(int axis, int rotate)
         {
             if (m_parentGroup != null)
