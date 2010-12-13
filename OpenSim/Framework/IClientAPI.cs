@@ -174,9 +174,10 @@ namespace OpenSim.Framework
     public delegate void ParcelAccessListRequest(
         UUID agentID, UUID sessionID, uint flags, int sequenceID, int landLocalID, IClientAPI remote_client);
 
-    public delegate void ParcelAccessListUpdateRequest(
-        UUID agentID, UUID sessionID, uint flags, int landLocalID, List<ParcelManager.ParcelAccessEntry> entries,
-        IClientAPI remote_client);
+    public delegate void ParcelAccessListUpdateRequest(UUID agentID, uint flags,
+                    int landLocalID, UUID transactionID, int sequenceID,
+                    int sections, List<ParcelManager.ParcelAccessEntry> entries,
+                    IClientAPI remote_client);
 
     public delegate void ParcelPropertiesRequest(
         int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, IClientAPI remote_client);

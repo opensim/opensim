@@ -6653,16 +6653,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID key;
-            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).LandData;
-            if (land.OwnerID == m_host.OwnerID)
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageAllowed))
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
                 if (UUID.TryParse(avatar, out key))
                 {
-                    entry.AgentID = key;
-                    entry.Flags = AccessList.Access;
-                    entry.Time = DateTime.Now.AddHours(hours);
-                    land.ParcelAccessList.Add(entry);
+                    if (land.LandData.ParcelAccessList.FindIndex(
+                            delegate(ParcelManager.ParcelAccessEntry e)
+                            {
+                                if (e.AgentID == key && e.Flags == AccessList.Access)
+                                    return true;
+                                return false;
+                            }) == -1)
+                    {
+                        entry.AgentID = key;
+                        entry.Flags = AccessList.Access;
+                        entry.Time = DateTime.Now.AddHours(hours);
+                        land.LandData.ParcelAccessList.Add(entry);
+                    }
                 }
             }
             ScriptSleep(100);
@@ -9493,7 +9502,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // according to the docs, this command only works if script owner and land owner are the same
             // lets add estate owners and gods, too, and use the generic permission check.
             ILandObject landObject = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
-            if (!World.Permissions.CanEditParcel(m_host.OwnerID, landObject)) return;
+            if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, landObject, GroupPowers.ChangeMedia)) return;
 
             bool update = false; // send a ParcelMediaUpdate (and possibly change the land's media URL)?
             byte loop = 0;
@@ -9957,16 +9966,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID key;
-            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).LandData;
-            if (land.OwnerID == m_host.OwnerID)
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageBanned))
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
                 if (UUID.TryParse(avatar, out key))
                 {
-                    entry.AgentID = key;
-                    entry.Flags = AccessList.Ban;
-                    entry.Time = DateTime.Now.AddHours(hours);
-                    land.ParcelAccessList.Add(entry);
+                    if (land.LandData.ParcelAccessList.FindIndex(
+                            delegate(ParcelManager.ParcelAccessEntry e)
+                            {
+                                if (e.AgentID == key && e.Flags == AccessList.Ban)
+                                    return true;
+                                return false;
+                            }) == -1)
+                    {
+                        entry.AgentID = key;
+                        entry.Flags = AccessList.Ban;
+                        entry.Time = DateTime.Now.AddHours(hours);
+                        land.LandData.ParcelAccessList.Add(entry);
+                    }
                 }
             }
             ScriptSleep(100);
@@ -9976,19 +9994,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID key;
-            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).LandData;
-            if (land.OwnerID == m_host.OwnerID)
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageAllowed))
             {
                 if (UUID.TryParse(avatar, out key))
                 {
-                    foreach (ParcelManager.ParcelAccessEntry entry in land.ParcelAccessList)
-                    {
-                        if (entry.AgentID == key && entry.Flags == AccessList.Access)
-                        {
-                            land.ParcelAccessList.Remove(entry);
-                            break;
-                        }
-                    }
+                    int idx = land.LandData.ParcelAccessList.FindIndex(
+                            delegate(ParcelManager.ParcelAccessEntry e)
+                            {
+                                if (e.AgentID == key && e.Flags == AccessList.Access)
+                                    return true;
+                                return false;
+                            });
+
+                    if (idx != -1)
+                        land.LandData.ParcelAccessList.RemoveAt(idx);
                 }
             }
             ScriptSleep(100);
@@ -9998,19 +10018,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID key;
-            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).LandData;
-            if (land.OwnerID == m_host.OwnerID)
+            ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+            if (World.Permissions.CanEditParcelProperties(m_host.OwnerID, land, GroupPowers.LandManageBanned))
             {
                 if (UUID.TryParse(avatar, out key))
                 {
-                    foreach (ParcelManager.ParcelAccessEntry entry in land.ParcelAccessList)
-                    {
-                        if (entry.AgentID == key && entry.Flags == AccessList.Ban)
-                        {
-                            land.ParcelAccessList.Remove(entry);
-                            break;
-                        }
-                    }
+                    int idx = land.LandData.ParcelAccessList.FindIndex(
+                            delegate(ParcelManager.ParcelAccessEntry e)
+                            {
+                                if (e.AgentID == key && e.Flags == AccessList.Ban)
+                                    return true;
+                                return false;
+                            });
+
+                    if (idx != -1)
+                        land.LandData.ParcelAccessList.RemoveAt(idx);
                 }
             }
             ScriptSleep(100);

@@ -722,20 +722,6 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region EDIT PARCEL
-        public bool CanEditParcel(UUID user, ILandObject parcel)
-        {
-            EditParcelHandler handler = OnEditParcel;
-            if (handler != null)
-            {
-                Delegate[] list = handler.GetInvocationList();
-                foreach (EditParcelHandler h in list)
-                {
-                    if (h(user, parcel, m_scene) == false)
-                        return false;
-                }
-            }
-            return true;
-        }
 
         public bool CanEditParcelProperties(UUID user, ILandObject parcel, GroupPowers p)
         {

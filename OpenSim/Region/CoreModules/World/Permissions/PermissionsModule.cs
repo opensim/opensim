@@ -37,56 +37,6 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
-// Temporary fix of wrong GroupPowers constants in OpenMetaverse library
-enum GroupPowers : long
-     {
-        None = 0,
-        LandEjectAndFreeze = 1,
-        Invite = 2,
-        ReturnGroupSet = 2,
-        Eject = 4,
-        ReturnNonGroup = 4,
-        ChangeOptions = 8,
-        LandGardening = 8,
-        CreateRole = 16,
-        DeedObject = 16,
-        ModerateChat = 32,
-        DeleteRole = 32,
-        RoleProperties = 64,
-        ObjectManipulate = 64,
-        ObjectSetForSale = 128,
-        AssignMemberLimited = 128,
-        AssignMember = 256,
-        Accountable = 256,
-        RemoveMember = 512,
-        SendNotices = 1024,
-        ChangeActions = 1024,
-        ChangeIdentity = 2048,
-        ReceiveNotices = 2048,
-        StartProposal = 4096,
-        LandDeed = 4096,
-        VoteOnProposal = 8192,
-        LandRelease = 8192,
-        LandSetSale = 16384,
-        LandDivideJoin = 32768,
-        ReturnGroupOwned = 65536,
-        JoinChat = 65536,
-        FindPlaces = 131072,
-        LandChangeIdentity = 262144,
-        SetLandingPoint = 524288,
-        ChangeMedia = 1048576,
-        LandEdit = 2097152,
-        LandOptions = 4194304,
-        AllowEditLand = 8388608,
-        AllowFly = 16777216,
-        AllowRez = 33554432,
-        AllowLandmark = 67108864,
-        AllowVoiceChat = 134217728,
-        AllowSetHome = 268435456,
-        LandManageAllowed = 536870912,
-        LandManageBanned = 1073741824
-     }
-
 namespace OpenSim.Region.CoreModules.World.Permissions
 {
     public class PermissionsModule : IRegionModule
@@ -214,7 +164,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnDuplicateObject += CanDuplicateObject;
             m_scene.Permissions.OnDeleteObject += CanDeleteObject; //MAYBE FULLY IMPLEMENTED
             m_scene.Permissions.OnEditObject += CanEditObject; //MAYBE FULLY IMPLEMENTED
-            m_scene.Permissions.OnEditParcel += CanEditParcel; //MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.OnEditParcelProperties += CanEditParcelProperties; //MAYBE FULLY IMPLEMENTED
             m_scene.Permissions.OnInstantMessage += CanInstantMessage;
             m_scene.Permissions.OnInventoryTransfer += CanInventoryTransfer; //NOT YET IMPLEMENTED
             m_scene.Permissions.OnIssueEstateCommand += CanIssueEstateCommand; //FULLY IMPLEMENTED
@@ -1005,12 +955,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return GenericObjectPermission(editorID, objectID, false);
         }
 
-        private bool CanEditParcel(UUID user, ILandObject parcel, Scene scene)
+        private bool CanEditParcelProperties(UUID user, ILandObject parcel, GroupPowers p, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            return GenericParcelOwnerPermission(user, parcel, (ulong)GroupPowers.LandDivideJoin);
+            return GenericParcelOwnerPermission(user, parcel, (ulong)p);
         }
 
         /// <summary>
