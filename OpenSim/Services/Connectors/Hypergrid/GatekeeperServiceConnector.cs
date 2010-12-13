@@ -178,7 +178,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             catch // LEGIT: Catching problems caused by OpenJPEG p/invoke
             {
-                m_log.Warn("[GATEKEEPER SERVICE CONNECTOR]: Failed getting/storing map image, because it is probably already in the cache");
+                m_log.Info("[GATEKEEPER SERVICE CONNECTOR]: Failed getting/storing map image, because it is probably already in the cache");
             }
             return mapTile;
         }
