@@ -119,10 +119,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion Properties
 
-        // To help debugging
-        private static int idCount = 0;
-        private int id;
-
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -138,7 +134,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             MaxBurst = maxBurst;
             DripRate = dripRate;
             lastDrip = Environment.TickCount & Int32.MaxValue;
-            id = idCount++;
         }
 
         /// <summary>
@@ -196,7 +191,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (tokensPerMS == 0)
             {
                 content = maxBurst;
-                //Console.WriteLine("XXX (" + id + ") content = maxBurst and maxBurst = " + maxBurst);
                 return true;
             }
             else
@@ -211,14 +205,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return false;
                 }
 
-                // dripAmpount here is in bytes per millisecond
-                int dripAmount = deltaMS * tokensPerMS; 
-                // but content is in bytes per second, so let's multiply by 1000
-                dripAmount = dripAmount * 1000;
+                int dripAmount = deltaMS * tokensPerMS;
+
                 content = Math.Min(content + dripAmount, maxBurst);
                 lastDrip = now;
 
-                //Console.WriteLine("XXX (" + id + ") deltaMS=" + deltaMS + "; tokensPerMS=" + tokensPerMS + "; content=" + content + "; dripAmount=" + dripAmount);
                 return true;
             }
         }
