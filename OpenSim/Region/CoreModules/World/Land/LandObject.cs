@@ -561,6 +561,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 // and only packet in a transaction
                 if (entries.Count == 1 && entries[0].AgentID == UUID.Zero)
                 {
+                    m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
+
                     return;
                 }
             }
