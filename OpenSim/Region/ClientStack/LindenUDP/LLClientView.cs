@@ -8239,7 +8239,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
                 entry.AgentID = block.ID;
                 entry.Flags = (AccessList)block.Flags;
-                entry.Time = new DateTime();
+                entry.Time = Util.ToDateTime(block.Time);
                 entries.Add(entry);
             }
 
@@ -8247,8 +8247,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (handlerParcelAccessListUpdateRequest != null)
             {
                 handlerParcelAccessListUpdateRequest(updatePacket.AgentData.AgentID,
-                                                     updatePacket.AgentData.SessionID, updatePacket.Data.Flags,
-                                                     updatePacket.Data.LocalID, entries, this);
+                                                     updatePacket.Data.Flags,
+                                                     updatePacket.Data.LocalID,
+                                                     updatePacket.Data.TransactionID,
+                                                     updatePacket.Data.SequenceID,
+                                                     updatePacket.Data.Sections,
+                                                     entries, this);
             }
             return true;
         }

@@ -1001,7 +1001,7 @@ namespace OpenSim.Region.RegionCombinerModule
             VirtualRegion.Permissions.OnDuplicateObject += BigRegion.PermissionModule.CanDuplicateObject;
             VirtualRegion.Permissions.OnDeleteObject += BigRegion.PermissionModule.CanDeleteObject; //MAYBE FULLY IMPLEMENTED
             VirtualRegion.Permissions.OnEditObject += BigRegion.PermissionModule.CanEditObject; //MAYBE FULLY IMPLEMENTED
-            VirtualRegion.Permissions.OnEditParcel += BigRegion.PermissionModule.CanEditParcel; //MAYBE FULLY IMPLEMENTED
+            VirtualRegion.Permissions.OnEditParcelProperties += BigRegion.PermissionModule.CanEditParcelProperties; //MAYBE FULLY IMPLEMENTED
             VirtualRegion.Permissions.OnInstantMessage += BigRegion.PermissionModule.CanInstantMessage;
             VirtualRegion.Permissions.OnInventoryTransfer += BigRegion.PermissionModule.CanInventoryTransfer; //NOT YET IMPLEMENTED
             VirtualRegion.Permissions.OnIssueEstateCommand += BigRegion.PermissionModule.CanIssueEstateCommand; //FULLY IMPLEMENTED
