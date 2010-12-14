@@ -42,7 +42,7 @@ namespace OpenSim.Tests.Common.Mock
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class MockGroupsServicesConnector : ISharedRegionModule, IGroupsServicesConnector
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public string Name
         {
@@ -64,6 +64,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public void AddRegion(Scene scene)
         {
+            m_log.DebugFormat("[MOCK GROUPS SERVICES CONNECTOR]: Adding to region {0}", scene.RegionInfo.RegionName);
             scene.RegisterModuleInterface<IGroupsServicesConnector>(this);
         }
 
@@ -174,7 +175,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public List<GroupMembershipData> GetAgentGroupMemberships(UUID requestingAgentID, UUID AgentID)
         {
-            return null;
+            return new List<GroupMembershipData>();
         }
 
         public List<GroupRolesData> GetAgentGroupRoles(UUID requestingAgentID, UUID AgentID, UUID GroupID)
