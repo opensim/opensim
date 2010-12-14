@@ -163,9 +163,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 if (m_msgTransferModule == null)
                 {
                     m_groupsEnabled = false;
-                    m_log.Error("[GROUPS]: Could not get MessageTransferModule");
-                    Close();
-                    return;
+                    m_log.Warn("[GROUPS]: Could not get MessageTransferModule");
                 }
             }
 
@@ -1299,7 +1297,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 if (m_debugEnabled) m_log.InfoFormat("[GROUPS]: MsgTo ({0}) is local, delivering directly", localClient.Name);
                 localClient.SendInstantMessage(msg);
             }
-            else
+            else if (m_msgTransferModule != null)
             {
                 if (m_debugEnabled) m_log.InfoFormat("[GROUPS]: MsgTo ({0}) is not local, delivering via TransferModule", msgTo);
                 m_msgTransferModule.SendInstantMessage(msg, delegate(bool success) { if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: Message Sent: {0}", success?"Succeeded":"Failed"); });

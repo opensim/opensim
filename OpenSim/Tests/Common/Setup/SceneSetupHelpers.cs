@@ -424,9 +424,12 @@ namespace OpenSim.Tests.Common.Setup
             foreach (IRegionModuleBase module in newModules)
             {
                 module.AddRegion(scene);
-                module.RegionLoaded(scene);
                 scene.AddRegionModule(module.Name, module);
             }
+            
+            // RegionLoaded is fired after all modules have been appropriately added to all scenes
+            foreach (IRegionModuleBase module in newModules)
+                module.RegionLoaded(scene);                
 
             scene.SetModuleInterfaces();
         }
