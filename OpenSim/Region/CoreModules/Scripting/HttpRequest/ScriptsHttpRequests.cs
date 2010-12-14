@@ -341,6 +341,10 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             try
             {
                 Request = (HttpWebRequest) WebRequest.Create(Url);
+
+                //This works around some buggy HTTP Servers like Lighttpd
+                Request.ServicePoint.Expect100Continue = false;
+
                 Request.Method = HttpMethod;
                 Request.ContentType = HttpMIMEType;
 
