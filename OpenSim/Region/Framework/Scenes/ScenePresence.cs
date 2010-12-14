@@ -3203,8 +3203,11 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 force = m_forceToApply.Value;
 
                 m_updateflag = true;
-//                movementvector = force;
-                Velocity = force;
+
+                // The magic constant 0.855f seems to make walking feel less jerky,
+                // probably because it hackishly accounts for the overall latency of
+                // these Velocity updates -- Diva
+                Velocity = force * .855F;
 
                 m_forceToApply = null;
             }
