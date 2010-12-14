@@ -27,6 +27,7 @@
 
 using System;
 using System.Reflection;
+using Nini.Config;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
@@ -49,6 +50,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.Tests
         public void TestBasic()
         {
             TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+            
+            TestScene scene = SceneSetupHelpers.SetupScene();
+            IConfigSource configSource = new IniConfigSource();
+            IConfig config = configSource.AddConfig("Groups");            
+            config.Set("Enabled", true);
+            config.Set("Module", "GroupsModule");            
+            config.Set("DebugEnabled", true);
+            SceneSetupHelpers.SetupSceneModules(
+                scene, configSource, new object[] { new MockGroupsServicesConnector() });
         }
     }
 }

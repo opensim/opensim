@@ -2733,6 +2733,7 @@
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="log4net" path="../../../bin/"/>
+      <Reference name="Mono.Addins" path="../../../bin/"/>
       <Reference name="Nini" path="../../../bin/"/>
       <Reference name="nunit.framework" path="../../../bin/"/>
       <Reference name="OpenMetaverse" path="../../../bin/"/>
@@ -2747,6 +2748,7 @@
       <Reference name="OpenSim.Server.Base"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
+      <Reference name="OpenSim.Region.OptionalModules"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
 
       <Files>
