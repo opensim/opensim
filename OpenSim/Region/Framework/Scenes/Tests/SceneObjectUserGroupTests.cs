@@ -56,7 +56,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestShareWithGroup()
         {
             TestHelper.InMethod();
-            log4net.Config.XmlConfigurator.Configure();
+//            log4net.Config.XmlConfigurator.Configure();
                         
             UUID userId = UUID.Parse("10000000-0000-0000-0000-000000000001");
             
