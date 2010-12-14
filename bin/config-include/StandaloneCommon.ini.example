@@ -65,6 +65,9 @@
     ;; With hypergrid, perform distance check for the creation of a linked region
     ; Check4096 = true
 
+    ;; Directory for map tile images of remote regions
+    ; MapTileDirectory = "./"
+
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegioName> = "<flags>"
     ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut

@@ -42,6 +42,9 @@
     GridServerURI = "http://mygridserver.com:8003"
     ;AllowHypergridMapSearch = true
 
+    ;; Directory for map tile images of linked regions
+    ; MapTileDirectory = "./"
+
 [AvatarService]
     ;
     ; change this to your grid-wide grid server

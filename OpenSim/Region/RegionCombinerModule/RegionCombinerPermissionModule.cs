@@ -105,9 +105,9 @@ namespace OpenSim.Region.RegionCombinerModule
             return m_rootScene.Permissions.CanEditObject(objectid, editorid);
         }
 
-        public bool CanEditParcel(UUID user, ILandObject parcel, Scene scene)
+        public bool CanEditParcelProperties(UUID user, ILandObject parcel, GroupPowers g, Scene scene)
         {
-            return m_rootScene.Permissions.CanEditParcel(user, parcel);
+            return m_rootScene.Permissions.CanEditParcelProperties(user, parcel, g);
         }
 
         public bool CanInstantMessage(UUID user, UUID target, Scene startscene)
