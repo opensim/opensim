@@ -1704,8 +1704,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // Reset sit target.
                     if (part.GetAvatarOnSitTarget() == UUID)
                         part.SitTargetAvatar = UUID.Zero;
-                    if (part.ParentGroup != null)
-                        part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
+                    part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
 
                     m_parentPosition = part.GetWorldPosition();
                     ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
@@ -1814,8 +1813,7 @@ namespace OpenSim.Region.Framework.Scenes
                     sitOrientation = avSitOrientation;
                     autopilot = false;
                 }
-                if (part.ParentGroup != null)
-                    part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
+                part.ParentGroup.TriggerScriptChangedEvent(Changed.LINK);
 
                 pos = part.AbsolutePosition + offset;
                 //if (Math.Abs(part.AbsolutePosition.Z - AbsolutePosition.Z) > 1)
