@@ -123,42 +123,39 @@ namespace OpenSim.Services.HypergridService
             externalName = m_ExternalName + ((regionName != string.Empty) ? " " + regionName : "");
             imageURL = string.Empty;
             reason = string.Empty;
-
+            GridRegion region = null;
 
             m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to link to {0}", (regionName == string.Empty)? "default region" : regionName);
             if (!m_AllowTeleportsToAnyRegion || regionName == string.Empty)
             {
                 List<GridRegion> defs = m_GridService.GetDefaultRegions(m_ScopeID);
                 if (defs != null && defs.Count > 0)
-                    m_DefaultGatewayRegion = defs[0];
-
-                try
                 {
-                    regionID = m_DefaultGatewayRegion.RegionID;
-                    regionHandle = m_DefaultGatewayRegion.RegionHandle;
+                    region = defs[0];
+                    m_DefaultGatewayRegion = region;
                 }
-                catch
+                else
                 {
                     reason = "Grid setup problem. Try specifying a particular region here.";
                     m_log.DebugFormat("[GATEKEEPER SERVICE]: Unable to send information. Please specify a default region for this grid!");
                     return false;
                 }
-
-                return true;
             }
-
-            GridRegion region = m_GridService.GetRegionByName(m_ScopeID, regionName);
-            if (region == null)
+            else
             {
-                reason = "Region not found";
-                return false;
+                region = m_GridService.GetRegionByName(m_ScopeID, regionName);
+                if (region == null)
+                {
+                    reason = "Region not found";
+                    return false;
+                }
             }
 
             regionID = region.RegionID;
             regionHandle = region.RegionHandle;
-            string regionimage = "regionImage" + region.RegionID.ToString();
-            regionimage = regionimage.Replace("-", "");
 
+            string regionimage = "regionImage" + regionID.ToString();
+            regionimage = regionimage.Replace("-", "");
             imageURL = region.ServerURI + "index.php?method=" + regionimage;
 
             return true;

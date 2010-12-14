@@ -484,6 +484,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
         }
         
+        public void UpdateAttachmentPosition(SceneObjectGroup sog, Vector3 pos)
+        {
+            // First we save the
+            // attachment point information, then we update the relative 
+            // positioning. Then we have to mark the object as NOT an
+            // attachment. This is necessary in order to correctly save
+            // and retrieve GroupPosition information for the attachment.
+            // Finally, we restore the object's attachment status.
+            byte attachmentPoint = sog.GetAttachmentPoint();
+            sog.UpdateGroupPosition(pos);
+            sog.RootPart.IsAttachment = false;
+            sog.AbsolutePosition = sog.RootPart.AttachedPos;
+            sog.SetAttachmentPoint(attachmentPoint);                                       
+            sog.HasGroupChanged = true;            
+        }
+        
         /// <summary>
         /// Update the attachment asset for the new sog details if they have changed.
         /// </summary>

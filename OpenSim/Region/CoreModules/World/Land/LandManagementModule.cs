@@ -159,7 +159,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelSelectObjects += ClientOnParcelSelectObjects;
             client.OnParcelObjectOwnerRequest += ClientOnParcelObjectOwnerRequest;
             client.OnParcelAccessListRequest += ClientOnParcelAccessListRequest;
-            client.OnParcelAccessListUpdateRequest += ClientOnParcelAccessUpdateListRequest;
+            client.OnParcelAccessListUpdateRequest += ClientOnParcelAccessListUpdateRequest;
             client.OnParcelAbandonRequest += ClientOnParcelAbandonRequest;
             client.OnParcelGodForceOwner += ClientOnParcelGodForceOwner;
             client.OnParcelReclaim += ClientOnParcelReclaim;
@@ -508,14 +508,22 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (land != null)
             {
-                m_landList[landLocalID].SendAccessList(agentID, sessionID, flags, sequenceID, remote_client);
+                land.SendAccessList(agentID, sessionID, flags, sequenceID, remote_client);
             }
         }
 
-        public void ClientOnParcelAccessUpdateListRequest(UUID agentID, UUID sessionID, uint flags, int landLocalID,
-                                                          List<ParcelManager.ParcelAccessEntry> entries,
-                                                          IClientAPI remote_client)
+        public void ClientOnParcelAccessListUpdateRequest(UUID agentID,
+                uint flags, int landLocalID, UUID transactionID, int sequenceID,
+                int sections, List<ParcelManager.ParcelAccessEntry> entries,
+                IClientAPI remote_client)
         {
+            // Flags is the list to update, it can mean either the ban or
+            // the access list (WTH is a pass list? Mentioned in ParcelFlags)
+            //
+            // There may be multiple packets, because these can get LONG.
+            // Use transactionID to determine a new chain of packets since
+            // packets may have come in out of sequence and that would be
+            // a big mess if using the sequenceID
             ILandObject land;
             lock (m_landList)
             {
@@ -524,9 +532,15 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (land != null)
             {
-                if (agentID == land.LandData.OwnerID)
+                GroupPowers requiredPowers = GroupPowers.LandManageAllowed;
+                if (flags == (uint)AccessList.Ban)
+                    requiredPowers = GroupPowers.LandManageBanned;
+
+                if (m_scene.Permissions.CanEditParcelProperties(agentID,
+                        land, requiredPowers))
                 {
-                    land.UpdateAccessList(flags, entries, remote_client);
+                    land.UpdateAccessList(flags, transactionID, sequenceID,
+                            sections, entries, remote_client);
                 }
             }
             else
@@ -854,7 +868,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             //If we are still here, then they are subdividing within one piece of land
             //Check owner
-            if (!m_scene.Permissions.CanEditParcel(attempting_user_id, startLandObject))
+            if (!m_scene.Permissions.CanEditParcelProperties(attempting_user_id, startLandObject, GroupPowers.LandDivideJoin))
             {
                 return;
             }
@@ -922,7 +936,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 return;
             }
-            if (!m_scene.Permissions.CanEditParcel(attempting_user_id, masterLandObject))
+            if (!m_scene.Permissions.CanEditParcelProperties(attempting_user_id, masterLandObject, GroupPowers.LandDivideJoin))
             {
                 return;
             }
@@ -1570,7 +1584,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (land == null) return;
 
-            if (!m_scene.Permissions.CanEditParcel(remoteClient.AgentId, land))
+            if (!m_scene.Permissions.CanEditParcelProperties(remoteClient.AgentId, land, GroupPowers.LandOptions))
                 return;
 
             land.LandData.OtherCleanTime = otherCleanTime;
