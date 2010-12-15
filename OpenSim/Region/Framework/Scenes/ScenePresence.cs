@@ -2279,6 +2279,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Overridden Methods
 
+        private bool sendingPrims = false;
+
         public override void Update()
         {
             const float ROTATION_TOLERANCE = 0.01f;
@@ -2286,7 +2288,8 @@ namespace OpenSim.Region.Framework.Scenes
             const float POSITION_TOLERANCE = 0.05f;
             //const int TIME_MS_TOLERANCE = 3000;
 
-            SendPrimUpdates();
+            if (!sendingPrims)
+                Util.FireAndForget(delegate { sendingPrims = true; SendPrimUpdates(); sendingPrims = false; });
 
             if (m_isChildAgent == false)
             {

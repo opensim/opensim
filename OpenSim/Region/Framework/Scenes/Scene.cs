@@ -150,7 +150,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_update_backup = 200;
         private int m_update_terrain = 50;
         private int m_update_land = 1;
-        private int m_update_coarse_locations = 50;
+        private int m_update_coarse_locations = 80;
 
         private int frameMS;
         private int physicsMS2;
@@ -1274,7 +1274,7 @@ namespace OpenSim.Region.Framework.Scenes
                     physicsMS = Util.EnvironmentTickCountSubtract(tmpPhysicsMS);
 
                     // Delete temp-on-rez stuff
-                    if (m_frame % m_update_backup == 0 && !m_cleaningTemps)
+                    if (m_frame % 1000 == 0 && !m_cleaningTemps)
                     {
                         int tmpTempOnRezMS = Util.EnvironmentTickCount();
                         m_cleaningTemps = true;
@@ -1400,13 +1400,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void CheckAtTargets()
         {
+            Dictionary<UUID, SceneObjectGroup>.ValueCollection objs;
             lock (m_groupsWithTargets)
-            {
-                foreach (SceneObjectGroup entry in m_groupsWithTargets.Values)
-                {
-                    entry.checkAtTargets();
-                }
-            }
+                objs = m_groupsWithTargets.Values;
+
+            foreach (SceneObjectGroup entry in objs)
+                entry.checkAtTargets();
         }
 
 
