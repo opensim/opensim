@@ -328,7 +328,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// thread servicing the m_primFullUpdates queue after a kill.  If this happens the object persists as an
         /// ownerless phantom.
         ///
-        /// All manipulation of this set has to occur under an m_entityUpdates.SyncRoot lock
+        /// All manipulation of this set has to occur under a lock
         ///
         /// </value>
         protected HashSet<uint> m_killRecord;
@@ -1536,11 +1536,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     OutPacket(kill, ThrottleOutPacketType.State);
                     return;
                 }
-                m_killRecord.Add(localIDs[0]);
+                lock (m_killRecord)
+                {
+                    m_killRecord.Add(localIDs[0]);
+                }
             }
             else
             {
-                lock (m_entityUpdates.SyncRoot)
+                lock (m_killRecord)
                 {
                     foreach (uint localID in localIDs)
                         m_killRecord.Add(localID);
@@ -3595,248 +3598,254 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int updatesThisCall = 0;
 
             EntityUpdate update;
-            while (updatesThisCall < maxUpdates)
+            lock (m_killRecord)
             {
-                lock (m_entityUpdates.SyncRoot)
-                    if (!m_entityUpdates.TryDequeue(out update))
-                        break;
-
-                if (update.Entity is SceneObjectPart)
+                while (updatesThisCall < maxUpdates)
                 {
-                    SceneObjectPart part = (SceneObjectPart)update.Entity;
+                    lock (m_entityUpdates.SyncRoot)
+                        if (!m_entityUpdates.TryDequeue(out update))
+                            break;
 
-                    // Please do not remove this unless you can demonstrate on the OpenSim mailing list that a client
-                    // will never receive an update after a prim kill.  Even then, keeping the kill record may be a good
-                    // safety measure.
-                    //
-                    // If a Linden Lab 1.23.5 client (and possibly later and earlier) receives an object update
-                    // after a kill, it will keep displaying the deleted object until relog.  OpenSim currently performs
-                    // updates and kills on different threads with different scheduling strategies, hence this protection.
-                    // 
-                    // This doesn't appear to apply to child prims - a client will happily ignore these updates
-                    // after the root prim has been deleted.
-                    if (m_killRecord.Contains(part.LocalId))
-                        continue;
-                    if (m_killRecord.Contains(part.ParentGroup.RootPart.LocalId))
-                        continue;
+                    if (update.Entity is SceneObjectPart)
+                    {
+                        SceneObjectPart part = (SceneObjectPart)update.Entity;
 
-                    if (part.ParentGroup.IsDeleted)
-                        continue;
-
-                    if (part.ParentGroup.IsAttachment)
-                    {   // Someone else's HUD, why are we getting these?
-                        if (part.ParentGroup.OwnerID != AgentId &&
-                            part.ParentGroup.RootPart.Shape.State >= 30)
+                        // Please do not remove this unless you can demonstrate on the OpenSim mailing list that a client
+                        // will never receive an update after a prim kill.  Even then, keeping the kill record may be a good
+                        // safety measure.
+                        //
+                        // If a Linden Lab 1.23.5 client (and possibly later and earlier) receives an object update
+                        // after a kill, it will keep displaying the deleted object until relog.  OpenSim currently performs
+                        // updates and kills on different threads with different scheduling strategies, hence this protection.
+                        // 
+                        // This doesn't appear to apply to child prims - a client will happily ignore these updates
+                        // after the root prim has been deleted.
+                        if (m_killRecord.Contains(part.LocalId))
                             continue;
-                        ScenePresence sp;
-                        // Owner is not in the sim, don't update it to
-                        // anyone
-                        if (!m_scene.TryGetScenePresence(part.OwnerID, out sp))
+                        if (m_killRecord.Contains(part.ParentGroup.RootPart.LocalId))
                             continue;
 
-                        List<SceneObjectGroup> atts = sp.Attachments;
-                        bool found = false;
-                        foreach (SceneObjectGroup att in atts)
-                        {
-                            if (att == part.ParentGroup)
+                        if (part.ParentGroup.IsDeleted)
+                            continue;
+
+                        if (part.ParentGroup.IsAttachment)
+                        {   // Someone else's HUD, why are we getting these?
+                            if (part.ParentGroup.OwnerID != AgentId &&
+                                part.ParentGroup.RootPart.Shape.State >= 30)
+                                continue;
+                            ScenePresence sp;
+                            // Owner is not in the sim, don't update it to
+                            // anyone
+                            if (!m_scene.TryGetScenePresence(part.OwnerID, out sp))
+                                continue;
+
+                            List<SceneObjectGroup> atts = sp.Attachments;
+                            bool found = false;
+                            foreach (SceneObjectGroup att in atts)
                             {
-                                found = true;
-                                break;
+                                if (att == part.ParentGroup)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            // It's an attachment of a valid avatar, but
+                            // doesn't seem to be attached, skip
+                            if (!found)
+                                continue;
+                        }
+
+                        if (part.ParentGroup.IsAttachment && m_disableFacelights)
+                        {
+                            if (part.ParentGroup.IsAttachment && m_disableFacelights)
+                            {
+                                if (part.ParentGroup.RootPart.Shape.State != (byte)AttachmentPoint.LeftHand &&
+                                    part.ParentGroup.RootPart.Shape.State != (byte)AttachmentPoint.RightHand)
+                                {
+                                    part.Shape.LightEntry = false;
+                                }
                             }
                         }
-
-                        // It's an attachment of a valid avatar, but
-                        // doesn't seem to be attached, skip
-                        if (!found)
-                            continue;
-                    }
-
-                    if (part.ParentGroup.IsAttachment && m_disableFacelights)
-                    {
-                        if (part.ParentGroup.RootPart.Shape.State != (byte)AttachmentPoint.LeftHand &&
-                            part.ParentGroup.RootPart.Shape.State != (byte)AttachmentPoint.RightHand)
+        
+                        ++updatesThisCall;
+        
+                        #region UpdateFlags to packet type conversion
+        
+                        PrimUpdateFlags updateFlags = update.Flags;
+        
+                        bool canUseCompressed = true;
+                        bool canUseImproved = true;
+        
+                        // Compressed object updates only make sense for LL primitives
+                        if (!(update.Entity is SceneObjectPart))
                         {
-                            part.Shape.LightEntry = false;
+                            canUseCompressed = false;
                         }
-                    }
-                }
-
-                ++updatesThisCall;
-
-                #region UpdateFlags to packet type conversion
-
-                PrimUpdateFlags updateFlags = update.Flags;
-
-                bool canUseCompressed = true;
-                bool canUseImproved = true;
-
-                // Compressed object updates only make sense for LL primitives
-                if (!(update.Entity is SceneObjectPart))
-                {
-                    canUseCompressed = false;
-                }
-
-                if (updateFlags.HasFlag(PrimUpdateFlags.FullUpdate))
-                {
-                    canUseCompressed = false;
-                    canUseImproved = false;
-                }
-                else
-                {
-                    if (updateFlags.HasFlag(PrimUpdateFlags.Velocity) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Acceleration) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.CollisionPlane) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Joint))
-                    {
+        
+                        if (updateFlags.HasFlag(PrimUpdateFlags.FullUpdate))
+                        {
+                            canUseCompressed = false;
+                            canUseImproved = false;
+                        }
+                        else
+                        {
+                            if (updateFlags.HasFlag(PrimUpdateFlags.Velocity) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.Acceleration) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.CollisionPlane) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.Joint))
+                            {
+                                canUseCompressed = false;
+                            }
+        
+                            if (updateFlags.HasFlag(PrimUpdateFlags.PrimFlags) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.ParentID) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.Scale) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.PrimData) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.Text) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.NameValue) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.ExtraData) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.TextureAnim) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.Sound) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.Particles) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.Material) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.ClickAction) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.MediaURL) ||
+                                updateFlags.HasFlag(PrimUpdateFlags.Joint))
+                            {
+                                canUseImproved = false;
+                            }
+                        }
+        
+                        #endregion UpdateFlags to packet type conversion
+        
+                        #region Block Construction
+        
+                        // TODO: Remove this once we can build compressed updates
                         canUseCompressed = false;
+        
+                        if (!canUseImproved && !canUseCompressed)
+                        {
+                            if (update.Entity is ScenePresence)
+                            {
+                                objectUpdateBlocks.Value.Add(CreateAvatarUpdateBlock((ScenePresence)update.Entity));
+                            }
+                            else
+                            {
+        //                            if (update.Entity is SceneObjectPart && ((SceneObjectPart)update.Entity).IsAttachment)
+        //                            {
+        //                                SceneObjectPart sop = (SceneObjectPart)update.Entity;
+        //                                string text = sop.Text;
+        //                                if (text.IndexOf("\n") >= 0)
+        //                                    text = text.Remove(text.IndexOf("\n"));
+        //
+        //                                if (m_attachmentsSent.Contains(sop.ParentID))
+        //                                {
+        ////                                    m_log.DebugFormat(
+        ////                                        "[CLIENT]: Sending full info about attached prim {0} text {1}",
+        ////                                        sop.LocalId, text);
+        //
+        //                                    objectUpdateBlocks.Value.Add(CreatePrimUpdateBlock(sop, this.m_agentId));
+        //
+        //                                    m_attachmentsSent.Add(sop.LocalId);
+        //                                }
+        //                                else
+        //                                {
+        //                                    m_log.DebugFormat(
+        //                                        "[CLIENT]: Requeueing full update of prim {0} text {1} since we haven't sent its parent {2} yet",
+        //                                        sop.LocalId, text, sop.ParentID);
+        //
+        //                                    m_entityUpdates.Enqueue(double.MaxValue, update, sop.LocalId);
+        //                                }
+        //                            }
+        //                            else
+        //                            {
+                                    objectUpdateBlocks.Value.Add(CreatePrimUpdateBlock((SceneObjectPart)update.Entity, this.m_agentId));
+        //                            }
+                            }
+                        }
+                        else if (!canUseImproved)
+                        {
+                            compressedUpdateBlocks.Value.Add(CreateCompressedUpdateBlock((SceneObjectPart)update.Entity, updateFlags));
+                        }
+                        else
+                        {
+                            if (update.Entity is ScenePresence && ((ScenePresence)update.Entity).UUID == AgentId)
+                                // Self updates go into a special list
+                                terseAgentUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
+                            else
+                                // Everything else goes here
+                                terseUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
+                        }
+        
+                        #endregion Block Construction
                     }
-
-                    if (updateFlags.HasFlag(PrimUpdateFlags.PrimFlags) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.ParentID) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Scale) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.PrimData) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Text) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.NameValue) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.ExtraData) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.TextureAnim) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Sound) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Particles) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Material) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.ClickAction) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.MediaURL) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Joint))
+        
+                    #region Packet Sending
+            
+                    const float TIME_DILATION = 1.0f;
+                    ushort timeDilation = Utils.FloatToUInt16(TIME_DILATION, 0.0f, 1.0f);
+        
+                    if (terseAgentUpdateBlocks.IsValueCreated)
                     {
-                        canUseImproved = false;
+                        List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> blocks = terseAgentUpdateBlocks.Value;
+        
+                        ImprovedTerseObjectUpdatePacket packet = new ImprovedTerseObjectUpdatePacket();
+                        packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
+                        packet.RegionData.TimeDilation = timeDilation;
+                        packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[blocks.Count];
+        
+                        for (int i = 0; i < blocks.Count; i++)
+                            packet.ObjectData[i] = blocks[i];
+        
+                        OutPacket(packet, ThrottleOutPacketType.Unknown, true);
                     }
-                }
-
-                #endregion UpdateFlags to packet type conversion
-
-                #region Block Construction
-
-                // TODO: Remove this once we can build compressed updates
-                canUseCompressed = false;
-
-                if (!canUseImproved && !canUseCompressed)
-                {
-                    if (update.Entity is ScenePresence)
+        
+                    if (objectUpdateBlocks.IsValueCreated)
                     {
-                        objectUpdateBlocks.Value.Add(CreateAvatarUpdateBlock((ScenePresence)update.Entity));
+                        List<ObjectUpdatePacket.ObjectDataBlock> blocks = objectUpdateBlocks.Value;
+            
+                        ObjectUpdatePacket packet = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
+                        packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
+                        packet.RegionData.TimeDilation = timeDilation;
+                        packet.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[blocks.Count];
+            
+                        for (int i = 0; i < blocks.Count; i++)
+                            packet.ObjectData[i] = blocks[i];
+            
+                        OutPacket(packet, ThrottleOutPacketType.Task, true);
                     }
-                    else
+            
+                    if (compressedUpdateBlocks.IsValueCreated)
                     {
-//                            if (update.Entity is SceneObjectPart && ((SceneObjectPart)update.Entity).IsAttachment)
-//                            {
-//                                SceneObjectPart sop = (SceneObjectPart)update.Entity;
-//                                string text = sop.Text;
-//                                if (text.IndexOf("\n") >= 0)
-//                                    text = text.Remove(text.IndexOf("\n"));
-//
-//                                if (m_attachmentsSent.Contains(sop.ParentID))
-//                                {
-////                                    m_log.DebugFormat(
-////                                        "[CLIENT]: Sending full info about attached prim {0} text {1}",
-////                                        sop.LocalId, text);
-//
-//                                    objectUpdateBlocks.Value.Add(CreatePrimUpdateBlock(sop, this.m_agentId));
-//
-//                                    m_attachmentsSent.Add(sop.LocalId);
-//                                }
-//                                else
-//                                {
-//                                    m_log.DebugFormat(
-//                                        "[CLIENT]: Requeueing full update of prim {0} text {1} since we haven't sent its parent {2} yet",
-//                                        sop.LocalId, text, sop.ParentID);
-//
-//                                    m_entityUpdates.Enqueue(double.MaxValue, update, sop.LocalId);
-//                                }
-//                            }
-//                            else
-//                            {
-                            objectUpdateBlocks.Value.Add(CreatePrimUpdateBlock((SceneObjectPart)update.Entity, this.m_agentId));
-//                            }
+                        List<ObjectUpdateCompressedPacket.ObjectDataBlock> blocks = compressedUpdateBlocks.Value;
+            
+                        ObjectUpdateCompressedPacket packet = (ObjectUpdateCompressedPacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdateCompressed);
+                        packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
+                        packet.RegionData.TimeDilation = timeDilation;
+                        packet.ObjectData = new ObjectUpdateCompressedPacket.ObjectDataBlock[blocks.Count];
+            
+                        for (int i = 0; i < blocks.Count; i++)
+                            packet.ObjectData[i] = blocks[i];
+            
+                        OutPacket(packet, ThrottleOutPacketType.Task, true);
+                    }
+            
+                    if (terseUpdateBlocks.IsValueCreated)
+                    {
+                        List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> blocks = terseUpdateBlocks.Value;
+            
+                        ImprovedTerseObjectUpdatePacket packet = new ImprovedTerseObjectUpdatePacket();
+                        packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
+                        packet.RegionData.TimeDilation = timeDilation;
+                        packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[blocks.Count];
+            
+                        for (int i = 0; i < blocks.Count; i++)
+                            packet.ObjectData[i] = blocks[i];
+            
+                        OutPacket(packet, ThrottleOutPacketType.Task, true);
                     }
                 }
-                else if (!canUseImproved)
-                {
-                    compressedUpdateBlocks.Value.Add(CreateCompressedUpdateBlock((SceneObjectPart)update.Entity, updateFlags));
-                }
-                else
-                {
-                    if (update.Entity is ScenePresence && ((ScenePresence)update.Entity).UUID == AgentId)
-                        // Self updates go into a special list
-                        terseAgentUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
-                    else
-                        // Everything else goes here
-                        terseUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
-                }
-
-                #endregion Block Construction
-            }
-
-            #region Packet Sending
-    
-            const float TIME_DILATION = 1.0f;
-            ushort timeDilation = Utils.FloatToUInt16(TIME_DILATION, 0.0f, 1.0f);
-
-            if (terseAgentUpdateBlocks.IsValueCreated)
-            {
-                List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> blocks = terseAgentUpdateBlocks.Value;
-
-                ImprovedTerseObjectUpdatePacket packet = new ImprovedTerseObjectUpdatePacket();
-                packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-                packet.RegionData.TimeDilation = timeDilation;
-                packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[blocks.Count];
-
-                for (int i = 0; i < blocks.Count; i++)
-                    packet.ObjectData[i] = blocks[i];
-
-                OutPacket(packet, ThrottleOutPacketType.Unknown, true);
-            }
-
-            if (objectUpdateBlocks.IsValueCreated)
-            {
-                List<ObjectUpdatePacket.ObjectDataBlock> blocks = objectUpdateBlocks.Value;
-    
-                ObjectUpdatePacket packet = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
-                packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-                packet.RegionData.TimeDilation = timeDilation;
-                packet.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[blocks.Count];
-    
-                for (int i = 0; i < blocks.Count; i++)
-                    packet.ObjectData[i] = blocks[i];
-    
-                OutPacket(packet, ThrottleOutPacketType.Task, true);
-            }
-    
-            if (compressedUpdateBlocks.IsValueCreated)
-            {
-                List<ObjectUpdateCompressedPacket.ObjectDataBlock> blocks = compressedUpdateBlocks.Value;
-    
-                ObjectUpdateCompressedPacket packet = (ObjectUpdateCompressedPacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdateCompressed);
-                packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-                packet.RegionData.TimeDilation = timeDilation;
-                packet.ObjectData = new ObjectUpdateCompressedPacket.ObjectDataBlock[blocks.Count];
-    
-                for (int i = 0; i < blocks.Count; i++)
-                    packet.ObjectData[i] = blocks[i];
-    
-                OutPacket(packet, ThrottleOutPacketType.Task, true);
-            }
-    
-            if (terseUpdateBlocks.IsValueCreated)
-            {
-                List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> blocks = terseUpdateBlocks.Value;
-    
-                ImprovedTerseObjectUpdatePacket packet = new ImprovedTerseObjectUpdatePacket();
-                packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
-                packet.RegionData.TimeDilation = timeDilation;
-                packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[blocks.Count];
-    
-                for (int i = 0; i < blocks.Count; i++)
-                    packet.ObjectData[i] = blocks[i];
-    
-                OutPacket(packet, ThrottleOutPacketType.Task, true);
             }
 
             #endregion Packet Sending

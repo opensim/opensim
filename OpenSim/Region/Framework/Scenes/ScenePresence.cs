@@ -2635,6 +2635,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Overridden Methods
 
+        private bool sendingPrims = false;
+
         public override void Update()
         {
             const float ROTATION_TOLERANCE = 0.01f;
@@ -2642,7 +2644,8 @@ namespace OpenSim.Region.Framework.Scenes
             const float POSITION_TOLERANCE = 0.05f;
             //const int TIME_MS_TOLERANCE = 3000;
 
-            
+            if (!sendingPrims)
+                Util.FireAndForget(delegate { sendingPrims = true; SendPrimUpdates(); sendingPrims = false; });
 
             if (m_isChildAgent == false)
             {
@@ -2670,6 +2673,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // followed suggestion from mic bowman. reversed the two lines below.
                 if (m_parentID == 0 && m_physicsActor != null || m_parentID != 0) // Check that we have a physics actor or we're sitting on something
                     CheckForBorderCrossing();
+
                 CheckForSignificantMovement(); // sends update to the modules.
             }
             

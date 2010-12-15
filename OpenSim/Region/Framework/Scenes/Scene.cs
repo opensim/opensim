@@ -152,7 +152,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_update_backup = 200;
         private int m_update_terrain = 50;
         private int m_update_land = 1;
-        private int m_update_coarse_locations = 50;
+        private int m_update_coarse_locations = 80;
 
         private int frameMS;
         private int physicsMS2;
@@ -181,6 +181,8 @@ namespace OpenSim.Region.Framework.Scenes
         private object m_deleting_scene_object = new object();
         private object m_cleaningAttachments = new object();
 
+        private bool m_cleaningTemps = false;
+        
         private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
         private bool m_reprioritizationEnabled = true;
         private double m_reprioritizationInterval = 5000.0;
@@ -1296,10 +1298,11 @@ namespace OpenSim.Region.Framework.Scenes
                     physicsMS = Util.EnvironmentTickCountSubtract(tmpPhysicsMS);
 
                     // Delete temp-on-rez stuff
-                    if (m_frame % m_update_backup == 0)
+                    if (m_frame % 1000 == 0 && !m_cleaningTemps)
                     {
                         int tmpTempOnRezMS = Util.EnvironmentTickCount();
-                        CleanTempObjects();
+                        m_cleaningTemps = true;
+                        Util.FireAndForget(delegate { CleanTempObjects(); m_cleaningTemps = false;  });
                         tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpTempOnRezMS);
                     }
 
@@ -1326,12 +1329,12 @@ namespace OpenSim.Region.Framework.Scenes
                             terrainMS = Util.EnvironmentTickCountSubtract(terMS);
                         }
 
-                        if (m_frame % m_update_land == 0)
-                        {
-                            int ldMS = Util.EnvironmentTickCount();
-                            UpdateLand();
-                            landMS = Util.EnvironmentTickCountSubtract(ldMS);
-                        }
+                        //if (m_frame % m_update_land == 0)
+                        //{
+                        //    int ldMS = Util.EnvironmentTickCount();
+                        //    UpdateLand();
+                        //    landMS = Util.EnvironmentTickCountSubtract(ldMS);
+                        //}
 
                         frameMS = Util.EnvironmentTickCountSubtract(tmpFrameMS);
                         otherMS = tempOnRezMS + eventMS + backupMS + terrainMS + landMS;
@@ -1424,13 +1427,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void CheckAtTargets()
         {
+            Dictionary<UUID, SceneObjectGroup>.ValueCollection objs;
             lock (m_groupsWithTargets)
-            {
-                foreach (SceneObjectGroup entry in m_groupsWithTargets.Values)
-                {
-                    entry.checkAtTargets();
-                }
-            }
+                objs = m_groupsWithTargets.Values;
+
+            foreach (SceneObjectGroup entry in objs)
+                entry.checkAtTargets();
         }
 
 
@@ -4539,6 +4541,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
+
         }
 
         public void DeleteFromStorage(UUID uuid)
