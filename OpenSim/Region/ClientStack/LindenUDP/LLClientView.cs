@@ -3553,6 +3553,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>> objectUpdateBlocks = new OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>>();
             OpenSim.Framework.Lazy<List<ObjectUpdateCompressedPacket.ObjectDataBlock>> compressedUpdateBlocks = new OpenSim.Framework.Lazy<List<ObjectUpdateCompressedPacket.ObjectDataBlock>>();
             OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>> terseUpdateBlocks = new OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>>();
+            OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>> terseAgentUpdateBlocks = new OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>>();
 
             if (maxUpdates <= 0) maxUpdates = Int32.MaxValue;
             int updatesThisCall = 0;
@@ -3698,7 +3699,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                 {
-                    terseUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
+                    if (update.Entity is ScenePresence && ((ScenePresence)update.Entity).UUID == AgentId)
+                        // Self updates go into a special list
+                        terseAgentUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
+                    else
+                        // Everything else goes here
+                        terseUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
                 }
 
                 #endregion Block Construction
@@ -3708,7 +3714,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
             const float TIME_DILATION = 1.0f;
             ushort timeDilation = Utils.FloatToUInt16(TIME_DILATION, 0.0f, 1.0f);
-    
+
+            if (terseAgentUpdateBlocks.IsValueCreated)
+            {
+                List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> blocks = terseAgentUpdateBlocks.Value;
+
+                ImprovedTerseObjectUpdatePacket packet = new ImprovedTerseObjectUpdatePacket();
+                packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
+                packet.RegionData.TimeDilation = timeDilation;
+                packet.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[blocks.Count];
+
+                for (int i = 0; i < blocks.Count; i++)
+                    packet.ObjectData[i] = blocks[i];
+
+                OutPacket(packet, ThrottleOutPacketType.Unknown, true);
+            }
+
             if (objectUpdateBlocks.IsValueCreated)
             {
                 List<ObjectUpdatePacket.ObjectDataBlock> blocks = objectUpdateBlocks.Value;
