@@ -1608,6 +1608,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 Scale,
                                 RotationOffset,
                                 RigidBody);
+                        PhysActor.SetMaterial(Material);
                     }
                     catch
                     {
@@ -4432,6 +4433,7 @@ namespace OpenSim.Region.Framework.Scenes
                         Scale,
                         RotationOffset,
                         UsePhysics);
+                    PhysActor.SetMaterial(Material);
 
                     pa = PhysActor;
                     if (pa != null)
