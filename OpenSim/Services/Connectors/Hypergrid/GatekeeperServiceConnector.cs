@@ -147,7 +147,10 @@ namespace OpenSim.Services.Connectors.Hypergrid
         public UUID GetMapImage(UUID regionID, string imageURL, string storagePath)
         {
             if (m_AssetService == null)
+            {
+                m_log.DebugFormat("[GATEKEEPER SERVICE CONNECTOR]: No AssetService defined. Map tile not retrieved.");
                 return m_HGMapImage;
+            }
 
             UUID mapTile = m_HGMapImage;
             string filename = string.Empty;
@@ -167,8 +170,6 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 // !!! for now
                 //info.RegionSettings.TerrainImageID = ass.FullID;
 
-                ass.Temporary = true;
-                ass.Local = true;
                 ass.Data = imageData;
 
                 m_AssetService.Store(ass);

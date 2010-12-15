@@ -93,13 +93,13 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
             
             // try to fetch from GridServer
-            List<GridRegion> regionInfos = m_scene.GridService.GetRegionsByName(UUID.Zero, mapName, 20);
+            List<GridRegion> regionInfos = m_scene.GridService.GetRegionsByName(m_scene.RegionInfo.ScopeID, mapName, 20);
             if (regionInfos == null)
             {
                 m_log.Warn("[MAPSEARCHMODULE]: RequestNamedRegions returned null. Old gridserver?");
                 // service wasn't available; maybe still an old GridServer. Try the old API, though it will return only one region
                 regionInfos = new List<GridRegion>();
-                GridRegion info = m_scene.GridService.GetRegionByName(UUID.Zero, mapName);
+                GridRegion info = m_scene.GridService.GetRegionByName(m_scene.RegionInfo.ScopeID, mapName);
                 if (info != null) regionInfos.Add(info);
             }
 
