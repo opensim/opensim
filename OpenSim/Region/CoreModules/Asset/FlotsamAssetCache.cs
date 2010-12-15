@@ -271,7 +271,16 @@ namespace Flotsam.RegionModules.AssetCache
                     // If the file is already cached, don't cache it, just touch it so access time is updated
                     if (File.Exists(filename))
                     {
-                        File.SetLastAccessTime(filename, DateTime.Now);
+                        // We don't really want to know about sharing
+                        // violations here. If the file is locked, then
+                        // the other thread has updated the time for us.
+                        try
+                        {
+                            File.SetLastAccessTime(filename, DateTime.Now);
+                        }
+                        catch
+                        {
+                        }
                     } else { 
                         
                         // Once we start writing, make sure we flag that we're writing

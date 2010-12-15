@@ -9816,11 +9816,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
             int[] nPrice = new int[5];
-            nPrice[0]=price;
-            nPrice[1] = (LSL_Integer)Convert.ToInt32(quick_pay_buttons.Data[0]);
-            nPrice[2] = (LSL_Integer)Convert.ToInt32(quick_pay_buttons.Data[1]);
-            nPrice[3] = (LSL_Integer)Convert.ToInt32(quick_pay_buttons.Data[2]);
-            nPrice[4] = (LSL_Integer)Convert.ToInt32(quick_pay_buttons.Data[3]);
+            nPrice[0] = price;
+            nPrice[1] = quick_pay_buttons.GetLSLIntegerItem(0);
+            nPrice[2] = quick_pay_buttons.GetLSLIntegerItem(1);
+            nPrice[3] = quick_pay_buttons.GetLSLIntegerItem(2);
+            nPrice[4] = quick_pay_buttons.GetLSLIntegerItem(3);
             m_host.ParentGroup.RootPart.PayPrice = nPrice;
             m_host.ParentGroup.HasGroupChanged = true;
         }
