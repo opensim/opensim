@@ -215,7 +215,7 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectPart sop = m_parentScene.GetSceneObjectPart(sp.ParentID);
                     if (sop != null)
                     {
-                        coarseLocations.Add(sop.AbsolutePosition + sp.AbsolutePosition);
+                        coarseLocations.Add(sop.AbsolutePosition + sp.OffsetPosition);
                         avatarUUIDs.Add(sp.UUID);
                     }
                     else
@@ -1281,13 +1281,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (group.IsAttachment || (group.RootPart.Shape.PCode == 9 && group.RootPart.Shape.State != 0))
                 {
-                    // Set the new attachment point data in the object
-                    byte attachmentPoint = group.GetAttachmentPoint();
-                    group.UpdateGroupPosition(pos);
-                    group.RootPart.IsAttachment = false;
-                    group.AbsolutePosition = group.RootPart.AttachedPos;
-                    group.SetAttachmentPoint(attachmentPoint);
-                    group.HasGroupChanged = true;
+                    if (m_parentScene.AttachmentsModule != null)
+                        m_parentScene.AttachmentsModule.UpdateAttachmentPosition(group, pos);
                 }
                 else
                 {

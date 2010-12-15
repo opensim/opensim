@@ -233,6 +233,11 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     // Falling long enough to trigger the animation
                     return "FALLDOWN";
                 }
+                else if (m_animTickJump == -1)
+                {
+                    m_animTickJump = 0; 
+                    return "STAND";
+                }
 
                 return m_movementAnimation;
             }
@@ -279,6 +284,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     m_animTickJump = -1;
                     return "JUMP";
                 }
+                else
+                    return "JUMP";
             }
             else
             {
@@ -307,7 +314,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             #endregion Ground Movement
 
-            return m_movementAnimation;
+            //return m_movementAnimation;
         }
 
         /// <summary>
@@ -316,16 +323,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         public void UpdateMovementAnimations()
         {
             m_movementAnimation = GetMovementAnimation();
-
-            if (m_movementAnimation == "PREJUMP" && !m_scenePresence.Scene.m_usePreJump)
-            {
-                // This was the previous behavior before PREJUMP
-                TrySetMovementAnimation("JUMP");
-            }
-            else
-            {
-                TrySetMovementAnimation(m_movementAnimation);
-            }
+            TrySetMovementAnimation(m_movementAnimation);
         }
 
         public UUID[] GetAnimationArray()

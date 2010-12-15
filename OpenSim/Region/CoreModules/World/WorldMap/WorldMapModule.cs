@@ -33,6 +33,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
 using System.Reflection;
+using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using log4net;
 using Nini.Config;
@@ -413,11 +414,13 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
         }
 
+        private int nAsyncRequests = 0;
         /// <summary>
         /// Processing thread main() loop for doing remote mapitem requests
         /// </summary>
         public void process()
         {
+            const int MAX_ASYNC_REQUESTS = 20;
             try
             {
                 while (true)
@@ -437,10 +440,16 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                                 dorequest = false;
                         }
 
-                        if (dorequest)
+                        if (dorequest &&  !m_blacklistedregions.ContainsKey(st.regionhandle))
                         {
-                            OSDMap response = RequestMapItemsAsync("", st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
-                            RequestMapItemsCompleted(response);
+                            while (nAsyncRequests >= MAX_ASYNC_REQUESTS) // hit the break
+                                Thread.Sleep(80);
+
+                            RequestMapItemsDelegate d = RequestMapItemsAsync;
+                            d.BeginInvoke(st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle, RequestMapItemsCompleted, null);
+                            //OSDMap response = RequestMapItemsAsync(st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
+                            //RequestMapItemsCompleted(response);
+                            Interlocked.Increment(ref nAsyncRequests);
                         }
                     }
 
@@ -469,8 +478,18 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// Sends the mapitem response to the IClientAPI
         /// </summary>
         /// <param name="response">The OSDMap Response for the mapitem</param>
-        private void RequestMapItemsCompleted(OSDMap response)
+        private void RequestMapItemsCompleted(IAsyncResult iar)
         {
+            AsyncResult result = (AsyncResult)iar;
+            RequestMapItemsDelegate icon = (RequestMapItemsDelegate)result.AsyncDelegate;
+
+            OSDMap response = (OSDMap)icon.EndInvoke(iar);
+
+            Interlocked.Decrement(ref nAsyncRequests);
+
+            if (!response.ContainsKey("requestID"))
+                return;
+
             UUID requestID = response["requestID"].AsUUID();
 
             if (requestID != UUID.Zero)
@@ -538,6 +557,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             EnqueueMapItemRequest(st);
         }
 
+        private delegate OSDMap RequestMapItemsDelegate(UUID id, uint flags,
+            uint EstateID, bool godlike, uint itemtype, ulong regionhandle);
         /// <summary>
         /// Does the actual remote mapitem request
         /// This should be called from an asynchronous thread
@@ -552,9 +573,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <param name="itemtype">passed in from packet</param>
         /// <param name="regionhandle">Region we're looking up</param>
         /// <returns></returns>
-        private OSDMap RequestMapItemsAsync(string httpserver, UUID id, uint flags,
+        private OSDMap RequestMapItemsAsync(UUID id, uint flags,
             uint EstateID, bool godlike, uint itemtype, ulong regionhandle)
         {
+            string httpserver = "";
             bool blacklisted = false;
             lock (m_blacklistedregions)
             {
@@ -593,7 +615,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         if (!m_blacklistedregions.ContainsKey(regionhandle))
                             m_blacklistedregions.Add(regionhandle, Environment.TickCount);
                     }
-                    m_log.InfoFormat("[WORLD MAP]: Blacklisted region {0}", regionhandle.ToString());
+                    //m_log.InfoFormat("[WORLD MAP]: Blacklisted region {0}", regionhandle.ToString());
                 }
             }
 
@@ -638,7 +660,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 os = mapitemsrequest.GetRequestStream();
                 os.Write(buffer, 0, buffer.Length);         //Send it
                 os.Close();
-                //m_log.DebugFormat("[WORLD MAP]: Getting MapItems from Sim {0}", httpserver);
+                //m_log.DebugFormat("[WORLD MAP]: Getting MapItems from {0}", httpserver);
             }
             catch (WebException ex)
             {
@@ -654,15 +676,22 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                 return responseMap;
             }
+            catch
+            {
+                m_log.DebugFormat("[WORLD MAP]: RequestMapItems failed for {0}", httpserver);
+                responseMap["connect"] = OSD.FromBoolean(false);
+                return responseMap;
+            }
 
             string response_mapItems_reply = null;
             { // get the response
+                StreamReader sr = null;
                 try
                 {
                     WebResponse webResponse = mapitemsrequest.GetResponse();
                     if (webResponse != null)
                     {
-                        StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                        sr = new StreamReader(webResponse.GetResponseStream());
                         response_mapItems_reply = sr.ReadToEnd().Trim();
                     }
                     else
@@ -683,6 +712,24 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
                     return responseMap;
                 }
+                catch
+                {
+                    m_log.DebugFormat("[WORLD MAP]: RequestMapItems failed for {0}", httpserver);
+                    responseMap["connect"] = OSD.FromBoolean(false);
+                    lock (m_blacklistedregions)
+                    {
+                        if (!m_blacklistedregions.ContainsKey(regionhandle))
+                            m_blacklistedregions.Add(regionhandle, Environment.TickCount);
+                    }
+
+                    return responseMap;
+                }
+                finally
+                {
+                    if (sr != null)
+                        sr.Close();
+                }
+
                 OSD rezResponse = null;
                 try
                 {
@@ -691,14 +738,29 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     responseMap = (OSDMap)rezResponse;
                     responseMap["requestID"] = OSD.FromUUID(requestID);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    //m_log.InfoFormat("[OGP]: exception on parse of rez reply {0}", ex.Message);
+                    m_log.InfoFormat("[WORLD MAP]: exception on parse of RequestMapItems reply from {0}: {1}", httpserver, ex.Message);
                     responseMap["connect"] = OSD.FromBoolean(false);
+                    lock (m_blacklistedregions)
+                    {
+                        if (!m_blacklistedregions.ContainsKey(regionhandle))
+                            m_blacklistedregions.Add(regionhandle, Environment.TickCount);
+                    }
 
                     return responseMap;
                 }
             }
+
+            if (!responseMap.ContainsKey(itemtype.ToString())) // remote sim doesnt have the stated region handle
+            {
+                if (!m_blacklistedregions.ContainsKey(regionhandle))
+                {
+                    m_log.DebugFormat("[WORLD MAP]: Remote sim does not have the stated region. Blacklisting.");
+                    m_blacklistedregions.Add(regionhandle, Environment.TickCount);
+                }
+            }
+
             return responseMap;
         }
 

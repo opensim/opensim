@@ -1299,7 +1299,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         #region Agent Arrived
         public void AgentArrivedAtDestination(UUID id)
         {
-            //m_log.Debug(" >>> ReleaseAgent called <<< ");
+            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Agent {0} released", id);
             ResetFromTransit(id);
         }
 

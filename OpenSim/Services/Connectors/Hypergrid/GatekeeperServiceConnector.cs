@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Net;
 using System.Reflection;
 using OpenSim.Framework;
@@ -48,7 +49,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-//        private static UUID m_HGMapImage = new UUID("00000000-0000-1111-9999-000000000013");
+        private static UUID m_HGMapImage = new UUID("00000000-0000-1111-9999-000000000013");
 
         private IAssetService m_AssetService;
 
@@ -143,43 +144,44 @@ namespace OpenSim.Services.Connectors.Hypergrid
             return true;
         }
 
-        UUID m_MissingTexture = new UUID("5748decc-f629-461c-9a36-a35a221fe21f");
-
-        public UUID GetMapImage(UUID regionID, string imageURL)
+        public UUID GetMapImage(UUID regionID, string imageURL, string storagePath)
         {
             if (m_AssetService == null)
-                return m_MissingTexture;
+            {
+                m_log.DebugFormat("[GATEKEEPER SERVICE CONNECTOR]: No AssetService defined. Map tile not retrieved.");
+                return m_HGMapImage;
+            }
 
+            UUID mapTile = m_HGMapImage;
+            string filename = string.Empty;
+            Bitmap bitmap = null;
             try
             {
-
                 WebClient c = new WebClient();
                 //m_log.Debug("JPEG: " + imageURL);
-                string filename = regionID.ToString();
-                c.DownloadFile(imageURL, filename + ".jpg");
-                Bitmap m = new Bitmap(filename + ".jpg");
+                string name = regionID.ToString();
+                filename = Path.Combine(storagePath, name + ".jpg");
+                c.DownloadFile(imageURL, filename);
+                bitmap = new Bitmap(filename);
                 //m_log.Debug("Size: " + m.PhysicalDimension.Height + "-" + m.PhysicalDimension.Width);
-                byte[] imageData = OpenJPEG.EncodeFromImage(m, true);
-                AssetBase ass = new AssetBase(UUID.Random(), "region " + filename, (sbyte)AssetType.Texture, regionID.ToString());
+                byte[] imageData = OpenJPEG.EncodeFromImage(bitmap, true);
+                AssetBase ass = new AssetBase(UUID.Random(), "region " + name, (sbyte)AssetType.Texture, regionID.ToString());
 
                 // !!! for now
                 //info.RegionSettings.TerrainImageID = ass.FullID;
 
-                ass.Temporary = true;
-                ass.Local = true;
                 ass.Data = imageData;
 
                 m_AssetService.Store(ass);
 
                 // finally
-                return ass.FullID;
-
+                mapTile = ass.FullID;
             }
             catch // LEGIT: Catching problems caused by OpenJPEG p/invoke
             {
-                m_log.Warn("[GATEKEEPER SERVICE CONNECTOR]: Failed getting/storing map image, because it is probably already in the cache");
+                m_log.Info("[GATEKEEPER SERVICE CONNECTOR]: Failed getting/storing map image, because it is probably already in the cache");
             }
-            return UUID.Zero;
+            return mapTile;
         }
 
         public GridRegion GetHyperlinkRegion(GridRegion gatekeeper, UUID regionID)

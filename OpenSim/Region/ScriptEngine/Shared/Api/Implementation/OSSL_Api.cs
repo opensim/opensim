@@ -336,6 +336,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        internal void OSSLDeprecated(string function, string replacement)
+        {
+            OSSLShoutError(string.Format("Use of function {0} is deprecated. Use {1} instead.", function, replacement));
+        }
+
         protected void ScriptSleep(int delay)
         {
             delay = (int)((float)delay * m_ScriptDelayFactor);
@@ -347,13 +352,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //
         // OpenSim functions
         //
+        public LSL_Integer osSetTerrainHeight(int x, int y, double val)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osSetTerrainHeight");
+            return SetTerrainHeight(x, y, val);
+        }
         public LSL_Integer osTerrainSetHeight(int x, int y, double val)
         {
             CheckThreatLevel(ThreatLevel.High, "osTerrainSetHeight");
-
+            OSSLDeprecated("osTerrainSetHeight", "osSetTerrainHeight");
+            return SetTerrainHeight(x, y, val);
+        }
+        private LSL_Integer SetTerrainHeight(int x, int y, double val)
+        {
             m_host.AddScriptLPS(1);
             if (x > ((int)Constants.RegionSize - 1) || x < 0 || y > ((int)Constants.RegionSize - 1) || y < 0)
-                OSSLError("osTerrainSetHeight: Coordinate out of bounds");
+                OSSLError("osSetTerrainHeight: Coordinate out of bounds");
 
             if (World.Permissions.CanTerraformLand(m_host.OwnerID, new Vector3(x, y, 0)))
             {
@@ -366,13 +380,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public LSL_Float osGetTerrainHeight(int x, int y)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osGetTerrainHeight");
+            return GetTerrainHeight(x, y);
+        }
         public LSL_Float osTerrainGetHeight(int x, int y)
         {
             CheckThreatLevel(ThreatLevel.None, "osTerrainGetHeight");
-
+            OSSLDeprecated("osTerrainGetHeight", "osGetTerrainHeight");
+            return GetTerrainHeight(x, y);
+        }
+        private LSL_Float GetTerrainHeight(int x, int y)
+        {
             m_host.AddScriptLPS(1);
             if (x > ((int)Constants.RegionSize - 1) || x < 0 || y > ((int)Constants.RegionSize - 1) || y < 0)
-                OSSLError("osTerrainGetHeight: Coordinate out of bounds");
+                OSSLError("osGetTerrainHeight: Coordinate out of bounds");
 
             return World.Heightmap[x, y];
         }
@@ -1001,9 +1024,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return drawList;
         }
 
+        public string osSetPenColor(string drawList, string color)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osSetPenColor");
+            
+            m_host.AddScriptLPS(1);
+            drawList += "PenColor " + color + "; ";
+            return drawList;
+        }
+        // Deprecated
         public string osSetPenColour(string drawList, string colour)
         {
             CheckThreatLevel(ThreatLevel.None, "osSetPenColour");
+            OSSLDeprecated("osSetPenColour", "osSetPenColor");
 
             m_host.AddScriptLPS(1);
             drawList += "PenColour " + colour + "; ";
@@ -1012,7 +1045,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osSetPenCap(string drawList, string direction, string type)
         {
-            CheckThreatLevel(ThreatLevel.None, "osSetPenColour");
+            CheckThreatLevel(ThreatLevel.None, "osSetPenCap");
 
             m_host.AddScriptLPS(1);
             drawList += "PenCap " + direction + "," + type + "; ";
@@ -1157,6 +1190,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public double osSunGetParam(string param)
         {
             CheckThreatLevel(ThreatLevel.None, "osSunGetParam");
+            OSSLDeprecated("osSunGetParam", "osGetSunParam");
+            return GetSunParam(param);
+        }
+        public double osGetSunParam(string param)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osGetSunParam");
+            return GetSunParam(param);
+        }
+        private double GetSunParam(string param)
+        {
             m_host.AddScriptLPS(1);
 
             double value = 0.0;
@@ -1173,6 +1216,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osSunSetParam(string param, double value)
         {
             CheckThreatLevel(ThreatLevel.None, "osSunSetParam");
+            OSSLDeprecated("osSunSetParam", "osSetSunParam");
+            SetSunParam(param, value);
+        }
+        public void osSetSunParam(string param, double value)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osSetSunParam");
+            SetSunParam(param, value);
+        }
+        private void SetSunParam(string param, double value)
+        {
             m_host.AddScriptLPS(1);
 
             ISunModule module = World.RequestModuleInterface<ISunModule>();
@@ -1198,9 +1251,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return String.Empty;
         }
 
-        public void osWindParamSet(string plugin, string param, float value)
+        public void osSetWindParam(string plugin, string param, float value)
         {
-            CheckThreatLevel(ThreatLevel.VeryLow, "osWindParamSet");
+            CheckThreatLevel(ThreatLevel.VeryLow, "osSetWindParam");
             m_host.AddScriptLPS(1);
 
             IWindModule module = World.RequestModuleInterface<IWindModule>();
@@ -1214,9 +1267,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public float osWindParamGet(string plugin, string param)
+        public float osGetWindParam(string plugin, string param)
         {
-            CheckThreatLevel(ThreatLevel.VeryLow, "osWindParamGet");
+            CheckThreatLevel(ThreatLevel.VeryLow, "osGetWindParam");
             m_host.AddScriptLPS(1);
 
             IWindModule module = World.RequestModuleInterface<IWindModule>();
@@ -1257,7 +1310,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osParcelSetDetails(LSL_Vector pos, LSL_List rules)
         {
-            CheckThreatLevel(ThreatLevel.High, "osParcelSetDetails");
+            const string functionName = "osParcelSetDetails";
+            CheckThreatLevel(ThreatLevel.High, functionName);
+            OSSLDeprecated(functionName, "osSetParcelDetails");
+            SetParcelDetails(pos, rules, functionName);
+        }
+        public void osSetParcelDetails(LSL_Vector pos, LSL_List rules)
+        {
+            const string functionName = "osSetParcelDetails";
+            CheckThreatLevel(ThreatLevel.High, functionName);
+            SetParcelDetails(pos, rules, functionName);
+        }
+        private void SetParcelDetails(LSL_Vector pos, LSL_List rules, string functionName)
+        {
             m_host.AddScriptLPS(1);
 
             // Get a reference to the land data and make sure the owner of the script
@@ -1270,7 +1335,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            if (! World.Permissions.CanEditParcel(m_host.OwnerID, startLandObject))
+            if (!World.Permissions.CanEditParcelProperties(m_host.OwnerID, startLandObject, GroupPowers.LandOptions))
             {
                 OSSLShoutError("You do not have permission to modify the parcel");
                 return;
@@ -1296,13 +1361,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                       break;
 
                     case 2:
-                      CheckThreatLevel(ThreatLevel.VeryHigh, "osParcelSetDetails");
+                      CheckThreatLevel(ThreatLevel.VeryHigh, functionName);
                       if (UUID.TryParse(arg , out uuid))
                           newLand.OwnerID = uuid;
                       break;
 
                     case 3:
-                      CheckThreatLevel(ThreatLevel.VeryHigh, "osParcelSetDetails");
+                      CheckThreatLevel(ThreatLevel.VeryHigh, functionName);
                       if (UUID.TryParse(arg , out uuid))
                           newLand.GroupID = uuid;
                       break;

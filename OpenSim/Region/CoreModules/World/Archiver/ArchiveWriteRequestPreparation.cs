@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// The maximum major version of OAR that we can write.
         /// </summary>
-        public static int MAX_MAJOR_VERSION = 1;        
+        public static int MAX_MAJOR_VERSION = 0;        
         
         protected Scene m_scene;
         protected Stream m_saveStream;
@@ -206,37 +206,37 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <returns></returns>
         public static string CreateControlFile(Dictionary<string, object> options)
         {
-            int majorVersion = MAX_MAJOR_VERSION, minorVersion = 0;
-
-            if (options.ContainsKey("version"))
-            {
-                string[] parts = options["version"].ToString().Split('.');
-                if (parts.Length >= 1)
-                {
-                    majorVersion = Int32.Parse(parts[0]);                    
-                                        
-                    if (parts.Length >= 2)
-                        minorVersion = Int32.Parse(parts[1]);
-                }
-            }
-            
-            if (majorVersion < MIN_MAJOR_VERSION || majorVersion > MAX_MAJOR_VERSION)
-            {
-                throw new Exception(
-                    string.Format(
-                        "OAR version number for save must be between {0} and {1}", 
-                        MIN_MAJOR_VERSION, MAX_MAJOR_VERSION));
-            }
-            else if (majorVersion == MAX_MAJOR_VERSION)
-            {
-                // Force 1.0
-                minorVersion = 0;
-            }
-            else if (majorVersion == MIN_MAJOR_VERSION)
-            {
-                // Force 0.4
-                minorVersion = 4;                                        
-            }
+            int majorVersion = MAX_MAJOR_VERSION, minorVersion = 5;
+//
+//            if (options.ContainsKey("version"))
+//            {
+//                string[] parts = options["version"].ToString().Split('.');
+//                if (parts.Length >= 1)
+//                {
+//                    majorVersion = Int32.Parse(parts[0]);                    
+//                                        
+//                    if (parts.Length >= 2)
+//                        minorVersion = Int32.Parse(parts[1]);
+//                }
+//            }
+//            
+//            if (majorVersion < MIN_MAJOR_VERSION || majorVersion > MAX_MAJOR_VERSION)
+//            {
+//                throw new Exception(
+//                    string.Format(
+//                        "OAR version number for save must be between {0} and {1}", 
+//                        MIN_MAJOR_VERSION, MAX_MAJOR_VERSION));
+//            }
+//            else if (majorVersion == MAX_MAJOR_VERSION)
+//            {
+//                // Force 1.0
+//                minorVersion = 0;
+//            }
+//            else if (majorVersion == MIN_MAJOR_VERSION)
+//            {
+//                // Force 0.4
+//                minorVersion = 4;                                        
+//            }
             
             m_log.InfoFormat("[ARCHIVER]: Creating version {0}.{1} OAR", majorVersion, minorVersion);
             //if (majorVersion == 1)

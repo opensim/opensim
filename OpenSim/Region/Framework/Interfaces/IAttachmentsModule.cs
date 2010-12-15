@@ -113,13 +113,16 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Update the user inventory to show a detach.
         /// </summary>
-        /// <param name="itemID">
-        /// A <see cref="UUID"/>
-        /// </param>
-        /// <param name="remoteClient">
-        /// A <see cref="IClientAPI"/>
-        /// </param>
+        /// <param name="itemID">/param>
+        /// <param name="remoteClient"></param>
         void ShowDetachInUserInventory(UUID itemID, IClientAPI remoteClient);
+        
+        /// <summary>
+        /// Update the position of an attachment.
+        /// </summary>
+        /// <param name="sog"></param>
+        /// <param name="pos"></param>
+        void UpdateAttachmentPosition(SceneObjectGroup sog, Vector3 pos);
         
         /// <summary>
         /// Update the user inventory with a changed attachment

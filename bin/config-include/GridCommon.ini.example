@@ -42,6 +42,9 @@
     GridServerURI = "http://mygridserver.com:8003"
     ;AllowHypergridMapSearch = true
 
+    ;; Directory for map tile images of linked regions
+    ; MapTileDirectory = "./"
+
 [AvatarService]
     ;
     ; change this to your grid-wide grid server
@@ -84,7 +87,7 @@
     ; Change this to your profile server 
     ; accessible from other grids
     ;
-    ProfileServerURI = "http://mygridserver.com:8002/profiles"
+    ProfileServerURI = "http://mygridserver.com:8002/user"
 
 [Modules]
     ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.

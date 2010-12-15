@@ -101,7 +101,7 @@ namespace OpenSim.Services.HypergridService
                     serverConfig = config.Configs["GatekeeperService"];
                     m_GridName = serverConfig.GetString("ExternalName", string.Empty);
                 }
-                else if (!m_GridName.EndsWith("/"))
+                if (!m_GridName.EndsWith("/"))
                     m_GridName = m_GridName + "/";
             }
         }

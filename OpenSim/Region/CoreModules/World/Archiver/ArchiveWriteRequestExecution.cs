@@ -136,14 +136,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             ms.Close();
 
             m_log.InfoFormat("[ARCHIVER]: Added terrain information to archive.");
-
            
             // Write out scene object metadata
             foreach (SceneObjectGroup sceneObject in m_sceneObjects)
             {
                 //m_log.DebugFormat("[ARCHIVER]: Saving {0} {1}, {2}", entity.Name, entity.UUID, entity.GetType());
 
-                string serializedObject = m_serialiser.SerializeGroupToXml2(sceneObject, m_options);
+                string serializedObject = m_serialiser.SerializeGroupToXml2(sceneObject, m_options);                
                 m_archiveWriter.WriteFile(ArchiveHelpers.CreateObjectPath(sceneObject), serializedObject);
             }
 
