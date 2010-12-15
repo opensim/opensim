@@ -315,7 +315,7 @@
   </exec>
 
  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.optionalmodules.tests">
-    <arg value="./bin/OpenSim.Region.Optional.Tests.dll" />
+    <arg value="./bin/OpenSim.Region.OptionalModules.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Region.OptionalModules.Tests.dll-Results.xml" />
   </exec>
 

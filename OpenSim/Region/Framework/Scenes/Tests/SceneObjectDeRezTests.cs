@@ -43,13 +43,14 @@ using OpenSim.Tests.Common.Setup;
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
     /// <summary>
-    /// Tests manipulation of scene objects by users.
+    /// Tests derez of scene objects by users.
     /// </summary>
-    /// 
+    /// <remarks>
     /// This is at a level above the SceneObjectBasicTests, which act on the scene directly.
-    /// FIXME: These tests are very incomplete - they only test for a few conditions.
+    /// TODO: These tests are very incomplete - they only test for a few conditions.
+    /// </remarks>
     [TestFixture]
-    public class SceneObjectUserTests
+    public class SceneObjectDeRezTests
     {
         /// <summary>
         /// Test deleting an object from a scene.
@@ -122,6 +123,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             scene.DeRezObjects(client, localIds, UUID.Zero, DeRezAction.Delete, UUID.Zero);
             sogd.InventoryDeQueueAndDelete();
             
+            // Object should still be in the scene.
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
             Assert.That(retrievedPart.UUID, Is.EqualTo(part.UUID));
         }        
