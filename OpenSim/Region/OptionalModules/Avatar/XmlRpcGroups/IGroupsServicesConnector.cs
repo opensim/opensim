@@ -27,14 +27,12 @@
 
 using System;
 using System.Collections.Generic;
-
 using OpenMetaverse;
-
 using OpenSim.Framework;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
-    interface IGroupsServicesConnector
+    public interface IGroupsServicesConnector
     {
         UUID CreateGroup(UUID RequestingAgentID, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish, UUID founderID);
         void UpdateGroup(UUID RequestingAgentID, UUID groupID, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish);
