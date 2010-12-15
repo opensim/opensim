@@ -176,6 +176,8 @@ namespace OpenSim.Region.Framework.Scenes
         private object m_deleting_scene_object = new object();
         private object m_cleaningAttachments = new object();
 
+        private bool m_cleaningTemps = false;
+        
         private UpdatePrioritizationSchemes m_priorityScheme = UpdatePrioritizationSchemes.Time;
         private bool m_reprioritizationEnabled = true;
         private double m_reprioritizationInterval = 5000.0;
@@ -1272,10 +1274,11 @@ namespace OpenSim.Region.Framework.Scenes
                     physicsMS = Util.EnvironmentTickCountSubtract(tmpPhysicsMS);
 
                     // Delete temp-on-rez stuff
-                    if (m_frame % m_update_backup == 0)
+                    if (m_frame % m_update_backup == 0 && !m_cleaningTemps)
                     {
                         int tmpTempOnRezMS = Util.EnvironmentTickCount();
-                        CleanTempObjects();
+                        m_cleaningTemps = true;
+                        Util.FireAndForget(delegate { CleanTempObjects(); m_cleaningTemps = false;  });
                         tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpTempOnRezMS);
                     }
 
@@ -4391,6 +4394,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
+
         }
 
         public void DeleteFromStorage(UUID uuid)
