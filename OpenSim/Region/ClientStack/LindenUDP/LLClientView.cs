@@ -1529,21 +1529,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             kill.Header.Reliable = true;
             kill.Header.Zerocoded = true;
 
-            if (localIDs.Count == 1)
+            lock (m_killRecord)
             {
-                if (m_scene.GetScenePresence(localIDs[0]) != null)
+                if (localIDs.Count == 1)
                 {
-                    OutPacket(kill, ThrottleOutPacketType.State);
-                    return;
+                    if (m_scene.GetScenePresence(localIDs[0]) != null)
+                    {
+                        OutPacket(kill, ThrottleOutPacketType.State);
+                        return;
+                    }
+                    m_killRecord.Add(localIDs[0]);
                 }
-                m_killRecord.Add(localIDs[0]);
-            }
-            else
-            {
-                lock (m_entityUpdates.SyncRoot)
+                else
                 {
-                    foreach (uint localID in localIDs)
-                        m_killRecord.Add(localID);
+                    lock (m_entityUpdates.SyncRoot)
+                    {
+                        foreach (uint localID in localIDs)
+                            m_killRecord.Add(localID);
+                    }
                 }
             }
 
@@ -3615,10 +3618,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // 
                     // This doesn't appear to apply to child prims - a client will happily ignore these updates
                     // after the root prim has been deleted.
-                    if (m_killRecord.Contains(part.LocalId))
-                        continue;
-                    if (m_killRecord.Contains(part.ParentGroup.RootPart.LocalId))
-                        continue;
+                    lock (m_killRecord)
+                    {
+                        if (m_killRecord.Contains(part.LocalId))
+                            continue;
+                        if (m_killRecord.Contains(part.ParentGroup.RootPart.LocalId))
+                            continue;
+                    }
 
                     if (part.ParentGroup.IsDeleted)
                         continue;
