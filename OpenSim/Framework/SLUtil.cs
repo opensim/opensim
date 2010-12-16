@@ -340,7 +340,7 @@ namespace OpenSim.Framework
 
                         int count = -1;
 
-                        while (count < len)
+                        while (count < len && idx < input.Length)
                         {
                             // int l = input[idx].Length;
                             string ln = input[idx];
