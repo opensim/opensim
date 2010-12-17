@@ -91,7 +91,7 @@ namespace OpenSim.Region.Framework.Scenes
 
     public class ScenePermissions
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private Scene m_scene;
 
@@ -131,7 +131,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event IssueEstateCommandHandler OnIssueEstateCommand;
         public event IsGodHandler OnIsGod;
         public event IsAdministratorHandler OnIsAdministrator;
-        public event EditParcelHandler OnEditParcel;
+//        public event EditParcelHandler OnEditParcel;
         public event EditParcelPropertiesHandler OnEditParcelProperties;
         public event SellParcelHandler OnSellParcel;
         public event AbandonParcelHandler OnAbandonParcel;

@@ -11347,23 +11347,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (m_debugPacketLevel > 0)
             {
-                bool outputPacket = true;
+                bool logPacket = true;
 
                 if (m_debugPacketLevel <= 255
                     && (packet.Type == PacketType.SimStats || packet.Type == PacketType.SimulatorViewerTimeMessage))
-                    outputPacket = false;
+                    logPacket = false;
 
                 if (m_debugPacketLevel <= 200
                     && (packet.Type == PacketType.ImagePacket
                         || packet.Type == PacketType.ImageData
                         || packet.Type == PacketType.LayerData
                         || packet.Type == PacketType.CoarseLocationUpdate))
-                    outputPacket = false;
+                    logPacket = false;
 
                 if (m_debugPacketLevel <= 100 && (packet.Type == PacketType.AvatarAnimation || packet.Type == PacketType.ViewerEffect))
-                    outputPacket = false;
+                    logPacket = false;
+                
+                if (m_debugPacketLevel <= 50 && packet.Type == PacketType.ImprovedTerseObjectUpdate)
+                    logPacket = false;
 
-                if (outputPacket)
+                if (logPacket)
                     m_log.DebugFormat("[CLIENT]: Packet OUT {0}", packet.Type);
             }
 

@@ -220,10 +220,11 @@ namespace OpenSim
             m_console.Commands.AddCommand("region", false, "debug packet",
                                           "debug packet <level>",
                                           "Turn on packet debugging",
-                                          "If level > 255 then all incoming and outgoing packets are logged.\n"
+                                            "If level >  255 then all incoming and outgoing packets are logged.\n"
                                           + "If level <= 255 then incoming AgentUpdate and outgoing SimStats and SimulatorViewerTimeMessage packets are not logged.\n"
                                           + "If level <= 200 then incoming RequestImage and outgoing ImagePacket, ImageData, LayerData and CoarseLocationUpdate packets are not logged.\n"
                                           + "If level <= 100 then incoming ViewerEffect and AgentAnimation and outgoing ViewerEffect and AvatarAnimation packets are not logged.\n"
+                                          + "If level <=  50 then outgoing ImprovedTerseObjectUpdate packets are not logged.\n"
                                           + "If level <= 0 then no packets are logged.",
                                           Debug);
 
