@@ -134,9 +134,9 @@ namespace OpenSim.Region.Framework.Scenes
         // TODO: Possibly stop other classes being able to manipulate this directly.
         private SceneGraph m_sceneGraph;
         private volatile int m_bordersLocked;
-        private int m_RestartTimerCounter;
+//        private int m_RestartTimerCounter;
         private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
-        private int m_incrementsof15seconds;
+//        private int m_incrementsof15seconds;
         private volatile bool m_backingup;
         private Dictionary<UUID, ReturnInfo> m_returns = new Dictionary<UUID, ReturnInfo>();
         private Dictionary<UUID, SceneObjectGroup> m_groupsWithTargets = new Dictionary<UUID, SceneObjectGroup>();
@@ -149,7 +149,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_update_events = 1;
         private int m_update_backup = 200;
         private int m_update_terrain = 50;
-        private int m_update_land = 1;
+//        private int m_update_land = 1;
         private int m_update_coarse_locations = 80;
 
         private int frameMS;
@@ -187,7 +187,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Timer m_mapGenerationTimer = new Timer();
         private bool m_generateMaptiles;
 
-        private Dictionary<UUID, string[]> m_UserNamesCache = new Dictionary<UUID, string[]>();
+//        private Dictionary<UUID, string[]> m_UserNamesCache = new Dictionary<UUID, string[]>();
 
         #endregion Fields
 

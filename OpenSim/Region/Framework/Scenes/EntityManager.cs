@@ -36,7 +36,8 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public class EntityManager
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private readonly DoubleDictionary<UUID, uint, EntityBase> m_entities = new DoubleDictionary<UUID, uint, EntityBase>();
 
         public int Count
