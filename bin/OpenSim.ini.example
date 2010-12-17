@@ -622,16 +622,21 @@
     ;; or from the SimianGrid project at http://code.google.com/p/openmetaverse
     ; Module = Default
 
+    ;# {MessagingEnabled} {Module:GroupsModule} {Is groups messaging enabled?} {true false} true
+    ; MessagingEnabled = true
 
-    ;; Service connectors to the Groups Service.  Select one depending on
+    ;# {MessagingModule} {MessagingEnabled:true} {Module to use for groups messaging} {GroupsMessagingModule} GroupsMessagingModule
+    ; MessagingModule = GroupsMessagingModule
+
+    ;# {ServicesConnectorModule} {Module:GroupsModule} {Service connector to use for groups} {XmlRpcGroupsServicesConnector SimianGroupsServicesConnector} XmlRpcGroupsServicesConnector
+    ;; Service connectors to the Groups Service as used in the GroupsModule.  Select one depending on
     ;; whether you're using a Flotsam XmlRpc backend or a SimianGrid backend
-
-    ;# {ServicesConnectorModule} {Module:GroupsModule} {Service connector to use for groups?} {XmlRpcGroupsServicesConnector SimianGroupsServicesConnector} XmlRpcGroupsServicesConnector
-    ;; The service connector to use for the GroupsModule
     ; ServicesConnectorModule = SimianGroupsServicesConnector
 
-    ;# {GroupsServerURI} {Module:GroupsModule} {Groups Server URI?} {}
+    ;# {GroupsServerURI} {Module:GroupsModule} {Groups Server URI} {}
     ;; URI for the groups services
+    ;; e.g. http://yourxmlrpcserver.com/xmlrpc.php for Flotsam XmlRpc
+    ;; or http://mygridserver.com:82/Grid/ for SimianGrid
     ; GroupsServerURI = ""
 
     ;# {NoticesEnabled} {Module:GroupsModule} {Enable group notices?} {true false} true
@@ -641,13 +646,8 @@
     ;; This makes the Groups modules very chatty on the console.
     ; DebugEnabled = false
 
-    ;; Specify which messaging module to use for groups messaging and if it's
-    ;; enabled
-    ; MessagingModule = GroupsMessagingModule
-    ; MessagingEnabled = true
-
     ;; XmlRpc Security settings.  These must match those set on your backend
-    ;; groups service.
+    ;; groups service if the service is using these keys
     ; XmlRpcServiceReadKey    = 1234
     ; XmlRpcServiceWriteKey   = 1234
 
