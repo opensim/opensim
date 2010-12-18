@@ -109,12 +109,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 
                 scene.AddCommand(
                     this, "load iar",
-                    "load iar <first> <last> <inventory path> <password> [<IAR path>]",
-                    //"load iar [--merge] <first> <last> <inventory path> <password> [<IAR path>]",
+                    "load iar [--merge] <first> <last> <inventory path> <password> [<IAR path>]",
                     "Load user inventory archive (IAR).",
-                    //"--merge is an option which merges the loaded IAR with existing inventory folders where possible, rather than always creating new ones"
-                    //+ "<first> is user's first name." + Environment.NewLine
-                    "<first> is user's first name." + Environment.NewLine
+                    "--merge is an option which merges the loaded IAR with existing inventory folders where possible, rather than always creating new ones"
+                    + "<first> is user's first name." + Environment.NewLine
                     + "<last> is user's last name." + Environment.NewLine
                     + "<inventory path> is the path inside the user's inventory where the IAR should be loaded." + Environment.NewLine
                     + "<password> is the user's password." + Environment.NewLine
