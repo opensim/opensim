@@ -459,6 +459,8 @@ namespace OpenSim.Region.ScriptEngine.Shared
                             size += 64;
                         else if (o is int)
                             size += 4;
+                        else if (o is uint)
+                            size += 4;
                         else if (o is string)
                             size += ((string)o).Length;
                         else if (o is float)
