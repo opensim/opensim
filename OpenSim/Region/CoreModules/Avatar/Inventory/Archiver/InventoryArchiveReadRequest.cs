@@ -54,7 +54,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// The maximum major version of archive that we can read.  Minor versions shouldn't need a max number since version
         /// bumps here should be compatible.
         /// </summary>
-        public static int MAX_MAJOR_VERSION = 0;
+        public static int MAX_MAJOR_VERSION = 1;
         
         protected TarArchiveReader archive;
 
