@@ -150,7 +150,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_update_backup = 200;
         private int m_update_terrain = 50;
 //        private int m_update_land = 1;
-        private int m_update_coarse_locations = 80;
+        private int m_update_coarse_locations = 50;
 
         private int frameMS;
         private int physicsMS2;

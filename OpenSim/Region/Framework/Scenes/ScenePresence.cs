@@ -3206,10 +3206,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_updateflag = true;
 
-                // The magic constant 0.855f seems to make walking feel less jerky,
+                // The magic constant 0.95f seems to make walking feel less jerky,
                 // probably because it hackishly accounts for the overall latency of
                 // these Velocity updates -- Diva
-                Velocity = force * .855F;
+                Velocity = force * .95F;
 
                 m_forceToApply = null;
             }
