@@ -143,9 +143,9 @@ namespace OpenSim.Services.GridService
 
             if (MainConsole.Instance != null)
             {
-                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region", 
-                    "link-region <Xloc> <Yloc> <ServerURI> [<RemoteRegionName>]", 
-                    "Link a HyperGrid Region", RunCommand);
+                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region",
+                    "link-region <Xloc> <Yloc> <ServerURI> [<RemoteRegionName>]",
+                    "Link a HyperGrid Region. Examples for <ServerURI>: http://grid.net:8002/ or http://example.org/path/foo.php", RunCommand);
                 MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region",
                     "link-region <Xloc> <Yloc> <RegionIP> <RegionPort> [<RemoteRegionName>]",
                     "Link a hypergrid region (deprecated)", RunCommand);

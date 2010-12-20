@@ -3595,7 +3595,6 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
 //Console.WriteLine("UM3 {0}", Velocity);
                             Velocity = force;     // add for jumping
                         }
-
                     }
               //  }                                   // end realign
             }                               // add for jumping

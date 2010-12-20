@@ -707,21 +707,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         == World.LandChannel.GetLandObject(
                             presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
                     {
-                        // Check for hostname , attempt to make a hglink
+                        // Check for hostname, attempt to make a HG link,
                         // and convert the regionName to the target region
                         if (regionName.Contains(".") && regionName.Contains(":"))
                         {
                             List<GridRegion> regions = World.GridService.GetRegionsByName(World.RegionInfo.ScopeID, regionName, 1);
-                            // Try to link the region
-                            if (regions != null && regions.Count > 0)
-                            {
-                                GridRegion regInfo = regions[0];
-                                string[] parts = regInfo.RegionName.Split(new char[] { ':' });
-                                if (parts.Length > 2)
-                                    regionName = parts[2];
-                                else
-                                    regionName = parts[0];
-                            }
+                            string[] parts = regionName.Split(new char[] { ':' });
+                            if (parts.Length > 2)
+                                regionName = parts[0] + ':' + parts[1] + "/ " + parts[2];
+                            regionName = "http://" + regionName;
                         }
                         World.RequestTeleportLocation(presence.ControllingClient, regionName,
                             new Vector3((float)position.x, (float)position.y, (float)position.z),
