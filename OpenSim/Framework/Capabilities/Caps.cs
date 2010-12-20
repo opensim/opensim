@@ -1344,6 +1344,12 @@ namespace OpenSim.Framework.Capabilities
             /// <returns></returns>
             public string uploaderCaps(byte[] data, string path, string param)
             {
+                handlerUpLoad = OnUpLoad;
+                if (handlerUpLoad != null)
+                {
+                    Util.FireAndForget(delegate(object o) { handlerUpLoad(newAssetID, data); });
+                }
+
                 string res = String.Empty;
                 LLSDAssetUploadComplete uploadComplete = new LLSDAssetUploadComplete();
                 uploadComplete.new_asset = newAssetID.ToString();
@@ -1353,12 +1359,6 @@ namespace OpenSim.Framework.Capabilities
                 res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
 
                 httpListener.RemoveStreamHandler("POST", uploaderPath);
-
-                handlerUpLoad = OnUpLoad;
-                if (handlerUpLoad != null)
-                {
-                    handlerUpLoad(newAssetID, data);
-                }
 
                 m_log.InfoFormat("[CAPS] baked texture upload completed for {0}",newAssetID);
 
