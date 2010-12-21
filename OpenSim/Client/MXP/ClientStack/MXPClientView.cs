@@ -1131,6 +1131,12 @@ namespace OpenSim.Client.MXP.ClientStack
             // SL Specific, Ignore. (Remove from IClient)
         }
 
+        public void SendAbortXferPacket(ulong xferID)
+        {
+
+        }
+
+
         public void SendEconomyData(float EnergyEfficiency, int ObjectCapacity, int ObjectCount, int PriceEnergyUnit, int PriceGroupCreate, int PriceObjectClaim, float PriceObjectRent, float PriceObjectScaleFactor, int PriceParcelClaim, float PriceParcelClaimFactor, int PriceParcelRent, int PricePublicObjectDecay, int PricePublicObjectDelete, int PriceRentLight, int PriceUpload, int TeleportMinPrice, float TeleportPriceExponent)
         {
             // SL Specific, Ignore. (Remove from IClient)
