@@ -47,7 +47,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private string m_inventoryFileName = String.Empty;
         private byte[] m_inventoryFileData = new byte[0];
-        private int m_inventoryFileNameSerial = 0;
+        private uint m_inventoryFileNameSerial = 0;
         
         /// <value>
         /// The part to which the inventory belongs.
