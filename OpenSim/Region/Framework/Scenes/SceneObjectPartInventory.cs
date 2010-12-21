@@ -805,6 +805,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         xferManager.AddNewFile(m_inventoryFileName,
                                 m_inventoryFileData);
+                        return;
                     }
                 }
 
