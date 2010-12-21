@@ -937,6 +937,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_inventoryFileNameSerial < m_inventorySerial)
             {
                 m_inventoryFileName = "inventory_" + UUID.Random().ToString() + ".tmp";
+                m_inventoryFileNameSerial = m_inventorySerial;
                 return true;
             }
 
