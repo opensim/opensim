@@ -46,6 +46,7 @@ namespace OpenSim.Region.Framework.Scenes
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_inventoryFileName = String.Empty;
+        private byte[] m_inventoryFileData = new byte[0];
         private int m_inventoryFileNameSerial = 0;
 
         private Dictionary<UUID, ArrayList> m_scriptErrors = new Dictionary<UUID, ArrayList>();
@@ -930,39 +931,16 @@ namespace OpenSim.Region.Framework.Scenes
             return -1;
         }
 
-        public string GetInventoryFileName()
+        private bool CreateInventoryFileName()
         {
-            if (m_inventoryFileName == String.Empty)
-                m_inventoryFileName = "inventory_" + UUID.Random().ToString() + ".tmp";
-            if (m_inventoryFileNameSerial < m_inventorySerial)
+            if (m_inventoryFileName == String.Empty ||
+                m_inventoryFileNameSerial < m_inventorySerial)
             {
                 m_inventoryFileName = "inventory_" + UUID.Random().ToString() + ".tmp";
-            }
-            return m_inventoryFileName;
-        }
-
-        /// <summary>
-        /// Return the name with which a client can request a xfer of this prim's inventory metadata
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="localID"></param>
-        public bool GetInventoryFileName(IClientAPI client, uint localID)
-        {
-//            m_log.DebugFormat(
-//                 "[PRIM INVENTORY]: Received request from client {0} for inventory file name of {1}, {2}",
-//                 client.AgentId, Name, UUID);
-
-            if (m_inventorySerial > 0)
-            {
-                client.SendTaskInventory(m_part.UUID, (short)m_inventorySerial,
-                                         Utils.StringToBytes(GetInventoryFileName()));
                 return true;
             }
-            else
-            {
-                client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
-                return false;
-            }
+
+            return false;
         }
 
         /// <summary>
@@ -971,19 +949,34 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="xferManager"></param>
         public void RequestInventoryFile(IClientAPI client, IXfer xferManager)
         {
-            byte[] fileData = new byte[0];
+            bool changed = CreateInventoryFileName();
 
-            // Confusingly, the folder item has to be the object id, while the 'parent id' has to be zero.  This matches
-            // what appears to happen in the Second Life protocol.  If this isn't the case. then various functionality
-            // isn't available (such as drag from prim inventory to agent inventory)
             InventoryStringBuilder invString = new InventoryStringBuilder(m_part.UUID, UUID.Zero);
-
-            bool includeAssets = false;
-            if (m_part.ParentGroup.Scene.Permissions.CanEditObjectInventory(m_part.UUID, client.AgentId))
-                includeAssets = true;
 
             lock (m_items)
             {
+                if (m_inventorySerial == 0) // No inventory
+                {
+                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
+                    return;
+                }
+
+                client.SendTaskInventory(m_part.UUID, (short)m_inventorySerial,
+                        Util.StringToBytes256(m_inventoryFileName));
+
+                if (!changed)
+                {
+                    if (m_inventoryFileData.Length > 2)
+                    {
+                        xferManager.AddNewFile(m_inventoryFileName,
+                                m_inventoryFileData);
+                    }
+                }
+
+                bool includeAssets = false;
+                if (m_part.ParentGroup.Scene.Permissions.CanEditObjectInventory(m_part.UUID, client.AgentId))
+                    includeAssets = true;
+
                 foreach (TaskInventoryItem item in m_items.Values)
                 {
                     UUID ownerID = item.OwnerID;
@@ -1032,17 +1025,14 @@ namespace OpenSim.Region.Framework.Scenes
                     invString.AddSectionEnd();
                 }
             }
+
             int count = m_items.Count;
-            m_items.LockItemsForRead(false);
 
-            fileData = Utils.StringToBytes(invString.BuildString);
+            m_inventoryFileData = Utils.StringToBytes(invString.BuildString);
 
-            //m_log.Debug(Utils.BytesToString(fileData));
-            //m_log.Debug("[PRIM INVENTORY]: RequestInventoryFile fileData: " + Utils.BytesToString(fileData));
-
-            if (fileData.Length > 2)
+            if (m_inventoryFileData.Length > 2)
             {
-                xferManager.AddNewFile(m_inventoryFileName, fileData);
+                xferManager.AddNewFile(m_inventoryFileName, m_inventoryFileData);
             }
         }
 

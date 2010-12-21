@@ -77,49 +77,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        ///
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="localID"></param>
-        public bool GetPartInventoryFileName(IClientAPI remoteClient, uint localID)
-        {
-            SceneObjectPart part = GetChildPart(localID);
-            if (part != null)
-            {
-                return part.Inventory.GetInventoryFileName(remoteClient, localID);
-            }
-            else
-            {
-                m_log.ErrorFormat(
-                    "[PRIM INVENTORY]: " +
-                    "Couldn't find part {0} in object group {1}, {2} to retreive prim inventory",
-                    localID, Name, UUID);
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Return serialized inventory metadata for the given constituent prim
-        /// </summary>
-        /// <param name="localID"></param>
-        /// <param name="xferManager"></param>
-        public void RequestInventoryFile(IClientAPI client, uint localID, IXfer xferManager)
-        {
-            SceneObjectPart part = GetChildPart(localID);
-            if (part != null)
-            {
-                part.Inventory.RequestInventoryFile(client, xferManager);
-            }
-            else
-            {
-                m_log.ErrorFormat(
-                    "[PRIM INVENTORY]: " +
-                    "Couldn't find part {0} in object group {1}, {2} to request inventory data",
-                    localID, Name, UUID);
-            }
-        }
-
-        /// <summary>
         /// Add an inventory item to a prim in this group.
         /// </summary>
         /// <param name="remoteClient"></param>
