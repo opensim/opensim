@@ -194,13 +194,6 @@ namespace OpenSim.Region.Framework.Interfaces
         int RemoveInventoryItem(UUID itemID);
 
         /// <summary>
-        /// Return the name with which a client can request a xfer of this prim's inventory metadata
-        /// </summary>
-        string GetInventoryFileName();
-
-        bool GetInventoryFileName(IClientAPI client, uint localID);
-
-        /// <summary>
         /// Serialize all the metadata for the items in this prim's inventory ready for sending to the client
         /// </summary>
         /// <param name="xferManager"></param>
