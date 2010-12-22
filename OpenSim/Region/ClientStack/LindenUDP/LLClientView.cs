@@ -2078,6 +2078,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(sendXfer, ThrottleOutPacketType.Asset);
         }
 
+        public void SendAbortXferPacket(ulong xferID)
+        {
+            AbortXferPacket xferItem = (AbortXferPacket)PacketPool.Instance.GetPacket(PacketType.AbortXfer);
+            xferItem.XferID.ID = xferID;
+            OutPacket(xferItem, ThrottleOutPacketType.Asset);
+        }
+
         public void SendEconomyData(float EnergyEfficiency, int ObjectCapacity, int ObjectCount, int PriceEnergyUnit,
                                     int PriceGroupCreate, int PriceObjectClaim, float PriceObjectRent, float PriceObjectScaleFactor,
                                     int PriceParcelClaim, float PriceParcelClaimFactor, int PriceParcelRent, int PricePublicObjectDecay,
