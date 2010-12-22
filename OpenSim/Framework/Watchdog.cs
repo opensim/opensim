@@ -127,7 +127,7 @@ namespace OpenSim.Framework
                 m_threads.Add(threadInfo.Thread.ManagedThreadId, threadInfo);
         }
 
-        private static bool RemoveThread(int threadID)
+        public static bool RemoveThread(int threadID)
         {
             lock (m_threads)
                 return m_threads.Remove(threadID);

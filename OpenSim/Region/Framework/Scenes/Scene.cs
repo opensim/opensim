@@ -1093,6 +1093,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.ErrorFormat("[SCENE]: Restarting heartbeat thread because it hasn't reported in in region {0}", RegionInfo.RegionName);
                 HeartbeatThread.Abort();
+                Watchdog.RemoveThread(HeartbeatThread.ManagedThreadId);
                 HeartbeatThread = null;
             }
             m_lastUpdate = Util.EnvironmentTickCount();
@@ -4801,7 +4802,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_firstHeartbeat)
                 return;
 
-            if (Util.EnvironmentTickCountSubtract(m_lastUpdate) > 2000)
+            if (Util.EnvironmentTickCountSubtract(m_lastUpdate) > 10000)
                 StartTimer();
         }
 
