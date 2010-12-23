@@ -287,6 +287,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private OdePrim cp1;
         private OdeCharacter cc2;
         private OdePrim cp2;
+        private int tickCountFrameRun;
+        
+        private int latertickcount=0;
         //private int cStartStop = 0;
         //private string cDictKey = "";
 
@@ -3123,6 +3126,22 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     d.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
                 }
+                latertickcount = Util.EnvironmentTickCount() - tickCountFrameRun;
+
+                // OpenSimulator above does 10 fps.  10 fps = means that the main thread loop and physics
+                // has a max of 100 ms to run theoretically.
+                // If the main loop stalls, it calls Simulate later which makes the tick count ms larger.
+                // If Physics stalls, it takes longer which makes the tick count ms larger.
+
+                if (latertickcount < 100)
+                    m_timeDilation = 1.0f;
+                else
+                {
+                    m_timeDilation = 100f / latertickcount;
+                    //m_timeDilation = Math.Min((Math.Max(100 - (Util.EnvironmentTickCount() - tickCountFrameRun), 1) / 100f), 1.0f);
+                }
+
+                tickCountFrameRun = Util.EnvironmentTickCount();
             }
 
             return fps;

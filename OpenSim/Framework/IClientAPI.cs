@@ -574,11 +574,13 @@ namespace OpenSim.Framework
     {
         public ISceneEntity Entity;
         public PrimUpdateFlags Flags;
+        public float TimeDilation;
 
-        public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags)
+        public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags, float timedilation)
         {
             Entity = entity;
             Flags = flags;
+            TimeDilation = timedilation;
         }
     }
 
