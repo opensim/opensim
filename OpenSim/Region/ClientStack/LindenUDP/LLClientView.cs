@@ -3591,7 +3591,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             double priority = m_prioritizer.GetUpdatePriority(this, entity);
 
             lock (m_entityUpdates.SyncRoot)
-                m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags), entity.LocalId);
+                m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags, m_scene.TimeDilation), entity.LocalId);
         }
 
         private void ProcessEntityUpdates(int maxUpdates)
@@ -3604,12 +3604,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (maxUpdates <= 0) maxUpdates = Int32.MaxValue;
             int updatesThisCall = 0;
 
+            float avgTimeDilation = 0;
+
             EntityUpdate update;
             while (updatesThisCall < maxUpdates)
             {
                 lock (m_entityUpdates.SyncRoot)
                     if (!m_entityUpdates.TryDequeue(out update))
                         break;
+
+                avgTimeDilation += update.TimeDilation;
+                avgTimeDilation *= 0.5f;
 
                 if (update.Entity is SceneObjectPart)
                 {
@@ -3790,8 +3795,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #region Packet Sending
     
             const float TIME_DILATION = 1.0f;
-            ushort timeDilation = Utils.FloatToUInt16(TIME_DILATION, 0.0f, 1.0f);
-
+            ushort timeDilation = Utils.FloatToUInt16(avgTimeDilation, 0.0f, 1.0f);
+    
             if (terseAgentUpdateBlocks.IsValueCreated)
             {
                 List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> blocks = terseAgentUpdateBlocks.Value;
@@ -3830,7 +3835,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.RegionData.RegionHandle = m_scene.RegionInfo.RegionHandle;
                 packet.RegionData.TimeDilation = timeDilation;
                 packet.ObjectData = new ObjectUpdateCompressedPacket.ObjectDataBlock[blocks.Count];
-    
+
                 for (int i = 0; i < blocks.Count; i++)
                     packet.ObjectData[i] = blocks[i];
     
