@@ -40,8 +40,8 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         private Scene m_scene;
         private Dictionary<string, XferRequest> Requests = new Dictionary<string, XferRequest>();
         private List<XferRequest> RequestTime = new List<XferRequest>();
-        public Dictionary<string, byte[]> NewFiles = new Dictionary<string, byte[]>();
-        public Dictionary<ulong, XferDownLoad> Transfers = new Dictionary<ulong, XferDownLoad>();
+        private Dictionary<string, FileData> NewFiles = new Dictionary<string, FileData>();
+        private Dictionary<ulong, XferDownLoad> Transfers = new Dictionary<ulong, XferDownLoad>();
         
 
         public struct XferRequest
@@ -50,6 +50,12 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             public ulong xferID;
             public string fileName;
             public DateTime timeStamp;
+        }
+
+        private class FileData
+        {
+            public byte[] Data;
+            public int Count;
         }
        
         #region IRegionModule Members
@@ -89,21 +95,22 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             lock (NewFiles)
             {
                 if (NewFiles.ContainsKey(fileName))
-                {
-                    NewFiles[fileName] = data;
-                }
+                    NewFiles[fileName].Count++;
                 else
                 {
-                    NewFiles.Add(fileName, data);
+                    FileData fd = new FileData();
+                    fd.Count = 1;
+                    fd.Data = data;
+                    NewFiles.Add(fileName, fd);
                 }
             }
-            string filename = string.Empty;
 
-            if (Requests.ContainsKey(fileName))
-            {
-                RequestXfer(Requests[fileName].remoteClient, Requests[fileName].xferID, fileName);
-                Requests.Remove(fileName);
-            }
+            // This should not be here
+            //if (Requests.ContainsKey(fileName))
+            //{
+            //    RequestXfer(Requests[fileName].remoteClient, Requests[fileName].xferID, fileName);
+            //    Requests.Remove(fileName);
+            //}
 
             return true;
         }
@@ -135,6 +142,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                         ulong zxferid = RequestTime[0].xferID;
                         remoteClient.SendAbortXferPacket(zxferid);
                         RemoveXferData(zxferid);
+                        RemoveOrDecrement(fileName);
                     }
                 }
 
@@ -142,16 +150,19 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                 {
                     if (!Transfers.ContainsKey(xferID))
                     {
-                        byte[] fileData = NewFiles[fileName];
+                        byte[] fileData = NewFiles[fileName].Data;
                         XferDownLoad transaction = new XferDownLoad(fileName, fileData, xferID, remoteClient);
 
                         Transfers.Add(xferID, transaction);
-                        NewFiles.Remove(fileName);
 
                         if (transaction.StartSend())
                         {
                             RemoveXferData(xferID);
                         }
+
+                        // The transaction for this file is either complete or on its way
+                        RemoveOrDecrement(fileName);
+
                     }
                 }
                 else
@@ -195,6 +206,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     {
                         {
                             RemoveXferData(xferID);
+                            RemoveOrDecrement(dl.FileName);
                         }
                     }
                     else
@@ -226,8 +238,6 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                 xferItem.DataPointer = 0;
 
                 // If the abort comes in 
-                if (NewFiles.ContainsKey(xferItem.FileName))
-                    NewFiles.Remove(xferItem.FileName);
 
                 if (Requests.ContainsKey(xferItem.FileName))
                     Requests.Remove(xferItem.FileName);
@@ -239,7 +249,23 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         {
             lock (NewFiles)
             {
+                if (Transfers.ContainsKey(xferID))
+                    RemoveOrDecrement(Transfers[xferID].FileName);
+
                 RemoveXferData(xferID);
+            }
+        }
+
+        private void RemoveOrDecrement(string fileName)
+        {
+            // NewFiles must be locked
+
+            if (NewFiles.ContainsKey(fileName))
+            {
+                if (NewFiles[fileName].Count == 1)
+                    NewFiles.Remove(fileName);
+                else
+                    NewFiles[fileName].Count--;
             }
         }
 
