@@ -692,10 +692,16 @@ namespace OpenSim.Region.Framework.Scenes
                         item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions, item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch());
                 }
                 else
-                {
-                    CreateNewInventoryItem(
-                        remoteClient, item.CreatorId, item.CreatorData, newFolderID, newName, item.Flags, callbackID, asset, (sbyte)item.InvType,
-                        item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions, item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch());
+                {  
+                    // If item is transfer or permissions are off or calling agent is allowed to copy item owner's inventory item.
+                    if (((item.CurrentPermissions & (uint)PermissionMask.Transfer) != 0) || m_permissions.BypassPermissions() || m_permissions.CanCopyUserInventory(remoteClient.AgentId, oldItemID))
+                    {
+                        CreateNewInventoryItem(
+                            remoteClient, item.CreatorId, item.CreatorData, newFolderID, newName, item.Flags, callbackID,
+                            asset, (sbyte) item.InvType,
+                            item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions,
+                            item.NextPermissions, item.GroupPermissions, Util.UnixTimeSinceEpoch());
+                    }
                 }
             }
             else
