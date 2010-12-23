@@ -367,7 +367,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             {
                 // Send it a fake event to keep the client polling!   It doesn't like 502s like the proxys say!
                 array.Add(EventQueueHelper.KeepAliveEvent());
-                m_log.DebugFormat("[EVENTQUEUE]: adding fake event for {0} in region {1}", pAgentId, m_scene.RegionInfo.RegionName);
+                //m_log.DebugFormat("[EVENTQUEUE]: adding fake event for {0} in region {1}", pAgentId, m_scene.RegionInfo.RegionName);
             }
             else
             {
@@ -396,7 +396,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             responsedata["keepalive"] = false;
             responsedata["reusecontext"] = false;
             responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(events);
-            m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", pAgentId, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
+            //m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", pAgentId, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
             return responsedata;
         }
 
