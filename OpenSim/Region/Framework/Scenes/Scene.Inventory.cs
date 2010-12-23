@@ -951,23 +951,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="primLocalID"></param>
         public void RequestTaskInventory(IClientAPI remoteClient, uint primLocalID)
         {
-            SceneObjectGroup group = GetGroupByPrim(primLocalID);
-            if (group != null)
-            {
-                bool fileChange = group.GetPartInventoryFileName(remoteClient, primLocalID);
-                if (fileChange)
-                {
-                    if (XferManager != null)
-                    {
-                        group.RequestInventoryFile(remoteClient, primLocalID, XferManager);
-                    }
-                }
-            }
-            else
-            {
-                m_log.ErrorFormat(
-                    "[PRIM INVENTORY]: Inventory requested of prim {0} which doesn't exist", primLocalID);
-            }
+            SceneObjectPart part = GetSceneObjectPart(primLocalID);
+            if (part == null)
+                return;
+
+            if (XferManager != null)
+                part.Inventory.RequestInventoryFile(remoteClient, XferManager);
         }
 
         /// <summary>

@@ -106,7 +106,7 @@ namespace OpenSim.Region.Framework.Scenes
                         g.ScheduleFullUpdateToAvatar(m_presence);
                 }
 
-                while (m_partsUpdateQueue.Count > 0)
+                while (m_partsUpdateQueue.Count != null && m_partsUpdateQueue.Count > 0)
                 {
                     SceneObjectPart part = m_partsUpdateQueue.Dequeue();
                     
