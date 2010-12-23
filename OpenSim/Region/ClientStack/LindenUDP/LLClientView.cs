@@ -7189,34 +7189,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //handlerTextureRequest = null;
             for (int i = 0; i < imageRequest.RequestImage.Length; i++)
             {
-                if (OnRequestTexture != null)
+                TextureRequestArgs args = new TextureRequestArgs();
+
+                RequestImagePacket.RequestImageBlock block = imageRequest.RequestImage[i];
+
+                args.RequestedAssetID = block.Image;
+                args.DiscardLevel = block.DiscardLevel;
+                args.PacketNumber = block.Packet;
+                args.Priority = block.DownloadPriority;
+                args.requestSequence = imageRequest.Header.Sequence;
+
+                // NOTE: This is not a built in part of the LLUDP protocol, but we double the
+                // priority of avatar textures to get avatars rezzing in faster than the
+                // surrounding scene
+                if ((ImageType)block.Type == ImageType.Baked)
+                    args.Priority *= 2.0f;
+
+                // in the end, we null this, so we have to check if it's null
+                if (m_imageManager != null)
                 {
-                    TextureRequestArgs args = new TextureRequestArgs();
-
-                    RequestImagePacket.RequestImageBlock block = imageRequest.RequestImage[i];
-
-                    args.RequestedAssetID = block.Image;
-                    args.DiscardLevel = block.DiscardLevel;
-                    args.PacketNumber = block.Packet;
-                    args.Priority = block.DownloadPriority;
-                    args.requestSequence = imageRequest.Header.Sequence;
-
-                    // NOTE: This is not a built in part of the LLUDP protocol, but we double the
-                    // priority of avatar textures to get avatars rezzing in faster than the
-                    // surrounding scene
-                    if ((ImageType)block.Type == ImageType.Baked)
-                        args.Priority *= 2.0f;
-
-                    //handlerTextureRequest = OnRequestTexture;
-
-                    //if (handlerTextureRequest != null)
-                    //OnRequestTexture(this, args);
-
-                    // in the end, we null this, so we have to check if it's null
-                    if (m_imageManager != null)
-                    {
-                        m_imageManager.EnqueueReq(args);
-                    }
+                    m_imageManager.EnqueueReq(args);
                 }
             }
             return true;
