@@ -105,12 +105,11 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                 }
             }
 
-            // This should not be here
-            //if (Requests.ContainsKey(fileName))
-            //{
-            //    RequestXfer(Requests[fileName].remoteClient, Requests[fileName].xferID, fileName);
-            //    Requests.Remove(fileName);
-            //}
+            if (Requests.ContainsKey(fileName))
+            {
+                RequestXfer(Requests[fileName].remoteClient, Requests[fileName].xferID, fileName);
+                Requests.Remove(fileName);
+            }
 
             return true;
         }

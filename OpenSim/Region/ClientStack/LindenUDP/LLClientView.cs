@@ -3554,7 +3554,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             double priority = m_prioritizer.GetUpdatePriority(this, entity);
 
             lock (m_entityUpdates.SyncRoot)
-                m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags), entity.LocalId);
+                m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags, m_scene.TimeDilation), entity.LocalId);
         }
 
         private void ProcessEntityUpdates(int maxUpdates)
@@ -3570,14 +3570,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // We must lock for both manipulating the kill record and sending the packet, in order to avoid a race
             // condition where a kill can be processed before an out-of-date update for the same object.                        
             lock (m_killRecord)
-            {                
+            {
+                float avgTimeDilation = 1.0f;
                 EntityUpdate update;
                 while (updatesThisCall < maxUpdates)
                 {
                     lock (m_entityUpdates.SyncRoot)
                         if (!m_entityUpdates.TryDequeue(out update))
                             break;
-    
+                    avgTimeDilation += update.TimeDilation;
+                    avgTimeDilation *= 0.5f;
+
                     if (update.Entity is SceneObjectPart)
                     {
                         SceneObjectPart part = (SceneObjectPart)update.Entity;
@@ -3725,8 +3728,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
                 #region Packet Sending
         
-                const float TIME_DILATION = 1.0f;
-                ushort timeDilation = Utils.FloatToUInt16(TIME_DILATION, 0.0f, 1.0f);
+                //const float TIME_DILATION = 1.0f;
+
+
+                ushort timeDilation = Utils.FloatToUInt16(avgTimeDilation, 0.0f, 1.0f);
     
                 if (terseAgentUpdateBlocks.IsValueCreated)
                 {
@@ -3739,7 +3744,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
                     for (int i = 0; i < blocks.Count; i++)
                         packet.ObjectData[i] = blocks[i];
-    
+
+                    
                     OutPacket(packet, ThrottleOutPacketType.Unknown, true);
                 }
     
