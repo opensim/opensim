@@ -463,9 +463,9 @@ namespace OpenSim.Framework
 
     public delegate void AgentFOV(IClientAPI client, float verticalAngle);
     
-    public delegate void MuteListEntryUpdate(IClientAPI client, UUID MuteID, string Name, int Flags,UUID AgentID);
+    public delegate void MuteListEntryUpdate(IClientAPI client, UUID MuteID, string Name, int type, uint flags);
     
-    public delegate void MuteListEntryRemove(IClientAPI client, UUID MuteID, string Name, UUID AgentID);
+    public delegate void MuteListEntryRemove(IClientAPI client, UUID MuteID, string Name);
     
     public delegate void AvatarInterestReply(IClientAPI client,UUID target, uint wantmask, string wanttext, uint skillsmask, string skillstext, string languages);
     

@@ -9475,7 +9475,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 handlerUpdateMuteListEntry(this, UpdateMuteListEntry.MuteData.MuteID,
                                            Utils.BytesToString(UpdateMuteListEntry.MuteData.MuteName),
                                            UpdateMuteListEntry.MuteData.MuteType,
-                                           UpdateMuteListEntry.AgentData.AgentID);
+                                           UpdateMuteListEntry.MuteData.MuteFlags);
                 return true;
             }
             return false;
@@ -9490,8 +9490,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 handlerRemoveMuteListEntry(this,
                                            RemoveMuteListEntry.MuteData.MuteID,
-                                           Utils.BytesToString(RemoveMuteListEntry.MuteData.MuteName),
-                                           RemoveMuteListEntry.AgentData.AgentID);
+                                           Utils.BytesToString(RemoveMuteListEntry.MuteData.MuteName));
                 return true;
             }
             return false;
