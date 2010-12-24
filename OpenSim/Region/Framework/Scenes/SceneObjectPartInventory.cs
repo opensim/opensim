@@ -766,16 +766,71 @@ namespace OpenSim.Region.Framework.Scenes
             return -1;
         }
 
-        private bool CreateInventoryFileName()
+        private bool CreateInventoryFile()
         {
             if (m_inventoryFileName == String.Empty ||
                 m_inventoryFileNameSerial < m_inventorySerial)
             {
+                // Something changed, we need to create a new file
                 m_inventoryFileName = "inventory_" + UUID.Random().ToString() + ".tmp";
                 m_inventoryFileNameSerial = m_inventorySerial;
+
+                InventoryStringBuilder invString = new InventoryStringBuilder(m_part.UUID, UUID.Zero);
+
+                lock (m_items)
+                {
+                    foreach (TaskInventoryItem item in m_items.Values)
+                    {
+                        UUID ownerID = item.OwnerID;
+                        uint everyoneMask = 0;
+                        uint baseMask = item.BasePermissions;
+                        uint ownerMask = item.CurrentPermissions;
+                        uint groupMask = item.GroupPermissions;
+
+                        invString.AddItemStart();
+                        invString.AddNameValueLine("item_id", item.ItemID.ToString());
+                        invString.AddNameValueLine("parent_id", m_part.UUID.ToString());
+
+                        invString.AddPermissionsStart();
+
+                        invString.AddNameValueLine("base_mask", Utils.UIntToHexString(baseMask));
+                        invString.AddNameValueLine("owner_mask", Utils.UIntToHexString(ownerMask));
+                        invString.AddNameValueLine("group_mask", Utils.UIntToHexString(groupMask));
+                        invString.AddNameValueLine("everyone_mask", Utils.UIntToHexString(everyoneMask));
+                        invString.AddNameValueLine("next_owner_mask", Utils.UIntToHexString(item.NextPermissions));
+
+                        invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
+                        invString.AddNameValueLine("owner_id", ownerID.ToString());
+
+                        invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
+
+                        invString.AddNameValueLine("group_id", item.GroupID.ToString());
+                        invString.AddSectionEnd();
+
+                        invString.AddNameValueLine("asset_id", item.AssetID.ToString());
+                        invString.AddNameValueLine("type", TaskInventoryItem.Types[item.Type]);
+                        invString.AddNameValueLine("inv_type", TaskInventoryItem.InvTypes[item.InvType]);
+                        invString.AddNameValueLine("flags", Utils.UIntToHexString(item.Flags));
+
+                        invString.AddSaleStart();
+                        invString.AddNameValueLine("sale_type", "not");
+                        invString.AddNameValueLine("sale_price", "0");
+                        invString.AddSectionEnd();
+
+                        invString.AddNameValueLine("name", item.Name + "|");
+                        invString.AddNameValueLine("desc", item.Description + "|");
+
+                        invString.AddNameValueLine("creation_date", item.CreationDate.ToString());
+                        invString.AddSectionEnd();
+                    }
+                }
+
+                m_inventoryFileData = Utils.StringToBytes(invString.BuildString);
+
                 return true;
             }
 
+            // No need to recreate, the existing file is fine
             return false;
         }
 
@@ -785,83 +840,28 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="xferManager"></param>
         public void RequestInventoryFile(IClientAPI client, IXfer xferManager)
         {
-            bool changed = CreateInventoryFileName();
+            bool changed = CreateInventoryFile();
 
-            InventoryStringBuilder invString = new InventoryStringBuilder(m_part.UUID, UUID.Zero);
-
-            lock (m_items)
+            if (m_inventorySerial == 0) // No inventory
             {
-                if (m_inventorySerial == 0) // No inventory
-                {
-                    client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
-                    return;
-                }
-
-                client.SendTaskInventory(m_part.UUID, (short)m_inventorySerial,
-                        Util.StringToBytes256(m_inventoryFileName));
-
-                if (!changed)
-                {
-                    if (m_inventoryFileData.Length > 2)
-                    {
-                        xferManager.AddNewFile(m_inventoryFileName,
-                                m_inventoryFileData);
-                        return;
-                    }
-                }
-
-                foreach (TaskInventoryItem item in m_items.Values)
-                {
-                    UUID ownerID = item.OwnerID;
-                    uint everyoneMask = 0;
-                    uint baseMask = item.BasePermissions;
-                    uint ownerMask = item.CurrentPermissions;
-                    uint groupMask = item.GroupPermissions;
-
-                    invString.AddItemStart();
-                    invString.AddNameValueLine("item_id", item.ItemID.ToString());
-                    invString.AddNameValueLine("parent_id", m_part.UUID.ToString());
-
-                    invString.AddPermissionsStart();
-
-                    invString.AddNameValueLine("base_mask", Utils.UIntToHexString(baseMask));
-                    invString.AddNameValueLine("owner_mask", Utils.UIntToHexString(ownerMask));
-                    invString.AddNameValueLine("group_mask", Utils.UIntToHexString(groupMask));
-                    invString.AddNameValueLine("everyone_mask", Utils.UIntToHexString(everyoneMask));
-                    invString.AddNameValueLine("next_owner_mask", Utils.UIntToHexString(item.NextPermissions));
-
-                    invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
-                    invString.AddNameValueLine("owner_id", ownerID.ToString());
-
-                    invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
-
-                    invString.AddNameValueLine("group_id", item.GroupID.ToString());
-                    invString.AddSectionEnd();
-
-                    invString.AddNameValueLine("asset_id", item.AssetID.ToString());
-                    invString.AddNameValueLine("type", TaskInventoryItem.Types[item.Type]);
-                    invString.AddNameValueLine("inv_type", TaskInventoryItem.InvTypes[item.InvType]);
-                    invString.AddNameValueLine("flags", Utils.UIntToHexString(item.Flags));
-
-                    invString.AddSaleStart();
-                    invString.AddNameValueLine("sale_type", "not");
-                    invString.AddNameValueLine("sale_price", "0");
-                    invString.AddSectionEnd();
-
-                    invString.AddNameValueLine("name", item.Name + "|");
-                    invString.AddNameValueLine("desc", item.Description + "|");
-
-                    invString.AddNameValueLine("creation_date", item.CreationDate.ToString());
-                    invString.AddSectionEnd();
-                }
+                client.SendTaskInventory(m_part.UUID, 0, new byte[0]);
+                return;
             }
 
-            m_inventoryFileData = Utils.StringToBytes(invString.BuildString);
+            // In principle, we should only do the rest if the inventory changed;
+            // by sending m_inventorySerial to the client, it ought to know
+            // that nothing changed and that it doesn't need to request the file. 
+            // Unfortunately, it doesn't look like the client optimizes this; 
+            // the client seems to always come back and request the Xfer, 
+            // no matter what value m_inventorySerial has.
 
             if (m_inventoryFileData.Length > 2)
-            {
+                // Add the file for Xfer
                 xferManager.AddNewFile(m_inventoryFileName, m_inventoryFileData);
-            }
+
+            // Tell the client we're ready to Xfer the file
+            client.SendTaskInventory(m_part.UUID, (short)m_inventorySerial,
+                    Util.StringToBytes256(m_inventoryFileName));
         }
 
         /// <summary>
