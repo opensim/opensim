@@ -730,9 +730,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // If this is a linkset, we don't want the physics engine mucking up our group position here.
                 PhysicsActor actor = PhysActor;
-                if (actor != null && _parentID == 0)
+                if (_parentID == 0)
                 {
-                    m_groupPosition = actor.Position;
+                    if (actor != null)
+                        m_groupPosition = actor.Position;
                 }
 
                 if (IsAttachment)
@@ -742,6 +743,8 @@ namespace OpenSim.Region.Framework.Scenes
                         return sp.AbsolutePosition;
                 }
 
+                // use root prim's group position. Physics may have updated it
+                m_groupPosition = ParentGroup.RootPart.GroupPosition;
                 return m_groupPosition;
             }
             set
