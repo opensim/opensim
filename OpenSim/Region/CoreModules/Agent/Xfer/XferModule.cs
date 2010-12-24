@@ -37,9 +37,9 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
 {
     public class XferModule : IRegionModule, IXfer
     {
+        private static uint counter = 0;
         private Scene m_scene;
         private Dictionary<string, XferRequest> Requests = new Dictionary<string, XferRequest>();
-        private List<XferRequest> RequestTime = new List<XferRequest>();
         private Dictionary<string, FileData> NewFiles = new Dictionary<string, FileData>();
         private Dictionary<ulong, XferDownLoad> Transfers = new Dictionary<ulong, XferDownLoad>();
         
@@ -95,18 +95,29 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             lock (NewFiles)
             {
                 if (NewFiles.ContainsKey(fileName))
+                {
                     NewFiles[fileName].Count++;
+                    //Console.WriteLine("AddNewFile " + fileName + " counter=" + NewFiles[fileName].Count);
+                }
                 else
                 {
                     FileData fd = new FileData();
                     fd.Count = 1;
                     fd.Data = data;
                     NewFiles.Add(fileName, fd);
+                    //Console.WriteLine("AddNewFile " + fileName);
                 }
             }
 
+            // This happens when the Xfer request ends up coming before
+            // the fileName is added by this method. That may happen when
+            // the file generation (the event that calle this method) 
+            // takes a long time. In this case, we need to kick the 
+            // Xfer request mannually.
             if (Requests.ContainsKey(fileName))
             {
+                //Console.WriteLine("*** AddNewFile Requests.Contains " + fileName);
+
                 RequestXfer(Requests[fileName].remoteClient, Requests[fileName].xferID, fileName);
                 Requests.Remove(fileName);
             }
@@ -133,22 +144,14 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         {
             lock (NewFiles)
             {
-                if (RequestTime.Count > 0)
-                {
-                    TimeSpan ts = new TimeSpan(DateTime.UtcNow.Ticks - RequestTime[0].timeStamp.Ticks);
-                    if (ts.TotalSeconds > 30)
-                    {
-                        ulong zxferid = RequestTime[0].xferID;
-                        remoteClient.SendAbortXferPacket(zxferid);
-                        RemoveXferData(zxferid);
-                        RemoveOrDecrement(fileName);
-                    }
-                }
+                //Console.WriteLine("---- RequestXfer " + fileName + " ----");
 
                 if (NewFiles.ContainsKey(fileName))
                 {
+                    //Console.WriteLine("NewFiles.ContainsKey " + fileName + " with count=" + NewFiles[fileName].Count);
                     if (!Transfers.ContainsKey(xferID))
                     {
+                        //Console.WriteLine("!Transfers.ContainsKey("+xferID+")");
                         byte[] fileData = NewFiles[fileName].Data;
                         XferDownLoad transaction = new XferDownLoad(fileName, fileData, xferID, remoteClient);
 
@@ -166,27 +169,38 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                 }
                 else
                 {
-                    if (RequestTime.Count > 0)
-                    {
-                        TimeSpan ts = new TimeSpan(DateTime.UtcNow.Ticks - RequestTime[0].timeStamp.Ticks);
-                        if (ts.TotalSeconds > 30)
-                        {
-                            Requests.Remove(RequestTime[0].fileName);
-                            RequestTime.RemoveAt(0);
-                            // Do we want to abort this here?
-                            //remoteClient.SendAbortXfer(xferID);
-                        }
-                    }
+                    ////Console.WriteLine("*** ! NewFiles.ContainsKey " + fileName); 
+                    //if (RequestTime.Count > 0)
+                    //{
+                    //    //Console.WriteLine("RequestTime.Count > 0");
+                    //    TimeSpan ts = new TimeSpan(DateTime.UtcNow.Ticks - RequestTime[0].timeStamp.Ticks);
+                    //    if (ts.TotalSeconds > 30)
+                    //    {
+                    //        Console.WriteLine("ts.TotalSeconds > 30");
+                    //        Requests.Remove(RequestTime[0].fileName);
+                    //        RequestTime.RemoveAt(0);
+                    //        // Do we want to abort this here?
+                    //        //remoteClient.SendAbortXfer(xferID);
+                    //    }
+                    //}
+
+                    XferRequest nRequest = new XferRequest();
+                    nRequest.remoteClient = remoteClient;
+                    nRequest.xferID = xferID;
+                    nRequest.fileName = fileName;
+                    nRequest.timeStamp = DateTime.UtcNow;
+                    nRequest.fileName = fileName;
 
                     if (!Requests.ContainsKey(fileName))
                     {
-                        XferRequest nRequest = new XferRequest();
-                        nRequest.remoteClient = remoteClient;
-                        nRequest.xferID = xferID;
-                        nRequest.fileName = fileName;
-                        nRequest.timeStamp = DateTime.UtcNow;
+                        //Console.WriteLine("**** !Requests.ContainsKey(" + fileName + ")");
                         Requests.Add(fileName, nRequest);
-                        RequestTime.Add(nRequest);
+                    }
+                    else
+                    {
+                        //Console.WriteLine("**** Requests.ContainsKey(" + fileName + ")");
+                        Requests.Add(fileName + "-" + counter.ToString(), nRequest);
+                        counter++;
                     }
                     
                 }
@@ -203,17 +217,13 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     XferDownLoad dl = Transfers[xferID];
                     if (Transfers[xferID].AckPacket(packet))
                     {
-                        {
-                            RemoveXferData(xferID);
-                            RemoveOrDecrement(dl.FileName);
-                        }
+                        RemoveXferData(xferID);
+                        RemoveOrDecrement(dl.FileName);
                     }
                     else
                     {
-
                         if (Requests.ContainsKey(dl.FileName))
                         {
-                            //
                             XferRequest req = Requests[dl.FileName];
                             req.timeStamp = DateTime.UtcNow;
                             Requests[dl.FileName] = req;
@@ -262,9 +272,13 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             if (NewFiles.ContainsKey(fileName))
             {
                 if (NewFiles[fileName].Count == 1)
+                {
                     NewFiles.Remove(fileName);
+                }
                 else
+                {
                     NewFiles[fileName].Count--;
+                }
             }
         }
 
