@@ -1127,6 +1127,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             _position.Y = vec.Y;
             _position.Z = vec.Z;
 
+            // I think we need to update the taintPosition too -- Diva 12/24/10
+            m_taintPosition.X = vec.X;
+            m_taintPosition.Y = vec.Y;
+            m_taintPosition.Z = vec.Z;
+
             // Did we move last? = zeroflag
             // This helps keep us from sliding all over
 
