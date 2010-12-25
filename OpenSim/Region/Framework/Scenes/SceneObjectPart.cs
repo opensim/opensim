@@ -734,6 +734,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (actor != null)
                         m_groupPosition = actor.Position;
+                    return m_groupPosition;
                 }
 
                 if (IsAttachment)
@@ -741,6 +742,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ScenePresence sp = m_parentGroup.Scene.GetScenePresence(AttachedAvatar);
                     if (sp != null)
                         return sp.AbsolutePosition;
+                    return m_groupPosition;
                 }
 
                 // use root prim's group position. Physics may have updated it
