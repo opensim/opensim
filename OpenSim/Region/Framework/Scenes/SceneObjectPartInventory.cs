@@ -963,15 +963,15 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            client.SendTaskInventory(m_part.UUID, (short)m_inventorySerial,
-                    Util.StringToBytes256(m_inventoryFileName));
-
             if (!changed)
             {
                 if (m_inventoryFileData.Length > 2)
                 {
                     xferManager.AddNewFile(m_inventoryFileName,
                             m_inventoryFileData);
+                    client.SendTaskInventory(m_part.UUID, (short)m_inventorySerial,
+                            Util.StringToBytes256(m_inventoryFileName));
+
                     Items.LockItemsForRead(false);
                     return;
                 }
@@ -1037,6 +1037,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 xferManager.AddNewFile(m_inventoryFileName, m_inventoryFileData);
             }
+
+            client.SendTaskInventory(m_part.UUID, (short)m_inventorySerial,
+                    Util.StringToBytes256(m_inventoryFileName));
         }
 
         /// <summary>
