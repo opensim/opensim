@@ -742,11 +742,11 @@ namespace OpenSim.Region.Framework.Scenes
                     ScenePresence sp = m_parentGroup.Scene.GetScenePresence(AttachedAvatar);
                     if (sp != null)
                         return sp.AbsolutePosition;
-                    return m_groupPosition;
                 }
 
                 // use root prim's group position. Physics may have updated it
-                m_groupPosition = ParentGroup.RootPart.GroupPosition;
+                if (ParentGroup.RootPart != this)
+                    m_groupPosition = ParentGroup.RootPart.GroupPosition;
                 return m_groupPosition;
             }
             set
