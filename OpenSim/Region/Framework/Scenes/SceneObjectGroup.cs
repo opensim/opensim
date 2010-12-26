@@ -2584,7 +2584,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             axPos *= parentRot;
             part.OffsetPosition = axPos;
-            part.GroupPosition = oldGroupPosition + part.OffsetPosition;
+            Vector3 newPos = oldGroupPosition + part.OffsetPosition;
+            part.GroupPosition = newPos;
             part.OffsetPosition = Vector3.Zero;
             part.RotationOffset = worldRot;
 
@@ -2595,7 +2596,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             part.LinkNum = linkNum;
 
-            part.OffsetPosition = part.GroupPosition - AbsolutePosition;
+            part.OffsetPosition = newPos - AbsolutePosition;
 
             Quaternion rootRotation = m_rootPart.RotationOffset;
 
@@ -2605,7 +2606,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             parentRot = m_rootPart.RotationOffset;
             oldRot = part.RotationOffset;
-            Quaternion newRot = Quaternion.Inverse(parentRot) * oldRot;
+            Quaternion newRot = Quaternion.Inverse(parentRot) * worldRot;
             part.RotationOffset = newRot;
         }
 
