@@ -1108,12 +1108,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Vector3 AbsolutePosition
         {
-            get {
-                if (IsAttachment)
-                    return GroupPosition + (m_offsetPosition * ParentGroup.RootPart.RotationOffset);
-
-//                return m_offsetPosition + m_groupPosition; }
-                return m_groupPosition + (m_offsetPosition * ParentGroup.RootPart.RotationOffset) ; }  //KF: Rotation was ignored!
+            get
+            {
+                return GroupPosition + (m_offsetPosition * ParentGroup.RootPart.RotationOffset);
+            }
         }
 
         public SceneObjectGroup ParentGroup
