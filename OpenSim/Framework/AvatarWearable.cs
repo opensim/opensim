@@ -88,8 +88,6 @@ namespace OpenSim.Framework
 //        public static readonly UUID DEFAULT_TATTOO_ITEM = new UUID("c47e22bd-3021-4ba4-82aa-2b5cb34d35e1");
 //        public static readonly UUID DEFAULT_TATTOO_ASSET = new UUID("00000000-0000-2222-3333-100000001007");
  
-        private static AvatarWearable[] defaultWearables = null;
-
         protected Dictionary<UUID, UUID> m_items = new Dictionary<UUID, UUID>();
         protected List<UUID> m_ids = new List<UUID>();
 
@@ -221,7 +219,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                defaultWearables = new AvatarWearable[MAX_WEARABLES]; //should be 15 of these
+                AvatarWearable[] defaultWearables = new AvatarWearable[MAX_WEARABLES]; //should be 15 of these
                 for (int i = 0; i < MAX_WEARABLES; i++)
                 {
                     defaultWearables[i] = new AvatarWearable();
