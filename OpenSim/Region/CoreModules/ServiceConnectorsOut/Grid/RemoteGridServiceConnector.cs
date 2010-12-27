@@ -36,6 +36,7 @@ using OpenSim.Framework;
 using OpenSim.Services.Connectors;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
@@ -97,9 +98,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return;
             }
 
+            string networkConnector = gridConfig.GetString("NetworkConnector", string.Empty);
+            if (networkConnector == string.Empty)
+            {
+                m_log.Error("[REMOTE GRID CONNECTOR]: Please specify a network connector under [GridService]");
+                return;
+            }
+
+            Object[] args = new Object[] { source }; 
+            m_RemoteGridService = ServerUtils.LoadPlugin<IGridService>(networkConnector, args);
+
             m_LocalGridService = new LocalGridServicesConnector(source);
-            m_RemoteGridService = new GridServicesConnector(source);
-        }
+        }   
 
         public void PostInitialise()
         {
