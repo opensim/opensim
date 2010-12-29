@@ -532,7 +532,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             if (upd != null)
             {
-                GridRegion reginfo = m_Scenes[0].GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID,
+                GridRegion reginfo = m_Scenes[0].GridService.GetRegionByUUID(UUID.Zero,
                     upd.RegionID);
                 if (reginfo != null)
                 {
