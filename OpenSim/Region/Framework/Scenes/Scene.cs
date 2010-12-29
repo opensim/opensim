@@ -1428,9 +1428,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void CheckAtTargets()
         {
-            Dictionary<UUID, SceneObjectGroup>.ValueCollection objs;
+            List<SceneObjectGroup> objs = new List<SceneObjectGroup>();
             lock (m_groupsWithTargets)
-                objs = m_groupsWithTargets.Values;
+                objs = new List<SceneObjectGroup>(m_groupsWithTargets.Values);
 
             foreach (SceneObjectGroup entry in objs)
                 entry.checkAtTargets();
