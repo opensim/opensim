@@ -496,7 +496,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             contact.surface.mu = 255.0f;
             contact.surface.bounce = 0.0f;
             contact.surface.soft_cfm = 0.0f;
-            contact.surface.soft_erp = 1.00f;	// If this is too small static Av will fall through a sloping prim.
+            contact.surface.soft_erp = 0.30f;	// If this is too small static Av will fall through a sloping prim. 1.0 prevents fall-thru
 
             // Terrain contact friction and Bounce
             // This is the *non* moving version.   Use this when an avatar
@@ -523,9 +523,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             // Use this when an avatar comes in contact with a prim
             AvatarMovementprimContact.surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
             AvatarMovementprimContact.surface.mu = 255.0f;
-            AvatarMovementprimContact.surface.bounce = 0.01f;
+            AvatarMovementprimContact.surface.bounce = 0.0f;
             AvatarMovementprimContact.surface.soft_cfm = 0.0f; // if this is 0.01 then prims become phantom to Avs!
-            AvatarMovementprimContact.surface.soft_erp = 0.001f;
+            AvatarMovementprimContact.surface.soft_erp = 0.3f;
 
             // Terrain contact friction bounce and various error correcting calculations
             // Use this when an avatar is in contact with the terrain and moving.
@@ -559,11 +559,11 @@ namespace OpenSim.Region.Physics.OdePlugin
              */
 
             m_materialContacts = new d.Contact[7,2];
-
+                                                //  V  1 = Sliding; 0 = static or fell onto
             m_materialContacts[(int)Material.Stone, 0] = new d.Contact();
             m_materialContacts[(int)Material.Stone, 0].surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            m_materialContacts[(int)Material.Stone, 0].surface.mu = 1.8f;
-            m_materialContacts[(int)Material.Stone, 0].surface.bounce = 0.0f;
+            m_materialContacts[(int)Material.Stone, 0].surface.mu = 1.8f;           // friction, 1 = slippery, 255 = no slip
+            m_materialContacts[(int)Material.Stone, 0].surface.bounce = 0.0f;       
             m_materialContacts[(int)Material.Stone, 0].surface.soft_cfm = 0.0f;
             m_materialContacts[(int)Material.Stone, 0].surface.soft_erp = 0.50f;
 
@@ -588,27 +588,19 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_materialContacts[(int)Material.Metal, 1].surface.soft_cfm = 0.0f;
             m_materialContacts[(int)Material.Metal, 1].surface.soft_erp = 0.50f;
 
-            /*
-				flags : d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce
-				private float nmAvatarObjectContactFriction = 250f;
-                private float nmAvatarObjectContactBounce = 0.1f;
-
-                private float mAvatarObjectContactFriction = 75f;
-                private float mAvatarObjectContactBounce = 0.1f;
-            */
             m_materialContacts[(int)Material.Glass, 0] = new d.Contact();
             m_materialContacts[(int)Material.Glass, 0].surface.mode  = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
             m_materialContacts[(int)Material.Glass, 0].surface.mu = 1f;
-            m_materialContacts[(int)Material.Glass, 0].surface.bounce = 0.1f;
-            m_materialContacts[(int)Material.Glass, 0].surface.soft_cfm = 0.0f;
+            m_materialContacts[(int)Material.Glass, 0].surface.bounce = 0.0f;
+            m_materialContacts[(int)Material.Glass, 0].surface.soft_cfm = 0.01f;
             m_materialContacts[(int)Material.Glass, 0].surface.soft_erp = 0.50f;
 
             m_materialContacts[(int)Material.Glass, 1] = new d.Contact();
             m_materialContacts[(int)Material.Glass, 1].surface.mode  = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
             m_materialContacts[(int)Material.Glass, 1].surface.mu = 1f;
-            m_materialContacts[(int)Material.Glass, 1].surface.bounce = 0.1f;
+            m_materialContacts[(int)Material.Glass, 1].surface.bounce = 0.0f;
             m_materialContacts[(int)Material.Glass, 1].surface.soft_cfm = 0.0f;
-            m_materialContacts[(int)Material.Glass, 1].surface.soft_erp = 0.50f;
+            m_materialContacts[(int)Material.Glass, 1].surface.soft_erp = 0.30f;
 
             m_materialContacts[(int)Material.Wood, 0] = new d.Contact();
             m_materialContacts[(int)Material.Wood, 0].surface.mode  = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
@@ -827,6 +819,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 p2 = PANull;
             }
 
+if((p1 is OdePrim ) && (p2 is OdePrim)){
+    OdePrim t1 = (OdePrim)p1;
+    OdePrim t2 = (OdePrim)p2;
+    Console.WriteLine("Collision {0}  {1}", t1.m_primName, t2.m_primName);
+} 
             ContactPoint maxDepthContact = new ContactPoint();
             if (p1.CollisionScore + count >= float.MaxValue)
                 p1.CollisionScore = 0;
@@ -835,7 +832,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (p2.CollisionScore + count >= float.MaxValue)
                 p2.CollisionScore = 0;
             p2.CollisionScore += count;
-
             for (int i = 0; i < count; i++)
             {
                 d.ContactGeom curContact = contacts[i];
@@ -863,18 +859,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 //#@                    if ((p2.Position.Z - curContact.pos.Z) > (p2.Size.Z * 0.6f))
 //#@                        p2.IsColliding = true;
                     if ((p2.Position.Z - curContact.pos.Z) > (p2.Size.Z * 0.6f)){       //##
-//Console.WriteLine("AvColl 1  {0} - {1} - {2} - {3}",        //##
-//                    curContact.pos.Z, p2.Position.Z, (p2.Position.Z - curContact.pos.Z), (p2.Size.Z * 0.6f));                              //##
                         p2.IsColliding = true;       //##
                     }else{
-//Console.WriteLine("AvColl 2  {0} - {1} - {2} - {3}",        //##
-//                    curContact.pos.Z, p2.Position.Z, (p2.Position.Z - curContact.pos.Z), (p2.Size.Z * 0.6f));                              //##
 
                     }  //##   
                  }
                 else
                 {
-//Console.WriteLine("AvColl 3 {0}", p2.PhysicsActorType); //##
                     p2.IsColliding = true;
                 }
                 
@@ -1075,6 +1066,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (!skipThisContact)
                 {
+                    //   Add contact joints with materials params----------------------------------
+                    int material = (int) Material.Wood;
+                    int movintYN = 0;  // 1 = Sliding; 0 = static or fell onto
+
                     // If we're colliding against terrain
                     if (name1 == "Terrain" || name2 == "Terrain")
                     {
@@ -1082,7 +1077,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         if ((p2.PhysicsActorType == (int) ActorTypes.Agent) &&
                             (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
                         {
-                            // Use the movement terrain contact
+                            //$ Av walk/run on terrain (not falling) Use the Avatar movement terrain contact
                             AvatarMovementTerrainContact.geom = curContact;
                             _perloopContact.Add(curContact);
                             if (m_global_contactcount < maxContactsbeforedeath)
@@ -1095,7 +1090,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             if (p2.PhysicsActorType == (int)ActorTypes.Agent)
                             {
-                                // Use the non moving terrain contact
+                                //$ Av standing on terrain, Use the non moving Avata terrain contact
                                 TerrainContact.geom = curContact;
                                 _perloopContact.Add(curContact);
                                 if (m_global_contactcount < maxContactsbeforedeath)
@@ -1108,10 +1103,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 if (p2.PhysicsActorType == (int)ActorTypes.Prim && p1.PhysicsActorType == (int)ActorTypes.Prim)
                                 {
-                                    // prim prim contact
+                                    //& THIS NEVER HAPPENS prim prim contact //kf Huh? In terrain contact?
                                     // int pj294950 = 0;
-                                    int movintYN = 0;
-                                    int material = (int) Material.Wood;
                                     // prim terrain contact
                                     if (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f)
                                     {
@@ -1120,7 +1113,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                                     if (p2 is OdePrim)
                                         material = ((OdePrim)p2).m_material;
-
                                     //m_log.DebugFormat("Material: {0}", material);
                                     m_materialContacts[material, movintYN].geom = curContact;
                                     _perloopContact.Add(curContact);
@@ -1135,15 +1127,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 }
                                 else
                                 {
-
-                                    int movintYN = 0;
-                                    // prim terrain contact
+                                   //$ prim on terrain contact
                                     if (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f)
                                     {
                                         movintYN = 1;
                                     }
-
-                                    int material = (int)Material.Wood;
 
                                     if (p2 is OdePrim)
                                         material = ((OdePrim)p2).m_material;
@@ -1167,6 +1155,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else if (name1 == "Water" || name2 == "Water")
                     {
+                        //$ This never happens!
                         /*
                         if ((p2.PhysicsActorType == (int) ActorTypes.Prim))
                         {
@@ -1194,10 +1183,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
-                        // we're colliding with prim or avatar
+
+                        // no terrain and no water, we're colliding with prim or avatar
                         // check if we're moving
                         if ((p2.PhysicsActorType == (int)ActorTypes.Agent))
                         {
+                            //$ Avatar on Prim or other Avatar
                             if ((Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
                             {
                                 // Use the AV Movement / prim contact
@@ -1217,28 +1208,52 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                                 if (m_global_contactcount < maxContactsbeforedeath)
                                 {
+                                    if (curContact.depth > 0.2)
+                                    {   // embedded, eject slowly
+                                        contact.surface.soft_erp = 0.1f;
+                                        contact.surface.soft_cfm = 0.1f;
+                                    }
+                                    else 
+                                    {   // keep on the surface
+                                        contact.surface.soft_erp = 0.3f;
+                                        contact.surface.soft_cfm = 0.0f;
+                                    }
                                     joint = d.JointCreateContact(world, contactgroup, ref contact);
                                     m_global_contactcount++;
+/*
+Console.WriteLine("Prim | Av collision 2  mode={0}  mu={1}  bounce={2}  bv={3} erp={4} cfm={5} mot={6}  depth={7}", 
+contact.surface.mode,
+contact.surface.mu,
+contact.surface.bounce,
+contact.surface.bounce_vel,
+contact.surface.soft_erp,
+contact.surface.soft_cfm,
+contact.surface.motion1,
+curContact.depth);
+*/
                                 }
                             }
                         }
                         else if (p2.PhysicsActorType == (int)ActorTypes.Prim)
                         {
+                            //$ Prim on Prim
                             //p1.PhysicsActorType
-                            int material = (int)Material.Wood;
 
-                            if (p2 is OdePrim)
-                                material = ((OdePrim)p2).m_material;
-                            
+                            if (p2 is OdePrim) material = ((OdePrim)p2).m_material;
                             //m_log.DebugFormat("Material: {0}", material);
-                            m_materialContacts[material, 0].geom = curContact;
+
+                            if (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f)
+                            {
+                                movintYN = 1;
+                            }
+                            
+                            m_materialContacts[material, movintYN].geom = curContact;
                             _perloopContact.Add(curContact);
 
                             if (m_global_contactcount < maxContactsbeforedeath)
                             {
-                                joint = d.JointCreateContact(world, contactgroup, ref m_materialContacts[material, 0]);
+                                joint = d.JointCreateContact(world, contactgroup, ref m_materialContacts[material, movintYN]);
                                 m_global_contactcount++;
-
                             }
                         }
                     }
@@ -1261,8 +1276,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 //m_log.Debug(count.ToString());
                 //m_log.Debug("near: A collision was detected between {1} and {2}", 0, name1, name2);
-            }
-        }
+            } // end for i.. loop
+        } // end near
 
         private bool checkDupe(d.ContactGeom contactGeom, int atype)
         {
