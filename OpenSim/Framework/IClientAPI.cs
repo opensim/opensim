@@ -587,6 +587,23 @@ namespace OpenSim.Framework
         }
     }
 
+    public class PlacesReplyData
+    {
+        public UUID OwnerID;
+        public string Name;
+        public string Desc;
+        public int ActualArea;
+        public int BillableArea;
+        public byte Flags;
+        public uint GlobalX;
+        public uint GlobalY;
+        public uint GlobalZ;
+        public string SimName;
+        public UUID SnapshotID;
+        public uint Dwell;
+        public int Price;
+    }
+
     /// <summary>
     /// Specifies the fields that have been changed when sending a prim or
     /// avatar update
@@ -1321,5 +1338,7 @@ namespace OpenSim.Framework
         void SendTextBoxRequest(string message, int chatChannel, string objectname, string ownerFirstName, string ownerLastName, UUID objectId);
 
         void StopFlying(ISceneEntity presence);
+
+        void SendPlacesReply(UUID queryID, UUID transactionID, PlacesReplyData[] data);
     }
 }

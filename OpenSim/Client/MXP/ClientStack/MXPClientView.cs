@@ -1735,5 +1735,9 @@ namespace OpenSim.Client.MXP.ClientStack
         public void StopFlying(ISceneEntity presence)
         {
         }
+
+        public void SendPlacesReply(UUID queryID, UUID transactionID, PlacesReplyData[] data)
+        {
+        }
     }
 }

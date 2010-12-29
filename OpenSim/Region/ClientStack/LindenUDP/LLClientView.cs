@@ -12088,7 +12088,61 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             //ControllingClient.SendAvatarTerseUpdate(new SendAvatarTerseData(m_rootRegionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId,
             //        AbsolutePosition, Velocity, Vector3.Zero, m_bodyRot, new Vector4(0,0,1,AbsolutePosition.Z - 0.5f), m_uuid, null, GetUpdatePriority(ControllingClient)));
+        }
 
+        public void SendPlacesReply(UUID queryID, UUID transactionID,
+                PlacesReplyData[] data)
+        {
+            PlacesReplyPacket reply = null;
+            PlacesReplyPacket.QueryDataBlock[] dataBlocks = 
+                    new PlacesReplyPacket.QueryDataBlock[0];
+
+            for (int i = 0 ; i < data.Length ; i++)
+            {
+                PlacesReplyPacket.QueryDataBlock block =
+                        new PlacesReplyPacket.QueryDataBlock();
+
+                block.OwnerID = data[i].OwnerID;
+                block.Name = Util.StringToBytes256(data[i].Name);
+                block.Desc = Util.StringToBytes1024(data[i].Desc);
+                block.ActualArea = data[i].ActualArea;
+                block.BillableArea = data[i].BillableArea;
+                block.Flags = data[i].Flags;
+                block.GlobalX = data[i].GlobalX;
+                block.GlobalY = data[i].GlobalY;
+                block.GlobalZ = data[i].GlobalZ;
+                block.SimName = Util.StringToBytes256(data[i].SimName);
+                block.SnapshotID = data[i].SnapshotID;
+                block.Dwell = data[i].Dwell;
+                block.Price = data[i].Price;
+
+                if (reply != null && reply.Length + block.Length > 1400)
+                {
+                    OutPacket(reply, ThrottleOutPacketType.Task);
+
+                    reply = null;
+                    dataBlocks = new PlacesReplyPacket.QueryDataBlock[0];
+                }
+
+                if (reply == null)
+                {
+                    reply = (PlacesReplyPacket)PacketPool.Instance.GetPacket(PacketType.PlacesReply);
+                    reply.AgentData = new PlacesReplyPacket.AgentDataBlock();
+                    reply.AgentData.AgentID = AgentId;
+                    reply.AgentData.QueryID = queryID;
+
+                    reply.TransactionData = new PlacesReplyPacket.TransactionDataBlock();
+                    reply.TransactionData.TransactionID = transactionID;
+
+                    reply.QueryData = dataBlocks;
+                }
+
+                Array.Resize(ref dataBlocks, dataBlocks.Length + 1);
+                dataBlocks[dataBlocks.Length - 1] = block;
+                reply.QueryData = dataBlocks;
+            }
+            if (reply != null)
+                OutPacket(reply, ThrottleOutPacketType.Task);
         }
     }
 }

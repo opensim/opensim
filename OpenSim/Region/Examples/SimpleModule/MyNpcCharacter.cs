@@ -1170,5 +1170,9 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void StopFlying(ISceneEntity presence)
         {
         }
+
+        public void SendPlacesReply(UUID queryID, UUID transactionID, PlacesReplyData[] data)
+        {
+        }
     }
 }
