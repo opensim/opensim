@@ -1223,5 +1223,9 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         public void StopFlying(ISceneEntity presence)
         {
         }
+
+        public void SendPlacesReply(UUID queryID, UUID transactionID, PlacesReplyData[] data)
+        {
+        }
     }
 }

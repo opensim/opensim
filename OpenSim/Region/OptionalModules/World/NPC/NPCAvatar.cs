@@ -1170,5 +1170,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public void StopFlying(ISceneEntity presence)
         {
         }
+
+        public void SendPlacesReply(UUID queryID, UUID transactionID, PlacesReplyData[] data)
+        {
+        }
     }
 }
