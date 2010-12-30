@@ -75,469 +75,193 @@ namespace OpenSim.Services.Connectors.Simulation
             return "agent/";
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint flags, out string reason)
         {
-            HttpWebRequest AgentCreateRequest = null;
+            m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: CreateAgent start");
+            
             reason = String.Empty;
-
-            if (SendRequest(destination, aCircuit, flags, out reason, out AgentCreateRequest))
-            {
-                string response = GetResponse(AgentCreateRequest, out reason);
-                bool success = true;
-                UnpackResponse(response, out success, out reason);
-                return success;
-            }
-
-            return false;
-        }
-
-
-        protected bool SendRequest(GridRegion destination, AgentCircuitData aCircuit, uint flags, out string reason, out HttpWebRequest AgentCreateRequest)
-        {
-            reason = String.Empty;
-            AgentCreateRequest = null;
-
             if (destination == null)
             {
-                reason = "Destination is null";
                 m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Given destination is null");
                 return false;
             }
 
             string uri = destination.ServerURI + AgentPath() + aCircuit.AgentID + "/";
-
-            AgentCreateRequest = (HttpWebRequest)WebRequest.Create(uri);
-            AgentCreateRequest.Method = "POST";
-            AgentCreateRequest.ContentType = "application/json";
-            AgentCreateRequest.Timeout = 10000;
-            //AgentCreateRequest.KeepAlive = false;
-            //AgentCreateRequest.Headers.Add("Authorization", authKey);
-
-            // Fill it in
-            OSDMap args = PackCreateAgentArguments(aCircuit, destination, flags);
-            if (args == null)
-                return false;
-
-            string strBuffer = "";
-            byte[] buffer = new byte[1];
-            try
-            {
-                strBuffer = OSDParser.SerializeJsonString(args);
-                Encoding str = Util.UTF8;
-                buffer = str.GetBytes(strBuffer);
-
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: Exception thrown on serialization of ChildCreate: {0}", e.Message);
-                // ignore. buffer will be empty, caller should check.
-            }
-
-            Stream os = null;
-            try
-            { // send the Post
-                AgentCreateRequest.ContentLength = buffer.Length;   //Count bytes to send
-                os = AgentCreateRequest.GetRequestStream();
-                os.Write(buffer, 0, strBuffer.Length);         //Send it
-                m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: Posted CreateAgent request to remote sim {0}, region {1}, x={2} y={3}",
-                    uri, destination.RegionName, destination.RegionLocX, destination.RegionLocY);
-            }
-            //catch (WebException ex)
-            catch
-            {
-                //m_log.ErrorFormat("[REMOTE SIMULATION CONNECTOR]: Bad send on ChildAgentUpdate {0}", ex.Message);
-                reason = "cannot contact remote region";
-                return false;
-            }
-            finally
-            {
-                if (os != null)
-                    os.Close();
-            }
-
-            return true;
-        }
-
-        protected string GetResponse(HttpWebRequest AgentCreateRequest, out string reason)
-        {
-            // Let's wait for the response
-            //m_log.Info("[REMOTE SIMULATION CONNECTOR]: Waiting for a reply after DoCreateChildAgentCall");
-            reason = string.Empty;
-
-            WebResponse webResponse = null;
-            StreamReader sr = null;
-            string response = string.Empty;
-            try
-            {
-                webResponse = AgentCreateRequest.GetResponse();
-                if (webResponse == null)
-                {
-                    m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Null reply on DoCreateChildAgentCall post");
-                }
-                else
-                {
-
-                    sr = new StreamReader(webResponse.GetResponseStream());
-                    response = sr.ReadToEnd().Trim();
-                    m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: DoCreateChildAgentCall reply was {0} ", response);
-                }
-            }
-            catch (WebException ex)
-            {
-                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: exception on reply of DoCreateChildAgentCall {0}", ex.Message);
-                reason = "Destination did not reply";
-                return string.Empty;
-            }
-            finally
-            {
-                if (sr != null)
-                    sr.Close();
-            }
-
-            return response;
-        }
-
-        protected void UnpackResponse(string response, out bool result, out string reason)
-        {
-            result = true;
-            reason = string.Empty;
-            if (!String.IsNullOrEmpty(response))
-            {
-                try
-                {
-                    // we assume we got an OSDMap back
-                    OSDMap r = Util.GetOSDMap(response);
-                    result = r["success"].AsBoolean();
-                    reason = r["reason"].AsString();
-                }
-                catch (NullReferenceException e)
-                {
-                    m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: exception on reply of DoCreateChildAgentCall {0}", e.Message);
-
-                    // check for old style response
-                    if (response.ToLower().StartsWith("true"))
-                        result = true;
-
-                    result = false;
-                }
-            }
-        }
-
-        protected virtual OSDMap PackCreateAgentArguments(AgentCircuitData aCircuit, GridRegion destination, uint flags)
-        {
-            OSDMap args = null;
-            try
-            {
-                args = aCircuit.PackAgentCircuitData();
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[REMOTE SIMULATION CONNECTOR]: PackAgentCircuitData failed with exception: " + e.Message);
-                return null;
-            }
             
-            // Add the input arguments
-            args["destination_x"] = OSD.FromString(destination.RegionLocX.ToString());
-            args["destination_y"] = OSD.FromString(destination.RegionLocY.ToString());
-            args["destination_name"] = OSD.FromString(destination.RegionName);
-            args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
-            args["teleport_flags"] = OSD.FromString(flags.ToString());
+            try
+            {
+                OSDMap args = aCircuit.PackAgentCircuitData();
 
-            return args;
+                args["destination_x"] = OSD.FromString(destination.RegionLocX.ToString());
+                args["destination_y"] = OSD.FromString(destination.RegionLocY.ToString());
+                args["destination_name"] = OSD.FromString(destination.RegionName);
+                args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
+                args["teleport_flags"] = OSD.FromString(flags.ToString());
+
+                OSDMap result = WebUtil.PostToService(uri,args);
+                if (result["Success"].AsBoolean())
+                    return true;
+                
+                reason = result["Message"] != null ? result["Message"].AsString() : "error";
+                return false;
+            }
+            catch (Exception e)
+            {
+                m_log.Warn("[REMOTE SIMULATION CONNECTOR]: CreateAgent failed with exception: " + e.ToString());
+                reason = e.Message;
+            }
+
+            return false;
         }
 
+        /// <summary>
+        /// Send complete data about an agent in this region to a neighbor
+        /// </summary>
         public bool UpdateAgent(GridRegion destination, AgentData data)
         {
             return UpdateAgent(destination, (IAgentData)data);
         }
 
+        /// <summary>
+        /// Send updated position information about an agent in this region to a neighbor
+        /// This operation may be called very frequently if an avatar is moving about in
+        /// the region.
+        /// </summary>
         public bool UpdateAgent(GridRegion destination, AgentPosition data)
         {
+            // we need a better throttle for these
+            return false;
+            
             return UpdateAgent(destination, (IAgentData)data);
         }
 
+        /// <summary>
+        /// This is the worker function to send AgentData to a neighbor region
+        /// </summary>
         private bool UpdateAgent(GridRegion destination, IAgentData cAgentData)
         {
-            // Eventually, we want to use a caps url instead of the agentID
+            m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: UpdateAgent start");
 
+            // Eventually, we want to use a caps url instead of the agentID
             string uri = destination.ServerURI + AgentPath() + cAgentData.AgentID + "/";
 
-            HttpWebRequest ChildUpdateRequest = (HttpWebRequest)WebRequest.Create(uri);
-            ChildUpdateRequest.Method = "PUT";
-            ChildUpdateRequest.ContentType = "application/json";
-            ChildUpdateRequest.Timeout = 30000;
-            //ChildUpdateRequest.KeepAlive = false;
-
-            // Fill it in
-            OSDMap args = null;
             try
             {
-                args = cAgentData.Pack();
+                OSDMap args = cAgentData.Pack();
+
+                args["destination_x"] = OSD.FromString(destination.RegionLocX.ToString());
+                args["destination_y"] = OSD.FromString(destination.RegionLocY.ToString());
+                args["destination_name"] = OSD.FromString(destination.RegionName);
+                args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
+
+                OSDMap result = WebUtil.PutToService(uri,args);
+                return result["Success"].AsBoolean();
             }
             catch (Exception e)
             {
-                m_log.Warn("[REMOTE SIMULATION CONNECTOR]: PackUpdateMessage failed with exception: " + e.Message);
-            }
-            // Add the input arguments
-            args["destination_x"] = OSD.FromString(destination.RegionLocX.ToString());
-            args["destination_y"] = OSD.FromString(destination.RegionLocY.ToString());
-            args["destination_name"] = OSD.FromString(destination.RegionName);
-            args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
-
-            string strBuffer = "";
-            byte[] buffer = new byte[1];
-            try
-            {
-                strBuffer = OSDParser.SerializeJsonString(args);
-                Encoding str = Util.UTF8;
-                buffer = str.GetBytes(strBuffer);
-
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: Exception thrown on serialization of ChildUpdate: {0}", e.Message);
-                // ignore. buffer will be empty, caller should check.
+                m_log.Warn("[REMOTE SIMULATION CONNECTOR]: UpdateAgent failed with exception: " + e.ToString());
             }
 
-            Stream os = null;
-            try
-            { // send the Post
-                ChildUpdateRequest.ContentLength = buffer.Length;   //Count bytes to send
-                os = ChildUpdateRequest.GetRequestStream();
-                os.Write(buffer, 0, strBuffer.Length);         //Send it
-                //m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: Posted AgentUpdate request to remote sim {0}", uri);
-            }
-            catch (WebException ex)
-            //catch
-            {
-                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: Bad send on AgentUpdate {0}", ex.Message);
-
-                return false;
-            }
-            finally
-            {
-                if (os != null)
-                    os.Close();
-            }
-
-            // Let's wait for the response
-            //m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Waiting for a reply after ChildAgentUpdate");
-
-            WebResponse webResponse = null;
-            StreamReader sr = null;
-            try
-            {
-                webResponse = ChildUpdateRequest.GetResponse();
-                if (webResponse == null)
-                {
-                    m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Null reply on ChilAgentUpdate post");
-                }
-
-                sr = new StreamReader(webResponse.GetResponseStream());
-                //reply = sr.ReadToEnd().Trim();
-                sr.ReadToEnd().Trim();
-                sr.Close();
-                //m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: ChilAgentUpdate reply was {0} ", reply);
-
-            }
-            catch (WebException ex)
-            {
-                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: exception on reply of ChilAgentUpdate from {0}: {1}", uri, ex.Message);
-                // ignore, really
-            }
-            finally
-            {
-                if (sr != null)
-                    sr.Close();
-            }
-
-            return true;
+            return false;
         }
 
+        /// <summary>
+        /// Not sure what sequence causes this function to be invoked. The only calling
+        /// path is through the GET method 
+        /// </summary>
         public bool RetrieveAgent(GridRegion destination, UUID id, out IAgentData agent)
         {
+            m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: RetrieveAgent start");
+
             agent = null;
+
             // Eventually, we want to use a caps url instead of the agentID
             string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
 
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            request.Method = "GET";
-            request.Timeout = 10000;
-            //request.Headers.Add("authorization", ""); // coming soon
-
-            HttpWebResponse webResponse = null;
-            string reply = string.Empty;
-            StreamReader sr = null;
             try
             {
-                webResponse = (HttpWebResponse)request.GetResponse();
-                if (webResponse == null)
+                OSDMap result = WebUtil.GetFromService(uri);
+                if (result["Success"].AsBoolean())
                 {
-                    m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Null reply on agent get ");
+                    // OSDMap args = Util.GetOSDMap(result["_RawResult"].AsString());
+                    OSDMap args = (OSDMap)result["_Result"];
+                    if (args != null)
+                    {
+                        agent = new CompleteAgentData();
+                        agent.Unpack(args);
+                        return true;
+                    }
                 }
-
-                sr = new StreamReader(webResponse.GetResponseStream());
-                reply = sr.ReadToEnd().Trim();
-
-
             }
-            catch (WebException ex)
+            catch (Exception e)
             {
-                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: exception on reply of agent get {0}", ex.Message);
-                // ignore, really
-                return false;
-            }
-            finally
-            {
-                if (sr != null)
-                    sr.Close();
-            }
-
-            if (webResponse.StatusCode == HttpStatusCode.OK)
-            {
-                // we know it's jason
-                OSDMap args = Util.GetOSDMap(reply);
-                if (args == null)
-                {
-                    return false;
-                }
-
-                agent = new CompleteAgentData();
-                agent.Unpack(args);
-                return true;
+                m_log.Warn("[REMOTE SIMULATION CONNECTOR]: UpdateAgent failed with exception: " + e.ToString());
             }
 
             return false;
         }
 
+        /// <summary>
+        /// </summary>
         public bool QueryAccess(GridRegion destination, UUID id)
         {
+            m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess start");
+
             IPEndPoint ext = destination.ExternalEndPoint;
             if (ext == null) return false;
+
             // Eventually, we want to use a caps url instead of the agentID
             string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
 
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            request.Method = "QUERYACCESS";
-            request.Timeout = 10000;
-            //request.Headers.Add("authorization", ""); // coming soon
-
-            HttpWebResponse webResponse = null;
-            string reply = string.Empty;
-            StreamReader sr = null;
             try
             {
-                webResponse = (HttpWebResponse)request.GetResponse();
-                if (webResponse == null)
-                {
-                    m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Null reply on agent query ");
-                }
-
-                sr = new StreamReader(webResponse.GetResponseStream());
-                reply = sr.ReadToEnd().Trim();
-
-
+                OSDMap result = WebUtil.ServiceOSDRequest(uri,null,"QUERYACCESS",10000);
+                return result["Success"].AsBoolean();
             }
-            catch (WebException ex)
+            catch (Exception e)
             {
-                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: exception on reply of agent query {0}", ex.Message);
-                // ignore, really
-                return false;
+                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR] QueryAcess failed with exception; {0}",e.ToString());
             }
-            finally
-            {
-                if (sr != null)
-                    sr.Close();
-            }
-
-            if (webResponse.StatusCode == HttpStatusCode.OK)
-            {
-                try
-                {
-                    bool result;
-
-                    result = bool.Parse(reply);
-
-                    return result;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-
+            
             return false;
         }
 
+        /// <summary>
+        /// </summary>
         public bool ReleaseAgent(UUID origin, UUID id, string uri)
         {
-            WebRequest request = WebRequest.Create(uri);
-            request.Method = "DELETE";
-            request.Timeout = 10000;
+            m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: ReleaseAgent start");
 
-            StreamReader sr = null;
             try
             {
-                WebResponse webResponse = request.GetResponse();
-                if (webResponse == null)
-                {
-                    m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Null reply on ReleaseAgent");
-                }
-
-                sr = new StreamReader(webResponse.GetResponseStream());
-                //reply = sr.ReadToEnd().Trim();
-                sr.ReadToEnd().Trim();
-                sr.Close();
-                //m_log.InfoFormat("[REMOTE SIMULATION CONNECTOR]: ChilAgentUpdate reply was {0} ", reply);
-
+                OSDMap result = WebUtil.ServiceOSDRequest(uri,null,"DELETE",10000);
             }
-            catch (WebException ex)
+            catch (Exception e)
             {
-                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: exception on reply of ReleaseAgent {0}", ex.Message);
-                return false;
+                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR] ReleaseAgent failed with exception; {0}",e.ToString());
             }
-            finally
-            {
-                if (sr != null)
-                    sr.Close();
-            }
-
+            
             return true;
         }
 
+        /// <summary>
+        /// </summary>
         public bool CloseAgent(GridRegion destination, UUID id)
         {
+            m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: CloseAgent start");
+
             string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
 
-            WebRequest request = WebRequest.Create(uri);
-            request.Method = "DELETE";
-            request.Timeout = 10000;
-
-            StreamReader sr = null;
             try
             {
-                WebResponse webResponse = request.GetResponse();
-                if (webResponse == null)
-                {
-                    m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Null reply on agent delete ");
-                }
-
-                sr = new StreamReader(webResponse.GetResponseStream());
-                //reply = sr.ReadToEnd().Trim();
-                sr.ReadToEnd().Trim();
-                sr.Close();
-                //m_log.InfoFormat("[REMOTE SIMULATION CONNECTOR]: ChilAgentUpdate reply was {0} ", reply);
-
+                OSDMap result = WebUtil.ServiceOSDRequest(uri,null,"DELETE",10000);
             }
-            catch (WebException ex)
+            catch (Exception e)
             {
-                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: exception on reply of agent delete from {0}: {1}", destination.RegionName, ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (sr != null)
-                    sr.Close();
+                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR] CloseAgent failed with exception; {0}",e.ToString());
             }
 
             return true;
@@ -552,97 +276,46 @@ namespace OpenSim.Services.Connectors.Simulation
             return "object/";
         }
 
+        /// <summary>
+        ///
+        /// </summary>
         public bool CreateObject(GridRegion destination, ISceneObject sog, bool isLocalCall)
         {
-            string uri
-                = destination.ServerURI + ObjectPath() + sog.UUID + "/";
-            //m_log.Debug("   >>> DoCreateObjectCall <<< " + uri);
+            m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: CreateObject start");
 
-            WebRequest ObjectCreateRequest = WebRequest.Create(uri);
-            ObjectCreateRequest.Method = "POST";
-            ObjectCreateRequest.ContentType = "application/json";
-            ObjectCreateRequest.Timeout = 10000;
+            string uri = destination.ServerURI + ObjectPath() + sog.UUID + "/";
 
-            OSDMap args = new OSDMap(2);
-            args["sog"] = OSD.FromString(sog.ToXml2());
-            args["extra"] = OSD.FromString(sog.ExtraToXmlString());
-            args["modified"] = OSD.FromBoolean(sog.HasGroupChanged);
-            string state = sog.GetStateSnapshot();
-            if (state.Length > 0)
-                args["state"] = OSD.FromString(state);
-            // Add the input general arguments
-            args["destination_x"] = OSD.FromString(destination.RegionLocX.ToString());
-            args["destination_y"] = OSD.FromString(destination.RegionLocY.ToString());
-            args["destination_name"] = OSD.FromString(destination.RegionName);
-            args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
-
-            string strBuffer = "";
-            byte[] buffer = new byte[1];
             try
             {
-                strBuffer = OSDParser.SerializeJsonString(args);
-                Encoding str = Util.UTF8;
-                buffer = str.GetBytes(strBuffer);
+                OSDMap args = new OSDMap(2);
 
+                args["sog"] = OSD.FromString(sog.ToXml2());
+                args["extra"] = OSD.FromString(sog.ExtraToXmlString());
+                args["modified"] = OSD.FromBoolean(sog.HasGroupChanged);
+
+                string state = sog.GetStateSnapshot();
+                if (state.Length > 0)
+                    args["state"] = OSD.FromString(state);
+
+                // Add the input general arguments
+                args["destination_x"] = OSD.FromString(destination.RegionLocX.ToString());
+                args["destination_y"] = OSD.FromString(destination.RegionLocY.ToString());
+                args["destination_name"] = OSD.FromString(destination.RegionName);
+                args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
+
+                OSDMap result = WebUtil.PostToService(uri,args);
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: Exception thrown on serialization of CreateObject: {0}", e.Message);
-                // ignore. buffer will be empty, caller should check.
-            }
-
-            Stream os = null;
-            try
-            { // send the Post
-                ObjectCreateRequest.ContentLength = buffer.Length;   //Count bytes to send
-                os = ObjectCreateRequest.GetRequestStream();
-                os.Write(buffer, 0, strBuffer.Length);         //Send it
-                m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: Posted CreateObject request to remote sim {0}", uri);
-            }
-            catch (WebException ex)
-            {
-                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: Bad send on CreateObject {0}", ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (os != null)
-                    os.Close();
-            }
-
-            // Let's wait for the response
-            //m_log.Info("[REMOTE SIMULATION CONNECTOR]: Waiting for a reply after DoCreateChildAgentCall");
-
-            StreamReader sr = null;
-            try
-            {
-                WebResponse webResponse = ObjectCreateRequest.GetResponse();
-                if (webResponse == null)
-                {
-                    m_log.Warn("[REMOTE SIMULATION CONNECTOR]: Null reply on CreateObject post");
-                    return false;
-                }
-
-                sr = new StreamReader(webResponse.GetResponseStream());
-                //reply = sr.ReadToEnd().Trim();
-                sr.ReadToEnd().Trim();
-                //m_log.InfoFormat("[REMOTE SIMULATION CONNECTOR]: DoCreateChildAgentCall reply was {0} ", reply);
-
-            }
-            catch (WebException ex)
-            {
-                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: exception on reply of CreateObject {0}", ex.Message);
-                return false;
-            }
-            finally
-            {
-                if (sr != null)
-                    sr.Close();
+                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR] CreateObject failed with exception; {0}",e.ToString());
             }
 
             return true;
         }
 
+        /// <summary>
+        ///
+        /// </summary>
         public bool CreateObject(GridRegion destination, UUID userID, UUID itemID)
         {
             // TODO, not that urgent

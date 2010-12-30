@@ -50,6 +50,8 @@ namespace OpenSim.Framework
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
+        private static int m_requestNumber = 0;
+        
         /// <summary>
         /// Send LLSD to an HTTP client in application/llsd+json form
         /// </summary>
@@ -123,12 +125,145 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
+        /// PUT JSON-encoded data to a web service that returns LLSD or
+        /// JSON data
+        /// </summary>
+        public static OSDMap PutToService(string url, OSDMap data)
+        {
+            return ServiceOSDRequest(url,data,"PUT",10000);
+        }
+        
+        public static OSDMap PostToService(string url, OSDMap data)
+        {
+            return ServiceOSDRequest(url,data,"POST",10000);
+        }
+        
+        public static OSDMap GetFromService(string url)
+        {
+            return ServiceOSDRequest(url,null,"GET",10000);
+        }
+        
+        public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout)
+        {
+            int reqnum = m_requestNumber++;
+            m_log.WarnFormat("[WEB UTIL]: <{0}> start osd request for {1}, method {2}",reqnum,url,method);
+
+            string errorMessage = "unknown error";
+            int tickstart = Util.EnvironmentTickCount();
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.Method = method;
+                request.Timeout = timeout;
+                //request.KeepAlive = false;
+
+                // If there is some input, write it into the request
+                if (data != null)
+                {
+                    string strBuffer = OSDParser.SerializeJsonString(data);
+                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(strBuffer);
+
+                    request.ContentType = "application/json";
+                    request.ContentLength = buffer.Length;   //Count bytes to send
+                    using (Stream requestStream = request.GetRequestStream())
+                    {
+                        requestStream.Write(buffer, 0, strBuffer.Length);         //Send it
+                    }
+                }
+                
+                using (WebResponse webResponse = request.GetResponse())
+                {
+                    using (Stream responseStream = webResponse.GetResponseStream())
+                    {
+                        string responseStr = null;
+                        responseStr = responseStream.GetStreamString();
+                        m_log.WarnFormat("[WEB UTIL]: <{0}> response is <{1}>",reqnum,responseStr);
+                        return CanonicalizeResults(responseStr);
+                    }
+                }
+            }
+            catch (WebException we)
+            {
+                errorMessage = we.Message;
+                if (we.Status == WebExceptionStatus.ProtocolError)
+                {
+                    HttpWebResponse webResponse = (HttpWebResponse)we.Response;
+                    errorMessage = String.Format("[{0}] {1}",webResponse.StatusCode,webResponse.StatusDescription);
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+            }
+            finally
+            {
+                int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
+                if (tickdiff > 100)
+                    m_log.WarnFormat("[WEB UTIL]: request <{0}> took {1} milliseconds",reqnum,tickdiff);
+            }
+            
+            m_log.WarnFormat("[WEB UTIL] <{0}> request failed: {1}",reqnum,errorMessage);
+            return ErrorResponseMap(errorMessage);
+        }
+
+        /// <summary>
+        /// Since there are no consistencies in the way web requests are
+        /// formed, we need to do a little guessing about the result format.
+        /// Keys:
+        ///     Success|success == the success fail of the request
+        ///     _RawResult == the raw string that came back
+        ///     _Result == the OSD unpacked string
+        /// </summary>
+        private static OSDMap CanonicalizeResults(string response)
+        {
+            OSDMap result = new OSDMap();
+
+            // Default values
+            result["Success"] = OSD.FromBoolean(true);
+            result["success"] = OSD.FromBoolean(true);
+            result["_RawResult"] = OSD.FromString(response);
+            result["_Result"] = new OSDMap();
+            
+            if (response.Equals("true",System.StringComparison.OrdinalIgnoreCase))
+                return result;
+
+            if (response.Equals("false",System.StringComparison.OrdinalIgnoreCase))
+            {
+                result["Success"] = OSD.FromBoolean(false);
+                result["success"] = OSD.FromBoolean(false);
+                return result;
+            }
+
+            try 
+            {
+                OSD responseOSD = OSDParser.Deserialize(response);
+                if (responseOSD.Type == OSDType.Map)
+                {
+                    result["_Result"] = (OSDMap)responseOSD;
+                    return result;
+                }
+            }
+            catch (Exception e)
+            {
+                // don't need to treat this as an error... we're just guessing anyway
+                m_log.DebugFormat("[WEB UTIL] couldn't decode result: <{0}>",response);
+            }
+            
+            return result;
+        }
+        
+        /// <summary>
         /// POST URL-encoded form data to a web service that returns LLSD or
         /// JSON data
         /// </summary>
         public static OSDMap PostToService(string url, NameValueCollection data)
         {
+            int reqnum = m_requestNumber++;
+            string method = data["RequestMethod"] != null ? data["RequestMethod"] : "unknown";
+            m_log.WarnFormat("[WEB UTIL]: <{0}> start form request for {1}, method {2}",reqnum,url,method);
+
             string errorMessage;
+            int tickstart = Util.EnvironmentTickCount();
 
             try
             {
@@ -139,7 +274,7 @@ namespace OpenSim.Framework
                 request.Method = "POST";
                 request.ContentLength = requestData.Length;
                 request.ContentType = "application/x-www-form-urlencoded";
-
+                
                 Stream requestStream = request.GetRequestStream();
                 requestStream.Write(requestData, 0, requestData.Length);
                 requestStream.Close();
@@ -169,15 +304,42 @@ namespace OpenSim.Framework
                     }
                 }
             }
+            catch (WebException we)
+            {
+                errorMessage = we.Message;
+                if (we.Status == WebExceptionStatus.ProtocolError)
+                {
+                    HttpWebResponse webResponse = (HttpWebResponse)we.Response;
+                    errorMessage = String.Format("[{0}] {1}",webResponse.StatusCode,webResponse.StatusDescription);
+                }
+            }
             catch (Exception ex)
             {
-                m_log.Warn("POST to URL " + url + " failed: " + ex);
                 errorMessage = ex.Message;
             }
+            finally
+            {
+                int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
+                if (tickdiff > 100)
+                    m_log.WarnFormat("[WEB UTIL]: request <{0}> took {1} milliseconds",reqnum,tickdiff);
+            }
 
-            return new OSDMap { { "Message", OSD.FromString("Service request failed. " + errorMessage) } };
+            m_log.WarnFormat("[WEB UTIL]: <{0}> request failed: {1}",reqnum,errorMessage);
+            return ErrorResponseMap(errorMessage);
         }
 
+        /// <summary>
+        /// Create a response map for an error, trying to keep
+        /// the result formats consistent
+        /// </summary>
+        private static OSDMap ErrorResponseMap(string msg)
+        {
+            OSDMap result = new OSDMap();
+            result["Success"] = "False";
+            result["Message"] = OSD.FromString("Service request failed: " + msg);
+            return result;
+        }
+        
         #region Uri
 
         /// <summary>
