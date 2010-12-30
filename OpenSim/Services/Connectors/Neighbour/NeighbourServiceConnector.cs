@@ -87,7 +87,7 @@ namespace OpenSim.Services.Connectors
 
         public bool DoHelloNeighbourCall(GridRegion region, RegionInfo thisRegion)
         {
-            string uri = region.ServerURI + "/region/" + thisRegion.RegionID + "/";
+            string uri = region.ServerURI + "region/" + thisRegion.RegionID + "/";
             //m_log.Debug("   >>> DoHelloNeighbourCall <<< " + uri);
 
             WebRequest HelloNeighbourRequest = WebRequest.Create(uri);

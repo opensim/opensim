@@ -148,7 +148,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             string regionimage = "regionImage" + m_scene.RegionInfo.RegionID.ToString();
             regionimage = regionimage.Replace("-", "");
-            m_log.Info("[WORLD MAP]: JPEG Map location: " + m_scene.RegionInfo.ServerURI + "/index.php?method=" + regionimage);
+            m_log.Info("[WORLD MAP]: JPEG Map location: " + m_scene.RegionInfo.ServerURI + "index.php?method=" + regionimage);
 
             MainServer.Instance.AddHTTPHandler(regionimage, OnHTTPGetMapImage);
             MainServer.Instance.AddLLSDHandler(

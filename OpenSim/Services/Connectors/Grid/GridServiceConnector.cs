@@ -86,7 +86,7 @@ namespace OpenSim.Services.Connectors
 
         #region IGridService
 
-        public virtual string RegisterRegion(UUID scopeID, GridRegion regionInfo)
+        public string RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
             Dictionary<string, object> rinfo = regionInfo.ToKeyValuePairs();
             Dictionary<string, object> sendData = new Dictionary<string,object>();
@@ -140,7 +140,7 @@ namespace OpenSim.Services.Connectors
             return "Error communicating with grid service";
         }
 
-        public virtual bool DeregisterRegion(UUID regionID)
+        public bool DeregisterRegion(UUID regionID)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
 
@@ -172,7 +172,7 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
-        public virtual List<GridRegion> GetNeighbours(UUID scopeID, UUID regionID)
+        public List<GridRegion> GetNeighbours(UUID scopeID, UUID regionID)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
 
@@ -219,7 +219,7 @@ namespace OpenSim.Services.Connectors
             return rinfos;
         }
 
-        public virtual GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)
+        public GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
 
@@ -265,7 +265,7 @@ namespace OpenSim.Services.Connectors
             return rinfo;
         }
 
-        public virtual GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
+        public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
 
@@ -310,7 +310,7 @@ namespace OpenSim.Services.Connectors
             return rinfo;
         }
 
-        public virtual GridRegion GetRegionByName(UUID scopeID, string regionName)
+        public GridRegion GetRegionByName(UUID scopeID, string regionName)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
 
@@ -351,7 +351,7 @@ namespace OpenSim.Services.Connectors
             return rinfo;
         }
 
-        public virtual List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
+        public List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
 
@@ -400,7 +400,7 @@ namespace OpenSim.Services.Connectors
             return rinfos;
         }
 
-        public virtual List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
+        public List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
 
@@ -606,7 +606,7 @@ namespace OpenSim.Services.Connectors
             return rinfos;
         }
         
-        public virtual int GetRegionFlags(UUID scopeID, UUID regionID)
+        public int GetRegionFlags(UUID scopeID, UUID regionID)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
 

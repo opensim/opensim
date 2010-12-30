@@ -330,10 +330,12 @@ namespace OpenSim.Services.HypergridService
             if (parts.Length < 2)
                 return false;
 
-            string addressee = parts[0];
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: Verifying {0} against {1}", addressee, m_ExternalName);
+            char[] trailing_slash = new char[] { '/' };
+            string addressee = parts[0].TrimEnd(trailing_slash);
+            string externalname = m_ExternalName.TrimEnd(trailing_slash);
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: Verifying {0} against {1}", addressee, externalname);
 
-            return string.Equals(addressee, m_ExternalName, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(addressee, externalname, StringComparison.OrdinalIgnoreCase);
         }
 
         #endregion
