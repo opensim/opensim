@@ -47,6 +47,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
+        protected string m_MessageKey = String.Empty;
         protected List<Scene> m_Scenes = new List<Scene>();
         protected Dictionary<UUID, UUID> m_UserRegionMap = new Dictionary<UUID, UUID>();
 
@@ -66,14 +67,17 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         public virtual void Initialise(IConfigSource config)
         {
             IConfig cnf = config.Configs["Messaging"];
-            if (cnf != null && cnf.GetString(
-                    "MessageTransferModule", "MessageTransferModule") !=
-                    "MessageTransferModule")
+            if (cnf != null)
             {
-                m_log.Debug("[MESSAGE TRANSFER]: Disabled by configuration");
-                return;
-            }
+                if (cnf.GetString("MessageTransferModule",
+                        "MessageTransferModule") != "MessageTransferModule")
+                {
+                    return;
+                }
 
+                m_MessageKey = cnf.GetString("MessageKey", String.Empty);
+            }
+            m_log.Debug("[MESSAGE TRANSFER]: Module enabled");
             m_Enabled = true;
         }
 
@@ -250,6 +254,19 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                         && requestData.ContainsKey("position_z") && requestData.ContainsKey("region_id")
                         && requestData.ContainsKey("binary_bucket"))
                 {
+                    if (m_MessageKey != String.Empty)
+                    {
+                        XmlRpcResponse error_resp = new XmlRpcResponse();
+                        Hashtable error_respdata = new Hashtable();
+                        error_respdata["success"] = "FALSE";
+                        error_resp.Value = error_respdata;
+
+                        if (!requestData.Contains("message_key"))
+                            return error_resp;
+                        if (m_MessageKey != (string)requestData["message_key"])
+                            return error_resp;
+                    }
+
                     // Do the easy way of validating the UUIDs
                     UUID.TryParse((string)requestData["from_agent_id"], out fromAgentID);
                     UUID.TryParse((string)requestData["to_agent_id"], out toAgentID);
@@ -681,6 +698,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             gim["position_z"] = msg.Position.Z.ToString();
             gim["region_id"] = msg.RegionID.ToString();
             gim["binary_bucket"] = Convert.ToBase64String(msg.binaryBucket,Base64FormattingOptions.None);
+            if (m_MessageKey != String.Empty)
+                gim["message_key"] = m_MessageKey;
             return gim;
         }
 
