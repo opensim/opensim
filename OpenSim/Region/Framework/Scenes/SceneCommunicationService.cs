@@ -189,7 +189,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public delegate void SendChildAgentDataUpdateDelegate(AgentPosition cAgentData, ulong regionHandle);
+        public delegate void SendChildAgentDataUpdateDelegate(AgentPosition cAgentData, UUID scopeID, ulong regionHandle);
 
         /// <summary>
         /// This informs all neighboring regions about the settings of it's child agent.
@@ -198,7 +198,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// This contains information, such as, Draw Distance, Camera location, Current Position, Current throttle settings, etc.
         ///
         /// </summary>
-        private void SendChildAgentDataUpdateAsync(AgentPosition cAgentData, ulong regionHandle)
+        private void SendChildAgentDataUpdateAsync(AgentPosition cAgentData, UUID scopeID, ulong regionHandle)
         {
             //m_log.Info("[INTERGRID]: Informing neighbors about my agent in " + m_regionInfo.RegionName);
             try
@@ -241,7 +241,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (regionHandle != m_regionInfo.RegionHandle)
                     {
                         SendChildAgentDataUpdateDelegate d = SendChildAgentDataUpdateAsync;
-                        d.BeginInvoke(cAgentData, regionHandle,
+                        d.BeginInvoke(cAgentData, m_regionInfo.ScopeID, regionHandle,
                                       SendChildAgentDataUpdateCompleted,
                                       d);
                     }
@@ -269,7 +269,7 @@ namespace OpenSim.Region.Framework.Scenes
             //m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, agentID);
             uint x = 0, y = 0;
             Utils.LongToUInts(regionHandle, out x, out y);
-            GridRegion destination = m_scene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
+            GridRegion destination = m_scene.GridService.GetRegionByPosition(m_regionInfo.ScopeID, (int)x, (int)y);
             m_scene.SimulationService.CloseChildAgent(destination, agentID);
         }
 
