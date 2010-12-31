@@ -64,7 +64,7 @@ namespace OpenSim.Services.Connectors
             m_GridService = gridServices;
         }
 
-        public virtual LandData GetLandData(ulong regionHandle, uint x, uint y, out byte regionAccess)
+        public virtual LandData GetLandData(UUID scopeID, ulong regionHandle, uint x, uint y, out byte regionAccess)
         {
             LandData landData = null;
             Hashtable hash = new Hashtable();
@@ -80,7 +80,7 @@ namespace OpenSim.Services.Connectors
             {
                 uint xpos = 0, ypos = 0;
                 Utils.LongToUInts(regionHandle, out xpos, out ypos);
-                GridRegion info = m_GridService.GetRegionByPosition(UUID.Zero, (int)xpos, (int)ypos);
+                GridRegion info = m_GridService.GetRegionByPosition(scopeID, (int)xpos, (int)ypos);
                 if (info != null) // just to be sure
                 {
                     XmlRpcRequest request = new XmlRpcRequest("land_data", paramList);
