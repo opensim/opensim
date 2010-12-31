@@ -1582,7 +1582,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     // most likely still cached from building the extLandData entry
                     uint x = 0, y = 0;
                     Utils.LongToUInts(data.RegionHandle, out x, out y);
-                    info = m_scene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
+                    info = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, (int)x, (int)y);
                 }
                 // we need to transfer the fake parcelID, not the one in landData, so the viewer can match it to the landmark.
                 m_log.DebugFormat("[LAND] got parcelinfo for parcel {0} in region {1}; sending...",
