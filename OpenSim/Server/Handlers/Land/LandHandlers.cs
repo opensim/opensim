@@ -67,7 +67,7 @@ namespace OpenSim.Server.Handlers.Land
             m_log.DebugFormat("[LAND HANDLER]: Got request for land data at {0}, {1} for region {2}", x, y, regionHandle);
 
             byte regionAccess;
-            LandData landData = m_LocalService.GetLandData(regionHandle, x, y, out regionAccess);
+            LandData landData = m_LocalService.GetLandData(UUID.Zero, regionHandle, x, y, out regionAccess);
             Hashtable hash = new Hashtable();
             if (landData != null)
             {
