@@ -183,7 +183,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 return returnstring;
             }
 
-            UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, uuid);
+            UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(UUID.Zero, uuid);
 
             if (account != null)
             {
