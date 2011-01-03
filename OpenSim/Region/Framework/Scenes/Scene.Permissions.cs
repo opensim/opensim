@@ -43,6 +43,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool PropagatePermissionsHandler();
     public delegate bool RezObjectHandler(int objectCount, UUID owner, Vector3 objectPosition, Scene scene);
     public delegate bool DeleteObjectHandler(UUID objectID, UUID deleter, Scene scene);
+    public delegate bool TransferObjectHandler(UUID objectID, UUID recipient, Scene scene);
     public delegate bool TakeObjectHandler(UUID objectID, UUID stealer, Scene scene);
     public delegate bool TakeCopyObjectHandler(UUID objectID, UUID userID, Scene inScene);
     public delegate bool DuplicateObjectHandler(int objectCount, UUID objectID, UUID owner, Scene scene, Vector3 objectPosition);
@@ -80,10 +81,12 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool CreateObjectInventoryHandler(int invType, UUID objectID, UUID userID);
     public delegate bool CopyObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
     public delegate bool DeleteObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
+    public delegate bool TransferObjectInventoryHandler(UUID itemID, UUID objectID, UUID userID);
     public delegate bool CreateUserInventoryHandler(int invType, UUID userID);
     public delegate bool EditUserInventoryHandler(UUID itemID, UUID userID);
     public delegate bool CopyUserInventoryHandler(UUID itemID, UUID userID);
     public delegate bool DeleteUserInventoryHandler(UUID itemID, UUID userID);
+    public delegate bool TransferUserInventoryHandler(UUID itemID, UUID userID, UUID recipientID);
     public delegate bool TeleportHandler(UUID userID, Scene scene);
     public delegate bool ControlPrimMediaHandler(UUID userID, UUID primID, int face);
     public delegate bool InteractWithPrimMediaHandler(UUID userID, UUID primID, int face);
@@ -107,6 +110,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event PropagatePermissionsHandler OnPropagatePermissions;
         public event RezObjectHandler OnRezObject;
         public event DeleteObjectHandler OnDeleteObject;
+        public event TransferObjectHandler OnTransferObject;
         public event TakeObjectHandler OnTakeObject;
         public event TakeCopyObjectHandler OnTakeCopyObject;
         public event DuplicateObjectHandler OnDuplicateObject;
@@ -144,10 +148,12 @@ namespace OpenSim.Region.Framework.Scenes
         public event CreateObjectInventoryHandler OnCreateObjectInventory;
         public event CopyObjectInventoryHandler OnCopyObjectInventory;
         public event DeleteObjectInventoryHandler OnDeleteObjectInventory;
+        public event TransferObjectInventoryHandler OnTransferObjectInventory;
         public event CreateUserInventoryHandler OnCreateUserInventory;
         public event EditUserInventoryHandler OnEditUserInventory;
         public event CopyUserInventoryHandler OnCopyUserInventory;
         public event DeleteUserInventoryHandler OnDeleteUserInventory;
+        public event TransferUserInventoryHandler OnTransferUserInventory;
         public event TeleportHandler OnTeleport;
         public event ControlPrimMediaHandler OnControlPrimMedia;
         public event InteractWithPrimMediaHandler OnInteractWithPrimMedia;
@@ -264,10 +270,27 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             
-//            m_log.DebugFormat(
-//                "[SCENE PERMISSIONS]: CanDeleteObject() fired for object {0}, deleter {1}, result {2}", 
-//                objectID, deleter, result);
-                        
+            return result;
+        }
+
+        public bool CanTransferObject(UUID objectID, UUID recipient)
+        {
+            bool result = true;
+            
+            TransferObjectHandler handler = OnTransferObject;
+            if (handler != null)
+            {
+                Delegate[] list = handler.GetInvocationList();
+                foreach (TransferObjectHandler h in list)
+                {
+                    if (h(objectID, recipient, m_scene) == false)
+                    {
+                        result = false;
+                        break;
+                    }
+                }
+            }
+            
             return result;
         }
 
@@ -917,6 +940,21 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
         
+        public bool CanTransferObjectInventory(UUID itemID, UUID objectID, UUID userID)
+        {
+            TransferObjectInventoryHandler handler = OnTransferObjectInventory;
+            if (handler != null)
+            {
+                Delegate[] list = handler.GetInvocationList();
+                foreach (TransferObjectInventoryHandler h in list)
+                {
+                    if (h(itemID, objectID, userID) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+        
         /// <summary>
         /// Check whether the specified user is allowed to create the given inventory type in their inventory.
         /// </summary>
@@ -995,6 +1033,21 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (DeleteUserInventoryHandler h in list)
                 {
                     if (h(itemID, userID) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+        
+        public bool CanTransferUserInventory(UUID itemID, UUID userID, UUID recipientID)
+        {
+            TransferUserInventoryHandler handler = OnTransferUserInventory;
+            if (handler != null)
+            {
+                Delegate[] list = handler.GetInvocationList();
+                foreach (TransferUserInventoryHandler h in list)
+                {
+                    if (h(itemID, userID, recipientID) == false)
                         return false;
                 }
             }
