@@ -80,7 +80,7 @@ namespace OpenSim.Services.Connectors.Simulation
         /// </summary>
         public bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint flags, out string reason)
         {
-            m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: CreateAgent start");
+            // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: CreateAgent start");
             
             reason = String.Empty;
             if (destination == null)
@@ -143,7 +143,7 @@ namespace OpenSim.Services.Connectors.Simulation
         /// </summary>
         private bool UpdateAgent(GridRegion destination, IAgentData cAgentData)
         {
-            m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: UpdateAgent start");
+            // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: UpdateAgent start");
 
             // Eventually, we want to use a caps url instead of the agentID
             string uri = destination.ServerURI + AgentPath() + cAgentData.AgentID + "/";
@@ -174,7 +174,7 @@ namespace OpenSim.Services.Connectors.Simulation
         /// </summary>
         public bool RetrieveAgent(GridRegion destination, UUID id, out IAgentData agent)
         {
-            m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: RetrieveAgent start");
+            // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: RetrieveAgent start");
 
             agent = null;
 
@@ -208,7 +208,7 @@ namespace OpenSim.Services.Connectors.Simulation
         /// </summary>
         public bool QueryAccess(GridRegion destination, UUID id)
         {
-            m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess start");
+            // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess start");
 
             IPEndPoint ext = destination.ExternalEndPoint;
             if (ext == null) return false;
@@ -233,7 +233,7 @@ namespace OpenSim.Services.Connectors.Simulation
         /// </summary>
         public bool ReleaseAgent(UUID origin, UUID id, string uri)
         {
-            m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: ReleaseAgent start");
+            // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: ReleaseAgent start");
 
             try
             {
@@ -251,7 +251,7 @@ namespace OpenSim.Services.Connectors.Simulation
         /// </summary>
         public bool CloseAgent(GridRegion destination, UUID id)
         {
-            m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: CloseAgent start");
+            // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: CloseAgent start");
 
             string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
 
@@ -281,7 +281,7 @@ namespace OpenSim.Services.Connectors.Simulation
         /// </summary>
         public bool CreateObject(GridRegion destination, ISceneObject sog, bool isLocalCall)
         {
-            m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: CreateObject start");
+            // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: CreateObject start");
 
             string uri = destination.ServerURI + ObjectPath() + sog.UUID + "/";
 

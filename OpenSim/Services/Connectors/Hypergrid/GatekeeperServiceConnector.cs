@@ -283,7 +283,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         public bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint flags, out string myipaddress, out string reason)
         {
-            m_log.WarnFormat("[GATEKEEPER SERVICE CONNECTOR]: CreateAgent start");
+            // m_log.DebugFormat("[GATEKEEPER SERVICE CONNECTOR]: CreateAgent start");
 
             myipaddress = String.Empty;
             reason = String.Empty;

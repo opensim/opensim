@@ -146,7 +146,7 @@ namespace OpenSim.Framework
         public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout)
         {
             int reqnum = m_requestNumber++;
-            m_log.WarnFormat("[WEB UTIL]: <{0}> start osd request for {1}, method {2}",reqnum,url,method);
+            m_log.DebugFormat("[WEB UTIL]: <{0}> start osd request for {1}, method {2}",reqnum,url,method);
 
             string errorMessage = "unknown error";
             int tickstart = Util.EnvironmentTickCount();
@@ -177,7 +177,7 @@ namespace OpenSim.Framework
                     {
                         string responseStr = null;
                         responseStr = responseStream.GetStreamString();
-                        m_log.WarnFormat("[WEB UTIL]: <{0}> response is <{1}>",reqnum,responseStr);
+                        // m_log.DebugFormat("[WEB UTIL]: <{0}> response is <{1}>",reqnum,responseStr);
                         return CanonicalizeResults(responseStr);
                     }
                 }
@@ -197,9 +197,11 @@ namespace OpenSim.Framework
             }
             finally
             {
+                // This just dumps a warning for any operation that takes more than 100 ms
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
                 if (tickdiff > 100)
-                    m_log.WarnFormat("[WEB UTIL]: request <{0}> took {1} milliseconds",reqnum,tickdiff);
+                    m_log.WarnFormat("[WEB UTIL]: request <{0}> (URI:{1}, METHOD:{2}) took {3} milliseconds",
+                                     reqnum,url,method,tickdiff);
             }
             
             m_log.WarnFormat("[WEB UTIL] <{0}> request failed: {1}",reqnum,errorMessage);
@@ -260,7 +262,7 @@ namespace OpenSim.Framework
         {
             int reqnum = m_requestNumber++;
             string method = data["RequestMethod"] != null ? data["RequestMethod"] : "unknown";
-            m_log.WarnFormat("[WEB UTIL]: <{0}> start form request for {1}, method {2}",reqnum,url,method);
+            m_log.DebugFormat("[WEB UTIL]: <{0}> start form request for {1}, method {2}",reqnum,url,method);
 
             string errorMessage;
             int tickstart = Util.EnvironmentTickCount();
@@ -321,7 +323,8 @@ namespace OpenSim.Framework
             {
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
                 if (tickdiff > 100)
-                    m_log.WarnFormat("[WEB UTIL]: request <{0}> took {1} milliseconds",reqnum,tickdiff);
+                    m_log.WarnFormat("[WEB UTIL]: request <{0}> (URI:{1}, METHOD:{2}) took {3} milliseconds",
+                                     reqnum,url,method,tickdiff);
             }
 
             m_log.WarnFormat("[WEB UTIL]: <{0}> request failed: {1}",reqnum,errorMessage);
