@@ -133,7 +133,7 @@ namespace OpenSim.Services.Connectors.Simulation
         public bool UpdateAgent(GridRegion destination, AgentPosition data)
         {
             // we need a better throttle for these
-            return false;
+            // return false;
             
             return UpdateAgent(destination, (IAgentData)data);
         }
