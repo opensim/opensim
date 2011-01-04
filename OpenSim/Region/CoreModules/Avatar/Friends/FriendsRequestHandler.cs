@@ -116,7 +116,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (!UUID.TryParse(request["ToID"].ToString(), out toID))
                 return FailureResult();
 
-            UserAccount account = m_FriendsModule.UserAccountService.GetUserAccount(m_FriendsModule.Scene.RegionInfo.ScopeID, fromID);
+            UserAccount account = m_FriendsModule.UserAccountService.GetUserAccount(UUID.Zero, fromID);
             string name = (account == null) ? "Unknown" : account.FirstName + " " + account.LastName;
 
             GridInstantMessage im = new GridInstantMessage(m_FriendsModule.Scene, fromID, name, toID, 

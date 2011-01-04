@@ -489,7 +489,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             im.imSessionID = im.fromAgentID;
 
             // Try the local sim
-            UserAccount account = UserAccountService.GetUserAccount(Scene.RegionInfo.ScopeID, agentID);
+            UserAccount account = UserAccountService.GetUserAccount(UUID.Zero, agentID);
             im.fromAgentName = (account == null) ? "Unknown" : account.FirstName + " " + account.LastName;
             
             if (LocalFriendshipOffered(friendID, im))

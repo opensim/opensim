@@ -1510,40 +1510,40 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (parcelID == UUID.Zero)
                 return;
 
-            ExtendedLandData data =
-                (ExtendedLandData)parcelInfoCache.Get(parcelID.ToString(),
-                                                      delegate(string id)
-                                                      {
-                                                          UUID parcel = UUID.Zero;
-                                                          UUID.TryParse(id, out parcel);
-                                                          // assume we've got the parcelID we just computed in RemoteParcelRequest
-                                                          ExtendedLandData extLandData = new ExtendedLandData();
-                                                          Util.ParseFakeParcelID(parcel, out extLandData.RegionHandle,
-                                                                                 out extLandData.X, out extLandData.Y);
-                                                          m_log.DebugFormat("[LAND] got parcelinfo request for regionHandle {0}, x/y {1}/{2}",
-                                                                            extLandData.RegionHandle, extLandData.X, extLandData.Y);
+            ExtendedLandData data = (ExtendedLandData)parcelInfoCache.Get(parcelID.ToString(),
+                    delegate(string id)
+                    {
+                        UUID parcel = UUID.Zero;
+                        UUID.TryParse(id, out parcel);
+                        // assume we've got the parcelID we just computed in RemoteParcelRequest
+                        ExtendedLandData extLandData = new ExtendedLandData();
+                        Util.ParseFakeParcelID(parcel, out extLandData.RegionHandle,
+                                               out extLandData.X, out extLandData.Y);
+                        m_log.DebugFormat("[LAND] got parcelinfo request for regionHandle {0}, x/y {1}/{2}",
+                                          extLandData.RegionHandle, extLandData.X, extLandData.Y);
 
-                                                          // for this region or for somewhere else?
-                                                          if (extLandData.RegionHandle == m_scene.RegionInfo.RegionHandle)
-                                                          {
-                                                              extLandData.LandData = this.GetLandObject(extLandData.X, extLandData.Y).LandData;
-                                                              extLandData.RegionAccess = m_scene.RegionInfo.AccessLevel;
-                                                          }
-                                                          else
-                                                          {
-                                                              ILandService landService = m_scene.RequestModuleInterface<ILandService>();
-                                                              extLandData.LandData = landService.GetLandData(extLandData.RegionHandle,
-                                                                                                             extLandData.X,
-                                                                                                             extLandData.Y,
-                                                                                                             out extLandData.RegionAccess);
-                                                              if (extLandData.LandData == null)
-                                                              {
-                                                                  // we didn't find the region/land => don't cache
-                                                                  return null;
-                                                              }
-                                                          }
-                                                          return extLandData;
-                                                      });
+                        // for this region or for somewhere else?
+                        if (extLandData.RegionHandle == m_scene.RegionInfo.RegionHandle)
+                        {
+                            extLandData.LandData = this.GetLandObject(extLandData.X, extLandData.Y).LandData;
+                            extLandData.RegionAccess = m_scene.RegionInfo.AccessLevel;
+                        }
+                        else
+                        {
+                            ILandService landService = m_scene.RequestModuleInterface<ILandService>();
+                            extLandData.LandData = landService.GetLandData(m_scene.RegionInfo.ScopeID,
+                                    extLandData.RegionHandle,
+                                    extLandData.X,
+                                    extLandData.Y,
+                                    out extLandData.RegionAccess);
+                            if (extLandData.LandData == null)
+                            {
+                                // we didn't find the region/land => don't cache
+                                return null;
+                            }
+                        }
+                        return extLandData;
+                    });
 
             if (data != null)  // if we found some data, send it
             {
@@ -1557,7 +1557,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     // most likely still cached from building the extLandData entry
                     uint x = 0, y = 0;
                     Utils.LongToUInts(data.RegionHandle, out x, out y);
-                    info = m_scene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
+                    info = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, (int)x, (int)y);
                 }
                 // we need to transfer the fake parcelID, not the one in landData, so the viewer can match it to the landmark.
                 m_log.DebugFormat("[LAND] got parcelinfo for parcel {0} in region {1}; sending...",

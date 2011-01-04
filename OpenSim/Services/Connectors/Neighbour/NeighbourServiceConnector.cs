@@ -71,7 +71,7 @@ namespace OpenSim.Services.Connectors
         {
             uint x = 0, y = 0;
             Utils.LongToUInts(regionHandle, out x, out y);
-            GridRegion regInfo = m_GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
+            GridRegion regInfo = m_GridService.GetRegionByPosition(thisRegion.ScopeID, (int)x, (int)y);
             if ((regInfo != null) &&
                 // Don't remote-call this instance; that's a startup hickup
                 !((regInfo.ExternalHostName == thisRegion.ExternalHostName) && (regInfo.HttpPort == thisRegion.HttpPort)))

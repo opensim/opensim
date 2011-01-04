@@ -37,6 +37,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
 using OpenSim.Services.Interfaces;
+using OpenMetaverse;
 
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Land
@@ -121,7 +122,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Land
 
         #region ILandService
 
-        public LandData GetLandData(ulong regionHandle, uint x, uint y, out byte regionAccess)
+        public LandData GetLandData(UUID scopeID, ulong regionHandle, uint x, uint y, out byte regionAccess)
         {
             m_log.DebugFormat("[LAND IN CONNECTOR]: GetLandData for {0}. Count = {1}",
                 regionHandle, m_Scenes.Count);
