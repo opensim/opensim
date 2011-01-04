@@ -2499,7 +2499,7 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.WarnFormat("[SP] Send avatar data from {0} to {1}",m_uuid,avatar.ControllingClient.AgentId);
 
             avatar.ControllingClient.SendAvatarDataImmediate(this);
-            if (Animation != null)
+            if (Animator != null)
                 Animator.SendAnimPackToClient(avatar.ControllingClient);
         }
 
