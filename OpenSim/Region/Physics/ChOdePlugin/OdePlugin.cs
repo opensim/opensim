@@ -264,8 +264,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private readonly DoubleDictionary<Vector3, IntPtr, IntPtr> RegionTerrain = new DoubleDictionary<Vector3, IntPtr, IntPtr>();
         private readonly Dictionary<IntPtr,float[]> TerrainHeightFieldHeights = new Dictionary<IntPtr, float[]>();
 
-        private d.Contact contact;
+        private d.Contact ContactCopy;                  // local copy that can be modified
         private d.Contact TerrainContact;
+        private d.Contact AvatarStaticprimContact;      // was 'contact'
         private d.Contact AvatarMovementprimContact;
         private d.Contact AvatarMovementTerrainContact;
         private d.Contact WaterContact;
@@ -491,169 +492,140 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             staticPrimspace = new IntPtr[(int)(300 / metersInSpace), (int)(300 / metersInSpace)];
 
-            // Centeral contact friction and bounce // KF: This appears to be only for static AV on non-phys prim.
-            contact.surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            contact.surface.mu = 255.0f;
-            contact.surface.bounce = 0.0f;
-            contact.surface.soft_cfm = 0.0f;
-            contact.surface.soft_erp = 0.30f;	// If this is too small static Av will fall through a sloping prim. 1.0 prevents fall-thru
+            // Avatar static on a Prim parameters
+            AvatarStaticprimContact.surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
+            AvatarStaticprimContact.surface.mu = 255.0f;
+            AvatarStaticprimContact.surface.bounce = 0.0f;
+            AvatarStaticprimContact.surface.soft_cfm = 0.0f;
+            AvatarStaticprimContact.surface.soft_erp = 0.30f;	// If this is too small static Av will fall through a sloping prim. 1.0 prevents fall-thru
 
-            // Terrain contact friction and Bounce
-            // This is the *non* moving version.   Use this when an avatar
-            // isn't moving to keep it in place better
-/*            TerrainContact.surface.mode |= d.ContactFlags.SoftERP;
-            TerrainContact.surface.mu = nmTerrainContactFriction;
-            TerrainContact.surface.bounce = nmTerrainContactBounce;
-            TerrainContact.surface.soft_erp = nmTerrainContactERP; */
-
-            TerrainContact.surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            TerrainContact.surface.mu = 255.0f;
-            TerrainContact.surface.bounce = 0.0f;
-            TerrainContact.surface.soft_cfm = 0.0f;
-            TerrainContact.surface.soft_erp = 0.05f;
-
-            WaterContact.surface.mode |= (d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM);
-            WaterContact.surface.mu = 0.0f; // No friction
-            WaterContact.surface.bounce = 0.0f; // No bounce
-            WaterContact.surface.soft_cfm = 0.010f;
-            WaterContact.surface.soft_erp = 0.010f;
-
-            // Prim contact friction and bounce
-            // THis is the moving version of friction and bounce
-            // Use this when an avatar comes in contact with a prim
+            // Avatar moving on a Prim parameters
             AvatarMovementprimContact.surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
             AvatarMovementprimContact.surface.mu = 255.0f;
             AvatarMovementprimContact.surface.bounce = 0.0f;
             AvatarMovementprimContact.surface.soft_cfm = 0.0f; // if this is 0.01 then prims become phantom to Avs!
             AvatarMovementprimContact.surface.soft_erp = 0.3f;
 
-            // Terrain contact friction bounce and various error correcting calculations
-            // Use this when an avatar is in contact with the terrain and moving.
-/*
-            AvatarMovementTerrainContact.surface.mode |= d.ContactFlags.SoftERP;
-            AvatarMovementTerrainContact.surface.mu = mTerrainContactFriction;
-            AvatarMovementTerrainContact.surface.bounce = mTerrainContactBounce;
-            AvatarMovementTerrainContact.surface.soft_erp = mTerrainContactERP;
-*/
+            // Static Avatar on Terrain parameters
+            // Keeps Avatar in place better
+            TerrainContact.surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
+            TerrainContact.surface.mu = 255.0f;
+            TerrainContact.surface.bounce = 0.0f;
+            TerrainContact.surface.soft_cfm = 0.0f;
+            TerrainContact.surface.soft_erp = 0.05f;
+
+            // Moving Avatar on Terrain parameters
             AvatarMovementTerrainContact.surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
             AvatarMovementTerrainContact.surface.mu = 75f;
             AvatarMovementTerrainContact.surface.bounce = 0.0f;
             AvatarMovementTerrainContact.surface.soft_cfm = 0.0f;
             AvatarMovementTerrainContact.surface.soft_erp = 0.05f;
 
-            /*
-                <summary></summary>
-                Stone = 0,
-                /// <summary></summary>
-                Metal = 1,
-                /// <summary></summary>
-                Glass = 2,
-                /// <summary></summary>
-                Wood = 3,
-                /// <summary></summary>
-                Flesh = 4,
-                /// <summary></summary>
-                Plastic = 5,
-                /// <summary></summary>
-                Rubber = 6
-             */
+            // Avatar or prim the the water, this may not be used, possibly water is same as air?
+            WaterContact.surface.mode |= (d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM);
+            WaterContact.surface.mu = 0.0f; // No friction
+            WaterContact.surface.bounce = 0.0f; // No bounce
+            WaterContact.surface.soft_cfm = 0.010f;
+            WaterContact.surface.soft_erp = 0.010f;
 
+
+            // Prim static or moving on a prim, depends on material type
             m_materialContacts = new d.Contact[7,2];
                                                 //  V  1 = Sliding; 0 = static or fell onto
             m_materialContacts[(int)Material.Stone, 0] = new d.Contact();
             m_materialContacts[(int)Material.Stone, 0].surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            m_materialContacts[(int)Material.Stone, 0].surface.mu = 1.8f;           // friction, 1 = slippery, 255 = no slip
+            m_materialContacts[(int)Material.Stone, 0].surface.mu = 60f;           // friction, 1 = slippery, 255 = no slip
             m_materialContacts[(int)Material.Stone, 0].surface.bounce = 0.0f;       
             m_materialContacts[(int)Material.Stone, 0].surface.soft_cfm = 0.0f;
-            m_materialContacts[(int)Material.Stone, 0].surface.soft_erp = 0.50f;
+            m_materialContacts[(int)Material.Stone, 0].surface.soft_erp = 0.50f;    // erp also changes friction, more erp=less friction
 
             m_materialContacts[(int)Material.Stone, 1] = new d.Contact();
             m_materialContacts[(int)Material.Stone, 1].surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            m_materialContacts[(int)Material.Stone, 1].surface.mu = 1.8f;
+            m_materialContacts[(int)Material.Stone, 1].surface.mu = 40f;
             m_materialContacts[(int)Material.Stone, 1].surface.bounce = 0.0f;
             m_materialContacts[(int)Material.Stone, 1].surface.soft_cfm = 0.0f;
             m_materialContacts[(int)Material.Stone, 1].surface.soft_erp = 0.50f;
 
             m_materialContacts[(int)Material.Metal, 0] = new d.Contact();
             m_materialContacts[(int)Material.Metal, 0].surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            m_materialContacts[(int)Material.Metal, 0].surface.mu = 1.3f;
+            m_materialContacts[(int)Material.Metal, 0].surface.mu = 15f;
             m_materialContacts[(int)Material.Metal, 0].surface.bounce = 0.2f;
             m_materialContacts[(int)Material.Metal, 0].surface.soft_cfm = 0.0f;
             m_materialContacts[(int)Material.Metal, 0].surface.soft_erp = 0.50f;
 
             m_materialContacts[(int)Material.Metal, 1] = new d.Contact();
             m_materialContacts[(int)Material.Metal, 1].surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            m_materialContacts[(int)Material.Metal, 1].surface.mu = 1.3f;
+            m_materialContacts[(int)Material.Metal, 1].surface.mu = 10f;
             m_materialContacts[(int)Material.Metal, 1].surface.bounce = 0.2f;
             m_materialContacts[(int)Material.Metal, 1].surface.soft_cfm = 0.0f;
             m_materialContacts[(int)Material.Metal, 1].surface.soft_erp = 0.50f;
 
             m_materialContacts[(int)Material.Glass, 0] = new d.Contact();
             m_materialContacts[(int)Material.Glass, 0].surface.mode  = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            m_materialContacts[(int)Material.Glass, 0].surface.mu = 1f;
+            m_materialContacts[(int)Material.Glass, 0].surface.mu = 7.5f;
             m_materialContacts[(int)Material.Glass, 0].surface.bounce = 0.0f;
-            m_materialContacts[(int)Material.Glass, 0].surface.soft_cfm = 0.01f;
+            m_materialContacts[(int)Material.Glass, 0].surface.soft_cfm = 0.0f;
             m_materialContacts[(int)Material.Glass, 0].surface.soft_erp = 0.50f;
 
             m_materialContacts[(int)Material.Glass, 1] = new d.Contact();
             m_materialContacts[(int)Material.Glass, 1].surface.mode  = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            m_materialContacts[(int)Material.Glass, 1].surface.mu = 1f;
+            m_materialContacts[(int)Material.Glass, 1].surface.mu = 5f;
             m_materialContacts[(int)Material.Glass, 1].surface.bounce = 0.0f;
             m_materialContacts[(int)Material.Glass, 1].surface.soft_cfm = 0.0f;
-            m_materialContacts[(int)Material.Glass, 1].surface.soft_erp = 0.30f;
+            m_materialContacts[(int)Material.Glass, 1].surface.soft_erp = 0.50f;
 
             m_materialContacts[(int)Material.Wood, 0] = new d.Contact();
             m_materialContacts[(int)Material.Wood, 0].surface.mode  = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            m_materialContacts[(int)Material.Wood, 0].surface.mu = 1.6f;
+            m_materialContacts[(int)Material.Wood, 0].surface.mu = 45f;
             m_materialContacts[(int)Material.Wood, 0].surface.bounce = 0.1f;
             m_materialContacts[(int)Material.Wood, 0].surface.soft_cfm = 0.0f;
             m_materialContacts[(int)Material.Wood, 0].surface.soft_erp = 0.50f;
 
             m_materialContacts[(int)Material.Wood, 1] = new d.Contact();
             m_materialContacts[(int)Material.Wood, 1].surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            m_materialContacts[(int)Material.Wood, 1].surface.mu = 1.6f;
+            m_materialContacts[(int)Material.Wood, 1].surface.mu = 30f;
             m_materialContacts[(int)Material.Wood, 1].surface.bounce = 0.1f;
             m_materialContacts[(int)Material.Wood, 1].surface.soft_cfm = 0.0f;
             m_materialContacts[(int)Material.Wood, 1].surface.soft_erp = 0.50f;
 
             m_materialContacts[(int)Material.Flesh, 0] = new d.Contact();
             m_materialContacts[(int)Material.Flesh, 0].surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            m_materialContacts[(int)Material.Flesh, 0].surface.mu = 2.0f;
+            m_materialContacts[(int)Material.Flesh, 0].surface.mu = 150f;
             m_materialContacts[(int)Material.Flesh, 0].surface.bounce = 0.0f;
             m_materialContacts[(int)Material.Flesh, 0].surface.soft_cfm = 0.0f;
             m_materialContacts[(int)Material.Flesh, 0].surface.soft_erp = 0.50f;
 
             m_materialContacts[(int)Material.Flesh, 1] = new d.Contact();
             m_materialContacts[(int)Material.Flesh, 1].surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            m_materialContacts[(int)Material.Flesh, 1].surface.mu = 2.0f;
+            m_materialContacts[(int)Material.Flesh, 1].surface.mu = 100f;
             m_materialContacts[(int)Material.Flesh, 1].surface.bounce = 0.0f;
             m_materialContacts[(int)Material.Flesh, 1].surface.soft_cfm = 0.0f;
             m_materialContacts[(int)Material.Flesh, 1].surface.soft_erp = 0.50f;
 
             m_materialContacts[(int)Material.Plastic, 0] = new d.Contact();
             m_materialContacts[(int)Material.Plastic, 0].surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            m_materialContacts[(int)Material.Plastic, 0].surface.mu = 1.5f;
+            m_materialContacts[(int)Material.Plastic, 0].surface.mu = 30f;
             m_materialContacts[(int)Material.Plastic, 0].surface.bounce = 0.2f;
             m_materialContacts[(int)Material.Plastic, 0].surface.soft_cfm = 0.0f;
             m_materialContacts[(int)Material.Plastic, 0].surface.soft_erp = 0.50f;
 
             m_materialContacts[(int)Material.Plastic, 1] = new d.Contact();
             m_materialContacts[(int)Material.Plastic, 1].surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            m_materialContacts[(int)Material.Plastic, 1].surface.mu = 1.5f;
+            m_materialContacts[(int)Material.Plastic, 1].surface.mu = 20f;
             m_materialContacts[(int)Material.Plastic, 1].surface.bounce = 0.2f;
             m_materialContacts[(int)Material.Plastic, 1].surface.soft_cfm = 0.0f;
             m_materialContacts[(int)Material.Plastic, 1].surface.soft_erp = 0.50f;
 
             m_materialContacts[(int)Material.Rubber, 0] = new d.Contact();
             m_materialContacts[(int)Material.Rubber, 0].surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            m_materialContacts[(int)Material.Rubber, 0].surface.mu = 2.0f;
+            m_materialContacts[(int)Material.Rubber, 0].surface.mu = 150f;
             m_materialContacts[(int)Material.Rubber, 0].surface.bounce = 0.7f;
             m_materialContacts[(int)Material.Rubber, 0].surface.soft_cfm = 0.0f;
             m_materialContacts[(int)Material.Rubber, 0].surface.soft_erp = 0.50f;
 
             m_materialContacts[(int)Material.Rubber, 1] = new d.Contact();
             m_materialContacts[(int)Material.Rubber, 1].surface.mode = d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP | d.ContactFlags.Bounce;
-            m_materialContacts[(int)Material.Rubber, 1].surface.mu = 2.0f;
+            m_materialContacts[(int)Material.Rubber, 1].surface.mu = 100f;
             m_materialContacts[(int)Material.Rubber, 1].surface.bounce = 0.7f;
             m_materialContacts[(int)Material.Rubber, 1].surface.soft_cfm = 0.0f;
             m_materialContacts[(int)Material.Rubber, 1].surface.soft_erp = 0.50f;
@@ -819,11 +791,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 p2 = PANull;
             }
 
-if((p1 is OdePrim ) && (p2 is OdePrim)){
-    OdePrim t1 = (OdePrim)p1;
-    OdePrim t2 = (OdePrim)p2;
-    Console.WriteLine("Collision {0}  {1}", t1.m_primName, t2.m_primName);
-} 
             ContactPoint maxDepthContact = new ContactPoint();
             if (p1.CollisionScore + count >= float.MaxValue)
                 p1.CollisionScore = 0;
@@ -847,7 +814,7 @@ if((p1 is OdePrim ) && (p2 is OdePrim)){
 
                 //m_log.Warn("[CCOUNT]: " + count);
                 IntPtr joint;
-                // If we're colliding with terrain, use 'TerrainContact' instead of contact.
+                // If we're colliding with terrain, use 'TerrainContact' instead of AvatarStaticprimContact.
                 // allows us to have different settings
                 
                 // We only need to test p2 for 'jump crouch purposes'
@@ -898,9 +865,9 @@ if((p1 is OdePrim ) && (p2 is OdePrim)){
                     //This is disabled at the moment only because it needs more tweaking
                     //It will eventually be uncommented
                     /*
-                    if (contact.depth >= 1.00f)
+                    if (AvatarStaticprimContact.depth >= 1.00f)
                     {
-                        //m_log.Debug("[PHYSICS]: " + contact.depth.ToString());
+                        //m_log.Debug("[PHYSICS]: " + AvatarStaticprimContact.depth.ToString());
                     }
 
                     //If you interpenetrate a prim with an agent
@@ -910,37 +877,37 @@ if((p1 is OdePrim ) && (p2 is OdePrim)){
                          p2.PhysicsActorType == (int) ActorTypes.Prim))
                     {
                         
-                        //contact.depth = contact.depth * 4.15f;
+                        //AvatarStaticprimContact.depth = AvatarStaticprimContact.depth * 4.15f;
                         /*
                         if (p2.PhysicsActorType == (int) ActorTypes.Agent)
                         {
                             p2.CollidingObj = true;
-                            contact.depth = 0.003f;
+                            AvatarStaticprimContact.depth = 0.003f;
                             p2.Velocity = p2.Velocity + new PhysicsVector(0, 0, 2.5f);
                             OdeCharacter character = (OdeCharacter) p2;
                             character.SetPidStatus(true);
-                            contact.pos = new d.Vector3(contact.pos.X + (p1.Size.X / 2), contact.pos.Y + (p1.Size.Y / 2), contact.pos.Z + (p1.Size.Z / 2));
+                            AvatarStaticprimContact.pos = new d.Vector3(AvatarStaticprimContact.pos.X + (p1.Size.X / 2), AvatarStaticprimContact.pos.Y + (p1.Size.Y / 2), AvatarStaticprimContact.pos.Z + (p1.Size.Z / 2));
 
                         }
                         else
                         {
 
-                            //contact.depth = 0.0000000f;
+                            //AvatarStaticprimContact.depth = 0.0000000f;
                         }
                         if (p1.PhysicsActorType == (int) ActorTypes.Agent)
                         {
 
                             p1.CollidingObj = true;
-                            contact.depth = 0.003f;
+                            AvatarStaticprimContact.depth = 0.003f;
                             p1.Velocity = p1.Velocity + new PhysicsVector(0, 0, 2.5f);
-                            contact.pos = new d.Vector3(contact.pos.X + (p2.Size.X / 2), contact.pos.Y + (p2.Size.Y / 2), contact.pos.Z + (p2.Size.Z / 2));
+                            AvatarStaticprimContact.pos = new d.Vector3(AvatarStaticprimContact.pos.X + (p2.Size.X / 2), AvatarStaticprimContact.pos.Y + (p2.Size.Y / 2), AvatarStaticprimContact.pos.Z + (p2.Size.Z / 2));
                             OdeCharacter character = (OdeCharacter)p1;
                             character.SetPidStatus(true);
                         }
                         else
                         {
 
-                            //contact.depth = 0.0000000f;
+                            //AvatarStaticprimContact.depth = 0.0000000f;
                         }
                           
                         
@@ -965,7 +932,7 @@ if((p1 is OdePrim ) && (p2 is OdePrim)){
                             //AddPhysicsActorTaint(p2);
                         //}
 
-                        //if (contact.depth >= 0.25f)
+                        //if (AvatarStaticprimContact.depth >= 0.25f)
                         //{
                             // Don't collide, one or both prim will expld.
 
@@ -983,13 +950,13 @@ if((p1 is OdePrim ) && (p2 is OdePrim)){
                                 //AddPhysicsActorTaint(p2);
                             //}
 
-                            //contact.depth = contact.depth / 8f;
-                            //contact.normal = new d.Vector3(0, 0, 1);
+                            //AvatarStaticprimContact.depth = AvatarStaticprimContact.depth / 8f;
+                            //AvatarStaticprimContact.normal = new d.Vector3(0, 0, 1);
                         //}
                         //if (op1.m_disabled || op2.m_disabled)
                         //{
                             //Manually disabled objects stay disabled
-                            //contact.depth = 0f;
+                            //AvatarStaticprimContact.depth = 0f;
                         //}
                         #endregion
                     }
@@ -997,7 +964,7 @@ if((p1 is OdePrim ) && (p2 is OdePrim)){
 #endregion
                     if (curContact.depth >= 1.00f)
                     {
-                        //m_log.Info("[P]: " + contact.depth.ToString());
+                        //m_log.Info("[P]: " + AvatarStaticprimContact.depth.ToString());
                         if ((p2.PhysicsActorType == (int) ActorTypes.Agent &&
                              p1.PhysicsActorType == (int) ActorTypes.Unknown) ||
                             (p1.PhysicsActorType == (int) ActorTypes.Agent &&
@@ -1067,15 +1034,16 @@ if((p1 is OdePrim ) && (p2 is OdePrim)){
                 if (!skipThisContact)
                 {
                     //   Add contact joints with materials params----------------------------------
+                    // p1 is what is being hit, p2 is the physical object doing the hitting
                     int material = (int) Material.Wood;
                     int movintYN = 0;  // 1 = Sliding; 0 = static or fell onto
+                    if (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f) movintYN = 1;
 
                     // If we're colliding against terrain
                     if (name1 == "Terrain" || name2 == "Terrain")
                     {
                         // If we're moving
-                        if ((p2.PhysicsActorType == (int) ActorTypes.Agent) &&
-                            (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
+                        if ((p2.PhysicsActorType == (int) ActorTypes.Agent) && (movintYN == 1))
                         {
                             //$ Av walk/run on terrain (not falling) Use the Avatar movement terrain contact
                             AvatarMovementTerrainContact.geom = curContact;
@@ -1103,13 +1071,9 @@ if((p1 is OdePrim ) && (p2 is OdePrim)){
                             {
                                 if (p2.PhysicsActorType == (int)ActorTypes.Prim && p1.PhysicsActorType == (int)ActorTypes.Prim)
                                 {
-                                    //& THIS NEVER HAPPENS prim prim contact //kf Huh? In terrain contact?
+                                    //& THIS NEVER HAPPENS? prim prim contact In terrain contact?
                                     // int pj294950 = 0;
                                     // prim terrain contact
-                                    if (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f)
-                                    {
-                                        movintYN = 1;
-                                    }
 
                                     if (p2 is OdePrim)
                                         material = ((OdePrim)p2).m_material;
@@ -1128,34 +1092,31 @@ if((p1 is OdePrim ) && (p2 is OdePrim)){
                                 else
                                 {
                                    //$ prim on terrain contact
-                                    if (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f)
-                                    {
-                                        movintYN = 1;
-                                    }
-
                                     if (p2 is OdePrim)
                                         material = ((OdePrim)p2).m_material;
                                     //m_log.DebugFormat("Material: {0}", material);
                                     m_materialContacts[material, movintYN].geom = curContact;
                                     _perloopContact.Add(curContact);
 
+                                    ContactCopy = m_materialContacts[material, movintYN];
+                                    if(movintYN == 1)
+                                    {
+                                        // prevent excessive slide on terrain
+                                        ContactCopy.surface.mu = m_materialContacts[material, movintYN].surface.mu * 30.0f;
+                                    }
+
                                     if (m_global_contactcount < maxContactsbeforedeath)
                                     {
-                                        joint = d.JointCreateContact(world, contactgroup, ref m_materialContacts[material, movintYN]);
+                                        joint = d.JointCreateContact(world, contactgroup, ref ContactCopy);
                                         m_global_contactcount++;
-
                                     }
                                 }
                             }
                         }
-                        //if (p2.PhysicsActorType == (int)ActorTypes.Prim)
-                        //{
-                        //m_log.Debug("[PHYSICS]: prim contacting with ground");
-                        //}
                     }
                     else if (name1 == "Water" || name2 == "Water")
                     {
-                        //$ This never happens!
+                        //$ This never happens! Perhaps water is treated like air?
                         /*
                         if ((p2.PhysicsActorType == (int) ActorTypes.Prim))
                         {
@@ -1169,8 +1130,8 @@ if((p1 is OdePrim ) && (p2 is OdePrim)){
                         if (curContact.depth > 0.1f)
                         {
                             curContact.depth *= 52;
-                            //contact.normal = new d.Vector3(0, 0, 1);
-                            //contact.pos = new d.Vector3(0, 0, contact.pos.Z - 5f);
+                            //AvatarStaticprimContact.normal = new d.Vector3(0, 0, 1);
+                            //AvatarStaticprimContact.pos = new d.Vector3(0, 0, contact.pos.Z - 5f);
                         }
                         WaterContact.geom = curContact;
                         _perloopContact.Add(curContact);
@@ -1179,7 +1140,7 @@ if((p1 is OdePrim ) && (p2 is OdePrim)){
                             joint = d.JointCreateContact(world, contactgroup, ref WaterContact);
                             m_global_contactcount++;
                         }
-                        //m_log.Info("[PHYSICS]: Prim Water Contact" + contact.depth);
+                        //m_log.Info("[PHYSICS]: Prim Water Contact" + AvatarStaticprimContact.depth);
                     }
                     else
                     {
@@ -1189,7 +1150,7 @@ if((p1 is OdePrim ) && (p2 is OdePrim)){
                         if ((p2.PhysicsActorType == (int)ActorTypes.Agent))
                         {
                             //$ Avatar on Prim or other Avatar
-                            if ((Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f))
+                            if (movintYN == 1)
                             {
                                 // Use the AV Movement / prim contact
                                 AvatarMovementprimContact.geom = curContact;
@@ -1203,34 +1164,24 @@ if((p1 is OdePrim ) && (p2 is OdePrim)){
                             else
                             {
                                 // Use the Av non movement / prim contact
-                                contact.geom = curContact;
+                                AvatarStaticprimContact.geom = curContact;
                                 _perloopContact.Add(curContact);
+                                ContactCopy = AvatarStaticprimContact;   // local copy so we can change locally
 
                                 if (m_global_contactcount < maxContactsbeforedeath)
                                 {
                                     if (curContact.depth > 0.2)
                                     {   // embedded, eject slowly
-                                        contact.surface.soft_erp = 0.1f;
-                                        contact.surface.soft_cfm = 0.1f;
+                                        ContactCopy.surface.soft_erp = 0.1f;
+                                        ContactCopy.surface.soft_cfm = 0.1f;
                                     }
                                     else 
                                     {   // keep on the surface
-                                        contact.surface.soft_erp = 0.3f;
-                                        contact.surface.soft_cfm = 0.0f;
+                                        ContactCopy.surface.soft_erp = 0.3f;
+                                        ContactCopy.surface.soft_cfm = 0.0f;
                                     }
-                                    joint = d.JointCreateContact(world, contactgroup, ref contact);
+                                    joint = d.JointCreateContact(world, contactgroup, ref ContactCopy);
                                     m_global_contactcount++;
-/*
-Console.WriteLine("Prim | Av collision 2  mode={0}  mu={1}  bounce={2}  bv={3} erp={4} cfm={5} mot={6}  depth={7}", 
-contact.surface.mode,
-contact.surface.mu,
-contact.surface.bounce,
-contact.surface.bounce_vel,
-contact.surface.soft_erp,
-contact.surface.soft_cfm,
-contact.surface.motion1,
-curContact.depth);
-*/
                                 }
                             }
                         }
@@ -1241,16 +1192,11 @@ curContact.depth);
 
                             if (p2 is OdePrim) material = ((OdePrim)p2).m_material;
                             //m_log.DebugFormat("Material: {0}", material);
-
-                            if (Math.Abs(p2.Velocity.X) > 0.01f || Math.Abs(p2.Velocity.Y) > 0.01f)
-                            {
-                                movintYN = 1;
-                            }
                             
                             m_materialContacts[material, movintYN].geom = curContact;
                             _perloopContact.Add(curContact);
 
-                            if (m_global_contactcount < maxContactsbeforedeath)
+                           if (m_global_contactcount < maxContactsbeforedeath)
                             {
                                 joint = d.JointCreateContact(world, contactgroup, ref m_materialContacts[material, movintYN]);
                                 m_global_contactcount++;

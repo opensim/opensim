@@ -3019,8 +3019,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // http://bugs.meta7.com/view.php?id=28
             //                                       - Tom
 
-            LSL_Rotation newrot = llGetRot() * llRotBetween(new LSL_Vector(1.0d, 0.0d, 0.0d) * llGetRot(), new LSL_Vector(0.0d, 0.0d, -1.0d));
+			/* And the following does not do the job either. It has to be performed inside the ODE glue-code. -.- .._.
+			LSL_Rotation newrot = llGetRot() * llRotBetween(new LSL_Vector(1.0d, 0.0d, 0.0d) * llGetRot(), new LSL_Vector(0.0d, 0.0d, -1.0d));
             llSetRot(newrot * llRotBetween(new LSL_Vector(0.0d,0.0d,1.0d) * newrot, target - llGetPos()));
+			*/
+			// Send the target vector to RotLookAt method inside a 'rotation', the .w -99.9 value indicates it is really a LookAt.
+			Quaternion q = new Quaternion((float)target.x, (float)target.y, (float)target.z, -99.9f);
+			m_host.RotLookAt(q, (float)strength, (float)damping);
 
         }
         

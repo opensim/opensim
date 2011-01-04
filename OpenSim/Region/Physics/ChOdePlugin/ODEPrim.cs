@@ -85,6 +85,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_APIDStrength = 0.5f;
         private float m_APIDDamping = 0.5f;
         private bool m_useAPID = false;
+		private float m_APIDdamper = 1.0f;
 
         // These next 7 params apply to llSetHoverHeight(float height, integer water, float tau),
         // do not confuse with VEHICLE HOVER
@@ -735,12 +736,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override float Buoyancy
         {
             get { return m_buoyancy; }
-//            set { m_buoyancy = value; }
-  set { 
-    m_buoyancy = value; 
-            
-    Console.WriteLine("m_buoyancy={0}", m_buoyancy);       
-  }
+            set { m_buoyancy = value; }
         }
 
         public override void link(PhysicsActor obj)
@@ -1293,7 +1289,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     disableBody();
                 }
             }
-
             IntPtr vertices, indices;
             int vertexCount, indexCount;
             int vertexStride, triStride;
@@ -1349,8 +1344,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (prim_geom != IntPtr.Zero)
             {
 	        	 if (!_position.ApproxEquals(m_taintposition, 0f))
+                {
 	                    changemove(timestep);
-
+                }
 	             if (m_taintrot != _orientation)
 	             {
 	                if(childPrim && IsPhysical)	// For physical child prim...
@@ -1370,8 +1366,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //
             
                 if (m_taintPhysics != m_isphysical && !(m_taintparent != _parent))
+                {
                     changePhysicsStatus(timestep);
-                //
+                }//
 
                 if (!_size.ApproxEquals(m_taintsize,0f))
                     changesize(timestep);
@@ -1482,6 +1479,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (Body == IntPtr.Zero)
                 {
                     Body = d.BodyCreate(_parent_scene.world);
+                // disconnect from world gravity so we can apply buoyancy
+				d.BodySetGravityMode (Body, false);
+
                     setMass();
                 }
                 if (Body != IntPtr.Zero)
@@ -1522,7 +1522,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     m_log.Warn("[PHYSICS]: Unable to link one of the linkset elements.  No geom yet");
                                     continue;
                                 }
-//Console.WriteLine(" GeomSetCategoryBits 1: " + prm.prim_geom + " - " + (int)prm.m_collisionCategories + " for " + m_primName);    
                                 d.GeomSetCategoryBits(prm.prim_geom, (int)prm.m_collisionCategories);
                                 d.GeomSetCollideBits(prm.prim_geom, (int)prm.m_collisionFlags);
 
@@ -1565,9 +1564,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             m_collisionCategories |= CollisionCategories.Body;
                             m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 
-//Console.WriteLine("GeomSetCategoryBits 2: " + prim_geom + " - " + (int)m_collisionCategories + " for " + m_primName);  
                             d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
-//Console.WriteLine(" Post GeomSetCategoryBits 2");
                             d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
 
 
@@ -1721,14 +1718,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_isphysical)
                 {
                     disableBodySoft();
-
-                    if (Body != IntPtr.Zero)
-                    {
-                        d.BodySetLinearVel(Body, 0f, 0f, 0f);
-                        d.BodySetForce(Body, 0, 0, 0);
-                        enableBodySoft();
-                    }
                 }
+            if (Body != IntPtr.Zero)
+                {
+                    d.BodySetLinearVel(Body, 0f, 0f, 0f);
+                    d.BodySetForce(Body, 0f, 0f, 0f);
+                    d.BodySetAngularVel (Body, 0.0f, 0.0f, 0.0f);
+                    d.BodySetTorque (Body, 0.0f, 0.0f, 0.0f);
+                }
+
             }
             else
             {
@@ -1749,17 +1747,21 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                     d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
                 }
-/* Uhhh - stop the motion if the object is _selected_!!
+            if (Body != IntPtr.Zero)
+                {
+                    d.BodySetLinearVel(Body, 0f, 0f, 0f);
+                    d.BodySetForce(Body, 0f, 0f, 0f);
+                    d.BodySetAngularVel (Body, 0.0f, 0.0f, 0.0f);
+                    d.BodySetTorque (Body, 0.0f, 0.0f, 0.0f);
+                }
+
                 if (m_isphysical)
                 {
                     if (Body != IntPtr.Zero)
                     {
-                        d.BodySetLinearVel(Body, 0f, 0f, 0f);
-                        d.BodySetForce(Body, 0, 0, 0);
                         enableBodySoft();
                     }
                 }
-*/
             }
 
             resetCollisionAccounting();
@@ -1781,7 +1783,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void CreateGeom(IntPtr m_targetSpace, IMesh _mesh)
         {
-//Console.WriteLine("CreateGeom:");         
             if (_mesh != null)					// Special - make mesh
             {
                 setMesh(_parent_scene, _mesh);
@@ -1797,7 +1798,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                             _parent_scene.waitForSpaceUnlock(m_targetSpace);
                             try
                             {
-//Console.WriteLine(" CreateGeom 1");
                                 SetGeom(d.CreateSphere(m_targetSpace, _size.X / 2));
                             }
                             catch (AccessViolationException)
@@ -1812,7 +1812,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                             _parent_scene.waitForSpaceUnlock(m_targetSpace);
                             try
                             {
-//Console.WriteLine(" CreateGeom 2");                           
                                 SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
                             }
                             catch (AccessViolationException)
@@ -1828,7 +1827,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         _parent_scene.waitForSpaceUnlock(m_targetSpace);
                         try
                         {
-//Console.WriteLine("  CreateGeom 3");                       
                             SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
                         }
                         catch (AccessViolationException)
@@ -1845,7 +1843,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _parent_scene.waitForSpaceUnlock(m_targetSpace);
                     try
                     {
-//Console.WriteLine("  CreateGeom 4");                  
                         SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
                     }
                     catch (AccessViolationException)
@@ -1890,7 +1887,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             lock (_parent_scene.OdeLock)
             {
-//Console.WriteLine("changeadd 1");           
                 CreateGeom(m_targetSpace, _mesh);
 
                 if (prim_geom != IntPtr.Zero)
@@ -1917,10 +1913,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void changemove(float timestep)
         {
-//Console.WriteLine("changemove sing/root {0} to {1}", m_primName, _position );
             if (m_isphysical)
             {
-//Console.WriteLine("phys  {0}   {1}   {2}", m_disabled, m_taintremove, childPrim);                
 //                if (!m_disabled && !m_taintremove && !childPrim)  After one edit m_disabled is sometimes set, disabling further edits!
                 if (!m_taintremove && !childPrim)
                 {
@@ -1946,7 +1940,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             if (Body != (IntPtr)0 && odParent.Body != (IntPtr)0 && Body != odParent.Body)
                             {
 // KF: Fixed Joints were removed? Anyway - this Console.WriteLine does not show up, so routine is not used??
-Console.WriteLine(" JointCreateFixed");                           
+Console.WriteLine("ODEPrim JointCreateFixed !!!");                           
                                 m_linkJoint = d.JointCreateFixed(_parent_scene.world, _linkJointGroup);
                                 d.JointAttach(m_linkJoint, Body, odParent.Body);
                                 d.JointSetFixed(m_linkJoint);
@@ -2059,7 +2053,6 @@ Console.WriteLine(" JointCreateFixed");
                     if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
                     {
                         _mesh = null;
-//Console.WriteLine("changePhysicsStatus for " + m_primName );
                         changeadd(2f);
                     }
                     if (childPrim)
@@ -2142,7 +2135,6 @@ Console.WriteLine(" JointCreateFixed");
                 }
 
                 //IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
-//Console.WriteLine("changesize 1");
                 CreateGeom(m_targetSpace, mesh);
 
                
@@ -2150,7 +2142,6 @@ Console.WriteLine(" JointCreateFixed");
             else
             {
                 _mesh = null;
-//Console.WriteLine("changesize 2");    
                 CreateGeom(m_targetSpace, _mesh);
             }
 
@@ -2255,7 +2246,6 @@ Console.WriteLine(" JointCreateFixed");
             else
             {
                 _mesh = null;
-//Console.WriteLine("changeshape");              
                 CreateGeom(m_targetSpace, null);
             }
 
@@ -2330,6 +2320,7 @@ Console.WriteLine(" JointCreateFixed");
                             return;
                         }
                         d.BodyEnable(Body);
+
                         d.BodyAddForce(Body, iforce.X, iforce.Y, iforce.Z);
                     }
                     m_forcelist.Clear();
@@ -3107,8 +3098,6 @@ Console.WriteLine(" JointCreateFixed");
                     else
                     {	// Too many tries
                         if (_parent == null) base.RaiseOutOfBounds(l_position);
-//Console.WriteLine("ROOB 2");            
-                        
                         return;		// Dont process any other motion?
                     }  // end various methods
                 }    // end outside region horizontally
@@ -3124,7 +3113,6 @@ Console.WriteLine(" JointCreateFixed");
 
                     //IsPhysical = false;
                     if (_parent == null) base.RaiseOutOfBounds(_position);
-//Console.WriteLine("ROOB 3");            
                     
                     
                     _acceleration.X = 0;			// This stuff may stop client display but it has no
@@ -3147,10 +3135,12 @@ Console.WriteLine(" JointCreateFixed");
                 }  // end neg Z check
 
 				// Is it moving?
-                if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02)
+             /*   if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02)
                     && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02)
-                    && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02)
-                    && (1.0 - Math.Abs(Quaternion.Dot(m_lastorientation, _orientation)) < 0.0001))  // KF 0.01 is far to large
+                    && (Math.Abs(m_lastposition.Z - l_position.Z) < 0.02) */
+                if ( (Vector3.Mag(_velocity) < 0.01) &&                         // moving very slowly
+                     (Vector3.Mag(_velocity) < Vector3.Mag(m_lastVelocity)) &&  // decelerating
+                     (1.0 - Math.Abs(Quaternion.Dot(m_lastorientation, _orientation)) < 0.0001) )  // spinning very slowly
                 {
                     _zeroFlag = true;
                     m_throttleUpdates = false;
@@ -3167,15 +3157,19 @@ Console.WriteLine(" JointCreateFixed");
                 {		// Its stopped
                     _velocity.X = 0.0f;
                     _velocity.Y = 0.0f;
-                    _velocity.Z = 0.0f;
+            //        _velocity.Z = 0.0f;
 
                     _acceleration.X = 0;
                     _acceleration.Y = 0;
-                    _acceleration.Z = 0;
+            //        _acceleration.Z = 0;
                     
                     m_rotationalVelocity.X = 0;
                     m_rotationalVelocity.Y = 0;
                     m_rotationalVelocity.Z = 0;
+                    // Stop it in the phys engine
+					d.BodySetLinearVel(Body, 0.0f, 0.0f, _velocity.Z);        
+					d.BodySetAngularVel (Body, 0.0f, 0.0f, 0.0f);
+
                     if (!m_lastUpdateSent)
                     {
                         m_throttleUpdates = false;
@@ -3221,13 +3215,13 @@ Console.WriteLine(" JointCreateFixed");
                     // Snapshot current angles, set up Amotor(s)
                     m_rotateEnableUpdate = false;
                     m_rotateEnable = m_rotateEnableRequest;
-Console.WriteLine("RotEnable {0} = {1}",m_primName,  m_rotateEnable);
+//Console.WriteLine("RotEnable {0} = {1}",m_primName,  m_rotateEnable);
 
                     if (Amotor != IntPtr.Zero)
                     {
                         d.JointDestroy(Amotor);
                         Amotor = IntPtr.Zero;
-Console.WriteLine("Old Amotor Destroyed");                        
+//Console.WriteLine("Old Amotor Destroyed");                        
                     }
                     
                     if (!m_rotateEnable.ApproxEquals(Vector3.One, 0.003f))
@@ -3249,33 +3243,33 @@ Console.WriteLine("Old Amotor Destroyed");
                         Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
                         d.JointAttach(Amotor, Body, IntPtr.Zero);
                         d.JointSetAMotorMode(Amotor, 0);  // User mode??
-Console.WriteLine("New Amotor Created for {0}", m_primName);                   
+//Console.WriteLine("New Amotor Created for {0}", m_primName);                   
                     
                         float axisnum = 3;  // how many to lock
                         axisnum = (axisnum - (m_rotateEnable.X + m_rotateEnable.Y + m_rotateEnable.Z));
                         d.JointSetAMotorNumAxes(Amotor,(int)axisnum);
-Console.WriteLine("AxisNum={0}",(int)axisnum);                       
+//Console.WriteLine("AxisNum={0}",(int)axisnum);                       
 
                         int i = 0;
 
                         if (m_rotateEnable.X == 0)
                         {
                             d.JointSetAMotorAxis(Amotor, i, 0, m_lockX.X, m_lockX.Y, m_lockX.Z);
-Console.WriteLine("AxisX {0} set to {1}", i,  m_lockX);                           
+//Console.WriteLine("AxisX {0} set to {1}", i,  m_lockX);                           
                             i++;
                         }
 
                         if (m_rotateEnable.Y == 0)
                         {
                             d.JointSetAMotorAxis(Amotor, i, 0, m_lockY.X, m_lockY.Y, m_lockY.Z);
-Console.WriteLine("AxisY {0} set to {1}", i,  m_lockY);                           
+//Console.WriteLine("AxisY {0} set to {1}", i,  m_lockY);                           
                             i++;
                         }
 
                         if (m_rotateEnable.Z == 0)
                         {
                             d.JointSetAMotorAxis(Amotor, i, 0, m_lockZ.X, m_lockZ.Y, m_lockZ.Z);
-Console.WriteLine("AxisZ {0} set to {1}", i,  m_lockZ);                           
+//Console.WriteLine("AxisZ {0} set to {1}", i,  m_lockZ);                           
                             i++;
                         }
 
@@ -3308,7 +3302,6 @@ Console.WriteLine("AxisZ {0} set to {1}", i,  m_lockZ);
 					d.Vector3 velnow = d.BodyGetLinearVel(Body);					// this is in world frame
 					Vector3 vel_now = new Vector3(velnow.X, velnow.Y, velnow.Z);
 			        m_lLinObjectVel = vel_now * irotq;
-        	
 		            if (m_linearMotorDecayTimescale < 300.0f) //setting of 300 or more disables decay rate
 		            {
 		            	if ( Vector3.Mag(m_lLinMotorDVel) < 1.0f)
@@ -3434,7 +3427,7 @@ Console.WriteLine("AxisZ {0} set to {1}", i,  m_lockZ);
 					d.BodySetLinearVel(Body, linvel.X, linvel.Y, linvel.Z);        
 		            // apply gravity force
 					d.BodyAddForce(Body, grav.X, grav.Y, grav.Z);		
-//if(frcount == 0) Console.WriteLine("Grav {0}", grav);
+//if(frcount == 0) Console.WriteLine("Vel={0}    Force={1}",linvel ,  grav);
 		        	// end MoveLinear()
 
 		  			
@@ -3608,7 +3601,6 @@ Console.WriteLine("AxisZ {0} set to {1}", i,  m_lockZ);
 	                float m_mass = CalculateMass();
 	                // calculate z-force due togravity on object.
 	                fz = _parent_scene.gravityz * (1.0f - m_buoyancy) * m_mass; // force = acceleration * mass
-
 	                if ((m_usePID) && (m_PIDTau > 0.0f))  // Dynamics  llMoveToTarget.
 	                {
 	                    fz = 0;     // llMoveToTarget ignores gravity.
@@ -3624,6 +3616,7 @@ Console.WriteLine("AxisZ {0} set to {1}", i,  m_lockZ);
 	                            (m_PIDTarget.Z - pos.Z));
 	                    if (error.ApproxEquals(Vector3.Zero,0.01f))
 	                    {   // Very close, Jump there and quit move
+
 	                        d.BodySetPosition(Body, m_PIDTarget.X, m_PIDTarget.Y, m_PIDTarget.Z);
 	                        _target_velocity = Vector3.Zero;
                             d.BodySetLinearVel(Body, _target_velocity.X, _target_velocity.Y, _target_velocity.Z);
@@ -3714,11 +3707,10 @@ Console.WriteLine("AxisZ {0} set to {1}", i,  m_lockZ);
     	                    // Avatar to Avatar collisions
     	                    // Prim to avatar collisions
 			    		    d.Vector3 dlinvel = vel;
-
     	                    d.BodySetPosition(Body, pos.X, pos.Y, m_targetHoverHeight);
 					        d.BodySetLinearVel(Body, dlinvel.X, dlinvel.Y, dlinvel.Z);       
     	                    d.BodyAddForce(Body, 0, 0, fz);
-    	            //KF this prevents furthur motions        return;
+    	            //KF this prevents furthur motions         return;
     	                }
     	                else
     	                {
@@ -3734,7 +3726,6 @@ Console.WriteLine("AxisZ {0} set to {1}", i,  m_lockZ);
     	            fx *= m_mass;
     	            fy *= m_mass;
     	            //fz *= m_mass;
-
     	            fx += m_force.X;
     	            fy += m_force.Y;
     	            fz += m_force.Z;
@@ -3751,7 +3742,7 @@ Console.WriteLine("AxisZ {0} set to {1}", i,  m_lockZ);
     	                	// this appears to re-enable it incase the surface it is upon vanishes,
     	                	// and the body should fall again. 
     	                    d.BodySetLinearVel(Body, 0f, 0f, 0f);
-    	                    d.BodySetForce(Body, 0, 0, 0);
+    	                    d.BodySetForce(Body, 0f, 0f, 0f);
     	                    enableBodySoft();
     	                }
 
@@ -3769,11 +3760,10 @@ Console.WriteLine("AxisZ {0} set to {1}", i,  m_lockZ);
     	                if (fy < nmin)
     	                    fy = nmin;
     	                d.BodyAddForce(Body, fx, fy, fz);
-//Console.WriteLine("AddForce " + fx + "," + fy + "," + fz);    	                
     	            }  // end apply forces
 				} // end Vehicle/Dynamics
 
-   	            /// RotLookAt =================================================================================
+   	            /// RotLookAt / LookAt =================================================================================
                 if (m_useAPID)
                 {
                 	// RotLookAt, apparently overrides all other rotation sources. Inputs:
@@ -3784,41 +3774,87 @@ Console.WriteLine("AxisZ {0} set to {1}", i,  m_lockZ);
 					// Factors:
 		    	    // get present body rotation
 		    	    float limit = 1.0f;
-		    	    float scaler = 50f;		// adjusts damping time
+		    	    float rscaler = 50f;		// adjusts rotation damping time
+		    	    float lscaler = 10f;		// adjusts linear damping time in llLookAt
 		    	    float RLAservo = 0f;
-		    	    
-		    	    d.Quaternion rot = d.BodyGetQuaternion(Body);
-		    	    Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
-		    	    Quaternion rot_diff = Quaternion.Inverse(rotq) * m_APIDTarget;
-                    float diff_angle;
                     Vector3 diff_axis;
-                    rot_diff.GetAxisAngle(out diff_axis, out diff_angle);
-                    diff_axis.Normalize();
-					if(diff_angle > 0.01f)			// diff_angle is always +ve
+                    float diff_angle;
+		    	    d.Quaternion rot = d.BodyGetQuaternion(Body);						// prim present rotation
+		    	    Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
+		    	    Quaternion rtarget = new Quaternion();
+
+					if(m_APIDTarget.W == -99.9f)
 					{
-//	                        PhysicsVector rotforce = new PhysicsVector(diff_axis.X, diff_axis.Y, diff_axis.Z);
-	                        Vector3 rotforce = new Vector3(diff_axis.X, diff_axis.Y, diff_axis.Z);
-    	                    rotforce = rotforce * rotq;
-    	                    if(diff_angle > limit) diff_angle = limit;		// cap the rotate rate
-//    	                    RLAservo = timestep / m_APIDStrength * m_mass * scaler;
-  //  	                    rotforce = rotforce * RLAservo * diff_angle ;
-    //	                    d.BodyAddRelTorque(Body, rotforce.X, rotforce.Y, rotforce.Z);
-    	                    RLAservo = timestep / m_APIDStrength * scaler;
-    	                    rotforce = rotforce * RLAservo * diff_angle ;
-    	             /*       
-		                    if (m_angularEnable.X == 0)
-		                        rotforce.X = 0;
-		                    if (m_angularEnable.Y == 0)
-		                        rotforce.Y = 0;
-		                    if (m_angularEnable.Z == 0)
-		                        rotforce.Z = 0;
-    	               */     
-							d.BodySetAngularVel (Body,  rotforce.X, rotforce.Y, rotforce.Z);
-//Console.WriteLine("axis= " + diff_axis + "    angle= " + diff_angle + "servo= " + RLAservo);							
+						// this is really a llLookAt(), x,y,z is the target vector
+						Vector3 target = new Vector3(m_APIDTarget.X, m_APIDTarget.Y, m_APIDTarget.Z);
+                        Vector3 ospin = new Vector3(1.0f, 0.0f, 0.0f) *  rotq;
+                        Vector3 error = new Vector3(0.0f, 0.0f, 0.0f);
+                        float twopi = 2.0f * (float)Math.PI;
+						Vector3 dir = target - _position;
+						dir.Normalize();
+                        float tzrot = (float)Math.Atan2(dir.Y, dir.X);
+                        float txy = (float)Math.Sqrt((dir.X * dir.X) + (dir.Y * dir.Y));
+                        float terot = (float)Math.Atan2(dir.Z, txy);
+                        float ozrot = (float)Math.Atan2(ospin.Y, ospin.X);
+                        float oxy = (float)Math.Sqrt((ospin.X * ospin.X) + (ospin.Y * ospin.Y));
+                        float oerot = (float)Math.Atan2(ospin.Z, oxy);
+                        float ra = 2.0f * ((rotq.W * rotq.X) + (rotq.Y * rotq.Z));
+                        float rb = 1.0f - 2.0f * ((rotq.Y * rotq.Y)+(rotq.X * rotq.X));
+                        float roll = (float)Math.Atan2(ra, rb);
+                        float errorz = tzrot - ozrot;
+                        if(errorz > (float)Math.PI) errorz -= twopi;
+                        else if(errorz < -(float)Math.PI) errorz += twopi;
+                        float errory = oerot - terot;
+                        if(errory > (float)Math.PI) errory -= twopi;
+                        else if(errory < -(float)Math.PI) errory += twopi;
+                        diff_angle = Math.Abs(errorz) + Math.Abs(errory) + Math.Abs(roll);
+						if(diff_angle > 0.01f * m_APIDdamper)
+						{	
+						    m_APIDdamper = 1.0f;
+       	                    RLAservo = timestep / m_APIDStrength * rscaler;
+                            errorz *= RLAservo;
+                            errory *= RLAservo;
+                            error.X = -roll * 8.0f;
+                            error.Y = errory;
+                            error.Z = errorz;
+                            error *= rotq;
+					        d.BodySetAngularVel (Body,  error.X, error.Y, error.Z);
+						}
+						else
+						{
+							d.BodySetAngularVel (Body,  0.0f, 0.0f, 0.0f);
+							m_APIDdamper = 2.0f;
+						}
 					}
-//if(frcount == 0) Console.WriteLine("mass= " + m_mass + "  servo= " + RLAservo + "   angle= " + diff_angle);							
+					else
+					{
+						// this is a llRotLookAt()
+						rtarget = m_APIDTarget;
+
+				    	Quaternion rot_diff = Quaternion.Inverse(rotq) * rtarget;		// difference to desired rot
+		                rot_diff.GetAxisAngle(out diff_axis, out diff_angle);				// convert to axis to point at & error angle
+//if(frcount == 0) Console.WriteLine("axis {0}   angle {1}",diff_axis * 57.3f, diff_angle);
+
+		             //   diff_axis.Normalize(); it already is!
+						if(diff_angle > 0.01f * m_APIDdamper)			// diff_angle is always +ve			// if there is enough error
+						{	
+								m_APIDdamper = 1.0f;
+		                        Vector3 rotforce = new Vector3(diff_axis.X, diff_axis.Y, diff_axis.Z);
+	    	                    rotforce = rotforce * rotq;
+	    	                    if(diff_angle > limit) diff_angle = limit;		// cap the rotate rate
+	    	                    RLAservo = timestep / m_APIDStrength * lscaler;
+	    	                    rotforce = rotforce * RLAservo * diff_angle ;
+								d.BodySetAngularVel (Body,  rotforce.X, rotforce.Y, rotforce.Z);
+//Console.WriteLine("axis= " + diff_axis + "    angle= " + diff_angle + "servo= " + RLAservo);							
+						}
+						else
+						{	// close enough
+							d.BodySetAngularVel (Body,  0.0f, 0.0f, 0.0f);
+							m_APIDdamper = 2.0f;
+						}
+					} // end llLookAt/llRotLookAt
+//if(frcount == 0) Console.WriteLine("mass= " + m_mass + "  servo= " + RLAservo + "   angle= " + diff_angle);
                 } // end m_useAPID
-				
             } // end root prims
        }  // end Move()
 	} // end class

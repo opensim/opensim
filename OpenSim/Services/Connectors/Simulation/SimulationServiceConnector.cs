@@ -310,7 +310,7 @@ namespace OpenSim.Services.Connectors.Simulation
             catch (WebException ex)
             //catch
             {
-                m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: Bad send on AgentUpdate {0}", ex.Message);
+   //             m_log.WarnFormat("[REMOTE SIMULATION CONNECTOR]: Bad send on AgentUpdate {0}", ex.Message);
 
                 return false;
             }

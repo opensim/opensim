@@ -1758,7 +1758,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
                 m_moveToPositionInProgress = true;
-                m_moveToPositionTarget = new Vector3(locx, locy, locz);
+                m_moveToPositionTarget = new Vector3(locx, locy, locz + (m_appearance.AvatarHeight / 2.0f));
 			}
             catch (Exception ex)
             {
@@ -2008,7 +2008,7 @@ namespace OpenSim.Region.Framework.Scenes
     	    }
     	    else	// Not Scripted
     	    {
-    	       	if ( (Math.Abs(offset.X) > 0.5f) || (Math.Abs(offset.Y) > 0.5f) ) 
+    	       	if ( (Math.Abs(offset.X) > 0.1f) || (Math.Abs(offset.Y) > 0.1f) ) // Changed 0.5M to 0.1M as they want to be able to sit close together 
     	       	{
     	       		// large prim & offset, ignore if other Avs sitting
 //    	       		offset.Z -= 0.05f;
