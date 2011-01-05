@@ -51,7 +51,15 @@ namespace OpenSim.Framework
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private static int m_requestNumber = 0;
-        
+
+        // this is the header field used to communicate the local request id
+        // used for performance and debugging
+        public const string OSHeaderRequestID = "opensim-request-id";
+
+        // number of milliseconds a call can take before it is considered
+        // a "long" call for warning & debugging purposes
+        public const int LongCallTime = 200;
+
         /// <summary>
         /// Send LLSD to an HTTP client in application/llsd+json form
         /// </summary>
@@ -146,34 +154,41 @@ namespace OpenSim.Framework
         public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout)
         {
             int reqnum = m_requestNumber++;
-            m_log.DebugFormat("[WEB UTIL]: <{0}> start osd request for {1}, method {2}",reqnum,url,method);
+            // m_log.DebugFormat("[WEB UTIL]: <{0}> start osd request for {1}, method {2}",reqnum,url,method);
 
             string errorMessage = "unknown error";
             int tickstart = Util.EnvironmentTickCount();
+            int tickdata = 0;
+
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
                 request.Method = method;
                 request.Timeout = timeout;
-                //request.KeepAlive = false;
-
+                request.KeepAlive = false;
+                request.MaximumAutomaticRedirections = 10;
+                request.ReadWriteTimeout = timeout / 4;
+                request.Headers[OSHeaderRequestID] = reqnum.ToString();
+                
                 // If there is some input, write it into the request
                 if (data != null)
                 {
                     string strBuffer = OSDParser.SerializeJsonString(data);
                     byte[] buffer = System.Text.Encoding.UTF8.GetBytes(strBuffer);
-
+                        
                     request.ContentType = "application/json";
                     request.ContentLength = buffer.Length;   //Count bytes to send
                     using (Stream requestStream = request.GetRequestStream())
-                    {
-                        requestStream.Write(buffer, 0, strBuffer.Length);         //Send it
-                    }
+                            requestStream.Write(buffer, 0, buffer.Length);         //Send it
                 }
                 
-                using (WebResponse webResponse = request.GetResponse())
+                // capture how much time was spent writing, this may seem silly
+                // but with the number concurrent requests, this often blocks
+                tickdata = Util.EnvironmentTickCountSubtract(tickstart);
+
+                using (WebResponse response = request.GetResponse())
                 {
-                    using (Stream responseStream = webResponse.GetResponseStream())
+                    using (Stream responseStream = response.GetResponseStream())
                     {
                         string responseStr = null;
                         responseStr = responseStream.GetStreamString();
@@ -199,12 +214,12 @@ namespace OpenSim.Framework
             {
                 // This just dumps a warning for any operation that takes more than 100 ms
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
-                if (tickdiff > 100)
-                    m_log.WarnFormat("[WEB UTIL]: request <{0}> (URI:{1}, METHOD:{2}) took {3} milliseconds",
-                                     reqnum,url,method,tickdiff);
+                if (tickdiff > LongCallTime)
+                    m_log.InfoFormat("[WEB UTIL]: osd request <{0}> (URI:{1}, METHOD:{2}) took {3}ms overall, {4}ms writing",
+                                     reqnum,url,method,tickdiff,tickdata);
             }
             
-            m_log.WarnFormat("[WEB UTIL] <{0}> request failed: {1}",reqnum,errorMessage);
+            m_log.WarnFormat("[WEB UTIL] <{0}> osd request failed: {1}",reqnum,errorMessage);
             return ErrorResponseMap(errorMessage);
         }
 
@@ -248,7 +263,7 @@ namespace OpenSim.Framework
             catch (Exception e)
             {
                 // don't need to treat this as an error... we're just guessing anyway
-                m_log.DebugFormat("[WEB UTIL] couldn't decode result: <{0}>",response);
+                m_log.DebugFormat("[WEB UTIL] couldn't decode <{0}>: {1}",response,e.Message);
             }
             
             return result;
@@ -260,26 +275,44 @@ namespace OpenSim.Framework
         /// </summary>
         public static OSDMap PostToService(string url, NameValueCollection data)
         {
+            return ServiceFormRequest(url,data,10000);
+        }
+        
+        public static OSDMap ServiceFormRequest(string url, NameValueCollection data, int timeout)
+        {
             int reqnum = m_requestNumber++;
-            string method = data["RequestMethod"] != null ? data["RequestMethod"] : "unknown";
-            m_log.DebugFormat("[WEB UTIL]: <{0}> start form request for {1}, method {2}",reqnum,url,method);
-
-            string errorMessage;
+            string method = (data != null && data["RequestMethod"] != null) ? data["RequestMethod"] : "unknown";
+            // m_log.DebugFormat("[WEB UTIL]: <{0}> start form request for {1}, method {2}",reqnum,url,method);
+            
+            string errorMessage = "unknown error";
             int tickstart = Util.EnvironmentTickCount();
+            int tickdata = 0;
 
             try
             {
-                string queryString = BuildQueryString(data);
-                byte[] requestData = System.Text.Encoding.UTF8.GetBytes(queryString);
-
+                
                 HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
                 request.Method = "POST";
-                request.ContentLength = requestData.Length;
-                request.ContentType = "application/x-www-form-urlencoded";
+                request.Timeout = timeout;
+                request.KeepAlive = false;
+                request.MaximumAutomaticRedirections = 10;
+                request.ReadWriteTimeout = timeout / 4;
+                request.Headers[OSHeaderRequestID] = reqnum.ToString();
                 
-                Stream requestStream = request.GetRequestStream();
-                requestStream.Write(requestData, 0, requestData.Length);
-                requestStream.Close();
+                if (data != null)
+                {
+                    string queryString = BuildQueryString(data);
+                    byte[] buffer = System.Text.Encoding.UTF8.GetBytes(queryString);
+                    
+                    request.ContentLength = buffer.Length;
+                    request.ContentType = "application/x-www-form-urlencoded";
+                    using (Stream requestStream = request.GetRequestStream())
+                        requestStream.Write(buffer, 0, buffer.Length);
+                }
+
+                // capture how much time was spent writing, this may seem silly
+                // but with the number concurrent requests, this often blocks
+                tickdata = Util.EnvironmentTickCountSubtract(tickstart);
 
                 using (WebResponse response = request.GetResponse())
                 {
@@ -287,22 +320,10 @@ namespace OpenSim.Framework
                     {
                         string responseStr = null;
 
-                        try
-                        {
-                            responseStr = responseStream.GetStreamString();
-                            OSD responseOSD = OSDParser.Deserialize(responseStr);
-                            if (responseOSD.Type == OSDType.Map)
-                                return (OSDMap)responseOSD;
-                            else
-                                errorMessage = "Response format was invalid.";
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!String.IsNullOrEmpty(responseStr))
-                                errorMessage = "Failed to parse the response:\n" + responseStr;
-                            else
-                                errorMessage = "Failed to retrieve the response: " + ex.Message;
-                        }
+                        responseStr = responseStream.GetStreamString();
+                        OSD responseOSD = OSDParser.Deserialize(responseStr);
+                        if (responseOSD.Type == OSDType.Map)
+                            return (OSDMap)responseOSD;
                     }
                 }
             }
@@ -322,12 +343,12 @@ namespace OpenSim.Framework
             finally
             {
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
-                if (tickdiff > 100)
-                    m_log.WarnFormat("[WEB UTIL]: request <{0}> (URI:{1}, METHOD:{2}) took {3} milliseconds",
-                                     reqnum,url,method,tickdiff);
+                if (tickdiff > LongCallTime)
+                    m_log.InfoFormat("[WEB UTIL]: form request <{0}> (URI:{1}, METHOD:{2}) took {3}ms overall, {4}ms writing",
+                                     reqnum,url,method,tickdiff,tickdata);
             }
 
-            m_log.WarnFormat("[WEB UTIL]: <{0}> request failed: {1}",reqnum,errorMessage);
+            m_log.WarnFormat("[WEB UTIL]: <{0}> form request failed: {1}",reqnum,errorMessage);
             return ErrorResponseMap(errorMessage);
         }
 

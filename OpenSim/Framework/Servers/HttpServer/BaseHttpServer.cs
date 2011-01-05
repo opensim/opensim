@@ -346,9 +346,15 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <param name="response"></param>
         public virtual void HandleRequest(OSHttpRequest request, OSHttpResponse response)
         {
+            string reqnum = "unknown";
+            int tickstart = Environment.TickCount;
+
             try
             {
-                //m_log.Debug("[BASE HTTP SERVER]: Handling request to " + request.RawUrl);
+                // OpenSim.Framework.WebUtil.OSHeaderRequestID
+                if (request.Headers["opensim-request-id"] != null)
+                    reqnum = String.Format("{0}:{1}",request.RemoteIPEndPoint,request.Headers["opensim-request-id"]);
+                // m_log.DebugFormat("[BASE HTTP SERVER]: <{0}> handle request for {1}",reqnum,request.RawUrl);
 
                 Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US", true);
 
@@ -575,6 +581,14 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw {0}", e);
                 SendHTML500(response);
+            }
+            finally
+            {
+                // Every month or so this will wrap and give bad numbers, not really a problem
+                // since its just for reporting, 200ms limit can be adjusted
+                int tickdiff = Environment.TickCount - tickstart;
+                if (tickdiff > 200)
+                    m_log.InfoFormat("[BASE HTTP SERVER]: slow request <{0}> for {1} took {2} ms",reqnum,request.RawUrl,tickdiff);
             }
         }
 
