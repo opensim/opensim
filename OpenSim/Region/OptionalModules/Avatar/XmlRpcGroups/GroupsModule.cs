@@ -123,8 +123,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 m_log.InfoFormat("[GROUPS]: Initializing {0}", this.Name);
 
                 m_groupNoticesEnabled   = groupsConfig.GetBoolean("NoticesEnabled", true);
-                m_debugEnabled          = groupsConfig.GetBoolean("DebugEnabled", true);
-
+                m_debugEnabled          = groupsConfig.GetBoolean("DebugEnabled", false);
             }
         }
 
