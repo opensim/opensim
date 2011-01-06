@@ -2592,12 +2592,19 @@ namespace OpenSim.Region.Framework.Scenes
                     // and the scene presence and the client, if they exist
                     try
                     {
-                        ScenePresence sp = GetScenePresence(agentID);
-                        PresenceService.LogoutAgent(sp.ControllingClient.SessionId);
-                        
+                        // We need to wait for the client to make UDP contact first.
+                        // It's the UDP contact that creates the scene presence
+                        ScenePresence sp = WaitGetScenePresence(agentID);
                         if (sp != null)
-                            sp.ControllingClient.Close();
+                        {
+                            PresenceService.LogoutAgent(sp.ControllingClient.SessionId);
 
+                            sp.ControllingClient.Close();
+                        }
+                        else
+                        {
+                            m_log.WarnFormat("[SCENE]: Could not find scene presence for {0}", agentID);
+                        }
                         // BANG! SLASH!
                         m_authenticateHandler.RemoveCircuit(agentID);
 
