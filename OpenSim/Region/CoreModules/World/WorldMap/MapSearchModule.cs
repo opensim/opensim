@@ -102,7 +102,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 GridRegion info = m_scene.GridService.GetRegionByName(m_scene.RegionInfo.ScopeID, mapName);
                 if (info != null) regionInfos.Add(info);
             }
-
+            m_log.DebugFormat("[MAPSEARCHMODULE]: search returned {0} regions", regionInfos.Count);
             List<MapBlockData> blocks = new List<MapBlockData>();
 
             MapBlockData data;
@@ -128,14 +128,14 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             data.Agents = 0;
             data.Access = 255;
             data.MapImageId = UUID.Zero;
-            data.Name = mapName;
+            data.Name = ""; // mapName;
             data.RegionFlags = 0;
             data.WaterHeight = 0; // not used
             data.X = 0;
             data.Y = 0;
             blocks.Add(data);
 
-            remoteClient.SendMapBlock(blocks, 2);
+            remoteClient.SendMapBlock(blocks, 0);
         }
 
 //        private Scene GetClientScene(IClientAPI client)
