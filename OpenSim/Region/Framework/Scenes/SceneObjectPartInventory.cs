@@ -1179,6 +1179,8 @@ namespace OpenSim.Region.Framework.Scenes
                 item.CurrentPermissions = perms;
                 item.BasePermissions = perms;
             }
+            m_inventorySerial++;
+            HasInventoryChanged = true;
         }
 
         public bool ContainsScripts()
