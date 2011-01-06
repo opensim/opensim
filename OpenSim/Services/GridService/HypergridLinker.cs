@@ -324,7 +324,7 @@ namespace OpenSim.Services.GridService
             regInfo.TerrainImage = m_GatekeeperConnector.GetMapImage(regionID, imageURL, m_MapTileDirectory);
 
             AddHyperlinkRegion(regInfo, handle);
-            m_log.Info("[HYPERGRID LINKER]: Successfully linked to region_uuid " + regInfo.RegionID);
+            m_log.InfoFormat("[HYPERGRID LINKER]: Successfully linked to region_uuid {0} with image {1}", regInfo.RegionID, regInfo.TerrainImage);
             return true;
         }
 
