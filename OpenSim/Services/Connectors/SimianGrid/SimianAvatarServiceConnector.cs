@@ -159,9 +159,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 return false;
             }
 
-// DEBUG ON
-            m_log.WarnFormat("[SIMIAN AVATAR CONNECTOR] save appearance for {0}",userID);
-// DEBUG OFF
+            // m_log.DebugFormat("[SIMIAN AVATAR CONNECTOR] save appearance for {0}",userID);
 
             NameValueCollection requestArgs = new NameValueCollection
                 {

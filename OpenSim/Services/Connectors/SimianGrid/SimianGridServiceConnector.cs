@@ -307,7 +307,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 { "Enabled", "1" }
             };
 
-            m_log.WarnFormat("[SIMIAN GRID CONNECTOR] request regions by range {0} to {1}",minPosition.ToString(),maxPosition.ToString());
+            //m_log.DebugFormat("[SIMIAN GRID CONNECTOR] request regions by range {0} to {1}",minPosition.ToString(),maxPosition.ToString());
             
 
             OSDMap response = WebUtil.PostToService(m_ServerURI, requestArgs);
