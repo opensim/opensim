@@ -102,7 +102,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 GridRegion info = m_scene.GridService.GetRegionByName(m_scene.RegionInfo.ScopeID, mapName);
                 if (info != null) regionInfos.Add(info);
             }
-            m_log.DebugFormat("[MAPSEARCHMODULE]: search returned {0} regions", regionInfos.Count);
+            m_log.DebugFormat("[MAPSEARCHMODULE]: search {0} returned {1} regions", mapName, regionInfos.Count);
             List<MapBlockData> blocks = new List<MapBlockData>();
 
             MapBlockData data;
