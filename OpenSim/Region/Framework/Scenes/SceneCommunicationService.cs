@@ -258,13 +258,17 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
-        public delegate void SendCloseChildAgentDelegate(UUID agentID, ulong regionHandle);
+        //public delegate void SendCloseChildAgentDelegate(UUID agentID, ulong regionHandle);
+        //private void SendCloseChildAgentCompleted(IAsyncResult iar)
+        //{
+        //    SendCloseChildAgentDelegate icon = (SendCloseChildAgentDelegate)iar.AsyncState;
+        //    icon.EndInvoke(iar);
+        //}
 
         /// <summary>
-        /// This Closes child agents on neighboring regions
-        /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
+        /// Closes a child agent on a given region
         /// </summary>
-        protected void SendCloseChildAgentAsync(UUID agentID, ulong regionHandle)
+        protected void SendCloseChildAgent(UUID agentID, ulong regionHandle)
         {
 
             m_log.Debug("[INTERGRID]: Sending close agent to " + regionHandle);
@@ -277,21 +281,21 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.SimulationService.CloseAgent(destination, agentID);
         }
 
-        private void SendCloseChildAgentCompleted(IAsyncResult iar)
-        {
-            SendCloseChildAgentDelegate icon = (SendCloseChildAgentDelegate)iar.AsyncState;
-            icon.EndInvoke(iar);
-        }
-
+        /// <summary>
+        /// Closes a child agents in a collection of regions. Does so asynchronously 
+        /// so that the caller doesn't wait.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="regionslst"></param>
         public void SendCloseChildAgentConnections(UUID agentID, List<ulong> regionslst)
         {
-            foreach (ulong handle in regionslst)
+            Util.FireAndForget(delegate
             {
-                SendCloseChildAgentDelegate d = SendCloseChildAgentAsync;
-                d.BeginInvoke(agentID, handle,
-                              SendCloseChildAgentCompleted,
-                              d);
-            }
+                foreach (ulong handle in regionslst)
+                {
+                    SendCloseChildAgent(agentID, handle);
+                }
+            });
         }
        
         public List<GridRegion> RequestNamedRegions(string name, int maxNumber)
