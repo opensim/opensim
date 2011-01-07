@@ -86,6 +86,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="assetUuids">The assets gathered</param>
         public void GatherAssetUuids(UUID assetUuid, AssetType assetType, IDictionary<UUID, AssetType> assetUuids)
         {
+            // avoid infinite loops
+            if (assetUuids.ContainsKey(assetUuid))
+                return;
+
             try
             {               
                 assetUuids[assetUuid] = assetType;
