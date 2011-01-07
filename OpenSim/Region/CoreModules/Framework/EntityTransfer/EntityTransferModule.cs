@@ -1203,6 +1203,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 m_log.Debug("[ENTITY TRANSFER MODULE]: Completed inform client about neighbour " + endPoint.ToString());
             }
+            if (!regionAccepted)
+                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Region {0} did not accept agent: {1}", reg.RegionName, reason);
         }
 
         /// <summary>
