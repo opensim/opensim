@@ -864,7 +864,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public Dictionary<string, object> GetVars()
         {
-            return m_Script.GetVars();
+            if (m_Script != null)
+                return m_Script.GetVars();
+            else
+                return new Dictionary<string, object>();
         }
 
         public void SetVars(Dictionary<string, object> vars)
