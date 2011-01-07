@@ -300,7 +300,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 if (s.RegionInfo.RegionID == destination.RegionID)
                 {
                     //m_log.Debug("[LOCAL COMMS]: Found region to SendCloseAgent");
-                    return s.IncomingCloseAgent(id);
+                    // Let's spawn a threadlet right here, because this may take
+                    // a while
+                    Util.FireAndForget(delegate { s.IncomingCloseAgent(id); });
+                    return true;
                 }
             }
             //m_log.Debug("[LOCAL COMMS]: region not found in SendCloseAgent");
