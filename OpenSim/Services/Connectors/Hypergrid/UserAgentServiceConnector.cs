@@ -60,7 +60,9 @@ namespace OpenSim.Services.Connectors.Hypergrid
             {
                 Uri m_Uri = new Uri(m_ServerURL);
                 IPAddress ip = Util.GetHostFromDNS(m_Uri.Host);
-                m_ServerURL = m_ServerURL.Replace(m_Uri.Host, ip.ToString()); ;
+                m_ServerURL = m_ServerURL.Replace(m_Uri.Host, ip.ToString());
+                if (!m_ServerURL.EndsWith("/"))
+                    m_ServerURL += "/";
             }
             catch (Exception e)
             {
@@ -87,6 +89,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 throw new Exception("UserAgent connector init error");
             }
             m_ServerURL = serviceURI;
+            if (!m_ServerURL.EndsWith("/"))
+                m_ServerURL += "/";
 
             m_log.DebugFormat("[USER AGENT CONNECTOR]: UserAgentServiceConnector started for {0}", m_ServerURL);
         }
