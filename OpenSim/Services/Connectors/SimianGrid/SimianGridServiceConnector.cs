@@ -28,8 +28,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -102,13 +100,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public string RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
-            // Generate and upload our map tile in PNG format to the SimianGrid AddMapTile service
-//            Scene scene;
-//            if (m_scenes.TryGetValue(regionInfo.RegionID, out scene))
-//                UploadMapTile(scene);
-//            else
-//                m_log.Warn("Registering region " + regionInfo.RegionName + " (" + regionInfo.RegionID + ") that we are not tracking");
-
             Vector3d minPosition = new Vector3d(regionInfo.RegionLocX, regionInfo.RegionLocY, 0.0);
             Vector3d maxPosition = minPosition + new Vector3d(Constants.RegionSize, Constants.RegionSize, 4096.0);
 
@@ -379,83 +370,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
         }
 
         #endregion IGridService
-
-        private void UploadMapTile(IScene scene)
-        {
-            string errorMessage = null;
-
-            // Create a PNG map tile and upload it to the AddMapTile API
-            byte[] pngData = Utils.EmptyBytes;
-            IMapImageGenerator tileGenerator = scene.RequestModuleInterface<IMapImageGenerator>();
-            if (tileGenerator == null)
-            {
-                m_log.Warn("[SIMIAN GRID CONNECTOR]: Cannot upload PNG map tile without an IMapImageGenerator");
-                return;
-            }
-
-            using (Image mapTile = tileGenerator.CreateMapTile())
-            {
-                using (MemoryStream stream = new MemoryStream())
-                {
-                    mapTile.Save(stream, ImageFormat.Png);
-                    pngData = stream.ToArray();
-                }
-            }
-
-            List<MultipartForm.Element> postParameters = new List<MultipartForm.Element>()
-            {
-                new MultipartForm.Parameter("X", scene.RegionInfo.RegionLocX.ToString()),
-                new MultipartForm.Parameter("Y", scene.RegionInfo.RegionLocY.ToString()),
-                new MultipartForm.File("Tile", "tile.png", "image/png", pngData)
-            };
-
-            // Make the remote storage request
-            try
-            {
-                HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(m_ServerURI);
-
-                HttpWebResponse response = MultipartForm.Post(request, postParameters);
-                using (Stream responseStream = response.GetResponseStream())
-                {
-                    string responseStr = null;
-
-                    try
-                    {
-                        responseStr = responseStream.GetStreamString();
-                        OSD responseOSD = OSDParser.Deserialize(responseStr);
-                        if (responseOSD.Type == OSDType.Map)
-                        {
-                            OSDMap responseMap = (OSDMap)responseOSD;
-                            if (responseMap["Success"].AsBoolean())
-                                m_log.Info("[SIMIAN GRID CONNECTOR]: Uploaded " + pngData.Length + " byte PNG map tile to AddMapTile");
-                            else
-                                errorMessage = "Upload failed: " + responseMap["Message"].AsString();
-                        }
-                        else
-                        {
-                            errorMessage = "Response format was invalid:\n" + responseStr;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        if (!String.IsNullOrEmpty(responseStr))
-                            errorMessage = "Failed to parse the response:\n" + responseStr;
-                        else
-                            errorMessage = "Failed to retrieve the response: " + ex.Message;
-                    }
-                }
-            }
-            catch (WebException ex)
-            {
-                errorMessage = ex.Message;
-            }
-
-            if (!String.IsNullOrEmpty(errorMessage))
-            {
-                m_log.WarnFormat("[SIMIAN GRID CONNECTOR]: Failed to store {0} byte PNG map tile for {1}: {2}",
-                    pngData.Length, scene.RegionInfo.RegionName, errorMessage.Replace('\n', ' '));
-            }
-        }
 
         private GridRegion GetNearestRegion(Vector3d position, bool onlyEnabled)
         {
