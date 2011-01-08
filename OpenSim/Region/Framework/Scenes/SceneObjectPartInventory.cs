@@ -48,6 +48,7 @@ namespace OpenSim.Region.Framework.Scenes
         private string m_inventoryFileName = String.Empty;
         private byte[] m_inventoryFileData = new byte[0];
         private uint m_inventoryFileNameSerial = 0;
+        private bool m_inventoryPrivileged = false;
 
         private Dictionary<UUID, ArrayList> m_scriptErrors = new Dictionary<UUID, ArrayList>();
         
@@ -952,6 +953,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             bool changed = CreateInventoryFileName();
 
+            bool includeAssets = false;
+            if (m_part.ParentGroup.Scene.Permissions.CanEditObjectInventory(m_part.UUID, client.AgentId))
+                includeAssets = true;
+
+            if (m_inventoryPrivileged != includeAssets)
+                changed = true;
+
             InventoryStringBuilder invString = new InventoryStringBuilder(m_part.UUID, UUID.Zero);
 
             Items.LockItemsForRead(true);
@@ -977,9 +985,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            bool includeAssets = false;
-            if (m_part.ParentGroup.Scene.Permissions.CanEditObjectInventory(m_part.UUID, client.AgentId))
-                includeAssets = true;
+            m_inventoryPrivileged = includeAssets;
 
             foreach (TaskInventoryItem item in m_items.Values)
             {
