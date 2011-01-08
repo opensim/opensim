@@ -94,6 +94,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_items = value;
                 m_inventorySerial++;
+                QueryScriptStates();
             }
         }
         
@@ -226,6 +227,36 @@ namespace OpenSim.Region.Framework.Scenes
             m_items.LockItemsForWrite(false);
         }
 
+        private void QueryScriptStates()
+        {
+            if (m_part == null || m_part.ParentGroup == null)
+                return;
+
+            IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
+            if (engines == null) // No engine at all
+                return;
+
+            Items.LockItemsForRead(true);
+            foreach (TaskInventoryItem item in Items.Values)
+            {
+                if (item.InvType == (int)InventoryType.LSL)
+                {
+                    foreach (IScriptModule e in engines)
+                    {
+                        bool running;
+
+                        if (e.HasScript(item.ItemID, out running))
+                        {
+                            item.ScriptRunning = running;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            Items.LockItemsForRead(false);
+        }
+
         /// <summary>
         /// Start all the scripts contained in this prim's inventory
         /// </summary>
@@ -349,6 +380,9 @@ namespace OpenSim.Region.Framework.Scenes
                     m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
                         m_part.LocalId, item.ItemID, script, startParam, postOnRez, engine, stateSource);
                     StoreScriptErrors(item.ItemID, null);
+                    if (!item.ScriptRunning)
+                        m_part.ParentGroup.Scene.EventManager.TriggerStopScript(
+                            m_part.LocalId, item.ItemID);
                     m_part.ParentGroup.AddActiveScriptCount(1);
                     m_part.ScheduleFullUpdate();
                 }
