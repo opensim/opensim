@@ -1146,7 +1146,7 @@ namespace OpenSim
                         MainConsole.Instance.Output(String.Format("loadOffsets <X,Y,Z> = <{0},{1},{2}>",loadOffset.X,loadOffset.Y,loadOffset.Z));
                     }
                 }
-                m_sceneManager.LoadCurrentSceneFromXml(cmdparams[0], generateNewIDS, loadOffset);
+                m_sceneManager.LoadCurrentSceneFromXml(cmdparams[2], generateNewIDS, loadOffset);
             }
             else
             {
