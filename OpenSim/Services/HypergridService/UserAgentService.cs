@@ -155,7 +155,7 @@ namespace OpenSim.Services.HypergridService
             string myExternalIP = string.Empty;
             string gridName = gatekeeper.ServerURI;
 
-            m_log.DebugFormat("[USER AGENT SERVICE]: m_grid - {0}, gn - {1}", m_GridName, gridName);
+            m_log.DebugFormat("[USER AGENT SERVICE]: this grid: {0}, desired grid: {1}", m_GridName, gridName);
             
             if (m_GridName == gridName)
                 success = m_GatekeeperService.LoginAgent(agentCircuit, finalDestination, out reason);
@@ -266,11 +266,13 @@ namespace OpenSim.Services.HypergridService
 
             if (m_TravelingAgents.ContainsKey(sessionID))
             {
-                m_log.DebugFormat("[USER AGENT SERVICE]: Comparing with login IP {0} and MyIP {1}", 
-                    m_TravelingAgents[sessionID].ClientIPAddress, m_TravelingAgents[sessionID].MyIpAddress);
-
-                return m_TravelingAgents[sessionID].ClientIPAddress == reportedIP ||
+                bool result = m_TravelingAgents[sessionID].ClientIPAddress == reportedIP ||
                     m_TravelingAgents[sessionID].MyIpAddress == reportedIP; // NATed
+
+                m_log.DebugFormat("[USER AGENT SERVICE]: Comparing {0} with login IP {1} and MyIP {1}; result is {3}",
+                                    reportedIP, m_TravelingAgents[sessionID].ClientIPAddress, m_TravelingAgents[sessionID].MyIpAddress, result);
+
+                return result;
             }
 
             return false;

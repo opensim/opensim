@@ -217,6 +217,8 @@ namespace OpenSim.Server.Handlers.Hypergrid
             Hashtable headers = (Hashtable)request["headers"];
             if (headers.ContainsKey("X-Forwarded-For") && headers["X-Forwarded-For"] != null)
             {
+                m_log.DebugFormat("[HOME AGENT HANDLER]: XFF is {0}", headers["X-Forwarded-For"]);
+
                 IPEndPoint ep = Util.GetClientIPFromXFF((string)headers["X-Forwarded-For"]);
                 if (ep != null)
                     return ep.Address.ToString();
