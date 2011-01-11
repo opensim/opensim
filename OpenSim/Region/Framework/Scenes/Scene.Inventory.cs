@@ -2025,6 +2025,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID, bool running)
         {
+            if (!Permissions.CanEditScript(itemID, objectID, controllingClient.AgentId))
+                return;
+
             SceneObjectPart part = GetSceneObjectPart(objectID);
             if (part == null)
                 return;
@@ -2167,6 +2170,16 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_sceneGraph.LinkObjects(root, children);
+        }
+
+        private string PermissionString(uint permissions)
+        {
+            PermissionMask perms = (PermissionMask)permissions &
+                    (PermissionMask.Move |
+                     PermissionMask.Copy |
+                     PermissionMask.Transfer |
+                     PermissionMask.Modify);
+            return perms.ToString();
         }
     }
 }

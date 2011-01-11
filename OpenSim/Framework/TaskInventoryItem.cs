@@ -124,6 +124,9 @@ namespace OpenSim.Framework
         private UUID _oldID = UUID.Zero;
 
         private bool _ownerChanged = false;
+        
+        // This used ONLY during copy. It can't be relied on at other times!
+        private bool _scriptRunning = true;
 
         public UUID AssetID {
             get {
@@ -384,6 +387,15 @@ namespace OpenSim.Framework
             }
             set {
                 _ownerChanged = value;
+            }
+        }
+
+        public bool ScriptRunning {
+            get {
+                return _scriptRunning;
+            }
+            set {
+                _scriptRunning = value;
             }
         }
 

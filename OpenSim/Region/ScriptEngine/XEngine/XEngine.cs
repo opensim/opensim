@@ -1695,5 +1695,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             instance.Resume();
         }
+
+        public bool HasScript(UUID itemID, out bool running)
+        {
+            running = true;
+
+            IScriptInstance instance = GetInstance(itemID);
+            if (instance == null)
+                return false;
+
+            running = instance.Running;
+            return true;
+        }
     }
 }

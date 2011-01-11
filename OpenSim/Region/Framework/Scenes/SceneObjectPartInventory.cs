@@ -48,6 +48,7 @@ namespace OpenSim.Region.Framework.Scenes
         private string m_inventoryFileName = String.Empty;
         private byte[] m_inventoryFileData = new byte[0];
         private uint m_inventoryFileNameSerial = 0;
+        private bool m_inventoryPrivileged = false;
 
         private Dictionary<UUID, ArrayList> m_scriptErrors = new Dictionary<UUID, ArrayList>();
         
@@ -93,6 +94,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_items = value;
                 m_inventorySerial++;
+                QueryScriptStates();
             }
         }
         
@@ -225,6 +227,36 @@ namespace OpenSim.Region.Framework.Scenes
             m_items.LockItemsForWrite(false);
         }
 
+        private void QueryScriptStates()
+        {
+            if (m_part == null || m_part.ParentGroup == null)
+                return;
+
+            IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
+            if (engines == null) // No engine at all
+                return;
+
+            Items.LockItemsForRead(true);
+            foreach (TaskInventoryItem item in Items.Values)
+            {
+                if (item.InvType == (int)InventoryType.LSL)
+                {
+                    foreach (IScriptModule e in engines)
+                    {
+                        bool running;
+
+                        if (e.HasScript(item.ItemID, out running))
+                        {
+                            item.ScriptRunning = running;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            Items.LockItemsForRead(false);
+        }
+
         /// <summary>
         /// Start all the scripts contained in this prim's inventory
         /// </summary>
@@ -348,6 +380,9 @@ namespace OpenSim.Region.Framework.Scenes
                     m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
                         m_part.LocalId, item.ItemID, script, startParam, postOnRez, engine, stateSource);
                     StoreScriptErrors(item.ItemID, null);
+                    if (!item.ScriptRunning)
+                        m_part.ParentGroup.Scene.EventManager.TriggerStopScript(
+                            m_part.LocalId, item.ItemID);
                     m_part.ParentGroup.AddActiveScriptCount(1);
                     m_part.ScheduleFullUpdate();
                 }
@@ -952,6 +987,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             bool changed = CreateInventoryFileName();
 
+            bool includeAssets = false;
+            if (m_part.ParentGroup.Scene.Permissions.CanEditObjectInventory(m_part.UUID, client.AgentId))
+                includeAssets = true;
+
+            if (m_inventoryPrivileged != includeAssets)
+                changed = true;
+
             InventoryStringBuilder invString = new InventoryStringBuilder(m_part.UUID, UUID.Zero);
 
             Items.LockItemsForRead(true);
@@ -977,9 +1019,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            bool includeAssets = false;
-            if (m_part.ParentGroup.Scene.Permissions.CanEditObjectInventory(m_part.UUID, client.AgentId))
-                includeAssets = true;
+            m_inventoryPrivileged = includeAssets;
 
             foreach (TaskInventoryItem item in m_items.Values)
             {
@@ -1123,16 +1163,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (TaskInventoryItem item in m_items.Values)
             {
-                if (item.InvType != (int)InventoryType.Object)
-                {
-                    if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Copy) == 0)
-                        mask &= ~((uint)PermissionMask.Copy >> 13);
-                    if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Transfer) == 0)
-                        mask &= ~((uint)PermissionMask.Transfer >> 13);
-                    if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Modify) == 0)
-                        mask &= ~((uint)PermissionMask.Modify >> 13);
-                }
-                else
+                if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Copy) == 0)
+                    mask &= ~((uint)PermissionMask.Copy >> 13);
+                if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Transfer) == 0)
+                    mask &= ~((uint)PermissionMask.Transfer >> 13);
+                if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Modify) == 0)
+                    mask &= ~((uint)PermissionMask.Modify >> 13);
+
+                if (item.InvType == (int)InventoryType.Object)
                 {
                     if ((item.CurrentPermissions & ((uint)PermissionMask.Copy >> 13)) == 0)
                         mask &= ~((uint)PermissionMask.Copy >> 13);
