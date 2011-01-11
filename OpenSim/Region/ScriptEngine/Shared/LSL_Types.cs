@@ -558,7 +558,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 else if (m_data[itemIndex] is Int32)
                     return new LSLInteger((int)m_data[itemIndex]);
                 else if (m_data[itemIndex] is LSL_Types.LSLString)
-                    return new LSLInteger((string)m_data[itemIndex]);
+                    return new LSLInteger(m_data[itemIndex].ToString());
                 else
                     throw new InvalidCastException();
             }
