@@ -30,7 +30,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 
 [DatabaseService]
     StorageProvider = "OpenSim.Data.MySQL.dll"
-    ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;Old Guids=true;"
+    ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;"
 
 ; * As an example, the below configuration precisely mimicks the legacy
 ; * asset server. It is read by the asset IN connector (defined above)
