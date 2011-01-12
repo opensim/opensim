@@ -215,7 +215,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.BuySell
                                            part.NextOwnerMask;
                 item.GroupPermissions = part.GroupMask &
                                            part.NextOwnerMask;
-                item.CurrentPermissions |= 16; // Slam!
+                item.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 item.CreationDate = Util.UnixTimeSinceEpoch();
 
                 if (m_scene.AddInventoryItem(item))

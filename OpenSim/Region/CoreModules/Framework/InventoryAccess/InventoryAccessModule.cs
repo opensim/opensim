@@ -434,10 +434,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
                     item.GroupPermissions = objectGroup.RootPart.GroupMask & objectGroup.RootPart.NextOwnerMask;
                     
-                    // Magic number badness. Maybe this deserves an enum.
-                    // bit 4 (16) is the "Slam" bit, it means treat as passed
-                    // and apply next owner perms on rez
-                    item.CurrentPermissions |= 16; // Slam!
+                    item.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 }
                 else
                 {
@@ -641,7 +638,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     rootPart.Description = item.Description;
 
                     group.SetGroup(remoteClient.ActiveGroupId, remoteClient);
-                    if ((rootPart.OwnerID != item.Owner) || (item.CurrentPermissions & 16) != 0)
+                    if ((rootPart.OwnerID != item.Owner) ||
+                            (item.CurrentPermissions & 16) != 0 || // Magic number
+                            (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
                     {
                         //Need to kill the for sale here
                         rootPart.ObjectSaleType = 0;
@@ -651,9 +650,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         {
                             foreach (SceneObjectPart part in group.Parts)
                             {
-                                part.EveryoneMask = item.EveryOnePermissions;
-                                part.NextOwnerMask = item.NextPermissions;
-                                part.GroupMask = 0; // DO NOT propagate here
+                                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                                    part.EveryoneMask = item.EveryOnePermissions;
+                                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                                    part.NextOwnerMask = item.NextPermissions;
+                                if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                                    part.GroupMask = item.GroupPermissions;
                             }
                             
                             group.ApplyNextOwnerPermissions();
@@ -669,8 +671,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                             part.Inventory.ChangeInventoryOwner(item.Owner);
                             part.GroupMask = 0; // DO NOT propagate here
                         }
-                        part.EveryoneMask = item.EveryOnePermissions;
-                        part.NextOwnerMask = item.NextPermissions;
+                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
+                            part.EveryoneMask = item.EveryOnePermissions;
+                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
+                            part.NextOwnerMask = item.NextPermissions;
+                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
+                            part.GroupMask = item.GroupPermissions;
                     }
 
                     rootPart.TrimPermissions();

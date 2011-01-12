@@ -326,10 +326,17 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (UUID.Zero == transactionID)
                 {
+                    item.Flags = itemUpd.Flags;
                     item.Name = itemUpd.Name;
                     item.Description = itemUpd.Description;
+                    if (item.NextPermissions != (itemUpd.NextPermissions & item.BasePermissions))
+                        item.Flags |= (uint)InventoryItemFlags.ObjectOverwriteNextOwner;
                     item.NextPermissions = itemUpd.NextPermissions & item.BasePermissions;
+                    if (item.EveryOnePermissions != (itemUpd.EveryOnePermissions & item.BasePermissions))
+                        item.Flags |= (uint)InventoryItemFlags.ObjectOverwriteEveryone;
                     item.EveryOnePermissions = itemUpd.EveryOnePermissions & item.BasePermissions;
+                    if (item.GroupPermissions != (itemUpd.GroupPermissions & item.BasePermissions))
+                        item.Flags |= (uint)InventoryItemFlags.ObjectOverwriteGroup;
                     item.GroupPermissions = itemUpd.GroupPermissions & item.BasePermissions;
                     item.GroupID = itemUpd.GroupID;
                     item.GroupOwned = itemUpd.GroupOwned;
@@ -344,9 +351,12 @@ namespace OpenSim.Region.Framework.Scenes
                     // TODO: Check if folder changed and move item
                     //item.NextPermissions = itemUpd.Folder;
                     item.InvType = itemUpd.InvType;
+
+                    if (item.SalePrice != itemUpd.SalePrice ||
+                        item.SaleType != itemUpd.SaleType)
+                        item.Flags |= (uint)InventoryItemFlags.ObjectSlamSale;
                     item.SalePrice = itemUpd.SalePrice;
                     item.SaleType = itemUpd.SaleType;
-                    item.Flags = itemUpd.Flags;
 
                     InventoryService.UpdateItem(item);
                 }
@@ -527,7 +537,8 @@ namespace OpenSim.Region.Framework.Scenes
                     // Assign to the actual item. Make sure the slam bit is
                     // set, if it wasn't set before.
                     itemCopy.BasePermissions = basePerms;
-                    itemCopy.CurrentPermissions = ownerPerms | 16; // Slam
+                    itemCopy.CurrentPermissions = ownerPerms;
+                    itemCopy.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
 
                     itemCopy.NextPermissions = item.NextPermissions;
 
@@ -1043,7 +1054,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                     agentItem.CurrentPermissions = agentItem.BasePermissions & taskItem.CurrentPermissions;
 
-                agentItem.CurrentPermissions |= 16; // Slam
+                agentItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 agentItem.NextPermissions = taskItem.NextPermissions;
                 agentItem.EveryOnePermissions = taskItem.EveryonePermissions & (taskItem.NextPermissions | (uint)PermissionMask.Move);
                 agentItem.GroupPermissions = taskItem.GroupPermissions & taskItem.NextPermissions;
@@ -1254,7 +1265,7 @@ namespace OpenSim.Region.Framework.Scenes
                             (srcTaskItem.NextPermissions | (uint)PermissionMask.Move);
                     destTaskItem.BasePermissions = srcTaskItem.BasePermissions &
                             (srcTaskItem.NextPermissions | (uint)PermissionMask.Move);
-                    destTaskItem.CurrentPermissions |= 16; // Slam!
+                    destTaskItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 }
             }
 
@@ -1435,6 +1446,8 @@ namespace OpenSim.Region.Framework.Scenes
                     // Base ALWAYS has move
                     currentItem.BasePermissions |= (uint)PermissionMask.Move;
 
+                    itemInfo.Flags = currentItem.Flags;
+
                     // Check if we're allowed to mess with permissions
                     if (!Permissions.IsGod(remoteClient.AgentId)) // Not a god
                     {
@@ -1452,12 +1465,33 @@ namespace OpenSim.Region.Framework.Scenes
                             // Owner can't change base, and can change other
                             // only up to base
                             itemInfo.BasePermissions = currentItem.BasePermissions;
+                            if (itemInfo.EveryonePermissions != currentItem.EveryonePermissions)
+                                itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteEveryone;
+                            if (itemInfo.GroupPermissions != currentItem.GroupPermissions)
+                                itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteGroup;
+                            if (itemInfo.CurrentPermissions != currentItem.CurrentPermissions)
+                                itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteOwner;
+                            if (itemInfo.NextPermissions != currentItem.NextPermissions)
+                                itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteNextOwner;
                             itemInfo.EveryonePermissions &= currentItem.BasePermissions;
                             itemInfo.GroupPermissions &= currentItem.BasePermissions;
                             itemInfo.CurrentPermissions &= currentItem.BasePermissions;
                             itemInfo.NextPermissions &= currentItem.BasePermissions;
                         }
 
+                    }
+                    else
+                    {
+                        if (itemInfo.BasePermissions != currentItem.BasePermissions)
+                            itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteBase;
+                        if (itemInfo.EveryonePermissions != currentItem.EveryonePermissions)
+                            itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteEveryone;
+                        if (itemInfo.GroupPermissions != currentItem.GroupPermissions)
+                            itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteGroup;
+                        if (itemInfo.CurrentPermissions != currentItem.CurrentPermissions)
+                            itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteOwner;
+                        if (itemInfo.NextPermissions != currentItem.NextPermissions)
+                            itemInfo.Flags |= (uint)InventoryItemFlags.ObjectOverwriteNextOwner;
                     }
 
                     // Next ALWAYS has move
@@ -1667,7 +1701,7 @@ namespace OpenSim.Region.Framework.Scenes
                             srcTaskItem.NextPermissions;
                     destTaskItem.BasePermissions = srcTaskItem.BasePermissions &
                             srcTaskItem.NextPermissions;
-                    destTaskItem.CurrentPermissions |= 16; // Slam!
+                    destTaskItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 }
             }
 
