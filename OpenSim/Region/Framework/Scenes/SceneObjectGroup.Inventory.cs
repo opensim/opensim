@@ -118,7 +118,7 @@ namespace OpenSim.Region.Framework.Scenes
                     taskItem.NextPermissions = item.NextPermissions;
                     // We're adding this to a prim we don't own. Force
                     // owner change
-                    taskItem.CurrentPermissions |= 16; // Slam
+                    taskItem.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
                 } 
                 else 
                 {
