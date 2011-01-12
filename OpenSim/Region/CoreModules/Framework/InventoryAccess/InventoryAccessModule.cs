@@ -637,6 +637,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     rootPart.Name = item.Name;
                     rootPart.Description = item.Description;
 
+                    if ((item.Flags & (uint)InventoryItemFlags.ObjectSlamSale) != 0)
+                    {
+                        rootPart.ObjectSaleType = item.SaleType;
+                        rootPart.SalePrice = item.SalePrice;
+                    }
+
                     group.SetGroup(remoteClient.ActiveGroupId, remoteClient);
                     if ((rootPart.OwnerID != item.Owner) ||
                             (item.CurrentPermissions & 16) != 0 || // Magic number
