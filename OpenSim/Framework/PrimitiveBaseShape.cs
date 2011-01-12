@@ -708,7 +708,12 @@ namespace OpenSim.Framework
                 return _lightColorR;
             }
             set {
-                _lightColorR = value;
+                if (value < 0)
+                    _lightColorR = 0;
+                else if (value > 1.0f)
+                    _lightColorR = 1.0f;
+                else
+                    _lightColorR = value;
             }
         }
 
@@ -717,7 +722,12 @@ namespace OpenSim.Framework
                 return _lightColorG;
             }
             set {
-                _lightColorG = value;
+                if (value < 0)
+                    _lightColorG = 0;
+                else if (value > 1.0f)
+                    _lightColorG = 1.0f;
+                else
+                    _lightColorG = value;
             }
         }
 
@@ -726,7 +736,12 @@ namespace OpenSim.Framework
                 return _lightColorB;
             }
             set {
-                _lightColorB = value;
+                if (value < 0)
+                    _lightColorB = 0;
+                else if (value > 1.0f)
+                    _lightColorB = 1.0f;
+                else
+                    _lightColorB = value;
             }
         }
 
@@ -735,7 +750,12 @@ namespace OpenSim.Framework
                 return _lightColorA;
             }
             set {
-                _lightColorA = value;
+                if (value < 0)
+                    _lightColorA = 0;
+                else if (value > 1.0f)
+                    _lightColorA = 1.0f;
+                else
+                    _lightColorA = value;
             }
         }
 
