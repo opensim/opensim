@@ -946,6 +946,13 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (TaskInventoryItem item in m_items.Values)
                 {
+                    if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Copy) == 0)
+                        mask &= ~((uint)PermissionMask.Copy >> 13);
+                    if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Transfer) == 0)
+                        mask &= ~((uint)PermissionMask.Transfer >> 13);
+                    if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Modify) == 0)
+                        mask &= ~((uint)PermissionMask.Modify >> 13);
+
                     if (item.InvType != (int)InventoryType.Object)
                     {
                         if ((item.CurrentPermissions & item.NextPermissions & (uint)PermissionMask.Copy) == 0)
