@@ -46,7 +46,7 @@ using System.Threading;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
-using BclExtras;
+// using BclExtras;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using Amib.Threading;
@@ -1375,8 +1375,29 @@ namespace OpenSim.Framework
         /// <summary>
         /// Created to work around a limitation in Mono with nested delegates
         /// </summary>
-        private class FireAndForgetWrapper
+        private sealed class FireAndForgetWrapper
         {
+            private static volatile FireAndForgetWrapper instance;
+            private static object syncRoot = new Object();
+
+            public static FireAndForgetWrapper Instance {
+                get {
+
+                    if (instance == null)
+                    {
+                        lock (syncRoot)
+                        {
+                            if (instance == null)
+                            {
+                                instance = new FireAndForgetWrapper();
+                            }
+                        }
+                    }
+
+                    return instance;
+                }
+            }
+
             public void FireAndForget(System.Threading.WaitCallback callback)
             {
                 callback.BeginInvoke(null, EndFireAndForget, callback);
@@ -1445,7 +1466,7 @@ namespace OpenSim.Framework
                     ThreadPool.QueueUserWorkItem(callback, obj);
                     break;
                 case FireAndForgetMethod.BeginInvoke:
-                    FireAndForgetWrapper wrapper = Singleton.GetInstance<FireAndForgetWrapper>();
+                    FireAndForgetWrapper wrapper = FireAndForgetWrapper.Instance;
                     wrapper.FireAndForget(callback, obj);
                     break;
                 case FireAndForgetMethod.SmartThreadPool:
