@@ -1866,7 +1866,7 @@ namespace OpenSim.Region.Framework.Scenes
 	            Quaternion partIRot = Quaternion.Inverse(partRot);
 
 				Quaternion avatarRot = Quaternion.Inverse(Quaternion.Inverse(Rotation) * partIRot); // world or. of the av
-				Vector3 avStandUp = new Vector3(1.0f, 0f, 0f) * avatarRot;		// 1M infront of av
+				Vector3 avStandUp = new Vector3(0.3f, 0f, 0f) * avatarRot;		// 0.3M infront of av
 
                 
                 if (m_physicsActor == null)

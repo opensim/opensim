@@ -3023,9 +3023,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 			LSL_Rotation newrot = llGetRot() * llRotBetween(new LSL_Vector(1.0d, 0.0d, 0.0d) * llGetRot(), new LSL_Vector(0.0d, 0.0d, -1.0d));
             llSetRot(newrot * llRotBetween(new LSL_Vector(0.0d,0.0d,1.0d) * newrot, target - llGetPos()));
 			*/
-			// Send the target vector to RotLookAt method inside a 'rotation', the .w -99.9 value indicates it is really a LookAt.
-			Quaternion q = new Quaternion((float)target.x, (float)target.y, (float)target.z, -99.9f);
-			m_host.RotLookAt(q, (float)strength, (float)damping);
+            if (m_host.PhysActor != null && !m_host.PhysActor.IsPhysical)
+            {
+                // Part is non-phys, convert this to a llSetRot()
+                Vector3 tgt = new Vector3((float)target.x, (float)target.y, (float)target.z);
+                Vector3 dir = tgt - m_host.GroupPosition;
+				dir.Normalize();
+                float tzrot = (float)Math.Atan2(dir.Y, dir.X);
+                float txy = (float)Math.Sqrt((dir.X * dir.X) + (dir.Y * dir.Y));
+                float terot = (float)Math.Atan2(-dir.Z, txy);
+                LSL_Vector az = new LSL_Vector(0.0f, 0.0f, tzrot);
+                LSL_Vector ae = new LSL_Vector(0.0f, terot, 0.0f);
+                LSL_Types.Quaternion spin =  llEuler2Rot(az);
+                LSL_Types.Quaternion rot =  llEuler2Rot(ae) * spin;
+                llSetRot(rot);
+            }
+            else
+            {
+    			// Physical, send the target vector to RotLookAt method inside a 'rotation', the .w -99.9 value indicates it is really a LookAt.
+    			Quaternion q = new Quaternion((float)target.x, (float)target.y, (float)target.z, -99.9f);
+    			m_host.RotLookAt(q, (float)strength, (float)damping);
+            }
 
         }
         
