@@ -881,7 +881,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 item.ParentID = m_part.UUID;
                 item.ParentPartID = m_part.UUID;
-                item.Flags = m_items[item.ItemID].Flags;
 
                 // If group permissions have been set on, check that the groupID is up to date in case it has
                 // changed since permissions were last set.
