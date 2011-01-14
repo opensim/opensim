@@ -74,6 +74,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
             m_scene.EventManager.OnNewClient += SubscribeToClientEvents;
             m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
             m_scene.EventManager.OnClientClosed += OnClientClosed;
+            scene.EventManager.OnIncomingInstantMessage +=
+                    OnIncomingInstantMessage;
         }
         
         public void PostInitialise() {}
@@ -127,6 +129,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                 UUID godSessionID = userData["GodSessionID"].AsUUID();
                 uint kickFlags = userData["KickFlags"].AsUInteger();
                 string reason = userData["Reason"].AsString();
+
+                ScenePresence god = m_scene.GetScenePresence(godID);
+                if (god == null || god.ControllingClient.SessionId != godSessionID)
+                    return String.Empty;
 
                 KickUser(godID, godSessionID, agentID, kickFlags, Util.StringToBytes1024(reason));
             }
@@ -188,11 +194,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
             if (!m_scene.Permissions.IsGod(godID))
                 return;
 
-            ScenePresence god = m_scene.GetScenePresence(godID);
-            if (god == null || god.ControllingClient.SessionId != sessionID)
-                return;
-
             ScenePresence sp = m_scene.GetScenePresence(agentID);
+
+            if (sp == null && agentID != ALL_AGENTS)
+            {
+                IMessageTransferModule transferModule =
+                        m_scene.RequestModuleInterface<IMessageTransferModule>();
+                if (transferModule != null)
+                {
+                    m_log.DebugFormat("[GODS]: Sending nonlocal kill for agent {0}", agentID);
+                    transferModule.SendInstantMessage(new GridInstantMessage(
+                            m_scene, godID, "God", agentID, (byte)250, false,
+                            Utils.BytesToString(reason), UUID.Zero, true,
+                            new Vector3(), new byte[] {(byte)kickflags}),
+                            delegate(bool success) {} );
+                }
+                return;
+            }
 
             switch (kickflags)
             {
@@ -239,6 +257,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                 return;
             sp.ControllingClient.Kick(reason);
             sp.Scene.IncomingCloseAgent(sp.UUID);
+        }
+
+        private void OnIncomingInstantMessage(GridInstantMessage msg)
+        {
+            if (msg.dialog == (uint)250) // Nonlocal kick
+            {
+                UUID agentID = new UUID(msg.toAgentID);
+                string reason = msg.message;
+                UUID godID = new UUID(msg.fromAgentID);
+                uint kickMode = (uint)msg.binaryBucket[0];
+
+                KickUser(godID, UUID.Zero, agentID, kickMode, Util.StringToBytes1024(reason));
+            }
         }
     }
 }
