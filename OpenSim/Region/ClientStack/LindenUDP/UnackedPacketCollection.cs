@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using OpenMetaverse;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
@@ -77,6 +78,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void Add(OutgoingPacket packet)
         {
             m_pendingAdds.Enqueue(packet);
+            Interlocked.Add(ref packet.Client.UnackedBytes, packet.Buffer.DataLength);            
         }
 
         /// <summary>
@@ -166,7 +168,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             m_packets.Remove(pendingRemove.SequenceNumber);
 
                             // Update stats
-                            System.Threading.Interlocked.Add(ref ackedPacket.Client.UnackedBytes, -ackedPacket.Buffer.DataLength);
+                            Interlocked.Add(ref ackedPacket.Client.UnackedBytes, -ackedPacket.Buffer.DataLength);
 
                             if (!pendingRemove.FromResend)
                             {
