@@ -200,24 +200,21 @@ namespace OpenSim.Server.Handlers.Simulation
 
             // We're behind a proxy
             Hashtable headers = (Hashtable)request["headers"];
+            string xff = "X-Forwarded-For";
+            if (headers.ContainsKey(xff.ToLower()))
+                xff = xff.ToLower();
 
-            foreach (object o in headers.Keys)
+            if (!headers.ContainsKey(xff) || headers[xff] == null)
             {
-                if (o != null)
-                    m_log.DebugFormat("[XXX] {0}", o.ToString());
-            }
-
-            if (headers.ContainsKey("X-Forwarded-For") && headers["X-Forwarded-For"] != null)
-            {
-                m_log.DebugFormat("[AGENT HANDLER]: XFF is {0}", headers["X-Forwarded-For"]);
-
-                IPEndPoint ep = Util.GetClientIPFromXFF((string)headers["X-Forwarded-For"]);
-                if (ep != null)
-                    return ep.Address.ToString();
-            }
-            else
                 m_log.WarnFormat("[AGENT HANDLER]: No XFF header");
+                return Util.GetCallerIP(request);
+            }
 
+            m_log.DebugFormat("[AGENT HANDLER]: XFF is {0}", headers[xff]);
+
+            IPEndPoint ep = Util.GetClientIPFromXFF((string)headers[xff]);
+            if (ep != null)
+                return ep.Address.ToString();
 
             // Oops
             return Util.GetCallerIP(request);
