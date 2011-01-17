@@ -69,7 +69,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gestures
             item = invService.GetItem(item);
             if (item != null)
             {
-                item.Flags = 1;
+                item.Flags |= 1;
                 invService.UpdateItem(item);
             }
             else 
@@ -85,7 +85,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gestures
             item = invService.GetItem(item);
             if (item != null)
             {
-                item.Flags = 0;
+                item.Flags &= ~1;
                 invService.UpdateItem(item);
             }
             else 
