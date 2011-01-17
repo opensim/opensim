@@ -839,7 +839,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_rootRegionHandle = m_scene.RegionInfo.RegionHandle;
 
             m_scene.EventManager.TriggerSetRootAgentScene(m_uuid, m_scene);
-            m_log.DebugFormat("[XXX] MakeRoot 1");
 
             // Moved this from SendInitialData to ensure that m_appearance is initialized
             // before the inventory is processed in MakeRootAgent. This fixes a race condition
@@ -900,7 +899,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             
             AddToPhysicalScene(isFlying);
-            m_log.DebugFormat("[XXX] MakeRoot 2");
 
             if (m_appearance != null)
             {
@@ -943,9 +941,7 @@ namespace OpenSim.Region.Framework.Scenes
                     presence.Animator.SendAnimPackToClient(ControllingClient);
             });
 
-            m_log.DebugFormat("[XXX] MakeRoot 3");
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
-            m_log.DebugFormat("[XXX] MakeRoot 4");
         }
 
         /// <summary>
