@@ -208,6 +208,9 @@ namespace OpenSim.Server.Handlers.Simulation
                 if (ep != null)
                     return ep.Address.ToString();
             }
+            else
+                m_log.WarnFormat("[AGENT HANDLER]: No XFF header");
+
 
             // Oops
             return Util.GetCallerIP(request);

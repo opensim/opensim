@@ -223,6 +223,8 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 if (ep != null)
                     return ep.Address.ToString();
             }
+            else
+                m_log.WarnFormat("[HOME AGENT HANDLER]: No XFF header");
 
             // Oops
             return Util.GetCallerIP(request);
