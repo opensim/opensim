@@ -3466,8 +3466,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 ani.AnimationSourceList[i] = new AvatarAnimationPacket.AnimationSourceListBlock();
                 ani.AnimationSourceList[i].ObjectID = objectIDs[i];
-                if (objectIDs[i] == UUID.Zero)
-                    ani.AnimationSourceList[i].ObjectID = sourceAgentId;
             }
             ani.Header.Reliable = false;
             OutPacket(ani, ThrottleOutPacketType.Task);
