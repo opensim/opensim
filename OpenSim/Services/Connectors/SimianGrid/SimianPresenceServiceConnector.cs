@@ -158,7 +158,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public bool LogoutAgent(UUID sessionID)
         {
-            m_log.InfoFormat("[SIMIAN PRESENCE CONNECTOR]: Logout requested for agent with sessionID " + sessionID);
+//            m_log.InfoFormat("[SIMIAN PRESENCE CONNECTOR]: Logout requested for agent with sessionID " + sessionID);
 
             NameValueCollection requestArgs = new NameValueCollection
             {
@@ -177,7 +177,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public bool LogoutRegionAgents(UUID regionID)
         {
-            m_log.InfoFormat("[SIMIAN PRESENCE CONNECTOR]: Logout requested for all agents in region " + regionID);
+//            m_log.InfoFormat("[SIMIAN PRESENCE CONNECTOR]: Logout requested for all agents in region " + regionID);
 
             NameValueCollection requestArgs = new NameValueCollection
             {
@@ -202,7 +202,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public PresenceInfo GetAgent(UUID sessionID)
         {
-            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting session data for agent with sessionID " + sessionID);
+//            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting session data for agent with sessionID " + sessionID);
 
             NameValueCollection requestArgs = new NameValueCollection
             {
@@ -262,7 +262,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public bool LoggedOut(string userID, UUID sessionID, UUID regionID, Vector3 lastPosition, Vector3 lastLookAt)
         {
-            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Logging out user " + userID);
+//            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Logging out user " + userID);
 
             // Remove the session to mark this user offline
             if (!LogoutAgent(sessionID))
@@ -287,7 +287,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public bool SetHome(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
-            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Setting home location for user  " + userID);
+//            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Setting home location for user  " + userID);
 
             NameValueCollection requestArgs = new NameValueCollection
             {
@@ -312,10 +312,10 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public GridUserInfo GetGridUserInfo(string user)
         {
-            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting session data for agent " + user);
+//            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting session data for agent " + user);
 
             UUID userID = new UUID(user);
-            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting user data for " + userID);
+//            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting user data for " + userID);
 
             NameValueCollection requestArgs = new NameValueCollection
             {
@@ -338,7 +338,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         private OSDMap GetUserData(UUID userID)
         {
-            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting user data for " + userID);
+//            m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting user data for " + userID);
 
             NameValueCollection requestArgs = new NameValueCollection
             {
@@ -362,7 +362,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             OSDMap userResponse = GetUserData(userID);
             if (userResponse != null)
             {
-                m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting sessions for " + userID);
+//                m_log.DebugFormat("[SIMIAN PRESENCE CONNECTOR]: Requesting sessions for " + userID);
 
                 NameValueCollection requestArgs = new NameValueCollection
                 {
@@ -377,10 +377,10 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     if (presence != null)
                         presences.Add(presence);
                 }
-                else
-                {
-                    m_log.Debug("[SIMIAN PRESENCE CONNECTOR]: No session returned for " + userID + ": " + response["Message"].AsString());
-                }
+//                else
+//                {
+//                    m_log.Debug("[SIMIAN PRESENCE CONNECTOR]: No session returned for " + userID + ": " + response["Message"].AsString());
+//                }
             }
 
             return presences;
@@ -424,7 +424,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
         {
             if (userResponse != null && userResponse["User"] is OSDMap)
             {
-
                 GridUserInfo info = new GridUserInfo();
 
                 info.Online = true;

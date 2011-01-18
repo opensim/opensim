@@ -175,7 +175,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     }
                 }
 
-                m_log.Debug("[SIMIAN GRID CONNECTOR]: Found " + regions.Count + " neighbors for region " + regionID);
+//                m_log.Debug("[SIMIAN GRID CONNECTOR]: Found " + regions.Count + " neighbors for region " + regionID);
                 return regions;
             }
 
