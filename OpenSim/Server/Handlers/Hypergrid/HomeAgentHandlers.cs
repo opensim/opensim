@@ -215,12 +215,21 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             // We're behind a proxy
             Hashtable headers = (Hashtable)request["headers"];
-            if (headers.ContainsKey("X-Forwarded-For") && headers["X-Forwarded-For"] != null)
+            string xff = "X-Forwarded-For";
+            if (headers.ContainsKey(xff.ToLower()))
+                xff = xff.ToLower();
+
+            if (!headers.ContainsKey(xff) || headers[xff] == null)
             {
-                IPEndPoint ep = Util.GetClientIPFromXFF((string)headers["X-Forwarded-For"]);
-                if (ep != null)
-                    return ep.Address.ToString();
+                m_log.WarnFormat("[AGENT HANDLER]: No XFF header");
+                return Util.GetCallerIP(request);
             }
+
+            m_log.DebugFormat("[AGENT HANDLER]: XFF is {0}", headers[xff]);
+
+            IPEndPoint ep = Util.GetClientIPFromXFF((string)headers[xff]);
+            if (ep != null)
+                return ep.Address.ToString();
 
             // Oops
             return Util.GetCallerIP(request);

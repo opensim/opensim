@@ -585,8 +585,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Stats tracking
             Interlocked.Increment(ref udpClient.PacketsSent);
-            if (isReliable)
-                Interlocked.Add(ref udpClient.UnackedBytes, outgoingPacket.Buffer.DataLength);
 
             // Put the UDP payload on the wire
             AsyncBeginSend(buffer);
@@ -859,9 +857,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Acknowledge the UseCircuitCode packet
             SendAckImmediate(remoteEndPoint, packet.Header.Sequence);
             
-            m_log.DebugFormat(
-                "[LLUDPSERVER]: Handling UseCircuitCode request from {0} took {1}ms", 
-                buffer.RemoteEndPoint, (DateTime.Now - startTime).Milliseconds);
+//            m_log.DebugFormat(
+//                "[LLUDPSERVER]: Handling UseCircuitCode request from {0} took {1}ms", 
+//                buffer.RemoteEndPoint, (DateTime.Now - startTime).Milliseconds);
         }
 
         private void SendAckImmediate(IPEndPoint remoteEndpoint, uint sequenceNumber)
