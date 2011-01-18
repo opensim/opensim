@@ -43,9 +43,9 @@ namespace OpenSim.Services.Connectors
 {
     public class EstateDataService : ServiceBase, IEstateDataService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//                LogManager.GetLogger(
+//                MethodBase.GetCurrentMethod().DeclaringType);
 
         protected IEstateDataStore m_database;
 

@@ -56,7 +56,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_ServerURI = String.Empty;
-        private bool m_Enabled = false;
+//        private bool m_Enabled = false;
 
         public SimianGridServiceConnector() { }
         public SimianGridServiceConnector(string serverURI)
@@ -93,7 +93,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
                 serviceUrl = serviceUrl + '/';
             m_ServerURI = serviceUrl;
-            m_Enabled = true;
+//            m_Enabled = true;
         }
 
         #region IGridService
