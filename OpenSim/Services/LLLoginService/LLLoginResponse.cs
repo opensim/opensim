@@ -661,7 +661,7 @@ namespace OpenSim.Services.LLLoginService
         protected virtual ArrayList GetInventoryLibrary(ILibraryService library)
         {
             Dictionary<UUID, InventoryFolderImpl> rootFolders = library.GetAllFolders();
-            m_log.DebugFormat("[LLOGIN]: Library has {0} folders", rootFolders.Count);
+//            m_log.DebugFormat("[LLOGIN]: Library has {0} folders", rootFolders.Count);
             //Dictionary<UUID, InventoryFolderImpl> rootFolders = new Dictionary<UUID,InventoryFolderImpl>();
             ArrayList folderHashes = new ArrayList();
 
