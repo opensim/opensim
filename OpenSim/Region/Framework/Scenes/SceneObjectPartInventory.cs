@@ -849,7 +849,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="xferManager"></param>
         public void RequestInventoryFile(IClientAPI client, IXfer xferManager)
         {
-            bool changed = CreateInventoryFile();
+            CreateInventoryFile();
 
             if (m_inventorySerial == 0) // No inventory
             {

@@ -1108,7 +1108,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void CompleteMovement(IClientAPI client)
         {
-            DateTime startTime = DateTime.Now;
+//            DateTime startTime = DateTime.Now;
             
             m_log.DebugFormat(
                 "[SCENE PRESENCE]: Completing movement of {0} into region {1}", 
