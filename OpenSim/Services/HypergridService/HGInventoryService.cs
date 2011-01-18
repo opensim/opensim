@@ -53,7 +53,7 @@ namespace OpenSim.Services.HypergridService
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected new IXInventoryData m_Database;
+        protected IXInventoryData m_Database;
 
         private string m_ProfileServiceURL;
         private IUserAccountService m_UserAccountService;

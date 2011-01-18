@@ -102,7 +102,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
         {
             UUID capID = UUID.Random();
 
-            m_log.Info("[GETMESH]: /CAPS/" + capID);
+//            m_log.Info("[GETMESH]: /CAPS/" + capID);
             caps.RegisterHandler("GetMesh",
                                  new RestHTTPHandler("GET", "/CAPS/" + capID,
                                                        delegate(Hashtable m_dhttpMethod)
