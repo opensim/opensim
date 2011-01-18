@@ -157,7 +157,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         {
             List<UserAccount> accounts = new List<UserAccount>();
 
-            m_log.DebugFormat("[SIMIAN ACCOUNT CONNECTOR]: Searching for user accounts with name query " + query);
+//            m_log.DebugFormat("[SIMIAN ACCOUNT CONNECTOR]: Searching for user accounts with name query " + query);
 
             NameValueCollection requestArgs = new NameValueCollection
             {
@@ -193,7 +193,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public bool StoreUserAccount(UserAccount data)
         {
-            m_log.InfoFormat("[SIMIAN ACCOUNT CONNECTOR]: Storing user account for " + data.Name);
+//            m_log.InfoFormat("[SIMIAN ACCOUNT CONNECTOR]: Storing user account for " + data.Name);
 
             NameValueCollection requestArgs = new NameValueCollection
             {
@@ -250,7 +250,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         private UserAccount GetUser(NameValueCollection requestArgs)
         {
             string lookupValue = (requestArgs.Count > 1) ? requestArgs[1] : "(Unknown)";
-            m_log.DebugFormat("[SIMIAN ACCOUNT CONNECTOR]: Looking up user account with query: " + lookupValue);
+//            m_log.DebugFormat("[SIMIAN ACCOUNT CONNECTOR]: Looking up user account with query: " + lookupValue);
 
             OSDMap response = WebUtil.PostToService(m_serverUrl, requestArgs);
             if (response["Success"].AsBoolean())

@@ -928,10 +928,6 @@ namespace OpenSim.Region.Framework.Scenes
             //else
             //    m_log.ErrorFormat("[SCENE]: Could not find user info for {0} when making it a root agent", m_uuid);
             
-            // On the next prim update, all objects will be sent
-            //
-            m_sceneViewer.Reset();
-
             m_isChildAgent = false;
 
             // send the animations of the other presences to me
@@ -1108,7 +1104,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void CompleteMovement(IClientAPI client)
         {
-            DateTime startTime = DateTime.Now;
+//            DateTime startTime = DateTime.Now;
             
             m_log.DebugFormat(
                 "[SCENE PRESENCE]: Completing movement of {0} into region {1}", 
@@ -1161,9 +1157,9 @@ namespace OpenSim.Region.Framework.Scenes
                     friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
             }
 
-            m_log.DebugFormat(
-                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
-                client.Name, Scene.RegionInfo.RegionName, (DateTime.Now - startTime).Milliseconds);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: Completing movement of {0} into region {1} took {2}ms", 
+//                client.Name, Scene.RegionInfo.RegionName, (DateTime.Now - startTime).Milliseconds);
         }
 
         /// <summary>
@@ -2951,10 +2947,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if ((cAgentData.Throttles != null) && cAgentData.Throttles.Length > 0)
                 ControllingClient.SetChildAgentThrottle(cAgentData.Throttles);
-
-            // Sends out the objects in the user's draw distance if m_sendTasksToChild is true.
-            if (m_scene.m_seeIntoRegionFromNeighbor)
-                m_sceneViewer.Reset();
 
             //cAgentData.AVHeight;
             m_rootRegionHandle = cAgentData.RegionHandle;

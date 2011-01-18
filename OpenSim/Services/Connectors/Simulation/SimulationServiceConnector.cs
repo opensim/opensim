@@ -237,7 +237,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
             try
             {
-                OSDMap result = WebUtil.ServiceOSDRequest(uri,null,"DELETE",10000);
+                WebUtil.ServiceOSDRequest(uri, null, "DELETE", 10000);
             }
             catch (Exception e)
             {
@@ -257,7 +257,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
             try
             {
-                OSDMap result = WebUtil.ServiceOSDRequest(uri,null,"DELETE",10000);
+                WebUtil.ServiceOSDRequest(uri, null, "DELETE", 10000);
             }
             catch (Exception e)
             {
@@ -303,7 +303,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 args["destination_name"] = OSD.FromString(destination.RegionName);
                 args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
 
-                OSDMap result = WebUtil.PostToService(uri,args);
+                WebUtil.PostToService(uri, args);
             }
             catch (Exception e)
             {
