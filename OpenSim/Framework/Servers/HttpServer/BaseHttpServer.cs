@@ -587,8 +587,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                 // Every month or so this will wrap and give bad numbers, not really a problem
                 // since its just for reporting, 200ms limit can be adjusted
                 int tickdiff = Environment.TickCount - tickstart;
-                if (tickdiff > 200)
-                    m_log.InfoFormat("[BASE HTTP SERVER]: slow request <{0}> for {1} took {2} ms",reqnum,request.RawUrl,tickdiff);
+                if (tickdiff > 500)
+                    m_log.InfoFormat(
+                        "[BASE HTTP SERVER]: slow request <{0}> for {1} took {2} ms", reqnum, request.RawUrl, tickdiff);
             }
         }
 

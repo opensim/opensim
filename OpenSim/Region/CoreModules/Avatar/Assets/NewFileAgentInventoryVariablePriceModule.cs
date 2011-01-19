@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
         {
             UUID capID = UUID.Random();
 
-            m_log.Info("[GETMESH]: /CAPS/" + capID);
+//            m_log.Debug("[NEW FILE AGENT INVENTORY VARIABLE PRICE]: /CAPS/" + capID);
             caps.RegisterHandler("NewFileAgentInventoryVariablePrice",
 
                     new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDNewFileAngentInventoryVariablePriceReplyResponse>("POST",
