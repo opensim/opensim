@@ -167,7 +167,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 }
             }
 
-            m_log.InfoFormat("[AVFACTORY]: complete texture check for {0}",client.AgentId);
+            m_log.InfoFormat("[AVFACTORY]: complete texture check for {0}", client.AgentId);
 
             // If we only found default textures, then the appearance is not cached
             return (defonly ? false : true);
@@ -187,7 +187,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 return;
             }
 
-            m_log.InfoFormat("[AVFACTORY]: start SetAppearance for {0}",client.AgentId);
+//            m_log.InfoFormat("[AVFACTORY]: start SetAppearance for {0}", client.AgentId);
 
             // TODO: This is probably not necessary any longer, just assume the
             // textureEntry set implies that the appearance transaction is complete
@@ -210,7 +210,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     changed = sp.Appearance.SetTextureEntries(textureEntry) || changed;
 
-                    m_log.InfoFormat("[AVFACTORY]: received texture update for {0}",client.AgentId);
+                    m_log.InfoFormat("[AVFACTORY]: received texture update for {0}", client.AgentId);
                     Util.FireAndForget(delegate(object o) { ValidateBakedTextureCache(client,false); });
 
                     // This appears to be set only in the final stage of the appearance
