@@ -1014,22 +1014,22 @@ namespace OpenSim
             report.AppendFormat("{0,-" + maxTypeLength +  "}{1,-" + columnPadding + "}", "Type", "");
             
             report.AppendFormat(
-                "{0,9} {1,9} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
-                "Packets",
-                "Packets",
+                "{0,7} {1,7} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
+                "Pkts",
+                "Pkts",
                 "Bytes",
-                "Bytes",
-                "Bytes",
-                "Bytes",
-                "Bytes",
-                "Bytes",
-                "Bytes",
-                "Bytes",
-                "Bytes");
+                "Pkts",
+                "Pkts",
+                "Pkts",
+                "Pkts",
+                "Pkts",
+                "Pkts",
+                "Pkts",
+                "Pkts");
     
             report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
             report.AppendFormat(
-                "{0,9} {1,9} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
+                "{0,7} {1,7} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
                 "Out",
                 "In",
                 "Unacked",
