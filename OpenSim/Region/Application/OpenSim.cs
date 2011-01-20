@@ -301,13 +301,6 @@ namespace OpenSim
             m_console.Commands.AddCommand("region", false, "show regions",
                                           "show regions",
                                           "Show region data", HandleShow);
-
-            m_console.Commands.AddCommand("region", false, "show queues",
-                                          "show queues [full]",
-                                          "Show queue data for each client", 
-                                          "Without the 'full' option, only users actually on the region are shown."
-                                            + "  With the 'full' option child agents of users in neighbouring regions are also shown.",                                          
-                                          HandleShow);
             
             m_console.Commands.AddCommand("region", false, "show ratings",
                                           "show ratings",
@@ -951,10 +944,6 @@ namespace OpenSim
                             });
                     break;
 
-                case "queues":
-                    Notice(GetQueuesReport(showParams));
-                    break;
-
                 case "ratings":
                     m_sceneManager.ForEachScene(
                     delegate(Scene scene)
@@ -979,94 +968,6 @@ namespace OpenSim
                     });
                     break;
             }
-        }
-
-        /// <summary>
-        /// Generate UDP Queue data report for each client
-        /// </summary>
-        /// <param name="showParams"></param>
-        /// <returns></returns>
-        private string GetQueuesReport(string[] showParams)
-        {
-            bool showChildren = false;
-            
-            if (showParams.Length > 1 && showParams[1] == "full")
-                showChildren = true;               
-                
-            StringBuilder report = new StringBuilder();            
-            
-            int columnPadding = 2;
-            int maxNameLength = 18;                                    
-            int maxRegionNameLength = 14;
-            int maxTypeLength = 4;
-            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;                        
-                        
-            report.AppendFormat("{0,-" + maxNameLength +  "}{1,-" + columnPadding + "}", "User", "");
-            report.AppendFormat("{0,-" + maxRegionNameLength +  "}{1,-" + columnPadding + "}", "Region", "");
-            report.AppendFormat("{0,-" + maxTypeLength +  "}{1,-" + columnPadding + "}", "Type", "");
-            
-            report.AppendFormat(
-                "{0,7} {1,7} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
-                "Pkts",
-                "Pkts",
-                "Bytes",
-                "Pkts",
-                "Pkts",
-                "Pkts",
-                "Pkts",
-                "Pkts",
-                "Pkts",
-                "Pkts",
-                "Pkts");
-    
-            report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
-            report.AppendFormat(
-                "{0,7} {1,7} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
-                "Out",
-                "In",
-                "Unacked",
-                "Resend",
-                "Land",
-                "Wind",
-                "Cloud",
-                "Task",
-                "Texture",
-                "Asset",
-                "State");            
-            
-            m_sceneManager.ForEachScene(
-                delegate(Scene scene)
-                {
-                    scene.ForEachClient(
-                        delegate(IClientAPI client)
-                        {
-                            if (client is IStatsCollector)
-                            {
-                                bool isChild = scene.PresenceChildStatus(client.AgentId);
-                                if (isChild && !showChildren)
-                                    return;
-                        
-                                string name = client.Name;
-                                string regionName = scene.RegionInfo.RegionName;
-                                
-                                report.AppendFormat(
-                                    "{0,-" + maxNameLength + "}{1,-" + columnPadding + "}", 
-                                    name.Length > maxNameLength ? name.Substring(0, maxNameLength) : name, "");
-                                report.AppendFormat(
-                                    "{0,-" + maxRegionNameLength + "}{1,-" + columnPadding + "}", 
-                                    regionName.Length > maxRegionNameLength ? regionName.Substring(0, maxRegionNameLength) : regionName, "");
-                                report.AppendFormat(
-                                    "{0,-" + maxTypeLength + "}{1,-" + columnPadding + "}", 
-                                    isChild ? "Cd" : "Rt", "");                                    
-
-                                IStatsCollector stats = (IStatsCollector)client;
-                        
-                                report.AppendLine(stats.Report());
-                            }
-                        });
-                });
-
-            return report.ToString();
         }
 
         /// <summary>
