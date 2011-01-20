@@ -151,7 +151,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_update_events = 1;
         private int m_update_backup = 200;
         private int m_update_terrain = 50;
-//        private int m_update_land = 1;
+        private int m_update_land = 10;
         private int m_update_coarse_locations = 50;
 
         private int frameMS;
@@ -1330,12 +1330,12 @@ namespace OpenSim.Region.Framework.Scenes
                             terrainMS = Util.EnvironmentTickCountSubtract(terMS);
                         }
 
-                        //if (m_frame % m_update_land == 0)
-                        //{
-                        //    int ldMS = Util.EnvironmentTickCount();
-                        //    UpdateLand();
-                        //    landMS = Util.EnvironmentTickCountSubtract(ldMS);
-                        //}
+                        if (m_frame % m_update_land == 0)
+                        {
+                            int ldMS = Util.EnvironmentTickCount();
+                            UpdateLand();
+                            landMS = Util.EnvironmentTickCountSubtract(ldMS);
+                        }
 
                         frameMS = Util.EnvironmentTickCountSubtract(tmpFrameMS);
                         otherMS = tempOnRezMS + eventMS + backupMS + terrainMS + landMS;

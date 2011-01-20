@@ -63,7 +63,7 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
         {
             UUID capuuid = UUID.Random();
             
-            m_log.InfoFormat("[OBJECTADD]: {0}", "/CAPS/OA/" + capuuid + "/");
+//            m_log.InfoFormat("[OBJECTADD]: {0}", "/CAPS/OA/" + capuuid + "/");
 
             caps.RegisterHandler("ObjectAdd",
                                  new RestHTTPHandler("POST", "/CAPS/OA/" + capuuid + "/",

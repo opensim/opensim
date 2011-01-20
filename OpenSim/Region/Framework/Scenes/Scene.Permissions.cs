@@ -49,6 +49,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool DuplicateObjectHandler(int objectCount, UUID objectID, UUID owner, Scene scene, Vector3 objectPosition);
     public delegate bool EditObjectHandler(UUID objectID, UUID editorID, Scene scene);
     public delegate bool EditObjectInventoryHandler(UUID objectID, UUID editorID, Scene scene);
+    public delegate bool ViewObjectInventoryHandler(UUID objectID, UUID editorID, Scene scene);
     public delegate bool MoveObjectHandler(UUID objectID, UUID moverID, Scene scene);
     public delegate bool ObjectEntryHandler(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene);
     public delegate bool ReturnObjectsHandler(ILandObject land, UUID user, List<SceneObjectGroup> objects, Scene scene);
@@ -116,6 +117,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event DuplicateObjectHandler OnDuplicateObject;
         public event EditObjectHandler OnEditObject;
         public event EditObjectInventoryHandler OnEditObjectInventory;
+        public event ViewObjectInventoryHandler OnViewObjectInventory;
         public event MoveObjectHandler OnMoveObject;
         public event ObjectEntryHandler OnObjectEntry;
         public event ReturnObjectsHandler OnReturnObjects;
@@ -393,6 +395,21 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Delegate[] list = handler.GetInvocationList();
                 foreach (EditObjectInventoryHandler h in list)
+                {
+                    if (h(objectID, editorID, m_scene) == false)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public bool CanViewObjectInventory(UUID objectID, UUID editorID)
+        {
+            ViewObjectInventoryHandler handler = OnViewObjectInventory;
+            if (handler != null)
+            {
+                Delegate[] list = handler.GetInvocationList();
+                foreach (ViewObjectInventoryHandler h in list)
                 {
                     if (h(objectID, editorID, m_scene) == false)
                         return false;

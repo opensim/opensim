@@ -289,7 +289,7 @@ namespace OpenSim.Services.LLLoginService
 
                 // Get active gestures
                 List<InventoryItemBase> gestures = m_InventoryService.GetActiveGestures(account.PrincipalID);
-                m_log.DebugFormat("[LLOGIN SERVICE]: {0} active gestures", gestures.Count);
+//                m_log.DebugFormat("[LLOGIN SERVICE]: {0} active gestures", gestures.Count);
 
                 //
                 // Login the presence

@@ -641,7 +641,17 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             lock (m_openRequests)
                 m_openRequests.Add(requestID, mrs);
 
-            WebRequest mapitemsrequest = WebRequest.Create(httpserver);
+            WebRequest mapitemsrequest = null;
+            try
+            {
+                mapitemsrequest = WebRequest.Create(httpserver);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[WORLD MAP]: Access to {0} failed with {1}", httpserver, e);
+                return new OSDMap();
+            }
+
             mapitemsrequest.Method = "POST";
             mapitemsrequest.ContentType = "application/xml+llsd";
             OSDMap RAMap = new OSDMap();

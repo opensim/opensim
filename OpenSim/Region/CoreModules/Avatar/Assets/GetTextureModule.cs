@@ -105,7 +105,7 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
         {
             UUID capID = UUID.Random();
 
-            m_log.InfoFormat("[GETTEXTURE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
+//            m_log.InfoFormat("[GETTEXTURE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
             caps.RegisterHandler("GetTexture", new StreamHandler("GET", "/CAPS/" + capID, ProcessGetTexture));
         }
 
@@ -171,7 +171,7 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
         /// <returns>False for "caller try another codec"; true otherwise</returns>
         private bool FetchTexture(OSHttpRequest httpRequest, OSHttpResponse httpResponse, UUID textureID, string format)
         {
-            m_log.DebugFormat("[GETTEXTURE]: {0} with requested format {1}", textureID, format);
+//            m_log.DebugFormat("[GETTEXTURE]: {0} with requested format {1}", textureID, format);
             AssetBase texture;
 
             string fullID = textureID.ToString();
