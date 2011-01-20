@@ -84,8 +84,8 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 this, "show queues",
                 "show queues [full]",
                 "Show queue data for each client", 
-                "Without the 'full' option, only users actually on the region are shown."
-                  + "  With the 'full' option child agents of users in neighbouring regions are also shown.",                                          
+                "Without the 'full' option, only root agents are shown."
+                  + "  With the 'full' option child agents are also shown.",                                          
                 ShowQueuesReport);                          
         }
         
