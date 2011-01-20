@@ -175,7 +175,7 @@ namespace OpenSim.Framework.Servers
 
                 m_console.Commands.AddCommand("base", false, "show info",
                         "show info",
-                        "Show general information", HandleShow);
+                        "Show general information about the server", HandleShow);
 
                 m_console.Commands.AddCommand("base", false, "show stats",
                         "show stats",
