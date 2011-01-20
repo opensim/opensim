@@ -283,10 +283,6 @@ namespace OpenSim
                                           "kick user <first> <last> [message]",
                                           "Kick a user off the simulator", KickUserCommand);
 
-            m_console.Commands.AddCommand("region", false, "show assets",
-                                          "show assets",
-                                          "Show asset data", HandleShow);
-
             m_console.Commands.AddCommand("region", false, "show users",
                                           "show users [full]",
                                           "Show user data for users currently on the region", 
@@ -869,10 +865,6 @@ namespace OpenSim
 
             switch (showParams[0])
             {
-                case "assets":
-                    MainConsole.Instance.Output("Not implemented.");
-                    break;
-
                 case "users":
                     IList agents;
                     if (showParams.Length > 1 && showParams[1] == "full")
