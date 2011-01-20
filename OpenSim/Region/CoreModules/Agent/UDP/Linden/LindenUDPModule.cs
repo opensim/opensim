@@ -86,7 +86,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 "Show queue data for each client", 
                 "Without the 'full' option, only users actually on the region are shown."
                   + "  With the 'full' option child agents of users in neighbouring regions are also shown.",                                          
-                ShowQueuesReport);          
+                ShowQueuesReport);                          
         }
         
         public void RemoveRegion(Scene scene)
@@ -195,6 +195,6 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             }
 
             return report.ToString();
-        }        
+        }         
     }
 }
