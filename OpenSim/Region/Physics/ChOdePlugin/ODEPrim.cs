@@ -545,6 +545,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (value.IsFinite())
                 {
                     _velocity = value;
+                    if (_velocity.ApproxEquals(Vector3.Zero,0.001f))
+            			_acceleration = Vector3.Zero;	
 
                     m_taintVelocity = value;
                     _parent_scene.AddPhysicsActorTaint(this);
@@ -662,7 +664,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override Vector3 Acceleration		// client updates read data via here
         {
-            get { return _acceleration; }
+            get 
+            { 
+                if (_zeroFlag)
+                {
+                    return Vector3.Zero;
+                }
+                return _acceleration; 
+            }
         }
 
 
@@ -3122,6 +3131,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     _velocity.X = 0;
                     _velocity.Y = 0;
                     _velocity.Z = 0;
+                    m_lastVelocity = Vector3.Zero;
                     m_rotationalVelocity.X = 0;
                     m_rotationalVelocity.Y = 0;
                     m_rotationalVelocity.Z = 0;
@@ -3169,6 +3179,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
                     // Stop it in the phys engine
 					d.BodySetLinearVel(Body, 0.0f, 0.0f, _velocity.Z);        
 					d.BodySetAngularVel (Body, 0.0f, 0.0f, 0.0f);
+                    d.BodySetForce(Body, 0f, 0f, 0f);
 
                     if (!m_lastUpdateSent)
                     {
@@ -3620,6 +3631,7 @@ Console.WriteLine("ODEPrim JointCreateFixed !!!");
 	                        d.BodySetPosition(Body, m_PIDTarget.X, m_PIDTarget.Y, m_PIDTarget.Z);
 	                        _target_velocity = Vector3.Zero;
                             d.BodySetLinearVel(Body, _target_velocity.X, _target_velocity.Y, _target_velocity.Z);
+                            d.BodySetForce(Body, 0f, 0f, 0f);
 	                    }
 	                    else 
 	                    {
