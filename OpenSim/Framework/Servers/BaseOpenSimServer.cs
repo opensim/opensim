@@ -371,8 +371,7 @@ namespace OpenSim.Framework.Servers
             switch (showParams[0])
             {
                 case "info":
-                    Notice("Version: " + m_version);
-                    Notice("Startup directory: " + m_startupDirectory);
+                    ShowInfo();
                     break;
 
                 case "stats":
@@ -394,6 +393,14 @@ namespace OpenSim.Framework.Servers
                             "Version: {0} (interface version {1})", m_version, VersionInfo.MajorInterfaceVersion));
                     break;
             }
+        }
+        
+        protected void ShowInfo()
+        {
+            Notice("Version: " + m_version);
+            Notice("Startup directory: " + m_startupDirectory);                
+            if (null != m_consoleAppender)
+                Notice(String.Format("Console log level: {0}", m_consoleAppender.Threshold));              
         }
 
         /// <summary>
