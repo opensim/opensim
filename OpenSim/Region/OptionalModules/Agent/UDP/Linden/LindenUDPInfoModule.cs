@@ -121,6 +121,14 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             MainConsole.Instance.Output(GetThrottlesReport(cmd));
         }
         
+        protected string GetColumnEntry(string entry, int maxLength, int columnPadding)
+        {                       
+            return string.Format(
+                "{0,-" + maxLength +  "}{1,-" + columnPadding + "}", 
+                entry.Length > maxLength ? entry.Substring(0, maxLength) : entry, 
+                "");
+        }
+        
         /// <summary>
         /// Generate UDP Queue data report for each client
         /// </summary>
@@ -140,10 +148,10 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             int maxRegionNameLength = 14;
             int maxTypeLength = 4;
             int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;                        
-                        
-            report.AppendFormat("{0,-" + maxNameLength +  "}{1,-" + columnPadding + "}", "User", "");
-            report.AppendFormat("{0,-" + maxRegionNameLength +  "}{1,-" + columnPadding + "}", "Region", "");
-            report.AppendFormat("{0,-" + maxTypeLength +  "}{1,-" + columnPadding + "}", "Type", "");
+                                    
+            report.Append(GetColumnEntry("User", maxNameLength, columnPadding));
+            report.Append(GetColumnEntry("Region", maxRegionNameLength, columnPadding));
+            report.Append(GetColumnEntry("Type", maxTypeLength, columnPadding));
             
             report.AppendFormat(
                 "{0,7} {1,7} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
@@ -190,15 +198,9 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                                 string name = client.Name;
                                 string regionName = scene.RegionInfo.RegionName;
                                 
-                                report.AppendFormat(
-                                    "{0,-" + maxNameLength + "}{1,-" + columnPadding + "}", 
-                                    name.Length > maxNameLength ? name.Substring(0, maxNameLength) : name, "");
-                                report.AppendFormat(
-                                    "{0,-" + maxRegionNameLength + "}{1,-" + columnPadding + "}", 
-                                    regionName.Length > maxRegionNameLength ? regionName.Substring(0, maxRegionNameLength) : regionName, "");
-                                report.AppendFormat(
-                                    "{0,-" + maxTypeLength + "}{1,-" + columnPadding + "}", 
-                                    isChild ? "Cd" : "Rt", "");                                    
+                                report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
+                                report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
+                                report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));                                  
 
                                 IStatsCollector stats = (IStatsCollector)client;
                         
@@ -228,12 +230,11 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             int columnPadding = 2;
             int maxNameLength = 18;                                    
             int maxRegionNameLength = 14;
-            int maxTypeLength = 4;
-            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;                        
-                        
-            report.AppendFormat("{0,-" + maxNameLength +  "}{1,-" + columnPadding + "}", "User", "");
-            report.AppendFormat("{0,-" + maxRegionNameLength +  "}{1,-" + columnPadding + "}", "Region", "");
-            report.AppendFormat("{0,-" + maxTypeLength +  "}{1,-" + columnPadding + "}", "Type\n", "");            
+            int maxTypeLength = 4;                        
+            
+            report.Append(GetColumnEntry("User", maxNameLength, columnPadding));
+            report.Append(GetColumnEntry("Region", maxRegionNameLength, columnPadding));
+            report.Append(GetColumnEntry("Type\n", maxTypeLength, columnPadding));            
             
             bool firstClient = true;
             
@@ -263,16 +264,10 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                             
                                 LLUDPClient llUdpClient = llClient.UDPClient;
                                 ClientInfo ci = llUdpClient.GetClientInfo();
-                                                                                           
-                                report.AppendFormat(
-                                    "{0,-" + maxNameLength + "}{1,-" + columnPadding + "}", 
-                                    name.Length > maxNameLength ? name.Substring(0, maxNameLength) : name, "");
-                                report.AppendFormat(
-                                    "{0,-" + maxRegionNameLength + "}{1,-" + columnPadding + "}", 
-                                    regionName.Length > maxRegionNameLength ? regionName.Substring(0, maxRegionNameLength) : regionName, "");
-                                report.AppendFormat(
-                                    "{0,-" + maxTypeLength + "}{1,-" + columnPadding + "}", 
-                                    isChild ? "Cd" : "Rt", "");                                    
+                            
+                                report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
+                                report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
+                                report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));                                                             
 
                                 report.Append((ci.totalThrottle * 8) / 1000 + " ");
                                 report.Append((ci.resendThrottle * 8) / 1000 + " ");
@@ -299,23 +294,17 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             int columnPadding = 2;
             int maxNameLength = 18;                                    
             int maxRegionNameLength = 14;
-            int maxTypeLength = 4;
-            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;             
+            int maxTypeLength = 4;            
             
             string name = "SERVER LIMITS";
             string regionName = scene.RegionInfo.RegionName;
-                                                                       
-            report.AppendFormat(
-                "{0,-" + maxNameLength + "}{1,-" + columnPadding + "}", 
-                name.Length > maxNameLength ? name.Substring(0, maxNameLength) : name, "");
-            report.AppendFormat(
-                "{0,-" + maxRegionNameLength + "}{1,-" + columnPadding + "}", 
-                regionName.Length > maxRegionNameLength ? regionName.Substring(0, maxRegionNameLength) : regionName, "");
-            report.AppendFormat(
-                "{0,-" + maxTypeLength + "}{1,-" + columnPadding + "}", "n/a", "");              
+                                
+            report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
+            report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
+            report.Append(GetColumnEntry("n/a", maxTypeLength, columnPadding));             
             
             ThrottleRates throttleRates = udpServer.ThrottleRates;
-            report.Append("n/a");
+            report.Append("n/a ");
             report.Append((throttleRates.ResendLimit * 8) / 1000 + " ");
             report.Append((throttleRates.LandLimit * 8) / 1000 + " ");
             report.Append((throttleRates.WindLimit * 8) / 1000 + " ");
