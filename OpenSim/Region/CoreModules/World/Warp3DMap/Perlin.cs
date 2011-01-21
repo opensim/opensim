@@ -85,9 +85,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         public static float noise1(float arg)
         {
             int bx0, bx1;
-            float rx0, rx1, sx, t, u, v, a;
-
-            a = arg;
+            float rx0, rx1, sx, t, u, v;
 
             t = arg + N;
             bx0 = ((int)t) & BM;
