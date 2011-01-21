@@ -411,12 +411,26 @@ namespace OpenSim.Framework.Servers
         /// That is something that cannot be determined within this class. So
         /// all attempts to use the console MUST be verified.
         /// </summary>
+        /// <param name="msg"></param>
         protected void Notice(string msg)
         {
             if (m_console != null)
             {
                 m_console.Output(msg);
             }
+        }
+        
+        /// <summary>
+        /// Console output is only possible if a console has been established.
+        /// That is something that cannot be determined within this class. So
+        /// all attempts to use the console MUST be verified.
+        /// </summary>
+        /// <param name="format"></param>        
+        /// <param name="components"></param>
+        protected void Notice(string format, params string[] components)
+        {
+            if (m_console != null)
+                m_console.OutputFormat(format, components);
         }
 
         /// <summary>

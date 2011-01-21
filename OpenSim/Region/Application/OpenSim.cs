@@ -324,16 +324,19 @@ namespace OpenSim
                                           "Restart all sims in this instance", RunCommand);
 
             m_console.Commands.AddCommand("region", false, "config set",
-                                          "config set <section> <field> <value>",
-                                          "Set a config option", HandleConfig);
+                                          "config set <section> <key> <value>",
+                                          "Set a config option.  In most cases this is not useful since changed parameters are not dynamically reloaded.  Neither do changed parameters persist - you will have to change a config file manually and restart.", HandleConfig);
 
             m_console.Commands.AddCommand("region", false, "config get",
-                                          "config get <section> <field>",
-                                          "Read a config option", HandleConfig);
+                                          "config get [<section>] [<key>]",
+                                          "Show a config option", 
+                                          "If neither section nor field are specified, then the whole current configuration is printed." + Environment.NewLine
+                                          + "If a section is given but not a field, then all fields in that section are printed.",
+                                          HandleConfig);
 
             m_console.Commands.AddCommand("region", false, "config save",
-                                          "config save",
-                                          "Save current configuration", HandleConfig);
+                                          "config save <path>",
+                                          "Save current configuration to a file at the given path", HandleConfig);
 
             m_console.Commands.AddCommand("region", false, "command-script",
                                           "command-script <script>",
@@ -575,7 +578,6 @@ namespace OpenSim
             List<string> args = new List<string>(cmd);
             args.RemoveAt(0);
             string[] cmdparams = args.ToArray();
-            string n = "CONFIG";
 
             if (cmdparams.Length > 0)
             {
@@ -584,8 +586,8 @@ namespace OpenSim
                     case "set":
                         if (cmdparams.Length < 4)
                         {
-                            MainConsole.Instance.Output(String.Format("SYNTAX: {0} SET SECTION KEY VALUE",n));
-                            MainConsole.Instance.Output(String.Format("EXAMPLE: {0} SET ScriptEngine.DotNetEngine NumberOfScriptThreads 5",n));
+                            Notice("Syntax: config set <section> <key> <value>");
+                            Notice("Example: config set ScriptEngine.DotNetEngine NumberOfScriptThreads 5");
                         }
                         else
                         {
@@ -598,30 +600,50 @@ namespace OpenSim
                                 c.Set(cmdparams[2], _value);
                                 m_config.Source.Merge(source);
 
-                                MainConsole.Instance.Output(String.Format("{0} {0} {1} {2} {3}",n,cmdparams[1],cmdparams[2],_value));
+                                Notice("In section [{0}], set {1} = {2}", c.Name, cmdparams[2], _value);
                             }
                         }
                         break;
 
                     case "get":
-                        if (cmdparams.Length < 3)
+                        if (cmdparams.Length == 1)
                         {
-                            MainConsole.Instance.Output(String.Format("SYNTAX: {0} GET SECTION KEY",n));
-                            MainConsole.Instance.Output(String.Format("EXAMPLE: {0} GET ScriptEngine.DotNetEngine NumberOfScriptThreads",n));
-                        }
-                        else
-                        {
-                            IConfig c = m_config.Source.Configs[cmdparams[1]];
-                            if (c == null)
+                            foreach (IConfig config in m_config.Source.Configs)
                             {
-                                MainConsole.Instance.Output(String.Format("Section \"{0}\" does not exist.",cmdparams[1]));
+                                Notice("[{0}]", config.Name);
+                                string[] keys = config.GetKeys();
+                                foreach (string key in keys)
+                                    Notice("  {0} = {1}", key, config.GetString(key));
+                            }
+                        }
+                        else if (cmdparams.Length == 2 || cmdparams.Length == 3)
+                        {
+                            IConfig config = m_config.Source.Configs[cmdparams[1]];
+                            if (config == null)
+                            {
+                                Notice("Section \"{0}\" does not exist.",cmdparams[1]);
                                 break;
                             }
                             else
                             {
-                                MainConsole.Instance.Output(String.Format("{0} GET {1} {2} : {3}",n,cmdparams[1],cmdparams[2],
-                                                     c.GetString(cmdparams[2])));
+                                if (cmdparams.Length == 2)
+                                {
+                                    Notice("[{0}]", config.Name);
+                                    foreach (string key in config.GetKeys())
+                                        Notice("  {0} = {1}", key, config.GetString(key));                                
+                                }
+                                else
+                                {
+                                    Notice(
+                                        "config get {0} {1} : {2}", 
+                                        cmdparams[1], cmdparams[2], config.GetString(cmdparams[2]));
+                                }
                             }
+                        }
+                        else
+                        {
+                            Notice("Syntax: config get [<section>] [<key>]");
+                            Notice("Example: config get ScriptEngine.DotNetEngine NumberOfScriptThreads");
                         }
 
                         break;
@@ -629,17 +651,17 @@ namespace OpenSim
                     case "save":
                         if (cmdparams.Length < 2)
                         {
-                            MainConsole.Instance.Output("SYNTAX: " + n + " SAVE FILE");
+                            Notice("Syntax: config save <path>");
                             return;
                         }
 
                         if (Application.iniFilePath == cmdparams[1])
                         {
-                            MainConsole.Instance.Output("FILE can not be " + Application.iniFilePath);
+                            Notice("Path can not be " + Application.iniFilePath);
                             return;
                         }
 
-                        MainConsole.Instance.Output("Saving configuration file: " + cmdparams[1]);
+                        Notice("Saving configuration file: " + cmdparams[1]);
                         m_config.Save(cmdparams[1]);
                         break;
                 }
