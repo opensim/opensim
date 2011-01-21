@@ -368,6 +368,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #region Properties
 
         public LLUDPClient UDPClient { get { return m_udpClient; } }
+        public LLUDPServer UDPServer { get { return m_udpServer; } }
         public IPEndPoint RemoteEndPoint { get { return m_udpClient.RemoteEndPoint; } }
         public UUID SecureSessionId { get { return m_secureSessionId; } }
         public IScene Scene { get { return m_scene; } }
