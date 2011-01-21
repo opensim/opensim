@@ -388,19 +388,22 @@ namespace OpenSim.Framework.Servers
                     break;
 
                 case "version":
-                    Notice(
-                        String.Format(
-                            "Version: {0} (interface version {1})", m_version, VersionInfo.MajorInterfaceVersion));
+                    Notice(GetVersionText());
                     break;
             }
         }
         
         protected void ShowInfo()
         {
-            Notice("Version: " + m_version);
+            Notice(GetVersionText());
             Notice("Startup directory: " + m_startupDirectory);                
             if (null != m_consoleAppender)
                 Notice(String.Format("Console log level: {0}", m_consoleAppender.Threshold));              
+        }
+        
+        protected string GetVersionText()
+        {
+            return String.Format("Version: {0} (interface version {1})", m_version, VersionInfo.MajorInterfaceVersion);
         }
 
         /// <summary>
