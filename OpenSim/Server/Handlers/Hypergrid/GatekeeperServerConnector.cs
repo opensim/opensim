@@ -41,9 +41,9 @@ namespace OpenSim.Server.Handlers.Hypergrid
 {
     public class GatekeeperServiceInConnector : ServiceConnector
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//                LogManager.GetLogger(
+//                MethodBase.GetCurrentMethod().DeclaringType);
 
         private IGatekeeperService m_GatekeeperService;
         public IGatekeeperService GateKeeper
