@@ -230,11 +230,37 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             int columnPadding = 2;
             int maxNameLength = 18;                                    
             int maxRegionNameLength = 14;
-            int maxTypeLength = 4;                        
+            int maxTypeLength = 4;     
+            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;                        
             
             report.Append(GetColumnEntry("User", maxNameLength, columnPadding));
             report.Append(GetColumnEntry("Region", maxRegionNameLength, columnPadding));
-            report.Append(GetColumnEntry("Type\n", maxTypeLength, columnPadding));            
+            report.Append(GetColumnEntry("Type", maxTypeLength, columnPadding));            
+            
+            report.AppendFormat(
+                "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}\n",
+                "Total",
+                "Resend",
+                "Land",
+                "Wind",
+                "Cloud",
+                "Task",
+                "Texture",
+                "Asset");          
+    
+            report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
+            report.AppendFormat(
+                "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}",
+                "kb/s",
+                "kb/s",
+                "kb/s",
+                "kb/s",
+                "kb/s",
+                "kb/s",
+                "kb/s",
+                "kb/s");                 
+            
+            report.AppendLine();
             
             bool firstClient = true;
             
@@ -251,7 +277,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                             
                                 if (firstClient)
                                 {
-                                    report.AppendLine(GetServerThrottlesReport(llClient.UDPServer, scene));
+                                    report.AppendLine(GetServerThrottlesReport(llClient.UDPServer));
                                     firstClient = false;
                                 }
 
@@ -268,15 +294,17 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                                 report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
                                 report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
                                 report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));                                                             
-
-                                report.Append((ci.totalThrottle * 8) / 1000 + " ");
-                                report.Append((ci.resendThrottle * 8) / 1000 + " ");
-                                report.Append((ci.landThrottle * 8) / 1000 + " ");
-                                report.Append((ci.windThrottle * 8) / 1000 + " ");
-                                report.Append((ci.cloudThrottle * 8) / 1000 + " ");
-                                report.Append((ci.taskThrottle * 8) / 1000 + " ");
-                                report.Append((ci.textureThrottle  * 8) / 1000 + " ");
-                                report.Append((ci.assetThrottle  * 8) / 1000 + " ");                                                            
+                            
+                                report.AppendFormat(
+                                    "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}\n",
+                                    (ci.totalThrottle * 8) / 1000,
+                                    (ci.resendThrottle * 8) / 1000,
+                                    (ci.landThrottle * 8) / 1000,
+                                    (ci.windThrottle * 8) / 1000,
+                                    (ci.cloudThrottle * 8) / 1000,
+                                    (ci.taskThrottle * 8) / 1000,
+                                    (ci.textureThrottle  * 8) / 1000,
+                                    (ci.assetThrottle  * 8) / 1000);                                                                                      
                         
                                 report.AppendLine();
                             }
@@ -287,31 +315,32 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             return report.ToString();
         }         
                 
-        protected string GetServerThrottlesReport(LLUDPServer udpServer, Scene scene)
+        protected string GetServerThrottlesReport(LLUDPServer udpServer)
         {
             StringBuilder report = new StringBuilder();
             
             int columnPadding = 2;
             int maxNameLength = 18;                                    
             int maxRegionNameLength = 14;
-            int maxTypeLength = 4;            
+            int maxTypeLength = 4;
             
-            string name = "SERVER LIMITS";
-            string regionName = scene.RegionInfo.RegionName;
+            string name = "SERVER AGENT LIMITS";
                                 
             report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
-            report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
-            report.Append(GetColumnEntry("n/a", maxTypeLength, columnPadding));             
+            report.Append(GetColumnEntry("-", maxRegionNameLength, columnPadding));
+            report.Append(GetColumnEntry("-", maxTypeLength, columnPadding));             
             
             ThrottleRates throttleRates = udpServer.ThrottleRates;
-            report.Append("n/a ");
-            report.Append((throttleRates.ResendLimit * 8) / 1000 + " ");
-            report.Append((throttleRates.LandLimit * 8) / 1000 + " ");
-            report.Append((throttleRates.WindLimit * 8) / 1000 + " ");
-            report.Append((throttleRates.CloudLimit * 8) / 1000 + " ");
-            report.Append((throttleRates.TaskLimit * 8) / 1000 + " ");
-            report.Append((throttleRates.TextureLimit * 8) / 1000 + " ");
-            report.Append((throttleRates.AssetLimit * 8) / 1000 + " ");
+            report.AppendFormat(
+                "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}",
+                "n/a",
+                (throttleRates.ResendLimit * 8) / 1000,
+                (throttleRates.LandLimit * 8) / 1000,
+                (throttleRates.WindLimit * 8) / 1000,
+                (throttleRates.CloudLimit * 8) / 1000,
+                (throttleRates.TaskLimit * 8) / 1000,
+                (throttleRates.TextureLimit  * 8) / 1000,
+                (throttleRates.AssetLimit  * 8) / 1000);  
 
             return report.ToString();
         }        
