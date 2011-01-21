@@ -694,26 +694,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence presence = World.GetScenePresence(agentId);
                 if (presence != null)
                 {
-                    // agent must be over owners land to avoid abuse
+                    // For osTeleportAgent, agent must be over owners land to avoid abuse
+                    // For osTeleportOwner, this restriction isn't necessary
                     if (relaxRestrictions ||
                         m_host.OwnerID
                         == World.LandChannel.GetLandObject(
                             presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
                     {
-                        // Check for hostname, attempt to make a HG link,
-                        // and convert the regionName to the target region
-                        if (regionName.Contains(".") && regionName.Contains(":"))
-                        {
-                            // Even though we use none of the results, we need to perform this call because it appears
-                            // to have some the side effect of setting up hypergrid teleport locations.
-                            World.GridService.GetRegionsByName(World.RegionInfo.ScopeID, regionName, 1);
-//                            List<GridRegion> regions = World.GridService.GetRegionsByName(World.RegionInfo.ScopeID, regionName, 1);                            
-                            
-                            string[] parts = regionName.Split(new char[] { ':' });
-                            if (parts.Length > 2)
-                                regionName = parts[0] + ':' + parts[1] + "/ " + parts[2];
-                            regionName = "http://" + regionName;
-                        }
                         World.RequestTeleportLocation(presence.ControllingClient, regionName,
                             new Vector3((float)position.x, (float)position.y, (float)position.z),
                             new Vector3((float)lookat.x, (float)lookat.y, (float)lookat.z), (uint)TPFlags.ViaLocation);
