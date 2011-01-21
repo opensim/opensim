@@ -296,7 +296,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                                 report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));                                                             
                             
                                 report.AppendFormat(
-                                    "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}\n",
+                                    "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}",
                                     (ci.totalThrottle * 8) / 1000,
                                     (ci.resendThrottle * 8) / 1000,
                                     (ci.landThrottle * 8) / 1000,
