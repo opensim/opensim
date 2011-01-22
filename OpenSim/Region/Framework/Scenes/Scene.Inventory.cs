@@ -308,6 +308,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (UUID.Zero == transactionID)
                 {
+                    item.Flags = (item.Flags & ~(uint)255) | (itemUpd.Flags & (uint)255);
                     item.Name = itemUpd.Name;
                     item.Description = itemUpd.Description;
                     if (item.NextPermissions != (itemUpd.NextPermissions & item.BasePermissions))
