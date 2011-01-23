@@ -217,6 +217,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ParcelFlags.AllowDamage |
                         ParcelFlags.CreateObjects |
                         ParcelFlags.RestrictPushObject |
+                        ParcelFlags.AllowOtherScripts |
                         ParcelFlags.AllowGroupScripts |
                         ParcelFlags.CreateGroupObjects |
                         ParcelFlags.AllowAPrimitiveEntry |

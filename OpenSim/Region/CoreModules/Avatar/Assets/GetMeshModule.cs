@@ -49,8 +49,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class GetMeshModule : INonSharedRegionModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private Scene m_scene;
         private IAssetService m_assetService;
 

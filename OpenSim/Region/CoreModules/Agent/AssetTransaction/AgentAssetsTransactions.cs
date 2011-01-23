@@ -41,8 +41,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
     /// </summary>
     public class AgentAssetTransactions
     {
-        private static readonly ILog m_log = LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(
+//                MethodBase.GetCurrentMethod().DeclaringType);
 
         // Fields
         private bool m_dumpAssetsToFile;
@@ -167,8 +167,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         {
             if (XferUploaders.ContainsKey(transactionID))
             {
-                m_log.DebugFormat("[XFER]: Asked to update item {0} ({1})",
-                        item.Name, item.ID);
+//                m_log.DebugFormat("[XFER]: Asked to update item {0} ({1})",
+//                        item.Name, item.ID);
 
                 // Here we need to get the old asset to extract the
                 // texture UUIDs if it's a wearable.
@@ -195,8 +195,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                     IInventoryService invService = m_Scene.InventoryService;
                     invService.UpdateItem(item);
 
-                    m_log.DebugFormat("[XFER]: Updated item {0} ({1}) with asset {2}",
-                            item.Name, item.ID, asset.FullID);
+//                    m_log.DebugFormat("[XFER]: Updated item {0} ({1}) with asset {2}",
+//                            item.Name, item.ID, asset.FullID);
                 }
             }
         }

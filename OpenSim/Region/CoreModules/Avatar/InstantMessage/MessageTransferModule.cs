@@ -180,7 +180,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 }
             }
 
-            m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to {0} via XMLRPC", im.toAgentID);
+//            m_log.DebugFormat("[INSTANT MESSAGE]: Delivering IM to {0} via XMLRPC", im.toAgentID);
             SendGridInstantMessageViaXMLRPC(im, result);
 
             return;

@@ -283,10 +283,6 @@ namespace OpenSim
                                           "kick user <first> <last> [message]",
                                           "Kick a user off the simulator", KickUserCommand);
 
-            m_console.Commands.AddCommand("region", false, "show assets",
-                                          "show assets",
-                                          "Show asset data", HandleShow);
-
             m_console.Commands.AddCommand("region", false, "show users",
                                           "show users [full]",
                                           "Show user data for users currently on the region", 
@@ -305,13 +301,6 @@ namespace OpenSim
             m_console.Commands.AddCommand("region", false, "show regions",
                                           "show regions",
                                           "Show region data", HandleShow);
-
-            m_console.Commands.AddCommand("region", false, "show queues",
-                                          "show queues [full]",
-                                          "Show queue data for each client", 
-                                          "Without the 'full' option, only users actually on the region are shown."
-                                            + "  With the 'full' option child agents of users in neighbouring regions are also shown.",                                          
-                                          HandleShow);
             
             m_console.Commands.AddCommand("region", false, "show ratings",
                                           "show ratings",
@@ -335,16 +324,19 @@ namespace OpenSim
                                           "Restart all sims in this instance", RunCommand);
 
             m_console.Commands.AddCommand("region", false, "config set",
-                                          "config set <section> <field> <value>",
-                                          "Set a config option", HandleConfig);
+                                          "config set <section> <key> <value>",
+                                          "Set a config option.  In most cases this is not useful since changed parameters are not dynamically reloaded.  Neither do changed parameters persist - you will have to change a config file manually and restart.", HandleConfig);
 
             m_console.Commands.AddCommand("region", false, "config get",
-                                          "config get <section> <field>",
-                                          "Read a config option", HandleConfig);
+                                          "config get [<section>] [<key>]",
+                                          "Show a config option", 
+                                          "If neither section nor field are specified, then the whole current configuration is printed." + Environment.NewLine
+                                          + "If a section is given but not a field, then all fields in that section are printed.",
+                                          HandleConfig);
 
             m_console.Commands.AddCommand("region", false, "config save",
-                                          "config save",
-                                          "Save current configuration", HandleConfig);
+                                          "config save <path>",
+                                          "Save current configuration to a file at the given path", HandleConfig);
 
             m_console.Commands.AddCommand("region", false, "command-script",
                                           "command-script <script>",
@@ -586,7 +578,6 @@ namespace OpenSim
             List<string> args = new List<string>(cmd);
             args.RemoveAt(0);
             string[] cmdparams = args.ToArray();
-            string n = "CONFIG";
 
             if (cmdparams.Length > 0)
             {
@@ -595,8 +586,8 @@ namespace OpenSim
                     case "set":
                         if (cmdparams.Length < 4)
                         {
-                            MainConsole.Instance.Output(String.Format("SYNTAX: {0} SET SECTION KEY VALUE",n));
-                            MainConsole.Instance.Output(String.Format("EXAMPLE: {0} SET ScriptEngine.DotNetEngine NumberOfScriptThreads 5",n));
+                            Notice("Syntax: config set <section> <key> <value>");
+                            Notice("Example: config set ScriptEngine.DotNetEngine NumberOfScriptThreads 5");
                         }
                         else
                         {
@@ -609,30 +600,50 @@ namespace OpenSim
                                 c.Set(cmdparams[2], _value);
                                 m_config.Source.Merge(source);
 
-                                MainConsole.Instance.Output(String.Format("{0} {0} {1} {2} {3}",n,cmdparams[1],cmdparams[2],_value));
+                                Notice("In section [{0}], set {1} = {2}", c.Name, cmdparams[2], _value);
                             }
                         }
                         break;
 
                     case "get":
-                        if (cmdparams.Length < 3)
+                        if (cmdparams.Length == 1)
                         {
-                            MainConsole.Instance.Output(String.Format("SYNTAX: {0} GET SECTION KEY",n));
-                            MainConsole.Instance.Output(String.Format("EXAMPLE: {0} GET ScriptEngine.DotNetEngine NumberOfScriptThreads",n));
-                        }
-                        else
-                        {
-                            IConfig c = m_config.Source.Configs[cmdparams[1]];
-                            if (c == null)
+                            foreach (IConfig config in m_config.Source.Configs)
                             {
-                                MainConsole.Instance.Output(String.Format("Section \"{0}\" does not exist.",cmdparams[1]));
+                                Notice("[{0}]", config.Name);
+                                string[] keys = config.GetKeys();
+                                foreach (string key in keys)
+                                    Notice("  {0} = {1}", key, config.GetString(key));
+                            }
+                        }
+                        else if (cmdparams.Length == 2 || cmdparams.Length == 3)
+                        {
+                            IConfig config = m_config.Source.Configs[cmdparams[1]];
+                            if (config == null)
+                            {
+                                Notice("Section \"{0}\" does not exist.",cmdparams[1]);
                                 break;
                             }
                             else
                             {
-                                MainConsole.Instance.Output(String.Format("{0} GET {1} {2} : {3}",n,cmdparams[1],cmdparams[2],
-                                                     c.GetString(cmdparams[2])));
+                                if (cmdparams.Length == 2)
+                                {
+                                    Notice("[{0}]", config.Name);
+                                    foreach (string key in config.GetKeys())
+                                        Notice("  {0} = {1}", key, config.GetString(key));                                
+                                }
+                                else
+                                {
+                                    Notice(
+                                        "config get {0} {1} : {2}", 
+                                        cmdparams[1], cmdparams[2], config.GetString(cmdparams[2]));
+                                }
                             }
+                        }
+                        else
+                        {
+                            Notice("Syntax: config get [<section>] [<key>]");
+                            Notice("Example: config get ScriptEngine.DotNetEngine NumberOfScriptThreads");
                         }
 
                         break;
@@ -640,17 +651,17 @@ namespace OpenSim
                     case "save":
                         if (cmdparams.Length < 2)
                         {
-                            MainConsole.Instance.Output("SYNTAX: " + n + " SAVE FILE");
+                            Notice("Syntax: config save <path>");
                             return;
                         }
 
                         if (Application.iniFilePath == cmdparams[1])
                         {
-                            MainConsole.Instance.Output("FILE can not be " + Application.iniFilePath);
+                            Notice("Path can not be " + Application.iniFilePath);
                             return;
                         }
 
-                        MainConsole.Instance.Output("Saving configuration file: " + cmdparams[1]);
+                        Notice("Saving configuration file: " + cmdparams[1]);
                         m_config.Save(cmdparams[1]);
                         break;
                 }
@@ -869,10 +880,6 @@ namespace OpenSim
 
             switch (showParams[0])
             {
-                case "assets":
-                    MainConsole.Instance.Output("Not implemented.");
-                    break;
-
                 case "users":
                     IList agents;
                     if (showParams.Length > 1 && showParams[1] == "full")
@@ -959,10 +966,6 @@ namespace OpenSim
                             });
                     break;
 
-                case "queues":
-                    Notice(GetQueuesReport(showParams));
-                    break;
-
                 case "ratings":
                     m_sceneManager.ForEachScene(
                     delegate(Scene scene)
@@ -987,94 +990,6 @@ namespace OpenSim
                     });
                     break;
             }
-        }
-
-        /// <summary>
-        /// Generate UDP Queue data report for each client
-        /// </summary>
-        /// <param name="showParams"></param>
-        /// <returns></returns>
-        private string GetQueuesReport(string[] showParams)
-        {
-            bool showChildren = false;
-            
-            if (showParams.Length > 1 && showParams[1] == "full")
-                showChildren = true;               
-                
-            StringBuilder report = new StringBuilder();            
-            
-            int columnPadding = 2;
-            int maxNameLength = 18;                                    
-            int maxRegionNameLength = 14;
-            int maxTypeLength = 4;
-            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;                        
-                        
-            report.AppendFormat("{0,-" + maxNameLength +  "}{1,-" + columnPadding + "}", "User", "");
-            report.AppendFormat("{0,-" + maxRegionNameLength +  "}{1,-" + columnPadding + "}", "Region", "");
-            report.AppendFormat("{0,-" + maxTypeLength +  "}{1,-" + columnPadding + "}", "Type", "");
-            
-            report.AppendFormat(
-                "{0,9} {1,9} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
-                "Packets",
-                "Packets",
-                "Bytes",
-                "Bytes",
-                "Bytes",
-                "Bytes",
-                "Bytes",
-                "Bytes",
-                "Bytes",
-                "Bytes",
-                "Bytes");
-    
-            report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
-            report.AppendFormat(
-                "{0,9} {1,9} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
-                "Out",
-                "In",
-                "Unacked",
-                "Resend",
-                "Land",
-                "Wind",
-                "Cloud",
-                "Task",
-                "Texture",
-                "Asset",
-                "State");            
-            
-            m_sceneManager.ForEachScene(
-                delegate(Scene scene)
-                {
-                    scene.ForEachClient(
-                        delegate(IClientAPI client)
-                        {
-                            if (client is IStatsCollector)
-                            {
-                                bool isChild = scene.PresenceChildStatus(client.AgentId);
-                                if (isChild && !showChildren)
-                                    return;
-                        
-                                string name = client.Name;
-                                string regionName = scene.RegionInfo.RegionName;
-                                
-                                report.AppendFormat(
-                                    "{0,-" + maxNameLength + "}{1,-" + columnPadding + "}", 
-                                    name.Length > maxNameLength ? name.Substring(0, maxNameLength) : name, "");
-                                report.AppendFormat(
-                                    "{0,-" + maxRegionNameLength + "}{1,-" + columnPadding + "}", 
-                                    regionName.Length > maxRegionNameLength ? regionName.Substring(0, maxRegionNameLength) : regionName, "");
-                                report.AppendFormat(
-                                    "{0,-" + maxTypeLength + "}{1,-" + columnPadding + "}", 
-                                    isChild ? "Cd" : "Rt", "");                                    
-
-                                IStatsCollector stats = (IStatsCollector)client;
-                        
-                                report.AppendLine(stats.Report());
-                            }
-                        });
-                });
-
-            return report.ToString();
         }
 
         /// <summary>

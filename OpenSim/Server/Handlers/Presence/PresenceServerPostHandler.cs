@@ -129,8 +129,6 @@ namespace OpenSim.Server.Handlers.Presence
         byte[] LogoutAgent(Dictionary<string, object> request)
         {
             UUID session = UUID.Zero;
-            Vector3 position = Vector3.Zero;
-            Vector3 lookat = Vector3.Zero;
 
             if (!request.ContainsKey("SessionID"))
                 return FailureResult();

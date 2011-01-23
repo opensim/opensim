@@ -75,6 +75,11 @@ namespace OpenSim.Framework.Console
         {
             System.Console.WriteLine(text);
         }
+        
+        public virtual void OutputFormat(string format, params string[] components)
+        {
+            Output(string.Format(format, components));
+        }
 
         public string CmdPrompt(string p)
         {

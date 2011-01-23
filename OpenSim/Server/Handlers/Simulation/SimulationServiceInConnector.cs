@@ -38,7 +38,7 @@ namespace OpenSim.Server.Handlers.Simulation
     public class SimulationServiceInConnector : ServiceConnector
     {
         private ISimulationService m_LocalSimulationService;
-        private IAuthenticationService m_AuthenticationService;
+//        private IAuthenticationService m_AuthenticationService;
 
         public SimulationServiceInConnector(IConfigSource config, IHttpServer server, IScene scene) :
                 base(config, server, String.Empty)
