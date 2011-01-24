@@ -91,5 +91,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
             return null;
         }
+
+        public void Remove(string name)
+        {
+            if (!m_NameCache.Contains(name))
+                return;
+
+            UUID uuid = UUID.Zero;
+            if (m_NameCache.TryGetValue(name, out uuid))
+            {
+                m_NameCache.Remove(name);
+                m_UUIDCache.Remove(uuid);
+            }
+        }
     }
 }

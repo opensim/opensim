@@ -148,6 +148,10 @@ namespace OpenSim.Services.UserAccountService
                 Int32.TryParse(d.Data["UserLevel"], out u.UserLevel);
             if (d.Data.ContainsKey("UserFlags") && d.Data["UserFlags"] != null)
                 Int32.TryParse(d.Data["UserFlags"], out u.UserFlags);
+            if (d.Data.ContainsKey("UserCountry") && d.Data["UserCountry"] != null)
+                u.UserCountry = d.Data["UserCountry"].ToString();
+            else
+                u.UserTitle = string.Empty;
 
             if (d.Data.ContainsKey("ServiceURLs") && d.Data["ServiceURLs"] != null)
             {
