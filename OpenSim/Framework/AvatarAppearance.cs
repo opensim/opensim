@@ -427,19 +427,30 @@ namespace OpenSim.Framework
         /// 0x80 bit set then we assume this is an append
         /// operation otherwise we replace whatever is
         /// currently attached at the attachpoint
+        /// return true if something actually changed
         /// </summary>
-        public void SetAttachment(int attachpoint, UUID item, UUID asset)
+        public bool SetAttachment(int attachpoint, UUID item, UUID asset)
         {
             if (attachpoint == 0)
-                return;
+                return false;
 
             if (item == UUID.Zero)
             {
                 if (m_attachments.ContainsKey(attachpoint))
+                {
                     m_attachments.Remove(attachpoint);
-                return;
+                    return true;
+                }
+                return false;
             }
 
+            // check if the item is already attached at this point
+            if (GetAttachpoint(item) == (attachpoint & 0x7F))
+            {
+                // m_log.DebugFormat("[AVATAR APPEARANCE] attempt to attach an already attached item {0}",item);
+                return false;
+            }
+            
             // check if this is an append or a replace, 0x80 marks it as an append
             if ((attachpoint & 0x80) > 0)
             {
@@ -451,6 +462,7 @@ namespace OpenSim.Framework
             {
                 ReplaceAttachment(new AvatarAttachment(attachpoint,item,asset));
             }
+            return true;
         }
 
         public int GetAttachpoint(UUID itemID)
@@ -465,7 +477,7 @@ namespace OpenSim.Framework
             return 0;
         }
 
-        public void DetachAttachment(UUID itemID)
+        public bool DetachAttachment(UUID itemID)
         {
             foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
             {
@@ -478,9 +490,10 @@ namespace OpenSim.Framework
                     // And remove the list if there are no more attachments here
                     if (m_attachments[kvp.Key].Count == 0)
                         m_attachments.Remove(kvp.Key);
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
 
         public void ClearAttachments()
