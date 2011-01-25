@@ -9422,7 +9422,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         /// <summary>
-        /// illListReplaceList removes the sub-list defined by the inclusive indices
+        /// llListReplaceList removes the sub-list defined by the inclusive indices
         /// start and end and inserts the src list in its place. The inclusive
         /// nature of the indices means that at least one element must be deleted
         /// if the indices are within the bounds of the existing list. I.e. 2,2
@@ -9479,16 +9479,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // based upon end. Note that if end exceeds the upper
                 // bound in this case, the entire destination list
                 // is removed.
-                else
+                else if (start == 0)
                 {
                     if (end + 1 < dest.Length)
-                    {
                         return src + dest.GetSublist(end + 1, -1);
-                    }
                     else
-                    {
                         return src;
-                    }
+                }
+                else // Start < 0
+                {
+                    if (end + 1 < dest.Length)
+                        return dest.GetSublist(end + 1, -1);
+                    else
+                        return new LSL_List();
                 }
             }
             // Finally, if start > end, we strip away a prefix and
