@@ -32,7 +32,6 @@ using System.Diagnostics; //for [DebuggerNonUserCode]
 using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Threading;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Nini.Config;
 using log4net;
@@ -6945,8 +6944,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llSHA1String(string src)
         {
             m_host.AddScriptLPS(1);
-            SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider();
-            return BitConverter.ToString(SHA1.ComputeHash(Encoding.UTF8.GetBytes(src))).Replace("-", String.Empty).ToLower();
+            return Util.SHA1Hash(src, Encoding.UTF8).ToLower();
         }
 
         protected ObjectShapePacket.ObjectDataBlock SetPrimitiveBlockShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist)
