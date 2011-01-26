@@ -409,19 +409,25 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
+
         public static string Md5Hash(string data)
         {
-            byte[] dataMd5 = ComputeMD5Hash(data);
+            return Md5Hash(data, Encoding.Default);
+        }
+
+        public static string Md5Hash(string data, Encoding encoding)
+        {
+            byte[] dataMd5 = ComputeMD5Hash(data, encoding);
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < dataMd5.Length; i++)
                 sb.AppendFormat("{0:x2}", dataMd5[i]);
             return sb.ToString();
         }
 
-        private static byte[] ComputeMD5Hash(string data)
+        private static byte[] ComputeMD5Hash(string data, Encoding encoding)
         {
             MD5 md5 = MD5.Create();
-            return md5.ComputeHash(Encoding.Default.GetBytes(data));
+            return md5.ComputeHash(encoding.GetBytes(data));
         }
 
         /// <summary>
@@ -1161,7 +1167,7 @@ namespace OpenSim.Framework
 
         public static Guid GetHashGuid(string data, string salt)
         {
-            byte[] hash = ComputeMD5Hash(data + salt);
+            byte[] hash = ComputeMD5Hash(data + salt, Encoding.Default);
 
             //string s = BitConverter.ToString(hash);
 

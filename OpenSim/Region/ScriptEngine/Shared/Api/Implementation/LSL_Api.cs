@@ -6939,7 +6939,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llMD5String(string src, int nonce)
         {
             m_host.AddScriptLPS(1);
-            return Util.Md5Hash(String.Format("{0}:{1}", src, nonce.ToString()));
+            return Util.Md5Hash(String.Format("{0}:{1}", src, nonce.ToString()), Encoding.UTF8);
         }
 
         public LSL_String llSHA1String(string src)
