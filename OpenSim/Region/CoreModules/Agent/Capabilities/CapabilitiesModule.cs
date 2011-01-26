@@ -88,7 +88,13 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
 
         public void AddCapsHandler(UUID agentId)
         {
-            if (m_scene.RegionInfo.EstateSettings.IsBanned(agentId))
+            int flags = 0;
+            ScenePresence sp;
+            if (m_scene.TryGetScenePresence(agentId, out sp))
+            {
+                flags = sp.UserFlags;
+            }
+            if (m_scene.RegionInfo.EstateSettings.IsBanned(agentId, flags))
                 return;
 
             String capsObjectPath = GetCapsPath(agentId);

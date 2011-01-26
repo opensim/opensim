@@ -338,11 +338,30 @@ namespace OpenSim.Framework
             return false;
         }
 
-        public bool IsBanned(UUID avatarID)
+        public bool IsBanned(UUID avatarID, int userFlags)
         {
             foreach (EstateBan ban in l_EstateBans)
                 if (ban.BannedUserID == avatarID)
                     return true;
+
+            if (!IsEstateManager(avatarID) && !HasAccess(avatarID))
+            {
+                if (DenyMinors)
+                {
+                    if ((userFlags & 32) == 0)
+                    {
+                        return true;
+                    }
+                }
+                if (DenyAnonymous)
+                {
+                    if ((userFlags & 4) == 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+
             return false;
         }
 
@@ -350,7 +369,7 @@ namespace OpenSim.Framework
         {
             if (ban == null)
                 return;
-            if (!IsBanned(ban.BannedUserID))
+            if (!IsBanned(ban.BannedUserID, 32)) //Ignore age-based bans
                 l_EstateBans.Add(ban);
         }
 

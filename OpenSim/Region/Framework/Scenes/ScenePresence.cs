@@ -113,6 +113,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_attachments; }
         }
+
         protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
 
         private Dictionary<UUID, ScriptControllers> scriptedcontrols = new Dictionary<UUID, ScriptControllers>();
@@ -136,6 +137,12 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_updateflag;
         private byte m_movementflag;
         private Vector3? m_forceToApply;
+        private int m_userFlags;
+        public int UserFlags
+        {
+            get { return m_userFlags; }
+        }
+
         private uint m_requestedSitTargetID;
         private UUID m_requestedSitTargetUUID;
         public bool SitGround = false;
@@ -763,6 +770,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_localId = m_scene.AllocateLocalId();
 
             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_uuid);
+            m_userFlags = account.UserFlags;
 
             if (account != null)
                 m_userLevel = account.UserLevel;

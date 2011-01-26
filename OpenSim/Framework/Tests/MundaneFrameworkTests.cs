@@ -217,12 +217,12 @@ namespace OpenSim.Framework.Tests
                               BannedHostNameMask = string.Empty,
                               BannedUserID = bannedUserId}
                           );
-            Assert.IsTrue(es.IsBanned(bannedUserId), "User Should be banned but is not.");
-            Assert.IsFalse(es.IsBanned(UUID.Zero), "User Should not be banned but is.");
+            Assert.IsTrue(es.IsBanned(bannedUserId, 32), "User Should be banned but is not.");
+            Assert.IsFalse(es.IsBanned(UUID.Zero, 32), "User Should not be banned but is.");
 
             es.RemoveBan(bannedUserId);
 
-            Assert.IsFalse(es.IsBanned(bannedUserId), "User Should not be banned but is.");
+            Assert.IsFalse(es.IsBanned(bannedUserId, 32), "User Should not be banned but is.");
 
             es.AddEstateManager(UUID.Zero);
 
