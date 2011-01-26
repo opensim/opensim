@@ -43,7 +43,11 @@ namespace OpenSim.Region.Framework.Interfaces
         LandData LandData { get; set; }
         bool[,] LandBitmap { get; set; }
         UUID RegionUUID { get; }
+        Vector3 StartPoint { get; }
+        Vector3 EndPoint { get; }
+        
         bool ContainsPoint(int x, int y);
+        
         ILandObject Copy();
 
         void SendLandUpdateToAvatarsOverMe();
