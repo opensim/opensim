@@ -77,7 +77,43 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             get { return m_scene.RegionInfo.RegionID; }
         }
-
+        
+        public Vector3 StartPoint
+        {
+            get
+            {
+                for (int y = 0; y < landArrayMax; y++)
+                {
+                    for (int x = 0; x < landArrayMax; x++)
+                    {
+                        if (LandBitmap[x, y])
+                            return new Vector3(x * 4, y * 4, 0);
+                    }
+                }
+                
+                return new Vector3(-1, -1, -1);
+            }
+        }        
+        
+        public Vector3 EndPoint
+        {
+            get
+            {
+                for (int y = landArrayMax - 1; y >= 0; y--)
+                {
+                    for (int x = landArrayMax - 1; x >= 0; x--)
+                    {
+                        if (LandBitmap[x, y])
+                        {
+                            return new Vector3(x * 4, y * 4, 0);
+                        }                        
+                    }
+                }   
+                
+                return new Vector3(-1, -1, -1);
+            }
+        }
+                
         #region Constructors
 
         public LandObject(UUID owner_id, bool is_group_owned, Scene scene)
@@ -96,7 +132,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         #region Member Functions
 
         #region General Functions
-
+        
         /// <summary>
         /// Checks to see if this land object contains a point
         /// </summary>
