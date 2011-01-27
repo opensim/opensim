@@ -409,19 +409,25 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
+
         public static string Md5Hash(string data)
         {
-            byte[] dataMd5 = ComputeMD5Hash(data);
+            return Md5Hash(data, Encoding.Default);
+        }
+
+        public static string Md5Hash(string data, Encoding encoding)
+        {
+            byte[] dataMd5 = ComputeMD5Hash(data, encoding);
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < dataMd5.Length; i++)
                 sb.AppendFormat("{0:x2}", dataMd5[i]);
             return sb.ToString();
         }
 
-        private static byte[] ComputeMD5Hash(string data)
+        private static byte[] ComputeMD5Hash(string data, Encoding encoding)
         {
             MD5 md5 = MD5.Create();
-            return md5.ComputeHash(Encoding.Default.GetBytes(data));
+            return md5.ComputeHash(encoding.GetBytes(data));
         }
 
         /// <summary>
@@ -429,16 +435,22 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
+
         public static string SHA1Hash(string data)
         {
-            byte[] hash = ComputeSHA1Hash(data);
+            return SHA1Hash(data, Encoding.Default);
+        }
+
+        public static string SHA1Hash(string data, Encoding encoding)
+        {
+            byte[] hash = ComputeSHA1Hash(data, encoding);
             return BitConverter.ToString(hash).Replace("-", String.Empty);
         }
 
-        private static byte[] ComputeSHA1Hash(string src)
+        private static byte[] ComputeSHA1Hash(string src, Encoding encoding)
         {
             SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider();
-            return SHA1.ComputeHash(Encoding.Default.GetBytes(src));
+            return SHA1.ComputeHash(encoding.GetBytes(src));
         }
 
         public static int fast_distance2d(int x, int y)
@@ -1161,7 +1173,7 @@ namespace OpenSim.Framework
 
         public static Guid GetHashGuid(string data, string salt)
         {
-            byte[] hash = ComputeMD5Hash(data + salt);
+            byte[] hash = ComputeMD5Hash(data + salt, Encoding.Default);
 
             //string s = BitConverter.ToString(hash);
 

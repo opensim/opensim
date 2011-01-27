@@ -2443,7 +2443,8 @@ namespace OpenSim.Region.Framework.Scenes
             // If the user is banned, we won't let any of their objects
             // enter. Period.
             //
-            if (m_regInfo.EstateSettings.IsBanned(sceneObject.OwnerID))
+            int flags = GetUserFlags(sceneObject.OwnerID);
+            if (m_regInfo.EstateSettings.IsBanned(sceneObject.OwnerID, flags))
             {
                 m_log.Info("[INTERREGION]: Denied prim crossing for " +
                         "banned avatar");
@@ -2547,6 +2548,22 @@ namespace OpenSim.Region.Framework.Scenes
             return 2; // StateSource.PrimCrossing
         }
 
+        public int GetUserFlags(UUID user)
+        {
+            //Unfortunately the SP approach means that the value is cached until region is restarted
+            /*
+            ScenePresence sp;
+            if (TryGetScenePresence(user, out sp))
+            {
+                return sp.UserFlags;
+            }
+            else
+            {
+             */
+                UserAccount uac = UserAccountService.GetUserAccount(RegionInfo.ScopeID, user);
+                return uac.UserFlags;
+            //}
+        }
         #endregion
 
         #region Add/Remove Avatar Methods
@@ -3626,10 +3643,26 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_regInfo.EstateSettings != null)
             {
-                if (m_regInfo.EstateSettings.IsBanned(agentID))
+                int flags = GetUserFlags(agent.AgentID);
+                if (m_regInfo.EstateSettings.IsBanned(agentID, flags))
                 {
-                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} at {1} because the user is on the banlist",
+                    //Add some more info to help users
+                    if (!m_regInfo.EstateSettings.IsBanned(agentID, 32))
+                    {
+                        m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} at {1} because the region requires age verification",
                                      agentID, RegionInfo.RegionName);
+                        reason = String.Format("Denied access to region {0}: Region requires age verification", RegionInfo.RegionName);
+                        return false;
+                    }
+                    if (!m_regInfo.EstateSettings.IsBanned(agentID, 4))
+                    {
+                        m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} {1} because the region requires payment info on file",
+                                     agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
+                        reason = String.Format("Denied access to region {0}: Region requires payment info on file", RegionInfo.RegionName);
+                        return false;
+                    }
+                    m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} at {3} because the user is on the banlist",
+                                     agent.AgentID, RegionInfo.RegionName);
                     reason = String.Format("Denied access to region {0}: You have been banned from that region.",
                                            RegionInfo.RegionName);
                     return false;
@@ -3788,7 +3821,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             // We have to wait until the viewer contacts this region after receiving EAC.
             // That calls AddNewClient, which finally creates the ScenePresence
-            if (m_regInfo.EstateSettings.IsBanned(cAgentData.AgentID))
+            int flags = GetUserFlags(cAgentData.AgentID);
+            if (m_regInfo.EstateSettings.IsBanned(cAgentData.AgentID, flags))
             {
                 m_log.DebugFormat("[SCENE]: Denying root agent entry to {0}: banned", cAgentData.AgentID);
                 return false;
