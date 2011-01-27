@@ -69,6 +69,11 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns></returns>
         ILandObject GetLandObject(int localID);
         
+        /// <summary>
+        /// Clear the land channel of all parcels.
+        /// </summary>
+        void Clear();
+        
         bool IsLandPrimCountTainted();
         bool IsForcefulBansAllowed();
         void UpdateLandObject(int localID, LandData data);

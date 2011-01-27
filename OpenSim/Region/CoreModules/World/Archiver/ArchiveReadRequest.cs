@@ -230,6 +230,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     parcel.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                 landData.Add(parcel);
             }
+            
+            if (!m_merge)                
+                m_scene.LandChannel.Clear();
+            
             m_scene.EventManager.TriggerIncomingLandDataFromStorage(landData);
             m_log.InfoFormat("[ARCHIVER]: Restored {0} parcels.", landData.Count);
 

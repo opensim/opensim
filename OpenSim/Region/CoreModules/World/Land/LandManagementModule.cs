@@ -636,6 +636,25 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_landList.Remove(local_id);
             }
         }
+        
+        /// <summary>
+        /// Clear the scene of all parcels
+        /// </summary>        
+        public void Clear()
+        {
+            lock (m_landList)
+            {
+                foreach (ILandObject lo in m_landList.Values)
+                {
+                    //m_scene.SimulationDataService.RemoveLandObject(lo.LandData.GlobalID);
+                    m_scene.EventManager.TriggerLandObjectRemoved(lo.LandData.GlobalID);
+                }
+                
+                m_landList.Clear();
+            }
+            
+            ResetSimLandObjects();
+        }
 
         private void performFinalLandJoin(ILandObject master, ILandObject slave)
         {
