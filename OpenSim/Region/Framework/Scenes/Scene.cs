@@ -3279,6 +3279,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
 
+            // Let the SP know how we got here. This has a lot of interesting
+            // uses down the line.
+            sp.TeleportFlags = (TeleportFlags)teleportFlags;
+
             // In all cases, add or update the circuit data with the new agent circuit data and teleport flags
             agent.teleportFlags = teleportFlags;
             m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
