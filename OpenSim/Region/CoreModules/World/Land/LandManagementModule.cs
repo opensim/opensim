@@ -1632,14 +1632,24 @@ namespace OpenSim.Region.CoreModules.World.Land
         
         protected void InstallInterfaces()
         {
-            Command showCommand =
-                new Command("show", CommandIntentions.COMMAND_STATISTICAL, ShowParcelsCommand, "Shows all parcels on the current region.");
+            Command clearCommand
+                = new Command("clear", CommandIntentions.COMMAND_HAZARDOUS, ClearCommand, "Clears all the parcels from the region.");
+            Command showCommand 
+                = new Command("show", CommandIntentions.COMMAND_STATISTICAL, ShowParcelsCommand, "Shows all parcels on the region.");
 
+            m_commander.RegisterCommand("clear", clearCommand);
             m_commander.RegisterCommand("show", showCommand);
 
             // Add this to our scene so scripts can call these functions
             m_scene.RegisterModuleCommander(m_commander);
-        }     
+        }    
+        
+        protected void ClearCommand(Object[] args)
+        {
+            Clear();
+            
+            MainConsole.Instance.Output("Cleared all parcels from {0}", m_scene.RegionInfo.RegionName);
+        }        
         
         protected void ShowParcelsCommand(Object[] args)
         {
