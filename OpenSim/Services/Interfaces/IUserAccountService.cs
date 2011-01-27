@@ -143,7 +143,6 @@ namespace OpenSim.Services.Interfaces
 
     public interface IUserAccountService
     {
-        UserAccount GetUserAccount(UUID scopeID, UUID userID, bool useCache);
         UserAccount GetUserAccount(UUID scopeID, UUID userID);
         UserAccount GetUserAccount(UUID scopeID, string FirstName, string LastName);
         UserAccount GetUserAccount(UUID scopeID, string Email);

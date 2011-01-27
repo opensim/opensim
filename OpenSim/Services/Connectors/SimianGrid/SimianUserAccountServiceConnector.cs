@@ -131,11 +131,6 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public UserAccount GetUserAccount(UUID scopeID, UUID userID)
         {
-            return GetUserAccount(scopeID, userID, true);
-        }
-
-        public UserAccount GetUserAccount(UUID scopeID, UUID userID, bool useCache)
-        {
             // Cache check
             UserAccount account;
             if (m_accountCache.TryGetValue(userID, out account))

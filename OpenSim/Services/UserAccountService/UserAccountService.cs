@@ -208,11 +208,6 @@ namespace OpenSim.Services.UserAccountService
 
         public UserAccount GetUserAccount(UUID scopeID, UUID principalID)
         {
-            return GetUserAccount(scopeID, principalID, true);
-        }
-
-        public UserAccount GetUserAccount(UUID scopeID, UUID principalID, bool useCache)
-        {
             UserAccountData[] d;
 
             if (scopeID != UUID.Zero)

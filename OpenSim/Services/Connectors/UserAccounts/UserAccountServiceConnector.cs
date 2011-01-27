@@ -113,11 +113,6 @@ namespace OpenSim.Services.Connectors
 
         public virtual UserAccount GetUserAccount(UUID scopeID, UUID userID)
         {
-            return GetUserAccount(scopeID, userID, true);
-        }
-
-        public virtual UserAccount GetUserAccount(UUID scopeID, UUID userID, bool useCache)
-        {
             //m_log.DebugFormat("[ACCOUNTS CONNECTOR]: GetUserAccount {0}", userID);
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["SCOPEID"] = scopeID.ToString();

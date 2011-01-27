@@ -80,11 +80,6 @@ namespace OpenSim.Services.HypergridService
             return GetUser(userID.ToString());
         }
 
-        public UserAccount GetUserAccount(UUID scopeID, UUID userID, bool useCache)
-        {
-            return GetUser(userID.ToString());
-        }
-
         public UserAccount GetUserAccount(UUID scopeID, string FirstName, string LastName)
         {
             return null;

@@ -142,19 +142,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
         public UserAccount GetUserAccount(UUID scopeID, UUID userID)
         {
-            return GetUserAccount(scopeID, userID, true);
-        }
-
-        public UserAccount GetUserAccount(UUID scopeID, UUID userID, bool useCache)
-        {
-            UserAccount account;
-            if (useCache)
-            {
-                bool inCache = false;
-                account = m_Cache.Get(userID, out inCache);
-                if (inCache)
-                    return account;
-            }
+            bool inCache = false;
+            UserAccount account = m_Cache.Get(userID, out inCache);
+            if (inCache)
+                return account;
 
             account = m_UserService.GetUserAccount(scopeID, userID);
             m_Cache.Cache(userID, account);

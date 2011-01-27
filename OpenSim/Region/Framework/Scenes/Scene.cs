@@ -2559,7 +2559,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
              */
-                UserAccount uac = UserAccountService.GetUserAccount(RegionInfo.ScopeID, user, false);
+                UserAccount uac = UserAccountService.GetUserAccount(RegionInfo.ScopeID, user);
                 return uac.UserFlags;
             //}
         }
