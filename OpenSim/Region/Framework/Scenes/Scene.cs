@@ -2488,6 +2488,8 @@ namespace OpenSim.Region.Framework.Scenes
                 ScenePresence sp = m_sceneGraph.CreateAndAddChildScenePresence(client, aCircuit.Appearance);
                 m_eventManager.TriggerOnNewPresence(sp);
 
+                sp.TeleportFlags = (TeleportFlags)aCircuit.teleportFlags;
+
                 // HERE!!! Do the initial attachments right here
                 // first agent upon login is a root agent by design.
                 // All other AddNewClient calls find aCircuit.child to be true
@@ -3267,6 +3269,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
+                // Let the SP know how we got here. This has a lot of interesting
+                // uses down the line.
+                sp.TeleportFlags = (TeleportFlags)teleportFlags;
+
                 if (sp.IsChildAgent)
                 {
                     m_log.DebugFormat(
@@ -3278,10 +3284,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-
-            // Let the SP know how we got here. This has a lot of interesting
-            // uses down the line.
-            sp.TeleportFlags = (TeleportFlags)teleportFlags;
 
             // In all cases, add or update the circuit data with the new agent circuit data and teleport flags
             agent.teleportFlags = teleportFlags;
