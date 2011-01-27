@@ -954,17 +954,17 @@ namespace OpenSim.Region.Framework.Scenes
                 // If we come in via login, landmark or map, we want to
                 // honor landing points. If we come in via Lure, we want
                 // to ignore them.
-                if ((m_teleportFlags & (TeleportFlags.ViaLogin |
-                                        TeleportFlags.ViaLandmark |
-                                        TeleportFlags.ViaLocation)) != 0)
+                if ((m_teleportFlags & (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID)) == (TeleportFlags.ViaLogin | TeleportFlags.ViaRegionID) ||
+                    (m_teleportFlags & TeleportFlags.ViaLandmark) != 0 ||
+                    (m_teleportFlags & TeleportFlags.ViaLocation) != 0)
                 {
                     // Don't restrict gods, estate managers, or land owners to
                     // the TP point. This behaviour mimics agni.
                     if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
                         land.LandData.UserLocation != Vector3.Zero &&
-                        land.LandData.OwnerID != m_uuid &&
+                        ((land.LandData.OwnerID != m_uuid &&
                         (!m_scene.Permissions.IsGod(m_uuid)) &&
-                        (!m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid)))
+                        (!m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid))) || (m_teleportFlags & TeleportFlags.ViaLocation) != 0))
                     {
                         pos = land.LandData.UserLocation;
                     }
@@ -1158,6 +1158,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             RemoveFromPhysicalScene();
             Velocity = Vector3.Zero;
+            CheckLandingPoint(ref pos);
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
             if (m_appearance != null)
@@ -1177,6 +1178,7 @@ namespace OpenSim.Region.Framework.Scenes
                 isFlying = m_physicsActor.Flying;
 
             RemoveFromPhysicalScene();
+            CheckLandingPoint(ref pos);
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
             if (m_appearance != null)
@@ -2099,6 +2101,7 @@ namespace OpenSim.Region.Framework.Scenes
   //          {				// Single, or Root prim of linkset, target is ClickOffset * RootRot
             	//offsetr = offset * partIRot;
 //
+  //          }
   //          else
     //        {	// Child prim, offset is (ChildOffset * RootRot) + (ClickOffset * ChildRot)
         //    	offsetr = //(part.OffsetPosition * Quaternion.Inverse(part.ParentGroup.RootPart.RotationOffset)) +	
@@ -4413,6 +4416,24 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
                         grp.RootPart.IsAttachment = true;
                     }
                 }
+            }
+        }
+
+        private void CheckLandingPoint(ref Vector3 pos)
+        {
+            // Never constrain lures
+            if ((TeleportFlags & TeleportFlags.ViaLure) != 0)
+                return;
+
+            ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
+
+            if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
+                land.LandData.UserLocation != Vector3.Zero &&
+                land.LandData.OwnerID != m_uuid &&
+                (!m_scene.Permissions.IsGod(m_uuid)) &&
+                (!m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid)))
+            {
+                pos = land.LandData.UserLocation;
             }
         }
     }
