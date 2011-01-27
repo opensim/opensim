@@ -329,6 +329,8 @@ namespace OpenSim.Services.LLLoginService
                     return LLFailedLoginResponse.GridProblem;
                 }
 
+                if (account.UserLevel >= 200)
+                    flags |= TeleportFlags.Godlike;
                 //
                 // Get the avatar
                 //
