@@ -948,16 +948,23 @@ namespace OpenSim.Region.Framework.Scenes
                 pos.Y = crossedBorder.BorderLine.Z - 1;
             }
 
-            //If they're TP'ing in or logging in, we haven't had time to add any known child regions yet.
-            //This has the unfortunate consequence that if somebody is TP'ing who is already a child agent,
-            //they'll bypass the landing point. But I can't think of any decent way of fixing this.
             ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
             if (land != null)
             {
-                if (KnownChildRegionHandles.Count == 0)
+                // If we come in via login, landmark or map, we want to
+                // honor landing points. If we come in via Lure, we want
+                // to ignore them.
+                if ((m_teleportFlags & (TeleportFlags.ViaLogin |
+                                        TeleportFlags.ViaLandmark |
+                                        TeleportFlags.ViaLocation)) != 0)
                 {
-                    //Don't restrict gods, estate managers, or land owners to the TP point. This behaviour mimics agni.
-                    if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero && UserLevel < 200 && !m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid) && land.LandData.OwnerID != m_uuid)
+                    // Don't restrict gods, estate managers, or land owners to
+                    // the TP point. This behaviour mimics agni.
+                    if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
+                        land.LandData.UserLocation != Vector3.Zero &&
+                        land.LandData.OwnerID != m_uuid &&
+                        (!m_scene.Permissions.IsGod(m_uuid)) &&
+                        (!m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid)))
                     {
                         pos = land.LandData.UserLocation;
                     }
