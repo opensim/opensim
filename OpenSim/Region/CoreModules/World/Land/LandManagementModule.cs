@@ -1648,7 +1648,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             Clear();
             
-            MainConsole.Instance.Output("Cleared all parcels from {0}", m_scene.RegionInfo.RegionName);
+            MainConsole.Instance.OutputFormat("Cleared all parcels from {0}", m_scene.RegionInfo.RegionName);
         }        
         
         protected void ShowParcelsCommand(Object[] args)
@@ -1657,8 +1657,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             
             report.AppendFormat("Land information for {0}\n", m_scene.RegionInfo.RegionName);            
             report.AppendFormat(
-                "{0,-20} {1,-9} {2,-18} {3,-18} {4,-20}\n",
+                "{0,-20} {1,-10} {2,-9} {3,-18} {4,-18} {5,-20}\n",
                 "Parcel Name",
+                "Local ID",
                 "Area",
                 "Starts",
                 "Ends",
@@ -1671,12 +1672,12 @@ namespace OpenSim.Region.CoreModules.World.Land
                     LandData ld = lo.LandData;
                     
                     report.AppendFormat(
-                        "{0,-20} {1,-9} {2,-18} {3,-18} {4,-20}\n", 
-                        ld.Name, ld.Area, lo.StartPoint, lo.EndPoint, m_userManager.GetUserName(ld.OwnerID));
+                        "{0,-20} {1,-10} {2,-9} {3,-18} {4,-18} {5,-20}\n", 
+                        ld.Name, ld.LocalID, ld.Area, lo.StartPoint, lo.EndPoint, m_userManager.GetUserName(ld.OwnerID));
                 }
             }
             
             MainConsole.Instance.Output(report.ToString());
-        }        
+        }         
     }
 }
