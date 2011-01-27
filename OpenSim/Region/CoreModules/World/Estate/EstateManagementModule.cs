@@ -555,37 +555,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
                 try
                 {
+                    MemoryStream terrainStream = new MemoryStream(terrainData);
+                    terr.LoadFromStream(filename, terrainStream);
+                    terrainStream.Close();
 
-                    string localfilename = "terrain.raw";
-
-                    if (terrainData.Length == 851968)
-                    {
-                        localfilename = Path.Combine(Util.dataDir(),"terrain.raw"); // It's a .LLRAW
-                    }
-
-                    if (terrainData.Length == 196662) // 24-bit 256x256 Bitmap
-                        localfilename = Path.Combine(Util.dataDir(), "terrain.bmp");
-
-                    if (terrainData.Length == 256 * 256 * 4) // It's a .R32
-                        localfilename = Path.Combine(Util.dataDir(), "terrain.r32");
-
-                    if (terrainData.Length == 256 * 256 * 8) // It's a .R64
-                        localfilename = Path.Combine(Util.dataDir(), "terrain.r64");
-
-                    if (File.Exists(localfilename))
-                    {
-                        File.Delete(localfilename);
-                    }
-
-                    FileStream input = new FileStream(localfilename, FileMode.CreateNew);
-                    input.Write(terrainData, 0, terrainData.Length);
-                    input.Close();
-
-                    FileInfo x = new FileInfo(localfilename);
-
-                    terr.LoadFromFile(localfilename);
-                    remoteClient.SendAlertMessage("Your terrain was loaded as a ." + x.Extension + " file. It may take a few moments to appear.");
-
+                    FileInfo x = new FileInfo(filename);
+                    remoteClient.SendAlertMessage("Your terrain was loaded as a " + x.Extension + " file. It may take a few moments to appear.");
                 }
                 catch (IOException e)
                 {
