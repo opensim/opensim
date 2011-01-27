@@ -578,15 +578,6 @@ namespace OpenSim.Region.CoreModules.World.Land
         }
 
         /// <summary>
-        /// Creates a basic Parcel object without an owner (a zeroed key)
-        /// </summary>
-        /// <returns></returns>
-        public ILandObject CreateBaseLand()
-        {
-            return new LandObject(UUID.Zero, false, m_scene);
-        }
-
-        /// <summary>
         /// Adds a land object to the stored list and adds them to the landIDList to what they own
         /// </summary>
         /// <param name="new_land">The land object being added</param>
