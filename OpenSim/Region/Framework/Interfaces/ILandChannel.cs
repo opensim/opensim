@@ -69,6 +69,14 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns></returns>
         ILandObject GetLandObject(int localID);
         
+        /// <summary>
+        /// Clear the land channel of all parcels.
+        /// </summary>
+        /// <param name="setupDefaultParcel">
+        /// If true, set up a default parcel covering the whole region owned by the estate owner.
+        /// </param>
+        void Clear(bool setupDefaultParcel);
+        
         bool IsLandPrimCountTainted();
         bool IsForcefulBansAllowed();
         void UpdateLandObject(int localID, LandData data);

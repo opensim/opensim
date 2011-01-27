@@ -228,8 +228,17 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 LandData parcel = LandDataSerializer.Deserialize(serialisedParcel);
                 if (!ResolveUserUuid(parcel.OwnerID))
                     parcel.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                
+//                m_log.DebugFormat(
+//                    "[ARCHIVER]: Adding parcel {0}, local id {1}, area {2}", 
+//                    parcel.Name, parcel.LocalID, parcel.Area);
+                
                 landData.Add(parcel);
             }
+            
+            if (!m_merge)                
+                m_scene.LandChannel.Clear(false);
+            
             m_scene.EventManager.TriggerIncomingLandDataFromStorage(landData);
             m_log.InfoFormat("[ARCHIVER]: Restored {0} parcels.", landData.Count);
 
