@@ -3408,6 +3408,9 @@ namespace OpenSim.Region.Framework.Scenes
             //On login test land permisions
             if (vialogin)
             {
+                IUserAccountCacheModule cache = RequestModuleInterface<IUserAccountCacheModule>();
+                if (cache != null)
+                    cache.Remove(agent.firstname + " " + agent.lastname);
                 if (!TestLandRestrictions(agent.AgentID, out reason, ref agent.startpos.X, ref agent.startpos.Y))
                 {
                     m_log.DebugFormat("[CONNECTION BEGIN]: Denying access to {0} due to no land access", agent.AgentID.ToString());
