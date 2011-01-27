@@ -142,6 +142,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_userFlags; }
         }
+        private TeleportFlags m_teleportFlags;
+        public TeleportFlags TeleportFlags
+        {
+            get { return m_teleportFlags; }
+            set { m_teleportFlags = value; }
+        }
 
         private uint m_requestedSitTargetID;
         private UUID m_requestedSitTargetUUID;
@@ -1083,6 +1089,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void MakeChildAgent()
         {
+            // Reset these so that teleporting in and walking out isn't seen
+            // as teleporting back
+            m_teleportFlags = TeleportFlags.Default;
+
             // It looks like m_animator is set to null somewhere, and MakeChild
             // is called after that. Probably in aborted teleports.
             if (m_animator == null)
