@@ -4433,7 +4433,11 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
                 (!m_scene.Permissions.IsGod(m_uuid)) &&
                 (!m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid)))
             {
-                pos = land.LandData.UserLocation;
+                float curr = Vector3.Distance(AbsolutePosition, pos);
+                if (Vector3.Distance(land.LandData.UserLocation, pos) < curr)
+                    pos = land.LandData.UserLocation;
+                else
+                    ControllingClient.SendAlertMessage("Can't teleport closer to destination");
             }
         }
     }
