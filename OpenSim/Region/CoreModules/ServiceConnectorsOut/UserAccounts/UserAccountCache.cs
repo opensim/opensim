@@ -34,7 +34,7 @@ using log4net;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 {
-    public class UserAccountCache
+    public class UserAccountCache : IUserAccountCacheModule
     {
         private const double CACHE_EXPIRATION_SECONDS = 120000.0; // 33 hours!
 

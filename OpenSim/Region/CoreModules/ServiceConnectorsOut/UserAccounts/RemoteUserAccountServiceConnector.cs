@@ -102,6 +102,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 return;
 
             scene.RegisterModuleInterface<IUserAccountService>(this);
+            scene.RegisterModuleInterface<IUserAccountCacheModule>(m_Cache);
 
             scene.EventManager.OnNewClient += OnNewClient;
         }

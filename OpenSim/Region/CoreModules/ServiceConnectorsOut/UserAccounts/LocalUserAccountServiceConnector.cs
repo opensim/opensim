@@ -120,6 +120,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 return;
 
             scene.RegisterModuleInterface<IUserAccountService>(m_UserService);
+            scene.RegisterModuleInterface<IUserAccountCacheModule>(m_Cache);
         }
 
         public void RemoveRegion(Scene scene)
