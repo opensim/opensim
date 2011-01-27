@@ -4426,6 +4426,9 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
             if ((TeleportFlags & TeleportFlags.ViaLure) != 0)
                 return;
 
+            if (m_scene.RegionInfo.EstateSettings.AllowDirectTeleport)
+                return;
+
             ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
 
             if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
