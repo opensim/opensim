@@ -82,7 +82,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected List<ScenePresence> m_scenePresenceArray = new List<ScenePresence>();
 
         protected internal EntityManager Entities = new EntityManager();
-        protected internal Dictionary<UUID, ScenePresence> RestorePresences = new Dictionary<UUID, ScenePresence>();
 
         protected RegionInfo m_regInfo;
         protected Scene m_parentScene;
@@ -629,8 +628,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             ScenePresence newAvatar = null;
 
+            // ScenePresence always defaults to child agent
             newAvatar = new ScenePresence(client, m_parentScene, m_regInfo, appearance);
-            newAvatar.IsChildAgent = true;
 
             AddScenePresence(newAvatar);
 
@@ -643,6 +642,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="presence"></param>
         protected internal void AddScenePresence(ScenePresence presence)
         {
+            // Always a child when added to the scene
             bool child = presence.IsChildAgent;
 
             if (child)

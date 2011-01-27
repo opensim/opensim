@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         #endregion
 
         private readonly Scene m_scene;
-        private readonly LandManagementModule m_landManagementModule;
+        private readonly LandManagementModule m_landManagementModule;        
 
         public LandChannel(Scene scene, LandManagementModule landManagementMod)
         {
