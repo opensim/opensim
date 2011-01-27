@@ -49,8 +49,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class GetMeshModule : INonSharedRegionModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private Scene m_scene;
         private IAssetService m_assetService;
 
@@ -102,7 +103,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
         {
             UUID capID = UUID.Random();
 
-            m_log.Info("[GETMESH]: /CAPS/" + capID);
+//            m_log.Info("[GETMESH]: /CAPS/" + capID);
             caps.RegisterHandler("GetMesh",
                                  new RestHTTPHandler("GET", "/CAPS/" + capID,
                                                        delegate(Hashtable m_dhttpMethod)

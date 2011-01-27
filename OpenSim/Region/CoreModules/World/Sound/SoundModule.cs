@@ -38,7 +38,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
 {
     public class SoundModule : IRegionModule, ISoundModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Scene m_scene;
         

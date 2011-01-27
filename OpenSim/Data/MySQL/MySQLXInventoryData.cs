@@ -130,7 +130,7 @@ namespace OpenSim.Data.MySQL
         {
             using (MySqlCommand cmd  = new MySqlCommand())
             {
-                cmd.CommandText = String.Format("select * from inventoryitems where avatarId = ?uuid and assetType = ?type and flags = 1", m_Realm);
+                cmd.CommandText = String.Format("select * from inventoryitems where avatarId = ?uuid and assetType = ?type and flags & 1", m_Realm);
 
                 cmd.Parameters.AddWithValue("?uuid", principalID.ToString());
                 cmd.Parameters.AddWithValue("?type", (int)AssetType.Gesture);

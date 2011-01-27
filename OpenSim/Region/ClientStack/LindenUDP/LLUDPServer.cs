@@ -114,8 +114,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //private UDPClientCollection m_clients = new UDPClientCollection();
         /// <summary>Bandwidth throttle for this UDP server</summary>
         protected TokenBucket m_throttle;
+        
         /// <summary>Bandwidth throttle rates for this UDP server</summary>
-        protected ThrottleRates m_throttleRates;
+        public ThrottleRates ThrottleRates { get; private set; }
+        
         /// <summary>Manages authentication for agent circuits</summary>
         private AgentCircuitManager m_circuitManager;
         /// <summary>Reference to the scene this UDP server is attached to</summary>
@@ -226,7 +228,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
            #endregion BinaryStats
 
             m_throttle = new TokenBucket(null, sceneThrottleBps, sceneThrottleBps);
-            m_throttleRates = new ThrottleRates(configSource);
+            ThrottleRates = new ThrottleRates(configSource);
         }
 
         public void Start()
@@ -585,8 +587,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Stats tracking
             Interlocked.Increment(ref udpClient.PacketsSent);
-            if (isReliable)
-                Interlocked.Add(ref udpClient.UnackedBytes, outgoingPacket.Buffer.DataLength);
 
             // Put the UDP payload on the wire
             AsyncBeginSend(buffer);
@@ -859,9 +859,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Acknowledge the UseCircuitCode packet
             SendAckImmediate(remoteEndPoint, packet.Header.Sequence);
             
-            m_log.DebugFormat(
-                "[LLUDPSERVER]: Handling UseCircuitCode request from {0} took {1}ms", 
-                buffer.RemoteEndPoint, (DateTime.Now - startTime).Milliseconds);
+//            m_log.DebugFormat(
+//                "[LLUDPSERVER]: Handling UseCircuitCode request from {0} took {1}ms", 
+//                buffer.RemoteEndPoint, (DateTime.Now - startTime).Milliseconds);
         }
 
         private void SendAckImmediate(IPEndPoint remoteEndpoint, uint sequenceNumber)
@@ -924,7 +924,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual void AddClient(uint circuitCode, UUID agentID, UUID sessionID, IPEndPoint remoteEndPoint, AuthenticateResponse sessionInfo)
         {
             // Create the LLUDPClient
-            LLUDPClient udpClient = new LLUDPClient(this, m_throttleRates, m_throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
+            LLUDPClient udpClient = new LLUDPClient(this, ThrottleRates, m_throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
             IClientAPI existingClient;
 
             if (!m_scene.TryGetClient(agentID, out existingClient))

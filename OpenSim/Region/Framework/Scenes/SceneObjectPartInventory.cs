@@ -178,6 +178,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     item.LastOwnerID = item.OwnerID;
                     item.OwnerID = ownerId;
+                    item.PermsMask = 0;
+                    item.PermsGranter = UUID.Zero;
                 }
             }
         }
@@ -695,7 +697,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 item.ParentID = m_part.UUID;
                 item.ParentPartID = m_part.UUID;
-                item.Flags = m_items[item.ItemID].Flags;
 
                 // If group permissions have been set on, check that the groupID is up to date in case it has
                 // changed since permissions were last set.
@@ -850,7 +851,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="xferManager"></param>
         public void RequestInventoryFile(IClientAPI client, IXfer xferManager)
         {
-            bool changed = CreateInventoryFile();
+            CreateInventoryFile();
 
             if (m_inventorySerial == 0) // No inventory
             {
@@ -1013,6 +1014,8 @@ namespace OpenSim.Region.Framework.Scenes
                     item.BasePermissions &= item.NextPermissions;
                     item.EveryonePermissions &= item.NextPermissions;
                     item.OwnerChanged = true;
+                    item.PermsMask = 0;
+                    item.PermsGranter = UUID.Zero;
                 }
             }
         }

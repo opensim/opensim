@@ -43,9 +43,9 @@ namespace OpenSim.Services.Connectors
 {
     public class SimulationDataService : ServiceBase, ISimulationDataService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//                LogManager.GetLogger(
+//                MethodBase.GetCurrentMethod().DeclaringType);
 
         protected ISimulationDataStore m_database;
 

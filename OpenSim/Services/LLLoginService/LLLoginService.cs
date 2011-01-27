@@ -282,7 +282,7 @@ namespace OpenSim.Services.LLLoginService
 
                 // Get active gestures
                 List<InventoryItemBase> gestures = m_InventoryService.GetActiveGestures(account.PrincipalID);
-                m_log.DebugFormat("[LLOGIN SERVICE]: {0} active gestures", gestures.Count);
+//                m_log.DebugFormat("[LLOGIN SERVICE]: {0} active gestures", gestures.Count);
 
                 //
                 // Login the presence
@@ -320,7 +320,8 @@ namespace OpenSim.Services.LLLoginService
                 Vector3 position = Vector3.Zero;
                 Vector3 lookAt = Vector3.Zero;
                 GridRegion gatekeeper = null;
-                GridRegion destination = FindDestination(account, scopeID, guinfo, session, startLocation, home, out gatekeeper, out where, out position, out lookAt);
+                TeleportFlags flags;
+                GridRegion destination = FindDestination(account, scopeID, guinfo, session, startLocation, home, out gatekeeper, out where, out position, out lookAt, out flags);
                 if (destination == null)
                 {
                     m_PresenceService.LogoutAgent(session);
@@ -328,6 +329,8 @@ namespace OpenSim.Services.LLLoginService
                     return LLFailedLoginResponse.GridProblem;
                 }
 
+                if (account.UserLevel >= 200)
+                    flags |= TeleportFlags.Godlike;
                 //
                 // Get the avatar
                 //
@@ -343,7 +346,7 @@ namespace OpenSim.Services.LLLoginService
                 string reason = string.Empty;
                 GridRegion dest;
                 AgentCircuitData aCircuit = LaunchAgentAtGrid(gatekeeper, destination, account, avatar, session, secureSession, position, where, 
-                    clientVersion, channel, mac, id0, clientIP, out where, out reason, out dest);
+                    clientVersion, channel, mac, id0, clientIP, flags, out where, out reason, out dest);
                 destination = dest;
                 if (aCircuit == null)
                 {
@@ -378,8 +381,10 @@ namespace OpenSim.Services.LLLoginService
             }
         }
 
-        protected GridRegion FindDestination(UserAccount account, UUID scopeID, GridUserInfo pinfo, UUID sessionID, string startLocation, GridRegion home, out GridRegion gatekeeper, out string where, out Vector3 position, out Vector3 lookAt)
+        protected GridRegion FindDestination(UserAccount account, UUID scopeID, GridUserInfo pinfo, UUID sessionID, string startLocation, GridRegion home, out GridRegion gatekeeper, out string where, out Vector3 position, out Vector3 lookAt, out TeleportFlags flags)
         {
+            flags = TeleportFlags.ViaLogin;
+
             m_log.DebugFormat("[LLOGIN SERVICE]: FindDestination for start location {0}", startLocation);
 
             gatekeeper = null;
@@ -473,6 +478,8 @@ namespace OpenSim.Services.LLLoginService
             }
             else
             {
+                flags |= TeleportFlags.ViaRegionID;
+
                 // free uri form
                 // e.g. New Moon&135&46  New Moon@osgrid.org:8002&153&34
                 where = "url";
@@ -624,7 +631,7 @@ namespace OpenSim.Services.LLLoginService
 
         protected AgentCircuitData LaunchAgentAtGrid(GridRegion gatekeeper, GridRegion destination, UserAccount account, AvatarAppearance avatar,
             UUID session, UUID secureSession, Vector3 position, string currentWhere, string viewer, string channel, string mac, string id0,
-            IPEndPoint clientIP, out string where, out string reason, out GridRegion dest)
+            IPEndPoint clientIP, TeleportFlags flags, out string where, out string reason, out GridRegion dest)
         {
             where = currentWhere;
             ISimulationService simConnector = null;
@@ -663,7 +670,7 @@ namespace OpenSim.Services.LLLoginService
             {
                 circuitCode = (uint)Util.RandomClass.Next(); ;
                 aCircuit = MakeAgent(destination, account, avatar, session, secureSession, circuitCode, position, clientIP.Address.ToString(), viewer, channel, mac, id0);
-                success = LaunchAgentDirectly(simConnector, destination, aCircuit, out reason);
+                success = LaunchAgentDirectly(simConnector, destination, aCircuit, flags, out reason);
                 if (!success && m_GridService != null)
                 {
                     // Try the fallback regions
@@ -672,7 +679,7 @@ namespace OpenSim.Services.LLLoginService
                     {
                         foreach (GridRegion r in fallbacks)
                         {
-                            success = LaunchAgentDirectly(simConnector, r, aCircuit, out reason);
+                            success = LaunchAgentDirectly(simConnector, r, aCircuit, flags | TeleportFlags.ViaRegionID, out reason);
                             if (success)
                             {
                                 where = "safe";
@@ -795,9 +802,9 @@ namespace OpenSim.Services.LLLoginService
 
         }
 
-        private bool LaunchAgentDirectly(ISimulationService simConnector, GridRegion region, AgentCircuitData aCircuit, out string reason)
+        private bool LaunchAgentDirectly(ISimulationService simConnector, GridRegion region, AgentCircuitData aCircuit, TeleportFlags flags, out string reason)
         {
-            return simConnector.CreateAgent(region, aCircuit, (int)Constants.TeleportFlags.ViaLogin, out reason);
+            return simConnector.CreateAgent(region, aCircuit, (uint)flags, out reason);
         }
 
         private bool LaunchAgentIndirectly(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, IPEndPoint clientIP, out string reason)

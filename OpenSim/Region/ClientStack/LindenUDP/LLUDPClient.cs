@@ -256,18 +256,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public string GetStats()
         {
             return string.Format(
-                "{0,9} {1,9} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}",
+                "{0,7} {1,7} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}",
                 PacketsSent,
                 PacketsReceived,
                 UnackedBytes,
-                m_throttleCategories[(int)ThrottleOutPacketType.Resend].Content,
-                m_throttleCategories[(int)ThrottleOutPacketType.Land].Content,
-                m_throttleCategories[(int)ThrottleOutPacketType.Wind].Content,
-                m_throttleCategories[(int)ThrottleOutPacketType.Cloud].Content,
-                m_throttleCategories[(int)ThrottleOutPacketType.Task].Content,
-                m_throttleCategories[(int)ThrottleOutPacketType.Texture].Content,
-                m_throttleCategories[(int)ThrottleOutPacketType.Asset].Content,
-                m_throttleCategories[(int)ThrottleOutPacketType.State].Content);                                
+                m_packetOutboxes[(int)ThrottleOutPacketType.Resend].Count,
+                m_packetOutboxes[(int)ThrottleOutPacketType.Land].Count,
+                m_packetOutboxes[(int)ThrottleOutPacketType.Wind].Count,
+                m_packetOutboxes[(int)ThrottleOutPacketType.Cloud].Count,
+                m_packetOutboxes[(int)ThrottleOutPacketType.Task].Count,
+                m_packetOutboxes[(int)ThrottleOutPacketType.Texture].Count,
+                m_packetOutboxes[(int)ThrottleOutPacketType.Asset].Count,
+                m_packetOutboxes[(int)ThrottleOutPacketType.State].Count);                                
         }
 
         public void SendPacketStats()

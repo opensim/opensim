@@ -47,9 +47,9 @@ namespace OpenSim.Server.Handlers.Hypergrid
 {
     public class UserAgentServerConnector : ServiceConnector
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//                LogManager.GetLogger(
+//                MethodBase.GetCurrentMethod().DeclaringType);
 
         private IUserAgentService m_HomeUsersService;
 

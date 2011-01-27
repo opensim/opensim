@@ -767,6 +767,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             LookupUUIDS icon = (LookupUUIDS)iar.AsyncState;
             icon.EndInvoke(iar);
         }
+        
         private void LookupUUID(List<UUID> uuidLst)
         {
             LookupUUIDS d = LookupUUIDsAsync;
@@ -775,6 +776,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                           LookupUUIDSCompleted,
                           d);
         }
+        
         private void LookupUUIDsAsync(List<UUID> uuidLst)
         {
             UUID[] uuidarr;
@@ -789,12 +791,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 // string lookupname = m_scene.CommsManager.UUIDNameRequestString(uuidarr[i]);
 
                 IUserManagement userManager = m_scene.RequestModuleInterface<IUserManagement>();
-                string userName = "Unkown User";
                 if (userManager != null)
-                    userName = userManager.GetUserName(uuidarr[i]);
+                    userManager.GetUserName(uuidarr[i]);
                 
                 // we drop it.  It gets cached though...  so we're ready for the next request.
                 // diva commnent 11/21/2010: uh?!? wft?
+                // justincc comment 21/01/2011: A side effect of userManager.GetUserName() I presume.
             }
         }
         #endregion

@@ -765,8 +765,8 @@ namespace OpenSim.Framework.Capabilities
         {
             try
             {
-                m_log.Debug("[CAPS]: UploadBakedTexture Request in region: " +
-                        m_regionName);
+//                m_log.Debug("[CAPS]: UploadBakedTexture Request in region: " +
+//                        m_regionName);
 
                 string capsBase = "/CAPS/" + m_capsObjectPath;
                 string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
@@ -1332,7 +1332,7 @@ namespace OpenSim.Framework.Capabilities
                 newAssetID = UUID.Random();
                 uploaderPath = path;
                 httpListener = httpServer;
-                m_log.InfoFormat("[CAPS] baked texture upload starting for {0}",newAssetID);
+//                m_log.InfoFormat("[CAPS] baked texture upload starting for {0}",newAssetID);
             }
 
             /// <summary>
@@ -1360,7 +1360,7 @@ namespace OpenSim.Framework.Capabilities
 
                 httpListener.RemoveStreamHandler("POST", uploaderPath);
 
-                m_log.InfoFormat("[CAPS] baked texture upload completed for {0}",newAssetID);
+//                m_log.InfoFormat("[CAPS] baked texture upload completed for {0}",newAssetID);
 
                 return res;
             }

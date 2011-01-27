@@ -867,7 +867,7 @@ namespace OpenSim.Data.MySQL
                         dbcon.Open();
 
                         using (MySqlCommand sqlCmd = new MySqlCommand(
-                            "SELECT * FROM inventoryitems WHERE avatarId = ?uuid AND assetType = ?type and flags = 1", dbcon))
+                            "SELECT * FROM inventoryitems WHERE avatarId = ?uuid AND assetType = ?type and flags & 1", dbcon))
                         {
                             sqlCmd.Parameters.AddWithValue("?uuid", avatarID.ToString());
                             sqlCmd.Parameters.AddWithValue("?type", (int)AssetType.Gesture);

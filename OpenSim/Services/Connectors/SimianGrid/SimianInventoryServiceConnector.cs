@@ -757,7 +757,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 }
             }
 
-            m_log.Debug("[SIMIAN INVENTORY CONNECTOR]: Parsed " + invFolders.Count + " folders from SimianGrid response");
+//            m_log.Debug("[SIMIAN INVENTORY CONNECTOR]: Parsed " + invFolders.Count + " folders from SimianGrid response");
             return invFolders;
         }
 
@@ -824,7 +824,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 }
             }
 
-            m_log.Debug("[SIMIAN INVENTORY CONNECTOR]: Parsed " + invItems.Count + " items from SimianGrid response");
+//            m_log.Debug("[SIMIAN INVENTORY CONNECTOR]: Parsed " + invItems.Count + " items from SimianGrid response");
             return invItems;
         }
 

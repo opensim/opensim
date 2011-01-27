@@ -58,7 +58,7 @@ namespace OpenSim.Framework
 
         // number of milliseconds a call can take before it is considered
         // a "long" call for warning & debugging purposes
-        public const int LongCallTime = 200;
+        public const int LongCallTime = 500;
 
         /// <summary>
         /// Send LLSD to an HTTP client in application/llsd+json form

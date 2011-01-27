@@ -105,7 +105,7 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
         {
             UUID capID = UUID.Random();
 
-            m_log.Info("[UploadObjectAssetModule]: /CAPS/" + capID);
+//            m_log.Debug("[UPLOAD OBJECT ASSET MODULE]: /CAPS/" + capID);
             caps.RegisterHandler("UploadObjectAsset",
                                  new RestHTTPHandler("POST", "/CAPS/OA/" + capID + "/",
                                                        delegate(Hashtable m_dhttpMethod)
@@ -156,7 +156,7 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
             }
             catch (Exception ex)
             {
-                m_log.Error("[UploadObjectAssetModule]: Error deserializing message " + ex.ToString());
+                m_log.Error("[UPLOAD OBJECT ASSET MODULE]: Error deserializing message " + ex.ToString());
                 message = null;
             }
 
@@ -174,7 +174,7 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
             Vector3 pos = avatar.AbsolutePosition + (Vector3.UnitX * avatar.Rotation);
             Quaternion rot = Quaternion.Identity;
             Vector3 rootpos = Vector3.Zero;
-            Quaternion rootrot = Quaternion.Identity;
+//            Quaternion rootrot = Quaternion.Identity;
 
             SceneObjectGroup rootGroup = null;
             SceneObjectGroup[] allparts = new SceneObjectGroup[message.Objects.Length];
@@ -186,10 +186,8 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
                 if (i == 0)
                 {
                     rootpos = obj.Position;
-                    rootrot = obj.Rotation;
-                    
+//                    rootrot = obj.Rotation;                    
                 }
-
 
                 // Combine the extraparams data into it's ugly blob again....
                 //int bytelength = 0;
@@ -363,9 +361,8 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
             responsedata["str_response_string"] = String.Format("<llsd><map><key>local_id</key>{0}</map></llsd>", ConvertUintToBytes(allparts[0].LocalId));
 
             return responsedata;
-
-
         }
+        
         private string ConvertUintToBytes(uint val)
         {
             byte[] resultbytes = Utils.UIntToBytes(val);
