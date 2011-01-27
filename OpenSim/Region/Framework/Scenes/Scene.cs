@@ -2443,14 +2443,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If the user is banned, we won't let any of their objects
             // enter. Period.
             //
-            int flags = 0;
-            ScenePresence sp;
-            if (TryGetScenePresence(sceneObject.OwnerID, out sp))
-            {
-                flags = sp.UserFlags;
-            }
-            
-
+            int flags = GetUserFlags(sceneObject.OwnerID);
             if (m_regInfo.EstateSettings.IsBanned(sceneObject.OwnerID, flags))
             {
                 m_log.Info("[INTERREGION]: Denied prim crossing for " +
@@ -2480,7 +2473,7 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart RootPrim = sceneObject.RootPart;
 
                 // Fix up attachment Parent Local ID
-                sp = GetScenePresence(sceneObject.OwnerID);
+                ScenePresence sp = GetScenePresence(sceneObject.OwnerID);
 
                 if (sp != null)
                 {
@@ -2554,7 +2547,22 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return 2; // StateSource.PrimCrossing
         }
-
+        public int GetUserFlags(UUID user)
+        {
+            //Unfortunately the SP approach means that the value is cached until region is restarted
+            /*
+            ScenePresence sp;
+            if (TryGetScenePresence(user, out sp))
+            {
+                return sp.UserFlags;
+            }
+            else
+            {
+             */
+                UserAccount uac = UserAccountService.GetUserAccount(RegionInfo.ScopeID, user, false);
+                return uac.UserFlags;
+            //}
+        }
         #endregion
 
         #region Add/Remove Avatar Methods
@@ -3625,12 +3633,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_regInfo.EstateSettings != null)
             {
-                int flags = 0;
-                ScenePresence sp;
-                if (TryGetScenePresence(agent.AgentID, out sp))
-                {
-                    flags = sp.UserFlags;
-                }
+                int flags = GetUserFlags(agent.AgentID);
                 if ((!m_seeIntoBannedRegion) && m_regInfo.EstateSettings.IsBanned(agent.AgentID, flags))
                 {
                     //Add some more info to help users
@@ -3836,12 +3839,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // We have to wait until the viewer contacts this region after receiving EAC.
             // That calls AddNewClient, which finally creates the ScenePresence
-            int flags = 0;
-            ScenePresence sp;
-            if (TryGetScenePresence(cAgentData.AgentID, out sp))
-            {
-                flags = sp.UserFlags;
-            }
+            int flags = GetUserFlags(cAgentData.AgentID);
             if (m_regInfo.EstateSettings.IsBanned(cAgentData.AgentID, flags))
             {
                 m_log.DebugFormat("[SCENE]: Denying root agent entry to {0}: banned", cAgentData.AgentID);
