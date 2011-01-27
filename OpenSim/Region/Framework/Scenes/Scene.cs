@@ -3643,7 +3643,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_regInfo.EstateSettings != null)
             {
-                int flags = GetUserFlags(agent.AgentID);
+                int flags = GetUserFlags(agentID);
                 if (m_regInfo.EstateSettings.IsBanned(agentID, flags))
                 {
                     //Add some more info to help users
@@ -3657,12 +3657,12 @@ namespace OpenSim.Region.Framework.Scenes
                     if (!m_regInfo.EstateSettings.IsBanned(agentID, 4))
                     {
                         m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} {1} because the region requires payment info on file",
-                                     agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
+                                     agentID, RegionInfo.RegionName);
                         reason = String.Format("Denied access to region {0}: Region requires payment info on file", RegionInfo.RegionName);
                         return false;
                     }
                     m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} at {3} because the user is on the banlist",
-                                     agent.AgentID, RegionInfo.RegionName);
+                                     agentID, RegionInfo.RegionName);
                     reason = String.Format("Denied access to region {0}: You have been banned from that region.",
                                            RegionInfo.RegionName);
                     return false;
