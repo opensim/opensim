@@ -264,13 +264,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
             foreach (Scene s in m_sceneList)
             {
-                if (s.RegionInfo.RegionHandle == destination.RegionHandle)
-                {
-                    //m_log.Debug("[LOCAL COMMS]: Found region to send QueryAccess");
+                if (s.RegionInfo.RegionID == destination.RegionID)
                     return s.QueryAccess(id);
-                }
             }
-            //m_log.Debug("[LOCAL COMMS]: region not found for QueryAccess");
             return false;
         }
 

@@ -115,7 +115,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 DoChildAgentDelete(request, responsedata, agentID, action, regionID);
                 return responsedata;
             }
-            else if (method.Equals("QUERYACCESSS"))
+            else if (method.Equals("QUERYACCESS"))
             {
                 DoQueryAccess(request, responsedata, agentID, regionID);
                 return responsedata;

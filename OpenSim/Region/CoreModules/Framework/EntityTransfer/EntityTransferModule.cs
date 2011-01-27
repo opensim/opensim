@@ -281,6 +281,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     return;
                 }
 
+                if (!m_aScene.SimulationService.QueryAccess(finalDestination, sp.ControllingClient.AgentId))
+                {
+                    sp.ControllingClient.SendTeleportFailed("The destination region has refused access");
+                    return;
+                }
+
                 sp.ControllingClient.SendTeleportStart(teleportFlags);
 
                 // the avatar.Close below will clear the child region list. We need this below for (possibly)
