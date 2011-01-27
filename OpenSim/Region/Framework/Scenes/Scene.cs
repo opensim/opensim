@@ -2578,6 +2578,7 @@ namespace OpenSim.Region.Framework.Scenes
                        (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0;
 
             CheckHeartbeat();
+            ScenePresence presence;
 
             if (GetScenePresence(client.AgentId) == null) // ensure there is no SP here
             {
