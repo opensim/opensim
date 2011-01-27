@@ -237,7 +237,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
             
             if (!m_merge)                
-                m_scene.LandChannel.Clear();
+                m_scene.LandChannel.Clear(false);
             
             m_scene.EventManager.TriggerIncomingLandDataFromStorage(landData);
             m_log.InfoFormat("[ARCHIVER]: Restored {0} parcels.", landData.Count);

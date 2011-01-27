@@ -298,13 +298,19 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
                 m_landIDList.Initialize();
             }
-
+        }
+        
+        /// <summary>
+        /// Create a default parcel that spans the entire region and is owned by the estate owner.
+        /// </summary>
+        /// <returns>The parcel created.</returns>
+        protected ILandObject CreateDefaultParcel()
+        {
             ILandObject fullSimParcel = new LandObject(UUID.Zero, false, m_scene);
-
             fullSimParcel.SetLandBitmap(fullSimParcel.GetSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
             fullSimParcel.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
             fullSimParcel.LandData.ClaimDate = Util.UnixTimeSinceEpoch();
-            AddLandObject(fullSimParcel);
+            return AddLandObject(fullSimParcel);            
         }
 
         public List<ILandObject> AllParcels()
@@ -640,7 +646,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <summary>
         /// Clear the scene of all parcels
         /// </summary>        
-        public void Clear()
+        public void Clear(bool setupDefaultParcel)
         {
             lock (m_landList)
             {
@@ -654,6 +660,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             
             ResetSimLandObjects();
+            
+            if (setupDefaultParcel)
+                CreateDefaultParcel();
         }
 
         private void performFinalLandJoin(ILandObject master, ILandObject slave)
@@ -1321,7 +1330,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
-
         void ClientOnParcelDeedToGroup(int parcelLocalID, UUID groupID, IClientAPI remote_client)
         {
             ILandObject land;
@@ -1337,9 +1345,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 land.DeedToGroup(groupID);
             }
-
         }
-
 
         #region Land Object From Storage Functions
 
@@ -1375,6 +1381,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void EventManagerOnNoLandDataFromStorage()
         {
             ResetSimLandObjects();
+            CreateDefaultParcel();
         }
 
         #endregion
@@ -1646,7 +1653,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         
         protected void ClearCommand(Object[] args)
         {
-            Clear();
+            Clear(true);
             
             MainConsole.Instance.OutputFormat("Cleared all parcels from {0}", m_scene.RegionInfo.RegionName);
         }        

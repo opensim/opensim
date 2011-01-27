@@ -63,9 +63,9 @@ public class RegionCombinerLargeLandChannel : ILandChannel
             return RootRegionLandChannel.AllParcels();
         }
         
-        public void Clear()
+        public void Clear(bool setupDefaultParcel)
         {
-            RootRegionLandChannel.Clear();
+            RootRegionLandChannel.Clear(setupDefaultParcel);
         }
 
         public ILandObject GetLandObject(int x, int y)

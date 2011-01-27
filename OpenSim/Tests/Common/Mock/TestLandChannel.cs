@@ -56,7 +56,7 @@ namespace OpenSim.Tests.Common.Mock
             return new List<ILandObject>();
         }
         
-        public void Clear()
+        public void Clear(bool setupDefaultParcel)
         {
             // Intentionally blank since we don't save any parcel data in the test channel
         }
