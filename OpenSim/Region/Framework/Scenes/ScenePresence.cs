@@ -962,6 +962,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // the TP point. This behaviour mimics agni.
                     if (land.LandData.LandingType == (byte)LandingType.LandingPoint &&
                         land.LandData.UserLocation != Vector3.Zero &&
+                        GodLevel < 200 &&
                         ((land.LandData.OwnerID != m_uuid &&
                         (!m_scene.Permissions.IsGod(m_uuid)) &&
                         (!m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid))) || (m_teleportFlags & TeleportFlags.ViaLocation) != 0))
