@@ -223,7 +223,20 @@ namespace OpenSim.Services.Connectors.Simulation
             try
             {
                 OSDMap result = WebUtil.ServiceOSDRequest(uri, request, "QUERYACCESS", 10000);
-                return result["Success"].AsBoolean();
+                bool success = result["Success"].AsBoolean();
+                if (!success)
+                {
+                    if (result.ContainsKey("Message"))
+                    {
+                        string message = result["Message"].AsString();
+                        if (message == "Service request failed: [MethodNotAllowed] MethodNotAllowed") // Old style region
+                        {
+                            m_log.Info("[REMOTE SIMULATION CONNECTOR]: The above web util error was caused by a TP to a sim that doesn't support QUERYACCESS and can be ignored");
+                            return true;
+                        }
+                    }
+                }
+                return success;
             }
             catch (Exception e)
             {
