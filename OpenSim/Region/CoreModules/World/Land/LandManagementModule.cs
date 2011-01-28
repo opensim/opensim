@@ -1653,9 +1653,21 @@ namespace OpenSim.Region.CoreModules.World.Land
         
         protected void ClearCommand(Object[] args)
         {
-            Clear(true);
+            string response = MainConsole.Instance.CmdPrompt(
+                string.Format(
+                    "Are you sure that you want to clear all land parcels from {0} (y or n)", 
+                    m_scene.RegionInfo.RegionName), 
+                "n");
             
-            MainConsole.Instance.OutputFormat("Cleared all parcels from {0}", m_scene.RegionInfo.RegionName);
+            if (response.ToLower() == "y")
+            {
+                Clear(true);
+                MainConsole.Instance.OutputFormat("Cleared all parcels from {0}", m_scene.RegionInfo.RegionName);
+            }
+            else
+            {
+                MainConsole.Instance.OutputFormat("Aborting clear of all parcels from {0}", m_scene.RegionInfo.RegionName);
+            }
         }        
         
         protected void ShowParcelsCommand(Object[] args)
