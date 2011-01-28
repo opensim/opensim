@@ -5141,23 +5141,38 @@ namespace OpenSim.Region.Framework.Scenes
         // from logging into the region, teleporting into the region
         // or corssing the broder walking, but will NOT prevent
         // child agent creation, thereby emulating the SL behavior.
-        public bool QueryAccess(UUID agentID)
+        public bool QueryAccess(UUID agentID, Vector3 position)
         {
             string reason;
 
             if (!AuthorizeUser(agentID, out reason))
             {
-                m_log.DebugFormat("[SCENE]: Denying access for {0}", agentID);
+                // m_log.DebugFormat("[SCENE]: Denying access for {0}", agentID);
                 return false;
             }
 
-            float posX = 128.0f;
-            float posY = 128.0f;
-
-            if (!TestLandRestrictions(agentID, out reason, ref posX, ref posY))
+            if (position == Vector3.Zero) // Teleport
             {
-                m_log.DebugFormat("[SCENE]: Denying {0} because they are banned on all parcels", agentID);
-                return false;
+                float posX = 128.0f;
+                float posY = 128.0f;
+
+                if (!TestLandRestrictions(agentID, out reason, ref posX, ref posY))
+                {
+                    // m_log.DebugFormat("[SCENE]: Denying {0} because they are banned on all parcels", agentID);
+                    return false;
+                }
+            }
+            else // Walking
+            {
+                ILandObject land = LandChannel.GetLandObject(position.X, position.Y);
+                if (land == null)
+                    return false;
+
+                bool banned = land.IsBannedFromLand(agentID);
+                bool restricted = land.IsRestrictedFromLand(agentID);
+
+                if (banned || restricted)
+                    return false;
             }
             return true;
         }

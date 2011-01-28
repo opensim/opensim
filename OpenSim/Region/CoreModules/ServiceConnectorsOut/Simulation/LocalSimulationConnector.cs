@@ -257,7 +257,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return false;
         }
 
-        public bool QueryAccess(GridRegion destination, UUID id)
+        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position)
         {
             if (destination == null)
                 return false;
@@ -265,7 +265,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             foreach (Scene s in m_sceneList)
             {
                 if (s.RegionInfo.RegionID == destination.RegionID)
-                    return s.QueryAccess(id);
+                    return s.QueryAccess(id, position);
             }
             return false;
         }

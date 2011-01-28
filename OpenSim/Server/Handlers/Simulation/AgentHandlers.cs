@@ -331,10 +331,17 @@ namespace OpenSim.Server.Handlers.Simulation
                 return;
             }
 
+            // m_log.DebugFormat("[AGENT HANDLER]: Received QUERYACCESS with {0}", (string)request["body"]);
+            OSDMap args = Utils.GetOSDMap((string)request["body"]);
+
+            Vector3 position = Vector3.Zero;
+            if (args.ContainsKey("position"))
+                position = Vector3.Parse(args["position"].AsString());
+
             GridRegion destination = new GridRegion();
             destination.RegionID = regionID;
 
-            bool result = m_SimulationService.QueryAccess(destination, id);
+            bool result = m_SimulationService.QueryAccess(destination, id, position);
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
             responsedata["str_response_string"] = result.ToString();

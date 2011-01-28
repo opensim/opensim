@@ -285,7 +285,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     return;
                 }
 
-                if (!m_aScene.SimulationService.QueryAccess(finalDestination, sp.ControllingClient.AgentId))
+                if (!m_aScene.SimulationService.QueryAccess(finalDestination, sp.ControllingClient.AgentId, Vector3.Zero))
                 {
                     sp.ControllingClient.SendTeleportFailed("The destination region has refused access");
                     return;
@@ -797,8 +797,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             GridRegion neighbourRegion = scene.GridService.GetRegionByPosition(scene.RegionInfo.ScopeID, (int)x, (int)y);
 
-            if (!scene.SimulationService.QueryAccess(neighbourRegion, agent.ControllingClient.AgentId))
+            if (!scene.SimulationService.QueryAccess(neighbourRegion, agent.ControllingClient.AgentId, newpos))
             {
+                agent.ControllingClient.SendAlertMessage("Cannot region cross into banned parcel");
                 if (r == null)
                 {
                     r = new ExpiringCache<ulong, DateTime>();
