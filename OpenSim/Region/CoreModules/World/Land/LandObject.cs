@@ -66,6 +66,13 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #region ILandObject Members
 
+        public int GetPrimsFree()
+        {
+            m_scene.EventManager.TriggerParcelPrimCountUpdate();
+            int free = GetSimulatorMaxPrimCount(this) - m_landData.SimwidePrims;
+            return free;
+        }
+
         public LandData LandData
         {
             get { return m_landData; }
@@ -141,7 +148,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <returns>Returns true if the piece of land contains the specified point</returns>
         public bool ContainsPoint(int x, int y)
         {
-            if (x >= 0 && y >= 0 && x <= Constants.RegionSize && y <= Constants.RegionSize)
+            if (x >= 0 && y >= 0 && x < Constants.RegionSize && y < Constants.RegionSize)
             {
                 return (LandBitmap[x / 4, y / 4] == true);
             }
@@ -183,7 +190,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
             {
                 // Normal Calculations
-                return (int)Math.Round(((float)LandData.Area / 65536.0f) * (float)m_scene.RegionInfo.ObjectCapacity * (float)m_scene.RegionInfo.RegionSettings.ObjectBonus);
+                int parcelMax = (int)(((float)LandData.Area / 65536.0f)
+                              * (float)m_scene.RegionInfo.ObjectCapacity
+                              * (float)m_scene.RegionInfo.RegionSettings.ObjectBonus);
+                // TODO: The calculation of ObjectBonus should be refactored. It does still not work in the same manner as SL!
+                return parcelMax;
             }
         }
         public int GetSimulatorMaxPrimCount(ILandObject thisObject)
@@ -195,7 +206,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
             {
                 //Normal Calculations
-                return m_scene.RegionInfo.ObjectCapacity;
+                int simMax = (int)(((float)LandData.SimwideArea / 65536.0f)
+                           * (float)m_scene.RegionInfo.ObjectCapacity);
+                return simMax;
             }
         }
         #endregion
@@ -369,7 +382,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             newData.AuthBuyerID = UUID.Zero;
             newData.Flags &= ~(uint) (ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects | ParcelFlags.ShowDirectory);
             m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
-
+            m_scene.EventManager.TriggerParcelPrimCountUpdate();
             SendLandUpdateToAvatarsOverMe(true);
         }
 
@@ -384,7 +397,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             newData.Flags &= ~(uint) (ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects | ParcelFlags.ShowDirectory);
 
             m_scene.LandChannel.UpdateLandObject(LandData.LocalID, newData);
-
+            m_scene.EventManager.TriggerParcelPrimCountUpdate();
             SendLandUpdateToAvatarsOverMe(true);
         }
 
@@ -485,6 +498,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void SendLandUpdateToClient(bool snap_selection, IClientAPI remote_client)
         {
+            m_scene.EventManager.TriggerParcelPrimCountUpdate();
             SendLandProperties(0, snap_selection, 0, remote_client);
         }
 

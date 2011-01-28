@@ -697,6 +697,8 @@ namespace OpenSim.Framework
             landData._mediaLoop = _mediaLoop;
             landData._obscureMusic = _obscureMusic;
             landData._obscureMedia = _obscureMedia;
+            landData._simwideArea = _simwideArea;
+            landData._simwidePrims = _simwidePrims;
 
             landData._parcelAccessList.Clear();
             foreach (ParcelManager.ParcelAccessEntry entry in _parcelAccessList)

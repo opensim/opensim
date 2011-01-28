@@ -39,6 +39,7 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         int GetParcelMaxPrimCount(ILandObject thisObject);
         int GetSimulatorMaxPrimCount(ILandObject thisObject);
+        int GetPrimsFree();
 
         LandData LandData { get; set; }
         bool[,] LandBitmap { get; set; }
