@@ -180,6 +180,7 @@ namespace OpenSim
             {
                 if (ReadConfig(sources[i]))
                     iniFileExists = true;
+                
                 AddIncludes(sources);
             }
 
@@ -235,10 +236,19 @@ namespace OpenSim
                             string path = Path.Combine(basepath, chunkWithoutWildcards);
                             path = Path.GetFullPath(path) + chunkWithWildcards;
                             string[] paths = Util.Glob(path);
-                            foreach (string p in paths)
+                            
+                            // If the include path contains no wildcards, then warn the user that it wasn't found.
+                            if (wildcardIndex == -1 && paths.Length == 0)
                             {
-                                if (!sources.Contains(p))
-                                    sources.Add(p);
+                                m_log.WarnFormat("[CONFIG]: Could not find include file {0}", path);
+                            }
+                            else
+                            {                            
+                                foreach (string p in paths)
+                                {
+                                    if (!sources.Contains(p))
+                                        sources.Add(p);
+                                }
                             }
                         }
                     }
