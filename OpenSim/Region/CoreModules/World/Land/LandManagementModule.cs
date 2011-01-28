@@ -97,8 +97,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         // caches ExtendedLandData
         private Cache parcelInfoCache;
-        private Dictionary<UUID, Vector3> forcedPosition =
-                new Dictionary<UUID, Vector3>();
 
         #region INonSharedRegionModule Members
 
@@ -223,36 +221,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         void ClientOnPreAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
-            //If we are forcing a position for them to go
-            if (forcedPosition.ContainsKey(remoteClient.AgentId))
-            {
-                ScenePresence clientAvatar = m_scene.GetScenePresence(remoteClient.AgentId);
-
-                //Putting the user into flying, both keeps the avatar in fligth when it bumps into something and stopped from going another direction AND
-                //When the avatar walks into a ban line on the ground, it prevents getting stuck
-                agentData.ControlFlags = (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
-
-
-                //Make sure we stop if they get about to the right place to prevent yoyo and prevents getting stuck on banlines
-                if (Vector3.Distance(clientAvatar.AbsolutePosition, forcedPosition[remoteClient.AgentId]) < .2)
-                {
-                    Debug.WriteLine(string.Format("Stopping force position because {0} is close enough to position {1}", forcedPosition[remoteClient.AgentId], clientAvatar.AbsolutePosition));
-                    forcedPosition.Remove(remoteClient.AgentId);
-                }
-                //if we are far away, teleport
-                else if (Vector3.Distance(clientAvatar.AbsolutePosition, forcedPosition[remoteClient.AgentId]) > 3)
-                {
-                    Debug.WriteLine(string.Format("Teleporting out because {0} is too far from avatar position {1}", forcedPosition[remoteClient.AgentId], clientAvatar.AbsolutePosition));
-                    clientAvatar.Teleport(forcedPosition[remoteClient.AgentId]);
-                    forcedPosition.Remove(remoteClient.AgentId);
-                }
-                else
-                {
-                    //Forces them toward the forced position we want if they aren't there yet
-                    agentData.UseClientAgentPosition = true;
-                    agentData.ClientAgentPosition = forcedPosition[remoteClient.AgentId];
-                }
-            }
         }
 
         public void Close()
@@ -377,8 +345,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             avatar.AbsolutePosition = (Vector3)position;
 
             avatar.AddToPhysicalScene(isFlying);
-
-            forcedPosition[avatar.ControllingClient.AgentId] = (Vector3)position;
         }
 
         public void SendYouAreRestrictedNotice(ScenePresence avatar)
@@ -404,12 +370,14 @@ namespace OpenSim.Region.CoreModules.World.Land
                         if (parcelAvatarIsEntering.IsEitherBannedOrRestricted(avatar.UUID))
                         {
                             SendYouAreBannedNotice(avatar);
-                            ForceAvatarToPosition(avatar, m_scene.GetNearestAllowedPosition(avatar));
+                            ForceAvatarToPosition(avatar, avatar.lastKnownAllowedPosition);
+                            //ForceAvatarToPosition(avatar, m_scene.GetNearestAllowedPosition(avatar));
                         }
                         else if (parcelAvatarIsEntering.IsRestrictedFromLand(avatar.UUID))
                         {
                             SendYouAreRestrictedNotice(avatar);
-                            ForceAvatarToPosition(avatar, m_scene.GetNearestAllowedPosition(avatar));
+                            ForceAvatarToPosition(avatar, avatar.lastKnownAllowedPosition);
+                            //ForceAvatarToPosition(avatar, m_scene.GetNearestAllowedPosition(avatar));
                         }
                         else
                         {
@@ -507,26 +475,15 @@ namespace OpenSim.Region.CoreModules.World.Land
                     else if (clientAvatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT &&
                              parcel.IsBannedFromLand(clientAvatar.UUID))
                     {
-                        //once we've sent the message once, keep going toward the target until we are done
-                        if (forcedPosition.ContainsKey(clientAvatar.ControllingClient.AgentId))
-                        {
-                            SendYouAreBannedNotice(clientAvatar);
-                            ForceAvatarToPosition(clientAvatar, m_scene.GetNearestAllowedPosition(clientAvatar));
-                        }
+                        // SendYouAreBannedNotice(clientAvatar);
+                        //ForceAvatarToPosition(clientAvatar, m_scene.GetNearestAllowedPosition(clientAvatar));
+                        ForceAvatarToPosition(clientAvatar, clientAvatar.lastKnownAllowedPosition);
                     }
                     else if (parcel.IsRestrictedFromLand(clientAvatar.UUID))
                     {
-                        //once we've sent the message once, keep going toward the target until we are done
-                        if (forcedPosition.ContainsKey(clientAvatar.ControllingClient.AgentId))
-                        {
-                            SendYouAreRestrictedNotice(clientAvatar);
-                            ForceAvatarToPosition(clientAvatar, m_scene.GetNearestAllowedPosition(clientAvatar));
-                        }
-                    }
-                    else
-                    {
-                        //when we are finally in a safe place, lets release the forced position lock
-                        forcedPosition.Remove(clientAvatar.ControllingClient.AgentId);
+                        // SendYouAreRestrictedNotice(clientAvatar);
+                        //ForceAvatarToPosition(clientAvatar, m_scene.GetNearestAllowedPosition(clientAvatar));
+                        ForceAvatarToPosition(clientAvatar, clientAvatar.lastKnownAllowedPosition);
                     }
                 }
             }
