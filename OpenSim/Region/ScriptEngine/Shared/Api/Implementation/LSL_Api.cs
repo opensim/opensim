@@ -4309,107 +4309,115 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            UUID uuid = (UUID)id;
-            PresenceInfo pinfo = null;
-            UserAccount account;
-
-            UserInfoCacheEntry ce;
-            if (!m_userInfoCache.TryGetValue(uuid, out ce))
+            UUID uuid;
+            if (UUID.TryParse(id, out uuid))
             {
-                account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, uuid);
-                if (account == null)
-                {
-                    m_userInfoCache[uuid] = null; // Cache negative
-                    return UUID.Zero.ToString();
-                }
+                PresenceInfo pinfo = null;
+                UserAccount account;
 
-
-                PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
-                if (pinfos != null && pinfos.Length > 0)
+                UserInfoCacheEntry ce;
+                if (!m_userInfoCache.TryGetValue(uuid, out ce))
                 {
-                    foreach (PresenceInfo p in pinfos)
+                    account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, uuid);
+                    if (account == null)
                     {
-                        if (p.RegionID != UUID.Zero)
+                        m_userInfoCache[uuid] = null; // Cache negative
+                        return UUID.Zero.ToString();
+                    }
+
+
+                    PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
+                    if (pinfos != null && pinfos.Length > 0)
+                    {
+                        foreach (PresenceInfo p in pinfos)
                         {
-                            pinfo = p;
+                            if (p.RegionID != UUID.Zero)
+                            {
+                                pinfo = p;
+                            }
                         }
                     }
+
+                    ce = new UserInfoCacheEntry();
+                    ce.time = Util.EnvironmentTickCount();
+                    ce.account = account;
+                    ce.pinfo = pinfo;
+                    m_userInfoCache[uuid] = ce;
+                }
+                else
+                {
+                    if (ce == null)
+                        return UUID.Zero.ToString();
+
+                    account = ce.account;
+                    pinfo = ce.pinfo;
                 }
 
-                ce = new UserInfoCacheEntry();
-                ce.time = Util.EnvironmentTickCount();
-                ce.account = account;
-                ce.pinfo = pinfo;
-                m_userInfoCache[uuid] = ce;
+                if (Util.EnvironmentTickCount() < ce.time || (Util.EnvironmentTickCount() - ce.time) >= 20000)
+                {
+                    PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
+                    if (pinfos != null && pinfos.Length > 0)
+                    {
+                        foreach (PresenceInfo p in pinfos)
+                        {
+                            if (p.RegionID != UUID.Zero)
+                            {
+                                pinfo = p;
+                            }
+                        }
+                    }
+                    else
+                        pinfo = null;
+
+                    ce.time = Util.EnvironmentTickCount();
+                    ce.pinfo = pinfo;
+                }
+
+                string reply = String.Empty;
+
+                switch (data)
+                {
+                    case 1: // DATA_ONLINE (0|1)
+                        if (pinfo != null && pinfo.RegionID != UUID.Zero)
+                            reply = "1";
+                        else
+                            reply = "0";
+                        break;
+                    case 2: // DATA_NAME (First Last)
+                        reply = account.FirstName + " " + account.LastName;
+                        break;
+                    case 3: // DATA_BORN (YYYY-MM-DD)
+                        DateTime born = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+                        born = born.AddSeconds(account.Created);
+                        reply = born.ToString("yyyy-MM-dd");
+                        break;
+                    case 4: // DATA_RATING (0,0,0,0,0,0)
+                        reply = "0,0,0,0,0,0";
+                        break;
+                    case 8: // DATA_PAYINFO (0|1|2|3)
+                        reply = "0";
+                        break;
+                    default:
+                        return UUID.Zero.ToString(); // Raise no event
+                }
+
+                UUID rq = UUID.Random();
+
+                UUID tid = AsyncCommands.
+                    DataserverPlugin.RegisterRequest(m_localID,
+                                                 m_itemID, rq.ToString());
+
+                AsyncCommands.
+                DataserverPlugin.DataserverReply(rq.ToString(), reply);
+
+                ScriptSleep(100);
+                return tid.ToString();
             }
             else
             {
-                if (ce == null)
-                    return UUID.Zero.ToString();
-
-                account = ce.account;
-                pinfo = ce.pinfo;
+                ShoutError("Invalid UUID passed to llRequestAgentData.");
             }
-
-            if (Util.EnvironmentTickCount() < ce.time || (Util.EnvironmentTickCount() - ce.time) >= 20000)
-            {
-                PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
-                if (pinfos != null && pinfos.Length > 0)
-                {
-                    foreach (PresenceInfo p in pinfos)
-                    {
-                        if (p.RegionID != UUID.Zero)
-                        {
-                            pinfo = p;
-                        }
-                    }
-                }
-                else
-                    pinfo = null;
-
-                ce.time = Util.EnvironmentTickCount();
-                ce.pinfo = pinfo;
-            }
-
-            string reply = String.Empty;
-
-            switch (data)
-            {
-            case 1: // DATA_ONLINE (0|1)
-                if (pinfo != null && pinfo.RegionID != UUID.Zero)
-                    reply = "1";
-                else
-                    reply = "0";
-                break;
-            case 2: // DATA_NAME (First Last)
-                reply = account.FirstName + " " + account.LastName;
-                break;
-            case 3: // DATA_BORN (YYYY-MM-DD)
-                DateTime born = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-                born = born.AddSeconds(account.Created);
-                reply = born.ToString("yyyy-MM-dd");
-                break;
-            case 4: // DATA_RATING (0,0,0,0,0,0)
-                reply = "0,0,0,0,0,0";
-                break;
-            case 8: // DATA_PAYINFO (0|1|2|3)
-                reply = "0";
-                break;
-            default:
-                return UUID.Zero.ToString(); // Raise no event
-            }
-
-            UUID rq = UUID.Random();
-
-            UUID tid = AsyncCommands.
-                DataserverPlugin.RegisterRequest(m_localID,
-                                             m_itemID, rq.ToString());
-
-            AsyncCommands.
-            DataserverPlugin.DataserverReply(rq.ToString(), reply);
-
-            ScriptSleep(100);
-            return tid.ToString();
+            return "";
         }
 
         public LSL_String llRequestInventoryData(string name)
