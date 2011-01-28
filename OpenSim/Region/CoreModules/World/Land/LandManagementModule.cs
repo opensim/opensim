@@ -709,7 +709,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             int x;
             int y;
 
-            if (x_float > Constants.RegionSize || x_float <= 0 || y_float > Constants.RegionSize || y_float <= 0)
+            if (x_float >= Constants.RegionSize || x_float < 0 || y_float >= Constants.RegionSize || y_float < 0)
                 return null;
 
             try
@@ -751,10 +751,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 try
                 {
-                    if (m_landList.ContainsKey(m_landIDList[x / 4, y / 4]))
+                    //if (m_landList.ContainsKey(m_landIDList[x / 4, y / 4]))
                         return m_landList[m_landIDList[x / 4, y / 4]];
-                    else
-                        return null;
+                    //else
+                    //    return null;
                 }
                 catch (IndexOutOfRangeException)
                 {
