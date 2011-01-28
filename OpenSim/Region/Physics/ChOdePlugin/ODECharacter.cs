@@ -594,7 +594,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             Shell = d.CreateCapsule(_parent_scene.space, CAPSULE_RADIUS, CAPSULE_LENGTH);
             _parent_scene.geom_name_map[Shell] = m_name;
             _parent_scene.actor_name_map[Shell] = (PhysicsActor)this;
-Console.WriteLine("**** Create {2}    Dicts: actor={0}   name={1}  height={3} rad={4}", _parent_scene.actor_name_map.Count, _parent_scene.geom_name_map.Count, m_name, CAPSULE_LENGTH, CAPSULE_RADIUS);
+//Console.WriteLine("**** Create {2}    Dicts: actor={0}   name={1}  height={3} rad={4}", _parent_scene.actor_name_map.Count, _parent_scene.geom_name_map.Count, m_name, CAPSULE_LENGTH, CAPSULE_RADIUS);
 
             d.GeomSetCategoryBits(Shell, (int)m_collisionCategories);
             d.GeomSetCollideBits(Shell, (int)m_collisionFlags);
