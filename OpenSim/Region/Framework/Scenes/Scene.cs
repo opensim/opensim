@@ -4022,14 +4022,16 @@ namespace OpenSim.Region.Framework.Scenes
             RequestTeleportLocation(remoteClient, info.RegionHandle, position, Vector3.Zero, (uint)(TPFlags.SetLastToTarget | TPFlags.ViaLandmark));
         }
 
-        public void CrossAgentToNewRegion(ScenePresence agent, bool isFlying)
+        public bool CrossAgentToNewRegion(ScenePresence agent, bool isFlying)
         {
             if (m_teleportModule != null)
-                m_teleportModule.Cross(agent, isFlying);
+                return m_teleportModule.Cross(agent, isFlying);
             else
             {
                 m_log.DebugFormat("[SCENE]: Unable to cross agent to neighbouring region, because there is no AgentTransferModule");
             }
+
+            return false;
         }
 
         public void SendOutChildAgentUpdates(AgentPosition cadu, ScenePresence presence)
