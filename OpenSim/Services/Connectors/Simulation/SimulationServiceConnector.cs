@@ -31,6 +31,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Collections;
 
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
@@ -206,9 +207,9 @@ namespace OpenSim.Services.Connectors.Simulation
 
         /// <summary>
         /// </summary>
-        public bool QueryAccess(GridRegion destination, UUID id)
+        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position)
         {
-            // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess start");
+            // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess start, position={0}", position);
 
             IPEndPoint ext = destination.ExternalEndPoint;
             if (ext == null) return false;
@@ -216,9 +217,12 @@ namespace OpenSim.Services.Connectors.Simulation
             // Eventually, we want to use a caps url instead of the agentID
             string uri = destination.ServerURI + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
 
+            OSDMap request = new OSDMap();
+            request.Add("position", OSD.FromString(position.ToString()));
+
             try
             {
-                OSDMap result = WebUtil.ServiceOSDRequest(uri,null,"QUERYACCESS",10000);
+                OSDMap result = WebUtil.ServiceOSDRequest(uri, request, "QUERYACCESS", 10000);
                 return result["Success"].AsBoolean();
             }
             catch (Exception e)
