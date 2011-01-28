@@ -42,7 +42,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
         bool TeleportHome(UUID id, IClientAPI client);
 
-        void Cross(ScenePresence agent, bool isFlying);
+        bool Cross(ScenePresence agent, bool isFlying);
 
         void AgentArrivedAtDestination(UUID agent);
 
