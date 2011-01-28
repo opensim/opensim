@@ -439,7 +439,14 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                                 if (request.ContainsKey(key))
                                 {
                                     string val = (String)request[key];
-                                    queryString = queryString + key + "=" + val + "&";
+                                    if (key == "")
+                                    {
+                                        queryString = queryString + key + "=" + val + "&";
+                                    }
+                                    else
+                                    {
+                                        queryString = queryString + val + "&";
+                                    }                                    
                                 }
                             }
                             if (queryString.Length > 1)
