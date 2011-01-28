@@ -367,10 +367,18 @@ namespace OpenSim.Region.CoreModules.World.Land
         private void ForceAvatarToPosition(ScenePresence avatar, Vector3? position)
         {
             if (m_scene.Permissions.IsGod(avatar.UUID)) return;
-            if (position.HasValue)
-            {
-                forcedPosition[avatar.ControllingClient.AgentId] = (Vector3)position;
-            }
+
+            if (!position.HasValue)
+                return;
+
+            bool isFlying = avatar.PhysicsActor.Flying;
+            avatar.RemoveFromPhysicalScene();
+
+            avatar.AbsolutePosition = (Vector3)position;
+
+            avatar.AddToPhysicalScene(isFlying);
+
+            forcedPosition[avatar.ControllingClient.AgentId] = (Vector3)position;
         }
 
         public void SendYouAreRestrictedNotice(ScenePresence avatar)

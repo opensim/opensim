@@ -1128,7 +1128,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Removes physics plugin scene representation of this agent if it exists.
         /// </summary>
-        private void RemoveFromPhysicalScene()
+        public void RemoveFromPhysicalScene()
         {
             if (PhysicsActor != null)
             {
