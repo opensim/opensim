@@ -179,9 +179,10 @@ namespace OpenSim
             for (int i = 0 ; i < sources.Count ; i++)
             {
                 if (ReadConfig(sources[i]))
+                {
                     iniFileExists = true;
-                
-                AddIncludes(sources);
+                    AddIncludes(sources);
+                }
             }
 
             if (!iniFileExists)
