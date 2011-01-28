@@ -131,7 +131,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                 m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
                 m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
                 m_scene.EventManager.OnTerrainTick += EventManager_OnTerrainTick;
-                InstallInterfaces();
             }
 
             InstallDefaultEffects();
@@ -140,6 +139,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         public void RegionLoaded(Scene scene)
         {
+            //Do this here to give file loaders time to initialize and
+            //register their supported file extensions and file formats.
+            InstallInterfaces();
         }
 
         public void RemoveRegion(Scene scene)
@@ -1082,8 +1084,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         {
             // Load / Save
             string supportedFileExtensions = "";
+            string supportedFilesSeparator = "";
             foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
-                supportedFileExtensions += " " + loader.Key + " (" + loader.Value + ")";
+            {
+                supportedFileExtensions += supportedFilesSeparator + loader.Key + " (" + loader.Value + ")";
+                supportedFilesSeparator = ", ";
+            }
 
             Command loadFromFileCommand =
                 new Command("load", CommandIntentions.COMMAND_HAZARDOUS, InterfaceLoadFile, "Loads a terrain from a specified file.");
