@@ -38,9 +38,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
     {
         private const double CACHE_EXPIRATION_SECONDS = 120000.0; // 33 hours!
 
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//                LogManager.GetLogger(
+//                MethodBase.GetCurrentMethod().DeclaringType);
+        
         private ExpiringCache<UUID, UserAccount> m_UUIDCache;
         private ExpiringCache<string, UUID> m_NameCache;
 
