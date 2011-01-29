@@ -54,7 +54,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
 //            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private Scene m_scene;
-        private IAssetService m_assetService;
+//        private IAssetService m_assetService;
         private bool m_dumpAssetsToFile = false;
 
         #region IRegionModuleBase Members
@@ -85,7 +85,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
         public void RegionLoaded(Scene scene)
         {
             
-            m_assetService = m_scene.RequestModuleInterface<IAssetService>();
+//            m_assetService = m_scene.RequestModuleInterface<IAssetService>();
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
         }
 
