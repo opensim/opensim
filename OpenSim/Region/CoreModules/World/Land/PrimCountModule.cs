@@ -40,6 +40,15 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.World.Land
 {
+    public class ParcelCounts
+    {
+        public int Owner = 0;
+        public int Group = 0;
+        public int Others = 0;
+        public Dictionary <UUID, int> Users =
+                new Dictionary <UUID, int>();
+    }
+
     public class PrimCountModule : IPrimCountModule, INonSharedRegionModule
     {
         private static readonly ILog m_log =
@@ -48,6 +57,18 @@ namespace OpenSim.Region.CoreModules.World.Land
         private Scene m_Scene;
         private Dictionary<UUID, PrimCounts> m_PrimCounts =
                 new Dictionary<UUID, PrimCounts>();
+        private Dictionary<UUID, UUID> m_OwnerMap =
+                new Dictionary<UUID, UUID>();
+        private Dictionary<UUID, int> m_SimwideCounts =
+                new Dictionary<UUID, int>();
+        private Dictionary<UUID, ParcelCounts> m_ParcelCounts =
+                new Dictionary<UUID, ParcelCounts>();
+
+        // For now, a simple simwide taint to get this up. Later parcel based
+        // taint to allow recounting a parcel if only ownership has changed
+        // without recounting the whole sim.
+        private bool m_Tainted = true;
+        private Object m_TaintLock = new Object();
 
         public Type ReplaceableInterface
         {
@@ -89,25 +110,96 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void OnParcelPrimCountAdd(SceneObjectGroup obj)
         {
+            // If we're tainted already, don't bother to add. The next
+            // access will cause a recount anyway
+            lock (m_TaintLock)
+            {
+                if (!m_Tainted)
+                    AddObject(obj);
+            }
         }
 
         private void OnObjectBeingRemovedFromScene(SceneObjectGroup obj)
         {
+            // Don't bother to update tainted counts
+            lock (m_TaintLock)
+            {
+                if (!m_Tainted)
+                    RemoveObject(obj);
+            }
         }
 
         private void OnParcelPrimCountTainted()
         {
+            lock (m_TaintLock)
+                m_Tainted = true;
         }
 
         public void TaintPrimCount(ILandObject land)
         {
+            lock (m_TaintLock)
+                m_Tainted = true;
         }
 
         public void TaintPrimCount(int x, int y)
         {
+            lock (m_TaintLock)
+                m_Tainted = true;
         }
 
         public void TaintPrimCount()
+        {
+            lock (m_TaintLock)
+                m_Tainted = true;
+        }
+
+        // NOTE: Call under Taint Lock
+        private void AddObject(SceneObjectGroup obj)
+        {
+            if (obj.IsAttachment)
+                return;
+            if (((obj.RootPart.Flags & PrimFlags.TemporaryOnRez) != 0))
+                return;
+
+            Vector3 pos = obj.AbsolutePosition;
+            ILandObject landObject = m_Scene.LandChannel.GetLandObject(pos.X, pos.Y);
+            LandData landData = landObject.LandData;
+
+            ParcelCounts parcelCounts;
+            if (m_ParcelCounts.TryGetValue(landData.GlobalID, out parcelCounts))
+            {
+                UUID landOwner = landData.OwnerID;
+                int partCount = obj.Parts.Length;
+
+                m_SimwideCounts[landOwner] += partCount;
+                if (parcelCounts.Users.ContainsKey(obj.OwnerID))
+                    parcelCounts.Users[obj.OwnerID] += partCount;
+                else
+                    parcelCounts.Users[obj.OwnerID] = partCount;
+
+                if (landData.IsGroupOwned)
+                {
+                    if (obj.OwnerID == landData.GroupID)
+                        parcelCounts.Owner += partCount;
+                    else if (obj.GroupID == landData.GroupID)
+                        parcelCounts.Group += partCount;
+                    else
+                        parcelCounts.Others += partCount;
+                }
+                else
+                {
+                    if (obj.OwnerID == landData.OwnerID)
+                        parcelCounts.Owner += partCount;
+                    else if (obj.GroupID == landData.GroupID)
+                        parcelCounts.Group += partCount;
+                    else
+                        parcelCounts.Others += partCount;
+                }
+            }
+        }
+
+        // NOTE: Call under Taint Lock
+        private void RemoveObject(SceneObjectGroup obj)
         {
         }
 
@@ -128,27 +220,109 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public int GetOwnerCount(UUID parcelID)
         {
+            lock (m_TaintLock)
+            {
+                if (m_Tainted)
+                    Recount();
+
+                ParcelCounts counts;
+                if (m_ParcelCounts.TryGetValue(parcelID, out counts))
+                    return counts.Owner;
+            }
             return 0;
         }
 
         public int GetGroupCount(UUID parcelID)
         {
+            lock (m_TaintLock)
+            {
+                if (m_Tainted)
+                    Recount();
+
+                ParcelCounts counts;
+                if (m_ParcelCounts.TryGetValue(parcelID, out counts))
+                    return counts.Group;
+            }
             return 0;
         }
 
         public int GetOthersCount(UUID parcelID)
         {
+            lock (m_TaintLock)
+            {
+                if (m_Tainted)
+                    Recount();
+
+                ParcelCounts counts;
+                if (m_ParcelCounts.TryGetValue(parcelID, out counts))
+                    return counts.Others;
+            }
             return 0;
         }
 
         public int GetSimulatorCount(UUID parcelID)
         {
+            lock (m_TaintLock)
+            {
+                if (m_Tainted)
+                    Recount();
+                
+                UUID owner;
+                if (m_OwnerMap.TryGetValue(parcelID, out owner))
+                {
+                    int val;
+                    if (m_SimwideCounts.TryGetValue(owner, out val))
+                        return val;
+                }
+            }
             return 0;
         }
 
         public int GetUserCount(UUID parcelID, UUID userID)
         {
+            lock (m_TaintLock)
+            {
+                if (m_Tainted)
+                    Recount();
+
+                ParcelCounts counts;
+                if (m_ParcelCounts.TryGetValue(parcelID, out counts))
+                {
+                    int val;
+                    if (counts.Users.TryGetValue(userID, out val))
+                        return val;
+                }
+            }
             return 0;
+        }
+
+        // NOTE: This method MUST be called while holding the taint lock!
+        private void Recount()
+        {
+            m_OwnerMap.Clear();
+            m_SimwideCounts.Clear();
+            m_ParcelCounts.Clear();
+
+            List<ILandObject> land = m_Scene.LandChannel.AllParcels();
+
+            foreach (ILandObject l in land)
+            {
+                LandData landData = l.LandData;
+
+                m_OwnerMap[landData.GlobalID] = landData.OwnerID;
+                m_SimwideCounts[landData.OwnerID] = 0;
+                m_ParcelCounts[landData.GlobalID] = new ParcelCounts();
+            }
+
+            m_Scene.ForEachSOG(AddObject);
+
+            List<UUID> primcountKeys = new List<UUID>(m_PrimCounts.Keys);
+            foreach (UUID k in primcountKeys)
+            {
+                if (!m_OwnerMap.ContainsKey(k))
+                    m_PrimCounts.Remove(k);
+            }
+            m_Tainted = false;
         }
     }
 
