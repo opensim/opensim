@@ -76,7 +76,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 new Dictionary<string, UrlData>();
 
 
-        private int m_TotalUrls = 100;
+        private int m_TotalUrls = 1000;
 
         private IHttpServer m_HttpServer = null;
 
