@@ -46,6 +46,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_Scene;
+        private Dictionary<UUID, PrimCounts> m_PrimCounts =
+                new Dictionary<UUID, PrimCounts>();
 
         public Type ReplaceableInterface
         {
@@ -107,6 +109,124 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void TaintPrimCount()
         {
+        }
+
+        public IPrimCounts GetPrimCounts(UUID parcelID)
+        {
+            PrimCounts primCounts;
+
+            lock (m_PrimCounts)
+            {
+                if (m_PrimCounts.TryGetValue(parcelID, out primCounts))
+                    return primCounts;
+
+                primCounts = new PrimCounts(parcelID, this);
+                m_PrimCounts[parcelID] = primCounts;
+            }
+            return primCounts;
+        }
+
+        public int GetOwnerCount(UUID parcelID)
+        {
+            return 0;
+        }
+
+        public int GetGroupCount(UUID parcelID)
+        {
+            return 0;
+        }
+
+        public int GetOthersCount(UUID parcelID)
+        {
+            return 0;
+        }
+
+        public int GetSimulatorCount(UUID parcelID)
+        {
+            return 0;
+        }
+
+        public int GetUserCount(UUID parcelID, UUID userID)
+        {
+            return 0;
+        }
+    }
+
+    public class PrimCounts : IPrimCounts
+    {
+        private PrimCountModule m_Parent;
+        private UUID m_ParcelID;
+        private UserPrimCounts m_UserPrimCounts;
+
+        public PrimCounts (UUID parcelID, PrimCountModule parent)
+        {
+            m_ParcelID = parcelID;
+            m_Parent = parent;
+
+            m_UserPrimCounts = new UserPrimCounts(this);
+        }
+
+        public int Owner
+        {
+            get
+            {
+                return m_Parent.GetOwnerCount(m_ParcelID);
+            }
+        }
+
+        public int Group
+        {
+            get
+            {
+                return m_Parent.GetGroupCount(m_ParcelID);
+            }
+        }
+
+        public int Others
+        {
+            get
+            {
+                return m_Parent.GetOthersCount(m_ParcelID);
+            }
+        }
+
+        public int Simulator
+        {
+            get
+            {
+                return m_Parent.GetSimulatorCount(m_ParcelID);
+            }
+        }
+
+        public IUserPrimCounts Users
+        {
+            get
+            {
+                return m_UserPrimCounts;
+            }
+        }
+
+        public int GetUserCount(UUID userID)
+        {
+            return m_Parent.GetUserCount(m_ParcelID, userID);
+        }
+    }
+
+    public class UserPrimCounts : IUserPrimCounts
+    {
+        private PrimCounts m_Parent;
+
+        public UserPrimCounts(PrimCounts parent)
+        {
+            m_Parent = parent;
+        }
+
+        public int this[UUID userID]
+        {
+            get
+            {
+                return m_Parent.GetUserCount(userID);
+            }
         }
     }
 }
