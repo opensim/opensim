@@ -408,7 +408,17 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 {
                     HttpWebResponse webRsp = (HttpWebResponse)((WebException)e).Response;
                     Status = (int)webRsp.StatusCode;
-                    ResponseBody = webRsp.StatusDescription;
+                    try
+                    {
+                        using (Stream responseStream = webRsp.GetResponseStream())
+                        {
+                            ResponseBody = responseStream.GetStreamString();
+                        }
+                    }
+                    catch
+                    {
+                        ResponseBody = webRsp.StatusDescription;
+                    }
                 }
                 else
                 {
