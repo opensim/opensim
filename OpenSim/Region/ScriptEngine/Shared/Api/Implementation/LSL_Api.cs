@@ -1750,13 +1750,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             UUID textureID=new UUID();
 
-            if (!UUID.TryParse(texture, out textureID))
-            {
-                textureID=InventoryKey(texture, (int)AssetType.Texture);
-            }
-
-            if (textureID == UUID.Zero)
-                return;
+		     textureID=InventoryKey(texture, (int)AssetType.Texture);
+		     if (textureID == UUID.Zero)
+		     {
+			     if (!UUID.TryParse(texture, out textureID))
+				     return;
+		     }
 
             Primitive.TextureEntry tex = part.Shape.Textures;
 
