@@ -245,14 +245,12 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
                    WriteTextureData(httpRequest, httpResponse, texture, format);
                    return true;
                }
-
             }
 
             // not found
-            m_log.Warn("[GETTEXTURE]: Texture " + textureID + " not found");
+//            m_log.Warn("[GETTEXTURE]: Texture " + textureID + " not found");
             httpResponse.StatusCode = (int)System.Net.HttpStatusCode.NotFound;
             return true;
-
         }
 
         private void WriteTextureData(OSHttpRequest request, OSHttpResponse response, AssetBase texture, string format)
