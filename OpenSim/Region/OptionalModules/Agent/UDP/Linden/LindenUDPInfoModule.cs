@@ -154,24 +154,26 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             report.Append(GetColumnEntry("Type", maxTypeLength, columnPadding));
             
             report.AppendFormat(
-                "{0,7} {1,7} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
+                "{0,7} {1,7} {2,7} {3,9} {4,7} {5,7} {6,7} {7,7} {8,7} {9,8} {10,7} {11,7}\n",
                 "Pkts",
                 "Pkts",
+                "Pkts",                                
                 "Bytes",
-                "Pkts",
-                "Pkts",
-                "Pkts",
-                "Pkts",
-                "Pkts",
-                "Pkts",
-                "Pkts",
-                "Pkts");
+                "Q Pkts",
+                "Q Pkts",
+                "Q Pkts",
+                "Q Pkts",
+                "Q Pkts",
+                "Q Pkts",
+                "Q Pkts",
+                "Q Pkts");
     
             report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
             report.AppendFormat(
-                "{0,7} {1,7} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
-                "Out",
+                "{0,7} {1,7} {2,7} {3,9} {4,7} {5,7} {6,7} {7,7} {8,7} {9,8} {10,7} {11,7}\n",
                 "In",
+                "Out",
+                "Resent",
                 "Unacked",
                 "Resend",
                 "Land",

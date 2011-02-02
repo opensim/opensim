@@ -122,6 +122,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public int PacketsReceived;
         /// <summary>Number of packets sent to this client</summary>
         public int PacketsSent;
+        /// <summary>Number of packets resent to this client</summary>
+        public int PacketsResent;        
         /// <summary>Total byte count of unacked packets sent to this client</summary>
         public int UnackedBytes;
 
@@ -256,9 +258,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public string GetStats()
         {
             return string.Format(
-                "{0,7} {1,7} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}",
+                "{0,7} {1,7} {2,7} {3,9} {4,7} {5,7} {6,7} {7,7} {8,7} {9,8} {10,7} {11,7}",
+                PacketsReceived,                                 
                 PacketsSent,
-                PacketsReceived,
+                PacketsResent,
                 UnackedBytes,
                 m_packetOutboxes[(int)ThrottleOutPacketType.Resend].Count,
                 m_packetOutboxes[(int)ThrottleOutPacketType.Land].Count,
