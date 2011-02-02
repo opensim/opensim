@@ -441,13 +441,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// an outgoing packet from each, obeying the throttling bucket limits
         /// </summary>
         /// 
+        /// <remarks>
         /// Packet queues are inspected in ascending numerical order starting from 0.  Therefore, queues with a lower 
         /// ThrottleOutPacketType number will see their packet get sent first (e.g. if both Land and Wind queues have
         /// packets, then the packet at the front of the Land queue will be sent before the packet at the front of the
         /// wind queue).
         /// 
-        /// <remarks>This function is only called from a synchronous loop in the
-        /// UDPServer so we don't need to bother making this thread safe</remarks>
+        /// This function is only called from a synchronous loop in the
+        /// UDPServer so we don't need to bother making this thread safe
+        /// </remarks>
+        /// 
         /// <returns>True if any packets were sent, otherwise false</returns>
         public bool DequeueOutgoing()
         {
@@ -476,7 +479,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_udpServer.SendPacketFinal(nextPacket);
                         m_nextPackets[i] = null;
                         packetSent = true;
-                        this.PacketsSent++;
                     }
                 }
                 else
@@ -493,7 +495,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             // Send the packet
                             m_udpServer.SendPacketFinal(packet);
                             packetSent = true;
-                            this.PacketsSent++;
                         }
                         else
                         {
