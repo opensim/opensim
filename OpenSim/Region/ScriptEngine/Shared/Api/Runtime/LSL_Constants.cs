@@ -374,6 +374,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int PRIM_SCULPT_TYPE_PLANE = 3;
         public const int PRIM_SCULPT_TYPE_CYLINDER = 4;
         public const int PRIM_SCULPT_FLAG_INVERT = 64;
+        public const int PRIM_SCULPT_FLAG_MIRROR = 128;
 
         public const int MASK_BASE = 0;
         public const int MASK_OWNER = 1;
