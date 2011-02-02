@@ -138,17 +138,17 @@ namespace OpenSim.Framework
         /// </summary>
         public static OSDMap PutToService(string url, OSDMap data)
         {
-            return ServiceOSDRequest(url,data,"PUT",10000);
+            return ServiceOSDRequest(url,data,"PUT",20000);
         }
         
         public static OSDMap PostToService(string url, OSDMap data)
         {
-            return ServiceOSDRequest(url,data,"POST",10000);
+            return ServiceOSDRequest(url,data,"POST",20000);
         }
         
         public static OSDMap GetFromService(string url)
         {
-            return ServiceOSDRequest(url,null,"GET",10000);
+            return ServiceOSDRequest(url,null,"GET",20000);
         }
         
         public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout)
@@ -275,7 +275,7 @@ namespace OpenSim.Framework
         /// </summary>
         public static OSDMap PostToService(string url, NameValueCollection data)
         {
-            return ServiceFormRequest(url,data,10000);
+            return ServiceFormRequest(url,data,20000);
         }
         
         public static OSDMap ServiceFormRequest(string url, NameValueCollection data, int timeout)
