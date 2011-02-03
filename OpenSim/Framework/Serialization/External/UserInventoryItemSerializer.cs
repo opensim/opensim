@@ -303,7 +303,7 @@ namespace OpenSim.Framework.Serialization.External
             writer.WriteStartElement("GroupOwned");
             writer.WriteString(inventoryItem.GroupOwned.ToString());
             writer.WriteEndElement();
-            if (inventoryItem.CreatorData != null && inventoryItem.CreatorData != string.Empty)
+            if (options.ContainsKey("creators") && inventoryItem.CreatorData != null && inventoryItem.CreatorData != string.Empty)
                 writer.WriteElementString("CreatorData", inventoryItem.CreatorData);
             else if (options.ContainsKey("profile"))
             {
