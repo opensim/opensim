@@ -319,18 +319,21 @@ namespace OpenSim.Framework.Servers
                 return;
             }
       
-            string rawLevel = cmd[3];
-            
-            ILoggerRepository repository = LogManager.GetRepository();
-            Level consoleLevel = repository.LevelMap[rawLevel];
-            
-            if (consoleLevel != null)
-                m_consoleAppender.Threshold = consoleLevel;
-            else
-                Notice(
-                    String.Format(
-                        "{0} is not a valid logging level.  Valid logging levels are ALL, DEBUG, INFO, WARN, ERROR, FATAL, OFF",
-                        rawLevel));
+            if (cmd.Length > 3)
+            {
+                string rawLevel = cmd[3];
+                
+                ILoggerRepository repository = LogManager.GetRepository();
+                Level consoleLevel = repository.LevelMap[rawLevel];
+                
+                if (consoleLevel != null)
+                    m_consoleAppender.Threshold = consoleLevel;
+                else
+                    Notice(
+                        String.Format(
+                            "{0} is not a valid logging level.  Valid logging levels are ALL, DEBUG, INFO, WARN, ERROR, FATAL, OFF",
+                            rawLevel));
+            }
 
             Notice(String.Format("Console log level is {0}", m_consoleAppender.Threshold));
         }
