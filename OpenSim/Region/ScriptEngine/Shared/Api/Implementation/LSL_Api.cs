@@ -3061,7 +3061,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             msg.fromGroup = false;// fromGroup;
             msg.offline = (byte)0; //offline;
             msg.ParentEstateID = 0; //ParentEstateID;
-            msg.Position = Vector3.Zero;// new Vector3(m_host.AbsolutePosition);
+            msg.Position = new Vector3(m_host.AbsolutePosition);
             msg.RegionID = World.RegionInfo.RegionID.Guid;//RegionID.Guid;
             msg.binaryBucket 
                 = Util.StringToBytes256(
