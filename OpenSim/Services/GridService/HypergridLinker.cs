@@ -317,7 +317,7 @@ namespace OpenSim.Services.GridService
             {
                 RemoveHyperlinkRegion(regInfo.RegionID);
                 reason = "Region is too far (" + x + ", " + y + ")";
-                m_log.Info("[HYPERGRID LINKER]: Unable to link, reqgion is too far (" + x + ", " + y + ")");
+                m_log.Info("[HYPERGRID LINKER]: Unable to link, region is too far (" + x + ", " + y + ")");
                 return false;
             }
 
