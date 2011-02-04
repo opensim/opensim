@@ -2555,6 +2555,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
              */
                 UserAccount uac = UserAccountService.GetUserAccount(RegionInfo.ScopeID, user);
+                if (uac == null)
+                    return 0;
                 return uac.UserFlags;
             //}
         }

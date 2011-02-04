@@ -1058,7 +1058,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 list ret = new list();
                 double entry;
-                for (int i = 0; i < src.Data.Length - 1; i++)
+                for (int i = 0; i < src.Data.Length; i++)
                 {
                     if (double.TryParse(src.Data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
                     {

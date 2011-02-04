@@ -48,7 +48,6 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         public string url;
         public UUID urlcode;
         public Dictionary<UUID, RequestData> requests;
-        public bool responseSent;
     }
 
     public class RequestData
@@ -61,6 +60,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         //public ManualResetEvent ev;
         public bool requestDone;
         public int startTime;
+        public bool responseSent;
         public string uri;
     }
 
@@ -200,13 +200,13 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             if (m_RequestMap.ContainsKey(request))
             {
                 UrlData urlData = m_RequestMap[request];
-                if (!urlData.responseSent)
+                if (!urlData.requests[request].responseSent)
                 {
                     urlData.requests[request].responseCode = status;
                     urlData.requests[request].responseBody = body;
                     //urlData.requests[request].ev.Set();
                     urlData.requests[request].requestDone = true;
-                    urlData.responseSent = true;
+                    urlData.requests[request].responseSent = true;
                 }
             }
             else
@@ -444,7 +444,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                                 if (request.ContainsKey(key))
                                 {
                                     string val = (String)request[key];
-                                    if (key == "")
+                                    if (key != "")
                                     {
                                         queryString = queryString + key + "=" + val + "&";
                                     }
