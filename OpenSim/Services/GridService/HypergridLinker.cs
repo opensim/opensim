@@ -220,9 +220,15 @@ namespace OpenSim.Services.GridService
                 string[] parts = mapName.Split(new char[] {' '});
                 string regionName = String.Empty;
                 if (parts.Length > 1)
-                    regionName = parts[1];
+                {
+                    regionName = mapName.Substring(parts[0].Length + 1);
+                    regionName = regionName.Trim(new char[] {'"'});
+                }
                 if (TryCreateLink(scopeID, xloc, yloc, regionName, 0, null, parts[0], ownerID, out regInfo, out reason))
+                {
+                    regInfo.RegionName = mapName; 
                     return regInfo;
+                }
             }
 
             return null;
@@ -317,9 +323,9 @@ namespace OpenSim.Services.GridService
 
             regInfo.RegionID = regionID;
 
-            if ( externalName == string.Empty )
+            if (externalName == string.Empty)
                 regInfo.RegionName = regInfo.ServerURI;
-            else
+             else
                 regInfo.RegionName = externalName;
 
             m_log.Debug("[HYPERGRID LINKER]: naming linked region " + regInfo.RegionName);

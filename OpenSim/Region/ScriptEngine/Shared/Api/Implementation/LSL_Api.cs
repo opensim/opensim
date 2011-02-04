@@ -1748,15 +1748,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void SetTexture(SceneObjectPart part, string texture, int face)
         {
-            UUID textureID=new UUID();
+            UUID textureID = new UUID();
 
-            if (!UUID.TryParse(texture, out textureID))
-            {
-                textureID=InventoryKey(texture, (int)AssetType.Texture);
-            }
-
-            if (textureID == UUID.Zero)
-                return;
+		    textureID = InventoryKey(texture, (int)AssetType.Texture);
+		    if (textureID == UUID.Zero)
+		    {
+			    if (!UUID.TryParse(texture, out textureID))
+			        return;
+		    }
 
             Primitive.TextureEntry tex = part.Shape.Textures;
 
