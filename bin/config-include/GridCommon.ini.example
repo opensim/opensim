@@ -88,6 +88,10 @@
     ; accessible from other grids
     ;
     ProfileServerURI = "http://mygridserver.com:8002/user"
+	;; If you want to protect your assets from being copied by foreign visitors
+	;; uncomment the next line. You may want to do this on sims that have licensed content.
+	; OutboundPermission = False
+
 
 [Modules]
     ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.
