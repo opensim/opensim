@@ -225,17 +225,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             if (destination == null)
                 return false;
 
+            // We limit the number of messages sent for a position change to just one per
+            // simulator so when we receive the update we need to hand it to each of the
+            // scenes; scenes each check to see if the is a scene presence for the avatar
+            // note that we really don't need the GridRegion for this call
             foreach (Scene s in m_sceneList)
             {
-                if (s.RegionInfo.RegionHandle == destination.RegionHandle)
-                {
-                    //m_log.Debug("[LOCAL COMMS]: Found region to send ChildAgentUpdate");
-                    s.IncomingChildAgentDataUpdate(cAgentData);
-                    return true;
-                }
+                //m_log.Debug("[LOCAL COMMS]: Found region to send ChildAgentUpdate");
+                s.IncomingChildAgentDataUpdate(cAgentData);
             }
             //m_log.Debug("[LOCAL COMMS]: region not found for ChildAgentUpdate");
-            return false;
+            return true;
         }
 
         public bool RetrieveAgent(GridRegion destination, UUID id, out IAgentData agent)

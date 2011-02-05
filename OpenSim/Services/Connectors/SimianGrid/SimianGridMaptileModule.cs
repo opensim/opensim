@@ -87,16 +87,17 @@ namespace OpenSim.Region.OptionalModules.Simian
             if (String.IsNullOrEmpty(m_serverUrl))
                 return;
 
-            m_refreshtime = Convert.ToInt32(config.GetString("RefreshTime"));
-            if (m_refreshtime <= 0)
+            int refreshseconds = Convert.ToInt32(config.GetString("RefreshTime"));
+            if (refreshseconds <= 0)
                 return;
 
+            m_refreshtime = refreshseconds * 1000; // convert from seconds to ms
             m_log.InfoFormat("[SIMIAN MAPTILE] enabled with refresh timeout {0} and URL {1}",
                              m_refreshtime,m_serverUrl);
-            
+
             m_enabled = true;
         }
-        
+
         ///<summary>
         ///
         ///</summary>
@@ -106,7 +107,7 @@ namespace OpenSim.Region.OptionalModules.Simian
             {
                 m_refreshTimer.Enabled = true;
                 m_refreshTimer.AutoReset = true;
-                m_refreshTimer.Interval = 5 * 60 * 1000; // every 5 minutes 
+                m_refreshTimer.Interval = 5 * 60 * 1000; // every 5 minutes
                 m_refreshTimer.Elapsed += new ElapsedEventHandler(HandleMaptileRefresh);
             }
         }
@@ -120,12 +121,12 @@ namespace OpenSim.Region.OptionalModules.Simian
             if (! m_enabled)
                 return;
 
-            // Every shared region module has to maintain an indepedent list of                       
-            // currently running regions                                                              
+            // Every shared region module has to maintain an indepedent list of
+            // currently running regions
             lock (m_scenes)
                 m_scenes[scene.RegionInfo.RegionID] = scene;
         }
-        
+
         ///<summary>
         ///
         ///</summary>
@@ -150,7 +151,7 @@ namespace OpenSim.Region.OptionalModules.Simian
             // loaded and initialized
             if (m_lastrefresh > 0 && Util.EnvironmentTickCountSubtract(m_lastrefresh) < m_refreshtime)
                 return;
-            
+
             m_log.DebugFormat("[SIMIAN MAPTILE] map refresh fired");
             lock (m_scenes)
             {
@@ -169,7 +170,7 @@ namespace OpenSim.Region.OptionalModules.Simian
 
             m_lastrefresh = Util.EnvironmentTickCount();
         }
-        
+
         ///<summary>
         ///
         ///</summary>
@@ -211,7 +212,7 @@ namespace OpenSim.Region.OptionalModules.Simian
                 HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(m_serverUrl);
                 request.Timeout = 20000;
                 request.ReadWriteTimeout = 5000;
-                
+
                 using (HttpWebResponse response = MultipartForm.Post(request, postParameters))
                 {
                     using (Stream responseStream = response.GetResponseStream())

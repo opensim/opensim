@@ -1334,6 +1334,11 @@ namespace OpenSim.Framework
             return (ipaddr1 != null) ? "http://" + ipaddr1.ToString() + ":" + port1 : uri;
         }
 
+        public static byte[] StringToBytes256(string str, params object[] args)
+        {
+            return StringToBytes256(string.Format(str, args));
+        }
+        
         public static byte[] StringToBytes256(string str)
         {
             if (String.IsNullOrEmpty(str)) { return Utils.EmptyBytes; }
@@ -1352,6 +1357,11 @@ namespace OpenSim.Framework
             return data;
         }
 
+        public static byte[] StringToBytes1024(string str, params object[] args)
+        {
+            return StringToBytes1024(string.Format(str, args));
+        }
+        
         public static byte[] StringToBytes1024(string str)
         {
             if (String.IsNullOrEmpty(str)) { return Utils.EmptyBytes; }
