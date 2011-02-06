@@ -66,7 +66,6 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
             MainConsole.Instance.Commands.AddCommand("Capabilities", false, "show caps",
                 "show capabilities",
                 "Shows all  registered capabilities", CapabilitiesCommand);
-            m_log.Error("\n\n**************************************************************\n\n");
         }
 
         public void RegionLoaded(Scene scene)
