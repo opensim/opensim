@@ -247,13 +247,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public void NeighboursCommand(string module, string[] cmdparams)
         {
+            System.Text.StringBuilder caps = new System.Text.StringBuilder();
+
             foreach (KeyValuePair<UUID, RegionCache> kvp in m_LocalCache)
             {
-                m_log.InfoFormat("*** Neighbours of {0} {1} ***", kvp.Key, kvp.Value.RegionName);
+                caps.AppendFormat("*** Neighbours of {0} ({1}) ***\n", kvp.Value.RegionName, kvp.Key);
                 List<GridRegion> regions = kvp.Value.GetNeighbours();
                 foreach (GridRegion r in regions)
-                    m_log.InfoFormat("    {0} @ {1}={2}", r.RegionName, r.RegionLocX / Constants.RegionSize, r.RegionLocY / Constants.RegionSize);
+                    caps.AppendFormat("    {0} @ {1}-{2}\n", r.RegionName, r.RegionLocX / Constants.RegionSize, r.RegionLocY / Constants.RegionSize);
             }
+
+            MainConsole.Instance.Output(caps.ToString());
         }
 
     }
