@@ -294,6 +294,14 @@ namespace OpenSim
                                           "show connections",
                                           "Show connection data", HandleShow);
 
+            m_console.Commands.AddCommand("region", false, "show circuits",
+                                          "show circuits",
+                                          "Show agent circuit data", HandleShow);
+
+            m_console.Commands.AddCommand("region", false, "show http-handlers",
+                                          "show http-handlers",
+                                          "Show all registered http handlers", HandleShow);
+
             m_console.Commands.AddCommand("region", false, "show modules",
                                           "show modules",
                                           "Show module data", HandleShow);
@@ -941,6 +949,48 @@ namespace OpenSim
                     );
 
                     MainConsole.Instance.Output(connections.ToString());
+                    break;
+
+                case "circuits":
+                    System.Text.StringBuilder acd = new System.Text.StringBuilder("Agent Circuits:\n");
+                    m_sceneManager.ForEachScene(
+                        delegate(Scene scene)
+                        {
+                            //this.HttpServer.
+                            acd.AppendFormat("{0}:\n", scene.RegionInfo.RegionName);
+                            foreach (AgentCircuitData aCircuit in scene.AuthenticateHandler.AgentCircuits.Values)
+                                acd.AppendFormat("\t{0} {1} ({2})\n", aCircuit.firstname, aCircuit.lastname, (aCircuit.child ? "Child" : "Root"));
+                        }
+                    );
+
+                    MainConsole.Instance.Output(acd.ToString());
+                    break;
+
+                case "http-handlers":
+                    System.Text.StringBuilder handlers = new System.Text.StringBuilder("Registered HTTP Handlers:\n");
+
+                    handlers.AppendFormat("* XMLRPC:\n");
+                    foreach (String s in HttpServer.GetXmlRpcHandlerKeys())
+                        handlers.AppendFormat("\t{0}\n", s);
+
+                    handlers.AppendFormat("* HTTP:\n");
+                    List<String> poll = HttpServer.GetPollServiceHandlerKeys();
+                    foreach (String s in HttpServer.GetHTTPHandlerKeys())
+                        handlers.AppendFormat("\t{0} {1}\n", s, (poll.Contains(s) ? "(poll service)" : string.Empty));
+
+                    handlers.AppendFormat("* Agent:\n");
+                    foreach (String s in HttpServer.GetAgentHandlerKeys())
+                        handlers.AppendFormat("\t{0}\n", s);
+
+                    handlers.AppendFormat("* LLSD:\n");
+                    foreach (String s in HttpServer.GetLLSDHandlerKeys())
+                        handlers.AppendFormat("\t{0}\n", s);
+
+                    handlers.AppendFormat("* StreamHandlers ({0}):\n", HttpServer.GetStreamHandlerKeys().Count);
+                    foreach (String s in HttpServer.GetStreamHandlerKeys())
+                        handlers.AppendFormat("\t{0}\n", s);
+
+                    MainConsole.Instance.Output(handlers.ToString());
                     break;
 
                 case "modules":
