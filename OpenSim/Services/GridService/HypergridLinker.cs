@@ -180,60 +180,19 @@ namespace OpenSim.Services.GridService
         public GridRegion TryLinkRegionToCoords(UUID scopeID, string mapName, int xloc, int yloc, UUID ownerID, out string reason)
         {
             reason = string.Empty;
-            string host = "127.0.0.1";
-            string portstr;
-            string regionName = "";
             uint port = 0;
-            string[] parts = mapName.Split(new char[] { ':' });
-            if (parts.Length >= 1)
+            string[] parts = mapName.Split(new char[] {':'});
+            string regionName = String.Empty;
+            if (parts.Length > 1)
             {
-                host = parts[0];
+                regionName = mapName.Substring(parts[0].Length + 1);
+                regionName = regionName.Trim(new char[] {'"'});
             }
-            if (parts.Length >= 2)
-            {
-<<<<<<< HEAD:OpenSim/Services/GridService/HypergridLinker.cs
-                portstr = parts[1];
-                //m_log.Debug("-- port = " + portstr);
-                if (!UInt32.TryParse(portstr, out port))
-                    regionName = parts[1];
-            }
-            // always take the last one
-            if (parts.Length >= 3)
-            {
-                regionName = parts[2];
-            }
-
-            //// Sanity check. 
-            //try
-            //{
-            //    Util.GetHostFromDNS(host);
-            //}
-            //catch 
-            //{
-            //    reason = "Malformed hostname";
-            //    return null;
-            //}
-
             GridRegion regInfo;
-            bool success = TryCreateLink(scopeID, xloc, yloc, regionName, port, host, ownerID, out regInfo, out reason);
-            if (success)
+            if (TryCreateLink(scopeID, xloc, yloc, regionName, 0, null, parts[0], ownerID, out regInfo, out reason))
             {
-                regInfo.RegionName = mapName;
+                regInfo.RegionName = mapName; 
                 return regInfo;
-=======
-                string[] parts = mapName.Split(new char[] {' '});
-                string regionName = String.Empty;
-                if (parts.Length > 1)
-                {
-                    regionName = mapName.Substring(parts[0].Length + 1);
-                    regionName = regionName.Trim(new char[] {'"'});
-                }
-                if (TryCreateLink(scopeID, xloc, yloc, regionName, 0, null, parts[0], ownerID, out regInfo, out reason))
-                {
-                    regInfo.RegionName = mapName; 
-                    return regInfo;
-                }
->>>>>>> master:OpenSim/Services/GridService/HypergridLinker.cs
             }
 
             return null;

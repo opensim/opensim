@@ -110,14 +110,11 @@ namespace OpenSim.Server.Handlers.Simulation
                 DoAgentDelete(request, responsedata, agentID, action, regionID);
                 return responsedata;
             }
-<<<<<<< HEAD:OpenSim/Server/Handlers/Simulation/AgentHandlers.cs
             else if (method.Equals("DELETECHILD"))
             {
                 DoChildAgentDelete(request, responsedata, agentID, action, regionID);
                 return responsedata;
             }
-=======
->>>>>>> master:OpenSim/Server/Handlers/Simulation/AgentHandlers.cs
             else if (method.Equals("QUERYACCESS"))
             {
                 DoQueryAccess(request, responsedata, agentID, regionID);
