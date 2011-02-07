@@ -1917,18 +1917,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void SetTexture(SceneObjectPart part, string texture, int face)
         {
+<<<<<<< HEAD:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
 
             UUID textureID=new UUID();
+=======
+            UUID textureID = new UUID();
+>>>>>>> master:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
 
-            if (!UUID.TryParse(texture, out textureID))
-            {
-                textureID=InventoryKey(texture, (int)AssetType.Texture);
-            }
-
-            if (textureID == UUID.Zero)
-                return;
+		    textureID = InventoryKey(texture, (int)AssetType.Texture);
+		    if (textureID == UUID.Zero)
+		    {
+			    if (!UUID.TryParse(texture, out textureID))
+			        return;
+		    }
 
             Primitive.TextureEntry tex = part.Shape.Textures;
 
@@ -3343,15 +3346,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             msg.dialog = (byte)19; // MessageFromObject
             msg.fromGroup = false;// fromGroup;
             msg.offline = (byte)0; //offline;
+<<<<<<< HEAD:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
             msg.ParentEstateID = World.RegionInfo.EstateSettings.EstateID;
             msg.Position = new Vector3(m_host.AbsolutePosition);
             msg.RegionID = World.RegionInfo.RegionID.Guid;
             msg.binaryBucket = Util.StringToBytes256(m_host.OwnerID.ToString());
+=======
+            msg.ParentEstateID = 0; //ParentEstateID;
+            msg.Position = new Vector3(m_host.AbsolutePosition);
+            msg.RegionID = World.RegionInfo.RegionID.Guid;//RegionID.Guid;
+            msg.binaryBucket 
+                = Util.StringToBytes256(
+                    "{0}/{1}/{2}/{3}", 
+                    World.RegionInfo.RegionName, 
+                    (int)Math.Floor(m_host.AbsolutePosition.X), 
+                    (int)Math.Floor(m_host.AbsolutePosition.Y), 
+                    (int)Math.Floor(m_host.AbsolutePosition.Z));
+>>>>>>> master:OpenSim/Region/ScriptEngine/Shared/Api/Implementation/LSL_Api.cs
 
             if (m_TransferModule != null)
             {
                 m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
             }
+            
             ScriptSleep(2000);
       }
 

@@ -191,6 +191,7 @@ namespace OpenSim.Services.GridService
             }
             if (parts.Length >= 2)
             {
+<<<<<<< HEAD:OpenSim/Services/GridService/HypergridLinker.cs
                 portstr = parts[1];
                 //m_log.Debug("-- port = " + portstr);
                 if (!UInt32.TryParse(portstr, out port))
@@ -219,6 +220,20 @@ namespace OpenSim.Services.GridService
             {
                 regInfo.RegionName = mapName;
                 return regInfo;
+=======
+                string[] parts = mapName.Split(new char[] {' '});
+                string regionName = String.Empty;
+                if (parts.Length > 1)
+                {
+                    regionName = mapName.Substring(parts[0].Length + 1);
+                    regionName = regionName.Trim(new char[] {'"'});
+                }
+                if (TryCreateLink(scopeID, xloc, yloc, regionName, 0, null, parts[0], ownerID, out regInfo, out reason))
+                {
+                    regInfo.RegionName = mapName; 
+                    return regInfo;
+                }
+>>>>>>> master:OpenSim/Services/GridService/HypergridLinker.cs
             }
 
             return null;
@@ -313,9 +328,9 @@ namespace OpenSim.Services.GridService
 
             regInfo.RegionID = regionID;
 
-            if ( externalName == string.Empty )
+            if (externalName == string.Empty)
                 regInfo.RegionName = regInfo.ServerURI;
-            else
+             else
                 regInfo.RegionName = externalName;
 
             m_log.Debug("[HYPERGRID LINKER]: naming linked region " + regInfo.RegionName);

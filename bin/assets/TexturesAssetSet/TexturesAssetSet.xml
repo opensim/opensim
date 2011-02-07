@@ -413,6 +413,15 @@
     <Key Name="assetType" Value="0" />
     <Key Name="fileName" Value="default_clear.jp2" />
   </Section>
+
+  <!-- 3a367d1c-bef1-6d43-7595-e88c1e3aadb3 is a UUID that viewers assume exists in the asset server -->
+  <!-- See http://opensimulator.org/mantis/bug_view_advanced_page.php?bug_id=4751 for more details -->
+  <Section Name="Default Alpha Layer Texture">
+    <Key Name="assetID" Value="3a367d1c-bef1-6d43-7595-e88c1e3aadb3"/>
+    <Key Name="name" Value="Default Alpha Layer Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="default_clear.jp2" />
+  </Section>
   
   <Section Name="Default Avatar">
     <Key Name="assetID" Value="c228d1cf-4b5d-4ba8-84f4-899a0796aa97"/>

@@ -286,7 +286,7 @@ namespace OpenSim.Services.GridService
                     }
 
             }
-            m_log.DebugFormat("[GRID SERVICE]: region {0} has {1} neighours", region.RegionName, rinfos.Count);
+            m_log.DebugFormat("[GRID SERVICE]: region {0} has {1} neighbours", region.RegionName, rinfos.Count);
             return rinfos;
         }
 

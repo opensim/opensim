@@ -55,6 +55,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         }
 
         private string m_ProfileServerURI;
+        private bool m_OutboundPermission;
 
 //        private bool m_Initialized = false;
 
@@ -78,7 +79,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                     IConfig thisModuleConfig = source.Configs["HGInventoryAccessModule"];
                     if (thisModuleConfig != null)
+                    {
                         m_ProfileServerURI = thisModuleConfig.GetString("ProfileServerURI", string.Empty);
+                        m_OutboundPermission = thisModuleConfig.GetBoolean("OutboundPermission", true);
+                    }
                     else
                         m_log.Warn("[HG INVENTORY ACCESS MODULE]: HGInventoryAccessModule configs not found. ProfileServerURI not set!");
                 }
@@ -103,7 +107,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         public void UploadInventoryItem(UUID avatarID, UUID assetID, string name, int userlevel)
         {
             string userAssetServer = string.Empty;
-            if (IsForeignUser(avatarID, out userAssetServer))
+            if (IsForeignUser(avatarID, out userAssetServer) && m_OutboundPermission)
             {
                 Util.FireAndForget(delegate { m_assMapper.Post(assetID, avatarID, userAssetServer); });
             }
@@ -197,7 +201,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (IsForeignUser(sender, out userAssetServer))
                 m_assMapper.Get(item.AssetID, sender, userAssetServer);
 
-            if (IsForeignUser(receiver, out userAssetServer))
+            if (IsForeignUser(receiver, out userAssetServer) && m_OutboundPermission)
                 m_assMapper.Post(item.AssetID, receiver, userAssetServer);
         }
 
