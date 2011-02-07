@@ -302,6 +302,10 @@ namespace OpenSim
                                           "show http-handlers",
                                           "Show all registered http handlers", HandleShow);
 
+            m_console.Commands.AddCommand("region", false, "show pending-objects",
+                                          "show pending-objects",
+                                          "Show # of objects on the pending queues of all scene viewers", HandleShow);
+
             m_console.Commands.AddCommand("region", false, "show modules",
                                           "show modules",
                                           "Show module data", HandleShow);
@@ -991,6 +995,24 @@ namespace OpenSim
                         handlers.AppendFormat("\t{0}\n", s);
 
                     MainConsole.Instance.Output(handlers.ToString());
+                    break;
+
+                case "pending-objects":
+                    System.Text.StringBuilder pending = new System.Text.StringBuilder("Pending objects:\n");
+                    m_sceneManager.ForEachScene(
+                        delegate(Scene scene)
+                        {
+                            scene.ForEachScenePresence(
+                                delegate(ScenePresence sp)
+                                {
+                                    pending.AppendFormat("{0}: {1} {2} pending\n",
+                                        scene.RegionInfo.RegionName, sp.Name, sp.SceneViewer.GetPendingObjectsCount());
+                                }
+                            );
+                        }
+                    );
+
+                    MainConsole.Instance.Output(pending.ToString());
                     break;
 
                 case "modules":
