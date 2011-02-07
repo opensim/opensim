@@ -506,7 +506,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     // Bump up the resend count on this packet
                     Interlocked.Increment(ref outgoingPacket.ResendCount);
-                    //Interlocked.Increment(ref Stats.ResentPackets);
 
                     // Requeue or resend the packet
                     if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, false))
@@ -581,6 +580,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // Add this packet to the list of ACK responses we are waiting on from the server
                     udpClient.NeedAcks.Add(outgoingPacket);
                 }
+            }
+            else
+            {
+                Interlocked.Increment(ref udpClient.PacketsResent);
             }
 
             #endregion Sequence Number Assignment

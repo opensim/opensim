@@ -48,6 +48,9 @@ namespace OpenSim.Services.Connectors.Simulation
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        // we use this dictionary to track the pending updateagent requests, maps URI --> position update
+        private Dictionary<string,AgentPosition> m_updateAgentQueue = new Dictionary<string,AgentPosition>();
+        
         //private GridRegion m_Region;
 
         public SimulationServiceConnector()
@@ -133,10 +136,56 @@ namespace OpenSim.Services.Connectors.Simulation
         /// </summary>
         public bool UpdateAgent(GridRegion destination, AgentPosition data)
         {
-            // we need a better throttle for these
-            // return false;
+            // The basic idea of this code is that the first thread that needs to
+            // send an update for a specific avatar becomes the worker for any subsequent
+            // requests until there are no more outstanding requests. Further, only send the most
+            // recent update; this *should* never be needed but some requests get
+            // slowed down and once that happens the problem with service end point
+            // limits kicks in and nothing proceeds
+            string uri = destination.ServerURI + AgentPath() + data.AgentID + "/";
+            lock (m_updateAgentQueue)
+            {
+                if (m_updateAgentQueue.ContainsKey(uri))
+                {
+                    // Another thread is already handling 
+                    // updates for this simulator, just update 
+                    // the position and return, overwrites are
+                    // not a problem since we only care about the
+                    // last update anyway
+                    m_updateAgentQueue[uri] = data;
+                    return true;
+                }
+
+                // Otherwise update the reference and start processing
+                m_updateAgentQueue[uri] = data;
+            }
             
-            return UpdateAgent(destination, (IAgentData)data);
+            AgentPosition pos = null;
+            while (true)
+            {
+                lock (m_updateAgentQueue)
+                {
+                    // save the position
+                    AgentPosition lastpos = pos;
+
+                    pos = m_updateAgentQueue[uri];
+
+                    // this is true if no one put a new
+                    // update in the map since the last
+                    // one we processed, if thats the
+                    // case then we are done
+                    if (pos == lastpos)
+                    {
+                        m_updateAgentQueue.Remove(uri);
+                        return true;
+                    }
+                }
+
+                UpdateAgent(destination,(IAgentData)pos);
+            }
+
+            // unreachable
+            return true;
         }
 
         /// <summary>

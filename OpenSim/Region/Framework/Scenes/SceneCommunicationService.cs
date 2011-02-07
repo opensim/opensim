@@ -189,7 +189,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public delegate void SendChildAgentDataUpdateDelegate(AgentPosition cAgentData, UUID scopeID, ulong regionHandle);
+        public delegate void SendChildAgentDataUpdateDelegate(AgentPosition cAgentData, UUID scopeID, GridRegion dest);
+        
 
         /// <summary>
         /// This informs all neighboring regions about the settings of it's child agent.
@@ -198,31 +199,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// This contains information, such as, Draw Distance, Camera location, Current Position, Current throttle settings, etc.
         ///
         /// </summary>
-        private void SendChildAgentDataUpdateAsync(AgentPosition cAgentData, UUID scopeID, ulong regionHandle)
+        private void SendChildAgentDataUpdateAsync(AgentPosition cAgentData, UUID scopeID, GridRegion dest)
         {
             //m_log.Info("[INTERGRID]: Informing neighbors about my agent in " + m_regionInfo.RegionName);
             try
             {
-                //m_commsProvider.InterRegion.ChildAgentUpdate(regionHandle, cAgentData);
-                uint x = 0, y = 0;
-                Utils.LongToUInts(regionHandle, out x, out y);
-                GridRegion destination = m_scene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
-                m_scene.SimulationService.UpdateAgent(destination, cAgentData);
+                m_scene.SimulationService.UpdateAgent(dest, cAgentData);
             }
             catch
             {
                 // Ignore; we did our best
             }
-
-            //if (regionAccepted)
-            //{
-            //    //m_log.Info("[INTERGRID]: Completed sending a neighbor an update about my agent");
-            //}
-            //else
-            //{
-            //    //m_log.Info("[INTERGRID]: Failed sending a neighbor an update about my agent");
-            //}
-                
         }
 
         private void SendChildAgentDataUpdateCompleted(IAsyncResult iar)
@@ -236,14 +223,28 @@ namespace OpenSim.Region.Framework.Scenes
             // This assumes that we know what our neighbors are.
             try
             {
+                uint x = 0, y = 0;
+                List<string> simulatorList = new List<string>();
                 foreach (ulong regionHandle in presence.KnownChildRegionHandles)
                 {
                     if (regionHandle != m_regionInfo.RegionHandle)
                     {
-                        SendChildAgentDataUpdateDelegate d = SendChildAgentDataUpdateAsync;
-                        d.BeginInvoke(cAgentData, m_regionInfo.ScopeID, regionHandle,
-                                      SendChildAgentDataUpdateCompleted,
-                                      d);
+                        // we only want to send one update to each simulator; the simulator will
+                        // hand it off to the regions where a child agent exists, this does assume
+                        // that the region position is cached or performance will degrade
+                        Utils.LongToUInts(regionHandle, out x, out y);
+                        GridRegion dest = m_scene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
+                        if (! simulatorList.Contains(dest.ServerURI))
+                        {
+                            // we havent seen this simulator before, add it to the list
+                            // and send it an update
+                            simulatorList.Add(dest.ServerURI);
+
+                            SendChildAgentDataUpdateDelegate d = SendChildAgentDataUpdateAsync;
+                            d.BeginInvoke(cAgentData, m_regionInfo.ScopeID, dest,
+                                          SendChildAgentDataUpdateCompleted,
+                                          d);
+                        }
                     }
                 }
             }

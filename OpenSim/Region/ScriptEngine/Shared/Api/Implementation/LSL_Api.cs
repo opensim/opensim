@@ -1920,15 +1920,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
 
-            UUID textureID=new UUID();
+            UUID textureID = new UUID();
 
-            if (!UUID.TryParse(texture, out textureID))
-            {
-                textureID=InventoryKey(texture, (int)AssetType.Texture);
-            }
-
-            if (textureID == UUID.Zero)
-                return;
+		    textureID = InventoryKey(texture, (int)AssetType.Texture);
+		    if (textureID == UUID.Zero)
+		    {
+			    if (!UUID.TryParse(texture, out textureID))
+			        return;
+		    }
 
             Primitive.TextureEntry tex = part.Shape.Textures;
 
@@ -3346,12 +3345,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             msg.ParentEstateID = World.RegionInfo.EstateSettings.EstateID;
             msg.Position = new Vector3(m_host.AbsolutePosition);
             msg.RegionID = World.RegionInfo.RegionID.Guid;
-            msg.binaryBucket = Util.StringToBytes256(m_host.OwnerID.ToString());
+            msg.binaryBucket 
+                = Util.StringToBytes256(
+                    "{0}/{1}/{2}/{3}", 
+                    World.RegionInfo.RegionName, 
+                    (int)Math.Floor(m_host.AbsolutePosition.X), 
+                    (int)Math.Floor(m_host.AbsolutePosition.Y), 
+                    (int)Math.Floor(m_host.AbsolutePosition.Z));
 
             if (m_TransferModule != null)
             {
                 m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
             }
+            
             ScriptSleep(2000);
       }
 

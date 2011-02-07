@@ -205,6 +205,14 @@ namespace OpenSim.Region.Framework.Scenes
             Reset();
         }
 
+        public int GetPendingObjectsCount()
+        {
+            if (m_pendingObjects != null)
+                return m_pendingObjects.Count;
+
+            return 0;
+        }
+
         public class ScenePartUpdate
         {
             public UUID FullID;

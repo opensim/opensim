@@ -220,6 +220,8 @@ namespace OpenSim.Framework
                 args["packed_appearance"] = appmap;
             }
 
+            // Old, bad  way. Keeping it fow now for backwards compatibility
+            // OBSOLETE -- soon to be deleted
             if (ServiceURLs != null && ServiceURLs.Count > 0)
             {
                 OSDArray urls = new OSDArray(ServiceURLs.Count * 2);
@@ -231,6 +233,19 @@ namespace OpenSim.Framework
                 }
                 args["service_urls"] = urls;
             }
+
+            // again, this time the right way
+            if (ServiceURLs != null && ServiceURLs.Count > 0)
+            {
+                OSDMap urls = new OSDMap();
+                foreach (KeyValuePair<string, object> kvp in ServiceURLs)
+                {
+                    //System.Console.WriteLine("XXX " + kvp.Key + "=" + kvp.Value);
+                    urls[kvp.Key] = OSD.FromString((kvp.Value == null) ? string.Empty : kvp.Value.ToString());
+                }
+                args["serviceurls"] = urls;
+            }
+
 
             return args;
         }
@@ -327,7 +342,20 @@ namespace OpenSim.Framework
             }
             
             ServiceURLs = new Dictionary<string, object>();
-            if (args.ContainsKey("service_urls") && args["service_urls"] != null && (args["service_urls"]).Type == OSDType.Array)
+            // Try parse the new way, OSDMap
+            if (args.ContainsKey("serviceurls") && args["serviceurls"] != null && (args["serviceurls"]).Type == OSDType.Map)
+            {
+                OSDMap urls = (OSDMap)(args["serviceurls"]);
+                foreach (KeyValuePair<String, OSD> kvp in urls)
+                {
+                    ServiceURLs[kvp.Key] = kvp.Value.AsString();
+                    //System.Console.WriteLine("XXX " + kvp.Key + "=" + ServiceURLs[kvp.Key]);
+
+                }
+            }
+            // else try the old way, OSDArray
+            // OBSOLETE -- soon to be deleted
+            else if (args.ContainsKey("service_urls") && args["service_urls"] != null && (args["service_urls"]).Type == OSDType.Array)
             {
                 OSDArray urls = (OSDArray)(args["service_urls"]);
                 for (int i = 0; i < urls.Count / 2; i++)
