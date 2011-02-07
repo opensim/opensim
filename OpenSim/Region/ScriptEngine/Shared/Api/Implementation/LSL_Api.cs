@@ -4195,7 +4195,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!found)
             {
                 llSay(0, String.Format("Could not find object '{0}'", inventory));
-                throw new Exception(String.Format("The inventory object '{0}' could not be found", inventory));
+                return;
+//                throw new Exception(String.Format("The inventory object '{0}' could not be found", inventory));
             }
 
             // check if destination is an object
