@@ -1125,6 +1125,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private long nticksUnack = 0;
         private long nticksAck = 0;
         private long nticksPing = 0;
+        private int npacksSent = 0;
+        private int npackNotSent = 0;
 
         private void MonitoredClientOutgoingPacketHandler(IClientAPI client)
         {
@@ -1177,7 +1179,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         watch2.Start();
                         // Dequeue any outgoing packets that are within the throttle limits
                         if (udpClient.DequeueOutgoing())
+                        {
                             m_packetSent = true;
+                            npacksSent++;
+                        }
+                        else
+                            npackNotSent++;
+
                         watch2.Stop();
                         avgDequeueTicks = (nticks - 1) / (float)nticks * avgDequeueTicks + (watch2.ElapsedTicks / (float)nticks);
                         watch2.Reset();
@@ -1196,11 +1204,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             avgProcessingTicks = (nticks - 1) / (float)nticks * avgProcessingTicks + (watch1.ElapsedTicks / (float)nticks);
             watch1.Reset();
 
-            // reuse this -- it's every 100ms
+            // reuse this -- it's every ~100ms
             if (m_scene.EmergencyMonitoring && nticks % 100 == 0)
             {
-                m_log.InfoFormat("[LLUDPSERVER]: avg processing ticks: {0} avg unacked: {1} avg acks: {2} avg ping: {3} avg dequeue: {4} (TickCountRes: {5})", 
-                    avgProcessingTicks, avgResendUnackedTicks, avgSendAcksTicks, avgSendPingTicks, avgDequeueTicks, TickCountResolution);
+                m_log.InfoFormat("[LLUDPSERVER]: avg processing ticks: {0} avg unacked: {1} avg acks: {2} avg ping: {3} avg dequeue: {4} (TickCountRes: {5} sent: {6} notsent: {7})", 
+                    avgProcessingTicks, avgResendUnackedTicks, avgSendAcksTicks, avgSendPingTicks, avgDequeueTicks, TickCountResolution, npacksSent, npackNotSent);
+                npackNotSent = npacksSent = 0;
             }
 
         }
