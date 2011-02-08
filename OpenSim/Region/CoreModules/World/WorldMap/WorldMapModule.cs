@@ -1055,7 +1055,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
             else
             {
-                OSDArray responsearr = new OSDArray(m_scene.GetRootAgentCount());
+                OSDArray responsearr = new OSDArray(); // Don't preallocate. MT (m_scene.GetRootAgentCount());
                 m_scene.ForEachScenePresence(delegate(ScenePresence sp)
                 {
                     OSDMap responsemapdata = new OSDMap();
