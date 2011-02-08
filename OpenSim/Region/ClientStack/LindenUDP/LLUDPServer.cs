@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -1053,6 +1054,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     #endregion Update Timers
 
+                    if (m_scene.EmergencyMonitoring)
+                        clientPacketHandler = MonitoredClientOutgoingPacketHandler;
+
                     // Handle outgoing packets, resends, acknowledgements, and pings for each
                     // client. m_packetSent will be set to true if a packet is sent
                     m_scene.ForEachClient(clientPacketHandler);
@@ -1068,6 +1072,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     m_log.Error("[LLUDPSERVER]: OutgoingPacketHandler loop threw an exception: " + ex.Message, ex);
                 }
+
             }
 
             Watchdog.RemoveThread();
@@ -1104,6 +1109,101 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     " threw an exception: " + ex.Message, ex);
             }
         }
+
+        #region Emergency Monitoring
+        private Stopwatch watch1 = new Stopwatch();
+        private Stopwatch watch2 = new Stopwatch();
+
+        private float avgProcessingTicks = 0;
+        private float avgResendUnackedTicks = 0;
+        private float avgSendAcksTicks = 0;
+        private float avgSendPingTicks = 0;
+        private float avgDequeueTicks = 0;
+        private long nticks = 0;
+        private long nticksUnack = 0;
+        private long nticksAck = 0;
+        private long nticksPing = 0;
+
+        private void MonitoredClientOutgoingPacketHandler(IClientAPI client)
+        {
+            nticks++;
+            watch1.Start();
+            try
+            {
+                if (client is LLClientView)
+                {
+                    LLUDPClient udpClient = ((LLClientView)client).UDPClient;
+
+                    if (udpClient.IsConnected)
+                    {
+                        if (m_resendUnacked)
+                        {
+                            nticksUnack++;
+                            watch2.Start();
+
+                            ResendUnacked(udpClient);
+
+                            watch2.Stop();
+                            avgResendUnackedTicks = (nticksUnack - 1)/(float)nticksUnack * avgResendUnackedTicks + (watch2.ElapsedTicks / (float)nticksUnack);
+                            watch2.Reset();
+                        }
+
+                        if (m_sendAcks)
+                        {
+                            nticksAck++;
+                            watch2.Start();
+                            
+                            SendAcks(udpClient);
+
+                            watch2.Stop();
+                            avgSendAcksTicks = (nticksAck - 1) / (float)nticksAck * avgSendAcksTicks + (watch2.ElapsedTicks / (float)nticksAck);
+                            watch2.Reset();
+                        }
+
+                        if (m_sendPing)
+                        {
+                            nticksPing++;
+                            watch2.Start();
+                            
+                            SendPing(udpClient);
+
+                            watch2.Stop();
+                            avgSendPingTicks = (nticksPing - 1) / (float)nticksPing * avgSendPingTicks + (watch2.ElapsedTicks / (float)nticksPing);
+                            watch2.Reset();
+                        }
+
+                        watch2.Start();
+                        // Dequeue any outgoing packets that are within the throttle limits
+                        if (udpClient.DequeueOutgoing())
+                            m_packetSent = true;
+                        watch2.Stop();
+                        avgDequeueTicks = (nticks - 1) / (float)nticks * avgDequeueTicks + (watch2.ElapsedTicks / (float)nticks);
+                        watch2.Reset();
+
+                    }
+                    else
+                        m_log.WarnFormat("[LLUDPSERVER]: Client is not connected");
+                }
+            }
+            catch (Exception ex)
+            {
+                m_log.Error("[LLUDPSERVER]: OutgoingPacketHandler iteration for " + client.Name +
+                    " threw an exception: " + ex.Message, ex);
+            }
+            watch1.Stop();
+            avgProcessingTicks = (nticks - 1) / (float)nticks * avgProcessingTicks + (watch1.ElapsedTicks / (float)nticks);
+            watch1.Reset();
+
+            // reuse this -- it's every 100ms
+            if (m_scene.EmergencyMonitoring && nticks % 100 == 0)
+            {
+                m_log.InfoFormat("[LLUDPSERVER]: avg processing ticks: {0} avg unacked: {1} avg acks: {2} avg ping: {3} avg dequeue: {4} (pack sent? {5})", 
+                    avgProcessingTicks, avgResendUnackedTicks, avgSendAcksTicks, avgSendPingTicks, avgDequeueTicks, m_packetSent);
+            }
+
+        }
+
+        #endregion 
 
         private void ProcessInPacket(object state)
         {

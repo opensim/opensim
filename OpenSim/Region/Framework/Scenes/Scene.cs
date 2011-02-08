@@ -64,6 +64,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Fields
 
+        public bool EmergencyMonitoring = false;
+
         public SynchronizeSceneHandler SynchronizeScene;
         public SimStatsReporter StatsReporter;
         public List<Border> NorthBorders = new List<Border>();

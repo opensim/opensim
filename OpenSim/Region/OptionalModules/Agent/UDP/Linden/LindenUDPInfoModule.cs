@@ -95,7 +95,15 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 "Show throttle settings for each client and for the server overall", 
                 "Without the 'full' option, only root agents are shown."
                   + "  With the 'full' option child agents are also shown.",                                          
-                ShowThrottlesReport);                             
+                ShowThrottlesReport);
+
+            scene.AddCommand(
+                this, "emergency-monitoring",
+                "Go on/off emergency monitoring mode",
+                "Go on/off emergency monitoring mode",
+                "Go on/off emergency monitoring mode",
+                EmergencyMonitoring);                             
+
         }
         
         public void RemoveRegion(Scene scene)
@@ -120,7 +128,25 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
         {
             MainConsole.Instance.Output(GetThrottlesReport(cmd));
         }
-        
+
+        protected void EmergencyMonitoring(string module, string[] cmd)
+        {
+            bool mode = true;
+            if (cmd.Length == 1 || (cmd.Length > 1 && cmd[1] == "on"))
+            {
+                mode = true;
+                MainConsole.Instance.Output("Emergency Monitoring ON");
+            }
+            else
+            {
+                mode = false;
+                MainConsole.Instance.Output("Emergency Monitoring OFF");
+            }
+
+            foreach (Scene s in m_scenes.Values)
+                s.EmergencyMonitoring = mode;
+        }
+
         protected string GetColumnEntry(string entry, int maxLength, int columnPadding)
         {                       
             return string.Format(
