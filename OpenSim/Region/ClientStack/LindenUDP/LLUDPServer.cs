@@ -1056,6 +1056,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     if (m_scene.EmergencyMonitoring)
                         clientPacketHandler = MonitoredClientOutgoingPacketHandler;
+                    else
+                        clientPacketHandler = ClientOutgoingPacketHandler;
 
                     // Handle outgoing packets, resends, acknowledgements, and pings for each
                     // client. m_packetSent will be set to true if a packet is sent
@@ -1197,8 +1199,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // reuse this -- it's every 100ms
             if (m_scene.EmergencyMonitoring && nticks % 100 == 0)
             {
-                m_log.InfoFormat("[LLUDPSERVER]: avg processing ticks: {0} avg unacked: {1} avg acks: {2} avg ping: {3} avg dequeue: {4} (pack sent? {5})", 
-                    avgProcessingTicks, avgResendUnackedTicks, avgSendAcksTicks, avgSendPingTicks, avgDequeueTicks, m_packetSent);
+                m_log.InfoFormat("[LLUDPSERVER]: avg processing ticks: {0} avg unacked: {1} avg acks: {2} avg ping: {3} avg dequeue: {4} (TickCountRes: {5})", 
+                    avgProcessingTicks, avgResendUnackedTicks, avgSendAcksTicks, avgSendPingTicks, avgDequeueTicks, TickCountResolution);
             }
 
         }
