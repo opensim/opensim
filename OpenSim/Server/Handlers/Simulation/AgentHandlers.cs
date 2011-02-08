@@ -200,6 +200,11 @@ namespace OpenSim.Server.Handlers.Simulation
 
             // We're behind a proxy
             Hashtable headers = (Hashtable)request["headers"];
+
+            // DEBUG
+            foreach (object o in headers.Keys)
+                m_log.DebugFormat("XXX {0} = {1}", o.ToString(), (headers[o] == null? "null" : headers[o].ToString()));
+
             string xff = "X-Forwarded-For";
             if (headers.ContainsKey(xff.ToLower()))
                 xff = xff.ToLower();
