@@ -116,6 +116,12 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             return new List<ILandObject>();
         }
+        
+        public void Clear(bool setupDefaultParcel)
+        {
+            if (m_landManagementModule != null)
+                m_landManagementModule.Clear(setupDefaultParcel);
+        }
 
         public List<ILandObject> ParcelsNearPoint(Vector3 position)
         {

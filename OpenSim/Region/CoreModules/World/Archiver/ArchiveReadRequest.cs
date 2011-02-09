@@ -217,22 +217,20 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_scene.DeleteAllSceneObjects();
             }
 
-            // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
-            // otherwise, use the master avatar uuid instead
+            LoadParcels(serialisedParcels);
+            LoadObjects(serialisedSceneObjects);
 
-            // Reload serialized parcels
-            m_log.InfoFormat("[ARCHIVER]: Loading {0} parcels.  Please wait.", serialisedParcels.Count);
-            List<LandData> landData = new List<LandData>();
-            foreach (string serialisedParcel in serialisedParcels)
-            {
-                LandData parcel = LandDataSerializer.Deserialize(serialisedParcel);
-                if (!ResolveUserUuid(parcel.OwnerID))
-                    parcel.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
-                landData.Add(parcel);
-            }
-            m_scene.EventManager.TriggerIncomingLandDataFromStorage(landData);
-            m_log.InfoFormat("[ARCHIVER]: Restored {0} parcels.", landData.Count);
+            m_log.InfoFormat("[ARCHIVER]: Successfully loaded archive");
 
+            m_scene.EventManager.TriggerOarFileLoaded(m_requestId, m_errorMessage);
+        }
+        
+        /// <summary>
+        /// Load serialized scene objects.
+        /// </summary>
+        /// <param name="serialisedSceneObjects"></param>
+        protected void LoadObjects(List<string> serialisedSceneObjects)
+        {
             // Reload serialized prims
             m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects.  Please wait.", serialisedSceneObjects.Count);
 
@@ -262,6 +260,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // to the same scene (when this is possible).
                 sceneObject.ResetIDs();
 
+                // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
+                // or creator data is present.  Otherwise, use the estate owner instead.
                 foreach (SceneObjectPart part in sceneObject.Parts)
                 {
                     if (part.CreatorData == null || part.CreatorData == string.Empty)
@@ -318,11 +318,36 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             int ignoredObjects = serialisedSceneObjects.Count - sceneObjectsLoadedCount;
 
             if (ignoredObjects > 0)
-                m_log.WarnFormat("[ARCHIVER]: Ignored {0} scene objects that already existed in the scene", ignoredObjects);
-
-            m_log.InfoFormat("[ARCHIVER]: Successfully loaded archive");
-
-            m_scene.EventManager.TriggerOarFileLoaded(m_requestId, m_errorMessage);
+                m_log.WarnFormat("[ARCHIVER]: Ignored {0} scene objects that already existed in the scene", ignoredObjects);            
+        }
+        
+        /// <summary>
+        /// Load serialized parcels.
+        /// </summary>
+        /// <param name="serialisedParcels"></param>
+        protected void LoadParcels(List<string> serialisedParcels)
+        {
+            // Reload serialized parcels
+            m_log.InfoFormat("[ARCHIVER]: Loading {0} parcels.  Please wait.", serialisedParcels.Count);
+            List<LandData> landData = new List<LandData>();
+            foreach (string serialisedParcel in serialisedParcels)
+            {
+                LandData parcel = LandDataSerializer.Deserialize(serialisedParcel);
+                if (!ResolveUserUuid(parcel.OwnerID))
+                    parcel.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                
+//                m_log.DebugFormat(
+//                    "[ARCHIVER]: Adding parcel {0}, local id {1}, area {2}", 
+//                    parcel.Name, parcel.LocalID, parcel.Area);
+                
+                landData.Add(parcel);
+            }
+            
+            if (!m_merge)                
+                m_scene.LandChannel.Clear(false);
+            
+            m_scene.EventManager.TriggerIncomingLandDataFromStorage(landData);
+            m_log.InfoFormat("[ARCHIVER]: Restored {0} parcels.", landData.Count);            
         }
 
         /// <summary>

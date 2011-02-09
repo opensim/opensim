@@ -25,36 +25,31 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using OpenSim.Services.Interfaces;
-using GridRegion = OpenSim.Services.Interfaces.GridRegion;
-
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface IEntityTransferModule
+    public interface IPrimCountModule
     {
-        void Teleport(ScenePresence agent, ulong regionHandle, Vector3 position,
-                                                      Vector3 lookAt, uint teleportFlags);
+        void TaintPrimCount(ILandObject land);
+        void TaintPrimCount(int x, int y);
+        void TaintPrimCount();
 
-        void TeleportHome(UUID id, IClientAPI client);
-
-        bool Cross(ScenePresence agent, bool isFlying);
-
-        void AgentArrivedAtDestination(UUID agent);
-
-        void EnableChildAgents(ScenePresence agent);
-
-        void EnableChildAgent(ScenePresence agent, GridRegion region);
-
-        void Cross(SceneObjectGroup sog, Vector3 position, bool silent);
+        IPrimCounts GetPrimCounts(UUID parcelID);
     }
 
-    public interface IUserAgentVerificationModule
+    public interface IPrimCounts
     {
-        bool VerifyClient(AgentCircuitData aCircuit, string token);
+        int Owner { get; }
+        int Group { get; }
+        int Others { get; }
+        int Simulator { get; }
+        IUserPrimCounts Users { get; }
+    }
+
+    public interface IUserPrimCounts
+    {
+        int this[UUID agentID] { get; }
     }
 }

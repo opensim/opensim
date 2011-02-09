@@ -4333,7 +4333,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updateMessage.SequenceID = sequence_id;
             if (landData.SimwideArea > 0)
             {
-                updateMessage.SimWideMaxPrims = parcelObjectCapacity;
+                int simulatorCapacity = (int)(((float)landData.SimwideArea / 65536.0f) * (float)m_scene.RegionInfo.ObjectCapacity * (float)m_scene.RegionInfo.RegionSettings.ObjectBonus);
+                updateMessage.SimWideMaxPrims = simulatorCapacity;
             }
             else
             {

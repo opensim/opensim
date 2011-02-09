@@ -3861,14 +3861,16 @@ namespace OpenSim.Region.Framework.Scenes
             RequestTeleportLocation(remoteClient, info.RegionHandle, position, Vector3.Zero, (uint)(TPFlags.SetLastToTarget | TPFlags.ViaLandmark));
         }
 
-        public void CrossAgentToNewRegion(ScenePresence agent, bool isFlying)
+        public bool CrossAgentToNewRegion(ScenePresence agent, bool isFlying)
         {
             if (m_teleportModule != null)
-                m_teleportModule.Cross(agent, isFlying);
+                return m_teleportModule.Cross(agent, isFlying);
             else
             {
                 m_log.DebugFormat("[SCENE]: Unable to cross agent to neighbouring region, because there is no AgentTransferModule");
             }
+
+            return false;
         }
 
         public void SendOutChildAgentUpdates(AgentPosition cadu, ScenePresence presence)
@@ -4919,7 +4921,7 @@ namespace OpenSim.Region.Framework.Scenes
         // from logging into the region, teleporting into the region
         // or corssing the broder walking, but will NOT prevent
         // child agent creation, thereby emulating the SL behavior.
-        public bool QueryAccess(UUID agentID)
+        public bool QueryAccess(UUID agentID, Vector3 position)
         {
             return true;
         }
