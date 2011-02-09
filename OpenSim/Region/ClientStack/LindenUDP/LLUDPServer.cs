@@ -1059,10 +1059,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     #endregion Update Timers
 
-                    if (m_scene.EmergencyMonitoring)
-                        clientPacketHandler = MonitoredClientOutgoingPacketHandler;
-                    else
-                        clientPacketHandler = ClientOutgoingPacketHandler;
+                    // Use this for emergency monitoring -- bug hunting
+                    //if (m_scene.EmergencyMonitoring)
+                    //    clientPacketHandler = MonitoredClientOutgoingPacketHandler;
+                    //else
+                    //    clientPacketHandler = ClientOutgoingPacketHandler;
 
                     // Handle outgoing packets, resends, acknowledgements, and pings for each
                     // client. m_packetSent will be set to true if a packet is sent
@@ -1118,6 +1119,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         #region Emergency Monitoring
+        // Alternative packet handler fuull of instrumentation
+        // Handy for hunting bugs
         private Stopwatch watch1 = new Stopwatch();
         private Stopwatch watch2 = new Stopwatch();
 
