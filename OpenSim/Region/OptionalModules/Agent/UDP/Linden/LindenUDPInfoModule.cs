@@ -361,7 +361,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             ThrottleRates throttleRates = udpServer.ThrottleRates;
             report.AppendFormat(
                 "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}",
-                "n/a",
+                (throttleRates.Total * 8) / 1000,
                 (throttleRates.ResendLimit * 8) / 1000,
                 (throttleRates.LandLimit * 8) / 1000,
                 (throttleRates.WindLimit * 8) / 1000,

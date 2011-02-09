@@ -207,6 +207,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 int dripAmount = deltaMS * tokensPerMS;
 
+                if (dripAmount < 0)
+                    Console.WriteLine("MAY DAY MAY DAY! Drip amount is " + dripAmount + ". This should not happen");
+
                 content = Math.Min(content + dripAmount, maxBurst);
                 lastDrip = now;
 
