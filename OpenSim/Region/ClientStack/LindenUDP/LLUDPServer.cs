@@ -1133,6 +1133,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int npacksSent = 0;
         private int npackNotSent = 0;
 
+        public bool EmergencyMonitoring
+        {
+            get { return m_scene.EmergencyMonitoring; }
+        }
+
         private void MonitoredClientOutgoingPacketHandler(IClientAPI client)
         {
             nticks++;
