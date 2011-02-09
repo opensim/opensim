@@ -463,13 +463,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bool packetSent = false;
             ThrottleOutPacketTypeFlags emptyCategories = 0;
 
-            string queueDebugOutput = String.Empty; // Serious debug business
+            //string queueDebugOutput = String.Empty; // Serious debug business
 
             for (int i = 0; i < THROTTLE_CATEGORY_COUNT; i++)
             {
                 bucket = m_throttleCategories[i];
-                if (i == 4)
-                    queueDebugOutput += m_packetOutboxes[i].Count + " ";  // Serious debug business
+                //queueDebugOutput += m_packetOutboxes[i].Count + " ";  // Serious debug business
 
                 if (m_nextPackets[i] != null)
                 {
@@ -477,17 +476,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // leaving a dequeued packet still waiting to be sent out. Try to
                     // send it again
                     OutgoingPacket nextPacket = m_nextPackets[i];
-                    if (i == 4) queueDebugOutput += "m_nextPackets[i] != null, " + nextPacket.Buffer.DataLength;
                     if (bucket.RemoveTokens(nextPacket.Buffer.DataLength))
                     {
-                        if (i == 4) queueDebugOutput += " removed tokens ";
                         // Send the packet
                         m_udpServer.SendPacketFinal(nextPacket);
                         m_nextPackets[i] = null;
                         packetSent = true;
                     }
-                    else
-                        if (i == 4) queueDebugOutput += " did not remove tokens ";
                 }
                 else
                 {
@@ -496,7 +491,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     queue = m_packetOutboxes[i];
                     if (queue.Dequeue(out packet))
                     {
-                        if (i == 4) queueDebugOutput += "m_nextPackets[i] == null, dq ok " + packet.Buffer.DataLength;
                         // A packet was pulled off the queue. See if we have
                         // enough tokens in the bucket to send it out
                         if (bucket.RemoveTokens(packet.Buffer.DataLength))
@@ -504,13 +498,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             // Send the packet
                             m_udpServer.SendPacketFinal(packet);
                             packetSent = true;
-                            if (i == 4) queueDebugOutput += " removed tokens ";
                         }
                         else
                         {
                             // Save the dequeued packet for the next iteration
                             m_nextPackets[i] = packet;
-                            if (i == 4) queueDebugOutput += " did not remove tokens ";
                         }
 
                         // If the queue is empty after this dequeue, fire the queue
@@ -521,21 +513,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     else
                     {
-                        if (i == 4) queueDebugOutput += "m_nextPackets[i] == null, dq nok ";
                         // No packets in this queue. Fire the queue empty callback
                         // if it has not been called recently
                         emptyCategories |= CategoryToFlag(i);
                     }
                 }
-
             }
 
             if (emptyCategories != 0)
                 BeginFireQueueEmpty(emptyCategories);
 
-            if (m_udpServer.EmergencyMonitoring)
-                m_log.Info("[LLUDPCLIENT]: Queues: " + queueDebugOutput); // Serious debug business
-
+            //m_log.Info("[LLUDPCLIENT]: Queues: " + queueDebugOutput); // Serious debug business
             return packetSent;
         }
 
