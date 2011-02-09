@@ -213,6 +213,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 content = Math.Min(content + dripAmount, maxBurst);
                 lastDrip = now;
 
+                if (content < 0)
+                    Console.WriteLine("MAY DAY MAY DAY! Content is " + content + ". This should not happen");
+
                 return true;
             }
         }
