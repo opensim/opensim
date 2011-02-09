@@ -640,10 +640,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 object[] array = new object[] { buffer, packet };
 
-                if (m_asyncPacketHandling)
-                    Util.FireAndForget(HandleUseCircuitCode, array);
-                else
-                    HandleUseCircuitCode(array);
+                Util.FireAndForget(HandleUseCircuitCode, array);
 
                 return;
             }
@@ -857,11 +854,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             IPEndPoint remoteEndPoint = (IPEndPoint)buffer.RemoteEndPoint;
 
+            // Acknowledge the UseCircuitCode packet immediately, even before processing further
+            // This is so that the client doesn't send another one
+            SendAckImmediate(remoteEndPoint, packet.Header.Sequence);
+
             // Begin the process of adding the client to the simulator
             AddNewClient((UseCircuitCodePacket)packet, remoteEndPoint);
-
-            // Acknowledge the UseCircuitCode packet
-            SendAckImmediate(remoteEndPoint, packet.Header.Sequence);
             
 //            m_log.DebugFormat(
 //                "[LLUDPSERVER]: Handling UseCircuitCode request from {0} took {1}ms", 
@@ -927,25 +925,32 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected virtual void AddClient(uint circuitCode, UUID agentID, UUID sessionID, IPEndPoint remoteEndPoint, AuthenticateResponse sessionInfo)
         {
-            // Create the LLUDPClient
-            LLUDPClient udpClient = new LLUDPClient(this, ThrottleRates, m_throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
-            IClientAPI existingClient;
-
-            if (!m_scene.TryGetClient(agentID, out existingClient))
+            // In priciple there shouldn't be more than one thread here, ever.
+            // But in case that happens, we need to synchronize this piece of code
+            // because it's too important
+            lock (this) 
             {
-                // Create the LLClientView
-                LLClientView client = new LLClientView(remoteEndPoint, m_scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
-                client.OnLogout += LogoutHandler;
+                IClientAPI existingClient;
 
-                client.DisableFacelights = m_disableFacelights;
+                if (!m_scene.TryGetClient(agentID, out existingClient))
+                {
+                    // Create the LLUDPClient
+                    LLUDPClient udpClient = new LLUDPClient(this, ThrottleRates, m_throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
+                    // Create the LLClientView
+                    LLClientView client = new LLClientView(remoteEndPoint, m_scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
+                    client.OnLogout += LogoutHandler;
 
-                // Start the IClientAPI
-                client.Start();
-            }
-            else
-            {
-                m_log.WarnFormat("[LLUDPSERVER]: Ignoring a repeated UseCircuitCode from {0} at {1} for circuit {2}",
-                    udpClient.AgentID, remoteEndPoint, circuitCode);
+                    client.DisableFacelights = m_disableFacelights;
+
+                    // Start the IClientAPI
+                    client.Start();
+
+                }
+                else
+                {
+                    m_log.WarnFormat("[LLUDPSERVER]: Ignoring a repeated UseCircuitCode from {0} at {1} for circuit {2}",
+                        existingClient.AgentId, remoteEndPoint, circuitCode);
+                }
             }
         }
 
