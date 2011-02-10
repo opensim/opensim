@@ -854,14 +854,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             IPEndPoint remoteEndPoint = (IPEndPoint)buffer.RemoteEndPoint;
 
-            // Acknowledge the UseCircuitCode packet immediately, even before processing further
-            // This is so that the client doesn't send another one
-            SendAckImmediate(remoteEndPoint, packet.Header.Sequence);
-
             // Begin the process of adding the client to the simulator
             AddNewClient((UseCircuitCodePacket)packet, remoteEndPoint);
-            
-//            m_log.DebugFormat(
+
+            // Send ack
+            SendAckImmediate(remoteEndPoint, packet.Header.Sequence);
+
+            //            m_log.DebugFormat(
 //                "[LLUDPSERVER]: Handling UseCircuitCode request from {0} took {1}ms", 
 //                buffer.RemoteEndPoint, (DateTime.Now - startTime).Milliseconds);
         }
