@@ -143,7 +143,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Process all the pending adds
             OutgoingPacket pendingAdd;
             while (m_pendingAdds.TryDequeue(out pendingAdd))
-                m_packets[pendingAdd.SequenceNumber] = pendingAdd;
+                if (pendingAdd != null)
+                    m_packets[pendingAdd.SequenceNumber] = pendingAdd;
             
             // Process all the pending removes, including updating statistics and round-trip times
             PendingAck pendingRemove;
@@ -152,17 +153,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (m_packets.TryGetValue(pendingRemove.SequenceNumber, out ackedPacket))
                 {
-                    m_packets.Remove(pendingRemove.SequenceNumber);
-
-                    // Update stats
-                    Interlocked.Add(ref ackedPacket.Client.UnackedBytes, -ackedPacket.Buffer.DataLength);
-
-                    if (!pendingRemove.FromResend)
+                    if (ackedPacket != null)
                     {
-                        // Calculate the round-trip time for this packet and its ACK
-                        int rtt = pendingRemove.RemoveTime - ackedPacket.TickCount;
-                        if (rtt > 0)
-                            ackedPacket.Client.UpdateRoundTrip(rtt);
+                        m_packets.Remove(pendingRemove.SequenceNumber);
+
+                        // Update stats
+                        Interlocked.Add(ref ackedPacket.Client.UnackedBytes, -ackedPacket.Buffer.DataLength);
+
+                        if (!pendingRemove.FromResend)
+                        {
+                            // Calculate the round-trip time for this packet and its ACK
+                            int rtt = pendingRemove.RemoveTime - ackedPacket.TickCount;
+                            if (rtt > 0)
+                                ackedPacket.Client.UpdateRoundTrip(rtt);
+                        }
                     }
                 }
             }
