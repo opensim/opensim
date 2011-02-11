@@ -24,6 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -44,7 +45,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private delegate void LookupUUIDS(List<UUID> uuidLst);
 
-        private Scene m_scene;
+        public Scene Scene { get; private set; }
+        
+        protected EstateManagementCommands m_commands;
 
         private EstateTerrainXferHandler TerrainUploader;
 
@@ -58,89 +61,89 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {
             uint sun = 0;
 
-            if (!m_scene.RegionInfo.EstateSettings.UseGlobalTime)
-                sun=(uint)(m_scene.RegionInfo.EstateSettings.SunPosition*1024.0) + 0x1800;
+            if (!Scene.RegionInfo.EstateSettings.UseGlobalTime)
+                sun = (uint)(Scene.RegionInfo.EstateSettings.SunPosition * 1024.0) + 0x1800;
             UUID estateOwner;
-            estateOwner = m_scene.RegionInfo.EstateSettings.EstateOwner;
+            estateOwner = Scene.RegionInfo.EstateSettings.EstateOwner;
 
-            if (m_scene.Permissions.IsGod(remote_client.AgentId))
+            if (Scene.Permissions.IsGod(remote_client.AgentId))
                 estateOwner = remote_client.AgentId;
 
             remote_client.SendDetailedEstateData(invoice,
-                    m_scene.RegionInfo.EstateSettings.EstateName,
-                    m_scene.RegionInfo.EstateSettings.EstateID,
-                    m_scene.RegionInfo.EstateSettings.ParentEstateID,
+                    Scene.RegionInfo.EstateSettings.EstateName,
+                    Scene.RegionInfo.EstateSettings.EstateID,
+                    Scene.RegionInfo.EstateSettings.ParentEstateID,
                     GetEstateFlags(),
                     sun,
-                    m_scene.RegionInfo.RegionSettings.Covenant,
-                    m_scene.RegionInfo.EstateSettings.AbuseEmail,
+                    Scene.RegionInfo.RegionSettings.Covenant,
+                    Scene.RegionInfo.EstateSettings.AbuseEmail,
                     estateOwner);
 
             remote_client.SendEstateList(invoice,
                     (int)Constants.EstateAccessCodex.EstateManagers,
-                    m_scene.RegionInfo.EstateSettings.EstateManagers,
-                    m_scene.RegionInfo.EstateSettings.EstateID);
+                    Scene.RegionInfo.EstateSettings.EstateManagers,
+                    Scene.RegionInfo.EstateSettings.EstateID);
 
             remote_client.SendEstateList(invoice,
                     (int)Constants.EstateAccessCodex.AccessOptions,
-                    m_scene.RegionInfo.EstateSettings.EstateAccess,
-                    m_scene.RegionInfo.EstateSettings.EstateID);
+                    Scene.RegionInfo.EstateSettings.EstateAccess,
+                    Scene.RegionInfo.EstateSettings.EstateID);
 
             remote_client.SendEstateList(invoice,
                     (int)Constants.EstateAccessCodex.AllowedGroups,
-                    m_scene.RegionInfo.EstateSettings.EstateGroups,
-                    m_scene.RegionInfo.EstateSettings.EstateID);
+                    Scene.RegionInfo.EstateSettings.EstateGroups,
+                    Scene.RegionInfo.EstateSettings.EstateID);
 
             remote_client.SendBannedUserList(invoice,
-                    m_scene.RegionInfo.EstateSettings.EstateBans,
-                    m_scene.RegionInfo.EstateSettings.EstateID);
+                    Scene.RegionInfo.EstateSettings.EstateBans,
+                    Scene.RegionInfo.EstateSettings.EstateID);
         }
 
         private void estateSetRegionInfoHandler(bool blockTerraform, bool noFly, bool allowDamage, bool blockLandResell, int maxAgents, float objectBonusFactor,
                                                 int matureLevel, bool restrictPushObject, bool allowParcelChanges)
         {
             if (blockTerraform)
-                m_scene.RegionInfo.RegionSettings.BlockTerraform = true;
+                Scene.RegionInfo.RegionSettings.BlockTerraform = true;
             else
-                m_scene.RegionInfo.RegionSettings.BlockTerraform = false;
+                Scene.RegionInfo.RegionSettings.BlockTerraform = false;
 
             if (noFly)
-                m_scene.RegionInfo.RegionSettings.BlockFly = true;
+                Scene.RegionInfo.RegionSettings.BlockFly = true;
             else
-                m_scene.RegionInfo.RegionSettings.BlockFly = false;
+                Scene.RegionInfo.RegionSettings.BlockFly = false;
 
             if (allowDamage)
-                m_scene.RegionInfo.RegionSettings.AllowDamage = true;
+                Scene.RegionInfo.RegionSettings.AllowDamage = true;
             else
-                m_scene.RegionInfo.RegionSettings.AllowDamage = false;
+                Scene.RegionInfo.RegionSettings.AllowDamage = false;
 
             if (blockLandResell)
-                m_scene.RegionInfo.RegionSettings.AllowLandResell = false;
+                Scene.RegionInfo.RegionSettings.AllowLandResell = false;
             else
-                m_scene.RegionInfo.RegionSettings.AllowLandResell = true;
+                Scene.RegionInfo.RegionSettings.AllowLandResell = true;
 
-            m_scene.RegionInfo.RegionSettings.AgentLimit = (byte) maxAgents;
+            Scene.RegionInfo.RegionSettings.AgentLimit = (byte) maxAgents;
 
-            m_scene.RegionInfo.RegionSettings.ObjectBonus = objectBonusFactor;
+            Scene.RegionInfo.RegionSettings.ObjectBonus = objectBonusFactor;
 
             if (matureLevel <= 13)
-                m_scene.RegionInfo.RegionSettings.Maturity = 0;
+                Scene.RegionInfo.RegionSettings.Maturity = 0;
             else if (matureLevel <= 21)
-                m_scene.RegionInfo.RegionSettings.Maturity = 1;
+                Scene.RegionInfo.RegionSettings.Maturity = 1;
             else
-                m_scene.RegionInfo.RegionSettings.Maturity = 2;
+                Scene.RegionInfo.RegionSettings.Maturity = 2;
 
             if (restrictPushObject)
-                m_scene.RegionInfo.RegionSettings.RestrictPushing = true;
+                Scene.RegionInfo.RegionSettings.RestrictPushing = true;
             else
-                m_scene.RegionInfo.RegionSettings.RestrictPushing = false;
+                Scene.RegionInfo.RegionSettings.RestrictPushing = false;
 
             if (allowParcelChanges)
-                m_scene.RegionInfo.RegionSettings.AllowLandJoinDivide = true;
+                Scene.RegionInfo.RegionSettings.AllowLandJoinDivide = true;
             else
-                m_scene.RegionInfo.RegionSettings.AllowLandJoinDivide = false;
+                Scene.RegionInfo.RegionSettings.AllowLandJoinDivide = false;
 
-            m_scene.RegionInfo.RegionSettings.Save();
+            Scene.RegionInfo.RegionSettings.Save();
             TriggerRegionInfoChange();
 
             sendRegionInfoPacketToAll();
@@ -154,19 +157,19 @@ namespace OpenSim.Region.CoreModules.World.Estate
             switch (corner)
             {
                 case 0:
-                    m_scene.RegionInfo.RegionSettings.TerrainTexture1 = texture;
+                    Scene.RegionInfo.RegionSettings.TerrainTexture1 = texture;
                     break;
                 case 1:
-                    m_scene.RegionInfo.RegionSettings.TerrainTexture2 = texture;
+                    Scene.RegionInfo.RegionSettings.TerrainTexture2 = texture;
                     break;
                 case 2:
-                    m_scene.RegionInfo.RegionSettings.TerrainTexture3 = texture;
+                    Scene.RegionInfo.RegionSettings.TerrainTexture3 = texture;
                     break;
                 case 3:
-                    m_scene.RegionInfo.RegionSettings.TerrainTexture4 = texture;
+                    Scene.RegionInfo.RegionSettings.TerrainTexture4 = texture;
                     break;
             }
-            m_scene.RegionInfo.RegionSettings.Save();
+            Scene.RegionInfo.RegionSettings.Save();
             TriggerRegionInfoChange();
             sendRegionInfoPacketToAll();
         }
@@ -176,23 +179,23 @@ namespace OpenSim.Region.CoreModules.World.Estate
             switch (corner)
             {
                 case 0:
-                    m_scene.RegionInfo.RegionSettings.Elevation1SW = lowValue;
-                    m_scene.RegionInfo.RegionSettings.Elevation2SW = highValue;
+                    Scene.RegionInfo.RegionSettings.Elevation1SW = lowValue;
+                    Scene.RegionInfo.RegionSettings.Elevation2SW = highValue;
                     break;
                 case 1:
-                    m_scene.RegionInfo.RegionSettings.Elevation1NW = lowValue;
-                    m_scene.RegionInfo.RegionSettings.Elevation2NW = highValue;
+                    Scene.RegionInfo.RegionSettings.Elevation1NW = lowValue;
+                    Scene.RegionInfo.RegionSettings.Elevation2NW = highValue;
                     break;
                 case 2:
-                    m_scene.RegionInfo.RegionSettings.Elevation1SE = lowValue;
-                    m_scene.RegionInfo.RegionSettings.Elevation2SE = highValue;
+                    Scene.RegionInfo.RegionSettings.Elevation1SE = lowValue;
+                    Scene.RegionInfo.RegionSettings.Elevation2SE = highValue;
                     break;
                 case 3:
-                    m_scene.RegionInfo.RegionSettings.Elevation1NE = lowValue;
-                    m_scene.RegionInfo.RegionSettings.Elevation2NE = highValue;
+                    Scene.RegionInfo.RegionSettings.Elevation1NE = lowValue;
+                    Scene.RegionInfo.RegionSettings.Elevation2NE = highValue;
                     break;
             }
-            m_scene.RegionInfo.RegionSettings.Save();
+            Scene.RegionInfo.RegionSettings.Save();
             TriggerRegionInfoChange();
             sendRegionInfoPacketToAll();
         }
@@ -208,30 +211,30 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 bool UseGlobal, bool EstateFixedSun, float EstateSunHour)
         {
             // Water Height
-            m_scene.RegionInfo.RegionSettings.WaterHeight = WaterHeight;
+            Scene.RegionInfo.RegionSettings.WaterHeight = WaterHeight;
 
             // Terraforming limits
-            m_scene.RegionInfo.RegionSettings.TerrainRaiseLimit = TerrainRaiseLimit;
-            m_scene.RegionInfo.RegionSettings.TerrainLowerLimit = TerrainLowerLimit;
+            Scene.RegionInfo.RegionSettings.TerrainRaiseLimit = TerrainRaiseLimit;
+            Scene.RegionInfo.RegionSettings.TerrainLowerLimit = TerrainLowerLimit;
 
             // Time of day / fixed sun
-            m_scene.RegionInfo.RegionSettings.UseEstateSun = UseEstateSun;
-            m_scene.RegionInfo.RegionSettings.FixedSun = UseFixedSun;
-            m_scene.RegionInfo.RegionSettings.SunPosition = SunHour;
+            Scene.RegionInfo.RegionSettings.UseEstateSun = UseEstateSun;
+            Scene.RegionInfo.RegionSettings.FixedSun = UseFixedSun;
+            Scene.RegionInfo.RegionSettings.SunPosition = SunHour;
 
-            m_scene.TriggerEstateSunUpdate();
+            Scene.TriggerEstateSunUpdate();
 
             //m_log.Debug("[ESTATE]: UFS: " + UseFixedSun.ToString());
             //m_log.Debug("[ESTATE]: SunHour: " + SunHour.ToString());
 
             sendRegionInfoPacketToAll();
-            m_scene.RegionInfo.RegionSettings.Save();
+            Scene.RegionInfo.RegionSettings.Save();
             TriggerRegionInfoChange();
         }
 
         private void handleEstateRestartSimRequest(IClientAPI remoteClient, int timeInSeconds)
         {
-            IRestartModule restartModule = m_scene.RequestModuleInterface<IRestartModule>();
+            IRestartModule restartModule = Scene.RequestModuleInterface<IRestartModule>();
             if (restartModule != null)
             {
                 List<int> times = new List<int>();
@@ -252,8 +255,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void handleChangeEstateCovenantRequest(IClientAPI remoteClient, UUID estateCovenantID)
         {
-            m_scene.RegionInfo.RegionSettings.Covenant = estateCovenantID;
-            m_scene.RegionInfo.RegionSettings.Save();
+            Scene.RegionInfo.RegionSettings.Covenant = estateCovenantID;
+            Scene.RegionInfo.RegionSettings.Save();
             TriggerRegionInfoChange();
         }
 
@@ -261,17 +264,17 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {
             // EstateAccessDelta handles Estate Managers, Sim Access, Sim Banlist, allowed Groups..  etc.
 
-            if (user == m_scene.RegionInfo.EstateSettings.EstateOwner)
+            if (user == Scene.RegionInfo.EstateSettings.EstateOwner)
                 return; // never process EO
 
             if ((estateAccessType & 4) != 0) // User add
             {
-                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || m_scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || Scene.Permissions.BypassPermissions())
                 {
-                    m_scene.RegionInfo.EstateSettings.AddEstateUser(user);
-                    m_scene.RegionInfo.EstateSettings.Save();
+                    Scene.RegionInfo.EstateSettings.AddEstateUser(user);
+                    Scene.RegionInfo.EstateSettings.Save();
                     TriggerEstateInfoChange();
-                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AccessOptions, m_scene.RegionInfo.EstateSettings.EstateAccess, m_scene.RegionInfo.EstateSettings.EstateID);
+                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AccessOptions, Scene.RegionInfo.EstateSettings.EstateAccess, Scene.RegionInfo.EstateSettings.EstateID);
                 }
                 else
                 {
@@ -281,13 +284,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
             if ((estateAccessType & 8) != 0) // User remove
             {
-                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || m_scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || Scene.Permissions.BypassPermissions())
                 {
-                    m_scene.RegionInfo.EstateSettings.RemoveEstateUser(user);
-                    m_scene.RegionInfo.EstateSettings.Save();
+                    Scene.RegionInfo.EstateSettings.RemoveEstateUser(user);
+                    Scene.RegionInfo.EstateSettings.Save();
                     TriggerEstateInfoChange();
 
-                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AccessOptions, m_scene.RegionInfo.EstateSettings.EstateAccess, m_scene.RegionInfo.EstateSettings.EstateID);
+                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AccessOptions, Scene.RegionInfo.EstateSettings.EstateAccess, Scene.RegionInfo.EstateSettings.EstateID);
                 }
                 else
                 {
@@ -296,12 +299,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
             if ((estateAccessType & 16) != 0) // Group add
             {
-                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || m_scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || Scene.Permissions.BypassPermissions())
                 {
-                    m_scene.RegionInfo.EstateSettings.AddEstateGroup(user);
-                    m_scene.RegionInfo.EstateSettings.Save();
+                    Scene.RegionInfo.EstateSettings.AddEstateGroup(user);
+                    Scene.RegionInfo.EstateSettings.Save();
                     TriggerEstateInfoChange();
-                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AllowedGroups, m_scene.RegionInfo.EstateSettings.EstateGroups, m_scene.RegionInfo.EstateSettings.EstateID);
+                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AllowedGroups, Scene.RegionInfo.EstateSettings.EstateGroups, Scene.RegionInfo.EstateSettings.EstateID);
                 }
                 else
                 {
@@ -310,13 +313,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
             if ((estateAccessType & 32) != 0) // Group remove
             {
-                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || m_scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || Scene.Permissions.BypassPermissions())
                 {
-                    m_scene.RegionInfo.EstateSettings.RemoveEstateGroup(user);
-                    m_scene.RegionInfo.EstateSettings.Save();
+                    Scene.RegionInfo.EstateSettings.RemoveEstateGroup(user);
+                    Scene.RegionInfo.EstateSettings.Save();
                     TriggerEstateInfoChange();
 
-                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AllowedGroups, m_scene.RegionInfo.EstateSettings.EstateGroups, m_scene.RegionInfo.EstateSettings.EstateID);
+                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AllowedGroups, Scene.RegionInfo.EstateSettings.EstateGroups, Scene.RegionInfo.EstateSettings.EstateID);
                 }
                 else
                 {
@@ -325,9 +328,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
             if ((estateAccessType & 64) != 0) // Ban add
             {
-                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, false) || m_scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, false) || Scene.Permissions.BypassPermissions())
                 {
-                    EstateBan[] banlistcheck = m_scene.RegionInfo.EstateSettings.EstateBans;
+                    EstateBan[] banlistcheck = Scene.RegionInfo.EstateSettings.EstateBans;
 
                     bool alreadyInList = false;
 
@@ -346,20 +349,20 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         EstateBan item = new EstateBan();
 
                         item.BannedUserID = user;
-                        item.EstateID = m_scene.RegionInfo.EstateSettings.EstateID;
+                        item.EstateID = Scene.RegionInfo.EstateSettings.EstateID;
                         item.BannedHostAddress = "0.0.0.0";
                         item.BannedHostIPMask = "0.0.0.0";
 
-                        m_scene.RegionInfo.EstateSettings.AddBan(item);
-                        m_scene.RegionInfo.EstateSettings.Save();
+                        Scene.RegionInfo.EstateSettings.AddBan(item);
+                        Scene.RegionInfo.EstateSettings.Save();
                         TriggerEstateInfoChange();
 
-                        ScenePresence s = m_scene.GetScenePresence(user);
+                        ScenePresence s = Scene.GetScenePresence(user);
                         if (s != null)
                         {
                             if (!s.IsChildAgent)
                             {
-                                m_scene.TeleportClientHome(user, s.ControllingClient);
+                                Scene.TeleportClientHome(user, s.ControllingClient);
                             }
                         }
 
@@ -369,7 +372,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         remote_client.SendAlertMessage("User is already on the region ban list");
                     }
                     //m_scene.RegionInfo.regionBanlist.Add(Manager(user);
-                    remote_client.SendBannedUserList(invoice, m_scene.RegionInfo.EstateSettings.EstateBans, m_scene.RegionInfo.EstateSettings.EstateID);
+                    remote_client.SendBannedUserList(invoice, Scene.RegionInfo.EstateSettings.EstateBans, Scene.RegionInfo.EstateSettings.EstateID);
                 }
                 else
                 {
@@ -378,9 +381,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
             if ((estateAccessType & 128) != 0) // Ban remove
             {
-                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, false) || m_scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, false) || Scene.Permissions.BypassPermissions())
                 {
-                    EstateBan[] banlistcheck = m_scene.RegionInfo.EstateSettings.EstateBans;
+                    EstateBan[] banlistcheck = Scene.RegionInfo.EstateSettings.EstateBans;
 
                     bool alreadyInList = false;
                     EstateBan listitem = null;
@@ -393,20 +396,21 @@ namespace OpenSim.Region.CoreModules.World.Estate
                             listitem = banlistcheck[i];
                             break;
                         }
-
                     }
+                    
                     if (alreadyInList && listitem != null)
                     {
-                        m_scene.RegionInfo.EstateSettings.RemoveBan(listitem.BannedUserID);
-                        m_scene.RegionInfo.EstateSettings.Save();
+                        Scene.RegionInfo.EstateSettings.RemoveBan(listitem.BannedUserID);
+                        Scene.RegionInfo.EstateSettings.Save();
                         TriggerEstateInfoChange();
                     }
                     else
                     {
                         remote_client.SendAlertMessage("User is not on the region ban list");
                     }
+                    
                     //m_scene.RegionInfo.regionBanlist.Add(Manager(user);
-                    remote_client.SendBannedUserList(invoice, m_scene.RegionInfo.EstateSettings.EstateBans, m_scene.RegionInfo.EstateSettings.EstateID);
+                    remote_client.SendBannedUserList(invoice, Scene.RegionInfo.EstateSettings.EstateBans, Scene.RegionInfo.EstateSettings.EstateID);
                 }
                 else
                 {
@@ -415,12 +419,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
             if ((estateAccessType & 256) != 0) // Manager add
             {
-                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || m_scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || Scene.Permissions.BypassPermissions())
                 {
-                    m_scene.RegionInfo.EstateSettings.AddEstateManager(user);
-                    m_scene.RegionInfo.EstateSettings.Save();
+                    Scene.RegionInfo.EstateSettings.AddEstateManager(user);
+                    Scene.RegionInfo.EstateSettings.Save();
                     TriggerEstateInfoChange();
-                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.EstateManagers, m_scene.RegionInfo.EstateSettings.EstateManagers, m_scene.RegionInfo.EstateSettings.EstateID);
+                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.EstateManagers, Scene.RegionInfo.EstateSettings.EstateManagers, Scene.RegionInfo.EstateSettings.EstateID);
                 }
                 else
                 {
@@ -429,13 +433,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
             }
             if ((estateAccessType & 512) != 0) // Manager remove
             {
-                if (m_scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || m_scene.Permissions.BypassPermissions())
+                if (Scene.Permissions.CanIssueEstateCommand(remote_client.AgentId, true) || Scene.Permissions.BypassPermissions())
                 {
-                    m_scene.RegionInfo.EstateSettings.RemoveEstateManager(user);
-                    m_scene.RegionInfo.EstateSettings.Save();
+                    Scene.RegionInfo.EstateSettings.RemoveEstateManager(user);
+                    Scene.RegionInfo.EstateSettings.Save();
                     TriggerEstateInfoChange();
 
-                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.EstateManagers, m_scene.RegionInfo.EstateSettings.EstateManagers, m_scene.RegionInfo.EstateSettings.EstateID);
+                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.EstateManagers, Scene.RegionInfo.EstateSettings.EstateManagers, Scene.RegionInfo.EstateSettings.EstateID);
                 }
                 else
                 {
@@ -447,7 +451,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private void SendSimulatorBlueBoxMessage(
             IClientAPI remote_client, UUID invoice, UUID senderID, UUID sessionID, string senderName, string message)
         {
-            IDialogModule dm = m_scene.RequestModuleInterface<IDialogModule>();
+            IDialogModule dm = Scene.RequestModuleInterface<IDialogModule>();
             
             if (dm != null)
                 dm.SendNotificationToUsersInRegion(senderID, senderName, message);
@@ -462,61 +466,62 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private void handleEstateDebugRegionRequest(IClientAPI remote_client, UUID invoice, UUID senderID, bool scripted, bool collisionEvents, bool physics)
         {
             if (physics)
-                m_scene.RegionInfo.RegionSettings.DisablePhysics = true;
+                Scene.RegionInfo.RegionSettings.DisablePhysics = true;
             else
-                m_scene.RegionInfo.RegionSettings.DisablePhysics = false;
+                Scene.RegionInfo.RegionSettings.DisablePhysics = false;
 
             if (scripted)
-                m_scene.RegionInfo.RegionSettings.DisableScripts = true;
+                Scene.RegionInfo.RegionSettings.DisableScripts = true;
             else
-                m_scene.RegionInfo.RegionSettings.DisableScripts = false;
+                Scene.RegionInfo.RegionSettings.DisableScripts = false;
 
             if (collisionEvents)
-                m_scene.RegionInfo.RegionSettings.DisableCollisions = true;
+                Scene.RegionInfo.RegionSettings.DisableCollisions = true;
             else
-                m_scene.RegionInfo.RegionSettings.DisableCollisions = false;
+                Scene.RegionInfo.RegionSettings.DisableCollisions = false;
 
 
-            m_scene.RegionInfo.RegionSettings.Save();
+            Scene.RegionInfo.RegionSettings.Save();
             TriggerRegionInfoChange();
 
-            m_scene.SetSceneCoreDebug(scripted, collisionEvents, physics);
+            Scene.SetSceneCoreDebug(scripted, collisionEvents, physics);
         }
 
         private void handleEstateTeleportOneUserHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID, UUID prey)
         {
-            if (!m_scene.Permissions.CanIssueEstateCommand(remover_client.AgentId, false))
+            if (!Scene.Permissions.CanIssueEstateCommand(remover_client.AgentId, false))
                 return;
 
             if (prey != UUID.Zero)
             {
-                ScenePresence s = m_scene.GetScenePresence(prey);
+                ScenePresence s = Scene.GetScenePresence(prey);
                 if (s != null)
                 {
-                    m_scene.TeleportClientHome(prey, s.ControllingClient);
+                    Scene.TeleportClientHome(prey, s.ControllingClient);
                 }
             }
         }
 
         private void handleEstateTeleportAllUsersHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID)
         {
-            if (!m_scene.Permissions.CanIssueEstateCommand(remover_client.AgentId, false))
+            if (!Scene.Permissions.CanIssueEstateCommand(remover_client.AgentId, false))
                 return;
 
-            m_scene.ForEachScenePresence(delegate(ScenePresence sp)
+            Scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
                 if (sp.UUID != senderID)
                 {
-                    ScenePresence p = m_scene.GetScenePresence(sp.UUID);
+                    ScenePresence p = Scene.GetScenePresence(sp.UUID);
                     // make sure they are still there, we could be working down a long list
                     // Also make sure they are actually in the region
                     if (p != null && !p.IsChildAgent)
                     {
-                        m_scene.TeleportClientHome(p.UUID, p.ControllingClient);
+                        Scene.TeleportClientHome(p.UUID, p.ControllingClient);
                     }
                 }
             });
         }
+        
         private void AbortTerrainXferHandler(IClientAPI remoteClient, ulong XferID)
         {
             if (TerrainUploader != null)
@@ -547,11 +552,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 TerrainUploader = null;
             }
             remoteClient.SendAlertMessage("Terrain Upload Complete. Loading....");
-            ITerrainModule terr = m_scene.RequestModuleInterface<ITerrainModule>();
+            ITerrainModule terr = Scene.RequestModuleInterface<ITerrainModule>();
 
             if (terr != null)
             {
-                m_log.Warn("[CLIENT]: Got Request to Send Terrain in region " + m_scene.RegionInfo.RegionName);
+                m_log.Warn("[CLIENT]: Got Request to Send Terrain in region " + Scene.RegionInfo.RegionName);
 
                 try
                 {
@@ -597,7 +602,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void handleUploadTerrain(IClientAPI remote_client, string clientFileName)
         {
-
             if (TerrainUploader == null)
             {
 
@@ -615,16 +619,16 @@ namespace OpenSim.Region.CoreModules.World.Estate
             {
                 remote_client.SendAlertMessage("Another Terrain Upload is in progress.  Please wait your turn!");
             }
-
         }
+        
         private void handleTerrainRequest(IClientAPI remote_client, string clientFileName)
         {
             // Save terrain here
-            ITerrainModule terr = m_scene.RequestModuleInterface<ITerrainModule>();
+            ITerrainModule terr = Scene.RequestModuleInterface<ITerrainModule>();
             
             if (terr != null)
             {
-                m_log.Warn("[CLIENT]: Got Request to Send Terrain in region " + m_scene.RegionInfo.RegionName);
+                m_log.Warn("[CLIENT]: Got Request to Send Terrain in region " + Scene.RegionInfo.RegionName);
                 if (File.Exists(Util.dataDir() + "/terrain.raw"))
                 {
                     File.Delete(Util.dataDir() + "/terrain.raw");
@@ -635,7 +639,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 byte[] bdata = new byte[input.Length];
                 input.Read(bdata, 0, (int)input.Length);
                 remote_client.SendAlertMessage("Terrain file written, starting download...");
-                m_scene.XferManager.AddNewFile("terrain.raw", bdata);
+                Scene.XferManager.AddNewFile("terrain.raw", bdata);
                 // Tell client about it
                 m_log.Warn("[CLIENT]: Sending Terrain to " + remote_client.Name);
                 remote_client.SendInitiateDownload("terrain.raw", clientFileName);
@@ -645,35 +649,35 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private void HandleRegionInfoRequest(IClientAPI remote_client)
         {
            RegionInfoForEstateMenuArgs args = new RegionInfoForEstateMenuArgs();
-           args.billableFactor = m_scene.RegionInfo.EstateSettings.BillableFactor;
-           args.estateID = m_scene.RegionInfo.EstateSettings.EstateID;
-           args.maxAgents = (byte)m_scene.RegionInfo.RegionSettings.AgentLimit;
-           args.objectBonusFactor = (float)m_scene.RegionInfo.RegionSettings.ObjectBonus;
-           args.parentEstateID = m_scene.RegionInfo.EstateSettings.ParentEstateID;
-           args.pricePerMeter = m_scene.RegionInfo.EstateSettings.PricePerMeter;
-           args.redirectGridX = m_scene.RegionInfo.EstateSettings.RedirectGridX;
-           args.redirectGridY = m_scene.RegionInfo.EstateSettings.RedirectGridY;
+           args.billableFactor = Scene.RegionInfo.EstateSettings.BillableFactor;
+           args.estateID = Scene.RegionInfo.EstateSettings.EstateID;
+           args.maxAgents = (byte)Scene.RegionInfo.RegionSettings.AgentLimit;
+           args.objectBonusFactor = (float)Scene.RegionInfo.RegionSettings.ObjectBonus;
+           args.parentEstateID = Scene.RegionInfo.EstateSettings.ParentEstateID;
+           args.pricePerMeter = Scene.RegionInfo.EstateSettings.PricePerMeter;
+           args.redirectGridX = Scene.RegionInfo.EstateSettings.RedirectGridX;
+           args.redirectGridY = Scene.RegionInfo.EstateSettings.RedirectGridY;
            args.regionFlags = GetRegionFlags();
-           args.simAccess = m_scene.RegionInfo.AccessLevel;
-           args.sunHour = (float)m_scene.RegionInfo.RegionSettings.SunPosition;
-           args.terrainLowerLimit = (float)m_scene.RegionInfo.RegionSettings.TerrainLowerLimit;
-           args.terrainRaiseLimit = (float)m_scene.RegionInfo.RegionSettings.TerrainRaiseLimit;
-           args.useEstateSun = m_scene.RegionInfo.RegionSettings.UseEstateSun;
-           args.waterHeight = (float)m_scene.RegionInfo.RegionSettings.WaterHeight;
-           args.simName = m_scene.RegionInfo.RegionName;
-           args.regionType = m_scene.RegionInfo.RegionType;
+           args.simAccess = Scene.RegionInfo.AccessLevel;
+           args.sunHour = (float)Scene.RegionInfo.RegionSettings.SunPosition;
+           args.terrainLowerLimit = (float)Scene.RegionInfo.RegionSettings.TerrainLowerLimit;
+           args.terrainRaiseLimit = (float)Scene.RegionInfo.RegionSettings.TerrainRaiseLimit;
+           args.useEstateSun = Scene.RegionInfo.RegionSettings.UseEstateSun;
+           args.waterHeight = (float)Scene.RegionInfo.RegionSettings.WaterHeight;
+           args.simName = Scene.RegionInfo.RegionName;
+           args.regionType = Scene.RegionInfo.RegionType;
 
            remote_client.SendRegionInfoToEstateMenu(args);
         }
 
         private void HandleEstateCovenantRequest(IClientAPI remote_client)
         {
-            remote_client.SendEstateCovenantInformation(m_scene.RegionInfo.RegionSettings.Covenant);
+            remote_client.SendEstateCovenantInformation(Scene.RegionInfo.RegionSettings.Covenant);
         }
 
         private void HandleLandStatRequest(int parcelID, uint reportType, uint requestFlags, string filter, IClientAPI remoteClient)
         {
-            if (!m_scene.Permissions.CanIssueEstateCommand(remoteClient.AgentId, false))
+            if (!Scene.Permissions.CanIssueEstateCommand(remoteClient.AgentId, false))
                 return;
 
             Dictionary<uint, float> SceneData = new Dictionary<uint,float>();
@@ -681,11 +685,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             if (reportType == 1)
             {
-                SceneData = m_scene.PhysicsScene.GetTopColliders();
+                SceneData = Scene.PhysicsScene.GetTopColliders();
             }
             else if (reportType == 0)
             {
-                SceneData = m_scene.SceneGraph.GetTopScripts();
+                SceneData = Scene.SceneGraph.GetTopScripts();
             }
 
             List<LandStatReportItem> SceneReport = new List<LandStatReportItem>();
@@ -693,7 +697,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             {
                 foreach (uint obj in SceneData.Keys)
                 {
-                    SceneObjectPart prt = m_scene.GetSceneObjectPart(obj);
+                    SceneObjectPart prt = Scene.GetSceneObjectPart(obj);
                     if (prt != null)
                     {
                         if (prt.ParentGroup != null)
@@ -765,7 +769,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             {
                 // string lookupname = m_scene.CommsManager.UUIDNameRequestString(uuidarr[i]);
 
-                IUserManagement userManager = m_scene.RequestModuleInterface<IUserManagement>();
+                IUserManagement userManager = Scene.RequestModuleInterface<IUserManagement>();
                 if (userManager != null)
                     userManager.GetUserName(uuidarr[i]);
                 
@@ -780,7 +784,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void sendRegionInfoPacketToAll()
         {
-            m_scene.ForEachScenePresence(delegate(ScenePresence sp)
+            Scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
                 if (!sp.IsChildAgent)
                     HandleRegionInfoRequest(sp.ControllingClient);
@@ -791,99 +795,99 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {
             RegionHandshakeArgs args = new RegionHandshakeArgs();
 
-            args.isEstateManager = m_scene.RegionInfo.EstateSettings.IsEstateManager(remoteClient.AgentId);
-            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero && m_scene.RegionInfo.EstateSettings.EstateOwner == remoteClient.AgentId)
+            args.isEstateManager = Scene.RegionInfo.EstateSettings.IsEstateManager(remoteClient.AgentId);
+            if (Scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero && Scene.RegionInfo.EstateSettings.EstateOwner == remoteClient.AgentId)
                 args.isEstateManager = true;
 
-            args.billableFactor = m_scene.RegionInfo.EstateSettings.BillableFactor;
-            args.terrainStartHeight0 = (float)m_scene.RegionInfo.RegionSettings.Elevation1SW;
-            args.terrainHeightRange0 = (float)m_scene.RegionInfo.RegionSettings.Elevation2SW;
-            args.terrainStartHeight1 = (float)m_scene.RegionInfo.RegionSettings.Elevation1NW;
-            args.terrainHeightRange1 = (float)m_scene.RegionInfo.RegionSettings.Elevation2NW;
-            args.terrainStartHeight2 = (float)m_scene.RegionInfo.RegionSettings.Elevation1SE;
-            args.terrainHeightRange2 = (float)m_scene.RegionInfo.RegionSettings.Elevation2SE;
-            args.terrainStartHeight3 = (float)m_scene.RegionInfo.RegionSettings.Elevation1NE;
-            args.terrainHeightRange3 = (float)m_scene.RegionInfo.RegionSettings.Elevation2NE;
-            args.simAccess = m_scene.RegionInfo.AccessLevel;
-            args.waterHeight = (float)m_scene.RegionInfo.RegionSettings.WaterHeight;
+            args.billableFactor = Scene.RegionInfo.EstateSettings.BillableFactor;
+            args.terrainStartHeight0 = (float)Scene.RegionInfo.RegionSettings.Elevation1SW;
+            args.terrainHeightRange0 = (float)Scene.RegionInfo.RegionSettings.Elevation2SW;
+            args.terrainStartHeight1 = (float)Scene.RegionInfo.RegionSettings.Elevation1NW;
+            args.terrainHeightRange1 = (float)Scene.RegionInfo.RegionSettings.Elevation2NW;
+            args.terrainStartHeight2 = (float)Scene.RegionInfo.RegionSettings.Elevation1SE;
+            args.terrainHeightRange2 = (float)Scene.RegionInfo.RegionSettings.Elevation2SE;
+            args.terrainStartHeight3 = (float)Scene.RegionInfo.RegionSettings.Elevation1NE;
+            args.terrainHeightRange3 = (float)Scene.RegionInfo.RegionSettings.Elevation2NE;
+            args.simAccess = Scene.RegionInfo.AccessLevel;
+            args.waterHeight = (float)Scene.RegionInfo.RegionSettings.WaterHeight;
             args.regionFlags = GetRegionFlags();
-            args.regionName = m_scene.RegionInfo.RegionName;
-            args.SimOwner = m_scene.RegionInfo.EstateSettings.EstateOwner;
+            args.regionName = Scene.RegionInfo.RegionName;
+            args.SimOwner = Scene.RegionInfo.EstateSettings.EstateOwner;
 
             args.terrainBase0 = UUID.Zero;
             args.terrainBase1 = UUID.Zero;
             args.terrainBase2 = UUID.Zero;
             args.terrainBase3 = UUID.Zero;
-            args.terrainDetail0 = m_scene.RegionInfo.RegionSettings.TerrainTexture1;
-            args.terrainDetail1 = m_scene.RegionInfo.RegionSettings.TerrainTexture2;
-            args.terrainDetail2 = m_scene.RegionInfo.RegionSettings.TerrainTexture3;
-            args.terrainDetail3 = m_scene.RegionInfo.RegionSettings.TerrainTexture4;
+            args.terrainDetail0 = Scene.RegionInfo.RegionSettings.TerrainTexture1;
+            args.terrainDetail1 = Scene.RegionInfo.RegionSettings.TerrainTexture2;
+            args.terrainDetail2 = Scene.RegionInfo.RegionSettings.TerrainTexture3;
+            args.terrainDetail3 = Scene.RegionInfo.RegionSettings.TerrainTexture4;
 
-            remoteClient.SendRegionHandshake(m_scene.RegionInfo,args);
+            remoteClient.SendRegionHandshake(Scene.RegionInfo,args);
         }
 
         public void sendRegionHandshakeToAll()
         {
-            m_scene.ForEachClient(sendRegionHandshake);
+            Scene.ForEachClient(sendRegionHandshake);
         }
 
         public void handleEstateChangeInfo(IClientAPI remoteClient, UUID invoice, UUID senderID, UInt32 parms1, UInt32 parms2)
         {
             if (parms2 == 0)
             {
-                m_scene.RegionInfo.EstateSettings.UseGlobalTime = true;
-                m_scene.RegionInfo.EstateSettings.SunPosition = 0.0;
+                Scene.RegionInfo.EstateSettings.UseGlobalTime = true;
+                Scene.RegionInfo.EstateSettings.SunPosition = 0.0;
             }
             else
             {
-                m_scene.RegionInfo.EstateSettings.UseGlobalTime = false;
-                m_scene.RegionInfo.EstateSettings.SunPosition = (parms2 - 0x1800)/1024.0;
+                Scene.RegionInfo.EstateSettings.UseGlobalTime = false;
+                Scene.RegionInfo.EstateSettings.SunPosition = (parms2 - 0x1800)/1024.0;
             }
 
             if ((parms1 & 0x00000010) != 0)
-                m_scene.RegionInfo.EstateSettings.FixedSun = true;
+                Scene.RegionInfo.EstateSettings.FixedSun = true;
             else
-                m_scene.RegionInfo.EstateSettings.FixedSun = false;
+                Scene.RegionInfo.EstateSettings.FixedSun = false;
 
             if ((parms1 & 0x00008000) != 0)
-                m_scene.RegionInfo.EstateSettings.PublicAccess = true;
+                Scene.RegionInfo.EstateSettings.PublicAccess = true;
             else
-                m_scene.RegionInfo.EstateSettings.PublicAccess = false;
+                Scene.RegionInfo.EstateSettings.PublicAccess = false;
 
             if ((parms1 & 0x10000000) != 0)
-                m_scene.RegionInfo.EstateSettings.AllowVoice = true;
+                Scene.RegionInfo.EstateSettings.AllowVoice = true;
             else
-                m_scene.RegionInfo.EstateSettings.AllowVoice = false;
+                Scene.RegionInfo.EstateSettings.AllowVoice = false;
 
             if ((parms1 & 0x00100000) != 0)
-                m_scene.RegionInfo.EstateSettings.AllowDirectTeleport = true;
+                Scene.RegionInfo.EstateSettings.AllowDirectTeleport = true;
             else
-                m_scene.RegionInfo.EstateSettings.AllowDirectTeleport = false;
+                Scene.RegionInfo.EstateSettings.AllowDirectTeleport = false;
 
             if ((parms1 & 0x00800000) != 0)
-                m_scene.RegionInfo.EstateSettings.DenyAnonymous = true;
+                Scene.RegionInfo.EstateSettings.DenyAnonymous = true;
             else
-                m_scene.RegionInfo.EstateSettings.DenyAnonymous = false;
+                Scene.RegionInfo.EstateSettings.DenyAnonymous = false;
 
             if ((parms1 & 0x01000000) != 0)
-                m_scene.RegionInfo.EstateSettings.DenyIdentified = true;
+                Scene.RegionInfo.EstateSettings.DenyIdentified = true;
             else
-                m_scene.RegionInfo.EstateSettings.DenyIdentified = false;
+                Scene.RegionInfo.EstateSettings.DenyIdentified = false;
 
             if ((parms1 & 0x02000000) != 0)
-                m_scene.RegionInfo.EstateSettings.DenyTransacted = true;
+                Scene.RegionInfo.EstateSettings.DenyTransacted = true;
             else
-                m_scene.RegionInfo.EstateSettings.DenyTransacted = false;
+                Scene.RegionInfo.EstateSettings.DenyTransacted = false;
 
             if ((parms1 & 0x40000000) != 0)
-                m_scene.RegionInfo.EstateSettings.DenyMinors = true;
+                Scene.RegionInfo.EstateSettings.DenyMinors = true;
             else
-                m_scene.RegionInfo.EstateSettings.DenyMinors = false;
+                Scene.RegionInfo.EstateSettings.DenyMinors = false;
 
-            m_scene.RegionInfo.EstateSettings.Save();
+            Scene.RegionInfo.EstateSettings.Save();
             TriggerEstateInfoChange();
 
-            m_scene.TriggerEstateSunUpdate();
+            Scene.TriggerEstateSunUpdate();
 
             sendDetailedEstateData(remoteClient, invoice);
         }
@@ -893,121 +897,21 @@ namespace OpenSim.Region.CoreModules.World.Estate
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource source)
-        {
-            m_scene = scene;
-            m_scene.RegisterModuleInterface<IEstateModule>(this);
-            m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
-            m_scene.EventManager.OnRequestChangeWaterHeight += changeWaterHeight;
-
-            m_scene.AddCommand(this, "set terrain texture",
-                               "set terrain texture <number> <uuid> [<x>] [<y>]",
-                               "Sets the terrain <number> to <uuid>, if <x> or <y> are specified, it will only " +
-                               "set it on regions with a matching coordinate. Specify -1 in <x> or <y> to wildcard" +
-                               " that coordinate.",
-                               consoleSetTerrainTexture);
-
-            m_scene.AddCommand(this, "set terrain heights",
-                               "set terrain heights <corner> <min> <max> [<x>] [<y>]",
-                               "Sets the terrain texture heights on corner #<corner> to <min>/<max>, if <x> or <y> are specified, it will only " +
-                               "set it on regions with a matching coordinate. Specify -1 in <x> or <y> to wildcard" +
-                               " that coordinate. Corner # SW = 0, NW = 1, SE = 2, NE = 3.",
-                               consoleSetTerrainHeights);
+        {            
+            Scene = scene;
+            Scene.RegisterModuleInterface<IEstateModule>(this);
+            Scene.EventManager.OnNewClient += EventManager_OnNewClient;
+            Scene.EventManager.OnRequestChangeWaterHeight += changeWaterHeight;
+            
+            m_commands = new EstateManagementCommands(this);
+            m_commands.Initialise();
         }
-
-        #region Console Commands
-
-        public void consoleSetTerrainTexture(string module, string[] args)
-        {
-            string num = args[3];
-            string uuid = args[4];
-            int x = (args.Length > 5 ? int.Parse(args[5]) : -1);
-            int y = (args.Length > 6 ? int.Parse(args[6]) : -1);
-
-            if (x == -1 || m_scene.RegionInfo.RegionLocX == x)
-            {
-                if (y == -1 || m_scene.RegionInfo.RegionLocY == y)
-                {
-                    int corner = int.Parse(num);
-                    UUID texture = UUID.Parse(uuid);
-
-                    m_log.Debug("[ESTATEMODULE] Setting terrain textures for " + m_scene.RegionInfo.RegionName +
-                                string.Format(" (C#{0} = {1})", corner, texture));
-
-                    switch (corner)
-                    {
-                        case 0:
-                            m_scene.RegionInfo.RegionSettings.TerrainTexture1 = texture;
-                            break;
-                        case 1:
-                            m_scene.RegionInfo.RegionSettings.TerrainTexture2 = texture;
-                            break;
-                        case 2:
-                            m_scene.RegionInfo.RegionSettings.TerrainTexture3 = texture;
-                            break;
-                        case 3:
-                            m_scene.RegionInfo.RegionSettings.TerrainTexture4 = texture;
-                            break;
-                    }
-                    m_scene.RegionInfo.RegionSettings.Save();
-                    TriggerRegionInfoChange();
-                    sendRegionInfoPacketToAll();
-
-                }
-            }
-         }
- 
-        public void consoleSetTerrainHeights(string module, string[] args)
-        {
-            string num = args[3];
-            string min = args[4];
-            string max = args[5];
-            int x = (args.Length > 6 ? int.Parse(args[6]) : -1);
-            int y = (args.Length > 7 ? int.Parse(args[7]) : -1);
-
-            if (x == -1 || m_scene.RegionInfo.RegionLocX == x)
-            {
-                if (y == -1 || m_scene.RegionInfo.RegionLocY == y)
-                {
-                    int corner = int.Parse(num);
-                    float lowValue = float.Parse(min, Culture.NumberFormatInfo);
-                    float highValue = float.Parse(max, Culture.NumberFormatInfo);
-
-                    m_log.Debug("[ESTATEMODULE] Setting terrain heights " + m_scene.RegionInfo.RegionName +
-                                string.Format(" (C{0}, {1}-{2}", corner, lowValue, highValue));
-
-                    switch (corner)
-                    {
-                        case 0:
-                            m_scene.RegionInfo.RegionSettings.Elevation1SW = lowValue;
-                            m_scene.RegionInfo.RegionSettings.Elevation2SW = highValue;
-                            break;
-                        case 1:
-                            m_scene.RegionInfo.RegionSettings.Elevation1NW = lowValue;
-                            m_scene.RegionInfo.RegionSettings.Elevation2NW = highValue;
-                            break;
-                        case 2:
-                            m_scene.RegionInfo.RegionSettings.Elevation1SE = lowValue;
-                            m_scene.RegionInfo.RegionSettings.Elevation2SE = highValue;
-                            break;
-                        case 3:
-                            m_scene.RegionInfo.RegionSettings.Elevation1NE = lowValue;
-                            m_scene.RegionInfo.RegionSettings.Elevation2NE = highValue;
-                            break;
-                    }
-                    m_scene.RegionInfo.RegionSettings.Save();
-                    TriggerRegionInfoChange();
-                    sendRegionHandshakeToAll();
-                }
-            }
-        }
-
-        #endregion
 
         public void PostInitialise()
         {
             // Sets up the sun module based no the saved Estate and Region Settings
             // DO NOT REMOVE or the sun will stop working
-            m_scene.TriggerEstateSunUpdate();
+            Scene.TriggerEstateSunUpdate();
         }
 
         public void Close()
@@ -1031,14 +935,14 @@ namespace OpenSim.Region.CoreModules.World.Estate
         public void changeWaterHeight(float height)
         {
             setRegionTerrainSettings(height,
-                    (float)m_scene.RegionInfo.RegionSettings.TerrainRaiseLimit,
-                    (float)m_scene.RegionInfo.RegionSettings.TerrainLowerLimit,
-                    m_scene.RegionInfo.RegionSettings.UseEstateSun,
-                    m_scene.RegionInfo.RegionSettings.FixedSun,
-                    (float)m_scene.RegionInfo.RegionSettings.SunPosition,
-                    m_scene.RegionInfo.EstateSettings.UseGlobalTime,
-                    m_scene.RegionInfo.EstateSettings.FixedSun,
-                    (float)m_scene.RegionInfo.EstateSettings.SunPosition);
+                    (float)Scene.RegionInfo.RegionSettings.TerrainRaiseLimit,
+                    (float)Scene.RegionInfo.RegionSettings.TerrainLowerLimit,
+                    Scene.RegionInfo.RegionSettings.UseEstateSun,
+                    Scene.RegionInfo.RegionSettings.FixedSun,
+                    (float)Scene.RegionInfo.RegionSettings.SunPosition,
+                    Scene.RegionInfo.EstateSettings.UseGlobalTime,
+                    Scene.RegionInfo.EstateSettings.FixedSun,
+                    (float)Scene.RegionInfo.EstateSettings.SunPosition);
 
             sendRegionInfoPacketToAll();
         }
@@ -1078,32 +982,32 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             // Fully implemented
             //
-            if (m_scene.RegionInfo.RegionSettings.AllowDamage)
+            if (Scene.RegionInfo.RegionSettings.AllowDamage)
                 flags |= RegionFlags.AllowDamage;
-            if (m_scene.RegionInfo.RegionSettings.BlockTerraform)
+            if (Scene.RegionInfo.RegionSettings.BlockTerraform)
                 flags |= RegionFlags.BlockTerraform;
-            if (!m_scene.RegionInfo.RegionSettings.AllowLandResell)
+            if (!Scene.RegionInfo.RegionSettings.AllowLandResell)
                 flags |= RegionFlags.BlockLandResell;
-            if (m_scene.RegionInfo.RegionSettings.DisableCollisions)
+            if (Scene.RegionInfo.RegionSettings.DisableCollisions)
                 flags |= RegionFlags.SkipCollisions;
-            if (m_scene.RegionInfo.RegionSettings.DisableScripts)
+            if (Scene.RegionInfo.RegionSettings.DisableScripts)
                 flags |= RegionFlags.SkipScripts;
-            if (m_scene.RegionInfo.RegionSettings.DisablePhysics)
+            if (Scene.RegionInfo.RegionSettings.DisablePhysics)
                 flags |= RegionFlags.SkipPhysics;
-            if (m_scene.RegionInfo.RegionSettings.BlockFly)
+            if (Scene.RegionInfo.RegionSettings.BlockFly)
                 flags |= RegionFlags.NoFly;
-            if (m_scene.RegionInfo.RegionSettings.RestrictPushing)
+            if (Scene.RegionInfo.RegionSettings.RestrictPushing)
                 flags |= RegionFlags.RestrictPushObject;
-            if (m_scene.RegionInfo.RegionSettings.AllowLandJoinDivide)
+            if (Scene.RegionInfo.RegionSettings.AllowLandJoinDivide)
                 flags |= RegionFlags.AllowParcelChanges;
-            if (m_scene.RegionInfo.RegionSettings.BlockShowInSearch)
+            if (Scene.RegionInfo.RegionSettings.BlockShowInSearch)
                 flags |= RegionFlags.BlockParcelSearch;
 
-            if (m_scene.RegionInfo.RegionSettings.FixedSun)
+            if (Scene.RegionInfo.RegionSettings.FixedSun)
                 flags |= RegionFlags.SunFixed;
-            if (m_scene.RegionInfo.RegionSettings.Sandbox)
+            if (Scene.RegionInfo.RegionSettings.Sandbox)
                 flags |= RegionFlags.Sandbox;
-            if (m_scene.RegionInfo.EstateSettings.AllowVoice)
+            if (Scene.RegionInfo.EstateSettings.AllowVoice)
                 flags |= RegionFlags.AllowVoice;
 
             // Fudge these to always on, so the menu options activate
@@ -1125,32 +1029,32 @@ namespace OpenSim.Region.CoreModules.World.Estate
         {
             RegionFlags flags = RegionFlags.None;
 
-            if (m_scene.RegionInfo.EstateSettings.FixedSun)
+            if (Scene.RegionInfo.EstateSettings.FixedSun)
                 flags |= RegionFlags.SunFixed;
-            if (m_scene.RegionInfo.EstateSettings.PublicAccess)
+            if (Scene.RegionInfo.EstateSettings.PublicAccess)
                 flags |= (RegionFlags.PublicAllowed |
                           RegionFlags.ExternallyVisible);
-            if (m_scene.RegionInfo.EstateSettings.AllowVoice)
+            if (Scene.RegionInfo.EstateSettings.AllowVoice)
                 flags |= RegionFlags.AllowVoice;
-            if (m_scene.RegionInfo.EstateSettings.AllowDirectTeleport)
+            if (Scene.RegionInfo.EstateSettings.AllowDirectTeleport)
                 flags |= RegionFlags.AllowDirectTeleport;
-            if (m_scene.RegionInfo.EstateSettings.DenyAnonymous)
+            if (Scene.RegionInfo.EstateSettings.DenyAnonymous)
                 flags |= RegionFlags.DenyAnonymous;
-            if (m_scene.RegionInfo.EstateSettings.DenyIdentified)
+            if (Scene.RegionInfo.EstateSettings.DenyIdentified)
                 flags |= RegionFlags.DenyIdentified;
-            if (m_scene.RegionInfo.EstateSettings.DenyTransacted)
+            if (Scene.RegionInfo.EstateSettings.DenyTransacted)
                 flags |= RegionFlags.DenyTransacted;
-            if (m_scene.RegionInfo.EstateSettings.AbuseEmailToEstateOwner)
+            if (Scene.RegionInfo.EstateSettings.AbuseEmailToEstateOwner)
                 flags |= RegionFlags.AbuseEmailToEstateOwner;
-            if (m_scene.RegionInfo.EstateSettings.BlockDwell)
+            if (Scene.RegionInfo.EstateSettings.BlockDwell)
                 flags |= RegionFlags.BlockDwell;
-            if (m_scene.RegionInfo.EstateSettings.EstateSkipScripts)
+            if (Scene.RegionInfo.EstateSettings.EstateSkipScripts)
                 flags |= RegionFlags.EstateSkipScripts;
-            if (m_scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
+            if (Scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
                 flags |= RegionFlags.ResetHomeOnTeleport;
-            if (m_scene.RegionInfo.EstateSettings.TaxFree)
+            if (Scene.RegionInfo.EstateSettings.TaxFree)
                 flags |= RegionFlags.TaxFree;
-            if (m_scene.RegionInfo.EstateSettings.DenyMinors)
+            if (Scene.RegionInfo.EstateSettings.DenyMinors)
                 flags |= (RegionFlags)(1 << 30);
 
             return (uint)flags;
@@ -1158,38 +1062,38 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public bool IsManager(UUID avatarID)
         {
-            if (avatarID == m_scene.RegionInfo.EstateSettings.EstateOwner)
+            if (avatarID == Scene.RegionInfo.EstateSettings.EstateOwner)
                 return true;
 
-            List<UUID> ems = new List<UUID>(m_scene.RegionInfo.EstateSettings.EstateManagers);
+            List<UUID> ems = new List<UUID>(Scene.RegionInfo.EstateSettings.EstateManagers);
             if (ems.Contains(avatarID))
                 return true;
 
             return false;
         }
 
-        protected void TriggerRegionInfoChange()
+        public void TriggerRegionInfoChange()
         {
             ChangeDelegate change = OnRegionInfoChange;
 
             if (change != null)
-                change(m_scene.RegionInfo.RegionID);
+                change(Scene.RegionInfo.RegionID);
         }
 
-        protected void TriggerEstateInfoChange()
+        public void TriggerEstateInfoChange()
         {
             ChangeDelegate change = OnEstateInfoChange;
 
             if (change != null)
-                change(m_scene.RegionInfo.RegionID);
+                change(Scene.RegionInfo.RegionID);
         }
 
-        protected void TriggerEstateMessage(UUID fromID, string fromName, string message)
+        public void TriggerEstateMessage(UUID fromID, string fromName, string message)
         {
             MessageDelegate onmessage = OnEstateMessage;
 
             if (onmessage != null)
-                onmessage(m_scene.RegionInfo.RegionID, fromID, fromName, message);
+                onmessage(Scene.RegionInfo.RegionID, fromID, fromName, message);
         }
     }
 }
