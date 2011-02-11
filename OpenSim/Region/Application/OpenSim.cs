@@ -1030,11 +1030,12 @@ namespace OpenSim
                         delegate(Scene scene)
                             {
                                 MainConsole.Instance.Output(String.Format(
-                                           "Region Name: {0}, Region XLoc: {1}, Region YLoc: {2}, Region Port: {3}",
+                                           "Region Name: {0}, Region XLoc: {1}, Region YLoc: {2}, Region Port: {3}, Estate Name: {4}",
                                            scene.RegionInfo.RegionName,
                                            scene.RegionInfo.RegionLocX,
                                            scene.RegionInfo.RegionLocY,
-                                           scene.RegionInfo.InternalEndPoint.Port));
+                                           scene.RegionInfo.InternalEndPoint.Port,
+                                           scene.RegionInfo.EstateSettings.EstateName));
                             });
                     break;
 
