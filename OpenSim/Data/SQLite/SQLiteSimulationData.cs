@@ -669,10 +669,6 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="globalID"></param>
         public void RemoveLandObject(UUID globalID)
         {
             lock (ds)
@@ -698,7 +694,6 @@ namespace OpenSim.Data.SQLite
                 if (landRow != null)
                 {
                     landRow.Delete();
-                    land.Rows.Remove(landRow);
                 }
                 List<DataRow> rowsToDelete = new List<DataRow>();
                 foreach (DataRow rowToCheck in landaccesslist.Rows)
@@ -709,7 +704,6 @@ namespace OpenSim.Data.SQLite
                 for (int iter = 0; iter < rowsToDelete.Count; iter++)
                 {
                     rowsToDelete[iter].Delete();
-                    landaccesslist.Rows.Remove(rowsToDelete[iter]);
                 }
             }
             Commit();
