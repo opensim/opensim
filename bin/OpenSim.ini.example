@@ -306,6 +306,9 @@
 [ODEPhysicsSettings]
     ;# {mesh_sculpted_prim} {[Startup]physics:OpenDynamicsEngine} {Mesh sculpties so they collide as they look?} {true false} true
     ;; Do we want to mesh sculpted prim to collide like they look?
+    ;; If you are seeing sculpt texture decode problems 
+    ;; (messages such as "Decoded image with unhandled number of components: 0 shortly followed by a physcs exception")
+    ;; then you might want to try setting this to false.
     ; mesh_sculpted_prim = true
 
     ;# {use_NINJA_physics_joints} {[Startup]physics:OpenDynamicsEngine} {Use jointed (NINJA) physics?} {true false} false
