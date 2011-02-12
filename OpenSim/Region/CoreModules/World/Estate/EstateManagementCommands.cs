@@ -30,20 +30,28 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Security;
+using System.Text;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
+using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.Estate
 {
+    /// <summary>
+    /// Estate management console commands.
+    /// </summary>
     public class EstateManagementCommands
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected EstateManagementModule m_module;
+        
+        protected Commander m_commander = new Commander("estate");
         
         public EstateManagementCommands(EstateManagementModule module)
         {
@@ -52,20 +60,60 @@ namespace OpenSim.Region.CoreModules.World.Estate
         
         public void Initialise()
         {            
-            m_module.Scene.AddCommand(this, "set terrain texture",
+            m_log.DebugFormat("[ESTATE MODULE]: Setting up estate commands for region {0}", m_module.Scene.RegionInfo.RegionName);
+            
+            m_module.Scene.AddCommand(m_module, "set terrain texture",
                                "set terrain texture <number> <uuid> [<x>] [<y>]",
                                "Sets the terrain <number> to <uuid>, if <x> or <y> are specified, it will only " +
                                "set it on regions with a matching coordinate. Specify -1 in <x> or <y> to wildcard" +
                                " that coordinate.",
                                consoleSetTerrainTexture);
 
-            m_module.Scene.AddCommand(this, "set terrain heights",
+            m_module.Scene.AddCommand(m_module, "set terrain heights",
                                "set terrain heights <corner> <min> <max> [<x>] [<y>]",
                                "Sets the terrain texture heights on corner #<corner> to <min>/<max>, if <x> or <y> are specified, it will only " +
                                "set it on regions with a matching coordinate. Specify -1 in <x> or <y> to wildcard" +
                                " that coordinate. Corner # SW = 0, NW = 1, SE = 2, NE = 3.",
                                consoleSetTerrainHeights);            
-        }          
+            
+            Command showCommand 
+                = new Command("show", CommandIntentions.COMMAND_STATISTICAL, ShowEstatesCommand, "Shows all estates on the simulator.");
+
+            m_commander.RegisterCommand("show", showCommand);
+
+            m_module.Scene.RegisterModuleCommander(m_commander);            
+            
+            m_module.Scene.EventManager.OnPluginConsole += EventManagerOnPluginConsole;
+        }       
+        
+        public void Close()
+        {
+            m_module.Scene.EventManager.OnPluginConsole -= EventManagerOnPluginConsole;
+            m_module.Scene.UnregisterModuleCommander(m_commander.Name);            
+        }
+        
+        /// <summary>
+        /// Processes commandline input. Do not call directly.
+        /// </summary>
+        /// <param name="args">Commandline arguments</param>
+        protected void EventManagerOnPluginConsole(string[] args)
+        {
+            if (args[0] == "estate")
+            {
+                if (args.Length == 1)
+                {
+                    m_commander.ProcessConsoleCommand("help", new string[0]);
+                    return;
+                }
+
+                string[] tmpArgs = new string[args.Length - 2];
+                int i;
+                for (i = 2; i < args.Length; i++)
+                    tmpArgs[i - 2] = args[i];
+
+                m_commander.ProcessConsoleCommand(args[1], tmpArgs);
+            }
+        }            
         
         protected void consoleSetTerrainTexture(string module, string[] args)
         {
@@ -152,5 +200,25 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 }
             }
         }     
+        
+        protected void ShowEstatesCommand(Object[] args)
+        {
+            StringBuilder report = new StringBuilder();  
+            RegionInfo ri = m_module.Scene.RegionInfo;
+            EstateSettings es = ri.EstateSettings;
+            
+            report.AppendFormat("Estate information for region {0}\n", ri.RegionName);            
+            report.AppendFormat(
+                "{0,-20} {1,-7} {2,-20}\n",
+                "Estate Name",
+                "ID",
+                "Owner");
+            
+            report.AppendFormat(
+                "{0,-20} {1,-7} {2,-20}\n", 
+                es.EstateName, es.EstateID, m_module.UserManager.GetUserName(es.EstateOwner));
+            
+            MainConsole.Instance.Output(report.ToString());
+        }         
     }
 }
