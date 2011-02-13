@@ -93,7 +93,7 @@ namespace OpenSim.Services.AssetService
 
             if (!UUID.TryParse(id, out assetID))
             {
-                m_log.WarnFormat("[ASSET SERVICE]: Could not parse requested sset id {0}", id);
+                m_log.WarnFormat("[ASSET SERVICE]: Could not parse requested asset id {0}", id);
                 return null;
             }
 
