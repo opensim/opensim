@@ -95,7 +95,15 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 "Show throttle settings for each client and for the server overall", 
                 "Without the 'full' option, only root agents are shown."
                   + "  With the 'full' option child agents are also shown.",                                          
-                ShowThrottlesReport);                             
+                ShowThrottlesReport);
+
+            scene.AddCommand(
+                this, "emergency-monitoring",
+                "Go on/off emergency monitoring mode",
+                "Go on/off emergency monitoring mode",
+                "Go on/off emergency monitoring mode",
+                EmergencyMonitoring);                             
+
         }
         
         public void RemoveRegion(Scene scene)
@@ -120,7 +128,25 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
         {
             MainConsole.Instance.Output(GetThrottlesReport(cmd));
         }
-        
+
+        protected void EmergencyMonitoring(string module, string[] cmd)
+        {
+            bool mode = true;
+            if (cmd.Length == 1 || (cmd.Length > 1 && cmd[1] == "on"))
+            {
+                mode = true;
+                MainConsole.Instance.Output("Emergency Monitoring ON");
+            }
+            else
+            {
+                mode = false;
+                MainConsole.Instance.Output("Emergency Monitoring OFF");
+            }
+
+            foreach (Scene s in m_scenes.Values)
+                s.EmergencyMonitoring = mode;
+        }
+
         protected string GetColumnEntry(string entry, int maxLength, int columnPadding)
         {                       
             return string.Format(
@@ -154,24 +180,26 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             report.Append(GetColumnEntry("Type", maxTypeLength, columnPadding));
             
             report.AppendFormat(
-                "{0,7} {1,7} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
+                "{0,7} {1,7} {2,7} {3,9} {4,7} {5,7} {6,7} {7,7} {8,7} {9,8} {10,7} {11,7}\n",
                 "Pkts",
                 "Pkts",
+                "Pkts",                                
                 "Bytes",
-                "Pkts",
-                "Pkts",
-                "Pkts",
-                "Pkts",
-                "Pkts",
-                "Pkts",
-                "Pkts",
-                "Pkts");
+                "Q Pkts",
+                "Q Pkts",
+                "Q Pkts",
+                "Q Pkts",
+                "Q Pkts",
+                "Q Pkts",
+                "Q Pkts",
+                "Q Pkts");
     
             report.AppendFormat("{0,-" + totalInfoFieldsLength +  "}", "");
             report.AppendFormat(
-                "{0,7} {1,7} {2,9} {3,8} {4,7} {5,7} {6,7} {7,7} {8,9} {9,7} {10,7}\n",
-                "Out",
+                "{0,7} {1,7} {2,7} {3,9} {4,7} {5,7} {6,7} {7,7} {8,7} {9,8} {10,7} {11,7}\n",
                 "In",
+                "Out",
+                "Resent",
                 "Unacked",
                 "Resend",
                 "Land",
@@ -333,7 +361,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             ThrottleRates throttleRates = udpServer.ThrottleRates;
             report.AppendFormat(
                 "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}",
-                "n/a",
+                (throttleRates.Total * 8) / 1000,
                 (throttleRates.ResendLimit * 8) / 1000,
                 (throttleRates.LandLimit * 8) / 1000,
                 (throttleRates.WindLimit * 8) / 1000,

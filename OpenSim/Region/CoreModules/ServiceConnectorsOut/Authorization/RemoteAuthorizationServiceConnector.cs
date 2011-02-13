@@ -139,7 +139,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
             
             if (scene != null)
             {
-                UserAccount account = scene.UserAccountService.GetUserAccount(UUID.Zero, userID);
+                UserAccount account = scene.UserAccountService.GetUserAccount(UUID.Zero, new UUID(userID));
                 isAuthorized = IsAuthorizedForRegion(userID, account.FirstName, account.LastName,
                     account.Email, scene.RegionInfo.RegionName, regionID, out message);
             }

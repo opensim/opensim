@@ -143,6 +143,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
+        public List<string>  GetStreamHandlerKeys()
+        {
+            return new List<string>(m_streamHandlers.Keys);
+        }
+
         private static string GetHandlerKey(string httpMethod, string path)
         {
             return httpMethod + ":" + path;
@@ -179,6 +184,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
+        public List<string> GetXmlRpcHandlerKeys()
+        {
+            return new List<string>(m_rpcHandlers.Keys);
+        }
+
         public bool AddHTTPHandler(string methodName, GenericHTTPMethod handler)
         {
             //m_log.DebugFormat("[BASE HTTP SERVER]: Registering {0}", methodName);
@@ -195,6 +205,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             //must already have a handler for that path so return false
             return false;
         }
+
+        public List<string> GetHTTPHandlerKeys()
+        {
+            return new List<string>(m_HTTPHandlers.Keys);
+        }
+
 
         public bool AddPollServiceHTTPHandler(string methodName, GenericHTTPMethod handler, PollServiceEventArgs args)
         {
@@ -214,6 +230,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             return false;
         }
 
+        public List<string> GetPollServiceHandlerKeys()
+        {
+            return new List<string>(m_pollHandlers.Keys);
+        }
+
+
         // Note that the agent string is provided simply to differentiate
         // the handlers - it is NOT required to be an actual agent header
         // value.
@@ -232,6 +254,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             return false;
         }
 
+        public List<string> GetAgentHandlerKeys()
+        {
+            return new List<string>(m_agentHandlers.Keys);
+        }
+
         public bool AddLLSDHandler(string path, LLSDMethod handler)
         {
             lock (m_llsdHandlers)
@@ -243,6 +270,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
             }
             return false;
+        }
+
+        public List<string> GetLLSDHandlerKeys()
+        {
+            return new List<string>(m_llsdHandlers.Keys);
         }
 
         public bool SetDefaultLLSDHandler(DefaultLLSDMethod handler)

@@ -26,12 +26,14 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Caps=OpenSim.Framework.Capabilities.Caps;
@@ -61,6 +63,9 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
         {
             m_scene = scene;
             m_scene.RegisterModuleInterface<ICapabilitiesModule>(this);
+            MainConsole.Instance.Commands.AddCommand("Capabilities", false, "show caps",
+                "show capabilities",
+                "Shows all  registered capabilities", CapabilitiesCommand);
         }
 
         public void RegionLoaded(Scene scene)
@@ -72,7 +77,9 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
             m_scene.UnregisterModuleInterface<ICapabilitiesModule>(this);
         }
         
-        public void PostInitialise() {}
+        public void PostInitialise() 
+        {
+        }
 
         public void Close() {}
 
@@ -225,6 +232,24 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
                 y = y / Constants.RegionSize;
                 m_log.Info(" >> "+x+", "+y+": "+kvp.Value);
             }
+        }
+
+        private void CapabilitiesCommand(string module, string[] cmdparams)
+        {
+            System.Text.StringBuilder caps = new System.Text.StringBuilder();
+            caps.AppendFormat("Region {0}:\n", m_scene.RegionInfo.RegionName);
+
+            foreach (KeyValuePair<UUID, Caps> kvp in m_capsHandlers)
+            {
+                caps.AppendFormat("** User {0}:\n", kvp.Key);
+                for (IDictionaryEnumerator kvp2 = kvp.Value.CapsHandlers.CapsDetails.GetEnumerator(); kvp2.MoveNext(); )
+                {
+                    Uri uri = new Uri(kvp2.Value.ToString());
+                    caps.AppendFormat("   {0} = {1}\n", kvp2.Key, uri.PathAndQuery);
+                }
+            }
+
+            MainConsole.Instance.Output(caps.ToString());
         }
     }
 }

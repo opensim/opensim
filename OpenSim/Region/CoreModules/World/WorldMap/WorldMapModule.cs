@@ -764,10 +764,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             if (!responseMap.ContainsKey(itemtype.ToString())) // remote sim doesnt have the stated region handle
             {
-                if (!m_blacklistedregions.ContainsKey(regionhandle))
+                m_log.DebugFormat("[WORLD MAP]: Remote sim does not have the stated region. Blacklisting.");
+                lock (m_blacklistedregions)
                 {
-                    m_log.DebugFormat("[WORLD MAP]: Remote sim does not have the stated region. Blacklisting.");
-                    m_blacklistedregions.Add(regionhandle, Environment.TickCount);
+                    if (!m_blacklistedregions.ContainsKey(regionhandle))
+                        m_blacklistedregions.Add(regionhandle, Environment.TickCount);
                 }
             }
 

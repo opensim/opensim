@@ -702,7 +702,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         // and convert the regionName to the target region
                         if (regionName.Contains(".") && regionName.Contains(":"))
                         {
-//                            List<GridRegion> regions = World.GridService.GetRegionsByName(World.RegionInfo.ScopeID, regionName, 1);
+                            // Even though we use none of the results, we need to perform this call because it appears
+                            // to have some the side effect of setting up hypergrid teleport locations.
+                            World.GridService.GetRegionsByName(World.RegionInfo.ScopeID, regionName, 1);
+//                            List<GridRegion> regions = World.GridService.GetRegionsByName(World.RegionInfo.ScopeID, regionName, 1);                            
+                            
                             string[] parts = regionName.Split(new char[] { ':' });
                             if (parts.Length > 2)
                                 regionName = parts[0] + ':' + parts[1] + "/ " + parts[2];

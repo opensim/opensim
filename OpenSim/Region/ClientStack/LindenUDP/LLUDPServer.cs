@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -506,7 +507,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     // Bump up the resend count on this packet
                     Interlocked.Increment(ref outgoingPacket.ResendCount);
-                    //Interlocked.Increment(ref Stats.ResentPackets);
 
                     // Requeue or resend the packet
                     if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, false))
@@ -582,6 +582,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     udpClient.NeedAcks.Add(outgoingPacket);
                 }
             }
+            else
+            {
+                Interlocked.Increment(ref udpClient.PacketsResent);
+            }
 
             #endregion Sequence Number Assignment
 
@@ -636,10 +640,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 object[] array = new object[] { buffer, packet };
 
-                if (m_asyncPacketHandling)
-                    Util.FireAndForget(HandleUseCircuitCode, array);
-                else
-                    HandleUseCircuitCode(array);
+                Util.FireAndForget(HandleUseCircuitCode, array);
 
                 return;
             }
@@ -856,10 +857,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Begin the process of adding the client to the simulator
             AddNewClient((UseCircuitCodePacket)packet, remoteEndPoint);
 
-            // Acknowledge the UseCircuitCode packet
+            // Send ack
             SendAckImmediate(remoteEndPoint, packet.Header.Sequence);
-            
-//            m_log.DebugFormat(
+
+            //            m_log.DebugFormat(
 //                "[LLUDPSERVER]: Handling UseCircuitCode request from {0} took {1}ms", 
 //                buffer.RemoteEndPoint, (DateTime.Now - startTime).Milliseconds);
         }
@@ -923,25 +924,32 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected virtual void AddClient(uint circuitCode, UUID agentID, UUID sessionID, IPEndPoint remoteEndPoint, AuthenticateResponse sessionInfo)
         {
-            // Create the LLUDPClient
-            LLUDPClient udpClient = new LLUDPClient(this, ThrottleRates, m_throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
-            IClientAPI existingClient;
-
-            if (!m_scene.TryGetClient(agentID, out existingClient))
+            // In priciple there shouldn't be more than one thread here, ever.
+            // But in case that happens, we need to synchronize this piece of code
+            // because it's too important
+            lock (this) 
             {
-                // Create the LLClientView
-                LLClientView client = new LLClientView(remoteEndPoint, m_scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
-                client.OnLogout += LogoutHandler;
+                IClientAPI existingClient;
 
-                client.DisableFacelights = m_disableFacelights;
+                if (!m_scene.TryGetClient(agentID, out existingClient))
+                {
+                    // Create the LLUDPClient
+                    LLUDPClient udpClient = new LLUDPClient(this, ThrottleRates, m_throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
+                    // Create the LLClientView
+                    LLClientView client = new LLClientView(remoteEndPoint, m_scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
+                    client.OnLogout += LogoutHandler;
 
-                // Start the IClientAPI
-                client.Start();
-            }
-            else
-            {
-                m_log.WarnFormat("[LLUDPSERVER]: Ignoring a repeated UseCircuitCode from {0} at {1} for circuit {2}",
-                    udpClient.AgentID, remoteEndPoint, circuitCode);
+                    client.DisableFacelights = m_disableFacelights;
+
+                    // Start the IClientAPI
+                    client.Start();
+
+                }
+                else
+                {
+                    m_log.WarnFormat("[LLUDPSERVER]: Ignoring a repeated UseCircuitCode from {0} at {1} for circuit {2}",
+                        existingClient.AgentId, remoteEndPoint, circuitCode);
+                }
             }
         }
 
@@ -1050,6 +1058,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     #endregion Update Timers
 
+                    // Use this for emergency monitoring -- bug hunting
+                    //if (m_scene.EmergencyMonitoring)
+                    //    clientPacketHandler = MonitoredClientOutgoingPacketHandler;
+                    //else
+                    //    clientPacketHandler = ClientOutgoingPacketHandler;
+
                     // Handle outgoing packets, resends, acknowledgements, and pings for each
                     // client. m_packetSent will be set to true if a packet is sent
                     m_scene.ForEachClient(clientPacketHandler);
@@ -1065,6 +1079,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     m_log.Error("[LLUDPSERVER]: OutgoingPacketHandler loop threw an exception: " + ex.Message, ex);
                 }
+
             }
 
             Watchdog.RemoveThread();
@@ -1101,6 +1116,112 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     " threw an exception: " + ex.Message, ex);
             }
         }
+
+        #region Emergency Monitoring
+        // Alternative packet handler fuull of instrumentation
+        // Handy for hunting bugs
+        private Stopwatch watch1 = new Stopwatch();
+        private Stopwatch watch2 = new Stopwatch();
+
+        private float avgProcessingTicks = 0;
+        private float avgResendUnackedTicks = 0;
+        private float avgSendAcksTicks = 0;
+        private float avgSendPingTicks = 0;
+        private float avgDequeueTicks = 0;
+        private long nticks = 0;
+        private long nticksUnack = 0;
+        private long nticksAck = 0;
+        private long nticksPing = 0;
+        private int npacksSent = 0;
+        private int npackNotSent = 0;
+
+        private void MonitoredClientOutgoingPacketHandler(IClientAPI client)
+        {
+            nticks++;
+            watch1.Start();
+            try
+            {
+                if (client is LLClientView)
+                {
+                    LLUDPClient udpClient = ((LLClientView)client).UDPClient;
+
+                    if (udpClient.IsConnected)
+                    {
+                        if (m_resendUnacked)
+                        {
+                            nticksUnack++;
+                            watch2.Start();
+
+                            ResendUnacked(udpClient);
+
+                            watch2.Stop();
+                            avgResendUnackedTicks = (nticksUnack - 1)/(float)nticksUnack * avgResendUnackedTicks + (watch2.ElapsedTicks / (float)nticksUnack);
+                            watch2.Reset();
+                        }
+
+                        if (m_sendAcks)
+                        {
+                            nticksAck++;
+                            watch2.Start();
+                            
+                            SendAcks(udpClient);
+
+                            watch2.Stop();
+                            avgSendAcksTicks = (nticksAck - 1) / (float)nticksAck * avgSendAcksTicks + (watch2.ElapsedTicks / (float)nticksAck);
+                            watch2.Reset();
+                        }
+
+                        if (m_sendPing)
+                        {
+                            nticksPing++;
+                            watch2.Start();
+                            
+                            SendPing(udpClient);
+
+                            watch2.Stop();
+                            avgSendPingTicks = (nticksPing - 1) / (float)nticksPing * avgSendPingTicks + (watch2.ElapsedTicks / (float)nticksPing);
+                            watch2.Reset();
+                        }
+
+                        watch2.Start();
+                        // Dequeue any outgoing packets that are within the throttle limits
+                        if (udpClient.DequeueOutgoing())
+                        {
+                            m_packetSent = true;
+                            npacksSent++;
+                        }
+                        else
+                            npackNotSent++;
+
+                        watch2.Stop();
+                        avgDequeueTicks = (nticks - 1) / (float)nticks * avgDequeueTicks + (watch2.ElapsedTicks / (float)nticks);
+                        watch2.Reset();
+
+                    }
+                    else
+                        m_log.WarnFormat("[LLUDPSERVER]: Client is not connected");
+                }
+            }
+            catch (Exception ex)
+            {
+                m_log.Error("[LLUDPSERVER]: OutgoingPacketHandler iteration for " + client.Name +
+                    " threw an exception: " + ex.Message, ex);
+            }
+            watch1.Stop();
+            avgProcessingTicks = (nticks - 1) / (float)nticks * avgProcessingTicks + (watch1.ElapsedTicks / (float)nticks);
+            watch1.Reset();
+
+            // reuse this -- it's every ~100ms
+            if (m_scene.EmergencyMonitoring && nticks % 100 == 0)
+            {
+                m_log.InfoFormat("[LLUDPSERVER]: avg processing ticks: {0} avg unacked: {1} avg acks: {2} avg ping: {3} avg dequeue: {4} (TickCountRes: {5} sent: {6} notsent: {7})", 
+                    avgProcessingTicks, avgResendUnackedTicks, avgSendAcksTicks, avgSendPingTicks, avgDequeueTicks, TickCountResolution, npacksSent, npackNotSent);
+                npackNotSent = npacksSent = 0;
+            }
+
+        }
+
+        #endregion 
 
         private void ProcessInPacket(object state)
         {

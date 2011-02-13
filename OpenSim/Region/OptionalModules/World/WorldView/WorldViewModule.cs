@@ -71,6 +71,9 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
 
         public void RegionLoaded(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
             m_Generator = scene.RequestModuleInterface<IMapImageGenerator>();
             if (m_Generator == null)
             {

@@ -46,12 +46,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
     public class RestInventoryServices : IRest
     {
 //        private static readonly int PARM_USERID = 0;
-        private static readonly int PARM_PATH   = 1;
+//        private static readonly int PARM_PATH   = 1;
 
 //        private bool       enabled = false;
         private string     qPrefix = "inventory";
 
-        private static readonly string PRIVATE_ROOT_NAME = "My Inventory";
+//        private static readonly string PRIVATE_ROOT_NAME = "My Inventory";
 
         /// <summary>
         /// The constructor makes sure that the service prefix is absolute
