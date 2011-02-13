@@ -472,7 +472,7 @@ namespace OpenSim.Region.Framework.Scenes
                         SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
                         if (part != null)
                         {
-                            return m_parentPosition + (m_pos * part.RotationOffset);
+                            return m_parentPosition + (m_pos * part.GetWorldRotation());
                         }
                         else
                         {
