@@ -2099,7 +2099,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             Quaternion newRot;
 
-            if (this.LinkNum == 0)
+            if (this.LinkNum == 0 || this.LinkNum == 1)
             {
                 newRot = RotationOffset;
             }
