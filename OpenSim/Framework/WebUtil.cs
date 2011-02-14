@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Security;
@@ -557,34 +558,27 @@ namespace OpenSim.Framework
             {
                 float qx = GetQ(x);
                 float qy = GetQ(y);
-                if (qx < qy)
-                    return -1;
-                if (qx == qy)
-                    return 0;
-                return 1;
+                return qy.CompareTo(qx); // descending order
             }
 
             private float GetQ(Object o)
             {
                 // Example: image/png;q=0.9
 
+                float qvalue = 1F;
                 if (o is String)
                 {
                     string mime = (string)o;
-                    string[] parts = mime.Split(new char[] { ';' });
+                    string[] parts = mime.Split(';');
                     if (parts.Length > 1)
                     {
-                        string[] kvp = parts[1].Split(new char[] { '=' });
+                        string[] kvp = parts[1].Split('=');
                         if (kvp.Length == 2 && kvp[0] == "q")
-                        {
-                            float qvalue = 1F;
-                            float.TryParse(kvp[1], out qvalue);
-                            return qvalue;
-                        }
+                            float.TryParse(kvp[1], NumberStyles.Number, CultureInfo.InvariantCulture, out qvalue);
                     }
                 }
 
-                return 1F;
+                return qvalue;
             }
         }
 
