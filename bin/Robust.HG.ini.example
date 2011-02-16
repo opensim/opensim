@@ -72,7 +72,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     AssetService = "OpenSim.Services.AssetService.dll:AssetService"
 
     ;; Directory for map tile images of linked regions
-    ; MapTileDirectory = "./"
+    ; MapTileDirectory = "./maptiles"
  
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegionName> = "<flags>"
