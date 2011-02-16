@@ -43,7 +43,7 @@
     ;AllowHypergridMapSearch = true
 
     ;; Directory for map tile images of linked regions
-    ; MapTileDirectory = "./"
+    ; MapTileDirectory = "./maptiles"
 
 [AvatarService]
     ;
