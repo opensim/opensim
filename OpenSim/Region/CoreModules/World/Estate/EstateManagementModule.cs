@@ -32,6 +32,7 @@ using System.Reflection;
 using System.Security;
 using System.Timers;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -40,7 +41,8 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.Estate
 {
-    public class EstateManagementModule : IEstateModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "EstateManagementModule")]
+    public class EstateManagementModule : IEstateModule, INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -48,8 +50,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private Timer m_regionChangeTimer = new Timer();
         public Scene Scene { get; private set; }
+        public IUserManagement UserManager { get; private set; }
         
-        protected EstateManagementCommands m_commands;
+        protected EstateManagementCommands m_commands;                
 
         private EstateTerrainXferHandler TerrainUploader;
 
@@ -909,9 +912,15 @@ namespace OpenSim.Region.CoreModules.World.Estate
         #endregion
 
         #region IRegionModule Members
+        
+        public string Name { get { return "EstateManagementModule"; } }
+        
+        public Type ReplaceableInterface { get { return null; } }        
 
-        public void Initialise(Scene scene, IConfigSource source)
-        {            
+        public void Initialise(IConfigSource source) {}
+        
+        public void AddRegion(Scene scene)
+        {
             m_regionChangeTimer.AutoReset = false;
             m_regionChangeTimer.Interval = 2000;
             m_regionChangeTimer.Elapsed += RaiseRegionInfoChange;
@@ -924,26 +933,21 @@ namespace OpenSim.Region.CoreModules.World.Estate
             m_commands = new EstateManagementCommands(this);
             m_commands.Initialise();
         }
-
-        public void PostInitialise()
+        
+        public void RemoveRegion(Scene scene) {}            
+        
+        public void RegionLoaded(Scene scene)
         {
             // Sets up the sun module based no the saved Estate and Region Settings
             // DO NOT REMOVE or the sun will stop working
-            Scene.TriggerEstateSunUpdate();
+            scene.TriggerEstateSunUpdate();
+            
+            UserManager = scene.RequestModuleInterface<IUserManagement>();            
         }
 
-        public void Close()
+        public void Close() 
         {
-        }
-
-        public string Name
-        {
-            get { return "EstateManagementModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
+            m_commands.Close();
         }
 
         #endregion

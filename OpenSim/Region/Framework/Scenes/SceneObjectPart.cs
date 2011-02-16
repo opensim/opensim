@@ -2142,7 +2142,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             Quaternion newRot;
 
-            if (this.LinkNum < 2)			//KF Single or root prim
+            if (this.LinkNum == 0 || this.LinkNum == 1)
             {
                 newRot = RotationOffset;
             }

@@ -244,7 +244,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[ENTITY TRANSFER MODULE]: Exception on teleport: {0}\n{1}", e.Message, e.StackTrace);
+                m_log.WarnFormat("[ENTITY TRANSFER MODULE]: Exception on teleport: {0} {1}", e.Message, e.StackTrace);
                 sp.ControllingClient.SendTeleportFailed("Internal error");
             }
         }

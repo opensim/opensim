@@ -877,9 +877,7 @@ namespace OpenSim
         /// <summary>
         /// Load the estate information for the provided RegionInfo object.
         /// </summary>
-        /// <param name="regInfo">
-        /// A <see cref="RegionInfo"/>
-        /// </param>
+        /// <param name="regInfo"></param>
         public void PopulateRegionEstateInfo(RegionInfo regInfo)
         {
             IEstateDataService estateDataService = EstateDataService;
@@ -901,7 +899,13 @@ namespace OpenSim
                         regInfo.EstateSettings = estateDataService.LoadEstateSettings(regInfo.RegionID, true);
 
                         regInfo.EstateSettings.EstateName = MainConsole.Instance.CmdPrompt("New estate name", regInfo.EstateSettings.EstateName);
-                        //regInfo.EstateSettings.Save();
+                        
+                        // FIXME: Later on, the scene constructor will reload the estate settings no matter what.
+                        // Therefore, we need to do an initial save here otherwise the new estate name will be reset
+                        // back to the default.  The reloading of estate settings by scene could be eliminated if it
+                        // knows that the passed in settings in RegionInfo are already valid.  Also, it might be 
+                        // possible to eliminate some additional later saves made by callers of this method.
+                        regInfo.EstateSettings.Save();
                         break;
                     }
                     else
