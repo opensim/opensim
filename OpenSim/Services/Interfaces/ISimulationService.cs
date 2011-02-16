@@ -60,7 +60,7 @@ namespace OpenSim.Services.Interfaces
 
         bool RetrieveAgent(GridRegion destination, UUID id, out IAgentData agent);
 
-        bool QueryAccess(GridRegion destination, UUID id, Vector3 position);
+        bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string reason);
 
         /// <summary>
         /// Message from receiving region to departing region, telling it got contacted by the client.

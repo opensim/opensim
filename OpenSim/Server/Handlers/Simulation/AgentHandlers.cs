@@ -346,10 +346,17 @@ namespace OpenSim.Server.Handlers.Simulation
             GridRegion destination = new GridRegion();
             destination.RegionID = regionID;
 
-            bool result = m_SimulationService.QueryAccess(destination, id, position);
+            string reason;
+            bool result = m_SimulationService.QueryAccess(destination, id, position, out reason);
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
-            responsedata["str_response_string"] = result.ToString();
+
+            OSDMap resp = new OSDMap(2);
+
+            resp["success"] = OSD.FromBoolean(result);
+            resp["reason"] = OSD.FromString(reason);
+
+            responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp);
         }
 
         protected virtual void DoAgentGet(Hashtable request, Hashtable responsedata, UUID id, UUID regionID)

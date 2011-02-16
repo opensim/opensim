@@ -285,9 +285,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     return;
                 }
 
-                if (!m_aScene.SimulationService.QueryAccess(finalDestination, sp.ControllingClient.AgentId, Vector3.Zero))
+                string reason;
+                if (!m_aScene.SimulationService.QueryAccess(finalDestination, sp.ControllingClient.AgentId, Vector3.Zero, out reason))
                 {
-                    sp.ControllingClient.SendTeleportFailed("The destination region has refused access");
+                    sp.ControllingClient.SendTeleportFailed("Teleport failed: " + reason);
                     return;
                 }
 
@@ -323,8 +324,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     // brand new agent, let's create a new caps seed
                     agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
                 }
-
-                string reason = String.Empty;
 
                 // Let's create an agent there if one doesn't exist yet. 
                 bool logout = false;
@@ -797,7 +796,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             GridRegion neighbourRegion = scene.GridService.GetRegionByPosition(scene.RegionInfo.ScopeID, (int)x, (int)y);
 
-            if (!scene.SimulationService.QueryAccess(neighbourRegion, agent.ControllingClient.AgentId, newpos))
+            string reason;
+            if (!scene.SimulationService.QueryAccess(neighbourRegion, agent.ControllingClient.AgentId, newpos, out reason))
             {
                 agent.ControllingClient.SendAlertMessage("Cannot region cross into banned parcel");
                 if (r == null)

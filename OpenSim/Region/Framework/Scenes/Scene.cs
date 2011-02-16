@@ -5145,9 +5145,9 @@ namespace OpenSim.Region.Framework.Scenes
         // from logging into the region, teleporting into the region
         // or corssing the broder walking, but will NOT prevent
         // child agent creation, thereby emulating the SL behavior.
-        public bool QueryAccess(UUID agentID, Vector3 position)
+        public bool QueryAccess(UUID agentID, Vector3 position, out string reason)
         {
-            string reason;
+            reason = "You are banned from the region";
 
             if (!AuthorizeUser(agentID, out reason))
             {
@@ -5178,6 +5178,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (banned || restricted)
                     return false;
             }
+
+            reason = String.Empty;
             return true;
         }
     }

@@ -257,15 +257,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return false;
         }
 
-        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position)
+        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string reason)
         {
+            reason = "Communications failure";
             if (destination == null)
                 return false;
 
             foreach (Scene s in m_sceneList)
             {
                 if (s.RegionInfo.RegionID == destination.RegionID)
-                    return s.QueryAccess(id, position);
+                    return s.QueryAccess(id, position, out reason);
             }
             return false;
         }
