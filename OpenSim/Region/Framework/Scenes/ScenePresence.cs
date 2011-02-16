@@ -123,7 +123,6 @@ namespace OpenSim.Region.Framework.Scenes
         private SceneObjectGroup proxyObjectGroup;
         //private SceneObjectPart proxyObjectPart = null;
         public Vector3 lastKnownAllowedPosition;
-        public bool sentMessageAboutRestrictedParcelFlyingDown;
         public Vector4 CollisionPlane = Vector4.UnitW;
         
 		private Vector3 m_avInitialPos;		// used to calculate unscripted sit rotation

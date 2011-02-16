@@ -163,13 +163,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_scene.UnregisterModuleCommander(m_commander.Name);            
         }
 
-//        private bool OnVerifyUserConnection(ScenePresence scenePresence, out string reason)
-//        {
-//            ILandObject nearestParcel = m_scene.GetNearestAllowedParcel(scenePresence.UUID, scenePresence.AbsolutePosition.X, scenePresence.AbsolutePosition.Y);
-//            reason = "You are not allowed to enter this sim.";
-//            return nearestParcel != null;
-//        }
-        
         /// <summary>
         /// Processes commandline input. Do not call directly.
         /// </summary>
@@ -364,31 +357,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
 
                 if (parcelAvatarIsEntering != null)
-                {
-                    if (avatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT)
-                    {
-                        if (parcelAvatarIsEntering.IsEitherBannedOrRestricted(avatar.UUID))
-                        {
-                            SendYouAreBannedNotice(avatar);
-                            ForceAvatarToPosition(avatar, avatar.lastKnownAllowedPosition);
-                            //ForceAvatarToPosition(avatar, m_scene.GetNearestAllowedPosition(avatar));
-                        }
-                        else if (parcelAvatarIsEntering.IsRestrictedFromLand(avatar.UUID))
-                        {
-                            SendYouAreRestrictedNotice(avatar);
-                            ForceAvatarToPosition(avatar, avatar.lastKnownAllowedPosition);
-                            //ForceAvatarToPosition(avatar, m_scene.GetNearestAllowedPosition(avatar));
-                        }
-                        else
-                        {
-                            avatar.sentMessageAboutRestrictedParcelFlyingDown = true;
-                        }
-                    }
-                    else
-                    {
-                        avatar.sentMessageAboutRestrictedParcelFlyingDown = true;
-                    }
-                }
+                    EnforceBans(parcelAvatarIsEntering, avatar);
             }
         }
 
@@ -460,32 +429,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 SendOutNearestBanLine(remote_client);
                 ILandObject parcel = GetLandObject(clientAvatar.AbsolutePosition.X, clientAvatar.AbsolutePosition.Y);
                 if (parcel != null)
-                {
-                    if (clientAvatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT &&
-                        clientAvatar.sentMessageAboutRestrictedParcelFlyingDown)
-                    {
-                        EventManagerOnAvatarEnteringNewParcel(clientAvatar, parcel.LandData.LocalID,
-                                                              m_scene.RegionInfo.RegionID);
-                        //They are going under the safety line!
-                        if (!parcel.IsBannedFromLand(clientAvatar.UUID))
-                        {
-                            clientAvatar.sentMessageAboutRestrictedParcelFlyingDown = false;
-                        }
-                    }
-                    else if (clientAvatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT &&
-                             parcel.IsBannedFromLand(clientAvatar.UUID))
-                    {
-                        // SendYouAreBannedNotice(clientAvatar);
-                        //ForceAvatarToPosition(clientAvatar, m_scene.GetNearestAllowedPosition(clientAvatar));
-                        ForceAvatarToPosition(clientAvatar, clientAvatar.lastKnownAllowedPosition);
-                    }
-                    else if (parcel.IsRestrictedFromLand(clientAvatar.UUID))
-                    {
-                        // SendYouAreRestrictedNotice(clientAvatar);
-                        //ForceAvatarToPosition(clientAvatar, m_scene.GetNearestAllowedPosition(clientAvatar));
-                        ForceAvatarToPosition(clientAvatar, clientAvatar.lastKnownAllowedPosition);
-                    }
-                }
+                    EnforceBans(parcel, clientAvatar);
             }
         }
 
@@ -2005,5 +1949,27 @@ namespace OpenSim.Region.CoreModules.World.Land
             
             MainConsole.Instance.Output(report.ToString());
         }         
+
+        public void EnforceBans(ILandObject land, ScenePresence avatar)
+        {
+            if (avatar.AbsolutePosition.Z > LandChannel.BAN_LINE_SAFETY_HIEGHT)
+                return;
+
+            if (land.IsEitherBannedOrRestricted(avatar.UUID))
+            {
+                if (land.ContainsPoint(Convert.ToInt32(avatar.lastKnownAllowedPosition.X), Convert.ToInt32(avatar.lastKnownAllowedPosition.Y)))
+                {
+                    Vector3? pos = m_scene.GetNearestAllowedPosition(avatar);
+                    if (pos == null)
+                        m_scene.TeleportClientHome(avatar.UUID, avatar.ControllingClient);
+                    else
+                        ForceAvatarToPosition(avatar, (Vector3)pos);
+                }
+                else
+                {
+                    ForceAvatarToPosition(avatar, avatar.lastKnownAllowedPosition);
+                }
+            }
+        }
     }
 }
