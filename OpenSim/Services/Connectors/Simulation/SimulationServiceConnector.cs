@@ -274,7 +274,11 @@ namespace OpenSim.Services.Connectors.Simulation
             try
             {
                 OSDMap result = WebUtil.ServiceOSDRequest(uri, request, "QUERYACCESS", 10000);
-                bool success = result["Success"].AsBoolean();
+                bool success = result["success"].AsBoolean();
+                reason = result["reason"].AsString();
+
+                //m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1}", uri, success);
+
                 if (!success)
                 {
                     if (result.ContainsKey("Message"))
@@ -295,10 +299,6 @@ namespace OpenSim.Services.Connectors.Simulation
 
                     return false;
                 }
-
-                OSDMap resp = (OSDMap)result["_Result"];
-                success = resp["success"].AsBoolean();
-                reason = resp["reason"].AsString();
 
                 return success;
             }
