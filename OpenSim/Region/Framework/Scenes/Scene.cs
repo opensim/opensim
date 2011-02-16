@@ -4923,8 +4923,9 @@ namespace OpenSim.Region.Framework.Scenes
         // from logging into the region, teleporting into the region
         // or corssing the broder walking, but will NOT prevent
         // child agent creation, thereby emulating the SL behavior.
-        public bool QueryAccess(UUID agentID, Vector3 position)
+        public bool QueryAccess(UUID agentID, Vector3 position, out string reason)
         {
+            reason = String.Empty;
             return true;
         }
     }

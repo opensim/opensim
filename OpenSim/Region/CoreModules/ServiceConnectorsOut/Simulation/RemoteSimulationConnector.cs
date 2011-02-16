@@ -239,18 +239,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         }
 
-        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position)
+        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string reason)
         {
+            reason = "Communications failure";
             if (destination == null)
                 return false;
 
             // Try local first
-            if (m_localBackend.QueryAccess(destination, id, position))
+            if (m_localBackend.QueryAccess(destination, id, position, out reason))
                 return true;
 
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
-                return m_remoteConnector.QueryAccess(destination, id, position);
+                return m_remoteConnector.QueryAccess(destination, id, position, out reason);
 
             return false;
 
