@@ -2652,8 +2652,11 @@ namespace OpenSim.Region.Framework.Scenes
         #region Border Crossing Methods
 
         /// <summary>
-        /// Checks to see if the avatar is in range of a border and calls CrossToNewRegion
+        /// Starts the process of moving an avatar into another region if they are crossing the border.
         /// </summary>
+        /// <remarks>
+        /// Also removes the avatar from the physical scene if transit has started.
+        /// </remarks>
         protected void CheckForBorderCrossing()
         {
             if (IsChildAgent)
@@ -2720,7 +2723,6 @@ namespace OpenSim.Region.Framework.Scenes
                     needsTransit = true;
                     neighbor = HaveNeighbor(Cardinals.N, ref fix);
                 }
-
 
                 // Makes sure avatar does not end up outside region
                 if (neighbor <= 0)
@@ -2794,6 +2796,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Checks whether this region has a neighbour in the given direction.
+        /// </summary>
+        /// <param name="car"></param>
+        /// <param name="fix"></param>
+        /// <returns>
+        /// An integer which represents a compass point.  N == 1, going clockwise until we reach NW == 8.
+        /// Returns a positive integer if there is a region in that direction, a negative integer if not.
+        /// </returns>
         protected int HaveNeighbor(Cardinals car, ref int[] fix)
         {
             uint neighbourx = m_regionInfo.RegionLocX;
