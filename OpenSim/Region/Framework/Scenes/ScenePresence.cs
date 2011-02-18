@@ -1161,7 +1161,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_agentTransfer != null)
                     m_agentTransfer.EnableChildAgents(this);
                 else
-                    m_log.DebugFormat("[SCENE PRESENCE]: Unable to create child agents in neighbours, because AgentTransferModule is not active");
+                    m_log.DebugFormat(
+                        "[SCENE PRESENCE]: Unable to create child agents in neighbours, because AgentTransferModule is not active for region {0}", 
+                        m_scene.RegionInfo.RegionName);
 
                 IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
                 if (friendsModule != null)
