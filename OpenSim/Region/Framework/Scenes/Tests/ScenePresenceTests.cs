@@ -116,9 +116,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             agent.ChildrenCapSeeds = new Dictionary<ulong, string>();
             agent.child = true;
 
-            if (scene.PresenceService == null)
-                Console.WriteLine("Presence Service is null");
-
             scene.PresenceService.LoginAgent(agent.AgentID.ToString(), agent.SessionID, agent.SecureSessionID);
 
             string reason;
