@@ -49,7 +49,7 @@ using OpenSim.Tests.Common.Setup;
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
     /// <summary>
-    /// Scene presence tests
+    /// Attachment tests
     /// </summary>
     [TestFixture]
     public class AttachmentTests
@@ -86,13 +86,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             region2 = scene2.RegionInfo.RegionHandle;
             
             SceneSetupHelpers.AddRootAgent(scene, agent1);
-        }
-        
-        [TearDown]
-        public void TearDown()
-        {
-            if (MainServer.Instance != null) MainServer.Instance.Stop();
-        }        
+        }     
         
         [Test]
         public void T030_TestAddAttachments()
