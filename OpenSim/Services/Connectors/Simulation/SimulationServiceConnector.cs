@@ -185,7 +185,7 @@ namespace OpenSim.Services.Connectors.Simulation
             }
 
             // unreachable
-            return true;
+//            return true;
         }
 
         /// <summary>
