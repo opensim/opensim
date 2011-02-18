@@ -172,25 +172,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             Assert.That(neighbours.Count, Is.EqualTo(2));
         }
-        
-        public void fixNullPresence()
-        {
-            string firstName = "testfirstname";
-
-            AgentCircuitData agent = new AgentCircuitData();
-            agent.AgentID = agent1;
-            agent.firstname = firstName;
-            agent.lastname = "testlastname";
-            agent.SessionID = UUID.Zero;
-            agent.SecureSessionID = UUID.Zero;
-            agent.circuitcode = 123;
-            agent.BaseFolder = UUID.Zero;
-            agent.InventoryFolder = UUID.Zero;
-            agent.startpos = Vector3.Zero;
-            agent.CapsPath = GetRandomCapsObjectPath();
-
-            acd1 = agent;
-        }
 
         [Test]
         public void T013_TestRemoveNeighbourRegion()
@@ -207,6 +188,28 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             presence.MakeRootAgent;
             CompleteAvatarMovement
             */
+        }
+        
+        /// <summary>
+        /// Test that if a root agent logs into a region, a child agent is also established in the neighbouring region
+        /// </summary>
+        /// <remarks>
+        /// Please note that unlike the other tests here, this doesn't rely on structures
+        /// </remarks>
+        [Test]
+        public void TestChildAgentEstablished()
+        {
+            UUID agent1Id = UUID.Parse("00000000-0000-0000-0000-000000000001");
+            
+            TestScene myScene1 = SceneSetupHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
+            TestScene myScene2 = SceneSetupHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000);            
+            
+            SceneSetupHelpers.AddRootAgent(myScene1, agent1Id);
+            ScenePresence childPresence = myScene2.GetScenePresence(agent1);
+            
+            // TODO: Need to do a fair amount of work to allow synchronous establishment of child agents
+//            Assert.That(childPresence, Is.Not.Null);
+//            Assert.That(childPresence.IsChildAgent, Is.True);
         }
 
         // I'm commenting this test, because this is not supposed to happen here
@@ -330,7 +333,26 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(presence2.IsChildAgent, Is.True, "Did not return from region as expected.");
             Assert.That(presence.IsChildAgent, Is.False, "Presence was not made root in old region again.");
         }
+        
+        public void fixNullPresence()
+        {
+            string firstName = "testfirstname";
 
+            AgentCircuitData agent = new AgentCircuitData();
+            agent.AgentID = agent1;
+            agent.firstname = firstName;
+            agent.lastname = "testlastname";
+            agent.SessionID = UUID.Zero;
+            agent.SecureSessionID = UUID.Zero;
+            agent.circuitcode = 123;
+            agent.BaseFolder = UUID.Zero;
+            agent.InventoryFolder = UUID.Zero;
+            agent.startpos = Vector3.Zero;
+            agent.CapsPath = GetRandomCapsObjectPath();
+
+            acd1 = agent;
+        }
+        
         public static string GetRandomCapsObjectPath()
         {
             UUID caps = UUID.Random();

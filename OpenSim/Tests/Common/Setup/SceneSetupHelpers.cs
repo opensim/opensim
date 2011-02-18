@@ -504,12 +504,10 @@ namespace OpenSim.Tests.Common.Setup
             TestClient client = new TestClient(agentData, scene);
             scene.AddNewClient(client);
 
-            // Stage 3: Invoke agent crossing, which converts the child agent into a root agent (with appearance,
-            // inventory, etc.)
-            //scene.AgentCrossing(agentData.AgentID, new Vector3(90, 90, 90), false); OBSOLETE
-
+            // Stage 3: Complete the entrance into the region.  This converts the child agent into a root agent.
             ScenePresence scp = scene.GetScenePresence(agentData.AgentID);
-            scp.MakeRootAgent(new Vector3(90, 90, 90), true);
+            scp.CompleteMovement(client);
+            //scp.MakeRootAgent(new Vector3(90, 90, 90), true);
 
             return client;
         }
