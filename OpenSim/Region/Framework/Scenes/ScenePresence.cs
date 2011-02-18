@@ -2776,6 +2776,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
+                // We must remove the agent from the physical scene if it has been placed in transit.  If we don't,
+                // then this method continues to be called from ScenePresence.Update() until the handover of the client between
+                // regions is completed.  Since this handover can take more than 1000ms (due to the 1000ms
+                // event queue polling response from the server), this results in the avatar pausing on the border
+                // for the handover period.
+                RemoveFromPhysicalScene();
+                
                 // This constant has been inferred from experimentation
                 // I'm not sure what this value should be, so I tried a few values.
                 timeStep = 0.04f;
