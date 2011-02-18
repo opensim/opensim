@@ -331,12 +331,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(presence.IsChildAgent, Is.False, "Presence was not made root in old region again.");
         }
 
-        [TearDown]
-        public void TearDown()
-        {
-            if (MainServer.Instance != null) MainServer.Instance.Stop();
-        }
-
         public static string GetRandomCapsObjectPath()
         {
             UUID caps = UUID.Random();
