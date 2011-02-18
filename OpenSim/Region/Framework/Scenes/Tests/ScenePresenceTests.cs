@@ -331,56 +331,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(presence.IsChildAgent, Is.False, "Presence was not made root in old region again.");
         }
 
-        [Test]
-        public void T030_TestAddAttachments()
-        {
-            TestHelper.InMethod();
-
-            ScenePresence presence = scene.GetScenePresence(agent1);
-
-            presence.AddAttachment(sog1);
-            presence.AddAttachment(sog2);
-            presence.AddAttachment(sog3);
-
-            Assert.That(presence.HasAttachments(), Is.True);
-            Assert.That(presence.ValidateAttachments(), Is.True);
-        }
-
-        [Test]
-        public void T031_RemoveAttachments()
-        {
-            TestHelper.InMethod();
-
-            ScenePresence presence = scene.GetScenePresence(agent1);
-            presence.RemoveAttachment(sog1);
-            presence.RemoveAttachment(sog2);
-            presence.RemoveAttachment(sog3);
-            Assert.That(presence.HasAttachments(), Is.False);
-        }
-
-        // I'm commenting this test because scene setup NEEDS InventoryService to 
-        // be non-null
-        //[Test]
-        public void T032_CrossAttachments()
-        {
-            TestHelper.InMethod();
-
-            ScenePresence presence = scene.GetScenePresence(agent1);
-            ScenePresence presence2 = scene2.GetScenePresence(agent1);
-            presence2.AddAttachment(sog1);
-            presence2.AddAttachment(sog2);
-
-            ISharedRegionModule serialiser = new SerialiserModule();
-            SceneSetupHelpers.SetupSceneModules(scene, new IniConfigSource(), serialiser);
-            SceneSetupHelpers.SetupSceneModules(scene2, new IniConfigSource(), serialiser);
-
-            Assert.That(presence.HasAttachments(), Is.False, "Presence has attachments before cross");
-
-            //Assert.That(presence2.CrossAttachmentsIntoNewRegion(region1, true), Is.True, "Cross was not successful");
-            Assert.That(presence2.HasAttachments(), Is.False, "Presence2 objects were not deleted");
-            Assert.That(presence.HasAttachments(), Is.True, "Presence has not received new objects");
-        }
-
         [TearDown]
         public void TearDown()
         {
