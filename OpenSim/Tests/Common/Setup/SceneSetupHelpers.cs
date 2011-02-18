@@ -164,10 +164,10 @@ namespace OpenSim.Tests.Common.Setup
             TestScene testScene = new TestScene(
                 regInfo, acm, scs, simDataService, estateDataService, null, false, false, false, configSource, null);
 
-            INonSharedRegionModule capsModule = new CapabilitiesModule();
-            capsModule.Initialise(new IniConfigSource());
-            testScene.AddRegionModule(capsModule.Name, capsModule);
-            capsModule.AddRegion(testScene);
+//            INonSharedRegionModule capsModule = new CapabilitiesModule();
+//            capsModule.Initialise(new IniConfigSource());
+//            testScene.AddRegionModule(capsModule.Name, capsModule);
+//            capsModule.AddRegion(testScene);
 
             IRegionModule godsModule = new GodsModule();
             godsModule.Initialise(testScene, new IniConfigSource());
