@@ -222,25 +222,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 //            Assert.That(childPresence.IsChildAgent, Is.True);
         }
 
-        // I'm commenting this test, because this is not supposed to happen here
-        //[Test]
-        public void T020_TestMakeRootAgent()
-        {
-            TestHelper.InMethod();
-
-            ScenePresence presence = scene.GetScenePresence(agent1);
-            Assert.That(presence.IsChildAgent, Is.False, "Starts out as a root agent");
-
-            presence.MakeChildAgent();
-            Assert.That(presence.IsChildAgent, Is.True, "Did not change to child agent after MakeChildAgent");
-
-            // Accepts 0 but rejects Constants.RegionSize
-            Vector3 pos = new Vector3(0,unchecked(Constants.RegionSize-1),0);
-            presence.MakeRootAgent(pos,true);
-            Assert.That(presence.IsChildAgent, Is.False, "Did not go back to root agent");
-            Assert.That(presence.AbsolutePosition, Is.EqualTo(pos), "Position is not the same one entered");
-        }
-
         // I'm commenting this test because it does not represent
         // crossings. The Thread.Sleep's in here are not meaningful mocks,
         // and they sometimes fail in panda.
