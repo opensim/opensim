@@ -131,7 +131,16 @@ namespace OpenSim.Region.Framework.Scenes
         protected ICapabilitiesModule m_capsModule;
         // Central Update Loop
         protected int m_fps = 10;
-        protected uint m_frame;
+
+        /// <summary>
+        /// Current scene frame number
+        /// </summary>
+        public uint Frame
+        {
+            get;
+            protected set;
+        }
+
         protected float m_timespan = 0.089f;
         protected DateTime m_lastupdate = DateTime.UtcNow;
 
@@ -1212,6 +1221,9 @@ namespace OpenSim.Region.Framework.Scenes
             try
             {
                 Update();
+
+                m_lastUpdate = Util.EnvironmentTickCount();
+                m_firstHeartbeat = false;
             }
             catch (ThreadAbortException)
             {
@@ -1225,190 +1237,180 @@ namespace OpenSim.Region.Framework.Scenes
             Watchdog.RemoveThread();
         }
 
-        /// <summary>
-        /// Performs per-frame updates on the scene, this should be the central scene loop
-        /// </summary>
         public override void Update()
-        {
-            float physicsFPS;
-            int maintc;
+        {        
+            TimeSpan SinceLastFrame = DateTime.UtcNow - m_lastupdate;
+            float physicsFPS = 0f;
 
-            while (!shuttingdown)
+            int maintc = Util.EnvironmentTickCount();
+            int tmpFrameMS = maintc;
+            tempOnRezMS = eventMS = backupMS = terrainMS = landMS = 0;
+
+            // Increment the frame counter
+            ++Frame;
+
+            try
             {
-                TimeSpan SinceLastFrame = DateTime.UtcNow - m_lastupdate;
-                physicsFPS = 0f;
+                // Check if any objects have reached their targets
+                CheckAtTargets();
 
-                maintc = Util.EnvironmentTickCount();
-                int tmpFrameMS = maintc;
-                tempOnRezMS = eventMS = backupMS = terrainMS = landMS = 0;
+                // Update SceneObjectGroups that have scheduled themselves for updates
+                // Objects queue their updates onto all scene presences
+                if (Frame % m_update_objects == 0)
+                    m_sceneGraph.UpdateObjectGroups();
 
-                // Increment the frame counter
-                ++m_frame;
+                // Run through all ScenePresences looking for updates
+                // Presence updates and queued object updates for each presence are sent to clients
+                if (Frame % m_update_presences == 0)
+                    m_sceneGraph.UpdatePresences();
 
-                try
+                // Coarse locations relate to positions of green dots on the mini-map (on a SecondLife client)
+                if (Frame % m_update_coarse_locations == 0)
                 {
-                    // Check if any objects have reached their targets
-                    CheckAtTargets();
-
-                    // Update SceneObjectGroups that have scheduled themselves for updates
-                    // Objects queue their updates onto all scene presences
-                    if (m_frame % m_update_objects == 0)
-                        m_sceneGraph.UpdateObjectGroups();
-
-                    // Run through all ScenePresences looking for updates
-                    // Presence updates and queued object updates for each presence are sent to clients
-                    if (m_frame % m_update_presences == 0)
-                        m_sceneGraph.UpdatePresences();
-
-                    // Coarse locations relate to positions of green dots on the mini-map (on a SecondLife client)
-                    if (m_frame % m_update_coarse_locations == 0)
+                    List<Vector3> coarseLocations;
+                    List<UUID> avatarUUIDs;
+                    SceneGraph.GetCoarseLocations(out coarseLocations, out avatarUUIDs, 60);
+                    // Send coarse locations to clients 
+                    ForEachScenePresence(delegate(ScenePresence presence)
                     {
-                        List<Vector3> coarseLocations;
-                        List<UUID> avatarUUIDs;
-                        SceneGraph.GetCoarseLocations(out coarseLocations, out avatarUUIDs, 60);
-                        // Send coarse locations to clients 
-                        ForEachScenePresence(delegate(ScenePresence presence)
-                        {
-                            presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
-                        });
+                        presence.SendCoarseLocations(coarseLocations, avatarUUIDs);
+                    });
+                }
+
+                int tmpPhysicsMS2 = Util.EnvironmentTickCount();
+                if ((Frame % m_update_physics == 0) && m_physics_enabled)
+                    m_sceneGraph.UpdatePreparePhysics();
+                physicsMS2 = Util.EnvironmentTickCountSubtract(tmpPhysicsMS2);
+
+                // Apply any pending avatar force input to the avatar's velocity
+                if (Frame % m_update_entitymovement == 0)
+                    m_sceneGraph.UpdateScenePresenceMovement();
+
+                // Perform the main physics update.  This will do the actual work of moving objects and avatars according to their
+                // velocity
+                int tmpPhysicsMS = Util.EnvironmentTickCount();
+                if (Frame % m_update_physics == 0)
+                {
+                    if (m_physics_enabled)
+                        physicsFPS = m_sceneGraph.UpdatePhysics(Math.Max(SinceLastFrame.TotalSeconds, m_timespan));
+                    if (SynchronizeScene != null)
+                        SynchronizeScene(this);
+                }
+                physicsMS = Util.EnvironmentTickCountSubtract(tmpPhysicsMS);
+
+                // Delete temp-on-rez stuff
+                if (Frame % 1000 == 0 && !m_cleaningTemps)
+                {
+                    int tmpTempOnRezMS = Util.EnvironmentTickCount();
+                    m_cleaningTemps = true;
+                    Util.FireAndForget(delegate { CleanTempObjects(); m_cleaningTemps = false;  });
+                    tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpTempOnRezMS);
+                }
+
+                if (RegionStatus != RegionStatus.SlaveScene)
+                {
+                    if (Frame % m_update_events == 0)
+                    {
+                        int evMS = Util.EnvironmentTickCount();
+                        UpdateEvents();
+                        eventMS = Util.EnvironmentTickCountSubtract(evMS); ;
                     }
 
-                    int tmpPhysicsMS2 = Util.EnvironmentTickCount();
-                    if ((m_frame % m_update_physics == 0) && m_physics_enabled)
-                        m_sceneGraph.UpdatePreparePhysics();
-                    physicsMS2 = Util.EnvironmentTickCountSubtract(tmpPhysicsMS2);
-
-                    // Apply any pending avatar force input to the avatar's velocity
-                    if (m_frame % m_update_entitymovement == 0)
-                        m_sceneGraph.UpdateScenePresenceMovement();
-
-                    // Perform the main physics update.  This will do the actual work of moving objects and avatars according to their
-                    // velocity
-                    int tmpPhysicsMS = Util.EnvironmentTickCount();
-                    if (m_frame % m_update_physics == 0)
+                    if (Frame % m_update_backup == 0)
                     {
-                        if (m_physics_enabled)
-                            physicsFPS = m_sceneGraph.UpdatePhysics(Math.Max(SinceLastFrame.TotalSeconds, m_timespan));
-                        if (SynchronizeScene != null)
-                            SynchronizeScene(this);
-                    }
-                    physicsMS = Util.EnvironmentTickCountSubtract(tmpPhysicsMS);
-
-                    // Delete temp-on-rez stuff
-                    if (m_frame % 1000 == 0 && !m_cleaningTemps)
-                    {
-                        int tmpTempOnRezMS = Util.EnvironmentTickCount();
-                        m_cleaningTemps = true;
-                        Util.FireAndForget(delegate { CleanTempObjects(); m_cleaningTemps = false;  });
-                        tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpTempOnRezMS);
+                        int backMS = Util.EnvironmentTickCount();
+                        UpdateStorageBackup();
+                        backupMS = Util.EnvironmentTickCountSubtract(backMS);
                     }
 
-                    if (RegionStatus != RegionStatus.SlaveScene)
+                    if (Frame % m_update_terrain == 0)
                     {
-                        if (m_frame % m_update_events == 0)
-                        {
-                            int evMS = Util.EnvironmentTickCount();
-                            UpdateEvents();
-                            eventMS = Util.EnvironmentTickCountSubtract(evMS); ;
-                        }
-
-                        if (m_frame % m_update_backup == 0)
-                        {
-                            int backMS = Util.EnvironmentTickCount();
-                            UpdateStorageBackup();
-                            backupMS = Util.EnvironmentTickCountSubtract(backMS);
-                        }
-
-                        if (m_frame % m_update_terrain == 0)
-                        {
-                            int terMS = Util.EnvironmentTickCount();
-                            UpdateTerrain();
-                            terrainMS = Util.EnvironmentTickCountSubtract(terMS);
-                        }
-
-                        if (m_frame % m_update_land == 0)
-                        {
-                            int ldMS = Util.EnvironmentTickCount();
-                            UpdateLand();
-                            landMS = Util.EnvironmentTickCountSubtract(ldMS);
-                        }
-
-                        frameMS = Util.EnvironmentTickCountSubtract(tmpFrameMS);
-                        otherMS = tempOnRezMS + eventMS + backupMS + terrainMS + landMS;
-                        lastCompletedFrame = Util.EnvironmentTickCount();
-
-                        // if (m_frame%m_update_avatars == 0)
-                        //   UpdateInWorldTime();
-                        StatsReporter.AddPhysicsFPS(physicsFPS);
-                        StatsReporter.AddTimeDilation(TimeDilation);
-                        StatsReporter.AddFPS(1);
-                        StatsReporter.SetRootAgents(m_sceneGraph.GetRootAgentCount());
-                        StatsReporter.SetChildAgents(m_sceneGraph.GetChildAgentCount());
-                        StatsReporter.SetObjects(m_sceneGraph.GetTotalObjectsCount());
-                        StatsReporter.SetActiveObjects(m_sceneGraph.GetActiveObjectsCount());
-                        StatsReporter.addFrameMS(frameMS);
-                        StatsReporter.addPhysicsMS(physicsMS + physicsMS2);
-                        StatsReporter.addOtherMS(otherMS);
-                        StatsReporter.SetActiveScripts(m_sceneGraph.GetActiveScriptsCount());
-                        StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
+                        int terMS = Util.EnvironmentTickCount();
+                        UpdateTerrain();
+                        terrainMS = Util.EnvironmentTickCountSubtract(terMS);
                     }
 
-                    if (LoginsDisabled && m_frame == 20)
+                    if (Frame % m_update_land == 0)
                     {
-                        // In 99.9% of cases it is a bad idea to manually force garbage collection. However,
-                        // this is a rare case where we know we have just went through a long cycle of heap
-                        // allocations, and there is no more work to be done until someone logs in
-                        GC.Collect();
+                        int ldMS = Util.EnvironmentTickCount();
+                        UpdateLand();
+                        landMS = Util.EnvironmentTickCountSubtract(ldMS);
+                    }
 
-                        IConfig startupConfig = m_config.Configs["Startup"];
-                        if (startupConfig == null || !startupConfig.GetBoolean("StartDisabled", false))
-                        {
-                            m_log.DebugFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
-                            LoginsDisabled = false;
-                            m_sceneGridService.InformNeighborsThatRegionisUp(RequestModuleInterface<INeighbourService>(), RegionInfo);
-                        }
+                    frameMS = Util.EnvironmentTickCountSubtract(tmpFrameMS);
+                    otherMS = tempOnRezMS + eventMS + backupMS + terrainMS + landMS;
+                    lastCompletedFrame = Util.EnvironmentTickCount();
+
+                    // if (Frame%m_update_avatars == 0)
+                    //   UpdateInWorldTime();
+                    StatsReporter.AddPhysicsFPS(physicsFPS);
+                    StatsReporter.AddTimeDilation(TimeDilation);
+                    StatsReporter.AddFPS(1);
+                    StatsReporter.SetRootAgents(m_sceneGraph.GetRootAgentCount());
+                    StatsReporter.SetChildAgents(m_sceneGraph.GetChildAgentCount());
+                    StatsReporter.SetObjects(m_sceneGraph.GetTotalObjectsCount());
+                    StatsReporter.SetActiveObjects(m_sceneGraph.GetActiveObjectsCount());
+                    StatsReporter.addFrameMS(frameMS);
+                    StatsReporter.addPhysicsMS(physicsMS + physicsMS2);
+                    StatsReporter.addOtherMS(otherMS);
+                    StatsReporter.SetActiveScripts(m_sceneGraph.GetActiveScriptsCount());
+                    StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
+                }
+
+                if (LoginsDisabled && Frame == 20)
+                {
+                    // In 99.9% of cases it is a bad idea to manually force garbage collection. However,
+                    // this is a rare case where we know we have just went through a long cycle of heap
+                    // allocations, and there is no more work to be done until someone logs in
+                    GC.Collect();
+
+                    IConfig startupConfig = m_config.Configs["Startup"];
+                    if (startupConfig == null || !startupConfig.GetBoolean("StartDisabled", false))
+                    {
+                        m_log.DebugFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
+                        LoginsDisabled = false;
+                        m_sceneGridService.InformNeighborsThatRegionisUp(RequestModuleInterface<INeighbourService>(), RegionInfo);
                     }
                 }
-                catch (NotImplementedException)
-                {
-                    throw;
-                }
-                catch (AccessViolationException e)
-                {
-                    m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-                }
-                //catch (NullReferenceException e)
-                //{
-                //   m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-                //}
-                catch (InvalidOperationException e)
-                {
-                    m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-                }
-                catch (Exception e)
-                {
-                    m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-                }
-                finally
-                {
-                    m_lastupdate = DateTime.UtcNow;
-                }
-
-                maintc = Util.EnvironmentTickCountSubtract(maintc);
-                maintc = (int)(m_timespan * 1000) - maintc;
-
-                if (maintc > 0)
-                    Thread.Sleep(maintc);
-
-                // Tell the watchdog that this thread is still alive
-                Watchdog.UpdateThread();
-
-                m_lastUpdate = Util.EnvironmentTickCount();
-                m_firstHeartbeat = false;
             }
-        }
+            catch (NotImplementedException)
+            {
+                throw;
+            }
+            catch (AccessViolationException e)
+            {
+                m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+            }
+            //catch (NullReferenceException e)
+            //{
+            //   m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+            //}
+            catch (InvalidOperationException e)
+            {
+                m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+            }
+            finally
+            {
+                m_lastupdate = DateTime.UtcNow;
+            }
 
-        
+            maintc = Util.EnvironmentTickCountSubtract(maintc);
+            maintc = (int)(m_timespan * 1000) - maintc;
+
+
+            m_lastUpdate = Util.EnvironmentTickCount();
+            m_firstHeartbeat = false;
+
+            if (maintc > 0)
+                Thread.Sleep(maintc);
+
+            // Tell the watchdog that this thread is still alive
+            Watchdog.UpdateThread();
+        }        
 
         public void AddGroupTarget(SceneObjectGroup grp)
         {
@@ -3127,7 +3129,9 @@ namespace OpenSim.Region.Framework.Scenes
                         (childagentYN ? "child" : "root"), agentID, RegionInfo.RegionName);
 
                     m_sceneGraph.removeUserCount(!childagentYN);
-                    CapsModule.RemoveCapsHandler(agentID);
+                    
+                    if (CapsModule != null)
+                        CapsModule.RemoveCapsHandler(agentID);
 
                     // REFACTORING PROBLEM -- well not really a problem, but just to point out that whatever
                     // this method is doing is HORRIBLE!!!
@@ -3405,8 +3409,11 @@ namespace OpenSim.Region.Framework.Scenes
                     RegionInfo.RegionName, (agent.child ? "child" : "root"), agent.firstname, agent.lastname,
                     agent.AgentID, agent.circuitcode);
 
-                CapsModule.NewUserConnection(agent);
-                CapsModule.AddCapsHandler(agent.AgentID);
+                if (CapsModule != null)
+                {
+                    CapsModule.NewUserConnection(agent);
+                    CapsModule.AddCapsHandler(agent.AgentID);
+                }
             }
             else
             {
@@ -3421,7 +3428,9 @@ namespace OpenSim.Region.Framework.Scenes
                         agent.AgentID, RegionInfo.RegionName);
 
                     sp.AdjustKnownSeeds();
-                    CapsModule.NewUserConnection(agent);
+                    
+                    if (CapsModule != null)
+                        CapsModule.NewUserConnection(agent);
                 }
             }
 
@@ -3933,15 +3942,15 @@ namespace OpenSim.Region.Framework.Scenes
         public void RequestTeleportLocation(IClientAPI remoteClient, string regionName, Vector3 position,
                                             Vector3 lookat, uint teleportFlags)
         {
-            GridRegion regionInfo = GridService.GetRegionByName(UUID.Zero, regionName);
-            if (regionInfo == null)
+            List<GridRegion> regions = GridService.GetRegionsByName(RegionInfo.ScopeID, regionName, 1);
+            if (regions == null || regions.Count == 0)
             {
                 // can't find the region: Tell viewer and abort
                 remoteClient.SendTeleportFailed("The region '" + regionName + "' could not be found.");
                 return;
             }
 
-            RequestTeleportLocation(remoteClient, regionInfo.RegionHandle, position, lookat, teleportFlags);
+            RequestTeleportLocation(remoteClient, regions[0].RegionHandle, position, lookat, teleportFlags);
         }
 
         /// <summary>

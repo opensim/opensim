@@ -785,7 +785,19 @@ namespace OpenSim.Framework.Servers.HttpServer
                     if (methodWasFound)
                     {
                         xmlRprcRequest.Params.Add(request.Url); // Param[2]
-                        xmlRprcRequest.Params.Add(request.Headers.Get("X-Forwarded-For")); // Param[3]
+
+                        string xff = "X-Forwarded-For";
+                        string xfflower = xff.ToLower();
+                        foreach (string s in request.Headers.AllKeys)
+                        {
+                            if (s != null && s.Equals(xfflower))
+                            {
+                                xff = xfflower;
+                                break;
+                            }
+                        }
+                        xmlRprcRequest.Params.Add(request.Headers.Get(xff)); // Param[3]
+
 
                         try
                         {

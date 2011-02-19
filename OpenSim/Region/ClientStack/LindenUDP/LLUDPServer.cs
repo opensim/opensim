@@ -845,7 +845,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void HandleUseCircuitCode(object o)
         {
-            DateTime startTime = DateTime.Now;
+//            DateTime startTime = DateTime.Now;
             object[] array = (object[])o;
             UDPPacketBuffer buffer = (UDPPacketBuffer)array[0];
             UseCircuitCodePacket packet = (UseCircuitCodePacket)array[1];

@@ -560,8 +560,11 @@ namespace OpenSim.Tests.Common.Mock
             agentData.lastname = m_lastName;
 
             ICapabilitiesModule capsModule = m_scene.RequestModuleInterface<ICapabilitiesModule>();
-            agentData.CapsPath = capsModule.GetCapsPath(m_agentId);
-            agentData.ChildrenCapSeeds = new Dictionary<ulong, string>(capsModule.GetChildrenSeeds(m_agentId));
+            if (capsModule != null)
+            {
+                agentData.CapsPath = capsModule.GetCapsPath(m_agentId);
+                agentData.ChildrenCapSeeds = new Dictionary<ulong, string>(capsModule.GetChildrenSeeds(m_agentId));
+            }
 
             return agentData;
         }

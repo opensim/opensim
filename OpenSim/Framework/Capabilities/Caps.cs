@@ -181,7 +181,6 @@ namespace OpenSim.Framework.Capabilities
 
             RegisterRegionServiceHandlers(capsBase);
             RegisterInventoryServiceHandlers(capsBase);
-
         }
 
         public void RegisterRegionServiceHandlers(string capsBase)

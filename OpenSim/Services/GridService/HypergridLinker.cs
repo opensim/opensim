@@ -121,7 +121,7 @@ namespace OpenSim.Services.GridService
 
                 m_Check4096 = gridConfig.GetBoolean("Check4096", true);
 
-                m_MapTileDirectory = gridConfig.GetString("MapTileDirectory", string.Empty);
+                m_MapTileDirectory = gridConfig.GetString("MapTileDirectory", "maptiles");
 
                 m_GatekeeperConnector = new GatekeeperServiceConnector(m_AssetService);
 

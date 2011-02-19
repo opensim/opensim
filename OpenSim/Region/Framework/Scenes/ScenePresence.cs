@@ -1310,7 +1310,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_agentTransfer != null)
                     m_agentTransfer.EnableChildAgents(this);
                 else
-                    m_log.DebugFormat("[SCENE PRESENCE]: Unable to create child agents in neighbours, because AgentTransferModule is not active");
+                    m_log.DebugFormat(
+                        "[SCENE PRESENCE]: Unable to create child agents in neighbours, because AgentTransferModule is not active for region {0}", 
+                        m_scene.RegionInfo.RegionName);
 
                 IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
                 if (friendsModule != null)
@@ -3028,8 +3030,11 @@ namespace OpenSim.Region.Framework.Scenes
         #region Border Crossing Methods
 
         /// <summary>
-        /// Checks to see if the avatar is in range of a border and calls CrossToNewRegion
+        /// Starts the process of moving an avatar into another region if they are crossing the border.
         /// </summary>
+        /// <remarks>
+        /// Also removes the avatar from the physical scene if transit has started.
+        /// </remarks>
         protected void CheckForBorderCrossing()
         {
             if (IsChildAgent)
@@ -3097,7 +3102,6 @@ namespace OpenSim.Region.Framework.Scenes
                     neighbor = HaveNeighbor(Cardinals.N, ref fix);
                 }
 
-
                 // Makes sure avatar does not end up outside region
                 if (neighbor <= 0)
                 {
@@ -3152,6 +3156,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
+                // We must remove the agent from the physical scene if it has been placed in transit.  If we don't,
+                // then this method continues to be called from ScenePresence.Update() until the handover of the client between
+                // regions is completed.  Since this handover can take more than 1000ms (due to the 1000ms
+                // event queue polling response from the server), this results in the avatar pausing on the border
+                // for the handover period.
+                RemoveFromPhysicalScene();
+                
                 // This constant has been inferred from experimentation
                 // I'm not sure what this value should be, so I tried a few values.
                 timeStep = 0.04f;
@@ -3163,6 +3174,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Checks whether this region has a neighbour in the given direction.
+        /// </summary>
+        /// <param name="car"></param>
+        /// <param name="fix"></param>
+        /// <returns>
+        /// An integer which represents a compass point.  N == 1, going clockwise until we reach NW == 8.
+        /// Returns a positive integer if there is a region in that direction, a negative integer if not.
+        /// </returns>
         protected int HaveNeighbor(Cardinals car, ref int[] fix)
         {
             uint neighbourx = m_regionInfo.RegionLocX;
