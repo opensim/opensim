@@ -505,24 +505,5 @@ namespace OpenSim.Tests.Common.Setup
 
             return part;
         }
-
-        /// <summary>
-        /// Delete a scene object asynchronously
-        /// </summary>
-        /// <param name="scene"></param>
-        /// <param name="part"></param>
-        /// <param name="action"></param>
-        /// <param name="destinationId"></param>
-        /// <param name="client"></param>
-        public static void DeleteSceneObjectAsync(
-            TestScene scene, SceneObjectPart part, DeRezAction action, UUID destinationId, IClientAPI client)
-        {
-            // Turn off the timer on the async sog deleter - we'll crank it by hand within a unit test
-            AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
-            sogd.Enabled = false;
-
-            scene.DeRezObjects(client, new List<uint>() { part.LocalId }, UUID.Zero, action, destinationId);
-            sogd.InventoryDeQueueAndDelete();
-        }
     }
 }
