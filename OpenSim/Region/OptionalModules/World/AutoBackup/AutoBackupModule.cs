@@ -40,6 +40,9 @@ using OpenSim.Region.Framework.Interfaces;
 
 /*
  * Config Settings Documentation.
+ * At the TOP LEVEL, e.g. in OpenSim.ini, we have one option:
+ * In the [Modules] section:
+ * 	AutoBackupModule: True/False. Default: False. If True, use the auto backup module. Otherwise it will be disabled regardless of what settings are in Regions.ini!
  * EACH REGION in e.g. Regions/Regions.ini can have the following options:
  * AutoBackup: True/False. Default: False. If True, activate auto backup functionality. 
  * 	This is the only required option for enabling auto-backup; the other options have sane defaults. 
@@ -166,6 +169,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 		readonly Dictionary<IScene, AutoBackupModuleState> states = new Dictionary<IScene, AutoBackupModuleState>(4);
 		readonly Dictionary<double, Timer> timers = new Dictionary<double, Timer>(1);
 		readonly Dictionary<Timer, List<IScene>> timerMap = new Dictionary<Timer, List<IScene>>(1);
+		private bool m_Enabled = false; //Whether the shared module should be enabled at all. NOT the same as m_Enabled in AutoBackupModuleState!
 		
 		public AutoBackupModule ()
 		{
@@ -175,11 +179,24 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 		#region IRegionModuleBase implementation
 		void IRegionModuleBase.Initialise (Nini.Config.IConfigSource source)
 		{
-			//I have no overall config settings to care about.
+			//Determine if we have been enabled at all in OpenSim.ini -- this is part and parcel of being an optional module
+            IConfig moduleConfig = source.Configs["Modules"];
+            if (moduleConfig != null)
+            {
+                m_Enabled = moduleConfig.GetBoolean("AutoBackupModule", false);
+                if (m_Enabled)
+                {
+                    m_log.Info("[AUTO BACKUP MODULE]: AutoBackupModule enabled");
+                }
+
+            }
 		}
 
 		void IRegionModuleBase.Close ()
 		{
+			if(!m_Enabled)
+				return;
+			
 			//We don't want any timers firing while the sim's coming down; strange things may happen.
 			StopAllTimers();
 		}
@@ -191,6 +208,9 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 
 		void IRegionModuleBase.RemoveRegion (Framework.Scenes.Scene scene)
 		{
+			if(!m_Enabled)
+				return;
+			
 			AutoBackupModuleState abms = states[scene];
 			Timer timer = abms.GetTimer();
 			List<IScene> list = timerMap[timer];
@@ -205,6 +225,9 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 
 		void IRegionModuleBase.RegionLoaded (Framework.Scenes.Scene scene)
 		{
+			if(!m_Enabled)
+				return;
+			
 			//This really ought not to happen, but just in case, let's pretend it didn't...
 			if(scene == null)
 				return;
