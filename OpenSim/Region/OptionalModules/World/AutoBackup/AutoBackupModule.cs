@@ -169,6 +169,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 		readonly Dictionary<IScene, AutoBackupModuleState> states = new Dictionary<IScene, AutoBackupModuleState>(4);
 		readonly Dictionary<double, Timer> timers = new Dictionary<double, Timer>(1);
 		readonly Dictionary<Timer, List<IScene>> timerMap = new Dictionary<Timer, List<IScene>>(1);
+		private IConfigSource m_configSource = null;
 		private bool m_Enabled = false; //Whether the shared module should be enabled at all. NOT the same as m_Enabled in AutoBackupModuleState!
 		
 		public AutoBackupModule ()
@@ -180,6 +181,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 		void IRegionModuleBase.Initialise (Nini.Config.IConfigSource source)
 		{
 			//Determine if we have been enabled at all in OpenSim.ini -- this is part and parcel of being an optional module
+			m_configSource = source;
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
@@ -236,7 +238,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			states.Add(scene, st);
 			
 			//Read the config settings and set variables.
-			IConfig config = scene.Config.Configs[scene.RegionInfo.RegionName];
+			IConfig config = m_configSource.Configs[scene.RegionInfo.RegionName];
 			st.SetEnabled(config.GetBoolean("AutoBackup", false));
 			if(!st.GetEnabled()) //If you don't want AutoBackup, we stop.
 				return;
