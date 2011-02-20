@@ -234,11 +234,22 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			if(scene == null)
 				return;
 			
+			m_log.Info("[AUTO BACKUP MODULE]: RegionLoaded for region: " + scene.RegionInfo.RegionName);
+			
 			AutoBackupModuleState st = new AutoBackupModuleState(scene);
 			states.Add(scene, st);
 			
 			//Read the config settings and set variables.
 			IConfig config = m_configSource.Configs[scene.RegionInfo.RegionName];
+			if(config == null)
+			{
+				m_log.Warn("[AUTO BACKUP MODULE]: Can't get config settings! Here are the IConfigs available:");
+				foreach(IConfig c in m_configSource.Configs)
+				{
+					m_log.Warn("[AUTO BACKUP MODULE]: " + c.Name);
+				}
+				throw new NullReferenceException("This is debug code");
+			}
 			st.SetEnabled(config.GetBoolean("AutoBackup", false));
 			if(!st.GetEnabled()) //If you don't want AutoBackup, we stop.
 				return;
