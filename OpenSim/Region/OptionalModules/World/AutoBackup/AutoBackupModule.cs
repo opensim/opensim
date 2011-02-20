@@ -248,6 +248,16 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 				{
 					m_log.Warn("[AUTO BACKUP MODULE]: " + c.Name);
 				}
+				
+				if(scene.Config != null)
+				{
+					m_log.Warn("[AUTO BACKUP MODULE]: And in scene.Config:");
+					IConfigSource tmp = scene.Config;
+					foreach(IConfig d in tmp.Configs)
+					{
+						m_log.Warn("[AUTO BACKUP MODULE]: " + d.Name);
+					}
+				}
 				throw new NullReferenceException("This is debug code");
 			}
 			st.SetEnabled(config.GetBoolean("AutoBackup", false));
