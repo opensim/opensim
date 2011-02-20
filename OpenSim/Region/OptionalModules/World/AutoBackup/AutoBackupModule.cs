@@ -234,35 +234,22 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			if(scene == null)
 				return;
 			
-			m_log.Info("[AUTO BACKUP MODULE]: RegionLoaded for region: " + scene.RegionInfo.RegionName);
-			
 			AutoBackupModuleState st = new AutoBackupModuleState(scene);
 			states.Add(scene, st);
 			
 			//Read the config settings and set variables.
-			IConfig config = scene.Config.Configs["Startup"];
+			IConfig config = scene.Config.Configs["AutoBackupModule"];
 			if(config == null)
 			{
-				m_log.Warn("[AUTO BACKUP MODULE]: Can't get config settings! Here are the IConfigs available:");
-				foreach(IConfig c in m_configSource.Configs)
-				{
-					m_log.Warn("[AUTO BACKUP MODULE]: " + c.Name);
-				}
-				
-				if(scene.Config != null)
-				{
-					m_log.Warn("[AUTO BACKUP MODULE]: And in scene.Config:");
-					IConfigSource tmp = scene.Config;
-					foreach(IConfig d in tmp.Configs)
-					{
-						m_log.Warn("[AUTO BACKUP MODULE]: " + d.Name);
-					}
-				}
-				throw new NullReferenceException("This is debug code"); //This crashes the whole process -- not good
+				//No config settings for this, let's just give up.
+				st.SetEnabled(false);
+				m_log.Info("[AUTO BACKUP MODULE]: Region " + scene.RegionInfo.RegionName + " is NOT AutoBackup enabled.");	
+				return;
 			}
 			st.SetEnabled(config.GetBoolean("AutoBackup", false));
 			if(!st.GetEnabled()) //If you don't want AutoBackup, we stop.
 			{
+				m_log.Info("[AUTO BACKUP MODULE]: Region " + scene.RegionInfo.RegionName + " is NOT AutoBackup enabled.");	
 				return;
 			}
 			else
