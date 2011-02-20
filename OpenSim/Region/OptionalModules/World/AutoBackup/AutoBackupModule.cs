@@ -364,7 +364,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 				path = new FileInfo(baseDir + Path.DirectorySeparatorChar + regionName + GetTimeString() + ".oar");
 				return path.FullName;
 			case NamingType.SEQUENTIAL:
-				path = new FileInfo(baseDir + Path.DirectorySeparatorChar + regionName + "_" + GetNextFile(baseDir, regionName) + ".oar");
+				path = new FileInfo(GetNextFile(baseDir, regionName));
 				return path.FullName;
 			default:
 				m_log.Warn("VERY BAD: Unhandled case element " + naming.ToString());
