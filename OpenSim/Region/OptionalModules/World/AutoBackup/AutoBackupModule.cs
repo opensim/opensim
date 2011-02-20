@@ -240,7 +240,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			states.Add(scene, st);
 			
 			//Read the config settings and set variables.
-			IConfig config = m_configSource.Configs[scene.RegionInfo.RegionName];
+			IConfig config = scene.Config.Configs["Startup"];
 			if(config == null)
 			{
 				m_log.Warn("[AUTO BACKUP MODULE]: Can't get config settings! Here are the IConfigs available:");
@@ -258,11 +258,17 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 						m_log.Warn("[AUTO BACKUP MODULE]: " + d.Name);
 					}
 				}
-				throw new NullReferenceException("This is debug code");
+				throw new NullReferenceException("This is debug code"); //This crashes the whole process -- not good
 			}
 			st.SetEnabled(config.GetBoolean("AutoBackup", false));
 			if(!st.GetEnabled()) //If you don't want AutoBackup, we stop.
+			{
 				return;
+			}
+			else
+			{
+				m_log.Info("[AUTO BACKUP MODULE]: Region " + scene.RegionInfo.RegionName + " is AutoBackup ENABLED.");	
+			}
 			
 			//Borrow an existing timer if one exists for the same interval; otherwise, make a new one.
 			double interval = config.GetDouble("AutoBackupInterval", 720);
@@ -272,7 +278,13 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			}
 			else
 			{
-				st.SetTimer(new Timer(interval));
+				//0 or negative interval == do nothing.
+				if(interval <= 0.0)
+				{
+					st.SetEnabled(false);
+					return;
+				}
+				st.SetTimer(new Timer(interval * 60000)); //Milliseconds -> minutes
 				timers.Add(interval, st.GetTimer());
 				st.GetTimer().Elapsed += HandleElapsed;
 			}
