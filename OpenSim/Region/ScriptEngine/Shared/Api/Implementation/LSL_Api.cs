@@ -6867,6 +6867,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             // copy the first script found with this inventory name
+            TaskInventoryItem scriptItem = null;
             m_host.TaskInventory.LockItemsForRead(true);
             foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
@@ -6877,6 +6878,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         found = true;
                         srcId = inv.Key;
+                        scriptItem = inv.Value;
                         break;
                     }
                 }
@@ -6889,8 +6891,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            // the rest of the permission checks are done in RezScript, so check the pin there as well
-            World.RezScript(srcId, m_host, destId, pin, running, start_param);
+            SceneObjectPart dest = World.GetSceneObjectPart(destId);
+            if (dest != null)
+            {
+                if ((scriptItem.BasePermissions & (uint)PermissionMask.Transfer) != 0 || dest.ParentGroup.RootPart.OwnerID == m_host.ParentGroup.RootPart.OwnerID)
+                {
+                    // the rest of the permission checks are done in RezScript, so check the pin there as well
+                    World.RezScript(srcId, m_host, destId, pin, running, start_param);
+
+                    if ((scriptItem.BasePermissions & (uint)PermissionMask.Copy) == 0)
+                        m_host.Inventory.RemoveInventoryItem(srcId);
+                }
+            }
             // this will cause the delay even if the script pin or permissions were wrong - seems ok
             ScriptSleep(3000);
         }
