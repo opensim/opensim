@@ -1227,6 +1227,10 @@ namespace OpenSim.Region.Framework.Scenes
             if ((part.OwnerID != destPart.OwnerID) && ((srcTaskItem.CurrentPermissions & (uint)PermissionMask.Transfer) == 0))
                 return;
 
+            bool overrideNoMod = false;
+            if ((part.GetEffectiveObjectFlags() & (uint)PrimFlags.AllowInventoryDrop) != 0)
+                overrideNoMod = true;
+
             if (part.OwnerID != destPart.OwnerID && (part.GetEffectiveObjectFlags() & (uint)PrimFlags.AllowInventoryDrop) == 0)
             {
                 // object cannot copy items to an object owned by a different owner
@@ -1236,7 +1240,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // must have both move and modify permission to put an item in an object
-            if ((part.OwnerMask & ((uint)PermissionMask.Move | (uint)PermissionMask.Modify)) == 0)
+            if (((part.OwnerMask & (uint)PermissionMask.Modify) == 0) && (!overrideNoMod))
             {
                 return;
             }
