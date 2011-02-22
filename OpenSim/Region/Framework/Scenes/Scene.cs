@@ -83,6 +83,13 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_useFlySlow;
         public bool m_usePreJump;
         public bool m_seeIntoRegionFromNeighbor;
+
+        protected float m_defaultDrawDistance = 255.0f;
+        public float DefaultDrawDistance 
+        {
+            get { return m_defaultDrawDistance; }
+        }
+        
         // TODO: need to figure out how allow client agents but deny
         // root agents when ACL denies access to root agent
         public bool m_strictAccessControl = true;
@@ -627,6 +634,8 @@ namespace OpenSim.Region.Framework.Scenes
                 //
                 IConfig startupConfig = m_config.Configs["Startup"];
 
+                m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance",m_defaultDrawDistance);
+                
                 //Animation states
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
                 // TODO: Change default to true once the feature is supported
