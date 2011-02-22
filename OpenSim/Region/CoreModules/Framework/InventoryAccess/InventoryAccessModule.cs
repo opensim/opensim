@@ -524,6 +524,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             if (item != null)
             {
+                item.Owner = remoteClient.AgentId;
+
                 AssetBase rezAsset = m_Scene.AssetService.Get(item.AssetID.ToString());
 
                 if (rezAsset != null)
