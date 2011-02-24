@@ -690,7 +690,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Utils.LongToUInts(handle, out x, out y);
                 x = x / Constants.RegionSize;
                 y = y / Constants.RegionSize;
-                if (Util.IsOutsideView(x, Scene.RegionInfo.RegionLocX, y, Scene.RegionInfo.RegionLocY))
+                if (Util.IsOutsideView(DrawDistance, x, Scene.RegionInfo.RegionLocX, y, Scene.RegionInfo.RegionLocY))
                 {
                     old.Add(handle);
                 }
@@ -764,6 +764,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo) : this()
         {
+            m_DrawDistance = world.DefaultDrawDistance;
             m_rootRegionHandle = reginfo.RegionHandle;
             m_controllingClient = client;
             m_firstname = m_controllingClient.FirstName;
@@ -1429,7 +1430,11 @@ namespace OpenSim.Region.Framework.Scenes
             m_CameraUpAxis = agentData.CameraUpAxis;
 
             // The Agent's Draw distance setting
-            m_DrawDistance = agentData.Far;
+            // When we get to the point of re-computing neighbors everytime this
+            // changes, then start using the agent's drawdistance rather than the 
+            // region's draw distance.
+            // m_DrawDistance = agentData.Far;
+            m_DrawDistance = Scene.DefaultDrawDistance;
 
             // Check if Client has camera in 'follow cam' or 'build' mode.
             Vector3 camdif = (Vector3.One * m_bodyRot - Vector3.One * CameraRotation);
@@ -3289,7 +3294,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         //m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
                         //m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
-                        if (Util.IsOutsideView(x, newRegionX, y, newRegionY))
+                        if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY))
                         {
                             byebyeRegions.Add(handle);
                         }
@@ -3365,7 +3370,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 offset = new Vector3(shiftx, shifty, 0f);
 
-            m_DrawDistance = cAgentData.Far;
+            // When we get to the point of re-computing neighbors everytime this
+            // changes, then start using the agent's drawdistance rather than the 
+            // region's draw distance.
+            // m_DrawDistance = cAgentData.Far;
+            m_DrawDistance = Scene.DefaultDrawDistance;
+            
             if (cAgentData.Position != new Vector3(-1f, -1f, -1f)) // UGH!!
                 m_pos = cAgentData.Position + offset;
 
@@ -3516,7 +3526,11 @@ namespace OpenSim.Region.Framework.Scenes
             m_CameraLeftAxis = cAgent.LeftAxis;
             m_CameraUpAxis = cAgent.UpAxis;
 
-            m_DrawDistance = cAgent.Far;
+            // When we get to the point of re-computing neighbors everytime this
+            // changes, then start using the agent's drawdistance rather than the 
+            // region's draw distance.
+            // m_DrawDistance = cAgent.Far;
+            m_DrawDistance = Scene.DefaultDrawDistance;
 
             if ((cAgent.Throttles != null) && cAgent.Throttles.Length > 0)
                 ControllingClient.SetChildAgentThrottle(cAgent.Throttles);

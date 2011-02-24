@@ -604,6 +604,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     m_log.Debug("[InventoryAccessModule]: Inventory object has UUID.Zero! Position 1");
                 }
+                item.Owner = remoteClient.AgentId;
 
                 AssetBase rezAsset = m_Scene.AssetService.Get(item.AssetID.ToString());
 

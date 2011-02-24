@@ -130,9 +130,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return region;
         }
 
-        protected override bool NeedsClosing(uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, GridRegion reg)
+        protected override bool NeedsClosing(float drawdist, uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, GridRegion reg)
         {
-            if (base.NeedsClosing(oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
+            if (base.NeedsClosing(drawdist, oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
                 return true;
 
             int flags = m_aScene.GridService.GetRegionFlags(m_aScene.RegionInfo.ScopeID, reg.RegionID);

@@ -471,10 +471,17 @@ namespace OpenSim.Framework
         /// <param name="oldy">Old region y-coord</param>
         /// <param name="newy">New region y-coord</param>
         /// <returns></returns>        
-        public static bool IsOutsideView(uint oldx, uint newx, uint oldy, uint newy)
+        public static bool IsOutsideView(float drawdist, uint oldx, uint newx, uint oldy, uint newy)
         {
-            // Eventually this will be a function of the draw distance / camera position too.
-            return (((int)Math.Abs((int)(oldx - newx)) > 1) || ((int)Math.Abs((int)(oldy - newy)) > 1));
+            int dd = (int)((drawdist + Constants.RegionSize - 1) / Constants.RegionSize);
+
+            int startX = (int)oldx - dd;
+            int startY = (int)oldy - dd;
+
+            int endX = (int)oldx + dd;
+            int endY = (int)oldy + dd;
+
+            return (newx < startX || endX < newx || newy < startY || endY < newy);
         }
 
         public static string FieldToString(byte[] bytes)

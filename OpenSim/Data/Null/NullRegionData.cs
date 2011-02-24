@@ -51,27 +51,55 @@ namespace OpenSim.Data.Null
             //Console.WriteLine("[XXX] NullRegionData constructor");
         }
 
+        private delegate bool Matcher(string value);
+
         public List<RegionData> Get(string regionName, UUID scopeID)
         {
             if (Instance != this)
                 return Instance.Get(regionName, scopeID);
 
+            string cleanName = regionName.ToLower();
+
+            // Handle SQL wildcards
+            const string wildcard = "%";
+            bool wildcardPrefix = false;
+            bool wildcardSuffix = false;
+            if (cleanName.Equals(wildcard))
+            {
+                wildcardPrefix = wildcardSuffix = true;
+                cleanName = string.Empty;
+            }
+            else
+            {
+                if (cleanName.StartsWith(wildcard))
+                {
+                    wildcardPrefix = true;
+                    cleanName = cleanName.Substring(1);
+                }
+                if (regionName.EndsWith(wildcard))
+                {
+                    wildcardSuffix = true;
+                    cleanName = cleanName.Remove(cleanName.Length - 1);
+                }
+            }
+            Matcher queryMatch;
+            if (wildcardPrefix && wildcardSuffix)
+                queryMatch = delegate(string s) { return s.Contains(cleanName); };
+            else if (wildcardSuffix)
+                queryMatch = delegate(string s) { return s.StartsWith(cleanName); };
+            else if (wildcardPrefix)
+                queryMatch = delegate(string s) { return s.EndsWith(cleanName); };
+            else
+                queryMatch = delegate(string s) { return s.Equals(cleanName); };
+
+            // Find region data
             List<RegionData> ret = new List<RegionData>();
 
             foreach (RegionData r in m_regionData.Values)
             {
-                if (regionName.Contains("%"))
-                {
-                    string cleanname = regionName.Replace("%", "");
-                    m_log.DebugFormat("[NULL REGION DATA]: comparing {0} to {1}", cleanname.ToLower(), r.RegionName.ToLower());
-                    if (r.RegionName.ToLower().Contains(cleanname.ToLower()))
+                    m_log.DebugFormat("[NULL REGION DATA]: comparing {0} to {1}", cleanName, r.RegionName.ToLower());
+                    if (queryMatch(r.RegionName.ToLower()))
                         ret.Add(r);
-                }
-                else
-                {
-                    if (r.RegionName.ToLower() == regionName.ToLower())
-                        ret.Add(r);
-                }
             }
 
             if (ret.Count > 0)
