@@ -115,15 +115,15 @@ namespace OpenSim.Server.Handlers.Grid
                     case "get_region_flags":
                         return GetRegionFlags(request);
                 }
+                
                 m_log.DebugFormat("[GRID HANDLER]: unknown method {0} request {1}", method.Length, method);
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[GRID HANDLER]: Exception {0}", e);
+                m_log.ErrorFormat("[GRID HANDLER]: Exception {0} {1}", e.Message, e.StackTrace);
             }
 
             return FailureResult();
-
         }
 
         #region Method-specific handlers
