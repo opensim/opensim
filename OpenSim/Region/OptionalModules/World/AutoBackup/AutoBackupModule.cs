@@ -279,7 +279,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 				st.SetTimer(tim); //Milliseconds -> minutes
 				timers.Add(interval, tim);
 			    tim.Elapsed += HandleElapsed;
-				tim.AutoReset = True;
+				tim.AutoReset = true;
 				m_log.Debug("[AUTO BACKUP MODULE]: New timer for " + interval + " msec for region " + sRegionName);
 			}
 			
