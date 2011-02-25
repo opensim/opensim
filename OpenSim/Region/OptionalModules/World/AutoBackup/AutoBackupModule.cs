@@ -246,25 +246,26 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			{
 				//No config settings for any regions, let's just give up.
 				st.SetEnabled(false);
-				m_log.Info("[AUTO BACKUP MODULE]: Region " + scene.RegionInfo.RegionName + " is NOT AutoBackup enabled.");	
+				m_log.Info("[AUTO BACKUP MODULE]: Region " + sRegionName + " is NOT AutoBackup enabled.");	
 				return;
 			}
 			st.SetEnabled(config.GetBoolean(sRegionName + ".AutoBackup", false));
 			if(!st.GetEnabled()) //If you don't want AutoBackup, we stop.
 			{
-				m_log.Info("[AUTO BACKUP MODULE]: Region " + scene.RegionInfo.RegionName + " is NOT AutoBackup enabled.");	
+				m_log.Info("[AUTO BACKUP MODULE]: Region " + sRegionName + " is NOT AutoBackup enabled.");	
 				return;
 			}
 			else
 			{
-				m_log.Info("[AUTO BACKUP MODULE]: Region " + scene.RegionInfo.RegionName + " is AutoBackup ENABLED.");	
+				m_log.Info("[AUTO BACKUP MODULE]: Region " + sRegionName + " is AutoBackup ENABLED.");	
 			}
 			
 			//Borrow an existing timer if one exists for the same interval; otherwise, make a new one.
-			double interval = config.GetDouble(sRegionName + ".AutoBackupInterval", 720);
+			double interval = config.GetDouble(sRegionName + ".AutoBackupInterval", 720) * 60000;
 			if(timers.ContainsKey(interval))
 			{
 				st.SetTimer(timers[interval]);
+				m_log.Debug("[AUTO BACKUP MODULE]: Reusing timer for " + interval + " msec for region " + sRegionName);
 			}
 			else
 			{
@@ -274,9 +275,10 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 					st.SetEnabled(false);
 					return;
 				}
-				st.SetTimer(new Timer(interval * 60000)); //Milliseconds -> minutes
+				st.SetTimer(new Timer(interval)); //Milliseconds -> minutes
 				timers.Add(interval, st.GetTimer());
 				st.GetTimer().Elapsed += HandleElapsed;
+				m_log.Debug("[AUTO BACKUP MODULE]: New timer for " + interval + " msec for region " + sRegionName);
 			}
 			
 			//Add the current region to the list of regions tied to this timer.
