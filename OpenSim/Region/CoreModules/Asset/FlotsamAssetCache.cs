@@ -93,8 +93,8 @@ namespace Flotsam.RegionModules.AssetCache
         private const double m_DefaultMemoryExpiration = 1.0; 
         private const double m_DefaultFileExpiration = 48;
         private TimeSpan m_MemoryExpiration = TimeSpan.FromHours(m_DefaultMemoryExpiration);
-        private TimeSpan m_FileExpiration = TimeSpan.Zero;
-        private TimeSpan m_FileExpirationCleanupTimer = TimeSpan.Zero;
+        private TimeSpan m_FileExpiration = TimeSpan.FromHours(m_DefaultFileExpiration);
+        private TimeSpan m_FileExpirationCleanupTimer = TimeSpan.FromHours(m_DefaultFileExpiration);
 
         private static int m_CacheDirectoryTiers = 1;
         private static int m_CacheDirectoryTierLen = 3;
@@ -441,7 +441,7 @@ namespace Flotsam.RegionModules.AssetCache
         private void CleanupExpiredFiles(object source, ElapsedEventArgs e)
         {
             if (m_LogLevel >= 2)
-                m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Checking for expired files older then {0}.", m_FileExpiration.ToString());
+                m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Checking for expired files older then {0}.", m_FileExpiration);
 
             // Purge all files last accessed prior to this point
             DateTime purgeLine = DateTime.Now - m_FileExpiration;
