@@ -40,10 +40,13 @@ using OpenSim.Region.Framework.Interfaces;
 
 /*
  * Config Settings Documentation.
- * At the TOP LEVEL, e.g. in OpenSim.ini, we have one option:
+ * At the TOP LEVEL, e.g. in OpenSim.ini, we have the following options:
  * In the [Modules] section:
  * 	AutoBackupModule: True/False. Default: False. If True, use the auto backup module. Otherwise it will be disabled regardless of what settings are in Regions.ini!
- * EACH REGION in e.g. Regions/Regions.ini can have the following options:
+ * EACH REGION, in OpenSim.ini, can have the following settings under the [AutoBackupModule] section.
+ * VERY IMPORTANT: You must create the key name as follows: <Region Name>.<Key Name>
+ * Example: My region is named Foo.
+ * If I wanted to specify the "AutoBackupInterval" key below, I would name my key "Foo.AutoBackupInterval", under the [AutoBackupModule] section of OpenSim.ini.
  * AutoBackup: True/False. Default: False. If True, activate auto backup functionality. 
  * 	This is the only required option for enabling auto-backup; the other options have sane defaults. 
  * 	If False, the auto-backup module becomes a no-op for the region, and all other AutoBackup* settings are ignored.
@@ -190,7 +193,6 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
                 {
                     m_log.Info("[AUTO BACKUP MODULE]: AutoBackupModule enabled");
                 }
-
             }
 		}
 
@@ -234,19 +236,20 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			if(scene == null)
 				return;
 			
+			string sRegionName = scene.RegionInfo.RegionName;
 			AutoBackupModuleState st = new AutoBackupModuleState(scene);
 			states.Add(scene, st);
 			
 			//Read the config settings and set variables.
-			IConfig config = scene.Config.Configs["AutoBackupModule"];
+			IConfig config = m_configSource.Configs["AutoBackupModule"];
 			if(config == null)
 			{
-				//No config settings for this, let's just give up.
+				//No config settings for any regions, let's just give up.
 				st.SetEnabled(false);
 				m_log.Info("[AUTO BACKUP MODULE]: Region " + scene.RegionInfo.RegionName + " is NOT AutoBackup enabled.");	
 				return;
 			}
-			st.SetEnabled(config.GetBoolean("AutoBackup", false));
+			st.SetEnabled(config.GetBoolean(sRegionName + ".AutoBackup", false));
 			if(!st.GetEnabled()) //If you don't want AutoBackup, we stop.
 			{
 				m_log.Info("[AUTO BACKUP MODULE]: Region " + scene.RegionInfo.RegionName + " is NOT AutoBackup enabled.");	
@@ -258,7 +261,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			}
 			
 			//Borrow an existing timer if one exists for the same interval; otherwise, make a new one.
-			double interval = config.GetDouble("AutoBackupInterval", 720);
+			double interval = config.GetDouble(sRegionName + ".AutoBackupInterval", 720);
 			if(timers.ContainsKey(interval))
 			{
 				st.SetTimer(timers[interval]);
@@ -287,10 +290,10 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 				timerMap.Add(st.GetTimer(), scns);
 			}
 			
-			st.SetBusyCheck(config.GetBoolean("AutoBackupBusyCheck", true));
+			st.SetBusyCheck(config.GetBoolean(sRegionName + ".AutoBackupBusyCheck", true));
 			
 			//Set file naming algorithm
-			string namingtype = config.GetString("AutoBackupNaming", "Time");
+			string namingtype = config.GetString(sRegionName + ".AutoBackupNaming", "Time");
 			if(namingtype.Equals("Time", StringComparison.CurrentCultureIgnoreCase))
 			{
 				st.SetNamingType(NamingType.TIME);
@@ -309,8 +312,8 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 				st.SetNamingType(NamingType.TIME);
 			}
 			
-			st.SetScript(config.GetString("AutoBackupScript", null));
-			st.SetBackupDir(config.GetString("AutoBackupDir", "."));
+			st.SetScript(config.GetString(sRegionName + ".AutoBackupScript", null));
+			st.SetBackupDir(config.GetString(sRegionName + ".AutoBackupDir", "."));
 			
 			//Let's give the user *one* convenience and auto-mkdir
 			if(st.GetBackupDir() != ".")
