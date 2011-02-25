@@ -275,9 +275,11 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 					st.SetEnabled(false);
 					return;
 				}
-				st.SetTimer(new Timer(interval)); //Milliseconds -> minutes
-				timers.Add(interval, st.GetTimer());
-				st.GetTimer().Elapsed += HandleElapsed;
+				Timer tim = new Timer(interval);
+				st.SetTimer(tim); //Milliseconds -> minutes
+				timers.Add(interval, tim);
+			    tim.Elapsed += HandleElapsed;
+				tim.AutoReset = True;
 				m_log.Debug("[AUTO BACKUP MODULE]: New timer for " + interval + " msec for region " + sRegionName);
 			}
 			
@@ -351,6 +353,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 				{
 					IRegionArchiverModule iram = scene.RequestModuleInterface<IRegionArchiverModule>();
 					string savePath = BuildOarPath(scene.RegionInfo.RegionName, state.GetBackupDir(), state.GetNamingType());
+					m_log.Debug("[AUTO BACKUP MODULE]: savePath = " + savePath);
 					if(savePath == null)
 					{
 						m_log.Warn("savePath is null in HandleElapsed");
