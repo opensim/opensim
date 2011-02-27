@@ -92,9 +92,9 @@ namespace Flotsam.RegionModules.AssetCache
         // Expiration is expressed in hours.
         private const double m_DefaultMemoryExpiration = 1.0; 
         private const double m_DefaultFileExpiration = 48;
-        private TimeSpan m_MemoryExpiration = TimeSpan.Zero;
-        private TimeSpan m_FileExpiration = TimeSpan.Zero;
-        private TimeSpan m_FileExpirationCleanupTimer = TimeSpan.Zero;
+        private TimeSpan m_MemoryExpiration = TimeSpan.FromHours(m_DefaultMemoryExpiration);
+        private TimeSpan m_FileExpiration = TimeSpan.FromHours(m_DefaultFileExpiration);
+        private TimeSpan m_FileExpirationCleanupTimer = TimeSpan.FromHours(m_DefaultFileExpiration);
 
         private static int m_CacheDirectoryTiers = 1;
         private static int m_CacheDirectoryTierLen = 3;
@@ -147,7 +147,7 @@ namespace Flotsam.RegionModules.AssetCache
                     }
 
                     m_CacheDirectory = assetConfig.GetString("CacheDirectory", m_DefaultCacheDirectory);
-                    m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Cache Directory", m_DefaultCacheDirectory);
+                    m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Cache Directory", m_CacheDirectory);
 
                     m_MemoryCacheEnabled = assetConfig.GetBoolean("MemoryCacheEnabled", false);
                     m_MemoryExpiration = TimeSpan.FromHours(assetConfig.GetDouble("MemoryCacheTimeout", m_DefaultMemoryExpiration));
@@ -245,16 +245,7 @@ namespace Flotsam.RegionModules.AssetCache
         private void UpdateMemoryCache(string key, AssetBase asset)
         {
             if (m_MemoryCacheEnabled)
-            {
-                if (m_MemoryExpiration > TimeSpan.Zero)
-                {
-                    m_MemoryCache.AddOrUpdate(key, asset, m_MemoryExpiration);
-                }
-                else
-                {
-                    m_MemoryCache.AddOrUpdate(key, asset, Double.MaxValue);
-                }
-            }
+                m_MemoryCache.AddOrUpdate(key, asset, m_MemoryExpiration);
         }
 
         public void Cache(AssetBase asset)
@@ -459,7 +450,7 @@ namespace Flotsam.RegionModules.AssetCache
         private void CleanupExpiredFiles(object source, ElapsedEventArgs e)
         {
             if (m_LogLevel >= 2)
-                m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Checking for expired files older then {0}.", m_FileExpiration.ToString());
+                m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Checking for expired files older then {0}.", m_FileExpiration);
 
             // Purge all files last accessed prior to this point
             DateTime purgeLine = DateTime.Now - m_FileExpiration;

@@ -167,7 +167,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 }
             }
 
-            m_log.InfoFormat("[AVFACTORY]: complete texture check for {0}", client.AgentId);
+            m_log.DebugFormat("[AVFACTORY]: complete texture check for {0}", client.AgentId);
 
             // If we only found default textures, then the appearance is not cached
             return (defonly ? false : true);
