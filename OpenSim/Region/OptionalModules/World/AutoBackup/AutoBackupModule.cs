@@ -281,7 +281,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			    tim.Elapsed += HandleElapsed;
 				tim.AutoReset = true;
 				tim.Start();
-				m_log.Debug("[AUTO BACKUP MODULE]: New timer for " + interval + " msec for region " + sRegionName);
+				//m_log.Debug("[AUTO BACKUP MODULE]: New timer for " + interval + " msec for region " + sRegionName);
 			}
 			
 			//Add the current region to the list of regions tied to this timer.
@@ -292,6 +292,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			else
 			{
 				List<IScene> scns = new List<IScene>(1);
+				scns.Add(scene);
 				timerMap.Add(st.GetTimer(), scns);
 			}
 			
@@ -343,6 +344,10 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 		{
 			bool heuristicsRun = false;
 			bool heuristicsPassed = false;
+			if(!timerMap.ContainsKey((Timer) sender))
+			{
+				m_log.Debug("Code-up error: timerMap doesn't contain timer " + sender.ToString());
+			}
 			foreach(IScene scene in timerMap[(Timer)sender])
 			{
 				AutoBackupModuleState state = states[scene];
@@ -352,16 +357,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 				if((heuristics && heuristicsRun && heuristicsPassed)
 				   || !heuristics)
 				{
-					IRegionArchiverModule iram = scene.RequestModuleInterface<IRegionArchiverModule>();
-					string savePath = BuildOarPath(scene.RegionInfo.RegionName, state.GetBackupDir(), state.GetNamingType());
-					m_log.Debug("[AUTO BACKUP MODULE]: savePath = " + savePath);
-					if(savePath == null)
-					{
-						m_log.Warn("savePath is null in HandleElapsed");
-						continue;
-					}
-					iram.ArchiveRegion(savePath, null);
-					ExecuteScript(state.GetScript(), savePath);
+					doRegionBackup(scene);
 				}
 				//Heuristics are on; ran but we're too busy -- keep going. Maybe another region will have heuristics off!
 				else if(heuristics && heuristicsRun && !heuristicsPassed)
@@ -375,8 +371,24 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 					heuristicsRun = true;
 					if(!heuristicsPassed)
 						continue;
+					doRegionBackup(scene);
 				}
 			}
+		}
+		
+		void doRegionBackup(IScene scene)
+		{
+			AutoBackupModuleState state = states[scene];
+			IRegionArchiverModule iram = scene.RequestModuleInterface<IRegionArchiverModule>();
+			string savePath = BuildOarPath(scene.RegionInfo.RegionName, state.GetBackupDir(), state.GetNamingType());
+			//m_log.Debug("[AUTO BACKUP MODULE]: savePath = " + savePath);
+			if(savePath == null)
+			{
+				m_log.Warn("[AUTO BACKUP MODULE]: savePath is null in HandleElapsed");
+				return;
+			}
+			iram.ArchiveRegion(savePath, null);
+			ExecuteScript(state.GetScript(), savePath);
 		}
 
 		string IRegionModuleBase.Name {
