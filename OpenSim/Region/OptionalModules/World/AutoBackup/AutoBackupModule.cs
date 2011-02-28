@@ -73,20 +73,19 @@ using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.World.AutoBackup
 {
-	
+
 	public enum NamingType
 	{
 		TIME,
 		SEQUENTIAL,
 		OVERWRITE
-	};
-	
+	}
+
 	public class AutoBackupModule : ISharedRegionModule, IRegionModuleBase
 	{
-		
-		private static readonly ILog m_log = 
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-		
+
+		private static readonly ILog m_log = LogManager.GetLogger (MethodBase.GetCurrentMethod ().DeclaringType);
+
 		//AutoBackupModuleState: Auto-Backup state for one region (scene).
 		public class AutoBackupModuleState
 		{
@@ -97,84 +96,87 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			private bool m_busycheck = true;
 			private string m_script = null;
 			private string m_dir = ".";
-			
-			public AutoBackupModuleState(IScene scene)
+
+			public AutoBackupModuleState (IScene scene)
 			{
 				m_scene = scene;
-				if(scene == null)
-					throw new NullReferenceException("Required parameter missing for AutoBackupModuleState constructor");
+				if (scene == null)
+					throw new NullReferenceException ("Required parameter missing for AutoBackupModuleState constructor");
 			}
-			
-			public void SetEnabled(bool b)
+
+			public void SetEnabled (bool b)
 			{
-				m_enabled = b;	
+				m_enabled = b;
 			}
-			
-			public bool GetEnabled()
+
+			public bool GetEnabled ()
 			{
-				return m_enabled;	
+				return m_enabled;
 			}
-			
-			public Timer GetTimer()
+
+			public Timer GetTimer ()
 			{
-				return m_timer;	
+				return m_timer;
 			}
-			
-			public void SetTimer(Timer t)
+
+			public void SetTimer (Timer t)
 			{
-				m_timer = t;	
+				m_timer = t;
 			}
-			
-			public bool GetBusyCheck()
+
+			public bool GetBusyCheck ()
 			{
-				return m_busycheck;	
+				return m_busycheck;
 			}
-			
-			public void SetBusyCheck(bool b)
+
+			public void SetBusyCheck (bool b)
 			{
-				m_busycheck = b;	
+				m_busycheck = b;
 			}
-			
-			
-			public string GetScript()
+
+
+			public string GetScript ()
 			{
-				return m_script;	
+				return m_script;
 			}
-			
-			public void SetScript(string s)
+
+			public void SetScript (string s)
 			{
-				m_script = s;	
+				m_script = s;
 			}
-			
-			public string GetBackupDir()
+
+			public string GetBackupDir ()
 			{
-				return m_dir;	
+				return m_dir;
 			}
-			
-			public void SetBackupDir(string s)
+
+			public void SetBackupDir (string s)
 			{
-				m_dir = s;	
+				m_dir = s;
 			}
-			
-			public NamingType GetNamingType()
+
+			public NamingType GetNamingType ()
 			{
 				return m_naming;
 			}
-			
-			public void SetNamingType(NamingType n)
+
+			public void SetNamingType (NamingType n)
 			{
-				m_naming = n;	
+				m_naming = n;
 			}
 		}
-		
+
 		//Save memory by setting low initial capacities. Minimizes impact in common cases of all regions using same interval, and instances hosting 1 ~ 4 regions.
 		//Also helps if you don't want AutoBackup at all
-		readonly Dictionary<IScene, AutoBackupModuleState> states = new Dictionary<IScene, AutoBackupModuleState>(4);
-		readonly Dictionary<double, Timer> timers = new Dictionary<double, Timer>(1);
-		readonly Dictionary<Timer, List<IScene>> timerMap = new Dictionary<Timer, List<IScene>>(1);
+		readonly Dictionary<IScene, AutoBackupModuleState> states = new Dictionary<IScene, AutoBackupModuleState> (4);
+		readonly Dictionary<double, Timer> timers = new Dictionary<double, Timer> (1);
+		readonly Dictionary<Timer, List<IScene>> timerMap = new Dictionary<Timer, List<IScene>> (1);
 		private IConfigSource m_configSource = null;
-		private bool m_Enabled = false; //Whether the shared module should be enabled at all. NOT the same as m_Enabled in AutoBackupModuleState!
-		
+		private bool m_Enabled = false;
+		//Whether the shared module should be enabled at all. NOT the same as m_Enabled in AutoBackupModuleState!
+		private bool m_closed = false;
+		//True means IRegionModuleBase.Close() was called on us, and we should stop operation ASAP.
+		//Used to prevent elapsing timers after Close() is called from trying to start an autobackup while the sim is shutting down.
 		public AutoBackupModule ()
 		{
 			
@@ -185,24 +187,22 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 		{
 			//Determine if we have been enabled at all in OpenSim.ini -- this is part and parcel of being an optional module
 			m_configSource = source;
-            IConfig moduleConfig = source.Configs["Modules"];
-            if (moduleConfig != null)
-            {
-                m_Enabled = moduleConfig.GetBoolean("AutoBackupModule", false);
-                if (m_Enabled)
-                {
-                    m_log.Info("[AUTO BACKUP MODULE]: AutoBackupModule enabled");
-                }
-            }
+			IConfig moduleConfig = source.Configs["Modules"];
+			if (moduleConfig != null) {
+				m_Enabled = moduleConfig.GetBoolean ("AutoBackupModule", false);
+				if (m_Enabled) {
+					m_log.Info ("[AUTO BACKUP MODULE]: AutoBackupModule enabled");
+				}
+			}
 		}
 
 		void IRegionModuleBase.Close ()
 		{
-			if(!m_Enabled)
+			if (!m_Enabled)
 				return;
 			
 			//We don't want any timers firing while the sim's coming down; strange things may happen.
-			StopAllTimers();
+			StopAllTimers ();
 		}
 
 		void IRegionModuleBase.AddRegion (Framework.Scenes.Scene scene)
@@ -212,327 +212,286 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 
 		void IRegionModuleBase.RemoveRegion (Framework.Scenes.Scene scene)
 		{
-			if(!m_Enabled)
+			if (!m_Enabled)
 				return;
 			
 			AutoBackupModuleState abms = states[scene];
-			Timer timer = abms.GetTimer();
+			Timer timer = abms.GetTimer ();
 			List<IScene> list = timerMap[timer];
-			list.Remove(scene);
-			if(list.Count == 0)
-			{
-				timerMap.Remove(timer);
-				timers.Remove(timer.Interval);
-				timer.Close();
+			list.Remove (scene);
+			if (list.Count == 0) {
+				timerMap.Remove (timer);
+				timers.Remove (timer.Interval);
+				timer.Close ();
 			}
 		}
 
 		void IRegionModuleBase.RegionLoaded (Framework.Scenes.Scene scene)
 		{
-			if(!m_Enabled)
+			if (!m_Enabled)
 				return;
 			
 			//This really ought not to happen, but just in case, let's pretend it didn't...
-			if(scene == null)
+			if (scene == null)
 				return;
 			
 			string sRegionName = scene.RegionInfo.RegionName;
-			AutoBackupModuleState st = new AutoBackupModuleState(scene);
-			states.Add(scene, st);
+			AutoBackupModuleState st = new AutoBackupModuleState (scene);
+			states.Add (scene, st);
 			
 			//Read the config settings and set variables.
 			IConfig config = m_configSource.Configs["AutoBackupModule"];
-			if(config == null)
-			{
+			if (config == null) {
 				//No config settings for any regions, let's just give up.
-				st.SetEnabled(false);
-				m_log.Info("[AUTO BACKUP MODULE]: Region " + sRegionName + " is NOT AutoBackup enabled.");	
+				st.SetEnabled (false);
+				m_log.Info ("[AUTO BACKUP MODULE]: Region " + sRegionName + " is NOT AutoBackup enabled.");
 				return;
 			}
-			st.SetEnabled(config.GetBoolean(sRegionName + ".AutoBackup", false));
-			if(!st.GetEnabled()) //If you don't want AutoBackup, we stop.
-			{
-				m_log.Info("[AUTO BACKUP MODULE]: Region " + sRegionName + " is NOT AutoBackup enabled.");	
+			st.SetEnabled (config.GetBoolean (sRegionName + ".AutoBackup", false));
+			//If you don't want AutoBackup, we stop.
+			if (!st.GetEnabled ()) {
+				m_log.Info ("[AUTO BACKUP MODULE]: Region " + sRegionName + " is NOT AutoBackup enabled.");
 				return;
-			}
-			else
-			{
-				m_log.Info("[AUTO BACKUP MODULE]: Region " + sRegionName + " is AutoBackup ENABLED.");	
+			} else {
+				m_log.Info ("[AUTO BACKUP MODULE]: Region " + sRegionName + " is AutoBackup ENABLED.");
 			}
 			
 			//Borrow an existing timer if one exists for the same interval; otherwise, make a new one.
-			double interval = config.GetDouble(sRegionName + ".AutoBackupInterval", 720) * 60000;
-			if(timers.ContainsKey(interval))
-			{
-				st.SetTimer(timers[interval]);
-				m_log.Debug("[AUTO BACKUP MODULE]: Reusing timer for " + interval + " msec for region " + sRegionName);
-			}
-			else
-			{
+			double interval = config.GetDouble (sRegionName + ".AutoBackupInterval", 720) * 60000;
+			if (timers.ContainsKey (interval)) {
+				st.SetTimer (timers[interval]);
+				m_log.Debug ("[AUTO BACKUP MODULE]: Reusing timer for " + interval + " msec for region " + sRegionName);
+			} else {
 				//0 or negative interval == do nothing.
-				if(interval <= 0.0)
-				{
-					st.SetEnabled(false);
+				if (interval <= 0.0) {
+					st.SetEnabled (false);
 					return;
 				}
-				Timer tim = new Timer(interval);
-				st.SetTimer(tim); //Milliseconds -> minutes
-				timers.Add(interval, tim);
-			    tim.Elapsed += HandleElapsed;
+				Timer tim = new Timer (interval);
+				st.SetTimer (tim);
+				//Milliseconds -> minutes
+				timers.Add (interval, tim);
+				tim.Elapsed += HandleElapsed;
 				tim.AutoReset = true;
-				tim.Start();
+				tim.Start ();
 				//m_log.Debug("[AUTO BACKUP MODULE]: New timer for " + interval + " msec for region " + sRegionName);
 			}
 			
 			//Add the current region to the list of regions tied to this timer.
-			if(timerMap.ContainsKey(st.GetTimer()))
-			{
-				timerMap[st.GetTimer()].Add(scene);
-			}
-			else
-			{
-				List<IScene> scns = new List<IScene>(1);
-				scns.Add(scene);
-				timerMap.Add(st.GetTimer(), scns);
+			if (timerMap.ContainsKey (st.GetTimer ())) {
+				timerMap[st.GetTimer ()].Add (scene);
+			} else {
+				List<IScene> scns = new List<IScene> (1);
+				scns.Add (scene);
+				timerMap.Add (st.GetTimer (), scns);
 			}
 			
-			st.SetBusyCheck(config.GetBoolean(sRegionName + ".AutoBackupBusyCheck", true));
+			st.SetBusyCheck (config.GetBoolean (sRegionName + ".AutoBackupBusyCheck", true));
 			
 			//Set file naming algorithm
-			string namingtype = config.GetString(sRegionName + ".AutoBackupNaming", "Time");
-			if(namingtype.Equals("Time", StringComparison.CurrentCultureIgnoreCase))
-			{
-				st.SetNamingType(NamingType.TIME);
-			}
-			else if(namingtype.Equals("Sequential", StringComparison.CurrentCultureIgnoreCase))
-			{
-				st.SetNamingType(NamingType.SEQUENTIAL);	
-			}
-			else if(namingtype.Equals("Overwrite", StringComparison.CurrentCultureIgnoreCase))
-			{
-				st.SetNamingType(NamingType.OVERWRITE);	
-			}
-			else
-			{
-				m_log.Warn("Unknown naming type specified for region " + scene.RegionInfo.RegionName + ": " + namingtype);
-				st.SetNamingType(NamingType.TIME);
+			string namingtype = config.GetString (sRegionName + ".AutoBackupNaming", "Time");
+			if (namingtype.Equals ("Time", StringComparison.CurrentCultureIgnoreCase)) {
+				st.SetNamingType (NamingType.TIME);
+			} else if (namingtype.Equals ("Sequential", StringComparison.CurrentCultureIgnoreCase)) {
+				st.SetNamingType (NamingType.SEQUENTIAL);
+			} else if (namingtype.Equals ("Overwrite", StringComparison.CurrentCultureIgnoreCase)) {
+				st.SetNamingType (NamingType.OVERWRITE);
+			} else {
+				m_log.Warn ("Unknown naming type specified for region " + scene.RegionInfo.RegionName + ": " + namingtype);
+				st.SetNamingType (NamingType.TIME);
 			}
 			
-			st.SetScript(config.GetString(sRegionName + ".AutoBackupScript", null));
-			st.SetBackupDir(config.GetString(sRegionName + ".AutoBackupDir", "."));
+			st.SetScript (config.GetString (sRegionName + ".AutoBackupScript", null));
+			st.SetBackupDir (config.GetString (sRegionName + ".AutoBackupDir", "."));
 			
 			//Let's give the user *one* convenience and auto-mkdir
-			if(st.GetBackupDir() != ".")
-			{
-				try
-				{
-					DirectoryInfo dirinfo = new DirectoryInfo(st.GetBackupDir());
-					if(!dirinfo.Exists)
-					{
-						dirinfo.Create();	
+			if (st.GetBackupDir () != ".") {
+				try {
+					DirectoryInfo dirinfo = new DirectoryInfo (st.GetBackupDir ());
+					if (!dirinfo.Exists) {
+						dirinfo.Create ();
 					}
-				}
-				catch(Exception e)
-				{
-					m_log.Warn("BAD NEWS. You won't be able to save backups to directory " + st.GetBackupDir() +
-					           " because it doesn't exist or there's a permissions issue with it. Here's the exception.", e);
+				} catch (Exception e) {
+					m_log.Warn ("BAD NEWS. You won't be able to save backups to directory " + st.GetBackupDir () + " because it doesn't exist or there's a permissions issue with it. Here's the exception.", e);
 				}
 			}
 		}
 
 		void HandleElapsed (object sender, ElapsedEventArgs e)
 		{
+			if (m_closed)
+				return;
 			bool heuristicsRun = false;
 			bool heuristicsPassed = false;
-			if(!timerMap.ContainsKey((Timer) sender))
-			{
-				m_log.Debug("Code-up error: timerMap doesn't contain timer " + sender.ToString());
+			if (!timerMap.ContainsKey ((Timer)sender)) {
+				m_log.Debug ("Code-up error: timerMap doesn't contain timer " + sender.ToString ());
 			}
-			foreach(IScene scene in timerMap[(Timer)sender])
-			{
+			foreach (IScene scene in timerMap[(Timer)sender]) {
 				AutoBackupModuleState state = states[scene];
-				bool heuristics = state.GetBusyCheck();
+				bool heuristics = state.GetBusyCheck ();
 				
 				//Fast path: heuristics are on; already ran em; and sim is fine; OR, no heuristics for the region.
-				if((heuristics && heuristicsRun && heuristicsPassed)
-				   || !heuristics)
-				{
-					doRegionBackup(scene);
-				}
+				if ((heuristics && heuristicsRun && heuristicsPassed) || !heuristics) {
+					doRegionBackup (scene);
 				//Heuristics are on; ran but we're too busy -- keep going. Maybe another region will have heuristics off!
-				else if(heuristics && heuristicsRun && !heuristicsPassed)
-				{
+				} else if (heuristics && heuristicsRun && !heuristicsPassed) {
 					continue;
-				}
 				//Logical Deduction: heuristics are on but haven't been run
-				else
-				{
-					heuristicsPassed = RunHeuristics();
+				} else {
+					heuristicsPassed = RunHeuristics ();
 					heuristicsRun = true;
-					if(!heuristicsPassed)
+					if (!heuristicsPassed)
 						continue;
-					doRegionBackup(scene);
+					doRegionBackup (scene);
 				}
 			}
 		}
-		
-		void doRegionBackup(IScene scene)
+
+		void doRegionBackup (IScene scene)
 		{
 			AutoBackupModuleState state = states[scene];
-			IRegionArchiverModule iram = scene.RequestModuleInterface<IRegionArchiverModule>();
-			string savePath = BuildOarPath(scene.RegionInfo.RegionName, state.GetBackupDir(), state.GetNamingType());
+			IRegionArchiverModule iram = scene.RequestModuleInterface<IRegionArchiverModule> ();
+			string savePath = BuildOarPath (scene.RegionInfo.RegionName, state.GetBackupDir (), state.GetNamingType ());
 			//m_log.Debug("[AUTO BACKUP MODULE]: savePath = " + savePath);
-			if(savePath == null)
-			{
-				m_log.Warn("[AUTO BACKUP MODULE]: savePath is null in HandleElapsed");
+			if (savePath == null) {
+				m_log.Warn ("[AUTO BACKUP MODULE]: savePath is null in HandleElapsed");
 				return;
 			}
-			iram.ArchiveRegion(savePath, null);
-			ExecuteScript(state.GetScript(), savePath);
+			iram.ArchiveRegion (savePath, null);
+			ExecuteScript (state.GetScript (), savePath);
 		}
 
 		string IRegionModuleBase.Name {
-			get {
-				return "AutoBackupModule";
-			}
+			get { return "AutoBackupModule"; }
 		}
 
 		Type IRegionModuleBase.ReplaceableInterface {
-			get {
-				return null;
-			}
+			get { return null; }
 		}
-			                     
+
 		#endregion
 		#region ISharedRegionModule implementation
 		void ISharedRegionModule.PostInitialise ()
 		{
 			//I don't care right now.
 		}
-		
+
 		#endregion
-		
+
 		//Is this even needed?
-		public bool IsSharedModule
-        {
-            get { return true; }
-        }
-		
-		private string BuildOarPath(string regionName, string baseDir, NamingType naming)
+		public bool IsSharedModule {
+			get { return true; }
+		}
+
+		private string BuildOarPath (string regionName, string baseDir, NamingType naming)
 		{
 			FileInfo path = null;
-			switch(naming)
-			{
+			switch (naming) {
 			case NamingType.OVERWRITE:
-				path = new FileInfo(baseDir + Path.DirectorySeparatorChar + regionName);
+				path = new FileInfo (baseDir + Path.DirectorySeparatorChar + regionName);
 				return path.FullName;
 			case NamingType.TIME:
-				path = new FileInfo(baseDir + Path.DirectorySeparatorChar + regionName + GetTimeString() + ".oar");
+				path = new FileInfo (baseDir + Path.DirectorySeparatorChar + regionName + GetTimeString () + ".oar");
 				return path.FullName;
 			case NamingType.SEQUENTIAL:
-				path = new FileInfo(GetNextFile(baseDir, regionName));
+				path = new FileInfo (GetNextFile (baseDir, regionName));
 				return path.FullName;
 			default:
-				m_log.Warn("VERY BAD: Unhandled case element " + naming.ToString());
+				m_log.Warn ("VERY BAD: Unhandled case element " + naming.ToString ());
 				break;
 			}
 			
 			return path.FullName;
 		}
-		
+
 		//Welcome to the TIME STRING. 4 CORNER INTEGERS, CUBES 4 QUAD MEMORY -- No 1 Integer God.
 		//(Terrible reference to <timecube.com>)
 		//This format may turn out to be too unwieldy to keep...
 		//Besides, that's what ctimes are for. But then how do I name each file uniquely without using a GUID?
 		//Sequential numbers, right? Ugh. Almost makes TOO much sense.
-		private string GetTimeString()
+		private string GetTimeString ()
 		{
-			StringWriter sw = new StringWriter();
-			sw.Write("_");
+			StringWriter sw = new StringWriter ();
+			sw.Write ("_");
 			DateTime now = DateTime.Now;
-			sw.Write(now.Year);
-			sw.Write("y_");
-			sw.Write(now.Month);
-			sw.Write("M_");
-			sw.Write(now.Day);
-			sw.Write("d_");
-			sw.Write(now.Hour);
-			sw.Write("h_");
-			sw.Write(now.Minute);
-			sw.Write("m_");
-			sw.Write(now.Second);
-			sw.Write("s");
-			sw.Flush();
-			string output = sw.ToString();
-			sw.Close();
+			sw.Write (now.Year);
+			sw.Write ("y_");
+			sw.Write (now.Month);
+			sw.Write ("M_");
+			sw.Write (now.Day);
+			sw.Write ("d_");
+			sw.Write (now.Hour);
+			sw.Write ("h_");
+			sw.Write (now.Minute);
+			sw.Write ("m_");
+			sw.Write (now.Second);
+			sw.Write ("s");
+			sw.Flush ();
+			string output = sw.ToString ();
+			sw.Close ();
 			return output;
 		}
-		
+
 		//Get the next logical file name
 		//I really shouldn't put fields here, but for now.... ;)
 		private string m_dirName = null;
 		private string m_regionName = null;
-		private string GetNextFile(string dirName, string regionName)
+		private string GetNextFile (string dirName, string regionName)
 		{
 			FileInfo uniqueFile = null;
 			m_dirName = dirName;
 			m_regionName = regionName;
-			long biggestExistingFile = HalfIntervalMaximize(1, FileExistsTest);
-			biggestExistingFile++; //We don't want to overwrite the biggest existing file; we want to write to the NEXT biggest.
-			
-			uniqueFile = new FileInfo(m_dirName + Path.DirectorySeparatorChar + m_regionName + "_" + biggestExistingFile + ".oar");
-			if(uniqueFile.Exists)
-			{
+			long biggestExistingFile = HalfIntervalMaximize (1, FileExistsTest);
+			biggestExistingFile++;
+			//We don't want to overwrite the biggest existing file; we want to write to the NEXT biggest.
+			uniqueFile = new FileInfo (m_dirName + Path.DirectorySeparatorChar + m_regionName + "_" + biggestExistingFile + ".oar");
+			if (uniqueFile.Exists) {
 				//Congratulations, your strange deletion patterns fooled my half-interval search into picking an existing file!
 				//Now you get to pay the performance cost :)
-				uniqueFile = UniqueFileSearchLinear(biggestExistingFile);
+				uniqueFile = UniqueFileSearchLinear (biggestExistingFile);
 			}
 			
 			return uniqueFile.FullName;
 		}
-					
-		private bool RunHeuristics()
+
+		private bool RunHeuristics ()
 		{
 			return true;
 		}
-		
-		private void ExecuteScript(string scriptName, string savePath)
+
+		private void ExecuteScript (string scriptName, string savePath)
 		{
 			//Fast path out
-			if(scriptName == null || scriptName.Length <= 0)
+			if (scriptName == null || scriptName.Length <= 0)
 				return;
 			
-			try
-			{
-				FileInfo fi = new FileInfo(scriptName);
-				if(fi.Exists)
-				{
-					ProcessStartInfo psi = new ProcessStartInfo(scriptName);
+			try {
+				FileInfo fi = new FileInfo (scriptName);
+				if (fi.Exists) {
+					ProcessStartInfo psi = new ProcessStartInfo (scriptName);
 					psi.Arguments = savePath;
 					psi.CreateNoWindow = true;
-					Process proc = Process.Start(psi);
+					Process proc = Process.Start (psi);
 					proc.ErrorDataReceived += HandleProcErrorDataReceived;
 				}
-			}
-			catch(Exception e)
-			{
-				m_log.Warn("Exception encountered when trying to run script for oar backup " + savePath, e);
+			} catch (Exception e) {
+				m_log.Warn ("Exception encountered when trying to run script for oar backup " + savePath, e);
 			}
 		}
 
 		void HandleProcErrorDataReceived (object sender, DataReceivedEventArgs e)
 		{
-			m_log.Warn("ExecuteScript hook " + ((Process)sender).ProcessName + " is yacking on stderr: " + e.Data);
+			m_log.Warn ("ExecuteScript hook " + ((Process)sender).ProcessName + " is yacking on stderr: " + e.Data);
 		}
-		
-		private void StopAllTimers()
+
+		private void StopAllTimers ()
 		{
-			foreach(Timer t in timerMap.Keys)
-			{
-				t.Close();	
+			foreach (Timer t in timerMap.Keys) {
+				t.Close ();
 			}
+			m_closed = true;
 		}
-		
+
 		/* Find the largest value for which the predicate returns true.
 		 * We use a bisection algorithm (half interval) to make the algorithm scalable.
 		 * The worst-case complexity is about O(log(n)^2) in practice.
@@ -542,65 +501,54 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 		 * And of course it is fantastic with powers of 2, which are densely packed in values under 100 anyway.
 		 * The Predicate<long> parameter must be a function that accepts a long and returns a bool.
 		 * */
-		public long HalfIntervalMaximize(long start, Predicate<long> pred)
+		public long HalfIntervalMaximize (long start, Predicate<long> pred)
 		{
 			long prev = start, curr = start, biggest = 0;
 			
-			if(start < 0)
-				throw new IndexOutOfRangeException("Start value for HalfIntervalMaximize must be non-negative");
+			if (start < 0)
+				throw new IndexOutOfRangeException ("Start value for HalfIntervalMaximize must be non-negative");
 			
-			do
-			{
-				if(pred(curr))
-				{
-					if(curr > biggest)
-					{
+			do {
+				if (pred (curr)) {
+					if (curr > biggest) {
 						biggest = curr;
 					}
 					prev = curr;
-					if(curr == 0)
-					{
+					if (curr == 0) {
 						//Special case because 0 * 2 = 0 :)
 						curr = 1;
-					}
-					else
-					{
+					} else {
 						//Look deeper
 						curr *= 2;
 					}
-				}
-				else
-				{
+				} else {
 					// We went too far, back off halfway
 					curr = (curr + prev) / 2;
 				}
-			}
-			while(curr - prev > 0);
+			} while (curr - prev > 0);
 			
 			return biggest;
 		}
-		
-		public bool FileExistsTest(long num)
+
+		public bool FileExistsTest (long num)
 		{
-			FileInfo test = new FileInfo(m_dirName + Path.DirectorySeparatorChar + m_regionName + "_" + num + ".oar");
+			FileInfo test = new FileInfo (m_dirName + Path.DirectorySeparatorChar + m_regionName + "_" + num + ".oar");
 			return test.Exists;
 		}
-		
-		
+
+
 		//Very slow, hence why we try the HalfIntervalMaximize first!
-		public FileInfo UniqueFileSearchLinear(long start)
+		public FileInfo UniqueFileSearchLinear (long start)
 		{
 			long l = start;
 			FileInfo retval = null;
-			do
-			{
-				retval = new FileInfo(m_dirName + Path.DirectorySeparatorChar + m_regionName + "_" + (l++) + ".oar");
-			}
-			while(retval.Exists);
+			do {
+				retval = new FileInfo (m_dirName + Path.DirectorySeparatorChar + m_regionName + "_" + (l++) + ".oar");
+			} while (retval.Exists);
 			
 			return retval;
 		}
-}
+	}
 	
 }
 
