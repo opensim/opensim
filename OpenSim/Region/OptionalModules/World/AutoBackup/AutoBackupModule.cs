@@ -35,7 +35,9 @@ using log4net;
 using Nini;
 using Nini.Config;
 using OpenSim.Framework;
+using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 
 
 /*
@@ -319,6 +321,12 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 
 		void HandleElapsed (object sender, ElapsedEventArgs e)
 		{
+			//TODO?: heuristic thresholds are per-region, so we should probably run heuristics once per region
+			//XXX: Running heuristics once per region could add undue performance penalty for something that's supposed to
+			//check whether the region is too busy! Especially on sims with LOTS of regions.
+			//Alternative: make heuristics thresholds global to the module rather than per-region. Less flexible,
+			// but would allow us to be semantically correct while being easier on perf.
+			//Alternative 2: Run heuristics once per unique set of heuristics threshold parameters! Ay yi yi...
 			if (m_closed)
 				return;
 			bool heuristicsRun = false;
@@ -333,15 +341,18 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 				//Fast path: heuristics are on; already ran em; and sim is fine; OR, no heuristics for the region.
 				if ((heuristics && heuristicsRun && heuristicsPassed) || !heuristics) {
 					doRegionBackup (scene);
-				//Heuristics are on; ran but we're too busy -- keep going. Maybe another region will have heuristics off!
+					//Heuristics are on; ran but we're too busy -- keep going. Maybe another region will have heuristics off!
 				} else if (heuristics && heuristicsRun && !heuristicsPassed) {
+					m_log.Info ("[AUTO BACKUP MODULE]: Heuristics: too busy to backup " + scene.RegionInfo.RegionName + " right now.");
 					continue;
-				//Logical Deduction: heuristics are on but haven't been run
+					//Logical Deduction: heuristics are on but haven't been run
 				} else {
-					heuristicsPassed = RunHeuristics ();
+					heuristicsPassed = RunHeuristics (scene);
 					heuristicsRun = true;
-					if (!heuristicsPassed)
+					if (!heuristicsPassed) {
+						m_log.Info ("[AUTO BACKUP MODULE]: Heuristics: too busy to backup " + scene.RegionInfo.RegionName + " right now.");
 						continue;
+					}
 					doRegionBackup (scene);
 				}
 			}
@@ -349,6 +360,12 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 
 		void doRegionBackup (IScene scene)
 		{
+			if (scene.RegionStatus != RegionStatus.Up) {
+				//We won't backup a region that isn't operating normally.
+				m_log.Warn ("[AUTO BACKUP MODULE]: Not backing up region " + scene.RegionInfo.RegionName + " because its status is " + scene.RegionStatus.ToString ());
+				return;
+			}
+			
 			AutoBackupModuleState state = states[scene];
 			IRegionArchiverModule iram = scene.RequestModuleInterface<IRegionArchiverModule> ();
 			string savePath = BuildOarPath (scene.RegionInfo.RegionName, state.GetBackupDir (), state.GetNamingType ());
@@ -454,9 +471,49 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			return uniqueFile.FullName;
 		}
 
-		private bool RunHeuristics ()
+		/*
+		 * Return value of true ==> not too busy; false ==> too busy to backup an OAR right now, or error.
+		 * */
+		private bool RunHeuristics (IScene region)
 		{
-			return true;
+			try {
+				return RunTimeDilationHeuristic (region) && RunAgentLimitHeuristic (region);
+			} catch (Exception e) {
+				m_log.Warn ("[AUTO BACKUP MODULE]: Exception in RunHeuristics", e);
+				return false;
+			}
+		}
+
+		/*
+		 * If the time dilation right at this instant is less than the threshold specified in AutoBackupDilationThreshold (default 0.5),
+		 * then we return false and trip the busy heuristic's "too busy" path (i.e. don't save an OAR).
+		 * AutoBackupDilationThreshold is a _LOWER BOUND_. Lower Time Dilation is bad, so if you go lower than our threshold, it's "too busy".
+		 * Return value of "true" ==> not too busy. Return value of "false" ==> too busy!
+		 * */
+		private bool RunTimeDilationHeuristic (IScene region)
+		{
+			string regionName = region.RegionInfo.RegionName;
+			return region.TimeDilation >= m_configSource.Configs["AutoBackupModule"].GetFloat (regionName + ".AutoBackupDilationThreshold", 0.5f);
+		}
+
+		/*
+		 * If the root agent count right at this instant is less than the threshold specified in AutoBackupAgentThreshold (default 10),
+		 * then we return false and trip the busy heuristic's "too busy" path (i.e., don't save an OAR).
+		 * AutoBackupAgentThreshold is an _UPPER BOUND_. Higher Agent Count is bad, so if you go higher than our threshold, it's "too busy".
+		 * Return value of "true" ==> not too busy. Return value of "false" ==> too busy!
+		 * */
+		private bool RunAgentLimitHeuristic (IScene region)
+		{
+			string regionName = region.RegionInfo.RegionName;
+			try {
+				Scene scene = (Scene)region;
+				//TODO: Why isn't GetRootAgentCount() a method in the IScene interface? Seems generally useful...
+				return scene.GetRootAgentCount () <= m_configSource.Configs["AutoBackupModule"].GetInt (regionName + ".AutoBackupAgentThreshold", 10);
+			} catch (InvalidCastException ice) {
+				m_log.Debug ("[AUTO BACKUP MODULE]: I NEED MAINTENANCE: IScene is not a Scene; can't get root agent count!");
+				return true;
+				//Non-obstructionist safest answer...
+			}
 		}
 
 		private void ExecuteScript (string scriptName, string savePath)
