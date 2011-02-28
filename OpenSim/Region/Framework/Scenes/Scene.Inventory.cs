@@ -321,6 +321,8 @@ namespace OpenSim.Region.Framework.Scenes
             // Passing something to another avatar or a an object will already
             InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
             item = InventoryService.GetItem(item);
+            if (item.Owner != remoteClient.AgentId)
+                return;
 
             if (item != null)
             {

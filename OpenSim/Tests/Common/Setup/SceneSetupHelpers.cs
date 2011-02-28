@@ -132,24 +132,11 @@ namespace OpenSim.Tests.Common.Setup
         public static TestScene SetupScene(
             string name, UUID id, uint x, uint y, String realServices)
         {
-            bool newScene = false;
-
             Console.WriteLine("Setting up test scene {0}", name);
 
-            // REFACTORING PROBLEM!
-            //// If cm is the same as our last commsManager used, this means the tester wants to link
-            //// regions. In this case, don't use the sameshared region modules and dont initialize them again.
-            //// Also, no need to start another MainServer and MainConsole instance.
-            //if (cm == null || cm != commsManager)
-            //{
-            //    System.Console.WriteLine("Starting a brand new scene");
-            //    newScene = true;
-            MainConsole.Instance = new MockConsole("TEST PROMPT");
-            //    MainServer.Instance = new BaseHttpServer(980);
-            //    commsManager = cm;
-            //}
-
             // We must set up a console otherwise setup of some modules may fail
+            MainConsole.Instance = new MockConsole("TEST PROMPT");
+            
             RegionInfo regInfo = new RegionInfo(x, y, new IPEndPoint(IPAddress.Loopback, 9000), "127.0.0.1");
             regInfo.RegionName = name;
             regInfo.RegionID = id;
@@ -164,50 +151,27 @@ namespace OpenSim.Tests.Common.Setup
             TestScene testScene = new TestScene(
                 regInfo, acm, scs, simDataService, estateDataService, null, false, false, false, configSource, null);
 
-            INonSharedRegionModule capsModule = new CapabilitiesModule();
-            capsModule.Initialise(new IniConfigSource());
-            testScene.AddRegionModule(capsModule.Name, capsModule);
-            capsModule.AddRegion(testScene);
-
             IRegionModule godsModule = new GodsModule();
             godsModule.Initialise(testScene, new IniConfigSource());
             testScene.AddModule(godsModule.Name, godsModule);
             realServices = realServices.ToLower();
-            // IConfigSource config = new IniConfigSource();
 
-            // If we have a brand new scene, need to initialize shared region modules
-            if ((m_assetService == null && m_inventoryService == null) || newScene)
-            {
-                if (realServices.Contains("asset"))
-                    StartAssetService(testScene, true);
-                else
-                    StartAssetService(testScene, false);
-
-                // For now, always started a 'real' authentication service
-                StartAuthenticationService(testScene, true);
-
-                if (realServices.Contains("inventory"))
-                    StartInventoryService(testScene, true);
-                else
-                    StartInventoryService(testScene, false);
-
-                StartGridService(testScene, true);
-                StartUserAccountService(testScene);
-                StartPresenceService(testScene);
-            }
-            // If not, make sure the shared module gets references to this new scene
+            if (realServices.Contains("asset"))
+                StartAssetService(testScene, true);
             else
-            {
-                m_assetService.AddRegion(testScene);
-                m_assetService.RegionLoaded(testScene);
-                m_inventoryService.AddRegion(testScene);
-                m_inventoryService.RegionLoaded(testScene);
-                m_userAccountService.AddRegion(testScene);
-                m_userAccountService.RegionLoaded(testScene);
-                m_presenceService.AddRegion(testScene);
-                m_presenceService.RegionLoaded(testScene);
+                StartAssetService(testScene, false);
 
-            }
+            // For now, always started a 'real' authentication service
+            StartAuthenticationService(testScene, true);
+
+            if (realServices.Contains("inventory"))
+                StartInventoryService(testScene, true);
+            else
+                StartInventoryService(testScene, false);
+
+            StartGridService(testScene, true);
+            StartUserAccountService(testScene);
+            StartPresenceService(testScene);
 
             m_inventoryService.PostInitialise();
             m_assetService.PostInitialise();
@@ -504,12 +468,10 @@ namespace OpenSim.Tests.Common.Setup
             TestClient client = new TestClient(agentData, scene);
             scene.AddNewClient(client);
 
-            // Stage 3: Invoke agent crossing, which converts the child agent into a root agent (with appearance,
-            // inventory, etc.)
-            //scene.AgentCrossing(agentData.AgentID, new Vector3(90, 90, 90), false); OBSOLETE
-
+            // Stage 3: Complete the entrance into the region.  This converts the child agent into a root agent.
             ScenePresence scp = scene.GetScenePresence(agentData.AgentID);
-            scp.MakeRootAgent(new Vector3(90, 90, 90), true);
+            scp.CompleteMovement(client);
+            //scp.MakeRootAgent(new Vector3(90, 90, 90), true);
 
             return client;
         }
@@ -542,25 +504,6 @@ namespace OpenSim.Tests.Common.Setup
             scene.AddNewSceneObject(new SceneObjectGroup(part), false);
 
             return part;
-        }
-
-        /// <summary>
-        /// Delete a scene object asynchronously
-        /// </summary>
-        /// <param name="scene"></param>
-        /// <param name="part"></param>
-        /// <param name="action"></param>
-        /// <param name="destinationId"></param>
-        /// <param name="client"></param>
-        public static void DeleteSceneObjectAsync(
-            TestScene scene, SceneObjectPart part, DeRezAction action, UUID destinationId, IClientAPI client)
-        {
-            // Turn off the timer on the async sog deleter - we'll crank it by hand within a unit test
-            AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
-            sogd.Enabled = false;
-
-            scene.DeRezObjects(client, new List<uint>() { part.LocalId }, UUID.Zero, action, destinationId);
-            sogd.InventoryDeQueueAndDelete();
         }
     }
 }

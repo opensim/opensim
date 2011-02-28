@@ -271,6 +271,7 @@ namespace OpenSim.Services.GridService
         {
             List<GridRegion> rinfos = new List<GridRegion>();
             RegionData region = m_Database.Get(regionID, scopeID);
+            
             if (region != null)
             {
                 // Not really? Maybe?
@@ -278,15 +279,24 @@ namespace OpenSim.Services.GridService
                     region.posX + (int)Constants.RegionSize + 1, region.posY + (int)Constants.RegionSize + 1, scopeID);
 
                 foreach (RegionData rdata in rdatas)
+                {
                     if (rdata.RegionID != regionID)
                     {
                         int flags = Convert.ToInt32(rdata.Data["flags"]);
                         if ((flags & (int)Data.RegionFlags.Hyperlink) == 0) // no hyperlinks as neighbours
                             rinfos.Add(RegionData2RegionInfo(rdata));
                     }
+                }
 
+                m_log.DebugFormat("[GRID SERVICE]: region {0} has {1} neighbours", region.RegionName, rinfos.Count);
             }
-            m_log.DebugFormat("[GRID SERVICE]: region {0} has {1} neighbours", region.RegionName, rinfos.Count);
+            else
+            {
+                m_log.WarnFormat(
+                    "[GRID SERVICE]: GetNeighbours() called for scope {0}, region {1} but no such region found", 
+                    scopeID, regionID);
+            }
+            
             return rinfos;
         }
 

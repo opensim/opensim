@@ -626,7 +626,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Utils.LongToUInts(handle, out x, out y);
                 x = x / Constants.RegionSize;
                 y = y / Constants.RegionSize;
-                if (Util.IsOutsideView(x, Scene.RegionInfo.RegionLocX, y, Scene.RegionInfo.RegionLocY))
+                if (Util.IsOutsideView(DrawDistance, x, Scene.RegionInfo.RegionLocX, y, Scene.RegionInfo.RegionLocY))
                 {
                     old.Add(handle);
                 }
@@ -700,6 +700,7 @@ namespace OpenSim.Region.Framework.Scenes
         
         private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo) : this()
         {
+            m_DrawDistance = world.DefaultDrawDistance;
             m_rootRegionHandle = reginfo.RegionHandle;
             m_controllingClient = client;
             m_firstname = m_controllingClient.FirstName;
@@ -1161,7 +1162,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_agentTransfer != null)
                     m_agentTransfer.EnableChildAgents(this);
                 else
-                    m_log.DebugFormat("[SCENE PRESENCE]: Unable to create child agents in neighbours, because AgentTransferModule is not active");
+                    m_log.DebugFormat(
+                        "[SCENE PRESENCE]: Unable to create child agents in neighbours, because AgentTransferModule is not active for region {0}", 
+                        m_scene.RegionInfo.RegionName);
 
                 IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
                 if (friendsModule != null)
@@ -1277,7 +1280,11 @@ namespace OpenSim.Region.Framework.Scenes
             m_CameraUpAxis = agentData.CameraUpAxis;
 
             // The Agent's Draw distance setting
-            m_DrawDistance = agentData.Far;
+            // When we get to the point of re-computing neighbors everytime this
+            // changes, then start using the agent's drawdistance rather than the 
+            // region's draw distance.
+            // m_DrawDistance = agentData.Far;
+            m_DrawDistance = Scene.DefaultDrawDistance;
 
             // Check if Client has camera in 'follow cam' or 'build' mode.
             Vector3 camdif = (Vector3.One * m_bodyRot - Vector3.One * CameraRotation);
@@ -2435,7 +2442,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If we are using the the cached appearance then send it out to everyone
             if (cachedappearance)
             {
-                m_log.InfoFormat("[SCENEPRESENCE]: baked textures are in the cache for {0}", Name);
+                m_log.DebugFormat("[SCENEPRESENCE]: baked textures are in the cache for {0}", Name);
 
                 // If the avatars baked textures are all in the cache, then we have a 
                 // complete appearance... send it out, if not, then we'll send it when
@@ -2652,8 +2659,11 @@ namespace OpenSim.Region.Framework.Scenes
         #region Border Crossing Methods
 
         /// <summary>
-        /// Checks to see if the avatar is in range of a border and calls CrossToNewRegion
+        /// Starts the process of moving an avatar into another region if they are crossing the border.
         /// </summary>
+        /// <remarks>
+        /// Also removes the avatar from the physical scene if transit has started.
+        /// </remarks>
         protected void CheckForBorderCrossing()
         {
             if (IsChildAgent)
@@ -2721,7 +2731,6 @@ namespace OpenSim.Region.Framework.Scenes
                     neighbor = HaveNeighbor(Cardinals.N, ref fix);
                 }
 
-
                 // Makes sure avatar does not end up outside region
                 if (neighbor <= 0)
                 {
@@ -2776,6 +2785,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
+                // We must remove the agent from the physical scene if it has been placed in transit.  If we don't,
+                // then this method continues to be called from ScenePresence.Update() until the handover of the client between
+                // regions is completed.  Since this handover can take more than 1000ms (due to the 1000ms
+                // event queue polling response from the server), this results in the avatar pausing on the border
+                // for the handover period.
+                RemoveFromPhysicalScene();
+                
                 // This constant has been inferred from experimentation
                 // I'm not sure what this value should be, so I tried a few values.
                 timeStep = 0.04f;
@@ -2787,6 +2803,15 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Checks whether this region has a neighbour in the given direction.
+        /// </summary>
+        /// <param name="car"></param>
+        /// <param name="fix"></param>
+        /// <returns>
+        /// An integer which represents a compass point.  N == 1, going clockwise until we reach NW == 8.
+        /// Returns a positive integer if there is a region in that direction, a negative integer if not.
+        /// </returns>
         protected int HaveNeighbor(Cardinals car, ref int[] fix)
         {
             uint neighbourx = m_regionInfo.RegionLocX;
@@ -2893,7 +2918,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         //m_log.Debug("---> x: " + x + "; newx:" + newRegionX + "; Abs:" + (int)Math.Abs((int)(x - newRegionX)));
                         //m_log.Debug("---> y: " + y + "; newy:" + newRegionY + "; Abs:" + (int)Math.Abs((int)(y - newRegionY)));
-                        if (Util.IsOutsideView(x, newRegionX, y, newRegionY))
+                        if (Util.IsOutsideView(DrawDistance, x, newRegionX, y, newRegionY))
                         {
                             byebyeRegions.Add(handle);
                         }
@@ -2969,7 +2994,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 offset = new Vector3(shiftx, shifty, 0f);
 
-            m_DrawDistance = cAgentData.Far;
+            // When we get to the point of re-computing neighbors everytime this
+            // changes, then start using the agent's drawdistance rather than the 
+            // region's draw distance.
+            // m_DrawDistance = cAgentData.Far;
+            m_DrawDistance = Scene.DefaultDrawDistance;
+            
             if (cAgentData.Position != new Vector3(-1f, -1f, -1f)) // UGH!!
                 m_pos = cAgentData.Position + offset;
 
@@ -3119,7 +3149,11 @@ namespace OpenSim.Region.Framework.Scenes
             m_CameraLeftAxis = cAgent.LeftAxis;
             m_CameraUpAxis = cAgent.UpAxis;
 
-            m_DrawDistance = cAgent.Far;
+            // When we get to the point of re-computing neighbors everytime this
+            // changes, then start using the agent's drawdistance rather than the 
+            // region's draw distance.
+            // m_DrawDistance = cAgent.Far;
+            m_DrawDistance = Scene.DefaultDrawDistance;
 
             if ((cAgent.Throttles != null) && cAgent.Throttles.Length > 0)
                 ControllingClient.SetChildAgentThrottle(cAgent.Throttles);
