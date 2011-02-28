@@ -71,6 +71,10 @@ using OpenSim.Region.Framework.Scenes;
  *  "Overwrite": Always save to file named "${AutoBackupDir}/RegionName.oar", even if we have to overwrite an existing file.
  * AutoBackupDir: String. Default: "." (the current directory).
  * 	A directory (absolute or relative) where backups should be saved.
+ * AutoBackupDilationThreshold: float. Default: 0.5. Lower bound on time dilation required for BusyCheck heuristics to pass.
+ *  If the time dilation is below this value, don't take a backup right now.
+ * AutoBackupAgentThreshold: int. Default: 10. Upper bound on # of agents in region required for BusyCheck heuristics to pass.
+ *  If the number of agents is greater than this value, don't take a backup right now.
  * */
 
 namespace OpenSim.Region.OptionalModules.World.AutoBackup
@@ -91,7 +95,6 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 		//AutoBackupModuleState: Auto-Backup state for one region (scene).
 		public class AutoBackupModuleState
 		{
-			private readonly IScene m_scene;
 			private bool m_enabled = false;
 			private NamingType m_naming = NamingType.TIME;
 			private Timer m_timer = null;
@@ -99,11 +102,9 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			private string m_script = null;
 			private string m_dir = ".";
 
-			public AutoBackupModuleState (IScene scene)
+			public AutoBackupModuleState ()
 			{
-				m_scene = scene;
-				if (scene == null)
-					throw new NullReferenceException ("Required parameter missing for AutoBackupModuleState constructor");
+
 			}
 
 			public void SetEnabled (bool b)
@@ -226,6 +227,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 				timers.Remove (timer.Interval);
 				timer.Close ();
 			}
+			states.Remove(scene);
 		}
 
 		void IRegionModuleBase.RegionLoaded (Framework.Scenes.Scene scene)
@@ -238,7 +240,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 				return;
 			
 			string sRegionName = scene.RegionInfo.RegionName;
-			AutoBackupModuleState st = new AutoBackupModuleState (scene);
+			AutoBackupModuleState st = new AutoBackupModuleState ();
 			states.Add (scene, st);
 			
 			//Read the config settings and set variables.
