@@ -230,7 +230,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
         /// </summary>
         /// <param name="part">/param>
         /// <param name="face"></param>
-        /// <param name="me"></param>
+        /// <param name="me">If null, then the media entry is cleared.</param>
         public void SetMediaEntry(SceneObjectPart part, int face, MediaEntry me)
         {
 //            m_log.DebugFormat("[MOAP]: SetMediaEntry for {0}, face {1}", part.Name, face);
@@ -238,7 +238,12 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
             CheckFaceParam(part, face);
             
             if (null == part.Shape.Media)
-                part.Shape.Media = new PrimitiveBaseShape.MediaList(new MediaEntry[part.GetNumberOfSides()]);
+            {
+                if (me == null)
+                    return;
+                else                            
+                    part.Shape.Media = new PrimitiveBaseShape.MediaList(new MediaEntry[part.GetNumberOfSides()]);
+            }
 
             lock (part.Shape.Media)
                 part.Shape.Media[face] = me;                      
@@ -248,7 +253,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
             // Temporary code to fix llSetPrimMediaParams() bug, pending refactoring
             Primitive.TextureEntry te = part.Shape.Textures;
             Primitive.TextureEntryFace teFace = te.CreateFace((uint)face);
-            teFace.MediaFlags = true;
+            teFace.MediaFlags = me != null;
             part.Shape.Textures = te;
             
             part.ScheduleFullUpdate();
@@ -262,24 +267,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
         /// <param name="face"></param>
         public void ClearMediaEntry(SceneObjectPart part, int face)
         {
-            CheckFaceParam(part, face);
-            
-            // If no media has been set up yetthen we don't need to clear anything
-            if (null == part.Shape.Media)
-                return;
-            
-            lock (part.Shape.Media)
-                part.Shape.Media[face] = null;
-                        
-            UpdateMediaUrl(part, UUID.Zero);          
-                        
-            Primitive.TextureEntry te = part.Shape.Textures;
-            Primitive.TextureEntryFace teFace = te.CreateFace((uint)face);
-            teFace.MediaFlags = false;
-            part.Shape.Textures = te;
-            
-            part.ScheduleFullUpdate();
-            part.TriggerScriptChangedEvent(Changed.MEDIA);            
+            SetMediaEntry(part, face, null);            
         }
         
         /// <summary>
