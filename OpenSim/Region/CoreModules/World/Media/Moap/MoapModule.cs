@@ -227,15 +227,24 @@ namespace OpenSim.Region.CoreModules.Media.Moap
         
         public void SetMediaEntry(SceneObjectPart part, int face, MediaEntry me)
         {
+//            m_log.DebugFormat("[MOAP]: SetMediaEntry for {0}, face {1}", part.Name, face);
+            
             CheckFaceParam(part, face);
             
             if (null == part.Shape.Media)
                 part.Shape.Media = new PrimitiveBaseShape.MediaList(new MediaEntry[part.GetNumberOfSides()]);
-                
+
             lock (part.Shape.Media)
-                part.Shape.Media[face] = me;
+                part.Shape.Media[face] = me;                      
             
             UpdateMediaUrl(part, UUID.Zero);
+            
+            // Temporary code to fix llSetPrimMediaParams() bug, pending refactoring
+            Primitive.TextureEntry te = part.Shape.Textures;
+            Primitive.TextureEntryFace teFace = te.CreateFace((uint)face);
+            teFace.MediaFlags = true;
+            part.Shape.Textures = te;
+            
             part.ScheduleFullUpdate();
             part.TriggerScriptChangedEvent(Changed.MEDIA);
         }
@@ -333,7 +342,7 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             }
             
 //            m_log.DebugFormat("[MOAP]: Received {0} media entries for prim {1}", omu.FaceMedia.Length, primId);
-                       
+//                       
 //            for (int i = 0; i < omu.FaceMedia.Length; i++)
 //            {
 //                MediaEntry me = omu.FaceMedia[i];
@@ -380,6 +389,8 @@ namespace OpenSim.Region.CoreModules.Media.Moap
             }
             else
             {
+//                m_log.DebugFormat("[MOAP]: Setting existing media list for {0}", part.Name);
+                
                 // We need to go through the media textures one at a time to make sure that we have permission 
                 // to change them
                 
