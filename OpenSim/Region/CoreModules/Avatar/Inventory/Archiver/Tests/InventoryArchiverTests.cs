@@ -53,9 +53,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
     public class InventoryArchiverTests
     {
         protected ManualResetEvent mre = new ManualResetEvent(false);
-        
+     
         /// <summary>
-        /// Stream of data representing a common IAR that can be reused in load tests.
+        /// A raw array of bytes that we'll use to create an IAR memory stream suitable for isolated use in each test.
+        /// </summary>
+        protected byte[] m_iarStreamBytes;
+                
+        /// <summary>
+        /// Stream of data representing a common IAR for load tests.
         /// </summary>
         protected MemoryStream m_iarStream;
         
@@ -79,12 +84,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         }
         
         [SetUp]
-        public void Init()
+        public void SetUp()
         {
-            ConstructDefaultIarForTestLoad();
+            m_iarStream = new MemoryStream(m_iarStreamBytes);
         }
         
-        protected void ConstructDefaultIarForTestLoad()
+        [TestFixtureSetUp]
+        public void FixtureSetup()
+        {
+            ConstructDefaultIarBytesForTestLoad();
+        }
+        
+        protected void ConstructDefaultIarBytesForTestLoad()
         {
             string archiveItemName = InventoryArchiveWriteRequest.CreateArchiveItemName(m_item1Name, UUID.Random());
 
@@ -107,7 +118,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, archiveItemName);
             tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1, new Dictionary<string, object>(), scene.UserAccountService));
             tar.Close();
-            m_iarStream = new MemoryStream(archiveWriteStream.ToArray());
+            m_iarStreamBytes = archiveWriteStream.ToArray();
         }
 
         /// <summary>
@@ -392,8 +403,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             UserProfileTestUtils.CreateUserWithInventory(scene, m_ua1, "meowfood");
             UserProfileTestUtils.CreateUserWithInventory(scene, m_ua2, "hampshire");
             
-            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "/", "meowfood", m_iarStream);
-
+            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "/", "meowfood", m_iarStream);            
             InventoryItemBase foundItem1
                 = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, m_item1Name);
             
