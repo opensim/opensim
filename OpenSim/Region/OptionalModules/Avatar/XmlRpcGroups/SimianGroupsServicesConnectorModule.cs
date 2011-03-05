@@ -712,7 +712,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if (m_debugEnabled) m_log.InfoFormat("[SIMIAN-GROUPS-CONNECTOR]  {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             GroupMembershipData data = null;
-            bool foundData = false;
+//            bool foundData = false;
 
             OSDMap UserGroupMemberInfo;
             if (SimianGetGenericEntry(agentID, "GroupMember", groupID.ToString(), out UserGroupMemberInfo))
