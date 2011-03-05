@@ -50,7 +50,7 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
-namespace OpenSim.Region.CoreModules.Media.Moap
+namespace OpenSim.Region.CoreModules.World.Media.Moap
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "MoapModule")]
     public class MoapModule : INonSharedRegionModule, IMoapModule
