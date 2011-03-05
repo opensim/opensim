@@ -48,21 +48,52 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap.Tests
     [TestFixture]
     public class MoapTests
     {
+        protected TestScene m_scene;
+        protected MoapModule m_module;
+            
+        [SetUp]
+        public void SetUp()
+        {
+            m_module = new MoapModule();
+            m_scene = SceneSetupHelpers.SetupScene();
+            SceneSetupHelpers.SetupSceneModules(m_scene, m_module);            
+        }        
+        
+        [Test]
+        public void TestClearMediaUrl()
+        {
+            TestHelper.InMethod();           
+//            log4net.Config.XmlConfigurator.Configure();
+            
+            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(m_scene);
+            MediaEntry me = new MediaEntry();            
+            
+            m_module.SetMediaEntry(part, 1, me);
+            m_module.ClearMediaEntry(part, 1);
+            
+            Assert.That(part.Shape.Media[1], Is.EqualTo(null));
+            
+            // Although we've cleared one face, other faces may still be present.  So we need to check for an
+            // update media url version
+            Assert.That(part.MediaUrl, Is.EqualTo("x-mv:0000000001/" + UUID.Zero));
+            
+            // By changing media flag to false, the face texture once again becomes identical to the DefaultTexture.
+            // Therefore, when libOMV reserializes it, it disappears and we are left with no face texture in this slot.
+            // Not at all confusing, eh?
+            Assert.That(part.Shape.Textures.FaceTextures[1], Is.Null);
+        }
+        
         [Test]
         public void TestSetMediaUrl()
         {
             TestHelper.InMethod();
             
-            string homeUrl = "opensimulator.org";
+            string homeUrl = "opensimulator.org";            
             
-            MoapModule module = new MoapModule();
-            TestScene scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(scene, module);
-            
-            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
+            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(m_scene);
             MediaEntry me = new MediaEntry() { HomeURL = homeUrl };            
             
-            module.SetMediaEntry(part, 1, me);
+            m_module.SetMediaEntry(part, 1, me);
             
             Assert.That(part.Shape.Media[1].HomeURL, Is.EqualTo(homeUrl));
             Assert.That(part.MediaUrl, Is.EqualTo("x-mv:0000000000/" + UUID.Zero));

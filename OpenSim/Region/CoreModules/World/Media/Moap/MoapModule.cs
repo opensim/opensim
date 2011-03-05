@@ -225,6 +225,12 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
             return me;
         }
         
+        /// <summary>
+        /// Set the media entry on the face of the given part.
+        /// </summary>
+        /// <param name="part">/param>
+        /// <param name="face"></param>
+        /// <param name="me"></param>
         public void SetMediaEntry(SceneObjectPart part, int face, MediaEntry me)
         {
 //            m_log.DebugFormat("[MOAP]: SetMediaEntry for {0}, face {1}", part.Name, face);
@@ -249,9 +255,31 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
             part.TriggerScriptChangedEvent(Changed.MEDIA);
         }
         
+        /// <summary>
+        /// Clear the media entry from the face of the given part.
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="face"></param>
         public void ClearMediaEntry(SceneObjectPart part, int face)
         {
-            SetMediaEntry(part, face, null);
+            CheckFaceParam(part, face);
+            
+            // If no media has been set up yetthen we don't need to clear anything
+            if (null == part.Shape.Media)
+                return;
+            
+            lock (part.Shape.Media)
+                part.Shape.Media[face] = null;
+                        
+            UpdateMediaUrl(part, UUID.Zero);          
+                        
+            Primitive.TextureEntry te = part.Shape.Textures;
+            Primitive.TextureEntryFace teFace = te.CreateFace((uint)face);
+            teFace.MediaFlags = false;
+            part.Shape.Textures = te;
+            
+            part.ScheduleFullUpdate();
+            part.TriggerScriptChangedEvent(Changed.MEDIA);            
         }
         
         /// <summary>
