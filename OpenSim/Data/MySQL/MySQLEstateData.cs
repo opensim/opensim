@@ -54,6 +54,11 @@ namespace OpenSim.Data.MySQL
         private Dictionary<string, FieldInfo> m_FieldMap =
                 new Dictionary<string, FieldInfo>();
 
+        protected virtual Assembly Assembly
+        {
+            get { return GetType().Assembly; }
+        }
+
         public MySQLEstateStore()
         {
         }
@@ -82,8 +87,7 @@ namespace OpenSim.Data.MySQL
             {
                 dbcon.Open();
 
-                Assembly assem = GetType().Assembly;
-                Migration m = new Migration(dbcon, assem, "EstateStore");
+                Migration m = new Migration(dbcon, Assembly, "EstateStore");
                 m.Update();
 
                 Type t = typeof(EstateSettings);
