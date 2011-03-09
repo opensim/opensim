@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 PrincipalID = UUID.Parse("00000000-0000-0000-0000-000000000666"),
                 FirstName = "Lord",
                 LastName = "Lucan" };    
-        protected string m_item1Name = "b.lsl";
+        protected string m_item1Name = "Ray Gun Item";
         
         [SetUp]
         public void SetUp()
@@ -96,10 +96,35 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             MemoryStream archiveWriteStream = new MemoryStream();
             TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
+            
+            // Create asset
+            SceneObjectGroup object1;
+            SceneObjectPart part1;
+            {
+                string partName = "Ray Gun Object";
+                UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
+                PrimitiveBaseShape shape = PrimitiveBaseShape.CreateSphere();
+                Vector3 groupPosition = new Vector3(10, 20, 30);
+                Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
+                Vector3 offsetPosition = new Vector3(5, 10, 15);
 
+                part1
+                    = new SceneObjectPart(
+                        ownerId, shape, groupPosition, rotationOffset, offsetPosition);
+                part1.Name = partName;
+
+                object1 = new SceneObjectGroup(part1);
+                scene.AddNewSceneObject(object1, false);
+            }
+
+            UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
+            AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);
+            scene.AssetService.Store(asset1);            
+
+            // Create item
             InventoryItemBase item1 = new InventoryItemBase();
             item1.Name = m_item1Name;
-            item1.AssetID = UUID.Random();
+            item1.AssetID = asset1.FullID;
             item1.GroupID = UUID.Random();
             item1.CreatorIdAsUuid = m_ua2.PrincipalID;
             item1.Owner = UUID.Zero;
