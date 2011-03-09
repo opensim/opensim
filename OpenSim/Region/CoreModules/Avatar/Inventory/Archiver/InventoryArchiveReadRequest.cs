@@ -400,6 +400,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_scene.UserAccountService);
             if (UUID.Zero != ospResolvedId) // The user exists in this grid
             {
+//                m_log.DebugFormat("[INVENTORY ARCHIVER]: Found creator {0} via OSPA resolution", ospResolvedId);
+                
                 item.CreatorIdAsUuid = ospResolvedId;
 
                 // XXX: For now, don't preserve the OSPA in the creator id (which actually gets persisted to the

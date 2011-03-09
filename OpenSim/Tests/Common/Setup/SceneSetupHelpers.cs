@@ -304,12 +304,12 @@ namespace OpenSim.Tests.Common.Setup
             config.Configs["UserAccountService"].Set(
                 "LocalServiceModule", "OpenSim.Services.UserAccountService.dll:UserAccountService");
 
-            if (m_userAccountService == null)
-            {
+//            if (m_userAccountService == null)
+//            {
                 ISharedRegionModule userAccountService = new LocalUserAccountServicesConnector();
                 userAccountService.Initialise(config);
                 m_userAccountService = userAccountService;
-            }
+//            }
 
             m_userAccountService.AddRegion(testScene);
             m_userAccountService.RegionLoaded(testScene);
