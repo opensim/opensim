@@ -40,6 +40,13 @@ namespace OpenSim.Services.Interfaces
 
         #region Agents
 
+        /// <summary>
+        /// Ask the simulator hosting the destination to create an agent on that region.
+        /// </summary>
+        /// <param name="destination"></param>
+        /// <param name="aCircuit"></param>
+        /// <param name="flags"></param>
+        /// <param name="reason">Reason message in the event of a failure.</param>        
         bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint flags, out string reason);
 
         /// <summary>
