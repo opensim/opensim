@@ -59,19 +59,14 @@ namespace OpenSim.Tests.Common.Setup
     {
         // These static variables in order to allow regions to be linked by shared modules and same
         // CommunicationsManager.
-        private static ISharedRegionModule m_assetService = null;
-//        private static ISharedRegionModule m_authenticationService = null;
         private static ISharedRegionModule m_inventoryService = null;
-        private static ISharedRegionModule m_gridService = null;
-        private static ISharedRegionModule m_userAccountService = null;
-        private static ISharedRegionModule m_presenceService = null;
 
         /// <summary>
         /// Set up a test scene
         /// </summary>
-        ///
+        /// <remarks>
         /// Automatically starts service threads, as would the normal runtime.
-        ///
+        /// </remarks>
         /// <returns></returns>
         public static TestScene SetupScene()
         {
@@ -156,10 +151,7 @@ namespace OpenSim.Tests.Common.Setup
             testScene.AddModule(godsModule.Name, godsModule);
             realServices = realServices.ToLower();
 
-            if (realServices.Contains("asset"))
-                StartAssetService(testScene, true);
-            else
-                StartAssetService(testScene, false);
+            LocalAssetServicesConnector assetService = StartAssetService(testScene, realServices.Contains("asset"));
 
             // For now, always started a 'real' authentication service
             StartAuthenticationService(testScene, true);
@@ -169,14 +161,15 @@ namespace OpenSim.Tests.Common.Setup
             else
                 StartInventoryService(testScene, false);
 
-            StartGridService(testScene, true);
-            StartUserAccountService(testScene);
-            StartPresenceService(testScene);
+                                                                   StartGridService(testScene, true);
+            LocalUserAccountServicesConnector userAccountService = StartUserAccountService(testScene);            
+            LocalPresenceServicesConnector    presenceService    = StartPresenceService(testScene);
 
             m_inventoryService.PostInitialise();
-            m_assetService.PostInitialise();
-            m_userAccountService.PostInitialise();
-            m_presenceService.PostInitialise();
+            assetService.PostInitialise();
+            userAccountService.PostInitialise();
+            presenceService.PostInitialise();
+            
             testScene.RegionInfo.EstateSettings.EstateOwner = UUID.Random();
             testScene.SetModuleInterfaces();
 
@@ -191,11 +184,7 @@ namespace OpenSim.Tests.Common.Setup
             // It's really not a good idea to use static variables as they carry over between tests, leading to
             // problems that are extremely hard to debug.  Really, these static fields need to be eliminated -
             // tests using multiple regions that need to share modules need to find another solution.
-            m_assetService = null;
             m_inventoryService = null;
-            m_gridService = null;
-            m_userAccountService = null;
-            m_presenceService = null;
 
             testScene.RegionInfo.EstateSettings = new EstateSettings();
             testScene.LoginsDisabled = false;
@@ -203,9 +192,9 @@ namespace OpenSim.Tests.Common.Setup
             return testScene;
         }
 
-        private static void StartAssetService(Scene testScene, bool real)
+        private static LocalAssetServicesConnector StartAssetService(Scene testScene, bool real)
         {
-            ISharedRegionModule assetService = new LocalAssetServicesConnector();
+            LocalAssetServicesConnector assetService = new LocalAssetServicesConnector();
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("AssetService");
@@ -219,7 +208,8 @@ namespace OpenSim.Tests.Common.Setup
             assetService.AddRegion(testScene);
             assetService.RegionLoaded(testScene);
             testScene.AddRegionModule(assetService.Name, assetService);
-            m_assetService = assetService;
+            
+            return assetService;
         }
 
         private static void StartAuthenticationService(Scene testScene, bool real)
@@ -268,7 +258,7 @@ namespace OpenSim.Tests.Common.Setup
             m_inventoryService = inventoryService;
         }
 
-        private static void StartGridService(Scene testScene, bool real)
+        private static LocalGridServicesConnector StartGridService(Scene testScene, bool real)
         {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
@@ -277,24 +267,25 @@ namespace OpenSim.Tests.Common.Setup
             config.Configs["GridService"].Set("StorageProvider", "OpenSim.Data.Null.dll:NullRegionData");
             if (real)
                 config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Services.GridService.dll:GridService");
-            if (m_gridService == null)
-            {
-                ISharedRegionModule gridService = new LocalGridServicesConnector();
-                gridService.Initialise(config);
-                m_gridService = gridService;
-            }
+
+            LocalGridServicesConnector gridService = new LocalGridServicesConnector();
+            gridService.Initialise(config);
+
             //else
             //    config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:TestGridService");
-            m_gridService.AddRegion(testScene);
-            m_gridService.RegionLoaded(testScene);
+            gridService.AddRegion(testScene);
+            gridService.RegionLoaded(testScene);
             //testScene.AddRegionModule(m_gridService.Name, m_gridService);
+            
+            return gridService;
         }
 
         /// <summary>
         /// Start a user account service
         /// </summary>
         /// <param name="testScene"></param>
-        private static void StartUserAccountService(Scene testScene)
+        /// <returns></returns>
+        private static LocalUserAccountServicesConnector StartUserAccountService(Scene testScene)
         {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
@@ -304,23 +295,21 @@ namespace OpenSim.Tests.Common.Setup
             config.Configs["UserAccountService"].Set(
                 "LocalServiceModule", "OpenSim.Services.UserAccountService.dll:UserAccountService");
 
-//            if (m_userAccountService == null)
-//            {
-                ISharedRegionModule userAccountService = new LocalUserAccountServicesConnector();
-                userAccountService.Initialise(config);
-                m_userAccountService = userAccountService;
-//            }
+            LocalUserAccountServicesConnector userAccountService = new LocalUserAccountServicesConnector();
+            userAccountService.Initialise(config);
 
-            m_userAccountService.AddRegion(testScene);
-            m_userAccountService.RegionLoaded(testScene);
-            testScene.AddRegionModule(m_userAccountService.Name, m_userAccountService);
+            userAccountService.AddRegion(testScene);
+            userAccountService.RegionLoaded(testScene);
+            testScene.AddRegionModule(userAccountService.Name, userAccountService);
+            
+            return userAccountService;
         }
 
         /// <summary>
         /// Start a presence service
         /// </summary>
         /// <param name="testScene"></param>
-        private static void StartPresenceService(Scene testScene)
+        private static LocalPresenceServicesConnector StartPresenceService(Scene testScene)
         {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
@@ -330,16 +319,14 @@ namespace OpenSim.Tests.Common.Setup
             config.Configs["PresenceService"].Set(
                 "LocalServiceModule", "OpenSim.Services.PresenceService.dll:PresenceService");
 
-            if (m_presenceService == null)
-            {
-                ISharedRegionModule presenceService = new LocalPresenceServicesConnector();
-                presenceService.Initialise(config);
-                m_presenceService = presenceService;
-            }
+            LocalPresenceServicesConnector presenceService = new LocalPresenceServicesConnector();
+            presenceService.Initialise(config);
 
-            m_presenceService.AddRegion(testScene);
-            m_presenceService.RegionLoaded(testScene);
-            testScene.AddRegionModule(m_presenceService.Name, m_presenceService);
+            presenceService.AddRegion(testScene);
+            presenceService.RegionLoaded(testScene);
+            testScene.AddRegionModule(presenceService.Name, presenceService);
+            
+            return presenceService;
         }
 
         /// <summary>
