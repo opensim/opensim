@@ -57,10 +57,6 @@ namespace OpenSim.Tests.Common.Setup
     /// </summary>
     public class SceneSetupHelpers
     {
-        // These static variables in order to allow regions to be linked by shared modules and same
-        // CommunicationsManager.
-        private static ISharedRegionModule m_inventoryService = null;
-
         /// <summary>
         /// Set up a test scene
         /// </summary>
@@ -81,23 +77,8 @@ namespace OpenSim.Tests.Common.Setup
         /// <returns></returns>
         public static TestScene SetupScene(String realServices)
         {
-            return SetupScene(
-                "Unit test region", UUID.Random(), 1000, 1000, realServices);
+            return SetupScene("Unit test region", UUID.Random(), 1000, 1000, realServices);
         }
-
-        // REFACTORING PROBLEM. No idea what the difference is with the previous one
-        ///// <summary>
-        ///// Set up a test scene
-        ///// </summary>
-        /////
-        ///// <param name="realServices">Starts real inventory and asset services, as opposed to mock ones, if true</param>
-        ///// <param name="cm">This should be the same if simulating two scenes within a standalone</param>
-        ///// <returns></returns>
-        //public static TestScene SetupScene(String realServices)
-        //{
-        //    return SetupScene(
-        //        "Unit test region", UUID.Random(), 1000, 1000, "");
-        //}
 
         /// <summary>
         /// Set up a test scene
@@ -110,7 +91,7 @@ namespace OpenSim.Tests.Common.Setup
         /// <returns></returns>
         public static TestScene SetupScene(string name, UUID id, uint x, uint y)
         {
-            return SetupScene(name, id, x, y,"");
+            return SetupScene(name, id, x, y, "");
         }
 
         /// <summary>
@@ -156,16 +137,12 @@ namespace OpenSim.Tests.Common.Setup
             // For now, always started a 'real' authentication service
             StartAuthenticationService(testScene, true);
 
-            if (realServices.Contains("inventory"))
-                StartInventoryService(testScene, true);
-            else
-                StartInventoryService(testScene, false);
-
+            LocalInventoryServicesConnector   inventoryService   = StartInventoryService(testScene, realServices.Contains("inventory"));
                                                                    StartGridService(testScene, true);
             LocalUserAccountServicesConnector userAccountService = StartUserAccountService(testScene);            
             LocalPresenceServicesConnector    presenceService    = StartPresenceService(testScene);
 
-            m_inventoryService.PostInitialise();
+            inventoryService.PostInitialise();
             assetService.PostInitialise();
             userAccountService.PostInitialise();
             presenceService.PostInitialise();
@@ -180,11 +157,6 @@ namespace OpenSim.Tests.Common.Setup
             physicsPluginManager.LoadPluginsFromAssembly("Physics/OpenSim.Region.Physics.BasicPhysicsPlugin.dll");
             testScene.PhysicsScene
                 = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher",   new IniConfigSource(), "test");
-
-            // It's really not a good idea to use static variables as they carry over between tests, leading to
-            // problems that are extremely hard to debug.  Really, these static fields need to be eliminated -
-            // tests using multiple regions that need to share modules need to find another solution.
-            m_inventoryService = null;
 
             testScene.RegionInfo.EstateSettings = new EstateSettings();
             testScene.LoginsDisabled = false;
@@ -233,9 +205,9 @@ namespace OpenSim.Tests.Common.Setup
             //m_authenticationService = service;
         }
 
-        private static void StartInventoryService(Scene testScene, bool real)
+        private static LocalInventoryServicesConnector StartInventoryService(Scene testScene, bool real)
         {
-            ISharedRegionModule inventoryService = new LocalInventoryServicesConnector();
+            LocalInventoryServicesConnector inventoryService = new LocalInventoryServicesConnector();
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("InventoryService");
@@ -255,7 +227,8 @@ namespace OpenSim.Tests.Common.Setup
             inventoryService.AddRegion(testScene);
             inventoryService.RegionLoaded(testScene);
             testScene.AddRegionModule(inventoryService.Name, inventoryService);
-            m_inventoryService = inventoryService;
+            
+            return inventoryService;           
         }
 
         private static LocalGridServicesConnector StartGridService(Scene testScene, bool real)
@@ -423,7 +396,7 @@ namespace OpenSim.Tests.Common.Setup
         /// <summary>
         /// Add a root agent.
         /// </summary>
-        ///
+        /// <remarks>
         /// This function
         ///
         /// 1)  Tells the scene that an agent is coming.  Normally, the login service (local if standalone, from the
@@ -434,7 +407,7 @@ namespace OpenSim.Tests.Common.Setup
         ///
         /// This function performs actions equivalent with notifying the scene that an agent is
         /// coming and then actually connecting the agent to the scene.  The one step missed out is the very first
-        ///
+        /// </remarks>
         /// <param name="scene"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
