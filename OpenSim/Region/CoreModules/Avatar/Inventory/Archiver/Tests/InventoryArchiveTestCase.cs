@@ -93,8 +93,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             Scene scene = SceneSetupHelpers.SetupScene("Inventory");
             UserProfileTestUtils.CreateUserWithInventory(scene, m_ua2, "hampshire");
-            
-            string archiveItemName = InventoryArchiveWriteRequest.CreateArchiveItemName(m_item1Name, UUID.Random());
 
             MemoryStream archiveWriteStream = new MemoryStream();
             TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
@@ -106,10 +104,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.CreatorIdAsUuid = m_ua2.PrincipalID;
             item1.Owner = UUID.Zero;
 
-            string item1FileName 
-                = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, archiveItemName);
-            tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1, new Dictionary<string, object>(), scene.UserAccountService));
+            string archiveItem1Name = InventoryArchiveWriteRequest.CreateArchiveItemName(m_item1Name, UUID.Random());
+            string archiveItem1Path = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, archiveItem1Name);
+            tar.WriteFile(
+                archiveItem1Path, 
+                UserInventoryItemSerializer.Serialize(
+                    item1, new Dictionary<string, object>(), scene.UserAccountService));
             tar.Close();
+            
             m_iarStreamBytes = archiveWriteStream.ToArray();
         }
         
