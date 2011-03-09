@@ -31,7 +31,6 @@ using System.Drawing;
 using System.Text;
 using log4net.Config;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -52,14 +51,6 @@ using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
-#if NUNIT25
-
-    [TestFixture(typeof(SqliteConnection), typeof(SQLiteRegionData), Description = "Region store tests (SQLite)")]
-    [TestFixture(typeof(MySqlConnection), typeof(MySqlRegionData), Description = "Region store tests (MySQL)")]
-    [TestFixture(typeof(SqlConnection), typeof(MSSQLRegionData), Description = "Region store tests (MS SQL Server)")]
-
-#else
-
     [TestFixture(Description = "Region store tests (SQLite)")]
     public class SQLiteRegionTests : RegionTests<SqliteConnection, SQLiteSimulationData>
     {
@@ -74,8 +65,6 @@ namespace OpenSim.Data.Tests
     public class MSSQLRegionTests : RegionTests<SqlConnection, MSSQLSimulationData>
     {
     }
-
-#endif
 
     public class RegionTests<TConn, TRegStore> : BasicDataServiceTest<TConn, TRegStore>
         where TConn : DbConnection, new()

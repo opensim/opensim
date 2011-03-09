@@ -28,7 +28,6 @@
 using System;
 using log4net.Config;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -49,15 +48,6 @@ using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
-
-#if NUNIT25
-
-    [TestFixture(typeof(MySqlConnection), typeof(MySQLEstateStore), Description = "Estate store tests (MySQL)")]
-    [TestFixture(typeof(SqlConnection), typeof(MSSQLEstateStore), Description = "Estate store tests (MS SQL Server)")]
-    [TestFixture(typeof(SqliteConnection), typeof(SQLiteEstateStore), Description = "Estate store tests (SQLite)")]
-
-#else
-
     [TestFixture(Description = "Estate store tests (SQLite)")]
     public class SQLiteEstateTests : EstateTests<SqliteConnection, SQLiteEstateStore>
     {
@@ -72,8 +62,6 @@ namespace OpenSim.Data.Tests
     public class MSSQLEstateTests : EstateTests<SqlConnection, MSSQLEstateStore>
     {
     }
-
-#endif
 
     public class EstateTests<TConn, TEstateStore> : BasicDataServiceTest<TConn, TEstateStore>
         where TConn : DbConnection, new()
@@ -520,6 +508,5 @@ namespace OpenSim.Data.Tests
         }
 
         #endregion
-
     }
 }

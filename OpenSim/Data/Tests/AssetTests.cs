@@ -35,10 +35,6 @@ using OpenSim.Framework;
 using System.Data.Common;
 using log4net;
 
-#if !NUNIT25
-using NUnit.Framework.SyntaxHelpers;
-#endif
-
 // DBMS-specific:
 using MySql.Data.MySqlClient;
 using OpenSim.Data.MySQL;
@@ -51,15 +47,6 @@ using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
-
-#if NUNIT25
-
-    [TestFixture(typeof(MySqlConnection), typeof(MySQLAssetData), Description="Basic Asset store tests (MySQL)")]
-    [TestFixture(typeof(SqlConnection), typeof(MSSQLAssetData), Description = "Basic Asset store tests (MS SQL Server)")]
-    [TestFixture(typeof(SqliteConnection), typeof(SQLiteAssetData), Description = "Basic Asset store tests (SQLite)")]
-
-#else
-
     [TestFixture(Description = "Asset store tests (SQLite)")]
     public class SQLiteAssetTests : AssetTests<SqliteConnection, SQLiteAssetData>
     {
@@ -74,9 +61,6 @@ namespace OpenSim.Data.Tests
     public class MSSQLAssetTests : AssetTests<SqlConnection, MSSQLAssetData>
     {
     }
-
-#endif
-
 
     public class AssetTests<TConn, TAssetData> : BasicDataServiceTest<TConn, TAssetData>
         where TConn : DbConnection, new()

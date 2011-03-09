@@ -27,11 +27,10 @@
 
 using System;
 using System.Diagnostics;
+using NUnit.Framework;
 
 namespace OpenSim.Tests.Common
 {
-    public delegate void TestDelegate();
-
     public class TestHelper
     {
         public static bool AssertThisDelegateCausesArgumentException(TestDelegate d)

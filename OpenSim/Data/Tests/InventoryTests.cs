@@ -25,12 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// #define NUNIT25
-
 using System;
 using log4net.Config;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
 using log4net;
@@ -49,14 +46,6 @@ using OpenSim.Data.SQLite;
 
 namespace OpenSim.Data.Tests
 {
-#if NUNIT25
-
-    [TestFixture(typeof(SqliteConnection), typeof(SQLiteInventoryStore), Description = "Inventory store tests (SQLite)")]
-    [TestFixture(typeof(MySqlConnection), typeof(MySQLInventoryData), Description = "Inventory store tests (MySQL)")]
-    [TestFixture(typeof(SqlConnection), typeof(MSSQLInventoryData), Description = "Inventory store tests (MS SQL Server)")]
-
-#else
-
     [TestFixture(Description = "Inventory store tests (SQLite)")]
     public class SQLiteInventoryTests : InventoryTests<SqliteConnection, SQLiteInventoryStore>
     {
@@ -71,7 +60,6 @@ namespace OpenSim.Data.Tests
     public class MSSQLInventoryTests : InventoryTests<SqlConnection, MSSQLInventoryData>
     {
     }
-#endif
 
     public class InventoryTests<TConn, TInvStore> : BasicDataServiceTest<TConn, TInvStore>
         where TConn : DbConnection, new()
