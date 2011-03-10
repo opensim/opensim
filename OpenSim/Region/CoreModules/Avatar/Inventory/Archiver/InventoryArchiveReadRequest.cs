@@ -41,6 +41,7 @@ using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Region.CoreModules.World.Archiver;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Services.Interfaces;
 
@@ -75,6 +76,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// The stream from which the inventory archive will be loaded.
         /// </value>
         private Stream m_loadStream;
+        
+        /// <summary>
+        /// Record the creator id that should be associated with an asset.  This is used to adjust asset creator ids
+        /// after OSP resolution (since OSP creators are only stored in the item
+        /// </summary>
+        protected Dictionary<UUID, UUID> m_creatorIdForAssetId = new Dictionary<UUID, UUID>();
 
         public InventoryArchiveReadRequest(
             Scene scene, UserAccount userInfo, string invPath, string loadPath, bool merge)
@@ -420,6 +427,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             // Reset folder ID to the one in which we want to load it
             item.Folder = loadFolder.ID;
 
+            // Record the creator id for the item's asset so that we can use it later, if necessary, when the asset
+            // is loaded.
+            // FIXME: This relies on the items coming before the assets in the TAR file.  Need to create stronger
+            // checks for this, and maybe even an external tool for creating OARs which enforces this, rather than
+            // relying on native tar tools.
+            m_creatorIdForAssetId[item.AssetID] = item.CreatorIdAsUuid;
+
             m_scene.AddInventoryItem(item);
         
             return item;
@@ -448,18 +462,38 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
 
             string extension = filename.Substring(i);
-            string uuid = filename.Remove(filename.Length - extension.Length);
+            string rawUuid = filename.Remove(filename.Length - extension.Length);
+            UUID assetId = new UUID(rawUuid);
 
             if (ArchiveConstants.EXTENSION_TO_ASSET_TYPE.ContainsKey(extension))
             {
                 sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
 
                 if (assetType == (sbyte)AssetType.Unknown)
-                    m_log.WarnFormat("[INVENTORY ARCHIVER]: Importing {0} byte asset {1} with unknown type", data.Length, uuid);
+                {
+                    m_log.WarnFormat("[INVENTORY ARCHIVER]: Importing {0} byte asset {1} with unknown type", data.Length, assetId);
+                }
+                else if (assetType == (sbyte)AssetType.Object)
+                {
+                    if (m_creatorIdForAssetId.ContainsKey(assetId))
+                    {
+                        string xmlData = Utils.BytesToString(data);
+                        SceneObjectGroup sog = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);                        
+                        foreach (SceneObjectPart sop in sog.Parts)
+                        {
+                            if (sop.CreatorData == null || sop.CreatorData == "")
+                            {
+                                sop.CreatorID = m_creatorIdForAssetId[assetId];
+                            }
+                        }
+                        
+                        data = Utils.StringToBytes(SceneObjectSerializer.ToOriginalXmlFormat(sog));
+                    }
+                }
 
                 //m_log.DebugFormat("[INVENTORY ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
 
-                AssetBase asset = new AssetBase(new UUID(uuid), "RandomName", assetType, UUID.Zero.ToString());
+                AssetBase asset = new AssetBase(assetId, "From IAR", assetType, UUID.Zero.ToString());
                 asset.Data = data;
 
                 m_scene.AssetService.Store(asset);
