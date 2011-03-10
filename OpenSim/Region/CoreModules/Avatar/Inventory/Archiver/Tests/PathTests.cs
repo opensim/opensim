@@ -84,9 +84,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
                 Vector3 offsetPosition = new Vector3(5, 10, 15);
 
-                part1
-                    = new SceneObjectPart(
-                        ownerId, shape, groupPosition, rotationOffset, offsetPosition);
+                part1 = new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, offsetPosition);
                 part1.Name = partName;
 
                 object1 = new SceneObjectGroup(part1);

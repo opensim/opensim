@@ -206,6 +206,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 "Loaded item uuid creator doesn't match original");
             Assert.That(foundItem1.Owner, Is.EqualTo(m_ua1.PrincipalID),
                 "Loaded item owner doesn't match inventory reciever");
+            
+//            AssetBase asset1 = scene.AssetService.Get(foundItem1.AssetID.ToString());            
+//            string xmlData = Utils.BytesToString(asset1.Data);
+//            SceneObjectGroup sog1 = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
+//            
+//            Assert.That(sog1.RootPart.CreatorID, Is.EqualTo(m_ua3.PrincipalID.ToString()));
         }
 
         /// <summary>
