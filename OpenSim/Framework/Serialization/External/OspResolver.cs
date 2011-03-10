@@ -66,6 +66,8 @@ namespace OpenSim.Framework.Serialization
             UserAccount account = userService.GetUserAccount(UUID.Zero, userId);
             if (account != null)
                 return MakeOspa(account.FirstName, account.LastName);
+//            else
+//                m_log.WarnFormat("[OSP RESOLVER]: No user account for {0}", userId);
 
             return null;
         }
@@ -77,6 +79,8 @@ namespace OpenSim.Framework.Serialization
         /// <returns></returns>
         public static string MakeOspa(string firstName, string lastName)
         {
+//            m_log.DebugFormat("[OSP RESOLVER]: Making OSPA for {0} {1}", firstName, lastName);
+            
             return 
                 OSPA_PREFIX + OSPA_NAME_KEY + OSPA_PAIR_SEPARATOR + firstName + OSPA_NAME_VALUE_SEPARATOR + lastName;
         }
@@ -97,7 +101,10 @@ namespace OpenSim.Framework.Serialization
         public static UUID ResolveOspa(string ospa, IUserAccountService userService)
         {
             if (!ospa.StartsWith(OSPA_PREFIX))
-                return UUID.Zero;
+            {
+//                m_log.DebugFormat("[OSP RESOLVER]: ResolveOspa() got unrecognized format [{0}]", ospa);
+                return UUID.Zero;            
+            }
 
 //            m_log.DebugFormat("[OSP RESOLVER]: Resolving {0}", ospa);
             
@@ -161,7 +168,17 @@ namespace OpenSim.Framework.Serialization
 
             UserAccount account = userService.GetUserAccount(UUID.Zero, firstName, lastName);
             if (account != null)
+            {
+//                m_log.DebugFormat(
+//                    "[OSP RESOLVER]: Found user account with uuid {0} for {1} {2}", 
+//                    account.PrincipalID, firstName, lastName);
+                
                 return account.PrincipalID;
+            }
+//            else
+//            {
+//                m_log.DebugFormat("[OSP RESOLVER]: No resolved OSPA user account for {0}", name);            
+//            }
 
             // XXX: Disable temporary user profile creation for now as implementation is incomplete - justincc
             /*

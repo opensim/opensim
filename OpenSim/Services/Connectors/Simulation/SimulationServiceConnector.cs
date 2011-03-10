@@ -79,9 +79,6 @@ namespace OpenSim.Services.Connectors.Simulation
             return "agent/";
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint flags, out string reason)
         {
             // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: CreateAgent start");
@@ -109,6 +106,9 @@ namespace OpenSim.Services.Connectors.Simulation
                 if (result["Success"].AsBoolean())
                     return true;
                 
+                m_log.WarnFormat(
+                    "[REMOTE SIMULATION CONNECTOR]: Failed to create agent {0} {1} at remote simulator {1}", 
+                    aCircuit.firstname, aCircuit.lastname, destination.RegionName);                       
                 reason = result["Message"] != null ? result["Message"].AsString() : "error";
                 return false;
             }

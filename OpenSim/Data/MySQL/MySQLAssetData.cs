@@ -47,6 +47,11 @@ namespace OpenSim.Data.MySQL
         private string m_connectionString;
         private object m_dbLock = new object();
 
+        protected virtual Assembly Assembly
+        {
+            get { return GetType().Assembly; }
+        }
+
         #region IPlugin Members
 
         public override string Version { get { return "1.0.0.0"; } }
@@ -66,13 +71,10 @@ namespace OpenSim.Data.MySQL
         {
             m_connectionString = connect;
 
-            // This actually does the roll forward assembly stuff
-            Assembly assem = GetType().Assembly;
-
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();
-                Migration m = new Migration(dbcon, assem, "AssetStore");
+                Migration m = new Migration(dbcon, Assembly, "AssetStore");
                 m.Update();
             }
         }
