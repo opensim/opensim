@@ -188,27 +188,27 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_ua1, "meowfood");
-            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_ua3, "hampshire");
+            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_uaMT, "meowfood");
+            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_uaLL2, "hampshire");
             
-            m_archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "/", "meowfood", m_iarStream);            
+            m_archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "/", "meowfood", m_iarStream);            
             InventoryItemBase foundItem1
-                = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_ua1.PrincipalID, m_item1Name);
+                = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_uaMT.PrincipalID, m_item1Name);
 
             Assert.That(
-                foundItem1.CreatorId, Is.EqualTo(m_ua3.PrincipalID.ToString()), 
+                foundItem1.CreatorId, Is.EqualTo(m_uaLL2.PrincipalID.ToString()), 
                 "Loaded item non-uuid creator doesn't match original");            
             Assert.That(
-                foundItem1.CreatorIdAsUuid, Is.EqualTo(m_ua3.PrincipalID), 
+                foundItem1.CreatorIdAsUuid, Is.EqualTo(m_uaLL2.PrincipalID), 
                 "Loaded item uuid creator doesn't match original");
-            Assert.That(foundItem1.Owner, Is.EqualTo(m_ua1.PrincipalID),
+            Assert.That(foundItem1.Owner, Is.EqualTo(m_uaMT.PrincipalID),
                 "Loaded item owner doesn't match inventory reciever");
             
             AssetBase asset1 = m_scene.AssetService.Get(foundItem1.AssetID.ToString());            
             string xmlData = Utils.BytesToString(asset1.Data);
             SceneObjectGroup sog1 = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
             
-            Assert.That(sog1.RootPart.CreatorID, Is.EqualTo(m_ua3.PrincipalID));
+            Assert.That(sog1.RootPart.CreatorID, Is.EqualTo(m_uaLL2.PrincipalID));
         }
 
         /// <summary>
@@ -221,25 +221,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_ua1, "password");
-            m_archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "/", "password", m_iarStream);
+            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_uaMT, "password");
+            m_archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "/", "password", m_iarStream);
 
             InventoryItemBase foundItem1
-                = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_ua1.PrincipalID, m_item1Name);
+                = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_uaMT.PrincipalID, m_item1Name);
             
             Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");
             Assert.That(
-                foundItem1.CreatorId, Is.EqualTo(m_ua1.PrincipalID.ToString()), 
+                foundItem1.CreatorId, Is.EqualTo(m_uaMT.PrincipalID.ToString()), 
                 "Loaded item non-uuid creator doesn't match that of the loading user");
             Assert.That(
-                foundItem1.CreatorIdAsUuid, Is.EqualTo(m_ua1.PrincipalID), 
+                foundItem1.CreatorIdAsUuid, Is.EqualTo(m_uaMT.PrincipalID), 
                 "Loaded item uuid creator doesn't match that of the loading user");
             
             AssetBase asset1 = m_scene.AssetService.Get(foundItem1.AssetID.ToString());            
             string xmlData = Utils.BytesToString(asset1.Data);
             SceneObjectGroup sog1 = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
             
-            Assert.That(sog1.RootPart.CreatorID, Is.EqualTo(m_ua1.PrincipalID));            
+            Assert.That(sog1.RootPart.CreatorID, Is.EqualTo(m_uaMT.PrincipalID));            
         }
     }
 }

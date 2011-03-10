@@ -63,17 +63,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// </summary>
         protected MemoryStream m_iarStream;
         
-        protected UserAccount m_ua1 
+        protected UserAccount m_uaMT 
             = new UserAccount { 
                 PrincipalID = UUID.Parse("00000000-0000-0000-0000-000000000555"),
                 FirstName = "Mr",
                 LastName = "Tiddles" };
-        protected UserAccount m_ua2
+        protected UserAccount m_uaLL1
             = new UserAccount { 
                 PrincipalID = UUID.Parse("00000000-0000-0000-0000-000000000666"),
                 FirstName = "Lord",
                 LastName = "Lucan" }; 
-        protected UserAccount m_ua3
+        protected UserAccount m_uaLL2
             = new UserAccount { 
                 PrincipalID = UUID.Parse("00000000-0000-0000-0000-000000000777"),
                 FirstName = "Lord",
@@ -100,7 +100,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Scene scene = SceneSetupHelpers.SetupScene("Inventory");
             SceneSetupHelpers.SetupSceneModules(scene, archiverModule);            
             
-            UserProfileTestUtils.CreateUserWithInventory(scene, m_ua2, "hampshire");
+            UserProfileTestUtils.CreateUserWithInventory(scene, m_uaLL1, "hampshire");
 
             MemoryStream archiveWriteStream = new MemoryStream();
             
@@ -134,13 +134,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.ID = UUID.Parse("00000000-0000-0000-0000-000000000020");            
             item1.AssetID = asset1.FullID;
             item1.GroupID = UUID.Random();
-            item1.CreatorIdAsUuid = m_ua2.PrincipalID;
-            item1.Owner = m_ua2.PrincipalID;
-            item1.Folder = scene.InventoryService.GetRootFolder(m_ua2.PrincipalID).ID;            
+            item1.CreatorIdAsUuid = m_uaLL1.PrincipalID;
+            item1.Owner = m_uaLL1.PrincipalID;
+            item1.Folder = scene.InventoryService.GetRootFolder(m_uaLL1.PrincipalID).ID;            
             scene.AddInventoryItem(item1);
             
             archiverModule.ArchiveInventory(
-                Guid.NewGuid(), m_ua2.FirstName, m_ua2.LastName, m_item1Name, "hampshire", archiveWriteStream);            
+                Guid.NewGuid(), m_uaLL1.FirstName, m_uaLL1.LastName, m_item1Name, "hampshire", archiveWriteStream);            
             
             m_iarStreamBytes = archiveWriteStream.ToArray();
         }
