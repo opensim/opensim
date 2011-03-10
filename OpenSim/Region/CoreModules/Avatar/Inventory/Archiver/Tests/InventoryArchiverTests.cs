@@ -50,7 +50,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 {
     [TestFixture]
     public class InventoryArchiverTests : InventoryArchiveTestCase
-    {       
+    {   
+        protected TestScene m_scene;
+        protected InventoryArchiverModule m_archiverModule;
+            
+        [SetUp]
+        public override void SetUp()
+        {
+            base.SetUp();
+            
+            SerialiserModule serialiserModule = new SerialiserModule();
+            m_archiverModule = new InventoryArchiverModule();
+
+            m_scene = SceneSetupHelpers.SetupScene("Inventory");
+            SceneSetupHelpers.SetupSceneModules(m_scene, serialiserModule, m_archiverModule);            
+        }
+        
         /// <summary>
         /// Test saving a single inventory item to a V0.1 OpenSim Inventory Archive 
         /// (subject to change since there is no fixed format yet).
@@ -61,17 +76,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
-
-            Scene scene = SceneSetupHelpers.SetupScene("Inventory");
-            SceneSetupHelpers.SetupSceneModules(scene, archiverModule);
-
             // Create user
             string userFirstName = "Jock";
             string userLastName = "Stirrup";
             string userPassword = "troll";
             UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
-            UserProfileTestUtils.CreateUserWithInventory(scene, userFirstName, userLastName, userId, userPassword);
+            UserProfileTestUtils.CreateUserWithInventory(m_scene, userFirstName, userLastName, userId, userPassword);
             
             // Create asset
             SceneObjectGroup object1;
@@ -90,12 +100,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 part1.Name = partName;
 
                 object1 = new SceneObjectGroup(part1);
-                scene.AddNewSceneObject(object1, false);
+                m_scene.AddNewSceneObject(object1, false);
             }
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
             AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);
-            scene.AssetService.Store(asset1);
+            m_scene.AssetService.Store(asset1);
 
             // Create item
             UUID item1Id = UUID.Parse("00000000-0000-0000-0000-000000000080");
@@ -105,15 +115,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             InventoryFolderBase objsFolder 
-                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects")[0];
+                = InventoryArchiveUtils.FindFolderByPath(m_scene.InventoryService, userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
-            scene.AddInventoryItem(item1);
+            m_scene.AddInventoryItem(item1);
 
             MemoryStream archiveWriteStream = new MemoryStream();
-            archiverModule.OnInventoryArchiveSaved += SaveCompleted;
+            m_archiverModule.OnInventoryArchiveSaved += SaveCompleted;
 
             mre.Reset();
-            archiverModule.ArchiveInventory(
+            m_archiverModule.ArchiveInventory(
                 Guid.NewGuid(), userFirstName, userLastName, "Objects/" + item1Name, userPassword, archiveWriteStream);
             mre.WaitOne(60000, false);
 
@@ -177,27 +187,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         {
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
-            
-            SerialiserModule serialiserModule = new SerialiserModule();
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
-            
-            // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
-            Scene scene = SceneSetupHelpers.SetupScene("inventory");
-            
-            SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
 
-            UserProfileTestUtils.CreateUserWithInventory(scene, m_ua1, "meowfood");
-            UserProfileTestUtils.CreateUserWithInventory(scene, m_ua3, "hampshire");
+            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_ua1, "meowfood");
+            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_ua3, "hampshire");
             
-            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "/", "meowfood", m_iarStream);            
+            m_archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "/", "meowfood", m_iarStream);            
             InventoryItemBase foundItem1
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, m_item1Name);
+                = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_ua1.PrincipalID, m_item1Name);
 
-// We have to disable this check since loaded items that did find users via OSPA resolution are now only storing the
-// UUID, not the OSPA itself.
-//            Assert.That(
-//                foundItem1.CreatorId, Is.EqualTo(item1.CreatorId), 
-//                "Loaded item non-uuid creator doesn't match original");
             Assert.That(
                 foundItem1.CreatorId, Is.EqualTo(m_ua3.PrincipalID.ToString()), 
                 "Loaded item non-uuid creator doesn't match original");            
@@ -207,7 +204,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Assert.That(foundItem1.Owner, Is.EqualTo(m_ua1.PrincipalID),
                 "Loaded item owner doesn't match inventory reciever");
             
-            AssetBase asset1 = scene.AssetService.Get(foundItem1.AssetID.ToString());            
+            AssetBase asset1 = m_scene.AssetService.Get(foundItem1.AssetID.ToString());            
             string xmlData = Utils.BytesToString(asset1.Data);
             SceneObjectGroup sog1 = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
             
@@ -224,16 +221,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            SerialiserModule serialiserModule = new SerialiserModule();
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
-            Scene scene = SceneSetupHelpers.SetupScene("inventory");
-            SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
-            
-            UserProfileTestUtils.CreateUserWithInventory(scene, m_ua1, "password");
-            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "/", "password", m_iarStream);
+            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_ua1, "password");
+            m_archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "/", "password", m_iarStream);
 
             InventoryItemBase foundItem1
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, m_item1Name);
+                = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_ua1.PrincipalID, m_item1Name);
             
             Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");
             Assert.That(
@@ -243,7 +235,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 foundItem1.CreatorIdAsUuid, Is.EqualTo(m_ua1.PrincipalID), 
                 "Loaded item uuid creator doesn't match that of the loading user");
             
-            AssetBase asset1 = scene.AssetService.Get(foundItem1.AssetID.ToString());            
+            AssetBase asset1 = m_scene.AssetService.Get(foundItem1.AssetID.ToString());            
             string xmlData = Utils.BytesToString(asset1.Data);
             SceneObjectGroup sog1 = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
             

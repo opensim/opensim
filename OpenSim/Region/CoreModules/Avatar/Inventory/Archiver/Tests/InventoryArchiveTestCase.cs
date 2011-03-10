@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         protected string m_item1Name = "Ray Gun Item";
         
         [SetUp]
-        public void SetUp()
+        public virtual void SetUp()
         {
             m_iarStream = new MemoryStream(m_iarStreamBytes);
         }
