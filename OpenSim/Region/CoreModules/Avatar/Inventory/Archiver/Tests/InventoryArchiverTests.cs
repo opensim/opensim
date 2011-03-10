@@ -172,8 +172,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
         /// an account exists with the creator name.
         /// </summary>
-        ///
-        /// This test also does some deeper probing of loading into nested inventory structures
         [Test]
         public void TestLoadIarV0_1ExistingUsers()
         {
@@ -194,8 +192,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "/", "meowfood", m_iarStream);            
             InventoryItemBase foundItem1
                 = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, m_item1Name);
-            
-            Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");
 
 // We have to disable this check since loaded items that did find users via OSPA resolution are now only storing the
 // UUID, not the OSPA itself.
@@ -211,24 +207,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 "Loaded item uuid creator doesn't match original");
             Assert.That(foundItem1.Owner, Is.EqualTo(m_ua1.PrincipalID),
                 "Loaded item owner doesn't match inventory reciever");
-
-            // Now try loading to a root child folder
-            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, m_ua1.PrincipalID, "xA");
-            MemoryStream archiveReadStream = new MemoryStream(m_iarStream.ToArray());
-            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "xA", "meowfood", archiveReadStream);
-
-            InventoryItemBase foundItem2
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, "xA/" + m_item1Name);
-            Assert.That(foundItem2, Is.Not.Null, "Didn't find loaded item 2");
-
-            // Now try loading to a more deeply nested folder
-            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, m_ua1.PrincipalID, "xB/xC");
-            archiveReadStream = new MemoryStream(archiveReadStream.ToArray());
-            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "xB/xC", "meowfood", archiveReadStream);
-
-            InventoryItemBase foundItem3
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, "xB/xC/" + m_item1Name);
-            Assert.That(foundItem3, Is.Not.Null, "Didn't find loaded item 3");
         }
 
         /// <summary>

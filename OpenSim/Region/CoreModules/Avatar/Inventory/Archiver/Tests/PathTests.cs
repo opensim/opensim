@@ -170,6 +170,51 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         }
         
         /// <summary>
+        /// Test loading an IAR to various different inventory paths.
+        /// </summary>
+        [Test]
+        public void TestLoadIarToInventoryPaths()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+            
+            SerialiserModule serialiserModule = new SerialiserModule();
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
+            
+            // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
+            Scene scene = SceneSetupHelpers.SetupScene("inventory");
+            
+            SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
+
+            UserProfileTestUtils.CreateUserWithInventory(scene, m_ua1, "meowfood");
+            UserProfileTestUtils.CreateUserWithInventory(scene, m_ua2, "hampshire");
+            
+            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "/", "meowfood", m_iarStream);            
+            InventoryItemBase foundItem1
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, m_item1Name);
+            
+            Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");            
+
+            // Now try loading to a root child folder
+            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, m_ua1.PrincipalID, "xA");
+            MemoryStream archiveReadStream = new MemoryStream(m_iarStream.ToArray());
+            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "xA", "meowfood", archiveReadStream);
+
+            InventoryItemBase foundItem2
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, "xA/" + m_item1Name);
+            Assert.That(foundItem2, Is.Not.Null, "Didn't find loaded item 2");
+
+            // Now try loading to a more deeply nested folder
+            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, m_ua1.PrincipalID, "xB/xC");
+            archiveReadStream = new MemoryStream(archiveReadStream.ToArray());
+            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "xB/xC", "meowfood", archiveReadStream);
+
+            InventoryItemBase foundItem3
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, "xB/xC/" + m_item1Name);
+            Assert.That(foundItem3, Is.Not.Null, "Didn't find loaded item 3");            
+        }
+        
+        /// <summary>
         /// Test that things work when the load path specified starts with a slash
         /// </summary>
         [Test]
@@ -194,7 +239,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         }
  
         [Test]
-        public void TestIarV0_1WithEscapedChars()
+        public void TestLoadIarPathWithEscapedChars()
         {
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
