@@ -170,10 +170,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         
         /// <summary>
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
-        /// an account exists with the creator name.
+        /// an account exists with the same name as the creator, though not the same id.
         /// </summary>
         [Test]
-        public void TestLoadIarV0_1ExistingUsers()
+        public void TestLoadIarV0_1SameNameCreator()
         {
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -187,7 +187,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
 
             UserProfileTestUtils.CreateUserWithInventory(scene, m_ua1, "meowfood");
-            UserProfileTestUtils.CreateUserWithInventory(scene, m_ua2, "hampshire");
+            UserProfileTestUtils.CreateUserWithInventory(scene, m_ua3, "hampshire");
             
             archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "/", "meowfood", m_iarStream);            
             InventoryItemBase foundItem1
@@ -198,12 +198,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //            Assert.That(
 //                foundItem1.CreatorId, Is.EqualTo(item1.CreatorId), 
 //                "Loaded item non-uuid creator doesn't match original");
-//            Assert.That(
-//                foundItem1.CreatorId, Is.EqualTo(m_ua2.PrincipalID.ToString()), 
-//                "Loaded item non-uuid creator doesn't match original");
-            
             Assert.That(
-                foundItem1.CreatorIdAsUuid, Is.EqualTo(m_ua2.PrincipalID), 
+                foundItem1.CreatorId, Is.EqualTo(m_ua3.PrincipalID.ToString()), 
+                "Loaded item non-uuid creator doesn't match original");            
+            Assert.That(
+                foundItem1.CreatorIdAsUuid, Is.EqualTo(m_ua3.PrincipalID), 
                 "Loaded item uuid creator doesn't match original");
             Assert.That(foundItem1.Owner, Is.EqualTo(m_ua1.PrincipalID),
                 "Loaded item owner doesn't match inventory reciever");
@@ -211,10 +210,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
         /// <summary>
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
-        /// embedded creators do not exist in the system
+        /// the creator or an account with the creator's name does not exist within the system.
         /// </summary>
         [Test]
-        public void TestLoadIarV0_1AbsentUsers()
+        public void TestLoadIarV0_1AbsentCreator()
         {
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();

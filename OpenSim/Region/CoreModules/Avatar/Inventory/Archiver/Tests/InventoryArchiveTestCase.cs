@@ -72,7 +72,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             = new UserAccount { 
                 PrincipalID = UUID.Parse("00000000-0000-0000-0000-000000000666"),
                 FirstName = "Lord",
-                LastName = "Lucan" };    
+                LastName = "Lucan" }; 
+        protected UserAccount m_ua3
+            = new UserAccount { 
+                PrincipalID = UUID.Parse("00000000-0000-0000-0000-000000000777"),
+                FirstName = "Lord",
+                LastName = "Lucan" };         
         protected string m_item1Name = "Ray Gun Item";
         
         [SetUp]
