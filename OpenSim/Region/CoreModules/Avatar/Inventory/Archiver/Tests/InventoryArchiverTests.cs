@@ -242,6 +242,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Assert.That(
                 foundItem1.CreatorIdAsUuid, Is.EqualTo(m_ua1.PrincipalID), 
                 "Loaded item uuid creator doesn't match that of the loading user");
+            
+            AssetBase asset1 = scene.AssetService.Get(foundItem1.AssetID.ToString());            
+            string xmlData = Utils.BytesToString(asset1.Data);
+            SceneObjectGroup sog1 = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
+            
+            Assert.That(sog1.RootPart.CreatorID, Is.EqualTo(m_ua1.PrincipalID));            
         }
     }
 }
