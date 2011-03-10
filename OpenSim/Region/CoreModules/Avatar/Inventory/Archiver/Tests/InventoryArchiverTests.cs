@@ -236,9 +236,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, m_item1Name);
             
             Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");
-//            Assert.That(
-//                foundItem1.CreatorId, Is.EqualTo(userUuid), 
-//                "Loaded item non-uuid creator doesn't match that of the loading user");
+            Assert.That(
+                foundItem1.CreatorId, Is.EqualTo(m_ua1.PrincipalID.ToString()), 
+                "Loaded item non-uuid creator doesn't match that of the loading user");
             Assert.That(
                 foundItem1.CreatorIdAsUuid, Is.EqualTo(m_ua1.PrincipalID), 
                 "Loaded item uuid creator doesn't match that of the loading user");

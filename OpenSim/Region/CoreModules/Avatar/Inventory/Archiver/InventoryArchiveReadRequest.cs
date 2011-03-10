@@ -411,7 +411,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 
                 item.CreatorIdAsUuid = ospResolvedId;
 
-                // XXX: For now, don't preserve the OSPA in the creator id (which actually gets persisted to the
+                // Don't preserve the OSPA in the creator id (which actually gets persisted to the
                 // database).  Instead, replace with the UUID that we found.
                 item.CreatorId = ospResolvedId.ToString();
 
@@ -419,7 +419,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
             else if (item.CreatorData == null || item.CreatorData == String.Empty)
             {
-                item.CreatorIdAsUuid = m_userInfo.PrincipalID;
+                item.CreatorId = m_userInfo.PrincipalID.ToString();
+                item.CreatorIdAsUuid = new UUID(item.CreatorId);
             }
 
             item.Owner = m_userInfo.PrincipalID;
