@@ -72,7 +72,7 @@ namespace OpenSim.Data.MySQL
             }
             else
             {
-                cmd.CommandText = String.Format("select * from {0} where (ScopeID=?ScopeID or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like ?searchFirst or LastName like ?searchLast)", m_Realm);
+                cmd.CommandText = String.Format("select * from {0} where (ScopeID=?ScopeID or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like ?searchFirst and LastName like ?searchLast)", m_Realm);
                 cmd.Parameters.AddWithValue("?searchFirst", "%" + words[0] + "%");
                 cmd.Parameters.AddWithValue("?searchLast", "%" + words[1] + "%");
                 cmd.Parameters.AddWithValue("?ScopeID", scopeID.ToString());
