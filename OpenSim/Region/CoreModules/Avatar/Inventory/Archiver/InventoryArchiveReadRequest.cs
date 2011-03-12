@@ -82,6 +82,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// after OSP resolution (since OSP creators are only stored in the item
         /// </summary>
         protected Dictionary<UUID, UUID> m_creatorIdForAssetId = new Dictionary<UUID, UUID>();
+        
+        protected bool m_controlFileLoaded;
+        protected bool m_assetsLoaded;
+        protected bool m_inventoryNodesLoaded;
 
         public InventoryArchiveReadRequest(
             Scene scene, UserAccount userInfo, string invPath, string loadPath, bool merge)
@@ -144,24 +148,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
     
                 byte[] data;
                 TarArchiveReader.TarEntryType entryType;
-                bool controlFileLoaded = false, assetsLoaded = false, inventoryNodesLoaded = false;
 
                 while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
                 {
                     if (filePath == ArchiveConstants.CONTROL_FILE_PATH)
                     {
                         LoadControlFile(filePath, data);
-                        controlFileLoaded = true;
+                        m_controlFileLoaded = true;
                     }
                     else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                     {
-                        if (!controlFileLoaded)
+                        if (!m_controlFileLoaded)
                             throw new Exception(
                                 string.Format(
                                     "The IAR you are trying to load does not list {0} before {1}.  Aborting load", 
                                     ArchiveConstants.CONTROL_FILE_PATH, ArchiveConstants.ASSETS_PATH));
                         
-                        if (!inventoryNodesLoaded)
+                        if (!m_inventoryNodesLoaded)
                             throw new Exception(
                                 string.Format(
                                     "The IAR you are trying to load does not list all {0} before {1}.  Aborting load", 
@@ -177,17 +180,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                                 "[INVENTORY ARCHIVER]: Loaded {0} assets...", 
                                 successfulAssetRestores);                       
                         
-                        assetsLoaded = true;
+                        m_assetsLoaded = true;
                     }
                     else if (filePath.StartsWith(ArchiveConstants.INVENTORY_PATH))
                     {
-                        if (!controlFileLoaded)
+                        if (!m_controlFileLoaded)
                             throw new Exception(
                                 string.Format(
                                     "The IAR you are trying to load does not list {0} before {1}.  Aborting load", 
                                     ArchiveConstants.CONTROL_FILE_PATH, ArchiveConstants.INVENTORY_PATH));
                         
-                        if (assetsLoaded)
+                        if (m_assetsLoaded)
                             throw new Exception(
                                 string.Format(
                                     "The IAR you are trying to load does not list all {0} before {1}.  Aborting load", 
@@ -218,7 +221,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                             }
                         }
                         
-                        inventoryNodesLoaded = true;
+                        m_inventoryNodesLoaded = true;
                     }
                 }
                 
