@@ -153,7 +153,7 @@ namespace OpenSim.Data.Tests
             db.addInventoryFolder(f1);
             InventoryFolderBase f1a = db.getUserRootFolder(owner1);
             Assert.That(folder1, Is.EqualTo(f1a.ID), "Assert.That(folder1, Is.EqualTo(f1a.ID))");
-            Assert.That(name1, Text.Matches(f1a.Name), "Assert.That(name1, Text.Matches(f1a.Name))");
+            Assert.That(name1, Is.StringMatching(f1a.Name), "Assert.That(name1, Text.Matches(f1a.Name))");
         }
 
         // we now have the following tree
