@@ -86,6 +86,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         protected bool m_controlFileLoaded;
         protected bool m_assetsLoaded;
         protected bool m_inventoryNodesLoaded;
+        
+        protected int m_successfulAssetRestores;
+        protected int m_failedAssetRestores;
 
         public InventoryArchiveReadRequest(
             Scene scene, UserAccount userInfo, string invPath, string loadPath, bool merge)
@@ -121,8 +124,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             try
             {
                 string filePath = "ERROR";
-                int successfulAssetRestores = 0;
-                int failedAssetRestores = 0;
                 int successfulItemRestores = 0;
                 
                 HashSet<InventoryNodeBase> loadedNodes = new HashSet<InventoryNodeBase>();
@@ -154,33 +155,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     if (filePath == ArchiveConstants.CONTROL_FILE_PATH)
                     {
                         LoadControlFile(filePath, data);
-                        m_controlFileLoaded = true;
-                    }
+                    }                    
                     else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                     {
-                        if (!m_controlFileLoaded)
-                            throw new Exception(
-                                string.Format(
-                                    "The IAR you are trying to load does not list {0} before {1}.  Aborting load", 
-                                    ArchiveConstants.CONTROL_FILE_PATH, ArchiveConstants.ASSETS_PATH));
-                        
-                        if (!m_inventoryNodesLoaded)
-                            throw new Exception(
-                                string.Format(
-                                    "The IAR you are trying to load does not list all {0} before {1}.  Aborting load", 
-                                    ArchiveConstants.INVENTORY_PATH, ArchiveConstants.ASSETS_PATH));                            
-                        
-                        if (LoadAsset(filePath, data))
-                            successfulAssetRestores++;
-                        else
-                            failedAssetRestores++;
-    
-                        if ((successfulAssetRestores) % 50 == 0)
-                            m_log.DebugFormat(
-                                "[INVENTORY ARCHIVER]: Loaded {0} assets...", 
-                                successfulAssetRestores);                       
-                        
-                        m_assetsLoaded = true;
+                        LoadAssetFile(filePath, data);
                     }
                     else if (filePath.StartsWith(ArchiveConstants.INVENTORY_PATH))
                     {
@@ -229,7 +207,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 
                 m_log.DebugFormat(
                     "[INVENTORY ARCHIVER]: Successfully loaded {0} assets with {1} failures", 
-                    successfulAssetRestores, failedAssetRestores);
+                    m_successfulAssetRestores, m_failedAssetRestores);
                 m_log.InfoFormat("[INVENTORY ARCHIVER]: Successfully loaded {0} items", successfulItemRestores);
                 
                 return loadedNodes;
@@ -566,7 +544,40 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         majorVersion, MAX_MAJOR_VERSION));
             }
             
-            m_log.InfoFormat("[INVENTORY ARCHIVER]: Loading IAR with version {0}", version);
+            m_controlFileLoaded = true;            
+            m_log.InfoFormat("[INVENTORY ARCHIVER]: Loading IAR with version {0}", version);                        
         }
+        
+        /// <summary>
+        /// Load asset file
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="data"></param>
+        protected void LoadAssetFile(string path, byte[] data)
+        {
+            if (!m_controlFileLoaded)
+                throw new Exception(
+                    string.Format(
+                        "The IAR you are trying to load does not list {0} before {1}.  Aborting load", 
+                        ArchiveConstants.CONTROL_FILE_PATH, ArchiveConstants.ASSETS_PATH));
+            
+            if (!m_inventoryNodesLoaded)
+                throw new Exception(
+                    string.Format(
+                        "The IAR you are trying to load does not list all {0} before {1}.  Aborting load", 
+                        ArchiveConstants.INVENTORY_PATH, ArchiveConstants.ASSETS_PATH));                            
+            
+            if (LoadAsset(path, data))
+                m_successfulAssetRestores++;
+            else
+                m_failedAssetRestores++;
+
+            if ((m_successfulAssetRestores) % 50 == 0)
+                m_log.DebugFormat(
+                    "[INVENTORY ARCHIVER]: Loaded {0} assets...", 
+                    m_successfulAssetRestores);                       
+            
+            m_assetsLoaded = true;            
+        }        
     }
 }
