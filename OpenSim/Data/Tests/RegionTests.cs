@@ -35,6 +35,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Tests.Common;
 using log4net;
 using System.Reflection;
 using System.Data.Common;
@@ -120,14 +121,17 @@ namespace OpenSim.Data.Tests
             string[] reg_tables = new string[] { 
                 "prims", "primshapes", "primitems", "terrain", "land", "landaccesslist", "regionban", "regionsettings" 
             };
+            
             if (m_rebuildDB)
             {
                 DropTables(reg_tables);
                 ResetMigrations("RegionStore");
-            }else
+            }
+            else
+            {
                 ClearTables(reg_tables);
+            }
         }
-
 
         // Test Plan
         // Prims
@@ -147,6 +151,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T001_LoadEmpty()
         {
+            TestHelper.InMethod();
+            
             List<SceneObjectGroup> objs = db.LoadObjects(region1);
             List<SceneObjectGroup> objs3 = db.LoadObjects(region3);
             List<LandData> land = db.LoadLandObjects(region1);
@@ -163,6 +169,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T010_StoreSimpleObject()
         {
+            TestHelper.InMethod();
+            
             SceneObjectGroup sog = NewSOG("object1", prim1, region1);
             SceneObjectGroup sog2 = NewSOG("object2", prim2, region1);
 
@@ -196,6 +204,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T011_ObjectNames()
         {
+            TestHelper.InMethod();
+            
             List<SceneObjectGroup> objs = db.LoadObjects(region1);
             foreach (SceneObjectGroup sog in objs)
             {
@@ -208,6 +218,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T012_SceneParts()
         {
+            TestHelper.InMethod();
+            
             UUID tmp0 = UUID.Random();
             UUID tmp1 = UUID.Random();
             UUID tmp2 = UUID.Random();
@@ -241,6 +253,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T013_DatabasePersistency()
         {
+            TestHelper.InMethod();
+            
             // Sets all ScenePart parameters, stores and retrieves them, then check for consistency with initial data
             // The commented Asserts are the ones that are unchangeable (when storing on the database, their "Set" values are ignored
             // The ObjectFlags is an exception, if it is entered incorrectly, the object IS REJECTED on the database silently.
@@ -416,6 +430,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T014_UpdateObject()
         {
+            TestHelper.InMethod();
+            
             string text1 = "object1 text";
             SceneObjectGroup sog = FindSOG("object1", region1);
             sog.RootPart.Text = text1;
@@ -521,6 +537,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T015_LargeSceneObjects()
         {
+            TestHelper.InMethod();
+            
             UUID id = UUID.Random();
             Dictionary<UUID, SceneObjectPart> mydic = new Dictionary<UUID, SceneObjectPart>();
             SceneObjectGroup sog = NewSOG("Test SOG", id, region4);
@@ -565,6 +583,8 @@ namespace OpenSim.Data.Tests
         //[Test]
         public void T016_RandomSogWithSceneParts()
         {
+            TestHelper.InMethod();
+            
             PropertyScrambler<SceneObjectPart> scrambler =
                 new PropertyScrambler<SceneObjectPart>()
                     .DontScramble(x => x.UUID);
@@ -631,15 +651,16 @@ namespace OpenSim.Data.Tests
             return sog;
         }
         
-
         // NOTE: it is a bad practice to rely on some of the previous tests having been run before.
         // If the tests are run manually, one at a time, each starts with full class init (DB cleared).
         // Even when all tests are run, NUnit 2.5+ no longer guarantee a specific test order.
         // We shouldn't expect to find anything in the DB if we haven't put it there *in the same test*!
-
+        
         [Test]
         public void T020_PrimInventoryEmpty()
         {
+            TestHelper.InMethod();
+            
             SceneObjectGroup sog = GetMySOG("object1");
             TaskInventoryItem t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
             Assert.That(t, Is.Null);
@@ -659,10 +680,11 @@ namespace OpenSim.Data.Tests
             db.StorePrimInventory(sog.RootPart.UUID, list);
         }
 
-
         [Test]
         public void T021_PrimInventoryBasic()
         {
+            TestHelper.InMethod();
+            
             SceneObjectGroup sog = GetMySOG("object1");
             InventoryItemBase i = NewItem(item1, zero, zero, itemname1, zero);
 
@@ -690,20 +712,19 @@ namespace OpenSim.Data.Tests
             Assert.That(t2.Name, Is.EqualTo("My New Name"), "Assert.That(t.Name, Is.EqualTo(\"My New Name\"))");
 
             // Removing inventory
-
             List<TaskInventoryItem> list = new List<TaskInventoryItem>();
             db.StorePrimInventory(prim1, list);
 
             sog = FindSOG("object1", region1);
             t = sog.GetInventoryItem(sog.RootPart.LocalId, item1);
             Assert.That(t, Is.Null);
-
         }
-
         
         [Test]
         public void T025_PrimInventoryPersistency()
         {
+            TestHelper.InMethod();
+            
             InventoryItemBase i = new InventoryItemBase();
             UUID id = UUID.Random();
             i.ID = id;
@@ -775,6 +796,8 @@ namespace OpenSim.Data.Tests
         [ExpectedException(typeof(ArgumentException))]
         public void T026_PrimInventoryMany()
         {
+            TestHelper.InMethod();
+            
             UUID i1,i2,i3,i4;
             i1 = UUID.Random();
             i2 = UUID.Random();
@@ -805,15 +828,18 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T052_RemoveObject()
         {
+            TestHelper.InMethod();
+            
             db.RemoveObject(prim1, region1);
             SceneObjectGroup sog = FindSOG("object1", region1);
             Assert.That(sog, Is.Null);
         }
 
-
         [Test]
         public void T100_DefaultRegionInfo()
         {
+            TestHelper.InMethod();
+            
             RegionSettings r1 = db.LoadRegionSettings(region1);
             Assert.That(r1.RegionUUID, Is.EqualTo(region1), "Assert.That(r1.RegionUUID, Is.EqualTo(region1))");
 
@@ -824,6 +850,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T101_UpdateRegionInfo()
         {
+            TestHelper.InMethod();
+            
             int agentlimit = random.Next();
             double objectbonus = random.Next();
             int maturity = random.Next();
@@ -922,13 +950,14 @@ namespace OpenSim.Data.Tests
             //Assert.That(r1a.TerrainImageID,Is.EqualTo(terimgid), "Assert.That(r1a.TerrainImageID,Is.EqualTo(terimgid))");
             Assert.That(r1a.FixedSun,Is.True);
             Assert.That(r1a.SunPosition, Is.EqualTo(sunpos), "Assert.That(r1a.SunPosition, Is.EqualTo(sunpos))");
-            Assert.That(r1a.Covenant, Is.EqualTo(cov), "Assert.That(r1a.Covenant, Is.EqualTo(cov))");
-            
+            Assert.That(r1a.Covenant, Is.EqualTo(cov), "Assert.That(r1a.Covenant, Is.EqualTo(cov))");            
         }
 
         [Test]
         public void T300_NoTerrain()
         {
+            TestHelper.InMethod();
+            
             Assert.That(db.LoadTerrain(zero), Is.Null);
             Assert.That(db.LoadTerrain(region1), Is.Null);
             Assert.That(db.LoadTerrain(region2), Is.Null);
@@ -938,6 +967,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T301_CreateTerrain()
         {
+            TestHelper.InMethod();
+            
             double[,] t1 = GenTerrain(height1);
             db.StoreTerrain(t1, region1);
             
@@ -950,6 +981,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T302_FetchTerrain()
         {
+            TestHelper.InMethod();
+            
             double[,] baseterrain1 = GenTerrain(height1);
             double[,] baseterrain2 = GenTerrain(height2);
             double[,] t1 = db.LoadTerrain(region1);
@@ -960,6 +993,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T303_UpdateTerrain()
         {
+            TestHelper.InMethod();
+            
             double[,] baseterrain1 = GenTerrain(height1);
             double[,] baseterrain2 = GenTerrain(height2);
             db.StoreTerrain(baseterrain2, region1);
@@ -972,6 +1007,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T400_EmptyLand()
         {
+            TestHelper.InMethod();
+            
             Assert.That(db.LoadLandObjects(zero).Count, Is.EqualTo(0), "Assert.That(db.LoadLandObjects(zero).Count, Is.EqualTo(0))");
             Assert.That(db.LoadLandObjects(region1).Count, Is.EqualTo(0), "Assert.That(db.LoadLandObjects(region1).Count, Is.EqualTo(0))");
             Assert.That(db.LoadLandObjects(region2).Count, Is.EqualTo(0), "Assert.That(db.LoadLandObjects(region2).Count, Is.EqualTo(0))");
