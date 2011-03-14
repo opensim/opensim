@@ -378,6 +378,22 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <param name="response"></param>
         public virtual void HandleRequest(OSHttpRequest request, OSHttpResponse response)
         {
+            if (request.HttpMethod == String.Empty) // Can't handle empty requests, not wasting a thread
+            {
+                try
+                {
+                    SendHTML500(response);
+                }
+                catch
+                {
+                }
+
+                return;
+            }
+
+            string requestMethod = request.HttpMethod;
+            string uriString = request.RawUrl;
+
             string reqnum = "unknown";
             int tickstart = Environment.TickCount;
 
@@ -495,7 +511,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                     request.InputStream.Close();
 
-                    // HTTP IN support. The script engine taes it from here
+                    // HTTP IN support. The script engine takes it from here
                     // Nothing to worry about for us.
                     //
                     if (buffer == null)
@@ -609,9 +625,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw ", e);
             }
-            catch (InvalidOperationException e)
+            catch (Exception e)
             {
-                m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw {0}", e);
+                m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw " + e.ToString());
                 SendHTML500(response);
             }
             finally
@@ -619,9 +635,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                 // Every month or so this will wrap and give bad numbers, not really a problem
                 // since its just for reporting, 200ms limit can be adjusted
                 int tickdiff = Environment.TickCount - tickstart;
-                if (tickdiff > 500)
+                if (tickdiff > 3000)
                     m_log.InfoFormat(
-                        "[BASE HTTP SERVER]: slow request <{0}> for {1} took {2} ms", reqnum, request.RawUrl, tickdiff);
+                        "[BASE HTTP SERVER]: slow {0} request for {1} from {2} took {3} ms", requestMethod, uriString, request.RemoteIPEndPoint.ToString(), tickdiff);
             }
         }
 
