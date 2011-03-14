@@ -533,7 +533,10 @@ namespace OpenSim.Data.Tests
             Assert.That(clickaction,Is.EqualTo(p.ClickAction), "Assert.That(clickaction,Is.EqualTo(p.ClickAction))");
             Assert.That(scale,Is.EqualTo(p.Scale), "Assert.That(scale,Is.EqualTo(p.Scale))");
         }
-        
+                
+        /// <summary>
+        /// Test storage and retrieval of a scene object with a large number of parts.
+        /// </summary>
         [Test]
         public void T015_LargeSceneObjects()
         {
@@ -543,7 +546,7 @@ namespace OpenSim.Data.Tests
             Dictionary<UUID, SceneObjectPart> mydic = new Dictionary<UUID, SceneObjectPart>();
             SceneObjectGroup sog = NewSOG("Test SOG", id, region4);
             mydic.Add(sog.RootPart.UUID,sog.RootPart);
-            for (int i=0;i<30;i++) 
+            for (int i = 0; i < 30; i++) 
             {
                 UUID tmp = UUID.Random();
                 SceneObjectPart sop = NewSOP(("Test SOP " + i.ToString()),tmp);
@@ -568,7 +571,7 @@ namespace OpenSim.Data.Tests
             
             SceneObjectGroup retsog = FindSOG("Test SOG", region4);
             SceneObjectPart[] parts = retsog.Parts;
-            for (int i=0;i<30;i++)
+            for (int i = 0; i < 30; i++)
             {
                 SceneObjectPart cursop = mydic[parts[i].UUID];
                 Assert.That(cursop.GroupPosition,Is.EqualTo(parts[i].GroupPosition), "Assert.That(cursop.GroupPosition,Is.EqualTo(parts[i].GroupPosition))");
