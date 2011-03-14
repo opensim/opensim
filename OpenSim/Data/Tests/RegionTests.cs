@@ -565,9 +565,10 @@ namespace OpenSim.Data.Tests
                 sop.Acceleration = accel;
                 
                 mydic.Add(tmp,sop);
-                sog.AddPart(sop);
-                db.StoreObject(sog, region4);
+                sog.AddPart(sop);                
             }
+            
+            db.StoreObject(sog, region4);
             
             SceneObjectGroup retsog = FindSOG("Test SOG", region4);
             SceneObjectPart[] parts = retsog.Parts;
