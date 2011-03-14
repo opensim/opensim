@@ -84,9 +84,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
                 Vector3 offsetPosition = new Vector3(5, 10, 15);
 
-                part1
-                    = new SceneObjectPart(
-                        ownerId, shape, groupPosition, rotationOffset, offsetPosition);
+                part1 = new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, offsetPosition);
                 part1.Name = partName;
 
                 object1 = new SceneObjectGroup(part1);
@@ -186,31 +184,31 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
 
-            UserProfileTestUtils.CreateUserWithInventory(scene, m_ua1, "meowfood");
-            UserProfileTestUtils.CreateUserWithInventory(scene, m_ua2, "hampshire");
+            UserProfileTestUtils.CreateUserWithInventory(scene, m_uaMT, "meowfood");
+            UserProfileTestUtils.CreateUserWithInventory(scene, m_uaLL1, "hampshire");
             
-            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "/", "meowfood", m_iarStream);            
+            archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "/", "meowfood", m_iarStream);            
             InventoryItemBase foundItem1
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, m_item1Name);
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_uaMT.PrincipalID, m_item1Name);
             
             Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");            
 
             // Now try loading to a root child folder
-            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, m_ua1.PrincipalID, "xA");
+            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, m_uaMT.PrincipalID, "xA");
             MemoryStream archiveReadStream = new MemoryStream(m_iarStream.ToArray());
-            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "xA", "meowfood", archiveReadStream);
+            archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "xA", "meowfood", archiveReadStream);
 
             InventoryItemBase foundItem2
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, "xA/" + m_item1Name);
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_uaMT.PrincipalID, "xA/" + m_item1Name);
             Assert.That(foundItem2, Is.Not.Null, "Didn't find loaded item 2");
 
             // Now try loading to a more deeply nested folder
-            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, m_ua1.PrincipalID, "xB/xC");
+            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, m_uaMT.PrincipalID, "xB/xC");
             archiveReadStream = new MemoryStream(archiveReadStream.ToArray());
-            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "xB/xC", "meowfood", archiveReadStream);
+            archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "xB/xC", "meowfood", archiveReadStream);
 
             InventoryItemBase foundItem3
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_ua1.PrincipalID, "xB/xC/" + m_item1Name);
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, m_uaMT.PrincipalID, "xB/xC/" + m_item1Name);
             Assert.That(foundItem3, Is.Not.Null, "Didn't find loaded item 3");            
         }
         
@@ -228,12 +226,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Scene scene = SceneSetupHelpers.SetupScene("inventory");
             SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
             
-            UserProfileTestUtils.CreateUserWithInventory(scene, m_ua1, "password");
-            archiverModule.DearchiveInventory(m_ua1.FirstName, m_ua1.LastName, "/Objects", "password", m_iarStream);
+            UserProfileTestUtils.CreateUserWithInventory(scene, m_uaMT, "password");
+            archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "/Objects", "password", m_iarStream);
 
             InventoryItemBase foundItem1
                 = InventoryArchiveUtils.FindItemByPath(
-                    scene.InventoryService, m_ua1.PrincipalID, "/Objects/" + m_item1Name);
+                    scene.InventoryService, m_uaMT.PrincipalID, "/Objects/" + m_item1Name);
             
             Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1 in TestLoadIarFolderStartsWithSlash()");
         }
