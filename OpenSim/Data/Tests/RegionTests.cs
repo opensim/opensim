@@ -1047,25 +1047,12 @@ namespace OpenSim.Data.Tests
             return true;
         }
 
-
         private SceneObjectGroup FindSOG(string name, UUID r)
         {
             List<SceneObjectGroup> objs = db.LoadObjects(r);
             foreach (SceneObjectGroup sog in objs)
-            {
-                SceneObjectPart p = sog.RootPart;
-                if (p.Name == name) {
-                    RegionInfo regionInfo = new RegionInfo();
-                    regionInfo.RegionID = r;
-                    regionInfo.RegionLocX = 0;
-                    regionInfo.RegionLocY = 0;
-
-                    Scene scene = new Scene(regionInfo);
-                    sog.SetScene(scene);
-
+                if (sog.Name == name)
                     return sog;
-                }
-            }
 
             return null;
         }
