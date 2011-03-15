@@ -31,6 +31,9 @@ using OpenSim.Services.Interfaces;
 using log4net;
 using Nini.Config;
 using System.Reflection;
+using OpenSim.Data;
+using OpenSim.Framework;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Services.AuthenticationService
 {
@@ -43,17 +46,44 @@ namespace OpenSim.Services.AuthenticationService
     public class WebkeyAuthenticationService :
             AuthenticationServiceBase, IAuthenticationService
     {
-//        private static readonly ILog m_log =
-//                LogManager.GetLogger(
-//                MethodBase.GetCurrentMethod().DeclaringType);
- 
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+
         public WebkeyAuthenticationService(IConfigSource config) :
-                base(config)
+            base(config)
         {
         }
 
         public string Authenticate(UUID principalID, string password, int lifetime)
         {
+            m_log.InfoFormat("[Authenticate]: Trying a web key authenticate");
+            if (new UUID(password) == UUID.Zero)
+            {
+                m_log.InfoFormat("[Authenticate]: NULL_KEY is not a valid web_login_key");
+            }
+            else
+            {
+                AuthenticationData data = m_Database.Get(principalID);
+                if (data != null && data.Data != null)
+                {
+                    if (data.Data.ContainsKey("webLoginKey"))
+                    {
+                        m_log.InfoFormat("[Authenticate]: Trying a web key authentication");
+						string key = data.Data["webLoginKey"].ToString();
+						m_log.DebugFormat("[WEB LOGIN AUTH]: got {0} for key in db vs {1}", key, password);
+						if (key == password)
+						{
+							data.Data["webLoginKey"] = UUID.Zero.ToString();
+							m_Database.Store(data);
+							return GetToken(principalID, lifetime);
+						}
+                    }else{
+                        m_log.InfoFormat("[Authenticate]: no col webLoginKey in passwd.db");
+                    }
+                }
+                m_log.DebugFormat("[AUTH SERVICE]: PrincipalID {0} or its data not found", principalID);
+            }
             return String.Empty;
         }
     }
