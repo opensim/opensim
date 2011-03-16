@@ -3524,6 +3524,8 @@ namespace OpenSim.Region.Framework.Scenes
         private bool TestLandRestrictions(UUID agentID, out string reason, ref float posX, ref float posY)
         {
             reason = String.Empty;
+            if (Permissions.IsGod(agentID))
+                return true;
 
             ILandObject land = LandChannel.GetLandObject(posX, posY);
             if (land == null)
@@ -5164,6 +5166,12 @@ namespace OpenSim.Region.Framework.Scenes
         public bool QueryAccess(UUID agentID, Vector3 position, out string reason)
         {
             reason = "You are banned from the region";
+
+            if (Permissions.IsGod(agentID))
+            {
+                reason = String.Empty;
+                return true;
+            }
 
             if (!AuthorizeUser(agentID, out reason))
             {
