@@ -75,7 +75,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             m_scene = scene;
             m_scene.RegisterModuleInterface<IRegionModule>(this);
             m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
-            
+
             // ini file settings
             try
             {
@@ -229,7 +229,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         {
             Command wlload = new Command("load", CommandIntentions.COMMAND_NON_HAZARDOUS, HandleLoad, "Load windlight profile from the database and broadcast");
             Command wlenable = new Command("enable", CommandIntentions.COMMAND_NON_HAZARDOUS, HandleEnable, "Enable the windlight plugin");
-            Command wldisable = new Command("disable", CommandIntentions.COMMAND_NON_HAZARDOUS, HandleDisable, "Enable the windlight plugin");
+            Command wldisable = new Command("disable", CommandIntentions.COMMAND_NON_HAZARDOUS, HandleDisable, "Disable the windlight plugin");
 
             m_commander.RegisterCommand("load", wlload);
             m_commander.RegisterCommand("enable", wlenable);
