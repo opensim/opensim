@@ -1109,7 +1109,7 @@ namespace OpenSim.Region.Framework.Scenes
             //
             while (m_regInfo.EstateSettings.EstateOwner == UUID.Zero && MainConsole.Instance != null)
             {
-                MainConsole.Instance.Output("The current estate has no owner set.");
+                MainConsole.Instance.OutputFormat("Estate {0} has no owner set.", m_regInfo.EstateSettings.EstateName);
                 List<char> excluded = new List<char>(new char[1]{' '});
                 string first = MainConsole.Instance.CmdPrompt("Estate owner first name", "Test", excluded);
                 string last = MainConsole.Instance.CmdPrompt("Estate owner last name", "User", excluded);

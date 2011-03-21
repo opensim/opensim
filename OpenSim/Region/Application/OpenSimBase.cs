@@ -836,7 +836,7 @@ namespace OpenSim
 
             if (regInfo.EstateSettings.EstateID == 0) // No record at all
             {
-                MainConsole.Instance.Output("Your region is not part of an estate.");
+                MainConsole.Instance.OutputFormat("Region {0} is not part of an estate.", regInfo.RegionName);
                 
                 List<EstateSettings> estates = EstateDataService.LoadEstateSettingsAll();                
                 List<string> estateNames = new List<string>();
@@ -847,8 +847,7 @@ namespace OpenSim
                 {
                     if (estates.Count == 0)
                     {                        
-                        MainConsole.Instance.Output(
-                            "No existing estates found.  You must create a new one for this region.");
+                        MainConsole.Instance.Output("No existing estates found.  You must create a new one.");
                         
                         if (CreateEstate(regInfo, estateNames))
                             break;                        
@@ -859,7 +858,10 @@ namespace OpenSim
                     {
                         string response 
                             = MainConsole.Instance.CmdPrompt(
-                                "Do you wish to join an existing estate (yes/no)?", "no", new List<string>() { "yes", "no" });
+                                string.Format(
+                                    "Do you wish to join region {0} to an existing estate (yes/no)?", regInfo.RegionName), 
+                                    "no", 
+                                    new List<string>() { "yes", "no" });
                         
                         if (response == "no")
                         {
