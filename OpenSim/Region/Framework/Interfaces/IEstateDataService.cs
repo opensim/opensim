@@ -34,7 +34,19 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IEstateDataService
     {
+        /// <summary>
+        /// Load estate settings for a region.
+        /// </summary>
+        /// <param name="regionID"></param>
+        /// <param name="create">If true, then an estate is created if one is not found.  This is used in migration.</param>
+        /// <returns></returns>        
         EstateSettings LoadEstateSettings(UUID regionID, bool create);
+        
+        /// <summary>
+        /// Load estate settings for an estate ID.
+        /// </summary>
+        /// <param name="estateID"></param>
+        /// <returns></returns>        
         EstateSettings LoadEstateSettings(int estateID);
         
         /// <summary>
@@ -43,7 +55,19 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns>An empty list if no estates were found.</returns>
         List<EstateSettings> LoadEstateSettingsAll();
         
+        /// <summary>
+        /// Store estate settings.
+        /// </summary>
+        /// <remarks>
+        /// This is also called by EstateSettings.Save()</remarks>
+        /// <param name="es"></param>        
         void StoreEstateSettings(EstateSettings es);
+        
+        /// <summary>
+        /// Get estate IDs.
+        /// </summary>
+        /// <param name="search">Name of estate to search for.  This is the exact name, no parttern matching is done.</param>
+        /// <returns></returns>        
         List<int> GetEstates(string search);
         
         /// <summary>
@@ -52,8 +76,26 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns>An empty list if no estates were found.</returns>
         List<int> GetEstatesAll();
             
+        /// <summary>
+        /// Link a region to an estate.
+        /// </summary>
+        /// <param name="regionID"></param>
+        /// <param name="estateID"></param>
+        /// <returns>true if the link succeeded, false otherwise</returns>        
         bool LinkRegion(UUID regionID, int estateID);
+        
+        /// <summary>
+        /// Get the UUIDs of all the regions in an estate.
+        /// </summary>
+        /// <param name="estateID"></param>
+        /// <returns></returns>        
         List<UUID> GetRegions(int estateID);
+        
+        /// <summary>
+        /// Delete an estate
+        /// </summary>
+        /// <param name="estateID"></param>
+        /// <returns>true if the delete succeeded, false otherwise</returns>        
         bool DeleteEstate(int estateID);
     }
 }
