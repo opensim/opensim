@@ -79,7 +79,7 @@ namespace OpenSim.Services.AuthenticationService
 							return GetToken(principalID, lifetime);
 						}
                     }else{
-                        m_log.InfoFormat("[Authenticate]: no col webLoginKey in passwd.db");
+                        m_log.DebugFormat("[Authenticate]: no col webLoginKey in passwd.db");
                     }
                 }
                 m_log.DebugFormat("[AUTH SERVICE]: PrincipalID {0} or its data not found", principalID);
