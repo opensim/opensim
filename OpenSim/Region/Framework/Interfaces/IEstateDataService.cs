@@ -38,7 +38,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Load estate settings for a region.
         /// </summary>
         /// <param name="regionID"></param>
-        /// <param name="create">If true, then an estate is created if one is not found.  This is used in migration.</param>
+        /// <param name="create">If true, then an estate is created if one is not found.</param>
         /// <returns></returns>        
         EstateSettings LoadEstateSettings(UUID regionID, bool create);
         
