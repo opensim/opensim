@@ -36,8 +36,22 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         EstateSettings LoadEstateSettings(UUID regionID, bool create);
         EstateSettings LoadEstateSettings(int estateID);
+        
+        /// <summary>
+        /// Load/Get all estate settings.
+        /// </summary>
+        /// <returns>An empty list if no estates were found.</returns>
+        List<EstateSettings> LoadEstateSettingsAll();
+        
         void StoreEstateSettings(EstateSettings es);
         List<int> GetEstates(string search);
+        
+        /// <summary>
+        /// Get the IDs of all estates.
+        /// </summary>
+        /// <returns>An empty list if no estates were found.</returns>
+        List<int> GetEstatesAll();
+            
         bool LinkRegion(UUID regionID, int estateID);
         List<UUID> GetRegions(int estateID);
         bool DeleteEstate(int estateID);

@@ -828,7 +828,18 @@ namespace OpenSim
                     }
                     else
                     {
-                        response = MainConsole.Instance.CmdPrompt("Estate name to join", "None");
+                        List<EstateSettings> estates = estateDataService.LoadEstateSettingsAll();
+                        
+                        List<string> estateNames = new List<string>();
+                        foreach (EstateSettings estate in estates)
+                            estateNames.Add(estate.EstateName);
+                        
+                        response 
+                            = MainConsole.Instance.CmdPrompt(
+                                string.Format(
+                                    "Name of estate to join.  Existing estate names are ({0})", string.Join(", ", estateNames.ToArray())), 
+                                "None");
+                        
                         if (response == "None")
                             continue;
 

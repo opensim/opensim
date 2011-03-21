@@ -100,6 +100,17 @@ namespace OpenSim.Data.SQLiteLegacy
 
             return DoLoad(cmd, regionID, create);
         }
+        
+        public List<EstateSettings> LoadEstateSettingsAll()
+        {
+            List<EstateSettings> estateSettings = new List<EstateSettings>();
+            
+            List<int> estateIds = GetEstatesAll();
+            foreach (int estateId in estateIds)
+                estateSettings.Add(LoadEstateSettings(estateId));
+            
+            return estateSettings;
+        }        
 
         private EstateSettings DoLoad(SqliteCommand cmd, UUID regionID, bool create)
         {
@@ -369,6 +380,28 @@ namespace OpenSim.Data.SQLiteLegacy
             return result;
         }
 
+
+        public List<int> GetEstatesAll()
+        {
+            List<int> result = new List<int>();
+
+            string sql = "select EstateID from estate_settings";
+
+            SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
+
+            cmd.CommandText = sql;
+
+            IDataReader r = cmd.ExecuteReader();
+
+            while (r.Read())
+            {
+                result.Add(Convert.ToInt32(r["EstateID"]));
+            }
+            r.Close();
+
+            return result;
+        }
+        
         public bool LinkRegion(UUID regionID, int estateID)
         {
             SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
