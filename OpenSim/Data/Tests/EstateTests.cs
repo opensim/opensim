@@ -31,6 +31,7 @@ using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Tests.Common;
 using System.Text;
 using log4net;
 using System.Reflection;
@@ -106,6 +107,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T010_EstateSettingsSimpleStorage_MinimumParameterSet()
         {
+            TestHelper.InMethod();
+            
             EstateSettingsSimpleStorage(
                 REGION_ID,
                 DataTestUtil.STRING_MIN,
@@ -137,6 +140,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T011_EstateSettingsSimpleStorage_MaximumParameterSet()
         {
+            TestHelper.InMethod();
+            
             EstateSettingsSimpleStorage(
                 REGION_ID,
                 DataTestUtil.STRING_MAX(64),
@@ -168,6 +173,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T012_EstateSettingsSimpleStorage_AccurateParameterSet()
         {
+            TestHelper.InMethod();
+            
             EstateSettingsSimpleStorage(
                 REGION_ID,
                 DataTestUtil.STRING_MAX(1),
@@ -199,6 +206,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T012_EstateSettingsRandomStorage()
         {
+            TestHelper.InMethod();
+            
             // Letting estate store generate rows to database for us
             EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID, true);
             new PropertyScrambler<EstateSettings>()
@@ -218,6 +227,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T020_EstateSettingsManagerList()
         {
+            TestHelper.InMethod();
+            
             // Letting estate store generate rows to database for us
             EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID, true);
 
@@ -237,6 +248,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T021_EstateSettingsUserList()
         {
+            TestHelper.InMethod();
+            
             // Letting estate store generate rows to database for us
             EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID, true);
 
@@ -256,6 +269,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T022_EstateSettingsGroupList()
         {
+            TestHelper.InMethod();
+            
             // Letting estate store generate rows to database for us
             EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID, true);
 
@@ -275,6 +290,8 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T022_EstateSettingsBanList()
         {
+            TestHelper.InMethod();
+            
             // Letting estate store generate rows to database for us
             EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID, true);
 
