@@ -633,7 +633,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             finally
             {
                 // Every month or so this will wrap and give bad numbers, not really a problem
-                // since its just for reporting, 200ms limit can be adjusted
+                // since its just for reporting, tickdiff limit can be adjusted
                 int tickdiff = Environment.TickCount - tickstart;
                 if (tickdiff > 3000)
                     m_log.InfoFormat(
