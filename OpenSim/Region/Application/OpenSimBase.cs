@@ -798,12 +798,8 @@ namespace OpenSim
         /// <param name="regInfo"></param>
         public void PopulateRegionEstateInfo(RegionInfo regInfo)
         {
-            IEstateDataService estateDataService = EstateDataService;
-
-            if (estateDataService != null)
-            {
-                regInfo.EstateSettings = estateDataService.LoadEstateSettings(regInfo.RegionID, false);
-            }
+            if (EstateDataService != null)
+                regInfo.EstateSettings = EstateDataService.LoadEstateSettings(regInfo.RegionID, false);
 
             if (regInfo.EstateSettings.EstateID == 0) // No record at all
             {
@@ -814,7 +810,7 @@ namespace OpenSim
                     if (response == "no")
                     {
                         // Create a new estate
-                        regInfo.EstateSettings = estateDataService.LoadEstateSettings(regInfo.RegionID, true);
+                        regInfo.EstateSettings = EstateDataService.LoadEstateSettings(regInfo.RegionID, true);
 
                         regInfo.EstateSettings.EstateName = MainConsole.Instance.CmdPrompt("New estate name", regInfo.EstateSettings.EstateName);
                         
@@ -828,7 +824,7 @@ namespace OpenSim
                     }
                     else
                     {
-                        List<EstateSettings> estates = estateDataService.LoadEstateSettingsAll();
+                        List<EstateSettings> estates = EstateDataService.LoadEstateSettingsAll();
                         
                         List<string> estateNames = new List<string>();
                         foreach (EstateSettings estate in estates)
@@ -843,7 +839,7 @@ namespace OpenSim
                         if (response == "None")
                             continue;
 
-                        List<int> estateIDs = estateDataService.GetEstates(response);
+                        List<int> estateIDs = EstateDataService.GetEstates(response);
                         if (estateIDs.Count < 1)
                         {
                             MainConsole.Instance.Output("The name you have entered matches no known estate. Please try again");
@@ -852,9 +848,9 @@ namespace OpenSim
 
                         int estateID = estateIDs[0];
 
-                        regInfo.EstateSettings = estateDataService.LoadEstateSettings(estateID);
+                        regInfo.EstateSettings = EstateDataService.LoadEstateSettings(estateID);
 
-                        if (estateDataService.LinkRegion(regInfo.RegionID, estateID))
+                        if (EstateDataService.LinkRegion(regInfo.RegionID, estateID))
                             break;
 
                         MainConsole.Instance.Output("Joining the estate failed. Please try again.");
@@ -863,7 +859,6 @@ namespace OpenSim
             }
         }
     }
-
     
     public class OpenSimConfigSource
     {
