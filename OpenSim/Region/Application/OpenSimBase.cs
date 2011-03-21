@@ -793,6 +793,25 @@ namespace OpenSim
         }
         
         /// <summary>
+        /// Create an estate with an initial region.
+        /// </summary>
+        /// <param name="regInfo"></param>
+        public void CreateEstate(RegionInfo regInfo)
+        {
+            // Create a new estate
+            regInfo.EstateSettings = EstateDataService.LoadEstateSettings(regInfo.RegionID, true);
+
+            regInfo.EstateSettings.EstateName = MainConsole.Instance.CmdPrompt("New estate name", regInfo.EstateSettings.EstateName);
+            
+            // FIXME: Later on, the scene constructor will reload the estate settings no matter what.
+            // Therefore, we need to do an initial save here otherwise the new estate name will be reset
+            // back to the default.  The reloading of estate settings by scene could be eliminated if it
+            // knows that the passed in settings in RegionInfo are already valid.  Also, it might be 
+            // possible to eliminate some additional later saves made by callers of this method.
+            regInfo.EstateSettings.Save();            
+        }
+        
+        /// <summary>
         /// Load the estate information for the provided RegionInfo object.
         /// </summary>
         /// <param name="regInfo"></param>
@@ -804,56 +823,61 @@ namespace OpenSim
             if (regInfo.EstateSettings.EstateID == 0) // No record at all
             {
                 MainConsole.Instance.Output("Your region is not part of an estate.");
+                
+                List<EstateSettings> estates = EstateDataService.LoadEstateSettingsAll();                
+                
                 while (true)
                 {
-                    string response = MainConsole.Instance.CmdPrompt("Do you wish to join an existing estate?", "no", new List<string>() { "yes", "no" });
-                    if (response == "no")
-                    {
-                        // Create a new estate
-                        regInfo.EstateSettings = EstateDataService.LoadEstateSettings(regInfo.RegionID, true);
-
-                        regInfo.EstateSettings.EstateName = MainConsole.Instance.CmdPrompt("New estate name", regInfo.EstateSettings.EstateName);
+                    if (estates.Count == 0)
+                    {                        
+                        MainConsole.Instance.Output(
+                            "There aren't any existing estates.  You will need to create a new one for this region.");
                         
-                        // FIXME: Later on, the scene constructor will reload the estate settings no matter what.
-                        // Therefore, we need to do an initial save here otherwise the new estate name will be reset
-                        // back to the default.  The reloading of estate settings by scene could be eliminated if it
-                        // knows that the passed in settings in RegionInfo are already valid.  Also, it might be 
-                        // possible to eliminate some additional later saves made by callers of this method.
-                        regInfo.EstateSettings.Save();
+                        CreateEstate(regInfo);
                         break;
                     }
                     else
                     {
-                        List<EstateSettings> estates = EstateDataService.LoadEstateSettingsAll();
-                        
-                        List<string> estateNames = new List<string>();
-                        foreach (EstateSettings estate in estates)
-                            estateNames.Add(estate.EstateName);
-                        
-                        response 
+                        string response 
                             = MainConsole.Instance.CmdPrompt(
-                                string.Format(
-                                    "Name of estate to join.  Existing estate names are ({0})", string.Join(", ", estateNames.ToArray())), 
-                                "None");
+                                "Do you wish to join an existing estate (yes/no)?", "no", new List<string>() { "yes", "no" });
                         
-                        if (response == "None")
-                            continue;
-
-                        List<int> estateIDs = EstateDataService.GetEstates(response);
-                        if (estateIDs.Count < 1)
+                        if (response == "no")
                         {
-                            MainConsole.Instance.Output("The name you have entered matches no known estate. Please try again");
-                            continue;
-                        }
-
-                        int estateID = estateIDs[0];
-
-                        regInfo.EstateSettings = EstateDataService.LoadEstateSettings(estateID);
-
-                        if (EstateDataService.LinkRegion(regInfo.RegionID, estateID))
+                            CreateEstate(regInfo);
                             break;
-
-                        MainConsole.Instance.Output("Joining the estate failed. Please try again.");
+                        }
+                        else
+                        {
+                            List<string> estateNames = new List<string>();
+                            foreach (EstateSettings estate in estates)
+                                estateNames.Add(estate.EstateName);
+                            
+                            response 
+                                = MainConsole.Instance.CmdPrompt(
+                                    string.Format(
+                                        "Name of estate to join.  Existing estate names are ({0})", string.Join(", ", estateNames.ToArray())), 
+                                    "None");
+                            
+                            if (response == "None")
+                                continue;
+    
+                            List<int> estateIDs = EstateDataService.GetEstates(response);
+                            if (estateIDs.Count < 1)
+                            {
+                                MainConsole.Instance.Output("The name you have entered matches no known estate. Please try again");
+                                continue;
+                            }
+    
+                            int estateID = estateIDs[0];
+    
+                            regInfo.EstateSettings = EstateDataService.LoadEstateSettings(estateID);
+    
+                            if (EstateDataService.LinkRegion(regInfo.RegionID, estateID))
+                                break;
+    
+                            MainConsole.Instance.Output("Joining the estate failed. Please try again.");
+                        }
                     }
                 }
             }
