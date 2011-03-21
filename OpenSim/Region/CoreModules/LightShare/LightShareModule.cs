@@ -148,7 +148,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         public void SendProfileToClient(ScenePresence presence)
         {
             IClientAPI client = presence.ControllingClient;
-            if (m_enableWindlight)
+            if (m_enableWindlight && m_scene.RegionInfo.WindlightSettings.valid)
             {
                 if (presence.IsChildAgent == false)
                 {
@@ -165,7 +165,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
         public void SendProfileToClient(ScenePresence presence, RegionLightShareData wl)
         {
             IClientAPI client = presence.ControllingClient;
-            if (m_enableWindlight)
+            if (m_enableWindlight && m_scene.RegionInfo.WindlightSettings.valid)
             {
                 if (presence.IsChildAgent == false)
                 {
