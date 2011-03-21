@@ -795,20 +795,34 @@ namespace OpenSim
         /// <summary>
         /// Create an estate with an initial region.
         /// </summary>
+        /// <remarks>
+        /// This method doesn't allow an estate to be created with the same name as existing estates.
+        /// </remarks>
         /// <param name="regInfo"></param>
-        public void CreateEstate(RegionInfo regInfo)
+        /// <param name="existingName">A list of estate names that already exist.</param>
+        /// <returns>true if the estate was created, false otherwise</returns>
+        public bool CreateEstate(RegionInfo regInfo, List<string> existingNames)
         {
             // Create a new estate
             regInfo.EstateSettings = EstateDataService.LoadEstateSettings(regInfo.RegionID, true);
+            string newName = MainConsole.Instance.CmdPrompt("New estate name", regInfo.EstateSettings.EstateName);
 
-            regInfo.EstateSettings.EstateName = MainConsole.Instance.CmdPrompt("New estate name", regInfo.EstateSettings.EstateName);
+            if (existingNames.Contains(newName))
+            {
+                MainConsole.Instance.OutputFormat("An estate named {0} already exists.  Please try again.", newName);
+                return false;
+            }
+            
+            regInfo.EstateSettings.EstateName = newName;
             
             // FIXME: Later on, the scene constructor will reload the estate settings no matter what.
             // Therefore, we need to do an initial save here otherwise the new estate name will be reset
             // back to the default.  The reloading of estate settings by scene could be eliminated if it
             // knows that the passed in settings in RegionInfo are already valid.  Also, it might be 
             // possible to eliminate some additional later saves made by callers of this method.
-            regInfo.EstateSettings.Save();            
+            regInfo.EstateSettings.Save();   
+            
+            return true;
         }
         
         /// <summary>
@@ -825,16 +839,21 @@ namespace OpenSim
                 MainConsole.Instance.Output("Your region is not part of an estate.");
                 
                 List<EstateSettings> estates = EstateDataService.LoadEstateSettingsAll();                
+                List<string> estateNames = new List<string>();
+                foreach (EstateSettings estate in estates)
+                    estateNames.Add(estate.EstateName);                
                 
                 while (true)
                 {
                     if (estates.Count == 0)
                     {                        
                         MainConsole.Instance.Output(
-                            "There aren't any existing estates.  You will need to create a new one for this region.");
+                            "No existing estates found.  You must create a new one for this region.");
                         
-                        CreateEstate(regInfo);
-                        break;
+                        if (CreateEstate(regInfo, estateNames))
+                            break;                        
+                        else
+                            continue;
                     }
                     else
                     {
@@ -844,15 +863,13 @@ namespace OpenSim
                         
                         if (response == "no")
                         {
-                            CreateEstate(regInfo);
-                            break;
+                            if (CreateEstate(regInfo, estateNames))                            
+                                break;
+                            else
+                                continue;
                         }
                         else
-                        {
-                            List<string> estateNames = new List<string>();
-                            foreach (EstateSettings estate in estates)
-                                estateNames.Add(estate.EstateName);
-                            
+                        {                           
                             response 
                                 = MainConsole.Instance.CmdPrompt(
                                     string.Format(
@@ -865,7 +882,7 @@ namespace OpenSim
                             List<int> estateIDs = EstateDataService.GetEstates(response);
                             if (estateIDs.Count < 1)
                             {
-                                MainConsole.Instance.Output("The name you have entered matches no known estate. Please try again");
+                                MainConsole.Instance.Output("The name you have entered matches no known estate. Please try again.");
                                 continue;
                             }
     
