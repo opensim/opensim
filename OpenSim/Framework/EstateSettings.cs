@@ -392,5 +392,14 @@ namespace OpenSim.Framework
 
             return l_EstateAccess.Contains(user);
         }
+
+        public void SetFromFlags(ulong regionFlags)
+        {
+            ResetHomeOnTeleport = ((regionFlags & (ulong)RegionFlags.ResetHomeOnTeleport) == (ulong)RegionFlags.ResetHomeOnTeleport);
+            BlockDwell = ((regionFlags & (ulong)RegionFlags.BlockDwell) == (ulong)RegionFlags.BlockDwell);
+            AllowLandmark = ((regionFlags & (ulong)RegionFlags.AllowLandmark) == (ulong)RegionFlags.AllowLandmark);
+            AllowParcelChanges = ((regionFlags & (ulong)RegionFlags.AllowParcelChanges) == (ulong)RegionFlags.AllowParcelChanges);
+            AllowSetHome = ((regionFlags & (ulong)RegionFlags.AllowSetHome) == (ulong)RegionFlags.AllowSetHome);
+        }
     }
 }
