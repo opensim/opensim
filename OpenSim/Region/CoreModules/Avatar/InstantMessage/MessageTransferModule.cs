@@ -469,7 +469,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     pendingInstantMessages.Enqueue(gim);
                 } else {
                     ++ numInstantMessageThreads;
-                    m_log.DebugFormat("[SendGridInstantMessageViaXMLRPC]: ++numInstantMessageThreads={0}", numInstantMessageThreads);
+                    //m_log.DebugFormat("[SendGridInstantMessageViaXMLRPC]: ++numInstantMessageThreads={0}", numInstantMessageThreads);
                     GridInstantMessageDelegate d = SendGridInstantMessageViaXMLRPCAsyncMain;
                     d.BeginInvoke(im, result, GridInstantMessageCompleted, d);
                 }
@@ -511,7 +511,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     } else {
                         gim = null;
                         -- numInstantMessageThreads;
-                        m_log.DebugFormat("[SendGridInstantMessageViaXMLRPC]: --numInstantMessageThreads={0}", numInstantMessageThreads);
+                        //m_log.DebugFormat("[SendGridInstantMessageViaXMLRPC]: --numInstantMessageThreads={0}", numInstantMessageThreads);
                     }
                 }
             } while (gim != null);
