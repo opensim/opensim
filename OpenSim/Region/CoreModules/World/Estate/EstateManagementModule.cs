@@ -1041,11 +1041,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 flags |= RegionFlags.ResetHomeOnTeleport;
 
 
-            // Fudge these to always on, so the menu options activate
-            //
-            flags |= RegionFlags.AllowLandmark;
-            flags |= RegionFlags.AllowSetHome;
-
             // TODO: SkipUpdateInterestList
 
             // Omitted
