@@ -9998,6 +9998,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 groupProfileReply.GroupData.MaturePublish = d.MaturePublish;
                 groupProfileReply.GroupData.OwnerRole = d.OwnerRole;
 
+                Scene scene = (Scene)m_scene;
+                if (scene.Permissions.IsGod(sender.AgentId) && (!sender.IsGroupMember(groupProfileRequest.GroupData.GroupID)))
+                {
+                    ScenePresence p;
+                    if (scene.TryGetScenePresence(sender.AgentId, out p))
+                    {
+                        if (p.GodLevel >= 200)
+                        {
+                            groupProfileReply.GroupData.OpenEnrollment = true;
+                            groupProfileReply.GroupData.MembershipFee = 0;
+                        }
+                    }
+                }
+
                 OutPacket(groupProfileReply, ThrottleOutPacketType.Task);
             }
             return true;
