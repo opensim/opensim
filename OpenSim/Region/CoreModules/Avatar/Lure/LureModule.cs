@@ -146,7 +146,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                     scene.RegionInfo.RegionHandle,
                     (uint)presence.AbsolutePosition.X,
                     (uint)presence.AbsolutePosition.Y,
-                    (uint)presence.AbsolutePosition.Z);
+                    (uint)presence.AbsolutePosition.Z + 2);
 
             m_log.DebugFormat("[LURE]: TP invite with message {0}", message);
 
