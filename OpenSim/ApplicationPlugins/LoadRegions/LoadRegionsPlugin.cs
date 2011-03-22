@@ -122,9 +122,11 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " +
                             Thread.CurrentThread.ManagedThreadId.ToString() +
                             ")");
+                
                 m_openSim.PopulateRegionEstateInfo(regionsToLoad[i]);
                 m_openSim.CreateRegion(regionsToLoad[i], true, out scene);
                 regionsToLoad[i].EstateSettings.Save();
+                
                 if (scene != null)
                 {
                     m_newRegionCreatedHandler = OnNewRegionCreated;

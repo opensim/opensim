@@ -250,7 +250,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                //m_log.DebugFormat("[SHAPE]: get m_textureEntry length {0}", m_textureEntry.Length);
+//                m_log.DebugFormat("[SHAPE]: get m_textureEntry length {0}", m_textureEntry.Length);
                 try { return new Primitive.TextureEntry(m_textureEntry, 0, m_textureEntry.Length); }
                 catch { }
 

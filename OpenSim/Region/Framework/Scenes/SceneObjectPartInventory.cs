@@ -1287,9 +1287,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Dictionary<UUID, string> GetScriptStates(bool oldIDs)
         {
+            Dictionary<UUID, string> ret = new Dictionary<UUID, string>();            
+            
+            if (m_part.ParentGroup.Scene == null) // Group not in a scene
+                return ret;
+            
             IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
-
-            Dictionary<UUID, string> ret = new Dictionary<UUID, string>();
+            
             if (engines == null) // No engine at all
                 return ret;
 

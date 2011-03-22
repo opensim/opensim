@@ -143,6 +143,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
+        public List<string>  GetStreamHandlerKeys()
+        {
+            return new List<string>(m_streamHandlers.Keys);
+        }
+
         private static string GetHandlerKey(string httpMethod, string path)
         {
             return httpMethod + ":" + path;
@@ -179,6 +184,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
+        public List<string> GetXmlRpcHandlerKeys()
+        {
+            return new List<string>(m_rpcHandlers.Keys);
+        }
+
         public bool AddHTTPHandler(string methodName, GenericHTTPMethod handler)
         {
             //m_log.DebugFormat("[BASE HTTP SERVER]: Registering {0}", methodName);
@@ -195,6 +205,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             //must already have a handler for that path so return false
             return false;
         }
+
+        public List<string> GetHTTPHandlerKeys()
+        {
+            return new List<string>(m_HTTPHandlers.Keys);
+        }
+
 
         public bool AddPollServiceHTTPHandler(string methodName, GenericHTTPMethod handler, PollServiceEventArgs args)
         {
@@ -214,6 +230,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             return false;
         }
 
+        public List<string> GetPollServiceHandlerKeys()
+        {
+            return new List<string>(m_pollHandlers.Keys);
+        }
+
+
         // Note that the agent string is provided simply to differentiate
         // the handlers - it is NOT required to be an actual agent header
         // value.
@@ -232,6 +254,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             return false;
         }
 
+        public List<string> GetAgentHandlerKeys()
+        {
+            return new List<string>(m_agentHandlers.Keys);
+        }
+
         public bool AddLLSDHandler(string path, LLSDMethod handler)
         {
             lock (m_llsdHandlers)
@@ -243,6 +270,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
             }
             return false;
+        }
+
+        public List<string> GetLLSDHandlerKeys()
+        {
+            return new List<string>(m_llsdHandlers.Keys);
         }
 
         public bool SetDefaultLLSDHandler(DefaultLLSDMethod handler)
@@ -346,6 +378,22 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <param name="response"></param>
         public virtual void HandleRequest(OSHttpRequest request, OSHttpResponse response)
         {
+            if (request.HttpMethod == String.Empty) // Can't handle empty requests, not wasting a thread
+            {
+                try
+                {
+                    SendHTML500(response);
+                }
+                catch
+                {
+                }
+
+                return;
+            }
+
+            string requestMethod = request.HttpMethod;
+            string uriString = request.RawUrl;
+
             string reqnum = "unknown";
             int tickstart = Environment.TickCount;
 
@@ -463,7 +511,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                     request.InputStream.Close();
 
-                    // HTTP IN support. The script engine taes it from here
+                    // HTTP IN support. The script engine takes it from here
                     // Nothing to worry about for us.
                     //
                     if (buffer == null)
@@ -577,19 +625,19 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw ", e);
             }
-            catch (InvalidOperationException e)
+            catch (Exception e)
             {
-                m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw {0}", e);
+                m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw " + e.ToString());
                 SendHTML500(response);
             }
             finally
             {
                 // Every month or so this will wrap and give bad numbers, not really a problem
-                // since its just for reporting, 200ms limit can be adjusted
+                // since its just for reporting, tickdiff limit can be adjusted
                 int tickdiff = Environment.TickCount - tickstart;
-                if (tickdiff > 500)
+                if (tickdiff > 3000)
                     m_log.InfoFormat(
-                        "[BASE HTTP SERVER]: slow request <{0}> for {1} took {2} ms", reqnum, request.RawUrl, tickdiff);
+                        "[BASE HTTP SERVER]: slow {0} request for {1} from {2} took {3} ms", requestMethod, uriString, request.RemoteIPEndPoint.ToString(), tickdiff);
             }
         }
 
@@ -753,7 +801,19 @@ namespace OpenSim.Framework.Servers.HttpServer
                     if (methodWasFound)
                     {
                         xmlRprcRequest.Params.Add(request.Url); // Param[2]
-                        xmlRprcRequest.Params.Add(request.Headers.Get("X-Forwarded-For")); // Param[3]
+
+                        string xff = "X-Forwarded-For";
+                        string xfflower = xff.ToLower();
+                        foreach (string s in request.Headers.AllKeys)
+                        {
+                            if (s != null && s.Equals(xfflower))
+                            {
+                                xff = xfflower;
+                                break;
+                            }
+                        }
+                        xmlRprcRequest.Params.Add(request.Headers.Get(xff)); // Param[3]
+
 
                         try
                         {

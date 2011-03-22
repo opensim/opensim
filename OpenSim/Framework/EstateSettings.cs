@@ -58,6 +58,30 @@ namespace OpenSim.Framework
             set { m_EstateName = value; }
         }
 
+        private bool m_AllowLandmark = true;
+
+        public bool AllowLandmark
+        {
+            get { return m_AllowLandmark; }
+            set { m_AllowLandmark = value; }
+        }
+
+        private bool m_AllowParcelChanges = true;
+
+        public bool AllowParcelChanges
+        {
+            get { return m_AllowParcelChanges; }
+            set { m_AllowParcelChanges = value; }
+        }
+
+        private bool m_AllowSetHome = true;
+
+        public bool AllowSetHome
+        {
+            get { return m_AllowSetHome; }
+            set { m_AllowSetHome = value; }
+        }
+
         private uint m_ParentEstateID = 1;
 
         public uint ParentEstateID
@@ -391,6 +415,15 @@ namespace OpenSim.Framework
                 return true;
 
             return l_EstateAccess.Contains(user);
+        }
+
+        public void SetFromFlags(ulong regionFlags)
+        {
+            ResetHomeOnTeleport = ((regionFlags & (ulong)RegionFlags.ResetHomeOnTeleport) == (ulong)RegionFlags.ResetHomeOnTeleport);
+            BlockDwell = ((regionFlags & (ulong)RegionFlags.BlockDwell) == (ulong)RegionFlags.BlockDwell);
+            AllowLandmark = ((regionFlags & (ulong)RegionFlags.AllowLandmark) == (ulong)RegionFlags.AllowLandmark);
+            AllowParcelChanges = ((regionFlags & (ulong)RegionFlags.AllowParcelChanges) == (ulong)RegionFlags.AllowParcelChanges);
+            AllowSetHome = ((regionFlags & (ulong)RegionFlags.AllowSetHome) == (ulong)RegionFlags.AllowSetHome);
         }
     }
 }

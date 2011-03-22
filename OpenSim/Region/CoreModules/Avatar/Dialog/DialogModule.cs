@@ -49,16 +49,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         {
             m_scene = scene;
             m_scene.RegisterModuleInterface<IDialogModule>(this);
-            
+
             m_scene.AddCommand(
-                this, "alert", "alert <first> <last> <message>",
-                "Send an alert to a user",
+                this, "alert", "alert <message>",
+                "Send an alert to everyone",
                 HandleAlertConsoleCommand);
 
             m_scene.AddCommand(
-                this, "alert general", "alert [general] <message>",
-                "Send an alert to everyone",
-                "If keyword 'general' is omitted, then <message> must be surrounded by quotation marks.",
+                this, "alert-user", "alert-user <first> <last> <message>",
+                "Send an alert to a user",
                 HandleAlertConsoleCommand);
         }
         
@@ -177,54 +176,31 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         {
             if (m_scene.ConsoleScene() != null && m_scene.ConsoleScene() != m_scene)
                 return;
-            
-            bool isGeneral = false;
-            string firstName = string.Empty;
-            string lastName = string.Empty;
+
             string message = string.Empty;
 
-            if (cmdparams.Length > 1)
+            if (cmdparams[0].ToLower().Equals("alert"))
             {
-                firstName = cmdparams[1];
-                isGeneral = firstName.ToLower().Equals("general");
-            }
-            if (cmdparams.Length == 2 && !isGeneral)
-            {
-                // alert "message"
-                message = cmdparams[1];
-                isGeneral = true;
-            }
-            else if (cmdparams.Length > 2 && isGeneral)
-            {
-                // alert general <message>
-                message = CombineParams(cmdparams, 2);
+                message = CombineParams(cmdparams, 1);
+                m_log.InfoFormat("[DIALOG]: Sending general alert in region {0} with message {1}",
+                    m_scene.RegionInfo.RegionName, message);
+                SendGeneralAlert(message);
             }
             else if (cmdparams.Length > 3)
             {
-                // alert <first> <last> <message>
-                lastName = cmdparams[2];
+                string firstName = cmdparams[1];
+                string lastName = cmdparams[2];
                 message = CombineParams(cmdparams, 3);
+                m_log.InfoFormat(
+                    "[DIALOG]: Sending alert in region {0} to {1} {2} with message {3}",
+                    m_scene.RegionInfo.RegionName, firstName, lastName, message);
+                SendAlertToUser(firstName, lastName, message, false);
             }
             else
             {
                 OpenSim.Framework.Console.MainConsole.Instance.Output(
-                    "Usage: alert \"message\" | alert general <message> | alert <first> <last> <message>");
+                    "Usage: alert <message> | alert-user <first> <last> <message>");
                 return;
-            }
-                
-            if (isGeneral)
-            {
-                m_log.InfoFormat(
-                    "[DIALOG]: Sending general alert in region {0} with message {1}",
-                    m_scene.RegionInfo.RegionName, message);
-                SendGeneralAlert(message);
-            }
-            else
-            {
-                m_log.InfoFormat(
-                    "[DIALOG]: Sending alert in region {0} to {1} {2} with message {3}", 
-                    m_scene.RegionInfo.RegionName, firstName, lastName, message);
-                SendAlertToUser(firstName, lastName, message, false);
             }
         }
 

@@ -838,6 +838,10 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             if (module != null)
                 module.BuyObject(remoteClient, categoryID, localID, saleType, salePrice);
         }
+
+        public void MoveMoney(UUID fromAgentID, UUID toAgentID, int amount, string text)
+        {
+        }
     }
 
     public enum TransactionType : int

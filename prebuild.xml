@@ -2959,6 +2959,7 @@
         <Match path="Avatar/Inventory/Archiver/Tests" pattern="*.cs" recurse="true"/>
         <Match path="World/Archiver/Tests" pattern="*.cs" recurse="true"/>
         <Match buildAction="EmbeddedResource" path="World/Archiver/Tests/Resources" pattern="*"/>
+        <Match path="World/Media/Moap/Tests" pattern="*.cs" recurse="true"/>
         <Match path="World/Serialiser/Tests" pattern="*.cs" recurse="true"/>
         <Match path="World/Terrain/Tests" pattern="*.cs" recurse="true"/>
         <Match path="ServiceConnectorsOut/Grid/Tests" pattern="*.cs" recurse="true"/>

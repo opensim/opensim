@@ -2093,8 +2093,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void GetProperties(IClientAPI client)
         {
+            //Viewer wants date in microseconds so multiply it by 1,000,000.
             client.SendObjectPropertiesReply(
-                m_fromUserInventoryItemID, (ulong)_creationDate, _creatorID, UUID.Zero, UUID.Zero,
+                m_fromUserInventoryItemID, (ulong)_creationDate*(ulong)1e6, _creatorID, UUID.Zero, UUID.Zero,
                 _groupID, (short)InventorySerial, _lastOwnerID, UUID, _ownerID,
                 ParentGroup.RootPart.TouchName, new byte[0], ParentGroup.RootPart.SitName, Name, Description,
                 ParentGroup.RootPart._ownerMask, ParentGroup.RootPart._nextOwnerMask, ParentGroup.RootPart._groupMask, ParentGroup.RootPart._everyoneMask,
@@ -2141,7 +2142,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             Quaternion newRot;
 
-            if (this.LinkNum < 2)			//KF Single or root prim
+            if (this.LinkNum == 0 || this.LinkNum == 1)
             {
                 newRot = RotationOffset;
             }

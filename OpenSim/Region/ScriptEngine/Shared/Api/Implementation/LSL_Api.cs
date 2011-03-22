@@ -1920,15 +1920,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
 
-            UUID textureID=new UUID();
+            UUID textureID = new UUID();
 
-            if (!UUID.TryParse(texture, out textureID))
-            {
-                textureID=InventoryKey(texture, (int)AssetType.Texture);
-            }
-
-            if (textureID == UUID.Zero)
-                return;
+		    textureID = InventoryKey(texture, (int)AssetType.Texture);
+		    if (textureID == UUID.Zero)
+		    {
+			    if (!UUID.TryParse(texture, out textureID))
+			        return;
+		    }
 
             Primitive.TextureEntry tex = part.Shape.Textures;
 
@@ -3346,12 +3345,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             msg.ParentEstateID = World.RegionInfo.EstateSettings.EstateID;
             msg.Position = new Vector3(m_host.AbsolutePosition);
             msg.RegionID = World.RegionInfo.RegionID.Guid;
-            msg.binaryBucket = Util.StringToBytes256(m_host.OwnerID.ToString());
+            msg.binaryBucket 
+                = Util.StringToBytes256(
+                    "{0}/{1}/{2}/{3}", 
+                    World.RegionInfo.RegionName, 
+                    (int)Math.Floor(m_host.AbsolutePosition.X), 
+                    (int)Math.Floor(m_host.AbsolutePosition.Y), 
+                    (int)Math.Floor(m_host.AbsolutePosition.Z));
 
             if (m_TransferModule != null)
             {
                 m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
             }
+            
             ScriptSleep(2000);
       }
 
@@ -4195,7 +4201,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (!found)
             {
                 llSay(0, String.Format("Could not find object '{0}'", inventory));
-                throw new Exception(String.Format("The inventory object '{0}' could not be found", inventory));
+                return;
+//                throw new Exception(String.Format("The inventory object '{0}' could not be found", inventory));
             }
 
             // check if destination is an object
@@ -4479,7 +4486,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence != null)
                 {
                     // agent must not be a god
-                    if (presence.GodLevel >= 200) return;
+                    if (presence.UserLevel >= 200) return;
 
                     // agent must be over the owners land
                     if (m_host.OwnerID == World.LandChannel.GetLandObject(
@@ -6860,6 +6867,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             // copy the first script found with this inventory name
+            TaskInventoryItem scriptItem = null;
             m_host.TaskInventory.LockItemsForRead(true);
             foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
@@ -6870,6 +6878,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         found = true;
                         srcId = inv.Key;
+                        scriptItem = inv.Value;
                         break;
                     }
                 }
@@ -6882,8 +6891,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            // the rest of the permission checks are done in RezScript, so check the pin there as well
-            World.RezScript(srcId, m_host, destId, pin, running, start_param);
+            SceneObjectPart dest = World.GetSceneObjectPart(destId);
+            if (dest != null)
+            {
+                if ((scriptItem.BasePermissions & (uint)PermissionMask.Transfer) != 0 || dest.ParentGroup.RootPart.OwnerID == m_host.ParentGroup.RootPart.OwnerID)
+                {
+                    // the rest of the permission checks are done in RezScript, so check the pin there as well
+                    World.RezScript(srcId, m_host, destId, pin, running, start_param);
+
+                    if ((scriptItem.BasePermissions & (uint)PermissionMask.Copy) == 0)
+                        m_host.Inventory.RemoveInventoryItem(srcId);
+                }
+            }
             // this will cause the delay even if the script pin or permissions were wrong - seems ok
             ScriptSleep(3000);
         }

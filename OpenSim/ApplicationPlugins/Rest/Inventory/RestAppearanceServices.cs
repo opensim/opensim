@@ -44,7 +44,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         // private static readonly int PARM_PATH   = 1;
 
-        private bool       enabled = false;
+//        private bool       enabled = false;
         private string     qPrefix = "appearance";
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             // Activate if everything went OK
 
-            enabled = true;
+//            enabled = true;
 
             Rest.Log.InfoFormat("{0} User appearance services initialization complete", MsgId);
         }
@@ -95,7 +95,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         public void Close()
         {
-            enabled = false;
+//            enabled = false;
             Rest.Log.InfoFormat("{0} User appearance services closing down", MsgId);
         }
 

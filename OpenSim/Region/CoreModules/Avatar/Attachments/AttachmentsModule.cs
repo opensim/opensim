@@ -119,6 +119,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     return;
                 }
 
+                if (part.OwnerID != remoteClient.AgentId) // Not ours
+                {
+                    remoteClient.SendAgentAlertMessage(
+                        "You don't have sufficient permissions to attach this object", false);
+                    return;
+                }
+
                 // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
                 // be removed when that functionality is implemented in opensim
                 AttachmentPt &= 0x7f;

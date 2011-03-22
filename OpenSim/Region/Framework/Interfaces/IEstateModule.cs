@@ -32,7 +32,7 @@ namespace OpenSim.Region.Framework.Interfaces
     public delegate void ChangeDelegate(UUID regionID);
     public delegate void MessageDelegate(UUID regionID, UUID fromID, string fromName, string message);
 
-    public interface IEstateModule : IRegionModule
+    public interface IEstateModule
     {
         event ChangeDelegate OnRegionInfoChange;
         event ChangeDelegate OnEstateInfoChange;
@@ -45,5 +45,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Tell all clients about the current state of the region (terrain textures, water height, etc.).
         /// </summary>
         void sendRegionHandshakeToAll();
+        void TriggerEstateInfoChange();
+        void TriggerRegionInfoChange();
     }
 }

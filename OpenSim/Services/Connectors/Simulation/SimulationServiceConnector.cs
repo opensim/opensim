@@ -48,6 +48,9 @@ namespace OpenSim.Services.Connectors.Simulation
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        // we use this dictionary to track the pending updateagent requests, maps URI --> position update
+        private Dictionary<string,AgentPosition> m_updateAgentQueue = new Dictionary<string,AgentPosition>();
+        
         //private GridRegion m_Region;
 
         public SimulationServiceConnector()
@@ -76,9 +79,6 @@ namespace OpenSim.Services.Connectors.Simulation
             return "agent/";
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint flags, out string reason)
         {
             // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: CreateAgent start");
@@ -106,6 +106,9 @@ namespace OpenSim.Services.Connectors.Simulation
                 if (result["Success"].AsBoolean())
                     return true;
                 
+                m_log.WarnFormat(
+                    "[REMOTE SIMULATION CONNECTOR]: Failed to create agent {0} {1} at remote simulator {1}", 
+                    aCircuit.firstname, aCircuit.lastname, destination.RegionName);                       
                 reason = result["Message"] != null ? result["Message"].AsString() : "error";
                 return false;
             }
@@ -133,10 +136,56 @@ namespace OpenSim.Services.Connectors.Simulation
         /// </summary>
         public bool UpdateAgent(GridRegion destination, AgentPosition data)
         {
-            // we need a better throttle for these
-            // return false;
+            // The basic idea of this code is that the first thread that needs to
+            // send an update for a specific avatar becomes the worker for any subsequent
+            // requests until there are no more outstanding requests. Further, only send the most
+            // recent update; this *should* never be needed but some requests get
+            // slowed down and once that happens the problem with service end point
+            // limits kicks in and nothing proceeds
+            string uri = destination.ServerURI + AgentPath() + data.AgentID + "/";
+            lock (m_updateAgentQueue)
+            {
+                if (m_updateAgentQueue.ContainsKey(uri))
+                {
+                    // Another thread is already handling 
+                    // updates for this simulator, just update 
+                    // the position and return, overwrites are
+                    // not a problem since we only care about the
+                    // last update anyway
+                    m_updateAgentQueue[uri] = data;
+                    return true;
+                }
+
+                // Otherwise update the reference and start processing
+                m_updateAgentQueue[uri] = data;
+            }
             
-            return UpdateAgent(destination, (IAgentData)data);
+            AgentPosition pos = null;
+            while (true)
+            {
+                lock (m_updateAgentQueue)
+                {
+                    // save the position
+                    AgentPosition lastpos = pos;
+
+                    pos = m_updateAgentQueue[uri];
+
+                    // this is true if no one put a new
+                    // update in the map since the last
+                    // one we processed, if thats the
+                    // case then we are done
+                    if (pos == lastpos)
+                    {
+                        m_updateAgentQueue.Remove(uri);
+                        return true;
+                    }
+                }
+
+                UpdateAgent(destination,(IAgentData)pos);
+            }
+
+            // unreachable
+//            return true;
         }
 
         /// <summary>
@@ -207,8 +256,10 @@ namespace OpenSim.Services.Connectors.Simulation
 
         /// <summary>
         /// </summary>
-        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position)
+        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string reason)
         {
+            reason = "Failed to contact destination";
+
             // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess start, position={0}", position);
 
             IPEndPoint ext = destination.ExternalEndPoint;
@@ -223,7 +274,11 @@ namespace OpenSim.Services.Connectors.Simulation
             try
             {
                 OSDMap result = WebUtil.ServiceOSDRequest(uri, request, "QUERYACCESS", 10000);
-                bool success = result["Success"].AsBoolean();
+                bool success = result["success"].AsBoolean();
+                reason = result["reason"].AsString();
+
+                //m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1}", uri, success);
+
                 if (!success)
                 {
                     if (result.ContainsKey("Message"))
@@ -234,8 +289,21 @@ namespace OpenSim.Services.Connectors.Simulation
                             m_log.Info("[REMOTE SIMULATION CONNECTOR]: The above web util error was caused by a TP to a sim that doesn't support QUERYACCESS and can be ignored");
                             return true;
                         }
+
+                        reason = result["Message"];
                     }
+                    else
+                    {
+                        reason = "Communications failure";
+                    }
+
+                    return false;
                 }
+
+                OSDMap resp = (OSDMap)result["_Result"];
+                success = resp["success"].AsBoolean();
+                reason = resp["reason"].AsString();
+
                 return success;
             }
             catch (Exception e)

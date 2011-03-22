@@ -109,9 +109,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 
                 scene.AddCommand(
                     this, "load iar",
-                    "load iar [--merge] <first> <last> <inventory path> <password> [<IAR path>]",
+                    "load iar [-m|--merge] <first> <last> <inventory path> <password> [<IAR path>]",
                     "Load user inventory archive (IAR).",
-                    "--merge is an option which merges the loaded IAR with existing inventory folders where possible, rather than always creating new ones"
+                    "-m|--merge is an option which merges the loaded IAR with existing inventory folders where possible, rather than always creating new ones"
                     + "<first> is user's first name." + Environment.NewLine
                     + "<last> is user's last name." + Environment.NewLine
                     + "<inventory path> is the path inside the user's inventory where the IAR should be loaded." + Environment.NewLine
@@ -128,6 +128,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     + "<last> is the user's last name." + Environment.NewLine
                     + "<inventory path> is the path inside the user's inventory for the folder/item to be saved." + Environment.NewLine
                     + "-p|--profile=<url> adds the url of the profile service to the saved user information." + Environment.NewLine
+                    + "-c|--creators preserves information about foreign creators." + Environment.NewLine
+                    + "-v|--verbose extra debug messages." + Environment.NewLine
                     + "<IAR path> is the filesystem path at which to save the IAR."
                     + string.Format("  If this is not given then the filename {0} in the current directory is used", DEFAULT_INV_BACKUP_FILENAME),
                     HandleSaveInvConsoleCommand);
@@ -179,7 +181,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         catch (EntryPointNotFoundException e)
                         {
                             m_log.ErrorFormat(
-                                "[ARCHIVER]: Mismatch between Mono and zlib1g library version when trying to create compression stream."
+                                "[INVENTORY ARCHIVER]: Mismatch between Mono and zlib1g library version when trying to create compression stream."
                                     + "If you've manually installed Mono, have you appropriately updated zlib1g as well?");
                             m_log.Error(e);
 
@@ -219,7 +221,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         catch (EntryPointNotFoundException e)
                         {
                             m_log.ErrorFormat(
-                                "[ARCHIVER]: Mismatch between Mono and zlib1g library version when trying to create compression stream."
+                                "[INVENTORY ARCHIVER]: Mismatch between Mono and zlib1g library version when trying to create compression stream."
                                     + "If you've manually installed Mono, have you appropriately updated zlib1g as well?");
                             m_log.Error(e);
 
@@ -267,7 +269,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         catch (EntryPointNotFoundException e)
                         {
                             m_log.ErrorFormat(
-                                "[ARCHIVER]: Mismatch between Mono and zlib1g library version when trying to create compression stream."
+                                "[INVENTORY ARCHIVER]: Mismatch between Mono and zlib1g library version when trying to create compression stream."
                                     + "If you've manually installed Mono, have you appropriately updated zlib1g as well?");
                             m_log.Error(e);
 
@@ -315,7 +317,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         catch (EntryPointNotFoundException e)
                         {
                             m_log.ErrorFormat(
-                                "[ARCHIVER]: Mismatch between Mono and zlib1g library version when trying to create compression stream."
+                                "[INVENTORY ARCHIVER]: Mismatch between Mono and zlib1g library version when trying to create compression stream."
                                     + "If you've manually installed Mono, have you appropriately updated zlib1g as well?");
                             m_log.Error(e);
 
@@ -356,7 +358,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 if (mainParams.Count < 6)
                 {
                     m_log.Error(
-                        "[INVENTORY ARCHIVER]: usage is load iar [--merge] <first name> <last name> <inventory path> <user password> [<load file path>]");                    
+                        "[INVENTORY ARCHIVER]: usage is load iar [-m|--merge] <first name> <last name> <inventory path> <user password> [<load file path>]");                    
                     return;
                 }
     
@@ -394,6 +396,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             OptionSet ops = new OptionSet();
             //ops.Add("v|version=", delegate(string v) { options["version"] = v; });
             ops.Add("p|profile=", delegate(string v) { options["profile"] = v; });
+            ops.Add("v|verbose", delegate(string v) { options["verbose"] = v; });
+            ops.Add("c|creators", delegate(string v) { options["creators"] = v; });
 
             List<string> mainParams = ops.Parse(cmdparams);
 

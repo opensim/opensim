@@ -40,6 +40,7 @@ namespace OpenSim.Framework
         bool AmountCovered(IClientAPI client, int amount);
         void ApplyCharge(UUID agentID, int amount, string text);
         void ApplyUploadCharge(UUID agentID, int amount, string text);
+        void MoveMoney(UUID fromUser, UUID toUser, int amount, string text);
 
         int UploadCharge { get; }
         int GroupCreationCharge { get; }

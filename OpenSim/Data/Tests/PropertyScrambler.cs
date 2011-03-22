@@ -32,13 +32,11 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Data.Tests
 {
-
     //This is generic so that the lambda expressions will work right in IDEs.
     public class PropertyScrambler<T>
     {

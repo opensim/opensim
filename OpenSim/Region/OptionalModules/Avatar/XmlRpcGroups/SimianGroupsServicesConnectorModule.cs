@@ -704,7 +704,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 }
             }
 
-
             return findings;
         }
 
@@ -712,54 +711,55 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             if (m_debugEnabled) m_log.InfoFormat("[SIMIAN-GROUPS-CONNECTOR]  {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            GroupMembershipData data = new GroupMembershipData();
-
-            ///////////////////////////////
-            // Agent Specific Information:
-            //
-            OSDMap UserActiveGroup;
-            if (SimianGetGenericEntry(agentID, "Group", "ActiveGroup", out UserActiveGroup))
-            {
-                data.Active = UserActiveGroup["GroupID"].AsUUID().Equals(groupID);
-            }
+            GroupMembershipData data = null;
+//            bool foundData = false;
 
             OSDMap UserGroupMemberInfo;
             if (SimianGetGenericEntry(agentID, "GroupMember", groupID.ToString(), out UserGroupMemberInfo))
             {
+                data = new GroupMembershipData();
                 data.AcceptNotices = UserGroupMemberInfo["AcceptNotices"].AsBoolean();
                 data.Contribution = UserGroupMemberInfo["Contribution"].AsInteger();
                 data.ListInProfile = UserGroupMemberInfo["ListInProfile"].AsBoolean();
-                data.ActiveRole = UserGroupMemberInfo["SelectedRoleID"].AsUUID();
+                data.ActiveRole = UserGroupMemberInfo["SelectedRoleID"].AsUUID();         
+                
+                ///////////////////////////////
+                // Agent Specific Information:
+                //
+                OSDMap UserActiveGroup;
+                if (SimianGetGenericEntry(agentID, "Group", "ActiveGroup", out UserActiveGroup))
+                {
+                    data.Active = UserActiveGroup["GroupID"].AsUUID().Equals(groupID);
+                }                
 
                 ///////////////////////////////
                 // Role Specific Information:
                 //
-
                 OSDMap GroupRoleInfo;
                 if (SimianGetGenericEntry(groupID, "GroupRole", data.ActiveRole.ToString(), out GroupRoleInfo))
                 {
                     data.GroupTitle = GroupRoleInfo["Title"].AsString();
                     data.GroupPowers = GroupRoleInfo["Powers"].AsULong();
-                }
-            }
-
-            ///////////////////////////////
-            // Group Specific Information:
-            //
-            OSDMap GroupInfo;
-            string GroupName;
-            if (SimianGetFirstGenericEntry(groupID, "Group", out GroupName, out GroupInfo))
-            {
-                data.GroupID = groupID;
-                data.AllowPublish = GroupInfo["AllowPublish"].AsBoolean();
-                data.Charter = GroupInfo["Charter"].AsString();
-                data.FounderID = GroupInfo["FounderID"].AsUUID();
-                data.GroupName = GroupName;
-                data.GroupPicture = GroupInfo["InsigniaID"].AsUUID();
-                data.MaturePublish = GroupInfo["MaturePublish"].AsBoolean();
-                data.MembershipFee = GroupInfo["MembershipFee"].AsInteger();
-                data.OpenEnrollment = GroupInfo["OpenEnrollment"].AsBoolean();
-                data.ShowInList = GroupInfo["ShowInList"].AsBoolean();
+                }                
+                
+                ///////////////////////////////
+                // Group Specific Information:
+                //
+                OSDMap GroupInfo;
+                string GroupName;
+                if (SimianGetFirstGenericEntry(groupID, "Group", out GroupName, out GroupInfo))
+                {
+                    data.GroupID = groupID;
+                    data.AllowPublish = GroupInfo["AllowPublish"].AsBoolean();
+                    data.Charter = GroupInfo["Charter"].AsString();
+                    data.FounderID = GroupInfo["FounderID"].AsUUID();
+                    data.GroupName = GroupName;
+                    data.GroupPicture = GroupInfo["InsigniaID"].AsUUID();
+                    data.MaturePublish = GroupInfo["MaturePublish"].AsBoolean();
+                    data.MembershipFee = GroupInfo["MembershipFee"].AsInteger();
+                    data.OpenEnrollment = GroupInfo["OpenEnrollment"].AsBoolean();
+                    data.ShowInList = GroupInfo["ShowInList"].AsBoolean();
+                }                       
             }
 
             return data;

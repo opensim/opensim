@@ -449,24 +449,37 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             return resp;
         }
 
-        /// <summary>
-        /// delegate for sending a grid instant message asynchronously
-        /// </summary>
-        public delegate void GridInstantMessageDelegate(GridInstantMessage im, MessageResultNotification result, UUID prevRegionID);
+        private delegate void GridInstantMessageDelegate(GridInstantMessage im, MessageResultNotification result);
 
-        protected virtual void GridInstantMessageCompleted(IAsyncResult iar)
+        private class GIM {
+            public GridInstantMessage im;
+            public MessageResultNotification result;
+        };
+
+        private Queue<GIM> pendingInstantMessages = new Queue<GIM>();
+        private int numInstantMessageThreads = 0;
+
+        private void SendGridInstantMessageViaXMLRPC(GridInstantMessage im, MessageResultNotification result)
         {
-            GridInstantMessageDelegate icon =
-                    (GridInstantMessageDelegate)iar.AsyncState;
-            icon.EndInvoke(iar);
+            lock (pendingInstantMessages) {
+                if (numInstantMessageThreads >= 4) {
+                    GIM gim = new GIM();
+                    gim.im = im;
+                    gim.result = result;
+                    pendingInstantMessages.Enqueue(gim);
+                } else {
+                    ++ numInstantMessageThreads;
+                    m_log.DebugFormat("[SendGridInstantMessageViaXMLRPC]: ++numInstantMessageThreads={0}", numInstantMessageThreads);
+                    GridInstantMessageDelegate d = SendGridInstantMessageViaXMLRPCAsyncMain;
+                    d.BeginInvoke(im, result, GridInstantMessageCompleted, d);
+                }
+            }
         }
 
-
-        protected virtual void SendGridInstantMessageViaXMLRPC(GridInstantMessage im, MessageResultNotification result)
+        private void GridInstantMessageCompleted(IAsyncResult iar)
         {
-            GridInstantMessageDelegate d = SendGridInstantMessageViaXMLRPCAsync;
-
-            d.BeginInvoke(im, result, UUID.Zero, GridInstantMessageCompleted, d);
+            GridInstantMessageDelegate d = (GridInstantMessageDelegate)iar.AsyncState;
+            d.EndInvoke(iar);
         }
 
         /// <summary>
@@ -481,8 +494,31 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         /// Pass in 0 the first time this method is called.  It will be called recursively with the last 
         /// regionhandle tried
         /// </param>
-        protected virtual void SendGridInstantMessageViaXMLRPCAsync(GridInstantMessage im, MessageResultNotification result, UUID prevRegionID)
+        private void SendGridInstantMessageViaXMLRPCAsyncMain(GridInstantMessage im, MessageResultNotification result)
         {
+            GIM gim;
+            do {
+                try {
+                    SendGridInstantMessageViaXMLRPCAsync(im, result, UUID.Zero);
+                } catch (Exception e) {
+                    m_log.Error("[SendGridInstantMessageViaXMLRPC]: exception " + e.Message);
+                }
+                lock (pendingInstantMessages) {
+                    if (pendingInstantMessages.Count > 0) {
+                        gim = pendingInstantMessages.Dequeue();
+                        im = gim.im;
+                        result = gim.result;
+                    } else {
+                        gim = null;
+                        -- numInstantMessageThreads;
+                        m_log.DebugFormat("[SendGridInstantMessageViaXMLRPC]: --numInstantMessageThreads={0}", numInstantMessageThreads);
+                    }
+                }
+            } while (gim != null);
+        }
+        private void SendGridInstantMessageViaXMLRPCAsync(GridInstantMessage im, MessageResultNotification result, UUID prevRegionID)
+        {
+
             UUID toAgentID = new UUID(im.toAgentID);
 
             PresenceInfo upd = null;

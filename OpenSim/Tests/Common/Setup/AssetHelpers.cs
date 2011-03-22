@@ -68,7 +68,7 @@ namespace OpenSim.Tests.Common
             return CreateAsset(
                 assetUuid, 
                 AssetType.Object, 
-                Encoding.ASCII.GetBytes(SceneObjectSerializer.ToXml2Format(sog)), 
+                Encoding.ASCII.GetBytes(SceneObjectSerializer.ToOriginalXmlFormat(sog)), 
                 sog.OwnerID);
         }
             
