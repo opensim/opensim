@@ -627,7 +627,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!Entities.Remove(agentID))
             {
                 m_log.WarnFormat(
-                    "[SCENE]: Tried to remove non-existent scene presence with agent ID {0} from scene Entities list",
+                    "[SCENEGRAPH]: Tried to remove non-existent scene presence with agent ID {0} from scene Entities list",
                     agentID);
             }
 
@@ -650,7 +650,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    m_log.WarnFormat("[SCENE]: Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
+                    m_log.WarnFormat("[SCENEGRAPH]: Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
                 }
             }
         }
@@ -1079,7 +1079,8 @@ namespace OpenSim.Region.Framework.Scenes
                 catch (Exception e)
                 {
                     // Catch it and move on. This includes situations where splist has inconsistent info
-                    m_log.WarnFormat("[SCENE]: Problem processing action in ForEachSOG: ", e.ToString());
+                    m_log.WarnFormat(
+                        "[SCENEGRAPH]: Problem processing action in ForEachSOG: {0} {1}", e.Message, e.StackTrace);
                 }
             }
         }
@@ -1103,8 +1104,8 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     catch (Exception e)
                     {
-                        m_log.Info("[BUG] in " + m_parentScene.RegionInfo.RegionName + ": " + e.ToString());
-                        m_log.Info("[BUG] Stack Trace: " + e.StackTrace);
+                        m_log.Info("[SCENEGRAPH]: Error in " + m_parentScene.RegionInfo.RegionName + ": " + e.ToString());
+                        m_log.Info("[SCENEGRAPH]: Stack Trace: " + e.StackTrace);
                     }
                 });
             Parallel.ForEach<ScenePresence>(GetScenePresences(), protectedAction);
@@ -1119,7 +1120,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[BUG] in " + m_parentScene.RegionInfo.RegionName + ": " + e.ToString());
+                    m_log.Error("[SCENEGRAPH]: Error in " + m_parentScene.RegionInfo.RegionName + ": " + e.ToString());
                 }
             }
         }

@@ -51,8 +51,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
     public class PrimCountModule : IPrimCountModule, INonSharedRegionModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_Scene;
         private Dictionary<UUID, PrimCounts> m_PrimCounts =
@@ -64,10 +64,16 @@ namespace OpenSim.Region.CoreModules.World.Land
         private Dictionary<UUID, ParcelCounts> m_ParcelCounts =
                 new Dictionary<UUID, ParcelCounts>();
 
-        // For now, a simple simwide taint to get this up. Later parcel based
-        // taint to allow recounting a parcel if only ownership has changed
-        // without recounting the whole sim.
+
+        /// <value>
+        /// For now, a simple simwide taint to get this up. Later parcel based
+        /// taint to allow recounting a parcel if only ownership has changed
+        /// without recounting the whole sim.
+        /// 
+        /// We start out tainted so that the first get call resets the various prim counts.
+        /// <value>
         private bool m_Tainted = true;
+        
         private Object m_TaintLock = new Object();
 
         public Type ReplaceableInterface
@@ -156,6 +162,8 @@ namespace OpenSim.Region.CoreModules.World.Land
         // NOTE: Call under Taint Lock
         private void AddObject(SceneObjectGroup obj)
         {
+//            m_log.DebugFormat("[PRIM COUNT MODULE]: Adding object {0} to prim count", obj.Name);
+            
             if (obj.IsAttachment)
                 return;
             if (((obj.RootPart.Flags & PrimFlags.TemporaryOnRez) != 0))
@@ -299,18 +307,21 @@ namespace OpenSim.Region.CoreModules.World.Land
         // NOTE: This method MUST be called while holding the taint lock!
         private void Recount()
         {
+//            m_log.DebugFormat("[PRIM COUNT MODULE]: Recounting prims on {0}", m_Scene.RegionInfo.RegionName);
+            
             m_OwnerMap.Clear();
             m_SimwideCounts.Clear();
             m_ParcelCounts.Clear();
 
             List<ILandObject> land = m_Scene.LandChannel.AllParcels();
-
+            
             foreach (ILandObject l in land)
             {
                 LandData landData = l.LandData;
 
                 m_OwnerMap[landData.GlobalID] = landData.OwnerID;
                 m_SimwideCounts[landData.OwnerID] = 0;
+//                m_log.DebugFormat("[PRIM COUNT MODULE]: Adding parcel count for {0}", landData.GlobalID);
                 m_ParcelCounts[landData.GlobalID] = new ParcelCounts();
             }
 

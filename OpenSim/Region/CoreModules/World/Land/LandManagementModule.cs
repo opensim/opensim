@@ -306,6 +306,9 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <returns>The parcel created.</returns>
         protected ILandObject CreateDefaultParcel()
         {
+//            m_log.DebugFormat(
+//                "[LAND MANAGEMENT MODULE]: Creating default parcel for region {0}", m_scene.RegionInfo.RegionName);
+            
             ILandObject fullSimParcel = new LandObject(UUID.Zero, false, m_scene);
             fullSimParcel.SetLandBitmap(fullSimParcel.GetSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
             fullSimParcel.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
@@ -579,7 +582,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             else
             {
-                m_log.WarnFormat("[LAND]: Invalid local land ID {0}", landLocalID);
+                m_log.WarnFormat("[LAND MANAGEMENT MODULE]: Invalid local land ID {0}", landLocalID);
             }
         }
 
@@ -630,7 +633,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (m_landIDList[x, y] == local_id)
                         {
-                            m_log.WarnFormat("[LAND]: Not removing land object {0}; still being used at {1}, {2}",
+                            m_log.WarnFormat("[LAND MANAGEMENT MODULE]: Not removing land object {0}; still being used at {1}, {2}",
                                              local_id, x, y);
                             return;
                             //throw new Exception("Could not remove land object. Still being used at " + x + ", " + y);
@@ -1198,7 +1201,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             else
             {
-                m_log.WarnFormat("[PARCEL]: Invalid land object {0} passed for parcel object owner request", local_id);
+                m_log.WarnFormat("[LAND MANAGEMENT MODULE]: Invalid land object {0} passed for parcel object owner request", local_id);
             }
         }
 
@@ -1426,7 +1429,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             IClientAPI client;
             if (! m_scene.TryGetClient(agentID, out client)) {
-                m_log.WarnFormat("[LAND] unable to retrieve IClientAPI for {0}", agentID.ToString());
+                m_log.WarnFormat("[LAND MANAGEMENT MODULE]: Unable to retrieve IClientAPI for {0}", agentID);
                 return LLSDHelpers.SerialiseLLSDReply(new LLSDEmpty());
             }
 
@@ -1475,7 +1478,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             else
             {
-                m_log.WarnFormat("[LAND] unable to find parcelID {0}", parcelID);
+                m_log.WarnFormat("[LAND MANAGEMENT MODULE]: Unable to find parcelID {0}", parcelID);
             }
             return LLSDHelpers.SerialiseLLSDReply(new LLSDEmpty());
         }
@@ -1533,17 +1536,17 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             catch (LLSD.LLSDParseException e)
             {
-                m_log.ErrorFormat("[LAND] Fetch error: {0}", e.Message);
-                m_log.ErrorFormat("[LAND] ... in request {0}", request);
+                m_log.ErrorFormat("[LAND MANAGEMENT MODULE]: Fetch error: {0}", e.Message);
+                m_log.ErrorFormat("[LAND MANAGEMENT MODULE]: ... in request {0}", request);
             }
-            catch(InvalidCastException)
+            catch (InvalidCastException)
             {
-                m_log.ErrorFormat("[LAND] Wrong type in request {0}", request);
+                m_log.ErrorFormat("[LAND MANAGEMENT MODULE]: Wrong type in request {0}", request);
             }
 
             LLSDRemoteParcelResponse response = new LLSDRemoteParcelResponse();
             response.parcel_id = parcelID;
-            m_log.DebugFormat("[LAND] got parcelID {0}", parcelID);
+            m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelID {0}", parcelID);
 
             return LLSDHelpers.SerialiseLLSDReply(response);
         }
@@ -1564,7 +1567,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ExtendedLandData extLandData = new ExtendedLandData();
                         Util.ParseFakeParcelID(parcel, out extLandData.RegionHandle,
                                                out extLandData.X, out extLandData.Y);
-                        m_log.DebugFormat("[LAND] got parcelinfo request for regionHandle {0}, x/y {1}/{2}",
+                        m_log.DebugFormat("[LAND MANAGEMENT MODULE]: Got parcelinfo request for regionHandle {0}, x/y {1}/{2}",
                                           extLandData.RegionHandle, extLandData.X, extLandData.Y);
 
                         // for this region or for somewhere else?
@@ -1605,7 +1608,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     info = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, (int)x, (int)y);
                 }
                 // we need to transfer the fake parcelID, not the one in landData, so the viewer can match it to the landmark.
-                m_log.DebugFormat("[LAND] got parcelinfo for parcel {0} in region {1}; sending...",
+                m_log.DebugFormat("[LAND MANAGEMENT MODULE]: got parcelinfo for parcel {0} in region {1}; sending...",
                                   data.LandData.Name, data.RegionHandle);
                 // HACK for now
                 RegionInfo r = new RegionInfo();
@@ -1616,7 +1619,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 remoteClient.SendParcelInfo(r, data.LandData, parcelID, data.X, data.Y);
             }
             else
-                m_log.Debug("[LAND] got no parcelinfo; not sending");
+                m_log.Debug("[LAND MANAGEMENT MODULE]: got no parcelinfo; not sending");
         }
 
         public void setParcelOtherCleanTime(IClientAPI remoteClient, int localID, int otherCleanTime)
