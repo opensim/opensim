@@ -58,6 +58,30 @@ namespace OpenSim.Framework
             set { m_EstateName = value; }
         }
 
+        private bool m_AllowLandmark = true;
+
+        public bool AllowLandmark
+        {
+            get { return m_AllowLandmark; }
+            set { m_AllowLandmark = value; }
+        }
+
+        private bool m_AllowParcelChanges = true;
+
+        public bool AllowParcelChanges
+        {
+            get { return m_AllowParcelChanges; }
+            set { m_AllowParcelChanges = value; }
+        }
+
+        private bool m_AllowSetHome = true;
+
+        public bool AllowSetHome
+        {
+            get { return m_AllowSetHome; }
+            set { m_AllowSetHome = value; }
+        }
+
         private uint m_ParentEstateID = 1;
 
         public uint ParentEstateID

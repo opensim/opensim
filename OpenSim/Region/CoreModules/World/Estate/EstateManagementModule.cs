@@ -380,7 +380,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     {
                         remote_client.SendAlertMessage("User is already on the region ban list");
                     }
-                    //m_scene.RegionInfo.regionBanlist.Add(Manager(user);
+                    //Scene.RegionInfo.regionBanlist.Add(Manager(user);
                     remote_client.SendBannedUserList(invoice, Scene.RegionInfo.EstateSettings.EstateBans, Scene.RegionInfo.EstateSettings.EstateID);
                 }
                 else
@@ -418,7 +418,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         remote_client.SendAlertMessage("User is not on the region ban list");
                     }
                     
-                    //m_scene.RegionInfo.regionBanlist.Add(Manager(user);
+                    //Scene.RegionInfo.regionBanlist.Add(Manager(user);
                     remote_client.SendBannedUserList(invoice, Scene.RegionInfo.EstateSettings.EstateBans, Scene.RegionInfo.EstateSettings.EstateID);
                 }
                 else
@@ -784,7 +784,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             for (int i = 0; i < uuidarr.Length; i++)
             {
-                // string lookupname = m_scene.CommsManager.UUIDNameRequestString(uuidarr[i]);
+                // string lookupname = Scene.CommsManager.UUIDNameRequestString(uuidarr[i]);
 
                 IUserManagement userManager = Scene.RequestModuleInterface<IUserManagement>();
                 if (userManager != null)
@@ -1031,6 +1031,15 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 flags |= RegionFlags.Sandbox;
             if (Scene.RegionInfo.EstateSettings.AllowVoice)
                 flags |= RegionFlags.AllowVoice;
+            if (Scene.RegionInfo.EstateSettings.AllowLandmark)
+                flags |= RegionFlags.AllowLandmark;
+            if (Scene.RegionInfo.EstateSettings.AllowSetHome)
+                flags |= RegionFlags.AllowSetHome;
+            if (Scene.RegionInfo.EstateSettings.BlockDwell)
+                flags |= RegionFlags.BlockDwell;
+            if (Scene.RegionInfo.EstateSettings.ResetHomeOnTeleport)
+                flags |= RegionFlags.ResetHomeOnTeleport;
+
 
             // Fudge these to always on, so the menu options activate
             //
@@ -1076,6 +1085,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 flags |= RegionFlags.ResetHomeOnTeleport;
             if (Scene.RegionInfo.EstateSettings.TaxFree)
                 flags |= RegionFlags.TaxFree;
+            if (Scene.RegionInfo.EstateSettings.AllowLandmark)
+                flags |= RegionFlags.AllowLandmark;
+            if (Scene.RegionInfo.EstateSettings.AllowParcelChanges)
+                flags |= RegionFlags.AllowParcelChanges;
+            if (Scene.RegionInfo.EstateSettings.AllowSetHome)
+                flags |= RegionFlags.AllowSetHome;
             if (Scene.RegionInfo.EstateSettings.DenyMinors)
                 flags |= (RegionFlags)(1 << 30);
 

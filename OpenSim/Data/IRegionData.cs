@@ -77,8 +77,7 @@ namespace OpenSim.Data
         NoMove = 64, // Don't allow moving this region
         Reservation = 128, // This is an inactive reservation
         Authenticate = 256, // Require authentication
-        Hyperlink = 512, // Record represents a HG link
-        NoTraffic = 512 // Exclude this sim from traffic reporting
+        Hyperlink = 512 // Record represents a HG link
     }
     
     public class RegionDataDistanceCompare : IComparer<RegionData>
