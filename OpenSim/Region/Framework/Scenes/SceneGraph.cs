@@ -204,9 +204,10 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < Math.Min(presences.Count, maxLocations); ++i)
             {
                 ScenePresence sp = presences[i];
+                
                 // If this presence is a child agent, we don't want its coarse locations
                 if (sp.IsChildAgent)
-                    return;
+                    continue;
 
                 if (sp.ParentID != 0)
                 {

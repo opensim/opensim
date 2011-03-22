@@ -70,7 +70,7 @@
     ; Check4096 = true
 
     ;; Directory for map tile images of remote regions
-    ; MapTileDirectory = "./"
+    ; MapTileDirectory = "./maptiles"
 
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegioName> = "<flags>"

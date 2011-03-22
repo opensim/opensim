@@ -2129,17 +2129,17 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 }
                 catch (DllNotFoundException)
                 {
-                    Rest.Log.ErrorFormat("OpenJpeg is not installed correctly on this system.   Asset Data is emtpy for {0}", ic.Item.Name);
+                    Rest.Log.ErrorFormat("OpenJpeg is not installed correctly on this system.   Asset Data is empty for {0}", ic.Item.Name);
                     ic.Asset.Data = new Byte[0];
                 }
                 catch (IndexOutOfRangeException)
                 {
-                    Rest.Log.ErrorFormat("OpenJpeg was unable to encode this.   Asset Data is emtpy for {0}", ic.Item.Name);
+                    Rest.Log.ErrorFormat("OpenJpeg was unable to encode this.   Asset Data is empty for {0}", ic.Item.Name);
                     ic.Asset.Data = new Byte[0];
                 }
                 catch (Exception)
                 {
-                    Rest.Log.ErrorFormat("OpenJpeg was unable to encode this.   Asset Data is emtpy for {0}", ic.Item.Name);
+                    Rest.Log.ErrorFormat("OpenJpeg was unable to encode this.   Asset Data is empty for {0}", ic.Item.Name);
                     ic.Asset.Data = new Byte[0];
                 }
             }

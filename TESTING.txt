@@ -2,23 +2,14 @@
 
 == Running Tests ==
 
-On Linux:
+On Linux you will need to have NUnit installed (http://www.nunit.org).
+This is commonly available in distribution package repositories.
+
+When this is installed, run the command
 
     > nant test
 
-This will print out to the console the test state.
-
-On Windows: Please see the TESTING ON WINDOWS section below.
-
-
-Also, every checkin will run tests that are kicked off by bamboo.
-Results are posted here: http://www.opensimulator.org:8085/ as well as
-to #opensim-dev IRC channel.
-
-== Writing Tests ==
-
-Tests are written to run under NUnit.  For more information on NUnit
-please see: http://www.nunit.org/index.php
+Please see the TESTING ON WINDOWS section below for Windows instructions.
 
 == Adding Tests ==
 
@@ -32,70 +23,15 @@ that if you are writing tests they end up in a "Tests" sub-directory
 of the directory where the code you are testing resides.
 
 If you have added a new test assembly that hasn't existed before you
-must list it in both ".nant/local.include" and ".nant/bamboo.build"
+must list it in both ".nant/local.include"
 for it to be accessible to Linux users and to the continuous
 integration system.
-
-
-=== The Gory Details ===
-The following is the original document which started off this
-document.  It should probably be better integrated with the new info.
-
-==UPDATE==
-
-The text immediately following is an update to the testing documentation. The
-update is written on 2008.08.30 and is copied from an email to the opensim-dev
-mailing list[1]. The information below the update, beginning with the section
-titled TESTING, is still relevant, so please read this document in its
-entirety.
-
-Mike Mazur
-
-[1] https://lists.berlios.de/pipermail/opensim-dev/2008-August/002695.html
-
-"""
-The tests are contained in certain DLLs. At the time of writing, these DLLs
-have tests in them:
-
-OpenSim.Region.ScriptEngine.Common.Tests.dll
-OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests.dll
-OpenSim.Region.ScriptEngine.Shared.Tests.dll
-OpenSim.Framework.Tests.dll OpenSim.Region.CoreModules.dll
-OpenSim.Region.Physics.OdePlugin.dll[2]
-
-The console command used to run the tests is `nunit-console` (or
-`nunit-console2` on some systems). This command takes a listing of DLLs to
-inspect for tests.
-
-Currently Bamboo's[3] build file (.nant/bamboo.build) lists only those DLLs
-for nunit-console to use. However it would be equally correct to simply pass
-in all DLLs in bin/; those without tests are just skipped.
-
-The nunit-console command generates a file TestResults.txt by default. This is
-an XML file containing a listing of all DLLs inspected, tests executed,
-successes, failures, etc. If nunit-console is passed in all DLLs in bin/, this
-file bloats with lots of entries like this:
-
-    <test-suite name="/home/mike/source/workspace/bin/OpenSim.Grid.Communications.OGS1.dll" success="True" time="0.000" asserts="0">
-        <results />
-    </test-suite>
-    <test-suite name="/home/mike/source/workspace/bin/OpenSim.Region.ClientStack.dll" success="True" time="0.000" asserts="0">
-        <results />
-    </test-suite>
-
-Therefore it makes more sense to me to specify the DLLs when running
-nunit-console.
-
-[2] Note that OpenSim.Region.Physics.OdePlugin.dll is in bin/Physics/ and
-needs to be first copied to bin/ before nunit-console is executed.
-[3] http://opensimulator.org:8085/
-"""
 
 ==TESTING ON WINDOWS==
 
 To use nunit testing on opensim code, you have a variety of methods.  The
 easiast methods involve using IDE capabilities to test code.  Using
-VS2005/2008 I recommend using the testing capabilities of Resarper(commercial)
+VS2005/2008 I recommend using the testing capabilities of Resharper(commercial)
 or TestDriven.Net(free).  Both will recognize nunit tests within your
 application and allow you to test them individually, or all at once, etc.  You
 will also be able to step into debug mode into a test through these add-ins
@@ -133,6 +69,3 @@ Example
 
 nunit-console2 OpenSim.Framework.Tests.dll (on linux)
 nunit-console OpenSim.Framework.Tests.dll (on windows)
-
-For more information on testing contact the autor of this testing readme: Daedius Moskvitch ( daedius @@@@ daedius com)
-

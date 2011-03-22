@@ -46,6 +46,11 @@ namespace OpenSim.Data.MySQL
         protected string m_Realm;
         protected FieldInfo m_DataField = null;
 
+        protected virtual Assembly Assembly
+        {
+            get { return GetType().Assembly; }
+        }
+
         public MySQLGenericTableHandler(string connectionString,
                 string realm, string storeName) : base(connectionString)
         {
@@ -57,7 +62,7 @@ namespace OpenSim.Data.MySQL
                 using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
                     dbcon.Open();
-                    Migration m = new Migration(dbcon, GetType().Assembly, storeName);
+                    Migration m = new Migration(dbcon, Assembly, storeName);
                     m.Update();
                 }
             }

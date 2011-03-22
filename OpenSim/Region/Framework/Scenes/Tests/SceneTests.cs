@@ -26,35 +26,45 @@
  */
 
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Text;
+using System.Threading;
+using System.Timers;
+using Timer=System.Timers.Timer;
+using Nini.Config;
 using NUnit.Framework;
+using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Framework.Communications;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.CoreModules.World.Serialiser;
+using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
+using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Mock;
+using OpenSim.Tests.Common.Setup;
 
-namespace OpenSim.Tests.Common
+namespace OpenSim.Region.Framework.Scenes.Tests
 {
-    public class TestHelper
+    /// <summary>
+    /// Scene presence tests
+    /// </summary>
+    [TestFixture]
+    public class SceneTests
     {
-        public static bool AssertThisDelegateCausesArgumentException(TestDelegate d)
-        {
-            try
-            {
-                d();
-            }
-            catch(ArgumentException)
-            {
-                return true;
-            }
-
-            return false;
-        }
-        
         /// <summary>
-        /// A debugging method that can be used to print out which test method you are in 
+        /// Very basic scene update test.  Should become more elaborate with time.
         /// </summary>
-        public static void InMethod()
+        [Test]
+        public void TestUpdateScene()
         {
-            StackTrace stackTrace = new StackTrace();
-            Console.WriteLine();
-            Console.WriteLine("===> In Test Method : {0} <===", stackTrace.GetFrame(1).GetMethod().Name);
+            TestHelper.InMethod();
+
+            Scene scene = SceneSetupHelpers.SetupScene();
+            scene.Update();
+            
+            Assert.That(scene.Frame, Is.EqualTo(1));
         }
     }
 }

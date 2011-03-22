@@ -148,6 +148,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
             item = m_Scene.InventoryService.GetItem(item);
 
+            if (item.Owner != remoteClient.AgentId)
+                return UUID.Zero;
+
             if (item != null)
             {
                 if ((InventoryType)item.InvType == InventoryType.Notecard)
@@ -524,6 +527,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             if (item != null)
             {
+                item.Owner = remoteClient.AgentId;
+
                 AssetBase rezAsset = m_Scene.AssetService.Get(item.AssetID.ToString());
 
                 if (rezAsset != null)

@@ -52,6 +52,11 @@ namespace OpenSim.Data.MySQL
         private string m_connectionString;
         private object m_dbLock = new object();
 
+        protected virtual Assembly Assembly
+        {
+            get { return GetType().Assembly; }
+        }
+
         public MySQLSimulationData()
         {
         }
@@ -71,8 +76,7 @@ namespace OpenSim.Data.MySQL
 
                 // Apply new Migrations
                 //
-                Assembly assem = GetType().Assembly;
-                Migration m = new Migration(dbcon, assem, "RegionStore");
+                Migration m = new Migration(dbcon, Assembly, "RegionStore");
                 m.Update();
 
                 // Clean dropped attachments

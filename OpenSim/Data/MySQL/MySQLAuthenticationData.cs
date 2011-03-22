@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Data;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -42,6 +43,11 @@ namespace OpenSim.Data.MySQL
         private int m_LastExpire;
         // private string m_connectionString;
 
+        protected virtual Assembly Assembly
+        {
+            get { return GetType().Assembly; }
+        }
+
         public MySqlAuthenticationData(string connectionString, string realm)
                 : base(connectionString)
         {
@@ -51,7 +57,7 @@ namespace OpenSim.Data.MySQL
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();
-                Migration m = new Migration(dbcon, GetType().Assembly, "AuthStore");
+                Migration m = new Migration(dbcon, Assembly, "AuthStore");
                 m.Update();
             }
         }

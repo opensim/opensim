@@ -79,9 +79,6 @@ namespace OpenSim.Services.Connectors.Simulation
             return "agent/";
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint flags, out string reason)
         {
             // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: CreateAgent start");
@@ -109,6 +106,9 @@ namespace OpenSim.Services.Connectors.Simulation
                 if (result["Success"].AsBoolean())
                     return true;
                 
+                m_log.WarnFormat(
+                    "[REMOTE SIMULATION CONNECTOR]: Failed to create agent {0} {1} at remote simulator {1}", 
+                    aCircuit.firstname, aCircuit.lastname, destination.RegionName);                       
                 reason = result["Message"] != null ? result["Message"].AsString() : "error";
                 return false;
             }
@@ -185,7 +185,7 @@ namespace OpenSim.Services.Connectors.Simulation
             }
 
             // unreachable
-            return true;
+//            return true;
         }
 
         /// <summary>
@@ -256,8 +256,10 @@ namespace OpenSim.Services.Connectors.Simulation
 
         /// <summary>
         /// </summary>
-        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position)
+        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string reason)
         {
+            reason = "Failed to contact destination";
+
             // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess start, position={0}", position);
 
             IPEndPoint ext = destination.ExternalEndPoint;
@@ -272,7 +274,11 @@ namespace OpenSim.Services.Connectors.Simulation
             try
             {
                 OSDMap result = WebUtil.ServiceOSDRequest(uri, request, "QUERYACCESS", 10000);
-                bool success = result["Success"].AsBoolean();
+                bool success = result["success"].AsBoolean();
+                reason = result["reason"].AsString();
+
+                //m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1}", uri, success);
+
                 if (!success)
                 {
                     if (result.ContainsKey("Message"))
@@ -283,8 +289,17 @@ namespace OpenSim.Services.Connectors.Simulation
                             m_log.Info("[REMOTE SIMULATION CONNECTOR]: The above web util error was caused by a TP to a sim that doesn't support QUERYACCESS and can be ignored");
                             return true;
                         }
+
+                        reason = result["Message"];
                     }
+                    else
+                    {
+                        reason = "Communications failure";
+                    }
+
+                    return false;
                 }
+
                 return success;
             }
             catch (Exception e)

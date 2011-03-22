@@ -83,7 +83,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <summary>
         /// Regular expression used to match against path of the
         /// incoming HTTP request. If you want to match any string
-        /// either use '.*' or null. To match on the emtpy string use
+        /// either use '.*' or null. To match on the empty string use
         /// '^$'.
         /// </summary>
         public virtual Regex Path

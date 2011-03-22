@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LindenUDPInfoModule")]
     public class LindenUDPInfoModule : ISharedRegionModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);                
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);                
         
         protected Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
         

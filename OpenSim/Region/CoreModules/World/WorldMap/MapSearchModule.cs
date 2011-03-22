@@ -113,7 +113,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     data = new MapBlockData();
                     data.Agents = 0;
                     data.Access = info.Access;
-                    data.MapImageId = info.TerrainImage;
+                    data.MapImageId = UUID.Zero; // could use info.TerrainImage but it seems to break viewer2
                     data.Name = info.RegionName;
                     data.RegionFlags = 0; // TODO not used?
                     data.WaterHeight = 0; // not used
@@ -135,7 +135,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             data.Y = 0;
             blocks.Add(data);
 
-            remoteClient.SendMapBlock(blocks, 0);
+            // not sure what the flags do here, but seems to be necessary
+            // to set to "2" for viewer 2
+            remoteClient.SendMapBlock(blocks, 2);
         }
 
 //        private Scene GetClientScene(IClientAPI client)
