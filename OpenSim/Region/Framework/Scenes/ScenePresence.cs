@@ -1611,8 +1611,41 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (bAllowUpdateMoveToPosition && (m_moveToPositionInProgress && !m_autopilotMoving))
                     {
+/*
+                        bool twoD = false;
+                        bool there = false;
+                        if (Animator != null)
+                        {
+                            switch (Animator.CurrentMovementAnimation)
+                            {
+                                case "STAND":
+                                case "WALK":
+                                case "RUN":
+                                case "CROUCH":
+                                case "CROUCHWALK":
+                                {
+                                     twoD = true;
+                                }
+                                break;
+                            }
+                        }
+
+                        if (twoD)
+                        {
+*/
+                            Vector3 abspos = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, 0.0f);
+                            Vector3 tgt = new Vector3(m_moveToPositionTarget.X, m_moveToPositionTarget.Y, 0.0f);
+/*                            if (Util.GetDistanceTo(abspos, tgt) <= 0.5f) there = true;
+                        }
+                        else
+                        {
+                            if (Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget) <= 0.5f) there = true;
+                        }
+*/
                         //Check the error term of the current position in relation to the target position
-                        if (Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget) <= 0.5f)
+//                        if (Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget) <= 0.5f)
+//                        if (there)
+                        if (Util.GetDistanceTo(abspos, tgt) <= 0.5f)
                         {
                             // we are close enough to the target
                             m_moveToPositionTarget = Vector3.Zero;
@@ -1629,7 +1662,8 @@ namespace OpenSim.Region.Framework.Scenes
                                 // unknown forces are acting on the avatar and we need to adaptively respond
                                 // to such forces, but the following simple approach seems to works fine.
                                 Vector3 LocalVectorToTarget3D =
-                                    (m_moveToPositionTarget - AbsolutePosition) // vector from cur. pos to target in global coords
+//                                    (m_moveToPositionTarget - AbsolutePosition) // vector from cur. pos to target in global coords
+                                    (tgt - abspos)
                                     * Matrix4.CreateFromQuaternion(Quaternion.Inverse(bodyRotation)); // change to avatar coords
                                 // Ignore z component of vector
                                 Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
@@ -1766,8 +1800,15 @@ namespace OpenSim.Region.Framework.Scenes
 //            }
         }
 
+        public void StopMoveToPosition()
+        {
+             m_moveToPositionTarget = Vector3.Zero;
+             m_moveToPositionInProgress = false;
+        }
+
         public void DoMoveToPosition(Object sender, string method, List<String> args)
         {
+//Console.WriteLine("SP:DoMoveToPosition");
             try
             {
                 float locx = 0f;
@@ -1788,7 +1829,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
                 m_moveToPositionInProgress = true;
-                m_moveToPositionTarget = new Vector3(locx, locy, locz + (m_appearance.AvatarHeight / 2.0f));
+                m_moveToPositionTarget = new Vector3(locx, locy, locz);
 			}
             catch (Exception ex)
             {

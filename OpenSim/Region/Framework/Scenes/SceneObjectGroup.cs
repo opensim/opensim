@@ -1912,6 +1912,7 @@ namespace OpenSim.Region.Framework.Scenes
             return Vector3.Zero;
         }
 
+         // This is used by both Double-Click Auto-Pilot and llMoveToTarget() in an attached object
         public void moveToTarget(Vector3 target, float tau)
         {
             SceneObjectPart rootpart = m_rootPart;
@@ -1951,9 +1952,17 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart rootpart = m_rootPart;
             if (rootpart != null)
             {
-                if (rootpart.PhysActor != null)
+                if (IsAttachment)
                 {
-                    rootpart.PhysActor.PIDActive = false;
+                    ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
+                    if (avatar != null) avatar.StopMoveToPosition();
+                }
+                else
+                {
+                    if (rootpart.PhysActor != null)
+                    {
+                        rootpart.PhysActor.PIDActive = false;
+                    }
                 }
             }
         }
