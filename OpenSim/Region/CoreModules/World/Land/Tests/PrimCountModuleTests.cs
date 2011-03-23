@@ -55,6 +55,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Scene scene = SceneSetupHelpers.SetupScene();            
             SceneSetupHelpers.SetupSceneModules(scene, lmm, pcm);                         
             
+            UUID dummyUserId = new UUID("99999999-9999-9999-9999-999999999999");
             ILandObject lo = new LandObject(UUID.Zero, false, scene);
             lo.SetLandBitmap(lo.GetSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
             lmm.AddLandObject(lo);
@@ -68,10 +69,20 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
                     { Name = objName, UUID = objUuid };
 
             Assert.That(pcm.GetOwnerCount(lo.LandData.GlobalID), Is.EqualTo(0));
+            Assert.That(pcm.GetGroupCount(lo.LandData.GlobalID), Is.EqualTo(0));
+            Assert.That(pcm.GetOthersCount(lo.LandData.GlobalID), Is.EqualTo(0));
+            Assert.That(pcm.GetUserCount(lo.LandData.GlobalID, UUID.Zero), Is.EqualTo(0));
+            Assert.That(pcm.GetUserCount(lo.LandData.GlobalID, dummyUserId), Is.EqualTo(0));
+            Assert.That(pcm.GetSimulatorCount(lo.LandData.GlobalID), Is.EqualTo(0));
             
             scene.AddNewSceneObject(new SceneObjectGroup(part), false);
             
             Assert.That(pcm.GetOwnerCount(lo.LandData.GlobalID), Is.EqualTo(1));
+            Assert.That(pcm.GetGroupCount(lo.LandData.GlobalID), Is.EqualTo(0));
+            Assert.That(pcm.GetOthersCount(lo.LandData.GlobalID), Is.EqualTo(0));
+            Assert.That(pcm.GetUserCount(lo.LandData.GlobalID, UUID.Zero), Is.EqualTo(1));
+            Assert.That(pcm.GetUserCount(lo.LandData.GlobalID, dummyUserId), Is.EqualTo(0));
+            Assert.That(pcm.GetSimulatorCount(lo.LandData.GlobalID), Is.EqualTo(1));            
         }
     }
 }
