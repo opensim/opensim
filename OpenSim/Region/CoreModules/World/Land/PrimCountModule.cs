@@ -115,7 +115,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void OnParcelPrimCountAdd(SceneObjectGroup obj)
         {
-            Console.WriteLine("WIBBLE");
             // If we're tainted already, don't bother to add. The next
             // access will cause a recount anyway
             lock (m_TaintLock)
