@@ -454,9 +454,7 @@ namespace OpenSim.Tests.Common.Setup
         /// <returns></returns>
         public static SceneObjectPart AddSceneObject(Scene scene, string name)
         {
-            SceneObjectPart part
-                = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero);
-            part.Name = name;
+            SceneObjectPart part = CreateSceneObjectPart(name, UUID.Random(), UUID.Zero);
 
             //part.UpdatePrimFlags(false, false, true);
             //part.ObjectFlags |= (uint)PrimFlags.Phantom;
@@ -464,6 +462,20 @@ namespace OpenSim.Tests.Common.Setup
             scene.AddNewSceneObject(new SceneObjectGroup(part), false);
 
             return part;
+        }
+        
+        /// <summary>
+        /// Create a scene object part.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="id"></param>
+        /// <param name="ownerId"></param>
+        /// <returns></returns>
+        public static SceneObjectPart CreateSceneObjectPart(string name, UUID id, UUID ownerId)
+        {
+            return new SceneObjectPart(
+                ownerId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                    { Name = name, UUID = id };            
         }
         
         /// <summary>
@@ -477,23 +489,17 @@ namespace OpenSim.Tests.Common.Setup
         /// <returns></returns>
         public static SceneObjectGroup CreateSceneObject(int parts, UUID ownerId)
         {
-            SceneObjectPart rootPart
-                = new SceneObjectPart(ownerId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
-                    { Name = "part1", UUID = new UUID("00000000-0000-0000-0000-000000000001") };
-            SceneObjectGroup sog = new SceneObjectGroup(rootPart);
+            SceneObjectGroup sog 
+                = new SceneObjectGroup(
+                    CreateSceneObjectPart("part1", new UUID("00000000-0000-0000-0000-000000000001"), ownerId));
             
             if (parts > 1)
-            {
                 for (int i = 2; i <= parts; i++)
-                {
                     sog.AddPart(
-                        new SceneObjectPart(ownerId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
-                            { 
-                                Name = string.Format("obj{0}", i), 
-                                UUID = new UUID(string.Format("00000000-0000-0000-0000-{0:D12}", i)) 
-                            });
-                }             
-            }
+                        CreateSceneObjectPart(
+                            string.Format("obj{0}", i), 
+                            new UUID(string.Format("00000000-0000-0000-0000-{0:D12}", i)), 
+                            ownerId));
             
             return sog;
         }
