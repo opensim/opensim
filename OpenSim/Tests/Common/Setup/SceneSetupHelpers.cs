@@ -465,5 +465,37 @@ namespace OpenSim.Tests.Common.Setup
 
             return part;
         }
+        
+        /// <summary>
+        /// Create a scene object but do not add it to the scene.
+        /// </summary>
+        /// <remarks>
+        /// UUID always starts at 00000000-0000-0000-0000-000000000001
+        /// </remarks>
+        /// <param name="parts">The number of parts that should be in the scene object</param>
+        /// <param name="ownerId"></param>
+        /// <returns></returns>
+        public static SceneObjectGroup CreateSceneObject(int parts, UUID ownerId)
+        {
+            SceneObjectPart rootPart
+                = new SceneObjectPart(ownerId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                    { Name = "part1", UUID = new UUID("00000000-0000-0000-0000-000000000001") };
+            SceneObjectGroup sog = new SceneObjectGroup(rootPart);
+            
+            if (parts > 1)
+            {
+                for (int i = 2; i <= parts; i++)
+                {
+                    sog.AddPart(
+                        new SceneObjectPart(ownerId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                            { 
+                                Name = string.Format("obj{0}", i), 
+                                UUID = new UUID(string.Format("00000000-0000-0000-0000-{0:D12}", i)) 
+                            });
+                }             
+            }
+            
+            return sog;
+        }
     }
 }

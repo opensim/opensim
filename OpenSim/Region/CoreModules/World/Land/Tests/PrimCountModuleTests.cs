@@ -62,16 +62,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             lmm.AddLandObject(lo);
             //scene.loadAllLandObjectsFromStorage(scene.RegionInfo.originRegionID);
             
-            SceneObjectPart part1
-                = new SceneObjectPart(userId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
-                    { Name = "obj1", UUID = new UUID("00000000-0000-0000-0000-000000000001") };
-            SceneObjectGroup sog = new SceneObjectGroup(part1);
-            sog.AddPart(
-                new SceneObjectPart(userId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
-                    { Name = "obj2", UUID = new UUID("00000000-0000-0000-0000-000000000002") });
-            sog.AddPart(
-                new SceneObjectPart(userId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
-                    { Name = "obj3", UUID = new UUID("00000000-0000-0000-0000-000000000003") });            
+            SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, userId);         
 
             Assert.That(pcm.GetOwnerCount(lo.LandData.GlobalID), Is.EqualTo(0));
             Assert.That(pcm.GetGroupCount(lo.LandData.GlobalID), Is.EqualTo(0));
