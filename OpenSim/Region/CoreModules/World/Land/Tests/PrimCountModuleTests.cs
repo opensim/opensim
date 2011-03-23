@@ -58,15 +58,13 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Scene scene = SceneSetupHelpers.SetupScene();            
             SceneSetupHelpers.SetupSceneModules(scene, lmm, pcm);                         
             
-            UUID userId = new UUID("00000000-0000-0000-0000-000000000010");
+            UUID userId = new UUID("00000000-0000-0000-0000-100000000000");
             UUID dummyUserId = new UUID("99999999-9999-9999-9999-999999999999");
             ILandObject lo = new LandObject(userId, false, scene);
             lo.SetLandBitmap(lo.GetSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
             lmm.AddLandObject(lo);
             //scene.loadAllLandObjectsFromStorage(scene.RegionInfo.originRegionID);
-            
-            SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, userId);         
-
+                   
             Assert.That(pcm.GetOwnerCount(lo.LandData.GlobalID), Is.EqualTo(0));
             Assert.That(pcm.GetGroupCount(lo.LandData.GlobalID), Is.EqualTo(0));
             Assert.That(pcm.GetOthersCount(lo.LandData.GlobalID), Is.EqualTo(0));
@@ -74,6 +72,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pcm.GetUserCount(lo.LandData.GlobalID, dummyUserId), Is.EqualTo(0));
             Assert.That(pcm.GetSimulatorCount(lo.LandData.GlobalID), Is.EqualTo(0));
             
+            SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, userId, 0x01);             
             scene.AddNewSceneObject(sog, false);
             
             Assert.That(pcm.GetOwnerCount(lo.LandData.GlobalID), Is.EqualTo(3));
@@ -82,6 +81,17 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pcm.GetUserCount(lo.LandData.GlobalID, userId), Is.EqualTo(3));
             Assert.That(pcm.GetUserCount(lo.LandData.GlobalID, dummyUserId), Is.EqualTo(0));
             Assert.That(pcm.GetSimulatorCount(lo.LandData.GlobalID), Is.EqualTo(3));            
+            
+            // Add a second object and retest
+            SceneObjectGroup sog2 = SceneSetupHelpers.CreateSceneObject(2, userId, 0x10);             
+            scene.AddNewSceneObject(sog2, false);   
+            
+            Assert.That(pcm.GetOwnerCount(lo.LandData.GlobalID), Is.EqualTo(5));
+            Assert.That(pcm.GetGroupCount(lo.LandData.GlobalID), Is.EqualTo(0));
+            Assert.That(pcm.GetOthersCount(lo.LandData.GlobalID), Is.EqualTo(0));
+            Assert.That(pcm.GetUserCount(lo.LandData.GlobalID, userId), Is.EqualTo(5));
+            Assert.That(pcm.GetUserCount(lo.LandData.GlobalID, dummyUserId), Is.EqualTo(0));
+            Assert.That(pcm.GetSimulatorCount(lo.LandData.GlobalID), Is.EqualTo(5));              
         }
         
         /// <summary>
