@@ -229,6 +229,12 @@ namespace OpenSim.Region.CoreModules.World.Land
             return primCounts;
         }
 
+        
+        /// <summary>
+        /// Get the number of prims on the parcel that are owned by the parcel owner.
+        /// </summary>
+        /// <param name="parcelID"></param>
+        /// <returns></returns>
         public int GetOwnerCount(UUID parcelID)
         {
 //            m_log.DebugFormat("[PRIM COUNT MODULE]: GetOwnerCount for {0}", parcelID);
@@ -245,6 +251,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             return 0;
         }
 
+        /// <summary>
+        /// Get the number of prims on the parcel that have been set to the group that owns the parcel.
+        /// </summary>
+        /// <param name="parcelID"></param>
+        /// <returns></returns>        
         public int GetGroupCount(UUID parcelID)
         {
             lock (m_TaintLock)
@@ -259,6 +270,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             return 0;
         }
 
+        /// <summary>
+        /// Get the number of prims on the parcel that are not owned by the parcel owner or set to the parcel group.
+        /// </summary>
+        /// <param name="parcelID"></param>
+        /// <returns></returns>                
         public int GetOthersCount(UUID parcelID)
         {
             lock (m_TaintLock)
@@ -273,6 +289,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             return 0;
         }
 
+        /// <summary>
+        /// Get the number of prims that are in the entire simulator for the owner of this parcel.
+        /// </summary>
+        /// <param name="parcelID"></param>
+        /// <returns></returns>              
         public int GetSimulatorCount(UUID parcelID)
         {
             lock (m_TaintLock)
@@ -291,6 +312,12 @@ namespace OpenSim.Region.CoreModules.World.Land
             return 0;
         }
 
+        /// <summary>
+        /// Get the number of prims that a particular user owns on this parcel.
+        /// </summary>
+        /// <param name="parcelID"></param>
+        /// <param name="userID"></param>
+        /// <returns></returns>          
         public int GetUserCount(UUID parcelID, UUID userID)
         {
             lock (m_TaintLock)
