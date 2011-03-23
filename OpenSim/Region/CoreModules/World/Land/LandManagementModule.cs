@@ -854,6 +854,10 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void EventManagerOnParcelPrimCountUpdate()
         {
+//            m_log.DebugFormat(
+//                "[LAND MANAGEMENT MODULE]: Triggered EventManagerOnParcelPrimCountUpdate() for {0}", 
+//                m_scene.RegionInfo.RegionName);
+            
             ResetAllLandPrimCounts();
             EntityBase[] entities = m_scene.Entities.GetEntities();
             foreach (EntityBase obj in entities)

@@ -89,8 +89,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             m_Scene = scene;
 
-            m_Scene.EventManager.OnParcelPrimCountAdd +=
-                    OnParcelPrimCountAdd;
+            m_Scene.EventManager.OnObjectAddedToScene += OnParcelPrimCountAdd;            
             m_Scene.EventManager.OnObjectBeingRemovedFromScene +=
                     OnObjectBeingRemovedFromScene;
             m_Scene.EventManager.OnParcelPrimCountTainted +=
@@ -116,6 +115,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private void OnParcelPrimCountAdd(SceneObjectGroup obj)
         {
+            Console.WriteLine("WIBBLE");
             // If we're tainted already, don't bother to add. The next
             // access will cause a recount anyway
             lock (m_TaintLock)
@@ -172,6 +172,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             Vector3 pos = obj.AbsolutePosition;
             ILandObject landObject = m_Scene.LandChannel.GetLandObject(pos.X, pos.Y);
             LandData landData = landObject.LandData;
+            
+//            m_log.DebugFormat(
+//                "[PRIM COUNT MODULE]: Object {0} is owned by {1} over land owned by {2}", 
+//                obj.Name, obj.OwnerID, landData.OwnerID);
 
             ParcelCounts parcelCounts;
             if (m_ParcelCounts.TryGetValue(landData.GlobalID, out parcelCounts))
@@ -228,6 +232,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public int GetOwnerCount(UUID parcelID)
         {
+//            m_log.DebugFormat("[PRIM COUNT MODULE]: GetOwnerCount for {0}", parcelID);
+            
             lock (m_TaintLock)
             {
                 if (m_Tainted)

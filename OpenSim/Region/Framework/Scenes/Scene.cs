@@ -1956,8 +1956,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// If false, it is left to the caller to schedule the update
         /// </param>
         public bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
-        {
-            return m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, sendClientUpdates);
+        {           
+            if (m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, sendClientUpdates))
+            {
+                EventManager.TriggerObjectAddedToScene(sceneObject);
+                return true;       
+            }
+            
+            return false;
         }
         
         /// <summary>
@@ -1974,7 +1980,13 @@ namespace OpenSim.Region.Framework.Scenes
         public bool AddNewSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, Vector3 pos, Quaternion rot, Vector3 vel)
         {
-            return m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, pos, rot, vel);
+            if (m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, pos, rot, vel))
+            {            
+                EventManager.TriggerObjectAddedToScene(sceneObject);
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>

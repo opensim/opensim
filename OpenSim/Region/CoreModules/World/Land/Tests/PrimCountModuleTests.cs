@@ -67,6 +67,8 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
                 = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
                     { Name = objName, UUID = objUuid };
 
+            Assert.That(pcm.GetOwnerCount(lo.LandData.GlobalID), Is.EqualTo(0));
+            
             scene.AddNewSceneObject(new SceneObjectGroup(part), false);
             
             Assert.That(pcm.GetOwnerCount(lo.LandData.GlobalID), Is.EqualTo(1));
