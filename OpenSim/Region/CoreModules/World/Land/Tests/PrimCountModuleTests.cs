@@ -61,13 +61,17 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             lo.SetLandBitmap(lo.GetSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
             lmm.AddLandObject(lo);
             //scene.loadAllLandObjectsFromStorage(scene.RegionInfo.originRegionID);
-
-            string objName = "obj1";
-            UUID objUuid = new UUID("00000000-0000-0000-0000-000000000001");
-
-            SceneObjectPart part
+            
+            SceneObjectPart part1
                 = new SceneObjectPart(userId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
-                    { Name = objName, UUID = objUuid };
+                    { Name = "obj1", UUID = new UUID("00000000-0000-0000-0000-000000000001") };
+            SceneObjectGroup sog = new SceneObjectGroup(part1);
+            sog.AddPart(
+                new SceneObjectPart(userId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                    { Name = "obj2", UUID = new UUID("00000000-0000-0000-0000-000000000002") });
+            sog.AddPart(
+                new SceneObjectPart(userId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                    { Name = "obj3", UUID = new UUID("00000000-0000-0000-0000-000000000003") });            
 
             Assert.That(pcm.GetOwnerCount(lo.LandData.GlobalID), Is.EqualTo(0));
             Assert.That(pcm.GetGroupCount(lo.LandData.GlobalID), Is.EqualTo(0));
@@ -76,14 +80,14 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pcm.GetUserCount(lo.LandData.GlobalID, dummyUserId), Is.EqualTo(0));
             Assert.That(pcm.GetSimulatorCount(lo.LandData.GlobalID), Is.EqualTo(0));
             
-            scene.AddNewSceneObject(new SceneObjectGroup(part), false);
+            scene.AddNewSceneObject(sog, false);
             
-            Assert.That(pcm.GetOwnerCount(lo.LandData.GlobalID), Is.EqualTo(1));
+            Assert.That(pcm.GetOwnerCount(lo.LandData.GlobalID), Is.EqualTo(3));
             Assert.That(pcm.GetGroupCount(lo.LandData.GlobalID), Is.EqualTo(0));
             Assert.That(pcm.GetOthersCount(lo.LandData.GlobalID), Is.EqualTo(0));
-            Assert.That(pcm.GetUserCount(lo.LandData.GlobalID, userId), Is.EqualTo(1));
+            Assert.That(pcm.GetUserCount(lo.LandData.GlobalID, userId), Is.EqualTo(3));
             Assert.That(pcm.GetUserCount(lo.LandData.GlobalID, dummyUserId), Is.EqualTo(0));
-            Assert.That(pcm.GetSimulatorCount(lo.LandData.GlobalID), Is.EqualTo(1));            
+            Assert.That(pcm.GetSimulatorCount(lo.LandData.GlobalID), Is.EqualTo(3));            
         }
     }
 }
