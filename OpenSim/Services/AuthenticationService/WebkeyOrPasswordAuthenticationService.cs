@@ -39,7 +39,7 @@ namespace OpenSim.Services.AuthenticationService
                         m_log.DebugFormat("[Authenticate]: Web Login failed for PrincipalID {0}", principalID);
                     }
                 }
-                if (data.Data.ContainsKey("passwordHash") && data.Data.ContainsKey("passwordSalt"))
+                if (result == string.Empty && data.Data.ContainsKey("passwordHash") && data.Data.ContainsKey("passwordSalt"))
                 {
                     svc = ServerUtils.LoadPlugin<IAuthenticationService>("OpenSim.Services.AuthenticationService.dll", "PasswordAuthenticationService", args);
                     result = svc.Authenticate(principalID, password, lifetime);
