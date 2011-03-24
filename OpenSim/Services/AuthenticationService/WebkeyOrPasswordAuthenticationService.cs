@@ -16,25 +16,25 @@ namespace OpenSim.Services.AuthenticationService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IConfigSource config;
+        private Dictionary<string, IAuthenticationService> svc_checks;
         public WebkeyOrPasswordAuthenticationService(IConfigSource config)
             : base(config)
         {
             this.config = config;
+            svc_checks["web_login_key"] = new WebkeyAuthenticationService(config);
+            svc_checks["password"]      = new PasswordAuthenticationService(config);
         }
 
         public string Authenticate(UUID principalID, string password, int lifetime)
         {
             AuthenticationData data = m_Database.Get(principalID);
-            IAuthenticationService svc;
-            Object[] args = new Object[] { config };
             string result = String.Empty;
             if (data != null && data.Data != null)
             {
                 if (data.Data.ContainsKey("webLoginKey"))
                 {
                     m_log.DebugFormat("[AUTH SERVICE]: Attempting web key authentication for PrincipalID {0}", principalID);
-                    svc = ServerUtils.LoadPlugin<IAuthenticationService>("OpenSim.Services.AuthenticationService.dll", "WebkeyAuthenticationService", args);
-                    result = svc.Authenticate(principalID, password, lifetime);
+                    result = svc_checks["web_login_key"].Authenticate(principalID, password, lifetime);
                     if (result == String.Empty)
                     {
                         m_log.DebugFormat("[AUTH SERVICE]: Web Login failed for PrincipalID {0}", principalID);
@@ -43,8 +43,7 @@ namespace OpenSim.Services.AuthenticationService
                 if (result == string.Empty && data.Data.ContainsKey("passwordHash") && data.Data.ContainsKey("passwordSalt"))
                 {
                     m_log.DebugFormat("[AUTH SERVICE]: Attempting password authentication for PrincipalID {0}", principalID);
-                    svc = ServerUtils.LoadPlugin<IAuthenticationService>("OpenSim.Services.AuthenticationService.dll", "PasswordAuthenticationService", args);
-                    result = svc.Authenticate(principalID, password, lifetime);
+                    result = svc_checks["password"].Authenticate(principalID, password, lifetime);
                     if (result == String.Empty)
                     {
                         m_log.DebugFormat("[AUTH SERVICE]: Password login failed for PrincipalID {0}", principalID);
