@@ -32,25 +32,27 @@ namespace OpenSim.Services.AuthenticationService
             {
                 if (data.Data.ContainsKey("webLoginKey"))
                 {
+                    m_log.DebugFormat("[AUTH SERVICE]: Attempting web key authentication for PrincipalID {0}", principalID);
                     svc = ServerUtils.LoadPlugin<IAuthenticationService>("OpenSim.Services.AuthenticationService.dll", "WebkeyAuthenticationService", args);
                     result = svc.Authenticate(principalID, password, lifetime);
                     if (result == String.Empty)
                     {
-                        m_log.DebugFormat("[Authenticate]: Web Login failed for PrincipalID {0}", principalID);
+                        m_log.DebugFormat("[AUTH SERVICE]: Web Login failed for PrincipalID {0}", principalID);
                     }
                 }
                 if (result == string.Empty && data.Data.ContainsKey("passwordHash") && data.Data.ContainsKey("passwordSalt"))
                 {
+                    m_log.DebugFormat("[AUTH SERVICE]: Attempting password authentication for PrincipalID {0}", principalID);
                     svc = ServerUtils.LoadPlugin<IAuthenticationService>("OpenSim.Services.AuthenticationService.dll", "PasswordAuthenticationService", args);
                     result = svc.Authenticate(principalID, password, lifetime);
                     if (result == String.Empty)
                     {
-                        m_log.DebugFormat("[Authenticate]: Password login failed for PrincipalID {0}", principalID);
+                        m_log.DebugFormat("[AUTH SERVICE]: Password login failed for PrincipalID {0}", principalID);
                     }
                 }
                 if (result == string.Empty)
                 {
-                    m_log.DebugFormat("[AUTH SERVICE]: Both password and webLoginKey-based login failed for PrincipalID {0}", principalID);
+                    m_log.DebugFormat("[AUTH SERVICE]: Both password and webLoginKey-based authentication failed for PrincipalID {0}", principalID);
                 }
             }
             else

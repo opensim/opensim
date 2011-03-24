@@ -57,10 +57,9 @@ namespace OpenSim.Services.AuthenticationService
 
         public string Authenticate(UUID principalID, string password, int lifetime)
         {
-            m_log.InfoFormat("[Authenticate]: Trying a web key authenticate");
             if (new UUID(password) == UUID.Zero)
             {
-                m_log.InfoFormat("[Authenticate]: NULL_KEY is not a valid web_login_key");
+                m_log.DebugFormat("[AUTH SERVICE]: UUID.Zero is not a valid web_login_key on PrincipalID {0}", principalID);
             }
             else
             {
@@ -69,17 +68,19 @@ namespace OpenSim.Services.AuthenticationService
                 {
                     if (data.Data.ContainsKey("webLoginKey"))
                     {
-                        m_log.InfoFormat("[Authenticate]: Trying a web key authentication");
 						string key = data.Data["webLoginKey"].ToString();
-						m_log.DebugFormat("[WEB LOGIN AUTH]: got {0} for key in db vs {1}", key, password);
-						if (key == password)
-						{
-							data.Data["webLoginKey"] = UUID.Zero.ToString();
-							m_Database.Store(data);
-							return GetToken(principalID, lifetime);
-						}
+                        if (key == password)
+                        {
+                            data.Data["webLoginKey"] = UUID.Zero.ToString();
+                            m_Database.Store(data);
+                            return GetToken(principalID, lifetime);
+                        }
+                        else
+                        {
+                            m_log.DebugFormat("[AUTH SERVICE]: web login auth failed, got PrincipalID {0} gave {1} instead of {2}", principalID, password, key);
+                        }
                     }else{
-                        m_log.DebugFormat("[Authenticate]: no col webLoginKey in passwd.db");
+                        m_log.DebugFormat("[AUTH SERVICE]: no col webLoginKey in passwd.db");
                     }
                 }
                 m_log.DebugFormat("[AUTH SERVICE]: PrincipalID {0} or its data not found", principalID);
