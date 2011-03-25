@@ -1301,6 +1301,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public UUID MoveTaskInventoryItems(UUID destID, string category, SceneObjectPart host, List<UUID> items)
         {
+            SceneObjectPart destPart = GetSceneObjectPart(destID);
+            if (destPart != null) // Move into a prim
+            {
+                foreach(UUID itemID in items)
+                    MoveTaskInventoryItem(destID, host, itemID);
+                return destID; // Prim folder ID == prim ID
+            }
+
             InventoryFolderBase rootFolder = InventoryService.GetRootFolder(destID);
 
             UUID newFolderID = UUID.Random();
