@@ -58,9 +58,9 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             m_scene = SceneSetupHelpers.SetupScene();            
             SceneSetupHelpers.SetupSceneModules(m_scene, lmm, m_pcm);             
                         
-            m_lo = new LandObject(m_userId, false, m_scene);
-            m_lo.SetLandBitmap(m_lo.GetSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
-            lmm.AddLandObject(m_lo);
+            ILandObject lo = new LandObject(m_userId, false, m_scene);
+            lo.SetLandBitmap(lo.GetSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
+            m_lo = lmm.AddLandObject(lo);
             //scene.loadAllLandObjectsFromStorage(scene.RegionInfo.originRegionID);            
         } 
         
@@ -72,34 +72,36 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         {
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();                                  
-                   
-            Assert.That(m_pcm.GetOwnerCount(m_lo.LandData.GlobalID), Is.EqualTo(0));
-            Assert.That(m_pcm.GetGroupCount(m_lo.LandData.GlobalID), Is.EqualTo(0));
-            Assert.That(m_pcm.GetOthersCount(m_lo.LandData.GlobalID), Is.EqualTo(0));
-            Assert.That(m_pcm.GetUserCount(m_lo.LandData.GlobalID, m_userId), Is.EqualTo(0));
-            Assert.That(m_pcm.GetUserCount(m_lo.LandData.GlobalID, m_dummyUserId), Is.EqualTo(0));
-            Assert.That(m_pcm.GetSimulatorCount(m_lo.LandData.GlobalID), Is.EqualTo(0));
+                  
+            IPrimCounts pc = m_lo.PrimCounts;
+            
+            Assert.That(pc.Owner, Is.EqualTo(0));
+            Assert.That(pc.Group, Is.EqualTo(0));
+            Assert.That(pc.Others, Is.EqualTo(0));
+            Assert.That(pc.Users[m_userId], Is.EqualTo(0));
+            Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
+            Assert.That(pc.Simulator, Is.EqualTo(0));
             
             SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_userId, 0x01);             
             m_scene.AddNewSceneObject(sog, false);
             
-            Assert.That(m_pcm.GetOwnerCount(m_lo.LandData.GlobalID), Is.EqualTo(3));
-            Assert.That(m_pcm.GetGroupCount(m_lo.LandData.GlobalID), Is.EqualTo(0));
-            Assert.That(m_pcm.GetOthersCount(m_lo.LandData.GlobalID), Is.EqualTo(0));
-            Assert.That(m_pcm.GetUserCount(m_lo.LandData.GlobalID, m_userId), Is.EqualTo(3));
-            Assert.That(m_pcm.GetUserCount(m_lo.LandData.GlobalID, m_dummyUserId), Is.EqualTo(0));
-            Assert.That(m_pcm.GetSimulatorCount(m_lo.LandData.GlobalID), Is.EqualTo(3));            
+            Assert.That(pc.Owner, Is.EqualTo(3));
+            Assert.That(pc.Group, Is.EqualTo(0));
+            Assert.That(pc.Others, Is.EqualTo(0));
+            Assert.That(pc.Users[m_userId], Is.EqualTo(3));
+            Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
+            Assert.That(pc.Simulator, Is.EqualTo(3));            
             
             // Add a second object and retest
             SceneObjectGroup sog2 = SceneSetupHelpers.CreateSceneObject(2, m_userId, 0x10);             
             m_scene.AddNewSceneObject(sog2, false);   
             
-            Assert.That(m_pcm.GetOwnerCount(m_lo.LandData.GlobalID), Is.EqualTo(5));
-            Assert.That(m_pcm.GetGroupCount(m_lo.LandData.GlobalID), Is.EqualTo(0));
-            Assert.That(m_pcm.GetOthersCount(m_lo.LandData.GlobalID), Is.EqualTo(0));
-            Assert.That(m_pcm.GetUserCount(m_lo.LandData.GlobalID, m_userId), Is.EqualTo(5));
-            Assert.That(m_pcm.GetUserCount(m_lo.LandData.GlobalID, m_dummyUserId), Is.EqualTo(0));
-            Assert.That(m_pcm.GetSimulatorCount(m_lo.LandData.GlobalID), Is.EqualTo(5));              
+            Assert.That(pc.Owner, Is.EqualTo(5));
+            Assert.That(pc.Group, Is.EqualTo(0));
+            Assert.That(pc.Others, Is.EqualTo(0));
+            Assert.That(pc.Users[m_userId], Is.EqualTo(5));
+            Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
+            Assert.That(pc.Simulator, Is.EqualTo(5));              
         }
         
         /// <summary>
@@ -111,17 +113,19 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
+            IPrimCounts pc = m_lo.PrimCounts;
+            
             m_scene.AddNewSceneObject(SceneSetupHelpers.CreateSceneObject(1, m_userId, 0x1), false);
             SceneObjectGroup sogToDelete = SceneSetupHelpers.CreateSceneObject(3, m_userId, 0x10);
             m_scene.AddNewSceneObject(sogToDelete, false);            
             m_scene.DeleteSceneObject(sogToDelete, false);
             
-            Assert.That(m_pcm.GetOwnerCount(m_lo.LandData.GlobalID), Is.EqualTo(1));
-            Assert.That(m_pcm.GetGroupCount(m_lo.LandData.GlobalID), Is.EqualTo(0));
-            Assert.That(m_pcm.GetOthersCount(m_lo.LandData.GlobalID), Is.EqualTo(0));
-            Assert.That(m_pcm.GetUserCount(m_lo.LandData.GlobalID, m_userId), Is.EqualTo(1));
-            Assert.That(m_pcm.GetUserCount(m_lo.LandData.GlobalID, m_dummyUserId), Is.EqualTo(0));
-            Assert.That(m_pcm.GetSimulatorCount(m_lo.LandData.GlobalID), Is.EqualTo(1));            
+            Assert.That(pc.Owner, Is.EqualTo(1));
+            Assert.That(pc.Group, Is.EqualTo(0));
+            Assert.That(pc.Others, Is.EqualTo(0));
+            Assert.That(pc.Users[m_userId], Is.EqualTo(1));
+            Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
+            Assert.That(pc.Simulator, Is.EqualTo(1));            
         }        
     }
 }

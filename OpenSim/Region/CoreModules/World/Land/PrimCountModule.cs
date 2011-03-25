@@ -88,6 +88,8 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void AddRegion(Scene scene)
         {
             m_Scene = scene;
+            
+            m_Scene.RegisterModuleInterface<IPrimCountModule>(this);
 
             m_Scene.EventManager.OnObjectAddedToScene += OnParcelPrimCountAdd;            
             m_Scene.EventManager.OnObjectBeingRemovedFromScene +=

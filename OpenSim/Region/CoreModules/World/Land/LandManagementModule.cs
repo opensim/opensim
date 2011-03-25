@@ -72,6 +72,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         protected Commander m_commander = new Commander("land");
         
         protected IUserManagement m_userManager;
+        protected IPrimCountModule m_primCountModule;
 
         // Minimum for parcels to work is 64m even if we don't actually use them.
         #pragma warning disable 0429
@@ -147,6 +148,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void RegionLoaded(Scene scene)
         {
              m_userManager = m_scene.RequestModuleInterface<IUserManagement>();         
+             m_primCountModule = m_scene.RequestModuleInterface<IPrimCountModule>();
         }
 
         public void RemoveRegion(Scene scene)
@@ -309,10 +311,11 @@ namespace OpenSim.Region.CoreModules.World.Land
 //            m_log.DebugFormat(
 //                "[LAND MANAGEMENT MODULE]: Creating default parcel for region {0}", m_scene.RegionInfo.RegionName);
             
-            ILandObject fullSimParcel = new LandObject(UUID.Zero, false, m_scene);
+            ILandObject fullSimParcel = new LandObject(UUID.Zero, false, m_scene);                                                
             fullSimParcel.SetLandBitmap(fullSimParcel.GetSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
             fullSimParcel.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
             fullSimParcel.LandData.ClaimDate = Util.UnixTimeSinceEpoch();
+            
             return AddLandObject(fullSimParcel);            
         }
 
@@ -593,6 +596,11 @@ namespace OpenSim.Region.CoreModules.World.Land
         public ILandObject AddLandObject(ILandObject land)
         {
             ILandObject new_land = land.Copy();
+            
+            // Only now can we add the prim counts to the land object - we rely on the global ID which is generated
+            // as a random UUID inside LandData initialization
+            if (m_primCountModule != null)
+                new_land.PrimCounts = m_primCountModule.GetPrimCounts(new_land.LandData.GlobalID);            
 
             lock (m_landList)
             {
@@ -1368,7 +1376,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             ILandObject new_land = new LandObject(data.OwnerID, data.IsGroupOwned, m_scene);
             new_land.LandData = data.Copy();
-            new_land.SetLandBitmapFromByteArray();
+            new_land.SetLandBitmapFromByteArray();            
             AddLandObject(new_land);
         }
 
