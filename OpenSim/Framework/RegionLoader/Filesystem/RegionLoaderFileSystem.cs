@@ -90,7 +90,7 @@ namespace OpenSim.Framework.RegionLoader.Filesystem
                     RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), file, false, m_configSource, config.Name);
                     regionInfos.Add(regionInfo);
                     
-                    m_log.InfoFormat("[REGION LOADER FILE SYSTEM]: Loaded region {0}", regionInfo.RegionName);
+                    m_log.InfoFormat("[REGION LOADER FILE SYSTEM]: Loaded config for region {0}", regionInfo.RegionName);
                     
                     i++;
                 }
@@ -103,7 +103,7 @@ namespace OpenSim.Framework.RegionLoader.Filesystem
                 RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), file, false, m_configSource);
                 regionInfos.Add(regionInfo);
                 
-                m_log.InfoFormat("[REGION LOADER FILE SYSTEM]: Loaded region {0}", regionInfo.RegionName);
+                m_log.InfoFormat("[REGION LOADER FILE SYSTEM]: Loaded config for region {0}", regionInfo.RegionName);
                 
                 i++;
             }
