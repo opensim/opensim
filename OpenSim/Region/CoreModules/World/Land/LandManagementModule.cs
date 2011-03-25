@@ -805,7 +805,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ILandObject landUnderPrim = GetLandObject(position.X, position.Y);
             if (landUnderPrim != null)
             {
-                landUnderPrim.AddPrimToCount(obj);
+                ((LandObject)landUnderPrim).AddPrimToCount(obj);
             }
         }
 

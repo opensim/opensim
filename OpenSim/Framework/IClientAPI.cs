@@ -1143,7 +1143,17 @@ namespace OpenSim.Framework
         void SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags,
                                     uint sunPosition, UUID covenant, string abuseEmail, UUID estateOwner);
 
-        void SendLandProperties(int sequence_id, bool snap_selection, int request_result, LandData landData,
+        /// <summary>
+        /// Send land properties to the client.
+        /// </summary>
+        /// <param name="sequence_id"></param>
+        /// <param name="snap_selection"></param>
+        /// <param name="request_result"></param>
+        /// <param name="lo"></param></param>
+        /// <param name="parcelObjectCapacity">/param>
+        /// <param name="simObjectCapacity"></param>
+        /// <param name="regionFlags"></param>
+        void SendLandProperties(int sequence_id, bool snap_selection, int request_result, ILandObject lo,
                                 float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity,
                                 uint regionFlags);
 

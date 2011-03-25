@@ -25,49 +25,21 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Framework;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
+using OpenMetaverse;
 
-namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
+namespace OpenSim.Framework
 {
-    class LOParcel : System.MarshalByRefObject, IParcel
+    public interface IPrimCounts
     {
-        private readonly Scene m_scene;
-        private readonly int m_parcelID;
+        int Owner { get; }
+        int Group { get; }
+        int Others { get; }
+        int Simulator { get; }
+        IUserPrimCounts Users { get; }
+    }
 
-        public LOParcel(Scene m_scene, int m_parcelID)
-        {
-            this.m_scene = m_scene;
-            this.m_parcelID = m_parcelID;
-        }
-
-        private ILandObject GetLO()
-        {
-            return m_scene.LandChannel.GetLandObject(m_parcelID);
-        }
-
-        public string Name
-        {
-            get { return GetLO().LandData.Name; }
-            set { GetLO().LandData.Name = value; }
-        }
-
-        public string Description
-        {
-            get { return GetLO().LandData.Description; }
-            set { GetLO().LandData.Description = value; }
-        }
-
-        public ISocialEntity Owner
-        {
-            get { throw new System.NotImplementedException(); }
-            set { throw new System.NotImplementedException(); }
-        }
-
-        public bool[,] Bitmap
-        {
-            get { return GetLO().LandBitmap; }
-        }
+    public interface IUserPrimCounts
+    {
+        int this[UUID agentID] { get; }
     }
 }

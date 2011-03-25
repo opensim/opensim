@@ -38,18 +38,4 @@ namespace OpenSim.Region.Framework.Interfaces
 
         IPrimCounts GetPrimCounts(UUID parcelID);
     }
-
-    public interface IPrimCounts
-    {
-        int Owner { get; }
-        int Group { get; }
-        int Others { get; }
-        int Simulator { get; }
-        IUserPrimCounts Users { get; }
-    }
-
-    public interface IUserPrimCounts
-    {
-        int this[UUID agentID] { get; }
-    }
 }
