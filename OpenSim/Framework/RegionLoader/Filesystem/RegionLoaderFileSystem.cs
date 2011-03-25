@@ -25,15 +25,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using log4net;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Nini.Config;
 
 namespace OpenSim.Framework.RegionLoader.Filesystem
 {
     public class RegionLoaderFileSystem : IRegionLoader
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private IConfigSource m_configSource;
 
         public void SetIniConfigSource(IConfigSource configSource)
@@ -63,32 +67,44 @@ namespace OpenSim.Framework.RegionLoader.Filesystem
             string[] configFiles = Directory.GetFiles(regionConfigPath, "*.xml");
             string[] iniFiles = Directory.GetFiles(regionConfigPath, "*.ini");
 
+            // Create an empty Regions.ini if there are no existing config files.
             if (configFiles.Length == 0 && iniFiles.Length == 0)
-            {
+            {                
                 new RegionInfo("DEFAULT REGION CONFIG", Path.Combine(regionConfigPath, "Regions.ini"), false, m_configSource);
                 iniFiles = Directory.GetFiles(regionConfigPath, "*.ini");
             }
+            
+            m_log.InfoFormat("[REGION LOADER FILE SYSTEM]: Loading config files from {0}", regionConfigPath);
 
             List<RegionInfo> regionInfos = new List<RegionInfo>();
 
             int i = 0;
             foreach (string file in iniFiles)
             {
+                m_log.InfoFormat("[REGION LOADER FILE SYSTEM]: Loading config file {0}", file);
+                
                 IConfigSource source = new IniConfigSource(file);
 
                 foreach (IConfig config in source.Configs)
-                {
-                    //m_log.Info("[REGIONLOADERFILESYSTEM]: Creating RegionInfo for " + config.Name);
+                {                   
                     RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), file, false, m_configSource, config.Name);
                     regionInfos.Add(regionInfo);
+                    
+                    m_log.InfoFormat("[REGION LOADER FILE SYSTEM]: Loaded region {0}", regionInfo.RegionName);
+                    
                     i++;
                 }
             }
 
             foreach (string file in configFiles)
             {
+                m_log.InfoFormat("[REGION LOADER FILE SYSTEM]: Loading config file {0}", file);
+                
                 RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), file, false, m_configSource);
                 regionInfos.Add(regionInfo);
+                
+                m_log.InfoFormat("[REGION LOADER FILE SYSTEM]: Loaded region {0}", regionInfo.RegionName);
+                
                 i++;
             }
 

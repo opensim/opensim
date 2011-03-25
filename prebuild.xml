@@ -402,6 +402,7 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes" path="../../../../bin/"/>
+      <Reference name="log4net" path="../../../../bin/"/>
       <Reference name="XMLRPC" path="../../../../bin/"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
