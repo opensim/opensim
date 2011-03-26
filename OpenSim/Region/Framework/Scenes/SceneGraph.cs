@@ -88,9 +88,21 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal object m_syncRoot = new object();
 
         protected internal PhysicsScene _PhyScene;
-
-        protected internal Dictionary<uint, SceneObjectGroup> SceneObjectGroupsByLocalPartID = new Dictionary<uint, SceneObjectGroup>();
+        
+        /// <summary>
+        /// Index the SceneObjectGroup for each part by the root part's UUID.
+        /// </summary>
+        protected internal Dictionary<UUID, SceneObjectGroup> SceneObjectGroupsByFullID = new Dictionary<UUID, SceneObjectGroup>();
+        
+        /// <summary>
+        /// Index the SceneObjectGroup for each part by that part's UUID.
+        /// </summary>
         protected internal Dictionary<UUID, SceneObjectGroup> SceneObjectGroupsByFullPartID = new Dictionary<UUID, SceneObjectGroup>();
+        
+        /// <summary>
+        /// Index the SceneObjectGroup for each part by that part's local ID.
+        /// </summary>
+        protected internal Dictionary<uint, SceneObjectGroup> SceneObjectGroupsByLocalPartID = new Dictionary<uint, SceneObjectGroup>();        
 
         private Object m_updateLock = new Object();
 
@@ -131,6 +143,8 @@ namespace OpenSim.Region.Framework.Scenes
                 m_scenePresenceArray = newlist;
             }
 
+            lock (SceneObjectGroupsByFullID)
+                SceneObjectGroupsByFullID.Clear();
             lock (SceneObjectGroupsByFullPartID)
                 SceneObjectGroupsByFullPartID.Clear();
             lock (SceneObjectGroupsByLocalPartID)
@@ -384,6 +398,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (OnObjectCreate != null)
                 OnObjectCreate(sceneObject);
 
+            lock (SceneObjectGroupsByFullID)
+                SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
+            
             lock (SceneObjectGroupsByFullPartID)
             {
                 SceneObjectGroupsByFullPartID[sceneObject.UUID] = sceneObject;
@@ -426,6 +443,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (OnObjectRemove != null)
                 OnObjectRemove(Entities[uuid]);
+            
+            lock (SceneObjectGroupsByFullID)
+                SceneObjectGroupsByFullID.Remove(grp.UUID);
 
             lock (SceneObjectGroupsByFullPartID)
             {
@@ -1064,12 +1084,13 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Performs action on all scene object groups.
+        /// Performs action once on all scene object groups.
         /// </summary>
         /// <param name="action"></param>
         protected internal void ForEachSOG(Action<SceneObjectGroup> action)
         {
-            List<SceneObjectGroup> objlist = new List<SceneObjectGroup>(SceneObjectGroupsByFullPartID.Values);
+            // FIXME: Need to lock here, really.
+            List<SceneObjectGroup> objlist = new List<SceneObjectGroup>(SceneObjectGroupsByFullID.Values);
             foreach (SceneObjectGroup obj in objlist)
             {
                 try
@@ -1084,7 +1105,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-
         
         /// <summary>
         /// Performs action on all scene presences. This can ultimately run the actions in parallel but
