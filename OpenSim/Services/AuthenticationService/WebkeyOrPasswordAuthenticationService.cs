@@ -15,8 +15,11 @@ namespace OpenSim.Services.AuthenticationService
     public class WebkeyOrPasswordAuthenticationService : AuthenticationServiceBase, IAuthenticationService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private IConfigSource config;
-        private Dictionary<string, IAuthenticationService> svc_checks;
+        private Dictionary<string, IAuthenticationService> svc_checks 
+            = new Dictionary<string, IAuthenticationService>();
+        
         public WebkeyOrPasswordAuthenticationService(IConfigSource config)
             : base(config)
         {
