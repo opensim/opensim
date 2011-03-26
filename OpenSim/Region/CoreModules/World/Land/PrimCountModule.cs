@@ -324,6 +324,37 @@ namespace OpenSim.Region.CoreModules.World.Land
             
             return count;
         }
+        
+        /// <summary>
+        /// Get the total count of owner, group and others prims on the parcel.
+        /// FIXME: Need to do selected prims once this is reimplemented.   
+        /// </summary>
+        /// <param name="parcelID"></param>
+        /// <returns></returns>
+        public int GetTotalCount(UUID parcelID)
+        {
+            int count = 0;
+            
+            lock (m_TaintLock)
+            {
+                if (m_Tainted)
+                    Recount();
+
+                ParcelCounts counts;
+                if (m_ParcelCounts.TryGetValue(parcelID, out counts))
+                {
+                    count = counts.Owner;
+                    count += counts.Group;
+                    count += counts.Others;
+                }
+            }
+            
+            m_log.DebugFormat(
+                "[PRIM COUNT MODULE]: GetTotalCount for parcel {0} in {1} returning {2}", 
+                parcelID, m_Scene.RegionInfo.RegionName, count);
+            
+            return count;            
+        }
 
         /// <summary>
         /// Get the number of prims that are in the entire simulator for the owner of this parcel.
@@ -455,6 +486,14 @@ namespace OpenSim.Region.CoreModules.World.Land
             get
             {
                 return m_Parent.GetOthersCount(m_ParcelID);
+            }
+        }
+        
+        public int Total
+        {
+            get
+            {
+                return m_Parent.GetTotalCount(m_ParcelID);
             }
         }
 

@@ -31,10 +31,34 @@ namespace OpenSim.Framework
 {
     public interface IPrimCounts
     {
+        /// <summary>
+        /// Parcel owner owned prims
+        /// </summary>
         int Owner { get; }
+        
+        /// <summary>
+        /// Parcel group owned prims
+        /// </summary>
         int Group { get; }
+        
+        /// <summary>
+        /// Prims owned by others (not parcel owner or parcel group).
+        /// </summary>
         int Others { get; }
+        
+        /// <summary>
+        /// Total prims on the parcel.
+        /// </summary>
+        int Total { get; }
+        
+        /// <summary>
+        /// Prims on the simulator that are owned by the parcel owner, even if they are in other parcels.
+        /// </summary>
         int Simulator { get; }
+        
+        /// <summary>
+        /// Prims per individual users.
+        /// </summary>
         IUserPrimCounts Users { get; }
     }
 
