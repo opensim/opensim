@@ -4276,6 +4276,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
              int sequence_id, bool snap_selection, int request_result, ILandObject lo, 
              float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
         {
+            m_log.DebugFormat("[LLCLIENTVIEW]: Sending land properties for {0} to {1}", lo.LandData.GlobalID, Name);
+            
             LandData landData = lo.LandData;
             
             ParcelPropertiesMessage updateMessage = new ParcelPropertiesMessage();
