@@ -43,16 +43,16 @@ namespace OpenSim.Services.AuthenticationService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
-        private IConfigSource config;
-        private Dictionary<string, IAuthenticationService> svc_checks 
+        private IConfigSource m_config;
+        private Dictionary<string, IAuthenticationService> m_svcChecks 
             = new Dictionary<string, IAuthenticationService>();
         
         public WebkeyOrPasswordAuthenticationService(IConfigSource config)
             : base(config)
         {
-            this.config = config;
-            svc_checks["web_login_key"] = new WebkeyAuthenticationService(config);
-            svc_checks["password"]      = new PasswordAuthenticationService(config);
+            this.m_config = config;
+            m_svcChecks["web_login_key"] = new WebkeyAuthenticationService(config);
+            m_svcChecks["password"]      = new PasswordAuthenticationService(config);
         }
 
         public string Authenticate(UUID principalID, string password, int lifetime)
@@ -64,7 +64,7 @@ namespace OpenSim.Services.AuthenticationService
                 if (data.Data.ContainsKey("webLoginKey"))
                 {
                     m_log.DebugFormat("[AUTH SERVICE]: Attempting web key authentication for PrincipalID {0}", principalID);
-                    result = svc_checks["web_login_key"].Authenticate(principalID, password, lifetime);
+                    result = m_svcChecks["web_login_key"].Authenticate(principalID, password, lifetime);
                     if (result == String.Empty)
                     {
                         m_log.DebugFormat("[AUTH SERVICE]: Web Login failed for PrincipalID {0}", principalID);
@@ -73,7 +73,7 @@ namespace OpenSim.Services.AuthenticationService
                 if (result == string.Empty && data.Data.ContainsKey("passwordHash") && data.Data.ContainsKey("passwordSalt"))
                 {
                     m_log.DebugFormat("[AUTH SERVICE]: Attempting password authentication for PrincipalID {0}", principalID);
-                    result = svc_checks["password"].Authenticate(principalID, password, lifetime);
+                    result = m_svcChecks["password"].Authenticate(principalID, password, lifetime);
                     if (result == String.Empty)
                     {
                         m_log.DebugFormat("[AUTH SERVICE]: Password login failed for PrincipalID {0}", principalID);
