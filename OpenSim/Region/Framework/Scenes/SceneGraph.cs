@@ -363,6 +363,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (Entities.ContainsKey(sceneObject.UUID))
                 return false;
+            
+//            m_log.DebugFormat(
+//                "[SCENEGRAPH]: Adding scene object {0} {1}, with {2} parts on {3}", 
+//                sceneObject.Name, sceneObject.UUID, sceneObject.Parts.Length, m_parentScene.RegionInfo.RegionName);
 
             SceneObjectPart[] children = sceneObject.Parts;
 
@@ -1798,7 +1802,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rot"></param>
         public SceneObjectGroup DuplicateObject(uint originalPrimID, Vector3 offset, uint flags, UUID AgentID, UUID GroupID, Quaternion rot)
         {
-            //m_log.DebugFormat("[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", originalPrim, offset, AgentID);
+//            m_log.DebugFormat(
+//                "[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", 
+//                originalPrimID, offset, AgentID);
+            
             SceneObjectGroup original = GetGroupByPrim(originalPrimID);
             if (original != null)
             {
@@ -1829,7 +1836,28 @@ namespace OpenSim.Region.Framework.Scenes
                         copy.RootPart.SalePrice = 10;
                     }
 
+                    // FIXME: This section needs to be refactored so that it just calls AddSceneObject()
                     Entities.Add(copy);
+                    
+                    lock (SceneObjectGroupsByFullID)
+                        SceneObjectGroupsByFullID[copy.UUID] = copy;
+                    
+                    SceneObjectPart[] children = copy.Parts;
+                    
+                    lock (SceneObjectGroupsByFullPartID)
+                    {
+                        SceneObjectGroupsByFullPartID[copy.UUID] = copy;
+                        foreach (SceneObjectPart part in children)
+                            SceneObjectGroupsByFullPartID[part.UUID] = copy;
+                    }
+        
+                    lock (SceneObjectGroupsByLocalPartID)
+                    {
+                        SceneObjectGroupsByLocalPartID[copy.LocalId] = copy;
+                        foreach (SceneObjectPart part in children)
+                            SceneObjectGroupsByLocalPartID[copy.LocalId] = copy;
+                    }   
+                    // PROBABLE END OF FIXME
 
                     // Since we copy from a source group that is in selected
                     // state, but the copy is shown deselected in the viewer,
