@@ -4360,10 +4360,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updateMessage.OwnerPrims = pc.Owner;            
             updateMessage.GroupPrims = pc.Group;
             updateMessage.OtherPrims = pc.Others;            
-            updateMessage.SimWideTotalPrims = pc.Simulator;
-            
-            // FIXME: Need to do selected prims once this is reimplemented.
-            updateMessage.TotalPrims = pc.Owner + pc.Group + pc.Others;          
+            updateMessage.TotalPrims = pc.Total;
+            updateMessage.SimWideTotalPrims = pc.Simulator;                                
             
             // TODO: Need to transfer selected prims to new prim count structure.
             updateMessage.SelectedPrims = landData.SelectedPrims;
