@@ -3425,7 +3425,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_rootPart.Undoing = false;
             }
 
-            ScheduleGroupForTerseUpdate();
+            ScheduleGroupForFullUpdate();
         }
 
         #endregion
