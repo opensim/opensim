@@ -74,12 +74,23 @@ namespace OpenSim.Server.Handlers.Login
             if (requestData != null)
             {
                 if (requestData.ContainsKey("first") && requestData["first"] != null &&
-                    requestData.ContainsKey("last") && requestData["last"] != null &&
-                    requestData.ContainsKey("passwd") && requestData["passwd"] != null)
+                    requestData.ContainsKey("last") && requestData["last"] != null && (
+                        (requestData.ContainsKey("passwd") && requestData["passwd"] != null) ||
+                        (!requestData.ContainsKey("passwd") && requestData.ContainsKey("web_login_key") && requestData["web_login_key"] != null && requestData["web_login_key"].ToString() != UUID.Zero.ToString())
+                    ))
                 {
                     string first = requestData["first"].ToString();
                     string last = requestData["last"].ToString();
-                    string passwd = requestData["passwd"].ToString();
+                    string passwd = null;
+                    if (requestData.ContainsKey("passwd"))
+                    {
+                        passwd = requestData["passwd"].ToString();
+                    }
+                    else if (requestData.ContainsKey("web_login_key"))
+                    {
+                        passwd = "$1$" + requestData["web_login_key"].ToString();
+                        m_log.InfoFormat("[LOGIN]: XMLRPC Login Req key {0}", passwd);
+                    }
                     string startLocation = string.Empty;
                     UUID scopeID = UUID.Zero;
                     if (requestData["scope_id"] != null)
@@ -103,7 +114,7 @@ namespace OpenSim.Server.Handlers.Login
                     string id0 = "Unknown";
                     if (requestData.Contains("id0") && requestData["id0"] != null)
                         id0 = requestData["id0"].ToString();
-                    
+
                     //m_log.InfoFormat("[LOGIN]: XMLRPC Login Requested for {0} {1}, starting in {2}, using {3}", first, last, startLocation, clientVersion);
 
                     LoginResponse reply = null;

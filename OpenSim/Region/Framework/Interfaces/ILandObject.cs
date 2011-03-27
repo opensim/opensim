@@ -46,6 +46,11 @@ namespace OpenSim.Region.Framework.Interfaces
         UUID RegionUUID { get; }
         
         /// <summary>
+        /// Prim counts for this land object.
+        /// </summary>
+        IPrimCounts PrimCounts { get; set; }
+        
+        /// <summary>
         /// The start point for the land object.  This is the western-most point as one scans land working from 
         /// north to south.
         /// </summary>

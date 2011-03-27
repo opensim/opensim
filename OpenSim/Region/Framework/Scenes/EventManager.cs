@@ -242,7 +242,15 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID);
 
         public event EstateToolsSunUpdate OnEstateToolsSunUpdate;
+        
+        /// <summary>
+        /// Triggered when an object is added to the scene.
+        /// </summary>
+        public event Action<SceneObjectGroup> OnObjectAddedToScene;
 
+        /// <summary>
+        /// Triggered when an object is removed from the scene.
+        /// </summary>
         public delegate void ObjectBeingRemovedFromScene(SceneObjectGroup obj);
         public event ObjectBeingRemovedFromScene OnObjectBeingRemovedFromScene;
 
@@ -344,6 +352,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// the avatarID is UUID.Zero (I know, this doesn't make much sense but now it's historical).
         public delegate void Attach(uint localID, UUID itemID, UUID avatarID);
         public event Attach OnAttach;
+        
         
         /// <summary>
         /// Called immediately after an object is loaded from storage.
@@ -800,6 +809,27 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void TriggerObjectAddedToScene(SceneObjectGroup obj)
+        {
+            Action<SceneObjectGroup> handler = OnObjectAddedToScene;
+            if (handler != null)
+            {
+                foreach (Action<SceneObjectGroup> d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(obj);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerObjectAddedToScene failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }        
+        
         public void TriggerObjectBeingRemovedFromScene(SceneObjectGroup obj)
         {
             ObjectBeingRemovedFromScene handlerObjectBeingRemovedFromScene = OnObjectBeingRemovedFromScene;

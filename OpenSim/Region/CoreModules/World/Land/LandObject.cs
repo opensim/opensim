@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private int m_lastSeqId = 0;
 
-        protected LandData m_landData = new LandData();
+        protected LandData m_landData = new LandData();        
         protected Scene m_scene;
         protected List<SceneObjectGroup> primsOverMe = new List<SceneObjectGroup>();
         protected Dictionary<uint, UUID> m_listTransactions = new Dictionary<uint, UUID>();
@@ -79,6 +79,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             set { m_landData = value; }
         }
+        
+        public IPrimCounts PrimCounts { get; set; }
 
         public UUID RegionUUID
         {
