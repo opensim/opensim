@@ -3393,7 +3393,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_rootPart.Undoing = true;
                 cancelUndo = true;
             }
-            m_rootPart.UpdateRotation(rot);
+            
+            //Don't use UpdateRotation because it schedules an update prematurely
+            m_rootPart.RotationOffset = rot;
             if (m_rootPart.PhysActor != null)
             {
                 m_rootPart.PhysActor.Orientation = m_rootPart.RotationOffset;
@@ -3408,14 +3410,13 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     prim.IgnoreUndoUpdate = true;
                     Vector3 axPos = prim.OffsetPosition;
+
                     axPos *= oldParentRot;
                     axPos *= Quaternion.Inverse(axRot);
                     prim.OffsetPosition = axPos;
-                    Quaternion primsRot = prim.RotationOffset;
-                    Quaternion newRot = primsRot * oldParentRot;
-                    newRot *= Quaternion.Inverse(axRot);
-                    prim.RotationOffset = newRot;
-                    prim.ScheduleTerseUpdate();
+
+                    prim.RotationOffset *= Quaternion.Inverse(prim.GetWorldRotation()) * (oldParentRot * prim.RotationOffset);
+
                     prim.IgnoreUndoUpdate = false;
                 }
             }
@@ -3424,7 +3425,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_rootPart.Undoing = false;
             }
 
-            m_rootPart.ScheduleTerseUpdate();
+            ScheduleGroupForTerseUpdate();
         }
 
         #endregion
