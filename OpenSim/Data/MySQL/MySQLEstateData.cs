@@ -413,6 +413,46 @@ namespace OpenSim.Data.MySQL
                 return DoLoad(cmd, UUID.Zero, false);
             }
         }
+        
+        public List<EstateSettings> LoadEstateSettingsAll()
+        {
+            List<EstateSettings> allEstateSettings = new List<EstateSettings>();            
+            
+            List<int> allEstateIds = GetEstatesAll();
+            
+            foreach (int estateId in allEstateIds)
+                allEstateSettings.Add(LoadEstateSettings(estateId));
+            
+            return allEstateSettings;
+        }
+        
+        public List<int> GetEstatesAll()
+        {
+            List<int> result = new List<int>();
+
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+
+                using (MySqlCommand cmd = dbcon.CreateCommand())
+                {
+                    cmd.CommandText = "select estateID from estate_settings";
+
+                    using (IDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            result.Add(Convert.ToInt32(reader["EstateID"]));
+                        }
+                        reader.Close();
+                    }
+                }
+
+                dbcon.Close();
+            }
+
+            return result;            
+        }
 
         public List<int> GetEstates(string search)
         {

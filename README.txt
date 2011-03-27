@@ -44,7 +44,7 @@ for more information.
 To run OpenSim, from the unpacked distribution type:
 
  * cd bin
- * mono OpenSim.exe
+ * LD_LIBRARY_PATH=. mono OpenSim.exe
 
 Now see the "Configuring OpenSim" section
 
