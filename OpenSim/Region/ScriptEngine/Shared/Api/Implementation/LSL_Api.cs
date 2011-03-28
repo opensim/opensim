@@ -2113,13 +2113,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return end;
         }
 
-        protected void SetPos(SceneObjectPart part, LSL_Vector targetPos)
+        protected LSL_Vector GetSetPosTarget(SceneObjectPart part, LSL_Vector targetPos, LSL_Vector fromPos)
         {
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
-                return;
+                return fromPos;
 
             // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
-            LSL_Vector currentPos = GetPartLocalPos(part);
+            
 
             float ground = World.GetGroundHeight((float)targetPos.x, (float)targetPos.y);
             bool disable_underground_movement = m_ScriptEngine.Config.GetBoolean("DisableUndergroundMovement", true);
@@ -2128,14 +2128,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if ((targetPos.z < ground) && disable_underground_movement && m_host.AttachmentPoint == 0)
                     targetPos.z = ground;
+            }
+            LSL_Vector real_vec = SetPosAdjust(fromPos, targetPos);
+
+            return real_vec;
+        }
+
+        protected void SetPos(SceneObjectPart part, LSL_Vector targetPos)
+        {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
+            LSL_Vector currentPos = GetPartLocalPos(part);
+            LSL_Vector toPos = GetSetPosTarget(part, targetPos, currentPos);
+
+            if (part.ParentGroup.RootPart == part)
+            {
                 SceneObjectGroup parent = part.ParentGroup;
-                LSL_Vector real_vec = SetPosAdjust(currentPos, targetPos);
-                parent.UpdateGroupPosition(new Vector3((float)real_vec.x, (float)real_vec.y, (float)real_vec.z));
+                parent.UpdateGroupPosition(new Vector3((float)toPos.x, (float)toPos.y, (float)toPos.z));
             }
             else
             {
-                LSL_Vector rel_vec = SetPosAdjust(new LSL_Vector(part.OffsetPosition.X, part.OffsetPosition.Y, part.OffsetPosition.Z), targetPos);
-                part.OffsetPosition = new Vector3((float)rel_vec.x, (float)rel_vec.y, (float)rel_vec.z);
+                part.OffsetPosition = new Vector3((float)toPos.x, (float)toPos.y, (float)toPos.z);
                 SceneObjectGroup parent = part.ParentGroup;
                 parent.HasGroupChanged = true;
                 parent.ScheduleGroupForTerseUpdate();
@@ -7401,6 +7415,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             int idx = 0;
 
+            bool positionChanged = false;
+            LSL_Vector currentPosition = GetPartLocalPos(part);
+
             while (idx < rules.Length)
             {
                 int code = rules.GetLSLIntegerItem(idx++);
@@ -7409,7 +7426,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 int face;
                 LSL_Vector v;
-
+                
                 switch (code)
                 {
                     case (int)ScriptBaseClass.PRIM_POSITION:
@@ -7417,7 +7434,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return;
 
                         v=rules.GetVector3Item(idx++);
-                        SetPos(part, v);
+                        positionChanged = true;
+                        currentPosition = GetSetPosTarget(part, v, currentPosition);
 
                         break;
                     case (int)ScriptBaseClass.PRIM_SIZE:
@@ -7784,6 +7802,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         SetRot(part, Rot2Quaternion(lr));
                         break;
                 }
+            }
+
+            if (positionChanged)
+            {
+                if (part.ParentGroup.RootPart == part)
+                {
+                    SceneObjectGroup parent = part.ParentGroup;
+                    parent.UpdateGroupPosition(new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z));
+                }
+                else
+                {
+                    part.OffsetPosition = new Vector3((float)currentPosition.x, (float)currentPosition.y, (float)currentPosition.z);
+                    SceneObjectGroup parent = part.ParentGroup;
+                    parent.HasGroupChanged = true;
+                    parent.ScheduleGroupForTerseUpdate();
+                }    
             }
         }
 
