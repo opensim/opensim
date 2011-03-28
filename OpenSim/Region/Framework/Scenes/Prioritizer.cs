@@ -58,7 +58,7 @@ namespace OpenSim.Region.Framework.Scenes
 
     public class Prioritizer
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         
         /// <summary>
         /// This is added to the priority of all child prims, to make sure that the root prim update is sent to the
@@ -76,7 +76,74 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene = scene;
         }
 
-        public double GetUpdatePriority(IClientAPI client, ISceneEntity entity)
+//<mic>
+        public uint GetUpdatePriority(IClientAPI client, ISceneEntity entity)
+        {
+            if (entity == null)
+            {
+                m_log.WarnFormat("[PRIORITIZER] attempt to prioritize null entity");
+                throw new InvalidOperationException("Prioritization entity not defined");
+            }
+
+            // If this is an update for our own avatar give it the highest priority
+            if (client.AgentId == entity.UUID)
+                return 0;
+
+            // Get this agent's position
+            ScenePresence presence = m_scene.GetScenePresence(client.AgentId);
+            if (presence == null)
+            {
+                m_log.WarnFormat("[PRIORITIZER] attempt to prioritize agent no longer in the scene");
+                throw new InvalidOperationException("Prioritization agent not defined");
+            }
+                
+            // Use group position for child prims
+            Vector3 entityPos = entity.AbsolutePosition;
+            if (entity is SceneObjectPart)
+            {
+                SceneObjectGroup group = (entity as SceneObjectPart).ParentGroup;
+                if (group != null)
+                    entityPos = group.AbsolutePosition;
+            }
+
+            // Use the camera position for local agents and avatar position for remote agents
+            Vector3 presencePos = (presence.IsChildAgent) ?
+                presence.AbsolutePosition :
+                presence.CameraPosition;
+
+            // Compute the distance... 
+            double distance = Vector3.Distance(presencePos, entityPos);
+
+            // And convert the distance to a priority queue, this computation gives queues
+            // at 10, 20, 40, 80, 160, 320, 640, and 1280m
+            uint pqueue = 1;
+            for (int i = 0; i < 8; i++)
+            {
+                if (distance < 10 * Math.Pow(2.0,i))
+                    break;
+                pqueue++;
+            }
+            
+            // If this is a root agent, then determine front & back
+            // Bump up the priority queue for any objects behind the avatar
+            if (! presence.IsChildAgent)
+            {
+                // Root agent, decrease priority for objects behind us
+                Vector3 camPosition = presence.CameraPosition;
+                Vector3 camAtAxis = presence.CameraAtAxis;
+
+                // Plane equation
+                float d = -Vector3.Dot(camPosition, camAtAxis);
+                float p = Vector3.Dot(camAtAxis, entityPos) + d;
+                if (p < 0.0f) 
+                    pqueue++;
+            }
+
+            return pqueue;
+        }
+//</mic>        
+
+        public double bGetUpdatePriority(IClientAPI client, ISceneEntity entity)
         {
             double priority = 0;
 
