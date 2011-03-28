@@ -65,6 +65,7 @@ namespace OpenSim.Services.GridService
         protected UUID m_ScopeID = UUID.Zero;
         protected bool m_Check4096 = true;
         protected string m_MapTileDirectory = string.Empty;
+        protected string m_ThisGatekeeper = string.Empty;
 
         // Hyperlink regions are hyperlinks on the map
         public readonly Dictionary<UUID, GridRegion> m_HyperlinkRegions = new Dictionary<UUID, GridRegion>();
@@ -122,6 +123,8 @@ namespace OpenSim.Services.GridService
                 m_Check4096 = gridConfig.GetBoolean("Check4096", true);
 
                 m_MapTileDirectory = gridConfig.GetString("MapTileDirectory", "maptiles");
+
+                m_ThisGatekeeper = gridConfig.GetString("Gatekeeper", string.Empty);
 
                 m_GatekeeperConnector = new GatekeeperServiceConnector(m_AssetService);
 
@@ -265,6 +268,13 @@ namespace OpenSim.Services.GridService
             regInfo.RegionLocY = yloc;
             regInfo.ScopeID = scopeID;
             regInfo.EstateOwner = ownerID;
+
+            // Make sure we're not hyperlinking to regions on this grid!
+            if (regInfo.ServerURI.Trim(new char[]{'/', ' '}) == m_ThisGatekeeper.Trim(new char[]{'/', ' '}))
+            {
+                reason = "Cannot hyperlink to regions on the same grid";
+                return false;
+            }
 
             // Check for free coordinates
             GridRegion region = m_GridService.GetRegionByPosition(regInfo.ScopeID, regInfo.RegionLocX, regInfo.RegionLocY);
