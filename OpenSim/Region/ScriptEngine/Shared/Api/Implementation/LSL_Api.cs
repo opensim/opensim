@@ -10541,7 +10541,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 foreach (KeyValuePair<UUID, int> detectedParams in land.GetLandObjectOwners())
                 {
-                    ret.Add(detectedParams.Key.ToString());
+                    ret.Add(new LSL_String(detectedParams.Key.ToString()));
                     ret.Add(detectedParams.Value);
                 }
             }
