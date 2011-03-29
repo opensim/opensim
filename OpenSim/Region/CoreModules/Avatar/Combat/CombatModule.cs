@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using Nini.Config;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenMetaverse;
