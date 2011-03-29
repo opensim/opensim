@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
     public class PrimCountModule : IPrimCountModule, INonSharedRegionModule
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_Scene;
         private Dictionary<UUID, PrimCounts> m_PrimCounts =
@@ -62,7 +62,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                 new Dictionary<UUID, int>();
         private Dictionary<UUID, ParcelCounts> m_ParcelCounts =
                 new Dictionary<UUID, ParcelCounts>();
-
 
         /// <value>
         /// For now, a simple simwide taint to get this up. Later parcel based
@@ -95,6 +94,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     OnObjectBeingRemovedFromScene;
             m_Scene.EventManager.OnParcelPrimCountTainted +=
                     OnParcelPrimCountTainted;
+            m_Scene.EventManager.OnLandObjectAdded += delegate(ILandObject lo) { OnParcelPrimCountTainted(); };
         }
 
         public void RegionLoaded(Scene scene)
