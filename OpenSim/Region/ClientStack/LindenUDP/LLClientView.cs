@@ -4343,28 +4343,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             
             updateMessage.SnapSelection = snap_selection;
-            updateMessage.SnapshotID = landData.SnapshotID;
-            updateMessage.Status = (ParcelStatus) landData.Status;
-            updateMessage.UserLocation = landData.UserLocation;
-            updateMessage.UserLookAt = landData.UserLookAt;
+            updateMessage.SnapshotID    = landData.SnapshotID;
+            updateMessage.Status        = (ParcelStatus) landData.Status;
+            updateMessage.UserLocation  = landData.UserLocation;
+            updateMessage.UserLookAt    = landData.UserLookAt;
 
-            updateMessage.MediaType = landData.MediaType;
-            updateMessage.MediaDesc = landData.MediaDescription;
-            updateMessage.MediaWidth = landData.MediaWidth;
-            updateMessage.MediaHeight = landData.MediaHeight;
-            updateMessage.MediaLoop = landData.MediaLoop;
-            updateMessage.ObscureMusic = landData.ObscureMusic;
-            updateMessage.ObscureMedia = landData.ObscureMedia;
+            updateMessage.MediaType     = landData.MediaType;
+            updateMessage.MediaDesc     = landData.MediaDescription;
+            updateMessage.MediaWidth    = landData.MediaWidth;
+            updateMessage.MediaHeight   = landData.MediaHeight;
+            updateMessage.MediaLoop     = landData.MediaLoop;
+            updateMessage.ObscureMusic  = landData.ObscureMusic;
+            updateMessage.ObscureMedia  = landData.ObscureMedia;
             
             IPrimCounts pc = lo.PrimCounts;
-            updateMessage.OwnerPrims = pc.Owner;            
-            updateMessage.GroupPrims = pc.Group;
-            updateMessage.OtherPrims = pc.Others;            
-            updateMessage.TotalPrims = pc.Total;
-            updateMessage.SimWideTotalPrims = pc.Simulator;                                
-            
-            // TODO: Need to transfer selected prims to new prim count structure.
-            updateMessage.SelectedPrims = landData.SelectedPrims;
+            updateMessage.OwnerPrims        = pc.Owner;            
+            updateMessage.GroupPrims        = pc.Group;
+            updateMessage.OtherPrims        = pc.Others;            
+            updateMessage.SelectedPrims     = pc.Selected;
+            updateMessage.TotalPrims        = pc.Total;
+            updateMessage.SimWideTotalPrims = pc.Simulator;
 
             try
             {
@@ -4372,13 +4370,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (eq != null)
                 {
                     eq.ParcelProperties(updateMessage, this.AgentId);
-                } else {
-                    m_log.Warn("No EQ Interface when sending parcel data.");
+                } 
+                else 
+                {
+                    m_log.Warn("[LLCLIENTVIEW]: No EQ Interface when sending parcel data.");
                 }
             }
             catch (Exception ex)
             {
-                m_log.Error("Unable to send parcel data via eventqueue - exception: " + ex.ToString());
+                m_log.Error("[LLCLIENTVIEW]: Unable to send parcel data via eventqueue - exception: " + ex.ToString());
             }
         }
 

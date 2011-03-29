@@ -45,6 +45,11 @@ namespace OpenSim.Framework
         /// Prims owned by others (not parcel owner or parcel group).
         /// </summary>
         int Others { get; }
+
+        /// <summary>
+        /// Selected prims
+        /// </summary>        
+        int Selected { get; }        
         
         /// <summary>
         /// Total prims on the parcel.

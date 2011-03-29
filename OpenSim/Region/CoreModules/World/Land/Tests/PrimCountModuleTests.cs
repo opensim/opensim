@@ -79,6 +79,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Group, Is.EqualTo(0));
             Assert.That(pc.Others, Is.EqualTo(0));
             Assert.That(pc.Total, Is.EqualTo(0));
+            Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(0));
             Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(0));            
@@ -90,6 +91,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Group, Is.EqualTo(0));
             Assert.That(pc.Others, Is.EqualTo(0));
             Assert.That(pc.Total, Is.EqualTo(3));
+            Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(3));
             Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(3));            
@@ -102,6 +104,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Group, Is.EqualTo(0));
             Assert.That(pc.Others, Is.EqualTo(0));
             Assert.That(pc.Total, Is.EqualTo(5));
+            Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(5));
             Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(5));              
@@ -126,6 +129,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Group, Is.EqualTo(0));
             Assert.That(pc.Others, Is.EqualTo(0));
             Assert.That(pc.Total, Is.EqualTo(6));
+            Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(6));
             Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(6));              
@@ -151,6 +155,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Group, Is.EqualTo(0));
             Assert.That(pc.Others, Is.EqualTo(0));
             Assert.That(pc.Total, Is.EqualTo(1));
+            Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(1));
             Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(1));            
@@ -174,6 +179,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Group, Is.EqualTo(0));
             Assert.That(pc.Others, Is.EqualTo(0));
             Assert.That(pc.Total, Is.EqualTo(3));
+            Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(3));
             Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(3));              
