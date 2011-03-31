@@ -40,8 +40,8 @@ namespace OpenSim.Data.MSSQL
 {
     public class MSSQLXInventoryData : IXInventoryData
     {
-        private static readonly ILog m_log = LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(
+//                MethodBase.GetCurrentMethod().DeclaringType);
 
         private MSSQLGenericTableHandler<XInventoryFolder> m_Folders;
         private MSSQLItemHandler m_Items;
