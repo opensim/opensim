@@ -77,7 +77,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </value>
         private Stream m_loadStream;
         
-        protected bool m_controlFileLoaded;
+        /// <summary>
+        /// FIXME: Do not perform this check since older versions of OpenSim do save the control file after other things
+        /// (I thought they weren't).  We will need to bump the version number and perform this check on all 
+        /// subsequent IAR versions only
+        /// </summary>
+        protected bool m_controlFileLoaded = true;
         protected bool m_assetsLoaded;
         protected bool m_inventoryNodesLoaded;
         
