@@ -563,7 +563,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_regInfo = regInfo;
             m_regionHandle = m_regInfo.RegionHandle;
             m_regionName = m_regInfo.RegionName;
-            m_datastore = m_regInfo.DataStore;
             m_lastUpdate = Util.EnvironmentTickCount();
 
             m_physicalPrim = physicalPrim;
