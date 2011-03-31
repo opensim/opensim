@@ -876,15 +876,12 @@ namespace OpenSim
                                 = MainConsole.Instance.CmdPrompt(
                                     string.Format(
                                         "Name of estate to join.  Existing estate names are ({0})", string.Join(", ", estateNames.ToArray())), 
-                                    "None");
-                            
-                            if (response == "None")
-                                continue;
+                                    estateNames[0]);
     
                             List<int> estateIDs = EstateDataService.GetEstates(response);
                             if (estateIDs.Count < 1)
                             {
-                                MainConsole.Instance.Output("The name you have entered matches no known estate. Please try again.");
+                                MainConsole.Instance.Output("The name you have entered matches no known estate.  Please try again.");
                                 continue;
                             }
     
