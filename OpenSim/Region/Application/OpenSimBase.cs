@@ -860,7 +860,7 @@ namespace OpenSim
                             = MainConsole.Instance.CmdPrompt(
                                 string.Format(
                                     "Do you wish to join region {0} to an existing estate (yes/no)?", regInfo.RegionName), 
-                                    "no", 
+                                    "yes", 
                                     new List<string>() { "yes", "no" });
                         
                         if (response == "no")
