@@ -183,6 +183,11 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             Vector3 pos = obj.AbsolutePosition;
             ILandObject landObject = m_Scene.LandChannel.GetLandObject(pos.X, pos.Y);
+            
+            // If for some reason there is no land object (perhaps the object is out of bounds) then we can't count it
+            if (landObject == null)
+                return;
+            
             LandData landData = landObject.LandData;
             
 //            m_log.DebugFormat(

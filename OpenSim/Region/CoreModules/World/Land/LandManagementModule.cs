@@ -766,9 +766,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
                 catch (IndexOutOfRangeException)
                 {
-                    m_log.WarnFormat(
-                        "[LAND MANAGEMENT MODULE]: Tried to retrieve land object from out of bounds co-ordinate ({0},{1}) in {2}", 
-                        x, y, m_scene.RegionInfo.RegionName);
+//                    m_log.WarnFormat(
+//                        "[LAND MANAGEMENT MODULE]: Tried to retrieve land object from out of bounds co-ordinate ({0},{1}) in {2}", 
+//                        x, y, m_scene.RegionInfo.RegionName);
                     
                     return null;
                 }
