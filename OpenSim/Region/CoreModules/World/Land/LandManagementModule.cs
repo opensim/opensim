@@ -762,13 +762,14 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 try
                 {
-                    //if (m_landList.ContainsKey(m_landIDList[x / 4, y / 4]))
-                        return m_landList[m_landIDList[x / 4, y / 4]];
-                    //else
-                    //    return null;
+                    return m_landList[m_landIDList[x / 4, y / 4]];
                 }
                 catch (IndexOutOfRangeException)
                 {
+                    m_log.WarnFormat(
+                        "[LAND MANAGEMENT MODULE]: Tried to retrieve land object from out of bounds co-ordinate ({0},{1}) in {2}", 
+                        x, y, m_scene.RegionInfo.RegionName);
+                    
                     return null;
                 }
             }
