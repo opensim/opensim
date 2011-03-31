@@ -1164,11 +1164,6 @@ namespace OpenSim.Framework
             return regionInfo;
         }
 
-        public int getInternalEndPointPort()
-        {
-            return m_internalEndPoint.Port;
-        }
-
         public Dictionary<string, object> ToKeyValuePairs()
         {
             Dictionary<string, object> kvp = new Dictionary<string, object>();
