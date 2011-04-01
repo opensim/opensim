@@ -81,7 +81,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     /// </summary>
     public class LSL_Api : MarshalByRefObject, ILSL_Api, IScriptApi
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
         protected uint m_localID;
@@ -10277,6 +10277,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return new LSL_List();
 
             return GetLinkPrimitiveParams(obj, rules);
+        }
+
+        public void print(string str)
+        {
+            // yes, this is a real LSL function. See: http://wiki.secondlife.com/wiki/Print
+            m_log.Info("LSL print():" + str);
         }
     }
 

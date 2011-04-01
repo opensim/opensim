@@ -1847,5 +1847,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_LSL_Functions.llClearPrimMedia(face);
         }
+
+        public void print(string str)
+        {
+            m_LSL_Functions.print(str);
+        }
     }
 }
