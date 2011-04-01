@@ -243,7 +243,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
 
             remote_client.SendLandProperties(seq_id,
-                    snap_selection, request_result, LandData,
+                    snap_selection, request_result, this,
                     (float)m_scene.RegionInfo.RegionSettings.ObjectBonus,
                     GetParcelMaxPrimCount(this),
                     GetSimulatorMaxPrimCount(this), regionFlags);

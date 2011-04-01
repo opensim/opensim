@@ -25,49 +25,50 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Framework;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
+using OpenMetaverse;
 
-namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
+namespace OpenSim.Framework
 {
-    class LOParcel : System.MarshalByRefObject, IParcel
+    public interface IPrimCounts
     {
-        private readonly Scene m_scene;
-        private readonly int m_parcelID;
+        /// <summary>
+        /// Parcel owner owned prims
+        /// </summary>
+        int Owner { get; }
+        
+        /// <summary>
+        /// Parcel group owned prims
+        /// </summary>
+        int Group { get; }
+        
+        /// <summary>
+        /// Prims owned by others (not parcel owner or parcel group).
+        /// </summary>
+        int Others { get; }
 
-        public LOParcel(Scene m_scene, int m_parcelID)
-        {
-            this.m_scene = m_scene;
-            this.m_parcelID = m_parcelID;
-        }
+        /// <summary>
+        /// Selected prims
+        /// </summary>        
+        int Selected { get; }        
+        
+        /// <summary>
+        /// Total prims on the parcel.
+        /// </summary>
+        int Total { get; }
+        
+        /// <summary>
+        /// Prims on the simulator that are owned by the parcel owner, even if they are in other parcels.
+        /// </summary>
+        int Simulator { get; }
+        
+        /// <summary>
+        /// Prims per individual users.
+        /// </summary>
+        IUserPrimCounts Users { get; }
+    }
 
-        private ILandObject GetLO()
-        {
-            return m_scene.LandChannel.GetLandObject(m_parcelID);
-        }
-
-        public string Name
-        {
-            get { return GetLO().LandData.Name; }
-            set { GetLO().LandData.Name = value; }
-        }
-
-        public string Description
-        {
-            get { return GetLO().LandData.Description; }
-            set { GetLO().LandData.Description = value; }
-        }
-
-        public ISocialEntity Owner
-        {
-            get { throw new System.NotImplementedException(); }
-            set { throw new System.NotImplementedException(); }
-        }
-
-        public bool[,] Bitmap
-        {
-            get { return GetLO().LandBitmap; }
-        }
+    public interface IUserPrimCounts
+    {
+        int this[UUID agentID] { get; }
     }
 }

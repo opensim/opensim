@@ -78,9 +78,11 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Owner, Is.EqualTo(0));
             Assert.That(pc.Group, Is.EqualTo(0));
             Assert.That(pc.Others, Is.EqualTo(0));
+            Assert.That(pc.Total, Is.EqualTo(0));
+            Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(0));
             Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
-            Assert.That(pc.Simulator, Is.EqualTo(0));
+            Assert.That(pc.Simulator, Is.EqualTo(0));            
             
             SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_userId, 0x01);             
             m_scene.AddNewSceneObject(sog, false);
@@ -88,6 +90,8 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Owner, Is.EqualTo(3));
             Assert.That(pc.Group, Is.EqualTo(0));
             Assert.That(pc.Others, Is.EqualTo(0));
+            Assert.That(pc.Total, Is.EqualTo(3));
+            Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(3));
             Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(3));            
@@ -99,10 +103,37 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Owner, Is.EqualTo(5));
             Assert.That(pc.Group, Is.EqualTo(0));
             Assert.That(pc.Others, Is.EqualTo(0));
+            Assert.That(pc.Total, Is.EqualTo(5));
+            Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(5));
             Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(5));              
         }
+        
+        /// <summary>
+        /// Test count after a parcel owner owned copied object is added.
+        /// </summary>
+        [Test]
+        public void TestCopiedOwnerObject()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();                                  
+                  
+            IPrimCounts pc = m_lo.PrimCounts;
+            
+            SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_userId, 0x01);             
+            m_scene.AddNewSceneObject(sog, false);
+            m_scene.SceneGraph.DuplicateObject(sog.LocalId, Vector3.Zero, 0, m_userId, UUID.Zero, Quaternion.Identity); 
+            
+            Assert.That(pc.Owner, Is.EqualTo(6));
+            Assert.That(pc.Group, Is.EqualTo(0));
+            Assert.That(pc.Others, Is.EqualTo(0));
+            Assert.That(pc.Total, Is.EqualTo(6));
+            Assert.That(pc.Selected, Is.EqualTo(0));
+            Assert.That(pc.Users[m_userId], Is.EqualTo(6));
+            Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
+            Assert.That(pc.Simulator, Is.EqualTo(6));              
+        }        
         
         /// <summary>
         /// Test count after a parcel owner owned object is removed.
@@ -123,9 +154,35 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Owner, Is.EqualTo(1));
             Assert.That(pc.Group, Is.EqualTo(0));
             Assert.That(pc.Others, Is.EqualTo(0));
+            Assert.That(pc.Total, Is.EqualTo(1));
+            Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(1));
             Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(1));            
-        }        
+        }     
+        
+        /// <summary>
+        /// Test the count is correct after is has been tainted.
+        /// </summary>
+        [Test]
+        public void TestTaint()
+        {
+            TestHelper.InMethod();
+            IPrimCounts pc = m_lo.PrimCounts;
+            
+            SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_userId, 0x01);             
+            m_scene.AddNewSceneObject(sog, false); 
+            
+            m_pcm.TaintPrimCount();
+            
+            Assert.That(pc.Owner, Is.EqualTo(3));
+            Assert.That(pc.Group, Is.EqualTo(0));
+            Assert.That(pc.Others, Is.EqualTo(0));
+            Assert.That(pc.Total, Is.EqualTo(3));
+            Assert.That(pc.Selected, Is.EqualTo(0));
+            Assert.That(pc.Users[m_userId], Is.EqualTo(3));
+            Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
+            Assert.That(pc.Simulator, Is.EqualTo(3));              
+        }
     }
 }
