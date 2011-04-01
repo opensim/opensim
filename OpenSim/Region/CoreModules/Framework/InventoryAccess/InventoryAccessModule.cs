@@ -668,26 +668,16 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                 if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
                                     part.GroupMask = item.GroupPermissions;
                             }
+
+                            foreach (SceneObjectPart part in group.Parts)
+                            {
+                                part.LastOwnerID = part.OwnerID;
+                                part.OwnerID = item.Owner;
+                                part.Inventory.ChangeInventoryOwner(item.Owner);
+                            }
                             
                             group.ApplyNextOwnerPermissions();
                         }
-                    }
-
-                    foreach (SceneObjectPart part in group.Parts)
-                    {
-                        if ((part.OwnerID != item.Owner) || (item.CurrentPermissions & 16) != 0)
-                        {
-                            part.LastOwnerID = part.OwnerID;
-                            part.OwnerID = item.Owner;
-                            part.Inventory.ChangeInventoryOwner(item.Owner);
-                            part.GroupMask = 0; // DO NOT propagate here
-                        }
-                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
-                            part.EveryoneMask = item.EveryOnePermissions;
-                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
-                            part.NextOwnerMask = item.NextPermissions;
-                        if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteGroup) != 0)
-                            part.GroupMask = item.GroupPermissions;
                     }
 
                     rootPart.TrimPermissions();

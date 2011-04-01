@@ -175,12 +175,12 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (TaskInventoryItem item in items)
             {
                 if (ownerId != item.OwnerID)
-                {
                     item.LastOwnerID = item.OwnerID;
-                    item.OwnerID = ownerId;
-                    item.PermsMask = 0;
-                    item.PermsGranter = UUID.Zero;
-                }
+
+                item.OwnerID = ownerId;
+                item.PermsMask = 0;
+                item.PermsGranter = UUID.Zero;
+                item.OwnerChanged = true;
             }
         }
 
