@@ -823,21 +823,19 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                     }
                                 }
                                 
+                                foreach (SceneObjectPart part in group.Parts)
+                                {
+                                    part.LastOwnerID = part.OwnerID;
+                                    part.OwnerID = item.Owner;
+                                    part.Inventory.ChangeInventoryOwner(item.Owner);
+                                }
+
                                 group.ApplyNextOwnerPermissions();
                             }
                         }
 
                         foreach (SceneObjectPart part in group.Parts)
                         {
-                            // TODO: Remove the magic number badness
-                            if ((part.OwnerID != item.Owner) ||
-                                (item.CurrentPermissions & 16) != 0 || // Magic number
-                                (item.Flags & (uint)InventoryItemFlags.ObjectSlamPerm) != 0)
-                            {
-                                part.LastOwnerID = part.OwnerID;
-                                part.OwnerID = item.Owner;
-                                part.Inventory.ChangeInventoryOwner(item.Owner);
-                            }
                             if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteEveryone) != 0)
                                 part.EveryoneMask = item.EveryOnePermissions;
                             if ((item.Flags & (uint)InventoryItemFlags.ObjectOverwriteNextOwner) != 0)
