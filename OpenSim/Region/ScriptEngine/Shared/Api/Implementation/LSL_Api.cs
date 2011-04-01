@@ -10282,7 +10282,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void print(string str)
         {
             // yes, this is a real LSL function. See: http://wiki.secondlife.com/wiki/Print
-            m_log.Info("LSL print():" + str);
+            IOSSL_Api ossl = (IOSSL_Api)m_ScriptEngine.GetApi(m_itemID, "OSSL");
+            if (ossl != null)
+            {
+                ossl.CheckThreatLevel(ThreatLevel.High, "print");
+                m_log.Info("LSL print():" + str);
+            }
         }
     }
 
