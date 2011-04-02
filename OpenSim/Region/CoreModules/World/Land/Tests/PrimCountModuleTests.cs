@@ -45,7 +45,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
     public class PrimCountModuleTests
     {
         protected UUID m_userId = new UUID("00000000-0000-0000-0000-100000000000");
-        protected UUID m_dummyUserId = new UUID("99999999-9999-9999-9999-999999999999");        
+        protected UUID m_otherUserId = new UUID("99999999-9999-9999-9999-999999999999");        
         protected TestScene m_scene;
         protected PrimCountModule m_pcm;
         protected ILandObject m_lo;
@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Total, Is.EqualTo(0));
             Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(0));
-            Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
+            Assert.That(pc.Users[m_otherUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(0));            
             
             SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_userId, 0x01);             
@@ -93,7 +93,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Total, Is.EqualTo(3));
             Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(3));
-            Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
+            Assert.That(pc.Users[m_otherUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(3));            
             
             // Add a second object and retest
@@ -106,7 +106,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Total, Is.EqualTo(5));
             Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(5));
-            Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
+            Assert.That(pc.Users[m_otherUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(5));              
         }
         
@@ -131,7 +131,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Total, Is.EqualTo(6));
             Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(6));
-            Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
+            Assert.That(pc.Users[m_otherUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(6));              
         }        
         
@@ -157,7 +157,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Total, Is.EqualTo(1));
             Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(1));
-            Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
+            Assert.That(pc.Users[m_otherUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(1));            
         }     
         
@@ -169,7 +169,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
                   
             IPrimCounts pc = m_lo.PrimCounts;       
             
-            SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_dummyUserId, 0x01);             
+            SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_otherUserId, 0x01);             
             m_scene.AddNewSceneObject(sog, false);
             
             Assert.That(pc.Owner, Is.EqualTo(0));
@@ -178,7 +178,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Total, Is.EqualTo(3));
             Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(0));
-            Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(3));
+            Assert.That(pc.Users[m_otherUserId], Is.EqualTo(3));
             Assert.That(pc.Simulator, Is.EqualTo(3));                          
         }
         
@@ -202,7 +202,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Total, Is.EqualTo(3));
             Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(3));
-            Assert.That(pc.Users[m_dummyUserId], Is.EqualTo(0));
+            Assert.That(pc.Users[m_otherUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(3));              
         }
     }
