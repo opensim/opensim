@@ -199,6 +199,38 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Simulator, Is.EqualTo(3));             
         }
         
+        /// <summary>
+        /// Test count after a parcel owner owned object is removed.
+        /// </summary>
+        [Test]
+        public void TestRemoveGroupObject()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+            
+            m_lo.DeedToGroup(m_groupId);
+            
+            IPrimCounts pc = m_lo.PrimCounts;
+            
+            SceneObjectGroup sogToKeep = SceneSetupHelpers.CreateSceneObject(1, m_userId, 0x1);
+            sogToKeep.GroupID = m_groupId;            
+            m_scene.AddNewSceneObject(sogToKeep, false);
+            
+            SceneObjectGroup sogToDelete = SceneSetupHelpers.CreateSceneObject(3, m_userId, 0x10);
+            m_scene.AddNewSceneObject(sogToDelete, false);            
+            m_scene.DeleteSceneObject(sogToDelete, false);
+            
+            Assert.That(pc.Owner, Is.EqualTo(0));
+            Assert.That(pc.Group, Is.EqualTo(1));
+            Assert.That(pc.Others, Is.EqualTo(0));
+            Assert.That(pc.Total, Is.EqualTo(1));
+            Assert.That(pc.Selected, Is.EqualTo(0));
+            Assert.That(pc.Users[m_userId], Is.EqualTo(1));
+            Assert.That(pc.Users[m_groupId], Is.EqualTo(0));
+            Assert.That(pc.Users[m_otherUserId], Is.EqualTo(0));
+            Assert.That(pc.Simulator, Is.EqualTo(1));            
+        }        
+        
         [Test]        
         public void TestAddOthersObject()
         {
