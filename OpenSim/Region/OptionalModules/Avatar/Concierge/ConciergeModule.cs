@@ -80,16 +80,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             m_config = config.Configs["Concierge"];
 
             if (null == m_config)
-            {
-                m_log.Info("[Concierge]: no config found, plugin disabled");
                 return;
-            }
 
             if (!m_config.GetBoolean("enabled", false))
-            {
-                m_log.Info("[Concierge]: plugin disabled by configuration");
                 return;
-            }
+
             m_enabled = true;
 
 
@@ -113,8 +108,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             {
                 m_replacingChatModule = false;
             }
+            
             m_log.InfoFormat("[Concierge] {0} ChatModule", m_replacingChatModule ? "replacing" : "not replacing");
-
 
             // take note of concierge channel and of identity
             m_conciergeChannel = config.Configs["Concierge"].GetInt("concierge_channel", m_conciergeChannel);
