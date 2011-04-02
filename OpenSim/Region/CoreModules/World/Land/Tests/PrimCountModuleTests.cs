@@ -45,6 +45,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
     public class PrimCountModuleTests
     {
         protected UUID m_userId = new UUID("00000000-0000-0000-0000-100000000000");
+        protected UUID m_groupId = new UUID("00000000-0000-0000-8888-000000000000");        
         protected UUID m_otherUserId = new UUID("99999999-9999-9999-9999-999999999999");        
         protected TestScene m_scene;
         protected PrimCountModule m_pcm;
@@ -65,14 +66,11 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         } 
         
         /// <summary>
-        /// Test count after a parcel owner owned object is added.
+        /// Test that counts before we do anything are correct.
         /// </summary>
         [Test]
-        public void TestAddOwnerObject()
+        public void TestInitialCounts()
         {
-            TestHelper.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();                                  
-                  
             IPrimCounts pc = m_lo.PrimCounts;
             
             Assert.That(pc.Owner, Is.EqualTo(0));
@@ -82,7 +80,19 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Selected, Is.EqualTo(0));
             Assert.That(pc.Users[m_userId], Is.EqualTo(0));
             Assert.That(pc.Users[m_otherUserId], Is.EqualTo(0));
-            Assert.That(pc.Simulator, Is.EqualTo(0));            
+            Assert.That(pc.Simulator, Is.EqualTo(0));              
+        }            
+        
+        /// <summary>
+        /// Test count after a parcel owner owned object is added.
+        /// </summary>
+        [Test]
+        public void TestAddOwnerObject()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();                                  
+                  
+            IPrimCounts pc = m_lo.PrimCounts;         
             
             SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_userId, 0x01);             
             m_scene.AddNewSceneObject(sog, false);
@@ -159,7 +169,35 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Users[m_userId], Is.EqualTo(1));
             Assert.That(pc.Users[m_otherUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(1));            
-        }     
+        } 
+        
+        [Test]
+        public void TestAddGroupObject()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();                                  
+            
+            m_lo.DeedToGroup(m_groupId);
+                  
+            IPrimCounts pc = m_lo.PrimCounts;       
+            
+            SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_otherUserId, 0x01);             
+            sog.GroupID = m_groupId;
+            m_scene.AddNewSceneObject(sog, false);
+            
+            Assert.That(pc.Owner, Is.EqualTo(0));
+            Assert.That(pc.Group, Is.EqualTo(3));
+            Assert.That(pc.Others, Is.EqualTo(0));
+            Assert.That(pc.Total, Is.EqualTo(3));
+            Assert.That(pc.Selected, Is.EqualTo(0));
+            
+            // Is this desired behaviour?  Not totally sure.
+            Assert.That(pc.Users[m_userId], Is.EqualTo(0));
+            Assert.That(pc.Users[m_groupId], Is.EqualTo(0));
+            Assert.That(pc.Users[m_otherUserId], Is.EqualTo(3));
+            
+            Assert.That(pc.Simulator, Is.EqualTo(3));             
+        }
         
         [Test]        
         public void TestAddOthersObject()
