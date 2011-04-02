@@ -182,6 +182,29 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Simulator, Is.EqualTo(3));                          
         }
         
+        [Test]
+        public void TestRemoveOthersObject()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+            
+            IPrimCounts pc = m_lo.PrimCounts;
+            
+            m_scene.AddNewSceneObject(SceneSetupHelpers.CreateSceneObject(1, m_otherUserId, 0x1), false);
+            SceneObjectGroup sogToDelete = SceneSetupHelpers.CreateSceneObject(3, m_otherUserId, 0x10);
+            m_scene.AddNewSceneObject(sogToDelete, false);            
+            m_scene.DeleteSceneObject(sogToDelete, false);
+            
+            Assert.That(pc.Owner, Is.EqualTo(0));
+            Assert.That(pc.Group, Is.EqualTo(0));
+            Assert.That(pc.Others, Is.EqualTo(1));
+            Assert.That(pc.Total, Is.EqualTo(1));
+            Assert.That(pc.Selected, Is.EqualTo(0));
+            Assert.That(pc.Users[m_userId], Is.EqualTo(0));
+            Assert.That(pc.Users[m_otherUserId], Is.EqualTo(1));
+            Assert.That(pc.Simulator, Is.EqualTo(1));            
+        }           
+        
         /// <summary>
         /// Test the count is correct after is has been tainted.
         /// </summary>
