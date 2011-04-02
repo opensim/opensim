@@ -210,7 +210,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     if (obj.OwnerID == landData.GroupID)
                         parcelCounts.Owner += partCount;
-                    else if (obj.GroupID == landData.GroupID)
+                    else if (landData.GroupID != UUID.Zero && obj.GroupID == landData.GroupID)
                         parcelCounts.Group += partCount;
                     else
                         parcelCounts.Others += partCount;
@@ -219,7 +219,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     if (obj.OwnerID == landData.OwnerID)
                         parcelCounts.Owner += partCount;
-                    else if (obj.GroupID == landData.GroupID)
+                    else if (landData.GroupID != UUID.Zero && obj.GroupID == landData.GroupID)
                         parcelCounts.Group += partCount;
                     else
                         parcelCounts.Others += partCount;
