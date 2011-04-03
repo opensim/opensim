@@ -86,13 +86,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     return;
                 }
 
-                m_log.Info("[GROUPS-MESSAGING]: Initializing GroupsMessagingModule");
-
                 m_debugEnabled = groupsConfig.GetBoolean("DebugEnabled", true);
             }
 
             m_log.Info("[GROUPS-MESSAGING]: GroupsMessagingModule starting up");
-
         }
 
         public void AddRegion(Scene scene)

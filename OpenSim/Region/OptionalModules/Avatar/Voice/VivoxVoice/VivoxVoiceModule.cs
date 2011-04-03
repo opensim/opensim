@@ -121,16 +121,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             m_config = config.Configs["VivoxVoice"];
 
             if (null == m_config)
-            {
-                m_log.Info("[VivoxVoice] no config found, plugin disabled");
                 return;
-            }
 
             if (!m_config.GetBoolean("enabled", false))
-            {
-                m_log.Info("[VivoxVoice] plugin disabled by configuration");
                 return;
-            }
 
             try
             {
@@ -218,7 +212,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 m_pluginEnabled = true;
 
                 m_log.Info("[VivoxVoice] plugin enabled");
-
             }
             catch (Exception e)
             {
@@ -227,7 +220,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 return;
             }
         }
-
 
         // Called to indicate that the module has been added to the region
         public void AddRegion(Scene scene)

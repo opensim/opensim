@@ -106,16 +106,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             m_Config = config.Configs["FreeSwitchVoice"];
 
             if (m_Config == null)
-            {
-                m_log.Info("[FreeSwitchVoice] no config found, plugin disabled");
                 return;
-            }
 
             if (!m_Config.GetBoolean("Enabled", false))
-            {
-                m_log.Info("[FreeSwitchVoice] plugin disabled by configuration");
                 return;
-            }
 
             try
             {
