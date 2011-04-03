@@ -2122,7 +2122,10 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectPart[] partList = sog.Parts;
                     
                     foreach (SceneObjectPart child in partList)
+                    {
                         child.Inventory.ChangeInventoryOwner(ownerID);
+                        child.TriggerScriptChangedEvent(Changed.OWNER);
+                    }
                 }
                 else
                 {
@@ -2138,6 +2141,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         child.LastOwnerID = child.OwnerID;
                         child.Inventory.ChangeInventoryOwner(groupID);
+                        child.TriggerScriptChangedEvent(Changed.OWNER);
                     }
 
                     sog.SetOwnerId(groupID);
