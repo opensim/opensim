@@ -401,7 +401,29 @@ namespace OpenSim.Data.SQLiteLegacy
 
             return result;
         }
-        
+       
+        public List<int> GetEstatesByOwner(UUID ownerID)
+        {
+            List<int> result = new List<int>();
+
+            string sql = "select EstateID from estate_settings where estate_settings.EstateOwner = :EstateOwner";
+
+            SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
+
+            cmd.CommandText = sql;
+            cmd.Parameters.Add(":EstateOwner", ownerID);
+
+            IDataReader r = cmd.ExecuteReader();
+
+            while (r.Read())
+            {
+                result.Add(Convert.ToInt32(r["EstateID"]));
+            }
+            r.Close();
+
+            return result;
+        }
+ 
         public bool LinkRegion(UUID regionID, int estateID)
         {
             SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();

@@ -372,6 +372,11 @@ namespace OpenSim.Data.MSSQL
             return new List<int>();
         }
 
+        public List<int> GetEstatesByOwner(UUID ownerID)
+        {
+            return new List<int>();
+        }
+
         public bool LinkRegion(UUID regionID, int estateID)
         {
             // TODO: Implementation!            

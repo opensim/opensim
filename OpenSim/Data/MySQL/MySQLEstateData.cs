@@ -484,6 +484,36 @@ namespace OpenSim.Data.MySQL
             return result;
         }
 
+        public List<int> GetEstatesByOwner(UUID ownerID)
+        {
+            List<int> result = new List<int>();
+
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+
+                using (MySqlCommand cmd = dbcon.CreateCommand())
+                {
+                    cmd.CommandText = "select estateID from estate_settings where EstateOwner = ?EstateOwner";
+                    cmd.Parameters.AddWithValue("?EstateOwner", ownerID);
+
+                    using (IDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            result.Add(Convert.ToInt32(reader["EstateID"]));
+                        }
+                        reader.Close();
+                    }
+                }
+
+
+                dbcon.Close();
+            }
+
+            return result;
+        }
+
         public bool LinkRegion(UUID regionID, int estateID)
         {
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
