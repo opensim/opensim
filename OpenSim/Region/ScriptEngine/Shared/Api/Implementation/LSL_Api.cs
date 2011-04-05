@@ -9837,17 +9837,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             
             ILandObject lo = World.LandChannel.GetLandObject((float)pos.x, (float)pos.y);
-            
-            //LandData land = World.GetLandData((float)pos.x, (float)pos.y);
 
             if (lo == null)
                 return 0;
             
             IPrimCounts pc = lo.PrimCounts;
 
-            if (sim_wide != 0)
+            if (sim_wide != ScriptBaseClass.FALSE)
             {
-                if (category == 0)
+                if (category == ScriptBaseClass.PARCEL_COUNT_TOTAL)
                 {
                     return pc.Simulator;
                 }
@@ -9859,30 +9857,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                if (category == 0)//Total Prims
-                {
+                if (category == ScriptBaseClass.PARCEL_COUNT_TOTAL)
                     return pc.Total;
-                }
-                else if (category == 1)//Owner Prims
-                {
+                else if (category == ScriptBaseClass.PARCEL_COUNT_OWNER)
                     return pc.Owner;
-                }
-                else if (category == 2)//Group Prims
-                {
+                else if (category == ScriptBaseClass.PARCEL_COUNT_GROUP)
                     return pc.Group;
-                }
-                else if (category == 3)//Other Prims
-                {
+                else if (category == ScriptBaseClass.PARCEL_COUNT_OTHER)
                     return pc.Others;
-                }
-                else if (category == 4)//Selected
-                {
+                else if (category == ScriptBaseClass.PARCEL_COUNT_SELECTED)
                     return pc.Selected;
-                }
-                else if (category == 5)//Temp
-                {
+                else if (category == ScriptBaseClass.PARCEL_COUNT_TEMP)
                     return 0; // counts not implemented yet
-                }
             }
             
             return 0;
