@@ -4938,7 +4938,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.TeleportLocationRequest, HandleTeleportLocationRequest);
             AddLocalPacketHandler(PacketType.UUIDNameRequest, HandleUUIDNameRequest, false);
             AddLocalPacketHandler(PacketType.RegionHandleRequest, HandleRegionHandleRequest);
-            AddLocalPacketHandler(PacketType.ParcelInfoRequest, HandleParcelInfoRequest, false);
+            AddLocalPacketHandler(PacketType.ParcelInfoRequest, HandleParcelInfoRequest);
             AddLocalPacketHandler(PacketType.ParcelAccessListRequest, HandleParcelAccessListRequest, false);
             AddLocalPacketHandler(PacketType.ParcelAccessListUpdate, HandleParcelAccessListUpdate, false);
             AddLocalPacketHandler(PacketType.ParcelPropertiesRequest, HandleParcelPropertiesRequest, false);
