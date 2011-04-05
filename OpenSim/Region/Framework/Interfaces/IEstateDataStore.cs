@@ -74,6 +74,12 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="search">Name of estate to search for.  This is the exact name, no parttern matching is done.</param>
         /// <returns></returns>
         List<int> GetEstates(string search);
+
+        /// <summary>
+        /// Get the IDs of all estates owned by the given user.
+        /// </summary>
+        /// <returns>An empty list if no estates were found.</returns>
+        List<int> GetEstatesByOwner(UUID ownerID);
         
         /// <summary>
         /// Get the IDs of all estates.

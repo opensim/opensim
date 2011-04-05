@@ -111,6 +111,11 @@ namespace OpenSim.Services.Connectors
             return m_database.GetEstatesAll();
         }
 
+        public List<int> GetEstatesByOwner(UUID ownerID)
+        {
+            return m_database.GetEstatesByOwner(ownerID);
+        }
+
         public bool LinkRegion(UUID regionID, int estateID)
         {
             return m_database.LinkRegion(regionID, estateID);
