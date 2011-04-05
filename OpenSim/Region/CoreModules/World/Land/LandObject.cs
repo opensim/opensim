@@ -925,7 +925,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                             }
                             catch (NullReferenceException)
                             {
-                                m_log.Info("[LAND]: " + "Got Null Reference when searching land owners from the parcel panel");
+                                m_log.Error("[LAND]: " + "Got Null Reference when searching land owners from the parcel panel");
                             }
                             try
                             {
@@ -1073,12 +1073,16 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void AddPrimOverMe(SceneObjectGroup obj)
         {
+//            m_log.DebugFormat("[LAND OBJECT]: Adding scene object {0} {1} over {2}", obj.Name, obj.LocalId, LandData.Name);
+            
             lock (primsOverMe)
                 primsOverMe.Add(obj);
         }
 
         public void RemovePrimFromOverMe(SceneObjectGroup obj)
         {
+//            m_log.DebugFormat("[LAND OBJECT]: Removing scene object {0} {1} from over {2}", obj.Name, obj.LocalId, LandData.Name);
+            
             lock (primsOverMe)
                 primsOverMe.Remove(obj);
         }

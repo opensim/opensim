@@ -62,8 +62,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
     public class LandManagementModule : INonSharedRegionModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly string remoteParcelRequestPath = "0009/";
 
@@ -307,8 +306,8 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <returns>The parcel created.</returns>
         protected ILandObject CreateDefaultParcel()
         {
-//            m_log.DebugFormat(
-//                "[LAND MANAGEMENT MODULE]: Creating default parcel for region {0}", m_scene.RegionInfo.RegionName);
+            m_log.DebugFormat(
+                "[LAND MANAGEMENT MODULE]: Creating default parcel for region {0}", m_scene.RegionInfo.RegionName);
             
             ILandObject fullSimParcel = new LandObject(UUID.Zero, false, m_scene);                                                
             fullSimParcel.SetLandBitmap(fullSimParcel.GetSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
@@ -778,7 +777,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #region Parcel Modification
 
-        public void ResetOverMeRecord()
+        public void ResetOverMeRecords()
         {
             lock (m_landList)
             {
@@ -855,7 +854,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 //                "[LAND MANAGEMENT MODULE]: Triggered EventManagerOnParcelPrimCountUpdate() for {0}", 
 //                m_scene.RegionInfo.RegionName);
             
-            ResetOverMeRecord();
+            ResetOverMeRecords();
             EntityBase[] entities = m_scene.Entities.GetEntities();
             foreach (EntityBase obj in entities)
             {
@@ -872,7 +871,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void EventManagerOnRequestParcelPrimCountUpdate()
         {
-            ResetOverMeRecord();
+            ResetOverMeRecords();
             m_scene.EventManager.TriggerParcelPrimCountUpdate();
             FinalizeLandPrimCountUpdate();
         }
@@ -1193,6 +1192,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (land != null)
             {
+                m_scene.EventManager.TriggerParcelPrimCountUpdate();
                 m_landList[local_id].SendLandObjectOwners(remote_client);
             }
             else
@@ -1424,7 +1424,8 @@ namespace OpenSim.Region.CoreModules.World.Land
         private string ProcessPropertiesUpdate(string request, string path, string param, UUID agentID, Caps caps)
         {
             IClientAPI client;
-            if (! m_scene.TryGetClient(agentID, out client)) {
+            if (!m_scene.TryGetClient(agentID, out client)) 
+            {
                 m_log.WarnFormat("[LAND MANAGEMENT MODULE]: Unable to retrieve IClientAPI for {0}", agentID);
                 return LLSDHelpers.SerialiseLLSDReply(new LLSDEmpty());
             }
