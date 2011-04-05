@@ -89,7 +89,6 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// </value>
         private readonly Dictionary<int, ILandObject> m_landList = new Dictionary<int, ILandObject>();
 
-        private bool m_landPrimCountTainted;
         private int m_lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
 
         private bool m_allowedForcefulBans = true;
@@ -122,18 +121,18 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             m_scene.EventManager.OnParcelPrimCountAdd += EventManagerOnParcelPrimCountAdd;
             m_scene.EventManager.OnParcelPrimCountUpdate += EventManagerOnParcelPrimCountUpdate;
+            m_scene.EventManager.OnObjectBeingRemovedFromScene += EventManagerOnObjectBeingRemovedFromScene;            
+            m_scene.EventManager.OnRequestParcelPrimCountUpdate += EventManagerOnRequestParcelPrimCountUpdate;
+            
             m_scene.EventManager.OnAvatarEnteringNewParcel += EventManagerOnAvatarEnteringNewParcel;
             m_scene.EventManager.OnClientMovement += EventManagerOnClientMovement;
             m_scene.EventManager.OnValidateLandBuy += EventManagerOnValidateLandBuy;
             m_scene.EventManager.OnLandBuy += EventManagerOnLandBuy;
             m_scene.EventManager.OnNewClient += EventManagerOnNewClient;
             m_scene.EventManager.OnSignificantClientMovement += EventManagerOnSignificantClientMovement;
-            m_scene.EventManager.OnObjectBeingRemovedFromScene += EventManagerOnObjectBeingRemovedFromScene;
             m_scene.EventManager.OnNoticeNoLandDataFromStorage += EventManagerOnNoLandDataFromStorage;
             m_scene.EventManager.OnIncomingLandDataFromStorage += EventManagerOnIncomingLandDataFromStorage;
-            m_scene.EventManager.OnSetAllowForcefulBan += EventManagerOnSetAllowedForcefulBan;
-            m_scene.EventManager.OnRequestParcelPrimCountUpdate += EventManagerOnRequestParcelPrimCountUpdate;
-            m_scene.EventManager.OnParcelPrimCountTainted += EventManagerOnParcelPrimCountTainted;
+            m_scene.EventManager.OnSetAllowForcefulBan += EventManagerOnSetAllowedForcefulBan;            
             m_scene.EventManager.OnRegisterCaps += EventManagerOnRegisterCaps;
             m_scene.EventManager.OnPluginConsole += EventManagerOnPluginConsole;
 
@@ -779,25 +778,15 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #region Parcel Modification
 
-        public void ResetAllLandPrimCounts()
+        public void ResetOverMeRecord()
         {
             lock (m_landList)
             {
                 foreach (LandObject p in m_landList.Values)
                 {
-                    p.ResetLandPrimCounts();
+                    p.ResetOverMeRecord();
                 }
             }
-        }
-
-        public void EventManagerOnParcelPrimCountTainted()
-        {
-            m_landPrimCountTainted = true;
-        }
-
-        public bool IsLandPrimCountTainted()
-        {
-            return m_landPrimCountTainted;
         }
 
         public void EventManagerOnParcelPrimCountAdd(SceneObjectGroup obj)
@@ -806,7 +795,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ILandObject landUnderPrim = GetLandObject(position.X, position.Y);
             if (landUnderPrim != null)
             {
-                ((LandObject)landUnderPrim).AddPrimToCount(obj);
+                ((LandObject)landUnderPrim).AddPrimOverMe(obj);
             }
         }
 
@@ -816,7 +805,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 foreach (LandObject p in m_landList.Values)
                 {
-                    p.RemovePrimFromCount(obj);
+                    p.RemovePrimFromOverMe(obj);
                 }
             }
         }
@@ -849,8 +838,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 foreach (LandObject p in landOwnersAndParcels[owner])
                 {
                     simArea += p.LandData.Area;
-                    simPrims += p.LandData.OwnerPrims + p.LandData.OtherPrims + p.LandData.GroupPrims +
-                                p.LandData.SelectedPrims;
+                    simPrims += p.PrimCounts.Total;
                 }
 
                 foreach (LandObject p in landOwnersAndParcels[owner])
@@ -867,7 +855,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 //                "[LAND MANAGEMENT MODULE]: Triggered EventManagerOnParcelPrimCountUpdate() for {0}", 
 //                m_scene.RegionInfo.RegionName);
             
-            ResetAllLandPrimCounts();
+            ResetOverMeRecord();
             EntityBase[] entities = m_scene.Entities.GetEntities();
             foreach (EntityBase obj in entities)
             {
@@ -880,15 +868,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
             }
             FinalizeLandPrimCountUpdate();
-            m_landPrimCountTainted = false;
         }
 
         public void EventManagerOnRequestParcelPrimCountUpdate()
         {
-            ResetAllLandPrimCounts();
+            ResetOverMeRecord();
             m_scene.EventManager.TriggerParcelPrimCountUpdate();
             FinalizeLandPrimCountUpdate();
-            m_landPrimCountTainted = false;
         }
 
         /// <summary>
@@ -951,8 +937,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                     newLand.ModifyLandBitmapSquare(startLandObject.GetLandBitmap(), start_x, start_y, end_x, end_y, false));
                 m_landList[startLandObjectIndex].ForceUpdateLandInfo();
             }
-
-            EventManagerOnParcelPrimCountTainted();
 
             //Now add the new land object
             ILandObject result = AddLandObject(newLand);
@@ -1020,7 +1004,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                     performFinalLandJoin(masterLandObject, slaveLandObject);
                 }
             }
-            EventManagerOnParcelPrimCountTainted();
 
             masterLandObject.SendLandUpdateToAvatarsOverMe();
         }

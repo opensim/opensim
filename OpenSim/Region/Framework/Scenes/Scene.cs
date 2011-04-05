@@ -1428,20 +1428,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Recount SceneObjectPart in parcel aabb
-        /// </summary>
-        private void UpdateLand()
-        {
-            if (LandChannel != null)
-            {
-                if (LandChannel.IsLandPrimCountTainted())
-                {
-                    EventManager.TriggerParcelPrimCountUpdate();
-                }
-            }
-        }
-
-        /// <summary>
         /// Update the terrain if it needs to be updated.
         /// </summary>
         private void UpdateTerrain()

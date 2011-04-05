@@ -89,7 +89,7 @@ namespace OpenSim.Framework
         void SendForceObjectSelect(int local_id, int request_type, List<UUID> returnIDs, IClientAPI remote_client);
         void SendLandObjectOwners(IClientAPI remote_client);
         void ReturnLandObjects(uint type, UUID[] owners, UUID[] tasks, IClientAPI remote_client);
-        void ResetLandPrimCounts();
+        void ResetOverMeRecord();
         void UpdateLandSold(UUID avatarID, UUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area);
 
         void DeedToGroup(UUID groupID);
