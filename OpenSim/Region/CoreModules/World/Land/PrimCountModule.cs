@@ -206,25 +206,29 @@ namespace OpenSim.Region.CoreModules.World.Land
                 else
                     parcelCounts.Users[obj.OwnerID] = partCount;
 
-                if (landData.IsGroupOwned)
+                if (obj.IsSelected)
                 {
-                    if (obj.OwnerID == landData.GroupID)
-                        parcelCounts.Owner += partCount;
-                    else if (landData.GroupID != UUID.Zero && obj.GroupID == landData.GroupID)
-                        parcelCounts.Group += partCount;
-                    else
-                        parcelCounts.Others += partCount;
+                    parcelCounts.Selected += partCount;                
                 }
                 else
                 {
-                    if (obj.OwnerID == landData.OwnerID)
-                        parcelCounts.Owner += partCount;
+                    if (landData.IsGroupOwned)
+                    {
+                        if (obj.OwnerID == landData.GroupID)
+                            parcelCounts.Owner += partCount;
+                        else if (landData.GroupID != UUID.Zero && obj.GroupID == landData.GroupID)
+                            parcelCounts.Group += partCount;
+                        else
+                            parcelCounts.Others += partCount;
+                    }
                     else
-                        parcelCounts.Others += partCount;
+                    {
+                        if (obj.OwnerID == landData.OwnerID)
+                            parcelCounts.Owner += partCount;
+                        else
+                            parcelCounts.Others += partCount;
+                    }
                 }
-                
-                if (obj.IsSelected)
-                    parcelCounts.Selected += partCount;
             }
         }
 
@@ -380,6 +384,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     count = counts.Owner;
                     count += counts.Group;
                     count += counts.Others;
+                    count += counts.Selected;
                 }
             }
             
