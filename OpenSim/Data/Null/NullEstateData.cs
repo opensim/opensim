@@ -119,5 +119,15 @@ namespace OpenSim.Data.Null
         {
             return false;
         }
+
+        #region IEstateDataStore Members
+
+
+        public List<int> GetEstatesByOwner(UUID ownerID)
+        {
+            return new List<int>();
+        }
+
+        #endregion
     }
 }
