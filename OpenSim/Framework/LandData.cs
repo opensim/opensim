@@ -560,7 +560,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Number of minutes to return SceneObjectGroup that are owned by someone who doesn't own 
+        /// Autoreturn number of minutes to return SceneObjectGroup that are owned by someone who doesn't own 
         /// the parcel and isn't set to the same 'group' as the parcel.
         /// </summary>
         public int OtherCleanTime {
