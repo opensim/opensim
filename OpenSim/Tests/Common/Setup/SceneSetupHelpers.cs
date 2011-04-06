@@ -489,32 +489,38 @@ namespace OpenSim.Tests.Common.Setup
         /// <returns></returns>
         public static SceneObjectGroup CreateSceneObject(int parts, UUID ownerId)
         {            
-            return CreateSceneObject(parts, ownerId, 0x1);
+            return CreateSceneObject(parts, ownerId, "", 0x1);
         }          
         
         /// <summary>
         /// Create a scene object but do not add it to the scene.
         /// </summary>
-        /// <param name="parts">The number of parts that should be in the scene object</param>
+        /// <param name="parts">
+        /// The number of parts that should be in the scene object
+        /// </param>
         /// <param name="ownerId"></param>
+        /// <param name="partNamePrefix">
+        /// The prefix to be given to part names.  This will be suffixed with "Part<part no>"
+        /// (e.g. mynamePart0 for the root part)
+        /// </param>
         /// <param name="uuidTail">
         /// The hexadecimal last part of the UUID for parts created.  A UUID of the form "00000000-0000-0000-0000-{0:XD12}"
         /// will be given to the root part, and incremented for each part thereafter.
         /// </param>
         /// <returns></returns>
-        public static SceneObjectGroup CreateSceneObject(int parts, UUID ownerId, int uuidTail)
+        public static SceneObjectGroup CreateSceneObject(int parts, UUID ownerId, string partNamePrefix, int uuidTail)
         {            
             string rawSogId = string.Format("00000000-0000-0000-0000-{0:X12}", uuidTail);
             
             SceneObjectGroup sog 
                 = new SceneObjectGroup(
-                    CreateSceneObjectPart("part0", new UUID(rawSogId), ownerId));
+                    CreateSceneObjectPart(string.Format("{0}Part0", partNamePrefix), new UUID(rawSogId), ownerId));
             
             if (parts > 1)
                 for (int i = 1; i < parts; i++)
                     sog.AddPart(
                         CreateSceneObjectPart(
-                            string.Format("obj{0}", i), 
+                            string.Format("{0}Part{1}", partNamePrefix, i), 
                             new UUID(string.Format("00000000-0000-0000-0000-{0:X12}", uuidTail + i)), 
                             ownerId));
             

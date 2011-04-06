@@ -92,8 +92,12 @@ namespace OpenSim.Framework
         /// Create a square land bitmap.
         /// </summary>
         /// <remarks>
-        /// Land co-ordinates are zero indexed.  At the moment, the smallest parcel of land is 4m x 4m, so if the 
-        /// region is 256 x 256m (the SL size), the largest land parcel starts at (0,0) and ends at (63,63).
+        /// Land co-ordinates are zero indexed.  The inputs are treated as points.  So if you want to create a bitmap
+        /// that covers an entire 256 x 256m region apart from a strip of land on the east, then you would need to 
+        /// specify start_x = 0, start_y = 0, end_x = 252 (or anything up to 255), end_y = 256.
+        /// 
+        /// At the moment, the smallest parcel of land is 4m x 4m, so if the 
+        /// region is 256 x 256m (the SL size), the bitmap returned will start at (0,0) and end at (63,63).
         /// </remarks>
         /// <param name="start_x"></param>
         /// <param name="start_y"></param>
