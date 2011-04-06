@@ -167,17 +167,18 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         /// Test that parcel counts update correctly when an object is moved between parcels, where that movement
         /// is not done directly by the user/
         /// </summary>
-        //[Test]
+        [Test]
         public void TestMoveOwnerObject()
         {
             TestHelper.InMethod();
-            log4net.Config.XmlConfigurator.Configure();                                  
+//            log4net.Config.XmlConfigurator.Configure();                                  
                                           
             SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_userId, "a", 0x01);             
             m_scene.AddNewSceneObject(sog, false);
             SceneObjectGroup sog2 = SceneSetupHelpers.CreateSceneObject(2, m_userId, "b", 0x10);             
             m_scene.AddNewSceneObject(sog2, false);   
             
+            // Move the first scene object to the eastern strip parcel           
             sog.AbsolutePosition = new Vector3(254, 2, 2);
             
             IPrimCounts pclo1 = m_lo.PrimCounts;         
@@ -189,7 +190,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pclo1.Selected, Is.EqualTo(0));
             Assert.That(pclo1.Users[m_userId], Is.EqualTo(2));
             Assert.That(pclo1.Users[m_otherUserId], Is.EqualTo(0));
-            Assert.That(pclo1.Simulator, Is.EqualTo(2));                
+            Assert.That(pclo1.Simulator, Is.EqualTo(5));                
             
             IPrimCounts pclo2 = m_lo2.PrimCounts;         
             
@@ -200,7 +201,28 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pclo2.Selected, Is.EqualTo(0));
             Assert.That(pclo2.Users[m_userId], Is.EqualTo(3));
             Assert.That(pclo2.Users[m_otherUserId], Is.EqualTo(0));
-            Assert.That(pclo2.Simulator, Is.EqualTo(3)); 
+            Assert.That(pclo2.Simulator, Is.EqualTo(5)); 
+            
+            // Now move it back again
+            sog.AbsolutePosition = new Vector3(2, 2, 2);   
+            
+            Assert.That(pclo1.Owner, Is.EqualTo(5));
+            Assert.That(pclo1.Group, Is.EqualTo(0));
+            Assert.That(pclo1.Others, Is.EqualTo(0));
+            Assert.That(pclo1.Total, Is.EqualTo(5));
+            Assert.That(pclo1.Selected, Is.EqualTo(0));
+            Assert.That(pclo1.Users[m_userId], Is.EqualTo(5));
+            Assert.That(pclo1.Users[m_otherUserId], Is.EqualTo(0));
+            Assert.That(pclo1.Simulator, Is.EqualTo(5));              
+            
+            Assert.That(pclo2.Owner, Is.EqualTo(0));
+            Assert.That(pclo2.Group, Is.EqualTo(0));
+            Assert.That(pclo2.Others, Is.EqualTo(0));
+            Assert.That(pclo2.Total, Is.EqualTo(0));
+            Assert.That(pclo2.Selected, Is.EqualTo(0));
+            Assert.That(pclo2.Users[m_userId], Is.EqualTo(0));
+            Assert.That(pclo2.Users[m_otherUserId], Is.EqualTo(0));
+            Assert.That(pclo2.Simulator, Is.EqualTo(5));             
         }
         
         /// <summary>

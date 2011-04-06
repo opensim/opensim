@@ -325,6 +325,8 @@ namespace OpenSim.Region.Framework.Scenes
                 //m_rootPart.GroupPosition.Z);
                 //m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
                 //}
+                
+                m_scene.EventManager.TriggerParcelPrimCountTainted();
             }
         }
 
