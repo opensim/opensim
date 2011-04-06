@@ -1458,20 +1458,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Recount SceneObjectPart in parcel aabb
-        /// </summary>
-        private void UpdateLand()
-        {
-            if (LandChannel != null)
-            {
-                if (LandChannel.IsLandPrimCountTainted())
-                {
-                    EventManager.TriggerParcelPrimCountUpdate();
-                }
-            }
-        }
-
-        /// <summary>
         /// Update the terrain if it needs to be updated.
         /// </summary>
         private void UpdateTerrain()
@@ -1565,8 +1551,11 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Return object to avatar Message
+        /// Tell an agent that their object has been returned. 
         /// </summary>
+        /// <remarks>
+        /// The actual return is handled by the caller.
+        /// </remarks>
         /// <param name="agentID">Avatar Unique Id</param>
         /// <param name="objectName">Name of object returned</param>
         /// <param name="location">Location of object returned</param>

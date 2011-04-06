@@ -77,7 +77,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </param>
         void Clear(bool setupDefaultParcel);
         
-        bool IsLandPrimCountTainted();
         bool IsForcefulBansAllowed();
         void UpdateLandObject(int localID, LandData data);
         void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient);

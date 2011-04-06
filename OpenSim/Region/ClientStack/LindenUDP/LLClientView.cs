@@ -5003,7 +5003,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.TeleportLocationRequest, HandleTeleportLocationRequest);
             AddLocalPacketHandler(PacketType.UUIDNameRequest, HandleUUIDNameRequest, false);
             AddLocalPacketHandler(PacketType.RegionHandleRequest, HandleRegionHandleRequest);
-            AddLocalPacketHandler(PacketType.ParcelInfoRequest, HandleParcelInfoRequest, false);
+            AddLocalPacketHandler(PacketType.ParcelInfoRequest, HandleParcelInfoRequest);
             AddLocalPacketHandler(PacketType.ParcelAccessListRequest, HandleParcelAccessListRequest, false);
             AddLocalPacketHandler(PacketType.ParcelAccessListUpdate, HandleParcelAccessListUpdate, false);
             AddLocalPacketHandler(PacketType.ParcelPropertiesRequest, HandleParcelPropertiesRequest, false);
@@ -8876,13 +8876,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 case "instantmessage":
                     if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                     {
-                        if (messagePacket.ParamList.Length < 5)
+                        if (messagePacket.ParamList.Length < 2)
                             return true;
+
                         UUID invoice = messagePacket.MethodData.Invoice;
-                        UUID SenderID = new UUID(Utils.BytesToString(messagePacket.ParamList[2].Parameter));
-                        string SenderName = Utils.BytesToString(messagePacket.ParamList[3].Parameter);
-                        string Message = Utils.BytesToString(messagePacket.ParamList[4].Parameter);
                         UUID sessionID = messagePacket.AgentData.SessionID;
+
+                        UUID SenderID;
+                        string SenderName;
+                        string Message;
+
+                        if (messagePacket.ParamList.Length < 5)
+                        {
+                            SenderID = AgentId;
+                            SenderName = Utils.BytesToString(messagePacket.ParamList[0].Parameter);
+                            Message = Utils.BytesToString(messagePacket.ParamList[1].Parameter);
+                        }
+                        else
+                        { 
+                            SenderID = new UUID(Utils.BytesToString(messagePacket.ParamList[2].Parameter));
+                            SenderName = Utils.BytesToString(messagePacket.ParamList[3].Parameter);
+                            Message = Utils.BytesToString(messagePacket.ParamList[4].Parameter);
+                        }
+
                         OnEstateBlueBoxMessageRequest(this, invoice, SenderID, sessionID, SenderName, Message);
                     }
                     return true;

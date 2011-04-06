@@ -133,16 +133,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             return new List<ILandObject>();
         }
 
-        public bool IsLandPrimCountTainted()
-        {
-            if (m_landManagementModule != null)
-            {
-                return m_landManagementModule.IsLandPrimCountTainted();
-            }
-
-            return false;
-        }
-
         public bool IsForcefulBansAllowed()
         {
             if (m_landManagementModule != null)

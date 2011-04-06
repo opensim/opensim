@@ -71,6 +71,12 @@ namespace OpenSim.Region.Framework.Interfaces
         List<int> GetEstates(string search);
         
         /// <summary>
+        /// Get the IDs of all estates owned by the given user.
+        /// </summary>
+        /// <returns>An empty list if no estates were found.</returns>
+        List<int> GetEstatesByOwner(UUID ownerID);        
+        
+        /// <summary>
         /// Get the IDs of all estates.
         /// </summary>
         /// <returns>An empty list if no estates were found.</returns>

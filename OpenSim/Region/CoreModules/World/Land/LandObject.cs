@@ -64,8 +64,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #endregion
 
-        #region ILandObject Members
-
         public int GetPrimsFree()
         {
             m_scene.EventManager.TriggerParcelPrimCountUpdate();
@@ -213,6 +211,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 return simMax;
             }
         }
+        
         #endregion
 
         #region Packet Request Handling
@@ -944,9 +943,12 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                 lock (primsOverMe)
                 {
+//                    m_log.DebugFormat(
+//                        "[LAND OBJECT]: Request for SendLandObjectOwners() from {0} with {1} known prims on region", 
+//                        remote_client.Name, primsOverMe.Count);
+                    
                     try
                     {
-
                         foreach (SceneObjectGroup obj in primsOverMe)
                         {
                             try
@@ -958,7 +960,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                             }
                             catch (NullReferenceException)
                             {
-                                m_log.Info("[LAND]: " + "Got Null Reference when searching land owners from the parcel panel");
+                                m_log.Error("[LAND]: " + "Got Null Reference when searching land owners from the parcel panel");
                             }
                             try
                             {
@@ -985,6 +987,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public Dictionary<UUID, int> GetLandObjectOwners()
         {
             Dictionary<UUID, int> ownersAndCount = new Dictionary<UUID, int>();
+            
             lock (primsOverMe)
             {
                 try
@@ -1021,8 +1024,10 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void ReturnLandObjects(uint type, UUID[] owners, UUID[] tasks, IClientAPI remote_client)
         {
-            Dictionary<UUID,List<SceneObjectGroup>> returns =
-                    new Dictionary<UUID,List<SceneObjectGroup>>();
+//            m_log.DebugFormat(
+//                "[LAND OBJECT]: Request to return objects in {0} from {1}", LandData.Name, remote_client.Name);
+            
+            Dictionary<UUID,List<SceneObjectGroup>> returns = new Dictionary<UUID,List<SceneObjectGroup>>();
 
             lock (primsOverMe)
             {
@@ -1095,81 +1100,27 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #region Object Adding/Removing from Parcel
 
-        public void ResetLandPrimCounts()
+        public void ResetOverMeRecord()
         {
-            LandData.GroupPrims = 0;
-            LandData.OwnerPrims = 0;
-            LandData.OtherPrims = 0;
-            LandData.SelectedPrims = 0;
-
-
             lock (primsOverMe)
                 primsOverMe.Clear();
         }
 
-        public void AddPrimToCount(SceneObjectGroup obj)
+        public void AddPrimOverMe(SceneObjectGroup obj)
         {
-
-            UUID prim_owner = obj.OwnerID;
-            int prim_count = obj.PrimCount;
-
-            if (obj.IsSelected)
-            {
-                LandData.SelectedPrims += prim_count;
-            }
-            else
-            {
-                if (prim_owner == LandData.OwnerID)
-                {
-                    LandData.OwnerPrims += prim_count;
-                }
-                else if ((obj.GroupID == LandData.GroupID ||
-                          prim_owner  == LandData.GroupID) &&
-                          LandData.GroupID != UUID.Zero)
-                {
-                    LandData.GroupPrims += prim_count;
-                }
-                else
-                {
-                    LandData.OtherPrims += prim_count;
-                }
-            }
-
+//            m_log.DebugFormat("[LAND OBJECT]: Adding scene object {0} {1} over {2}", obj.Name, obj.LocalId, LandData.Name);
+            
             lock (primsOverMe)
                 primsOverMe.Add(obj);
         }
 
-        public void RemovePrimFromCount(SceneObjectGroup obj)
+        public void RemovePrimFromOverMe(SceneObjectGroup obj)
         {
+//            m_log.DebugFormat("[LAND OBJECT]: Removing scene object {0} {1} from over {2}", obj.Name, obj.LocalId, LandData.Name);
+            
             lock (primsOverMe)
-            {
-                if (primsOverMe.Contains(obj))
-                {
-                    UUID prim_owner = obj.OwnerID;
-                    int prim_count = obj.PrimCount;
-
-                    if (prim_owner == LandData.OwnerID)
-                    {
-                        LandData.OwnerPrims -= prim_count;
-                    }
-                    else if (obj.GroupID == LandData.GroupID ||
-                             prim_owner  == LandData.GroupID)
-                    {
-                        LandData.GroupPrims -= prim_count;
-                    }
-                    else
-                    {
-                        LandData.OtherPrims -= prim_count;
-                    }
-
-                    primsOverMe.Remove(obj);
-                }
-            }
+                primsOverMe.Remove(obj);
         }
-
-        #endregion
-
-        #endregion
 
         #endregion
         
@@ -1192,5 +1143,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             LandData.MusicURL = url;
             SendLandUpdateToAvatarsOverMe();
         }
+        
+        #endregion
     }
 }
