@@ -1855,7 +1855,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         SceneObjectGroupsByLocalPartID[copy.LocalId] = copy;
                         foreach (SceneObjectPart part in children)
-                            SceneObjectGroupsByLocalPartID[copy.LocalId] = copy;
+                            SceneObjectGroupsByLocalPartID[part.LocalId] = copy;
                     }   
                     // PROBABLE END OF FIXME
 
