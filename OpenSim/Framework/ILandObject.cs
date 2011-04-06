@@ -82,8 +82,26 @@ namespace OpenSim.Framework
         void ForceUpdateLandInfo();
         void SetLandBitmap(bool[,] bitmap);
 
+        /// <summary>
+        /// Get a land bitmap that would cover an entire region.
+        /// </summary>
+        /// <returns>The bitmap created.</returns>
         bool[,] BasicFullRegionLandBitmap();
+        
+        /// <summary>
+        /// Create a square land bitmap.
+        /// </summary>
+        /// <remarks>
+        /// Land co-ordinates are zero indexed.  At the moment, the smallest parcel of land is 4m x 4m, so if the 
+        /// region is 256 x 256m (the SL size), the largest land parcel starts at (0,0) and ends at (63,63).
+        /// </remarks>
+        /// <param name="start_x"></param>
+        /// <param name="start_y"></param>
+        /// <param name="end_x"></param>
+        /// <param name="end_y"></param>
+        /// <returns>The bitmap created.</returns>
         bool[,] GetSquareLandBitmap(int start_x, int start_y, int end_x, int end_y);
+        
         bool[,] ModifyLandBitmapSquare(bool[,] land_bitmap, int start_x, int start_y, int end_x, int end_y, bool set_value);
         bool[,] MergeLandBitmaps(bool[,] bitmap_base, bool[,] bitmap_add);
         void SendForceObjectSelect(int local_id, int request_type, List<UUID> returnIDs, IClientAPI remote_client);

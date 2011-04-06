@@ -49,6 +49,10 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         protected UUID m_otherUserId = new UUID("99999999-9999-9999-9999-999999999999");        
         protected TestScene m_scene;
         protected PrimCountModule m_pcm;
+        
+        /// <summary>
+        /// A parcel that covers the entire sim.
+        /// </summary>
         protected ILandObject m_lo;
             
         [SetUp]
@@ -60,9 +64,9 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             SceneSetupHelpers.SetupSceneModules(m_scene, lmm, m_pcm);             
                         
             ILandObject lo = new LandObject(m_userId, false, m_scene);
-            lo.SetLandBitmap(lo.GetSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
-            m_lo = lmm.AddLandObject(lo);
-            //scene.loadAllLandObjectsFromStorage(scene.RegionInfo.originRegionID);            
+            lo.SetLandBitmap(
+                lo.GetSquareLandBitmap(0, 0, (int)Constants.RegionSize / 4 - 1, (int)Constants.RegionSize / 4 - 1));
+            m_lo = lmm.AddLandObject(lo);          
         } 
         
         /// <summary>
@@ -124,7 +128,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         /// Test count after a parcel owner owned copied object is added.
         /// </summary>
         [Test]
-        public void TestCopiedOwnerObject()
+        public void TestCopyOwnerObject()
         {
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();                                  
@@ -143,7 +147,45 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
             Assert.That(pc.Users[m_userId], Is.EqualTo(6));
             Assert.That(pc.Users[m_otherUserId], Is.EqualTo(0));
             Assert.That(pc.Simulator, Is.EqualTo(6));              
-        }        
+        }     
+        
+        /// <summary>
+        /// Test that parcel counts update correctly when an object is moved between parcels, where that movement
+        /// is not done directly by the user/
+        /// </summary>
+        //[Test]
+        public void TestMoveOwnerObject()
+        {
+//            TestHelper.InMethod();
+////            log4net.Config.XmlConfigurator.Configure();                                  
+//                  
+//            IPrimCounts pc = m_lo.PrimCounts;         
+//            
+//            SceneObjectGroup sog = SceneSetupHelpers.CreateSceneObject(3, m_userId, 0x01);             
+//            m_scene.AddNewSceneObject(sog, false);
+//            
+//            Assert.That(pc.Owner, Is.EqualTo(3));
+//            Assert.That(pc.Group, Is.EqualTo(0));
+//            Assert.That(pc.Others, Is.EqualTo(0));
+//            Assert.That(pc.Total, Is.EqualTo(3));
+//            Assert.That(pc.Selected, Is.EqualTo(0));
+//            Assert.That(pc.Users[m_userId], Is.EqualTo(3));
+//            Assert.That(pc.Users[m_otherUserId], Is.EqualTo(0));
+//            Assert.That(pc.Simulator, Is.EqualTo(3));            
+//            
+//            // Add a second object and retest
+//            SceneObjectGroup sog2 = SceneSetupHelpers.CreateSceneObject(2, m_userId, 0x10);             
+//            m_scene.AddNewSceneObject(sog2, false);   
+//            
+//            Assert.That(pc.Owner, Is.EqualTo(5));
+//            Assert.That(pc.Group, Is.EqualTo(0));
+//            Assert.That(pc.Others, Is.EqualTo(0));
+//            Assert.That(pc.Total, Is.EqualTo(5));
+//            Assert.That(pc.Selected, Is.EqualTo(0));
+//            Assert.That(pc.Users[m_userId], Is.EqualTo(5));
+//            Assert.That(pc.Users[m_otherUserId], Is.EqualTo(0));
+//            Assert.That(pc.Simulator, Is.EqualTo(5));                
+        }
         
         /// <summary>
         /// Test count after a parcel owner owned object is removed.
