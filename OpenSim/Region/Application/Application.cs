@@ -250,9 +250,7 @@ namespace OpenSim
             m_saveCrashDumps = configSource.Configs["Startup"].GetBoolean("save_crashes", false);
 
             // load Crash directory config
-            m_crashDir = configSource.Configs["Startup"].GetString("crash_dir", m_crashDir);
-
-           
+            m_crashDir = configSource.Configs["Startup"].GetString("crash_dir", m_crashDir);           
 
             if (background)
             {
@@ -260,15 +258,9 @@ namespace OpenSim
                 m_sim.Startup();
             }
             else
-            {
-
-
-                       
-
+            {                       
                 m_sim = new OpenSim(configSource);
-
-                    
-      
+                          
                 m_sim.Startup();
 
                 while (true)
