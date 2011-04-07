@@ -6,11 +6,6 @@
     ; SQLite
     Include-Storage = "config-include/storage/SQLiteStandalone.ini";
 
-    ; Unfortunately the current SQLite database plugin is not compatible with Mac OSX.  You can still use the older
-    ; legacy sqlite library if you are using Mono 2.4.  Please see the notes in OpenSim.ini (search for sqlite)
-    ; for more details
-    ;Include-Storage = "config-include/storage/SQLiteLegacyStandalone.ini";
-
     ; MySql
     ; Uncomment these lines if you want to use mysql storage
     ; Change the connection string to your db details
