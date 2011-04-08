@@ -50,6 +50,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int STATUS_CAST_SHADOWS = 512;
 
         public const int AGENT = 1;
+        public const int AGENT_BY_LEGACY_NAME = 1;
+        public const int AGENT_BY_USERNAME = 0x10;
         public const int ACTIVE = 2;
         public const int PASSIVE = 4;
         public const int SCRIPTED = 8;

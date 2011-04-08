@@ -1264,7 +1264,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 land.DeedToGroup(groupID);
             }
-            EventManagerOnParcelPrimCountTainted();
         }
 
         #region Land Object From Storage Functions

@@ -1337,12 +1337,12 @@ namespace OpenSim.Region.Framework.Scenes
                         terrainMS = Util.EnvironmentTickCountSubtract(terMS);
                     }
 
-                    if (Frame % m_update_land == 0)
-                    {
-                        int ldMS = Util.EnvironmentTickCount();
-                        UpdateLand();
-                        landMS = Util.EnvironmentTickCountSubtract(ldMS);
-                    }
+                   // if (Frame % m_update_land == 0)
+                   // {
+                   //     int ldMS = Util.EnvironmentTickCount();
+                   //     UpdateLand();
+                   //     landMS = Util.EnvironmentTickCountSubtract(ldMS);
+                   // }
 
                     frameMS = Util.EnvironmentTickCountSubtract(tmpFrameMS);
                     otherMS = tempOnRezMS + eventMS + backupMS + terrainMS + landMS;
