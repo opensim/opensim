@@ -10268,6 +10268,55 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 m_log.Info("LSL print():" + str);
             }
         }
+
+        private string Name2Username(string name)
+        {
+            string[] parts = name.Split(new char[] {' '});
+            if (parts.Length < 2)
+                return name.ToLower();
+            if (parts[1] == "Resident")
+                return parts[0].ToLower();
+
+            return name.Replace(" ", ".").ToLower();
+        }
+
+        public LSL_String llGetUsername(string id)
+        {
+            return Name2Username(llKey2Name(id));
+        }
+
+        public LSL_String llRequestUsername(string id)
+        {
+            UUID rq = UUID.Random();
+
+            UUID tid = AsyncCommands.
+                DataserverPlugin.RegisterRequest(m_localID,
+                                             m_itemID, rq.ToString());
+
+            AsyncCommands.
+                DataserverPlugin.DataserverReply(rq.ToString(), Name2Username(llKey2Name(id)));
+
+            return rq.ToString();
+        }
+
+        public LSL_String llGetDisplayName(string id)
+        {
+            return llKey2Name(id);
+        }
+
+        public LSL_String llRequestDisplayName(string id)
+        {
+            UUID rq = UUID.Random();
+
+            UUID tid = AsyncCommands.
+                DataserverPlugin.RegisterRequest(m_localID,
+                                             m_itemID, rq.ToString());
+
+            AsyncCommands.
+                DataserverPlugin.DataserverReply(rq.ToString(), llKey2Name(id));
+
+            return rq.ToString();
+        }
     }
 
     public class NotecardCache
