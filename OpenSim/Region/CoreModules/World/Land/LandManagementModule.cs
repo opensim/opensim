@@ -529,6 +529,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (landBitmap[x, y])
                         {
+//                            m_log.DebugFormat(
+//                                "[LAND MANAGEMENT MODULE]: Registering parcel {0} for land co-ord ({1}, {2}) on {3}", 
+//                                new_land.LandData.Name, x, y, m_scene.RegionInfo.RegionName);
+                            
                             m_landIDList[x, y] = newLandLocalID;
                         }
                     }
@@ -658,8 +662,16 @@ namespace OpenSim.Region.CoreModules.World.Land
                 // Corner case. If an autoreturn happens during sim startup
                 // we will come here with the list uninitialized
                 //
+                int landId = m_landIDList[x, y];
+                
+//                if (landId == 0)
+//                    m_log.DebugFormat(
+//                        "[LAND MANAGEMENT MODULE]: No land object found at ({0}, {1}) on {2}", 
+//                        x, y, m_scene.RegionInfo.RegionName);
+                
                 if (m_landList.ContainsKey(m_landIDList[x, y]))
                     return m_landList[m_landIDList[x, y]];
+                
                 return null;
             }
         }

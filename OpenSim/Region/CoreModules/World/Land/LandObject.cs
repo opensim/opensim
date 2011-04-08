@@ -736,23 +736,11 @@ namespace OpenSim.Region.CoreModules.World.Land
             return LandBitmap;
         }
 
-        /// <summary>
-        /// Full sim land object creation
-        /// </summary>
-        /// <returns></returns>
         public bool[,] BasicFullRegionLandBitmap()
         {
             return GetSquareLandBitmap(0, 0, (int) Constants.RegionSize, (int) Constants.RegionSize);
         }
-
-        /// <summary>
-        /// Used to modify the bitmap between the x and y points. Points use 64 scale
-        /// </summary>
-        /// <param name="start_x"></param>
-        /// <param name="start_y"></param>
-        /// <param name="end_x"></param>
-        /// <param name="end_y"></param>
-        /// <returns></returns>
+        
         public bool[,] GetSquareLandBitmap(int start_x, int start_y, int end_x, int end_y)
         {
             bool[,] tempBitmap = new bool[64,64];
