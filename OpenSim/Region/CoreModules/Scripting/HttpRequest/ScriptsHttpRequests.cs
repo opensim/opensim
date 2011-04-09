@@ -29,8 +29,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Security;
 using System.Text;
 using System.Threading;
+using System.Security.Cryptography.X509Certificates;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -84,6 +86,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 {
+
     public class HttpRequestModule : IRegionModule, IHttpRequestModule
     {
         private object HttpListLock = new object();
@@ -100,8 +103,23 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
         public HttpRequestModule()
         {
+            ServicePointManager.ServerCertificateValidationCallback +=ValidateServerCertificate;
         }
 
+        public static bool ValidateServerCertificate(
+            object sender,
+            X509Certificate  certificate,
+            X509Chain  chain,
+            SslPolicyErrors  sslPolicyErrors)
+        {
+            HttpWebRequest Request = (HttpWebRequest)sender;
+
+            if(Request.Headers.Get("NoVerifyCert") != null)
+            {
+                return true;
+            }
+            return chain.Build(new X509Certificate2(certificate));
+        }
         #region IHttpRequestModule Members
 
         public UUID MakeHttpRequest(string url, string parameters, string body)
@@ -141,8 +159,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                             break;
 
                         case (int)HttpRequestConstants.HTTP_VERIFY_CERT:
-
-                            // TODO implement me
+                            htc.HttpVerifyCert = (int.Parse(parms[i + 1]) != 0);
                             break;
                     }
                 }
@@ -282,7 +299,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         public string HttpMethod  = "GET";
         public string HttpMIMEType = "text/plain;charset=utf-8";
         public int HttpTimeout;
-        // public bool HttpVerifyCert = true; // not implemented
+        public bool HttpVerifyCert = true; // not implemented
         private Thread httpThread;
 
         // Request info
@@ -344,6 +361,17 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 Request.Method = HttpMethod;
                 Request.ContentType = HttpMIMEType;
 
+                if(!HttpVerifyCert)
+                {
+                    // Connection Group Name is probably not used so we hijack it to identify
+                    // a desired security exception
+//                    Request.ConnectionGroupName="NoVerify";
+                    Request.Headers.Add("NoVerifyCert" , "true");
+                }
+//                else
+//                {
+//                    Request.ConnectionGroupName="Verify";
+//                }
                 if (proxyurl != null && proxyurl.Length > 0) 
                 {
                     if (proxyexcepts != null && proxyexcepts.Length > 0) 
