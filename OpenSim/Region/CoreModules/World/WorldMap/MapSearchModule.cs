@@ -100,8 +100,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 // service wasn't available; maybe still an old GridServer. Try the old API, though it will return only one region
                 regionInfos = new List<GridRegion>();
                 GridRegion info = m_scene.GridService.GetRegionByName(m_scene.RegionInfo.ScopeID, mapName);
-                if (info != null) regionInfos.Add(info);
+                if (info != null) 
+                    regionInfos.Add(info);
             }
+            else if (regionInfos.Count == 0 && mapName.StartsWith("http://"))
+                remoteClient.SendAlertMessage("Hyperlink could not be established.");
+
             m_log.DebugFormat("[MAPSEARCHMODULE]: search {0} returned {1} regions", mapName, regionInfos.Count);
             List<MapBlockData> blocks = new List<MapBlockData>();
 
@@ -113,7 +117,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     data = new MapBlockData();
                     data.Agents = 0;
                     data.Access = info.Access;
-                    data.MapImageId = info.TerrainImage;
+                    data.MapImageId = UUID.Zero; // could use info.TerrainImage but it seems to break viewer2
                     data.Name = info.RegionName;
                     data.RegionFlags = 0; // TODO not used?
                     data.WaterHeight = 0; // not used
@@ -135,7 +139,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             data.Y = 0;
             blocks.Add(data);
 
-            remoteClient.SendMapBlock(blocks, 0);
+            // not sure what the flags do here, but seems to be necessary
+            // to set to "2" for viewer 2
+            remoteClient.SendMapBlock(blocks, 2);
         }
 
 //        private Scene GetClientScene(IClientAPI client)

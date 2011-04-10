@@ -4272,8 +4272,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
-        public void SendLandProperties(int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
+        public void SendLandProperties(
+             int sequence_id, bool snap_selection, int request_result, ILandObject lo, 
+             float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
         {
+//            m_log.DebugFormat("[LLCLIENTVIEW]: Sending land properties for {0} to {1}", lo.LandData.GlobalID, Name);
+            
+            LandData landData = lo.LandData;
+            
             ParcelPropertiesMessage updateMessage = new ParcelPropertiesMessage();
 
             updateMessage.AABBMax = landData.AABBMax;
@@ -4281,15 +4287,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updateMessage.Area = landData.Area;
             updateMessage.AuctionID = landData.AuctionID;
             updateMessage.AuthBuyerID = landData.AuthBuyerID;
-
             updateMessage.Bitmap = landData.Bitmap;
-
             updateMessage.Desc = landData.Description;
             updateMessage.Category = landData.Category;
             updateMessage.ClaimDate = Util.ToDateTime(landData.ClaimDate);
             updateMessage.ClaimPrice = landData.ClaimPrice;
-            updateMessage.GroupID = landData.GroupID;
-            updateMessage.GroupPrims = landData.GroupPrims;
+            updateMessage.GroupID = landData.GroupID;            
             updateMessage.IsGroupOwned = landData.IsGroupOwned;
             updateMessage.LandingType = (LandingType) landData.LandingType;
             updateMessage.LocalID = landData.LocalID;
@@ -4310,9 +4313,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updateMessage.Name = landData.Name;
             updateMessage.OtherCleanTime = landData.OtherCleanTime;
             updateMessage.OtherCount = 0; //TODO: Unimplemented
-            updateMessage.OtherPrims = landData.OtherPrims;
-            updateMessage.OwnerID = landData.OwnerID;
-            updateMessage.OwnerPrims = landData.OwnerPrims;
+            updateMessage.OwnerID = landData.OwnerID;            
             updateMessage.ParcelFlags = (ParcelFlags) landData.Flags;
             updateMessage.ParcelPrimBonus = simObjectBonusFactor;
             updateMessage.PassHours = landData.PassHours;
@@ -4327,10 +4328,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             updateMessage.RentPrice = 0;
             updateMessage.RequestResult = (ParcelResult) request_result;
-            updateMessage.SalePrice = landData.SalePrice;
-            updateMessage.SelectedPrims = landData.SelectedPrims;
+            updateMessage.SalePrice = landData.SalePrice;            
             updateMessage.SelfCount = 0; //TODO: Unimplemented
             updateMessage.SequenceID = sequence_id;
+            
             if (landData.SimwideArea > 0)
             {
                 int simulatorCapacity = (int)(((float)landData.SimwideArea / 65536.0f) * (float)m_scene.RegionInfo.ObjectCapacity * (float)m_scene.RegionInfo.RegionSettings.ObjectBonus);
@@ -4340,22 +4341,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 updateMessage.SimWideMaxPrims = 0;
             }
-            updateMessage.SimWideTotalPrims = landData.SimwidePrims;
+            
             updateMessage.SnapSelection = snap_selection;
-            updateMessage.SnapshotID = landData.SnapshotID;
-            updateMessage.Status = (ParcelStatus) landData.Status;
-            updateMessage.TotalPrims = landData.OwnerPrims + landData.GroupPrims + landData.OtherPrims +
-                                                 landData.SelectedPrims;
-            updateMessage.UserLocation = landData.UserLocation;
-            updateMessage.UserLookAt = landData.UserLookAt;
+            updateMessage.SnapshotID    = landData.SnapshotID;
+            updateMessage.Status        = (ParcelStatus) landData.Status;
+            updateMessage.UserLocation  = landData.UserLocation;
+            updateMessage.UserLookAt    = landData.UserLookAt;
 
-            updateMessage.MediaType = landData.MediaType;
-            updateMessage.MediaDesc = landData.MediaDescription;
-            updateMessage.MediaWidth = landData.MediaWidth;
-            updateMessage.MediaHeight = landData.MediaHeight;
-            updateMessage.MediaLoop = landData.MediaLoop;
-            updateMessage.ObscureMusic = landData.ObscureMusic;
-            updateMessage.ObscureMedia = landData.ObscureMedia;
+            updateMessage.MediaType     = landData.MediaType;
+            updateMessage.MediaDesc     = landData.MediaDescription;
+            updateMessage.MediaWidth    = landData.MediaWidth;
+            updateMessage.MediaHeight   = landData.MediaHeight;
+            updateMessage.MediaLoop     = landData.MediaLoop;
+            updateMessage.ObscureMusic  = landData.ObscureMusic;
+            updateMessage.ObscureMedia  = landData.ObscureMedia;
+            
+            IPrimCounts pc = lo.PrimCounts;
+            updateMessage.OwnerPrims        = pc.Owner;            
+            updateMessage.GroupPrims        = pc.Group;
+            updateMessage.OtherPrims        = pc.Others;            
+            updateMessage.SelectedPrims     = pc.Selected;
+            updateMessage.TotalPrims        = pc.Total;
+            updateMessage.SimWideTotalPrims = pc.Simulator;
 
             try
             {
@@ -4363,13 +4370,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (eq != null)
                 {
                     eq.ParcelProperties(updateMessage, this.AgentId);
-                } else {
-                    m_log.Warn("No EQ Interface when sending parcel data.");
+                } 
+                else 
+                {
+                    m_log.Warn("[LLCLIENTVIEW]: No EQ Interface when sending parcel data.");
                 }
             }
             catch (Exception ex)
             {
-                m_log.Error("Unable to send parcel data via eventqueue - exception: " + ex.ToString());
+                m_log.Error("[LLCLIENTVIEW]: Unable to send parcel data via eventqueue - exception: " + ex.ToString());
             }
         }
 
@@ -4929,7 +4938,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.TeleportLocationRequest, HandleTeleportLocationRequest);
             AddLocalPacketHandler(PacketType.UUIDNameRequest, HandleUUIDNameRequest, false);
             AddLocalPacketHandler(PacketType.RegionHandleRequest, HandleRegionHandleRequest);
-            AddLocalPacketHandler(PacketType.ParcelInfoRequest, HandleParcelInfoRequest, false);
+            AddLocalPacketHandler(PacketType.ParcelInfoRequest, HandleParcelInfoRequest);
             AddLocalPacketHandler(PacketType.ParcelAccessListRequest, HandleParcelAccessListRequest, false);
             AddLocalPacketHandler(PacketType.ParcelAccessListUpdate, HandleParcelAccessListUpdate, false);
             AddLocalPacketHandler(PacketType.ParcelPropertiesRequest, HandleParcelPropertiesRequest, false);
@@ -8800,13 +8809,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 case "instantmessage":
                     if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                     {
-                        if (messagePacket.ParamList.Length < 5)
+                        if (messagePacket.ParamList.Length < 2)
                             return true;
+
                         UUID invoice = messagePacket.MethodData.Invoice;
-                        UUID SenderID = new UUID(Utils.BytesToString(messagePacket.ParamList[2].Parameter));
-                        string SenderName = Utils.BytesToString(messagePacket.ParamList[3].Parameter);
-                        string Message = Utils.BytesToString(messagePacket.ParamList[4].Parameter);
                         UUID sessionID = messagePacket.AgentData.SessionID;
+
+                        UUID SenderID;
+                        string SenderName;
+                        string Message;
+
+                        if (messagePacket.ParamList.Length < 5)
+                        {
+                            SenderID = AgentId;
+                            SenderName = Utils.BytesToString(messagePacket.ParamList[0].Parameter);
+                            Message = Utils.BytesToString(messagePacket.ParamList[1].Parameter);
+                        }
+                        else
+                        { 
+                            SenderID = new UUID(Utils.BytesToString(messagePacket.ParamList[2].Parameter));
+                            SenderName = Utils.BytesToString(messagePacket.ParamList[3].Parameter);
+                            Message = Utils.BytesToString(messagePacket.ParamList[4].Parameter);
+                        }
+
                         OnEstateBlueBoxMessageRequest(this, invoice, SenderID, sessionID, SenderName, Message);
                     }
                     return true;

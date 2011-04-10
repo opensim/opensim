@@ -469,8 +469,8 @@ namespace OpenSim.Region.CoreModules
                 m_SunFixedHour = FixedSunHour;
                 m_SunFixed = FixedSun;
 
-                m_log.DebugFormat("[SUN]: Sun Settings Update: Fixed Sun? : {0}", m_SunFixed.ToString());
-                m_log.DebugFormat("[SUN]: Sun Settings Update: Sun Hour   : {0}", m_SunFixedHour.ToString());
+                // m_log.DebugFormat("[SUN]: Sun Settings Update: Fixed Sun? : {0}", m_SunFixed.ToString());
+                // m_log.DebugFormat("[SUN]: Sun Settings Update: Sun Hour   : {0}", m_SunFixedHour.ToString());
 
                 receivedEstateToolsSunUpdate = true;
 
@@ -480,7 +480,7 @@ namespace OpenSim.Region.CoreModules
                 // When sun settings are updated, we should update all clients with new settings.
                 SunUpdateToAllClients();
 
-                m_log.DebugFormat("[SUN]: PosTime : {0}", PosTime.ToString());
+                // m_log.DebugFormat("[SUN]: PosTime : {0}", PosTime.ToString());
             }
         }
 

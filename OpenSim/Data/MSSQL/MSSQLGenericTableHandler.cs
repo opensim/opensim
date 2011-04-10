@@ -40,8 +40,8 @@ namespace OpenSim.Data.MSSQL
 {
     public class MSSQLGenericTableHandler<T> where T : class, new()
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected string m_ConnectionString;
         protected MSSQLManager m_database; //used for parameter type translation

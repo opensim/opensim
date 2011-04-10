@@ -57,21 +57,12 @@ namespace OpenSim.Tests.Common.Setup
     /// </summary>
     public class SceneSetupHelpers
     {
-        // These static variables in order to allow regions to be linked by shared modules and same
-        // CommunicationsManager.
-        private static ISharedRegionModule m_assetService = null;
-//        private static ISharedRegionModule m_authenticationService = null;
-        private static ISharedRegionModule m_inventoryService = null;
-        private static ISharedRegionModule m_gridService = null;
-        private static ISharedRegionModule m_userAccountService = null;
-        private static ISharedRegionModule m_presenceService = null;
-
         /// <summary>
         /// Set up a test scene
         /// </summary>
-        ///
+        /// <remarks>
         /// Automatically starts service threads, as would the normal runtime.
-        ///
+        /// </remarks>
         /// <returns></returns>
         public static TestScene SetupScene()
         {
@@ -86,23 +77,8 @@ namespace OpenSim.Tests.Common.Setup
         /// <returns></returns>
         public static TestScene SetupScene(String realServices)
         {
-            return SetupScene(
-                "Unit test region", UUID.Random(), 1000, 1000, realServices);
+            return SetupScene("Unit test region", UUID.Random(), 1000, 1000, realServices);
         }
-
-        // REFACTORING PROBLEM. No idea what the difference is with the previous one
-        ///// <summary>
-        ///// Set up a test scene
-        ///// </summary>
-        /////
-        ///// <param name="realServices">Starts real inventory and asset services, as opposed to mock ones, if true</param>
-        ///// <param name="cm">This should be the same if simulating two scenes within a standalone</param>
-        ///// <returns></returns>
-        //public static TestScene SetupScene(String realServices)
-        //{
-        //    return SetupScene(
-        //        "Unit test region", UUID.Random(), 1000, 1000, "");
-        //}
 
         /// <summary>
         /// Set up a test scene
@@ -115,7 +91,7 @@ namespace OpenSim.Tests.Common.Setup
         /// <returns></returns>
         public static TestScene SetupScene(string name, UUID id, uint x, uint y)
         {
-            return SetupScene(name, id, x, y,"");
+            return SetupScene(name, id, x, y, "");
         }
 
         /// <summary>
@@ -156,27 +132,21 @@ namespace OpenSim.Tests.Common.Setup
             testScene.AddModule(godsModule.Name, godsModule);
             realServices = realServices.ToLower();
 
-            if (realServices.Contains("asset"))
-                StartAssetService(testScene, true);
-            else
-                StartAssetService(testScene, false);
+            LocalAssetServicesConnector assetService = StartAssetService(testScene, realServices.Contains("asset"));
 
             // For now, always started a 'real' authentication service
             StartAuthenticationService(testScene, true);
 
-            if (realServices.Contains("inventory"))
-                StartInventoryService(testScene, true);
-            else
-                StartInventoryService(testScene, false);
+            LocalInventoryServicesConnector   inventoryService   = StartInventoryService(testScene, realServices.Contains("inventory"));
+                                                                   StartGridService(testScene, true);
+            LocalUserAccountServicesConnector userAccountService = StartUserAccountService(testScene);            
+            LocalPresenceServicesConnector    presenceService    = StartPresenceService(testScene);
 
-            StartGridService(testScene, true);
-            StartUserAccountService(testScene);
-            StartPresenceService(testScene);
-
-            m_inventoryService.PostInitialise();
-            m_assetService.PostInitialise();
-            m_userAccountService.PostInitialise();
-            m_presenceService.PostInitialise();
+            inventoryService.PostInitialise();
+            assetService.PostInitialise();
+            userAccountService.PostInitialise();
+            presenceService.PostInitialise();
+            
             testScene.RegionInfo.EstateSettings.EstateOwner = UUID.Random();
             testScene.SetModuleInterfaces();
 
@@ -188,24 +158,15 @@ namespace OpenSim.Tests.Common.Setup
             testScene.PhysicsScene
                 = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher",   new IniConfigSource(), "test");
 
-            // It's really not a good idea to use static variables as they carry over between tests, leading to
-            // problems that are extremely hard to debug.  Really, these static fields need to be eliminated -
-            // tests using multiple regions that need to share modules need to find another solution.
-            m_assetService = null;
-            m_inventoryService = null;
-            m_gridService = null;
-            m_userAccountService = null;
-            m_presenceService = null;
-
             testScene.RegionInfo.EstateSettings = new EstateSettings();
             testScene.LoginsDisabled = false;
 
             return testScene;
         }
 
-        private static void StartAssetService(Scene testScene, bool real)
+        private static LocalAssetServicesConnector StartAssetService(Scene testScene, bool real)
         {
-            ISharedRegionModule assetService = new LocalAssetServicesConnector();
+            LocalAssetServicesConnector assetService = new LocalAssetServicesConnector();
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("AssetService");
@@ -219,7 +180,8 @@ namespace OpenSim.Tests.Common.Setup
             assetService.AddRegion(testScene);
             assetService.RegionLoaded(testScene);
             testScene.AddRegionModule(assetService.Name, assetService);
-            m_assetService = assetService;
+            
+            return assetService;
         }
 
         private static void StartAuthenticationService(Scene testScene, bool real)
@@ -243,9 +205,9 @@ namespace OpenSim.Tests.Common.Setup
             //m_authenticationService = service;
         }
 
-        private static void StartInventoryService(Scene testScene, bool real)
+        private static LocalInventoryServicesConnector StartInventoryService(Scene testScene, bool real)
         {
-            ISharedRegionModule inventoryService = new LocalInventoryServicesConnector();
+            LocalInventoryServicesConnector inventoryService = new LocalInventoryServicesConnector();
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("InventoryService");
@@ -265,10 +227,11 @@ namespace OpenSim.Tests.Common.Setup
             inventoryService.AddRegion(testScene);
             inventoryService.RegionLoaded(testScene);
             testScene.AddRegionModule(inventoryService.Name, inventoryService);
-            m_inventoryService = inventoryService;
+            
+            return inventoryService;           
         }
 
-        private static void StartGridService(Scene testScene, bool real)
+        private static LocalGridServicesConnector StartGridService(Scene testScene, bool real)
         {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
@@ -277,24 +240,25 @@ namespace OpenSim.Tests.Common.Setup
             config.Configs["GridService"].Set("StorageProvider", "OpenSim.Data.Null.dll:NullRegionData");
             if (real)
                 config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Services.GridService.dll:GridService");
-            if (m_gridService == null)
-            {
-                ISharedRegionModule gridService = new LocalGridServicesConnector();
-                gridService.Initialise(config);
-                m_gridService = gridService;
-            }
+
+            LocalGridServicesConnector gridService = new LocalGridServicesConnector();
+            gridService.Initialise(config);
+
             //else
             //    config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:TestGridService");
-            m_gridService.AddRegion(testScene);
-            m_gridService.RegionLoaded(testScene);
+            gridService.AddRegion(testScene);
+            gridService.RegionLoaded(testScene);
             //testScene.AddRegionModule(m_gridService.Name, m_gridService);
+            
+            return gridService;
         }
 
         /// <summary>
         /// Start a user account service
         /// </summary>
         /// <param name="testScene"></param>
-        private static void StartUserAccountService(Scene testScene)
+        /// <returns></returns>
+        private static LocalUserAccountServicesConnector StartUserAccountService(Scene testScene)
         {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
@@ -304,23 +268,21 @@ namespace OpenSim.Tests.Common.Setup
             config.Configs["UserAccountService"].Set(
                 "LocalServiceModule", "OpenSim.Services.UserAccountService.dll:UserAccountService");
 
-            if (m_userAccountService == null)
-            {
-                ISharedRegionModule userAccountService = new LocalUserAccountServicesConnector();
-                userAccountService.Initialise(config);
-                m_userAccountService = userAccountService;
-            }
+            LocalUserAccountServicesConnector userAccountService = new LocalUserAccountServicesConnector();
+            userAccountService.Initialise(config);
 
-            m_userAccountService.AddRegion(testScene);
-            m_userAccountService.RegionLoaded(testScene);
-            testScene.AddRegionModule(m_userAccountService.Name, m_userAccountService);
+            userAccountService.AddRegion(testScene);
+            userAccountService.RegionLoaded(testScene);
+            testScene.AddRegionModule(userAccountService.Name, userAccountService);
+            
+            return userAccountService;
         }
 
         /// <summary>
         /// Start a presence service
         /// </summary>
         /// <param name="testScene"></param>
-        private static void StartPresenceService(Scene testScene)
+        private static LocalPresenceServicesConnector StartPresenceService(Scene testScene)
         {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
@@ -330,16 +292,14 @@ namespace OpenSim.Tests.Common.Setup
             config.Configs["PresenceService"].Set(
                 "LocalServiceModule", "OpenSim.Services.PresenceService.dll:PresenceService");
 
-            if (m_presenceService == null)
-            {
-                ISharedRegionModule presenceService = new LocalPresenceServicesConnector();
-                presenceService.Initialise(config);
-                m_presenceService = presenceService;
-            }
+            LocalPresenceServicesConnector presenceService = new LocalPresenceServicesConnector();
+            presenceService.Initialise(config);
 
-            m_presenceService.AddRegion(testScene);
-            m_presenceService.RegionLoaded(testScene);
-            testScene.AddRegionModule(m_presenceService.Name, m_presenceService);
+            presenceService.AddRegion(testScene);
+            presenceService.RegionLoaded(testScene);
+            testScene.AddRegionModule(presenceService.Name, presenceService);
+            
+            return presenceService;
         }
 
         /// <summary>
@@ -436,7 +396,7 @@ namespace OpenSim.Tests.Common.Setup
         /// <summary>
         /// Add a root agent.
         /// </summary>
-        ///
+        /// <remarks>
         /// This function
         ///
         /// 1)  Tells the scene that an agent is coming.  Normally, the login service (local if standalone, from the
@@ -447,7 +407,7 @@ namespace OpenSim.Tests.Common.Setup
         ///
         /// This function performs actions equivalent with notifying the scene that an agent is
         /// coming and then actually connecting the agent to the scene.  The one step missed out is the very first
-        ///
+        /// </remarks>
         /// <param name="scene"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
@@ -494,9 +454,7 @@ namespace OpenSim.Tests.Common.Setup
         /// <returns></returns>
         public static SceneObjectPart AddSceneObject(Scene scene, string name)
         {
-            SceneObjectPart part
-                = new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero);
-            part.Name = name;
+            SceneObjectPart part = CreateSceneObjectPart(name, UUID.Random(), UUID.Zero);
 
             //part.UpdatePrimFlags(false, false, true);
             //part.ObjectFlags |= (uint)PrimFlags.Phantom;
@@ -505,5 +463,68 @@ namespace OpenSim.Tests.Common.Setup
 
             return part;
         }
+        
+        /// <summary>
+        /// Create a scene object part.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="id"></param>
+        /// <param name="ownerId"></param>
+        /// <returns></returns>
+        public static SceneObjectPart CreateSceneObjectPart(string name, UUID id, UUID ownerId)
+        {
+            return new SceneObjectPart(
+                ownerId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
+                    { Name = name, UUID = id };            
+        }
+        
+        /// <summary>
+        /// Create a scene object but do not add it to the scene.
+        /// </summary>
+        /// <remarks>
+        /// UUID always starts at 00000000-0000-0000-0000-000000000001
+        /// </remarks>
+        /// <param name="parts">The number of parts that should be in the scene object</param>
+        /// <param name="ownerId"></param>
+        /// <returns></returns>
+        public static SceneObjectGroup CreateSceneObject(int parts, UUID ownerId)
+        {            
+            return CreateSceneObject(parts, ownerId, "", 0x1);
+        }          
+        
+        /// <summary>
+        /// Create a scene object but do not add it to the scene.
+        /// </summary>
+        /// <param name="parts">
+        /// The number of parts that should be in the scene object
+        /// </param>
+        /// <param name="ownerId"></param>
+        /// <param name="partNamePrefix">
+        /// The prefix to be given to part names.  This will be suffixed with "Part<part no>"
+        /// (e.g. mynamePart0 for the root part)
+        /// </param>
+        /// <param name="uuidTail">
+        /// The hexadecimal last part of the UUID for parts created.  A UUID of the form "00000000-0000-0000-0000-{0:XD12}"
+        /// will be given to the root part, and incremented for each part thereafter.
+        /// </param>
+        /// <returns></returns>
+        public static SceneObjectGroup CreateSceneObject(int parts, UUID ownerId, string partNamePrefix, int uuidTail)
+        {            
+            string rawSogId = string.Format("00000000-0000-0000-0000-{0:X12}", uuidTail);
+            
+            SceneObjectGroup sog 
+                = new SceneObjectGroup(
+                    CreateSceneObjectPart(string.Format("{0}Part0", partNamePrefix), new UUID(rawSogId), ownerId));
+            
+            if (parts > 1)
+                for (int i = 1; i < parts; i++)
+                    sog.AddPart(
+                        CreateSceneObjectPart(
+                            string.Format("{0}Part{1}", partNamePrefix, i), 
+                            new UUID(string.Format("00000000-0000-0000-0000-{0:X12}", uuidTail + i)), 
+                            ownerId));
+            
+            return sog;
+        }        
     }
 }

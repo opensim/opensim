@@ -66,9 +66,9 @@ namespace OpenSim.Framework.RegionLoader.Web
                 {
                     HttpWebRequest webRequest = (HttpWebRequest) WebRequest.Create(url);
                     webRequest.Timeout = 30000; //30 Second Timeout
-                    m_log.Debug("[WEBLOADER]: Sending Download Request...");
+                    m_log.DebugFormat("[WEBLOADER]: Sending download request to {0}", url);
                     HttpWebResponse webResponse = (HttpWebResponse) webRequest.GetResponse();
-                    m_log.Debug("[WEBLOADER]: Downloading Region Information From Remote Server...");
+                    m_log.Debug("[WEBLOADER]: Downloading region information...");
                     StreamReader reader = new StreamReader(webResponse.GetResponseStream());
                     string xmlSource = String.Empty;
                     string tempStr = reader.ReadLine();

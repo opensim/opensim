@@ -209,6 +209,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llInstantMessage(string user, string message);
         LSL_String llIntegerToBase64(int number);
         LSL_String llKey2Name(string id);
+        LSL_String llGetUsername(string id);
+        LSL_String llRequestUsername(string id);
+        LSL_String llGetDisplayName(string id);
+        LSL_String llRequestDisplayName(string id);
         void llLinkParticleSystem(int linknum, LSL_List rules);
         LSL_String llList2CSV(LSL_List src);
          LSL_Float llList2Float(LSL_List src, int index);
@@ -398,6 +402,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         LSL_Vector llWind(LSL_Vector offset);
         LSL_String llXorBase64Strings(string str1, string str2);
         LSL_String llXorBase64StringsCorrect(string str1, string str2);
+              void print(string str);
 
         void SetPrimitiveParamsEx(LSL_Key prim, LSL_List rules);
         LSL_List GetLinkPrimitiveParamsEx(LSL_Key prim, LSL_List rules);

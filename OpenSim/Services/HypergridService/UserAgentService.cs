@@ -253,7 +253,7 @@ namespace OpenSim.Services.HypergridService
 
             TravelingAgentInfo travel = m_TravelingAgents[sessionID];
 
-            return travel.GridExternalName == thisGridExternalName;
+            return travel.GridExternalName.ToLower() == thisGridExternalName.ToLower();
         }
 
         public bool VerifyClient(UUID sessionID, string reportedIP)

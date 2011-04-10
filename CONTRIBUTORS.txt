@@ -28,7 +28,7 @@ people that make the day to day of OpenSim happen.
 * Diva (Crista Lopes, University of California, Irvine)
 * nlin (3Di)
 * Arthur Rodrigo S Valadares (IBM)
-
+* BlueWall (James Hughes)
 
 = Past Open Sim Developers =
 These folks are alumns of the OpenSim core group, but are now
@@ -117,6 +117,7 @@ what it is today.
 * SachaMagne
 * Salahzar Stenvaag
 * sempuki
+* SignpostMarv
 * Snoopy
 * Strawberry Fride
 * tglion

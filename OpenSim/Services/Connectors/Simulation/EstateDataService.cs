@@ -90,6 +90,11 @@ namespace OpenSim.Services.Connectors
         {
             return m_database.LoadEstateSettings(estateID);
         }
+        
+        public List<EstateSettings> LoadEstateSettingsAll()
+        {
+            return m_database.LoadEstateSettingsAll();            
+        }        
 
         public void StoreEstateSettings(EstateSettings es)
         {
@@ -99,6 +104,16 @@ namespace OpenSim.Services.Connectors
         public List<int> GetEstates(string search)
         {
             return m_database.GetEstates(search);
+        }
+        
+        public List<int> GetEstatesAll()
+        {
+            return m_database.GetEstatesAll();
+        }
+
+        public List<int> GetEstatesByOwner(UUID ownerID)
+        {
+            return m_database.GetEstatesByOwner(ownerID);
         }
 
         public bool LinkRegion(UUID regionID, int estateID)

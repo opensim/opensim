@@ -357,6 +357,17 @@ namespace OpenSim.Data.SQLite
 
             return DoLoad(cmd, UUID.Zero, false);
         }
+        
+        public List<EstateSettings> LoadEstateSettingsAll()
+        {
+            List<EstateSettings> estateSettings = new List<EstateSettings>();
+            
+            List<int> estateIds = GetEstatesAll();
+            foreach (int estateId in estateIds)
+                estateSettings.Add(LoadEstateSettings(estateId));
+            
+            return estateSettings;
+        }
 
         public List<int> GetEstates(string search)
         {
@@ -368,6 +379,49 @@ namespace OpenSim.Data.SQLite
 
             cmd.CommandText = sql;
             cmd.Parameters.AddWithValue(":EstateName", search);
+
+            IDataReader r = cmd.ExecuteReader();
+
+            while (r.Read())
+            {
+                result.Add(Convert.ToInt32(r["EstateID"]));
+            }
+            r.Close();
+
+            return result;
+        }
+        
+        public List<int> GetEstatesAll()
+        {
+            List<int> result = new List<int>();
+
+            string sql = "select EstateID from estate_settings";
+
+            SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
+
+            cmd.CommandText = sql;
+
+            IDataReader r = cmd.ExecuteReader();
+
+            while (r.Read())
+            {
+                result.Add(Convert.ToInt32(r["EstateID"]));
+            }
+            r.Close();
+
+            return result;            
+        }
+
+        public List<int> GetEstatesByOwner(UUID ownerID)
+        {
+            List<int> result = new List<int>();
+
+            string sql = "select EstateID from estate_settings where estate_settings.EstateOwner = :EstateOwner";
+
+            SqliteCommand cmd = (SqliteCommand)m_connection.CreateCommand();
+
+            cmd.CommandText = sql;
+            cmd.Parameters.AddWithValue(":EstateOwner", ownerID);
 
             IDataReader r = cmd.ExecuteReader();
 

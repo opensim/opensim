@@ -325,6 +325,8 @@ namespace OpenSim.Region.Framework.Scenes
                 //m_rootPart.GroupPosition.Z);
                 //m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
                 //}
+                
+                m_scene.EventManager.TriggerParcelPrimCountTainted();
             }
         }
 
@@ -1313,8 +1315,10 @@ namespace OpenSim.Region.Framework.Scenes
                                     parcel.LandData.OtherCleanTime)
                             {
                                 DetachFromBackup();
-                                m_log.InfoFormat("[SCENE]: Returning object {0} due to parcel auto return", RootPart.UUID.ToString());
-                                m_scene.AddReturn(OwnerID, Name, AbsolutePosition, "parcel auto return");
+                                m_log.DebugFormat(
+                                    "[SCENE OBJECT GROUP]: Returning object {0} due to parcel autoreturn", 
+                                     RootPart.UUID);
+                                m_scene.AddReturn(OwnerID, Name, AbsolutePosition, "parcel autoreturn");
                                 m_scene.DeRezObjects(null, new List<uint>() { RootPart.LocalId }, UUID.Zero,
                                         DeRezAction.Return, UUID.Zero);
 

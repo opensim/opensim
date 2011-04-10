@@ -29,6 +29,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Reflection;
+
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Data;
@@ -42,6 +44,11 @@ namespace OpenSim.Data.MySQL
         private List<string> m_ColumnNames;
         //private string m_connectionString;
 
+        protected virtual Assembly Assembly
+        {
+            get { return GetType().Assembly; }
+        }
+
         public MySqlRegionData(string connectionString, string realm)
                 : base(connectionString)
         {
@@ -51,7 +58,7 @@ namespace OpenSim.Data.MySQL
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();
-                Migration m = new Migration(dbcon, GetType().Assembly, "GridStore");
+                Migration m = new Migration(dbcon, Assembly, "GridStore");
                 m.Update();
             }
         }

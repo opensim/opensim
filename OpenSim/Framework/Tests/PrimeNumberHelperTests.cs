@@ -28,7 +28,6 @@
 using System;
 using System.Reflection;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
@@ -38,8 +37,6 @@ namespace OpenSim.Framework.Tests
     [TestFixture]
     public class PrimeNumberHelperTests
     {
-        
-
         [Test]
         public void TestGetPrime()
         {

@@ -32,7 +32,6 @@ using System.Reflection;
 using System.Threading;
 using log4net.Config;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenMetaverse.Assets;
 using OpenSim.Framework;

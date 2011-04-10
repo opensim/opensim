@@ -399,6 +399,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (!UpdateAgent(reg, finalDestination, agent))
                 {
                     // Region doesn't take it
+                    m_log.WarnFormat(
+                        "[ENTITY TRANSFER MODULE]: UpdateAgent failed on teleport of {0} to {1}.  Returning avatar to source region.", 
+                        sp.Name, finalDestination.RegionName);
+                    
                     Fail(sp, finalDestination);
                     return;
                 }
@@ -425,16 +429,18 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // that the client contacted the destination before we send the attachments and close things here.
                 if (!WaitForCallback(sp.UUID))
                 {
-                    Fail(sp, finalDestination);
+                    m_log.WarnFormat(
+                        "[ENTITY TRANSFER MODULE]: Teleport of {0} to {1} failed due to no callback from destination region.  Returning avatar to source region.", 
+                        sp.Name, finalDestination.RegionName);
+                    
+                    Fail(sp, finalDestination);                   
                     return;
                 }
-
 
                 // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
                 CrossAttachmentsIntoNewRegion(finalDestination, sp, true);
 
                 // Well, this is it. The agent is over there.
-
                 KillEntity(sp.Scene, sp.LocalId);
 
                 // May need to logout or other cleanup

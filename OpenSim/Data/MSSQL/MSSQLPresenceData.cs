@@ -43,7 +43,7 @@ namespace OpenSim.Data.MSSQL
     public class MSSQLPresenceData : MSSQLGenericTableHandler<PresenceData>,
             IPresenceData
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public MSSQLPresenceData(string connectionString, string realm) :
                 base(connectionString, realm, "Presence")

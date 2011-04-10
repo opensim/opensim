@@ -92,7 +92,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         private static string m_freeSwitchUrlResetPassword;
         private uint m_freeSwitchServicePort;
         private string m_openSimWellKnownHTTPAddress;
-        private string m_freeSwitchContext;
+//        private string m_freeSwitchContext;
 
         private readonly Dictionary<string, string> m_UUIDName = new Dictionary<string, string>();
         private Dictionary<string, string> m_ParcelAddress = new Dictionary<string, string>();
@@ -106,16 +106,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             m_Config = config.Configs["FreeSwitchVoice"];
 
             if (m_Config == null)
-            {
-                m_log.Info("[FreeSwitchVoice] no config found, plugin disabled");
                 return;
-            }
 
             if (!m_Config.GetBoolean("Enabled", false))
-            {
-                m_log.Info("[FreeSwitchVoice] plugin disabled by configuration");
                 return;
-            }
 
             try
             {
@@ -144,7 +138,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 m_freeSwitchDefaultWellKnownIP = map["DefaultWellKnownIP"].AsString();
                 m_freeSwitchDefaultTimeout = map["DefaultTimeout"].AsInteger();
                 m_freeSwitchUrlResetPassword = String.Empty;
-                m_freeSwitchContext = map["Context"].AsString();
+//                m_freeSwitchContext = map["Context"].AsString();
 
                 if (String.IsNullOrEmpty(m_freeSwitchRealm) ||
                     String.IsNullOrEmpty(m_freeSwitchAPIPrefix))
@@ -662,7 +656,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             resp.Append("</buddies><groups></groups></body></level0></response>");
 
             response["str_response_string"] = resp.ToString();
-            Regex normalizeEndLines = new Regex(@"\r\n", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.Multiline);
+//            Regex normalizeEndLines = new Regex(@"\r\n", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.Multiline);
 
             //m_log.DebugFormat("[FREESWITCH]: {0}", normalizeEndLines.Replace((string)response["str_response_string"],""));
             return response;
@@ -671,9 +665,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         public Hashtable FreeSwitchSLVoiceSigninHTTPHandler(Hashtable request)
         {
             m_log.Debug("[FreeSwitchVoice] FreeSwitchSLVoiceSigninHTTPHandler called");
-            string requestbody = (string)request["body"];
-            string uri = (string)request["uri"];
-            string contenttype = (string)request["content-type"];
+//            string requestbody = (string)request["body"];
+//            string uri = (string)request["uri"];
+//            string contenttype = (string)request["content-type"];
 
             Hashtable requestBody = ParseRequestBody((string)request["body"]);
 

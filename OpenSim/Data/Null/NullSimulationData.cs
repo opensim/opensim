@@ -38,6 +38,15 @@ namespace OpenSim.Data.Null
     /// </summary>
     public class NullSimulationData : ISimulationDataStore
     {
+        public NullSimulationData()
+        {
+        }
+
+        public NullSimulationData(string connectionString)
+        {
+            Initialise(connectionString);
+        }
+
         public void Initialise(string dbfile)
         {
             return;
@@ -85,12 +94,20 @@ namespace OpenSim.Data.Null
             return new List<SceneObjectGroup>();
         }
 
+        Dictionary<UUID, double[,]> m_terrains = new Dictionary<UUID, double[,]>();
         public void StoreTerrain(double[,] ter, UUID regionID)
         {
+            if (m_terrains.ContainsKey(regionID))
+                m_terrains.Remove(regionID);
+            m_terrains.Add(regionID, ter);
         }
 
         public double[,] LoadTerrain(UUID regionID)
         {
+            if (m_terrains.ContainsKey(regionID))
+            {
+                return m_terrains[regionID];
+            }
             return null;
         }
 

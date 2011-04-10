@@ -88,9 +88,21 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal object m_syncRoot = new object();
 
         protected internal PhysicsScene _PhyScene;
-
-        protected internal Dictionary<uint, SceneObjectGroup> SceneObjectGroupsByLocalID = new Dictionary<uint, SceneObjectGroup>();
+        
+        /// <summary>
+        /// Index the SceneObjectGroup for each part by the root part's UUID.
+        /// </summary>
         protected internal Dictionary<UUID, SceneObjectGroup> SceneObjectGroupsByFullID = new Dictionary<UUID, SceneObjectGroup>();
+        
+        /// <summary>
+        /// Index the SceneObjectGroup for each part by that part's UUID.
+        /// </summary>
+        protected internal Dictionary<UUID, SceneObjectGroup> SceneObjectGroupsByFullPartID = new Dictionary<UUID, SceneObjectGroup>();
+        
+        /// <summary>
+        /// Index the SceneObjectGroup for each part by that part's local ID.
+        /// </summary>
+        protected internal Dictionary<uint, SceneObjectGroup> SceneObjectGroupsByLocalPartID = new Dictionary<uint, SceneObjectGroup>();        
 
         private Object m_updateLock = new Object();
 
@@ -133,8 +145,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             lock (SceneObjectGroupsByFullID)
                 SceneObjectGroupsByFullID.Clear();
-            lock (SceneObjectGroupsByLocalID)
-                SceneObjectGroupsByLocalID.Clear();
+            lock (SceneObjectGroupsByFullPartID)
+                SceneObjectGroupsByFullPartID.Clear();
+            lock (SceneObjectGroupsByLocalPartID)
+                SceneObjectGroupsByLocalPartID.Clear();
 
             Entities.Clear();
         }
@@ -349,6 +363,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (Entities.ContainsKey(sceneObject.UUID))
                 return false;
+            
+//            m_log.DebugFormat(
+//                "[SCENEGRAPH]: Adding scene object {0} {1}, with {2} parts on {3}", 
+//                sceneObject.Name, sceneObject.UUID, sceneObject.Parts.Length, m_parentScene.RegionInfo.RegionName);
 
             SceneObjectPart[] children = sceneObject.Parts;
 
@@ -385,17 +403,20 @@ namespace OpenSim.Region.Framework.Scenes
                 OnObjectCreate(sceneObject);
 
             lock (SceneObjectGroupsByFullID)
-            {
                 SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
+            
+            lock (SceneObjectGroupsByFullPartID)
+            {
+                SceneObjectGroupsByFullPartID[sceneObject.UUID] = sceneObject;
                 foreach (SceneObjectPart part in children)
-                    SceneObjectGroupsByFullID[part.UUID] = sceneObject;
+                    SceneObjectGroupsByFullPartID[part.UUID] = sceneObject;
             }
 
-            lock (SceneObjectGroupsByLocalID)
+            lock (SceneObjectGroupsByLocalPartID)
             {
-                SceneObjectGroupsByLocalID[sceneObject.LocalId] = sceneObject;
+                SceneObjectGroupsByLocalPartID[sceneObject.LocalId] = sceneObject;
                 foreach (SceneObjectPart part in children)
-                    SceneObjectGroupsByLocalID[part.LocalId] = sceneObject;
+                    SceneObjectGroupsByLocalPartID[part.LocalId] = sceneObject;
             }
 
             return true;
@@ -426,21 +447,24 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (OnObjectRemove != null)
                 OnObjectRemove(Entities[uuid]);
-
+            
             lock (SceneObjectGroupsByFullID)
+                SceneObjectGroupsByFullID.Remove(grp.UUID);
+
+            lock (SceneObjectGroupsByFullPartID)
             {
                 SceneObjectPart[] parts = grp.Parts;
                 for (int i = 0; i < parts.Length; i++)
-                    SceneObjectGroupsByFullID.Remove(parts[i].UUID);
-                SceneObjectGroupsByFullID.Remove(grp.RootPart.UUID);
+                    SceneObjectGroupsByFullPartID.Remove(parts[i].UUID);
+                SceneObjectGroupsByFullPartID.Remove(grp.RootPart.UUID);
             }
 
-            lock (SceneObjectGroupsByLocalID)
+            lock (SceneObjectGroupsByLocalPartID)
             {
                 SceneObjectPart[] parts = grp.Parts;
                 for (int i = 0; i < parts.Length; i++)
-                    SceneObjectGroupsByLocalID.Remove(parts[i].LocalId);
-                SceneObjectGroupsByLocalID.Remove(grp.RootPart.LocalId);
+                    SceneObjectGroupsByLocalPartID.Remove(parts[i].LocalId);
+                SceneObjectGroupsByLocalPartID.Remove(grp.RootPart.LocalId);
             }
 
             return Entities.Remove(uuid);
@@ -627,7 +651,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!Entities.Remove(agentID))
             {
                 m_log.WarnFormat(
-                    "[SCENE]: Tried to remove non-existent scene presence with agent ID {0} from scene Entities list",
+                    "[SCENEGRAPH]: Tried to remove non-existent scene presence with agent ID {0} from scene Entities list",
                     agentID);
             }
 
@@ -650,7 +674,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    m_log.WarnFormat("[SCENE]: Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
+                    m_log.WarnFormat("[SCENEGRAPH]: Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
                 }
             }
         }
@@ -854,14 +878,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             //m_log.DebugFormat("Entered GetGroupByPrim with localID {0}", localID);
             SceneObjectGroup sog;
-            lock (SceneObjectGroupsByLocalID)
-                SceneObjectGroupsByLocalID.TryGetValue(localID, out sog);
+            lock (SceneObjectGroupsByLocalPartID)
+                SceneObjectGroupsByLocalPartID.TryGetValue(localID, out sog);
 
             if (sog != null)
             {
                 if (sog.HasChildPrim(localID))
                     return sog;
-                SceneObjectGroupsByLocalID.Remove(localID);
+                SceneObjectGroupsByLocalPartID.Remove(localID);
             }
 
             EntityBase[] entityList = GetEntities();
@@ -873,8 +897,8 @@ namespace OpenSim.Region.Framework.Scenes
                     sog = (SceneObjectGroup)ent;
                     if (sog.HasChildPrim(localID))
                     {
-                        lock (SceneObjectGroupsByLocalID)
-                            SceneObjectGroupsByLocalID[localID] = sog;
+                        lock (SceneObjectGroupsByLocalPartID)
+                            SceneObjectGroupsByLocalPartID[localID] = sog;
                         return sog;
                     }
                 }
@@ -891,16 +915,16 @@ namespace OpenSim.Region.Framework.Scenes
         private SceneObjectGroup GetGroupByPrim(UUID fullID)
         {
             SceneObjectGroup sog;
-            lock (SceneObjectGroupsByFullID)
-                SceneObjectGroupsByFullID.TryGetValue(fullID, out sog);
+            lock (SceneObjectGroupsByFullPartID)
+                SceneObjectGroupsByFullPartID.TryGetValue(fullID, out sog);
 
             if (sog != null)
             {
                 if (sog.ContainsPart(fullID))
                     return sog;
 
-                lock (SceneObjectGroupsByFullID)
-                    SceneObjectGroupsByFullID.Remove(fullID);
+                lock (SceneObjectGroupsByFullPartID)
+                    SceneObjectGroupsByFullPartID.Remove(fullID);
             }
 
             EntityBase[] entityList = GetEntities();
@@ -911,8 +935,8 @@ namespace OpenSim.Region.Framework.Scenes
                     sog = (SceneObjectGroup)ent;
                     if (sog.HasChildPrim(fullID))
                     {
-                        lock (SceneObjectGroupsByFullID)
-                            SceneObjectGroupsByFullID[fullID] = sog;
+                        lock (SceneObjectGroupsByFullPartID)
+                            SceneObjectGroupsByFullPartID[fullID] = sog;
                         return sog;
                     }
                 }
@@ -1064,11 +1088,12 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Performs action on all scene object groups.
+        /// Performs action once on all scene object groups.
         /// </summary>
         /// <param name="action"></param>
         protected internal void ForEachSOG(Action<SceneObjectGroup> action)
         {
+            // FIXME: Need to lock here, really.
             List<SceneObjectGroup> objlist = new List<SceneObjectGroup>(SceneObjectGroupsByFullID.Values);
             foreach (SceneObjectGroup obj in objlist)
             {
@@ -1079,11 +1104,11 @@ namespace OpenSim.Region.Framework.Scenes
                 catch (Exception e)
                 {
                     // Catch it and move on. This includes situations where splist has inconsistent info
-                    m_log.WarnFormat("[SCENE]: Problem processing action in ForEachSOG: ", e.ToString());
+                    m_log.WarnFormat(
+                        "[SCENEGRAPH]: Problem processing action in ForEachSOG: {0} {1}", e.Message, e.StackTrace);
                 }
             }
         }
-
         
         /// <summary>
         /// Performs action on all scene presences. This can ultimately run the actions in parallel but
@@ -1103,8 +1128,8 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     catch (Exception e)
                     {
-                        m_log.Info("[BUG] in " + m_parentScene.RegionInfo.RegionName + ": " + e.ToString());
-                        m_log.Info("[BUG] Stack Trace: " + e.StackTrace);
+                        m_log.Info("[SCENEGRAPH]: Error in " + m_parentScene.RegionInfo.RegionName + ": " + e.ToString());
+                        m_log.Info("[SCENEGRAPH]: Stack Trace: " + e.StackTrace);
                     }
                 });
             Parallel.ForEach<ScenePresence>(GetScenePresences(), protectedAction);
@@ -1119,7 +1144,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[BUG] in " + m_parentScene.RegionInfo.RegionName + ": " + e.ToString());
+                    m_log.Error("[SCENEGRAPH]: Error in " + m_parentScene.RegionInfo.RegionName + ": " + e.ToString());
                 }
             }
         }
@@ -1777,7 +1802,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rot"></param>
         public SceneObjectGroup DuplicateObject(uint originalPrimID, Vector3 offset, uint flags, UUID AgentID, UUID GroupID, Quaternion rot)
         {
-            //m_log.DebugFormat("[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", originalPrim, offset, AgentID);
+//            m_log.DebugFormat(
+//                "[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", 
+//                originalPrimID, offset, AgentID);
+            
             SceneObjectGroup original = GetGroupByPrim(originalPrimID);
             if (original != null)
             {
@@ -1808,7 +1836,28 @@ namespace OpenSim.Region.Framework.Scenes
                         copy.RootPart.SalePrice = 10;
                     }
 
+                    // FIXME: This section needs to be refactored so that it just calls AddSceneObject()
                     Entities.Add(copy);
+                    
+                    lock (SceneObjectGroupsByFullID)
+                        SceneObjectGroupsByFullID[copy.UUID] = copy;
+                    
+                    SceneObjectPart[] children = copy.Parts;
+                    
+                    lock (SceneObjectGroupsByFullPartID)
+                    {
+                        SceneObjectGroupsByFullPartID[copy.UUID] = copy;
+                        foreach (SceneObjectPart part in children)
+                            SceneObjectGroupsByFullPartID[part.UUID] = copy;
+                    }
+        
+                    lock (SceneObjectGroupsByLocalPartID)
+                    {
+                        SceneObjectGroupsByLocalPartID[copy.LocalId] = copy;
+                        foreach (SceneObjectPart part in children)
+                            SceneObjectGroupsByLocalPartID[part.LocalId] = copy;
+                    }   
+                    // PROBABLE END OF FIXME
 
                     // Since we copy from a source group that is in selected
                     // state, but the copy is shown deselected in the viewer,
