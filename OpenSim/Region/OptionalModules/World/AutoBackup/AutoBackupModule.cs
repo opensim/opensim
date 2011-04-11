@@ -324,6 +324,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			//If you don't want AutoBackup, we stop.
 			if ((state == null && !defaultState.GetEnabled()) || !state.GetEnabled ()) {
 				m_log.Info ("[AUTO BACKUP]: Region " + sRegionLabel + " is NOT AutoBackup enabled.");
+				state = defaultState;
 				return state;
 			} else {
 				m_log.Info ("[AUTO BACKUP]: Region " + sRegionLabel + " is AutoBackup ENABLED.");
@@ -346,6 +347,8 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 					state.SetEnabled (false);
 					return state;
 				}
+				if(state == null)
+				    state = new AutoBackupModuleState();
 				Timer tim = new Timer (interval);
 				state.SetTimer (tim);
 				//Milliseconds -> minutes
@@ -357,12 +360,25 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			}
 			
 			//Add the current region to the list of regions tied to this timer.
-			if (timerMap.ContainsKey (state.GetTimer ())) {
-				timerMap[state.GetTimer ()].Add (scene);
-			} else {
-				List<IScene> scns = new List<IScene> (1);
-				scns.Add (scene);
-				timerMap.Add (state.GetTimer (), scns);
+			if(state != null)
+			{
+			    if (timerMap.ContainsKey (state.GetTimer ())) {
+				    timerMap[state.GetTimer ()].Add (scene);
+			    } else {
+				    List<IScene> scns = new List<IScene> (1);
+				    scns.Add (scene);
+				    timerMap.Add (state.GetTimer (), scns);
+			    }
+			}
+			else
+			{
+			    if(timerMap.ContainsKey(defaultState.GetTimer())) {
+			        timerMap[defaultState.GetTimer()].Add(scene);
+			    } else {
+			        List<IScene> scns = new List<IScene> (1);
+			        scns.Add(scene);
+			        timerMap.Add(defaultState.GetTimer(), scns);
+			    }
 			}
 			
 			bool tmpBusyCheck = config.GetBoolean (prepend + "AutoBackupBusyCheck", defaultState.GetBusyCheck());
