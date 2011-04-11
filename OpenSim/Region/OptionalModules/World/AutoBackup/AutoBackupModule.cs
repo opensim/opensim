@@ -225,6 +225,10 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 				if (m_Enabled) {
 					m_log.Info ("[AUTO BACKUP]: AutoBackupModule enabled");
 				}
+				else {
+				    m_log.Info ("[AUTO BACKUP]: AutoBackupModule disabled");
+				    return;
+				}
 			}
 			
 			Timer defTimer = new Timer(720 * 60000);
@@ -360,24 +364,27 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			}
 			
 			//Add the current region to the list of regions tied to this timer.
-			if(state != null)
+			if(scene != null)
 			{
-			    if (timerMap.ContainsKey (state.GetTimer ())) {
-				    timerMap[state.GetTimer ()].Add (scene);
-			    } else {
-				    List<IScene> scns = new List<IScene> (1);
-				    scns.Add (scene);
-				    timerMap.Add (state.GetTimer (), scns);
+			    if(state != null)
+			    {
+			        if (timerMap.ContainsKey (state.GetTimer ())) {
+				        timerMap[state.GetTimer ()].Add (scene);
+			        } else {
+				        List<IScene> scns = new List<IScene> (1);
+				        scns.Add (scene);
+				        timerMap.Add (state.GetTimer (), scns);
+			        }
 			    }
-			}
-			else
-			{
-			    if(timerMap.ContainsKey(defaultState.GetTimer())) {
-			        timerMap[defaultState.GetTimer()].Add(scene);
-			    } else {
-			        List<IScene> scns = new List<IScene> (1);
-			        scns.Add(scene);
-			        timerMap.Add(defaultState.GetTimer(), scns);
+			    else
+			    {
+			        if(timerMap.ContainsKey(defaultState.GetTimer())) {
+			            timerMap[defaultState.GetTimer()].Add(scene);
+			        } else {
+			            List<IScene> scns = new List<IScene> (1);
+			            scns.Add(scene);
+			            timerMap.Add(defaultState.GetTimer(), scns);
+			        }
 			    }
 			}
 			
