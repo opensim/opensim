@@ -300,6 +300,77 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Used to adjust Sun Orbit values so Linden based viewers properly position sun</summary>
         private const float m_sunPainDaHalfOrbitalCutoff = 4.712388980384689858f;
 
+                        // First log file or time has expired, start writing to a new log file
+//<MIC>
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// THIS IS DEBUGGING CODE & SHOULD BE REMOVED
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+        public class QueueLogger
+        {
+            public Int32 start = 0;
+            public StreamWriter Log = null;
+            private Dictionary<UUID,int> m_idMap = new Dictionary<UUID,int>();
+
+            public QueueLogger()
+            {
+                DateTime now = DateTime.Now;
+                String fname = String.Format("queue-{0}.log", now.ToString("yyyyMMddHHmmss"));
+                Log = new StreamWriter(fname);
+
+                start = Util.EnvironmentTickCount();
+            }
+
+            public int LookupID(UUID uuid)
+            {
+                int localid;
+                if (! m_idMap.TryGetValue(uuid,out localid))
+                {
+                    localid = m_idMap.Count + 1;
+                    m_idMap[uuid] = localid;
+                }
+                
+                return localid;                
+            }
+        }
+
+        public static QueueLogger QueueLog = null;
+
+        // -----------------------------------------------------------------
+        public void LogAvatarUpdateEvent(UUID client, UUID avatar, Int32 timeinqueue)
+        {
+            if (QueueLog == null)
+                QueueLog = new QueueLogger();
+
+            Int32 ticks = Util.EnvironmentTickCountSubtract(QueueLog.start);
+            lock(QueueLog)
+            {
+                int cid = QueueLog.LookupID(client);
+                int aid = QueueLog.LookupID(avatar);
+                QueueLog.Log.WriteLine("{0},AU,AV{1:D4},AV{2:D4},{3}",ticks,cid,aid,timeinqueue);
+            }
+        }
+
+        // -----------------------------------------------------------------
+        public void LogQueueProcessEvent(UUID client, PriorityQueue queue, uint maxup)
+        {
+            if (QueueLog == null)
+                QueueLog = new QueueLogger();
+
+            Int32 ticks = Util.EnvironmentTickCountSubtract(QueueLog.start);
+            lock(QueueLog)
+            {
+                int cid = QueueLog.LookupID(client);
+                QueueLog.Log.WriteLine("{0},PQ,AV{1:D4},{2},{3}",ticks,cid,maxup,queue.ToString());
+            }
+        }
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+//</MIC>
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
 
@@ -3596,6 +3667,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
             int updatesThisCall = 0;
 
+//<MIC>
+// DEBUGGING CODE... REMOVE
+//            LogQueueProcessEvent(this.m_agentId,m_entityUpdates,m_maxUpdates);
+//</MIC>            
             // We must lock for both manipulating the kill record and sending the packet, in order to avoid a race
             // condition where a kill can be processed before an out-of-date update for the same object.                        
             lock (m_killRecord)
@@ -3611,7 +3686,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             break;
                     avgTimeDilation += update.TimeDilation;
                     avgTimeDilation *= 0.5f;
-
 
                     if (update.Entity is SceneObjectPart)
                     {
