@@ -12,8 +12,8 @@
 ;; OpenSimDefaults.ini.  To change a setting, first uncomment it by deleting the initial semicolon (;)
 ;; and then change the value.  This will override the value in OpenSimDefaults.ini
 ;; 
-;; If you want to find out what configuration OpenSimulator has used then type "config get" on the 
-;; region console command line.
+;; If you want to find out what configuration OpenSimulator has finished with once all the configuration
+;; files are loaded then type "config show" on the region console command line.
 ;;
 ;; 
 ;; NOTES FOR DEVELOPERS REGARDING FORMAT OF TIHS FILE
