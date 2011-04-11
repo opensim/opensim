@@ -228,7 +228,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
            }
            #endregion BinaryStats
 
-            m_throttle = new TokenBucket(null, sceneThrottleBps, sceneThrottleBps);
+            m_throttle = new TokenBucket(null, sceneThrottleBps);
             ThrottleRates = new ThrottleRates(configSource);
         }
 

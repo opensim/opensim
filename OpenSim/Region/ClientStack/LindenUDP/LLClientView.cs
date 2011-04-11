@@ -1610,7 +1610,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else
             {
-                OutPacket(kill, ThrottleOutPacketType.State);
+                // OutPacket(kill, ThrottleOutPacketType.State);
+                OutPacket(kill, ThrottleOutPacketType.Task);
             }
         }
 
@@ -2440,7 +2441,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             packet.Effect = effectBlocks;
 
-            OutPacket(packet, ThrottleOutPacketType.State);
+            // OutPacket(packet, ThrottleOutPacketType.State);
+            OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
         public void SendAvatarProperties(UUID avatarID, string aboutText, string bornOn, Byte[] charterMember,
