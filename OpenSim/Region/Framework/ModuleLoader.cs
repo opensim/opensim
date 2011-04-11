@@ -223,7 +223,8 @@ namespace OpenSim.Region.Framework
                 catch (Exception e)
                 {
                     m_log.ErrorFormat(
-                        "[MODULES]: Could not load types for [{0}].  Exception {1}", pluginAssembly.FullName, e);
+                        "[MODULES]: Could not load types for plugin DLL {0}.  Exception {1} {2}", 
+                        pluginAssembly.FullName, e.Message, e.StackTrace);
                     
                     // justincc: Right now this is fatal to really get the user's attention
                     throw e;
