@@ -86,7 +86,6 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 {
-
     public class HttpRequestModule : IRegionModule, IHttpRequestModule
     {
         private object HttpListLock = new object();
@@ -114,10 +113,11 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         {
             HttpWebRequest Request = (HttpWebRequest)sender;
 
-            if(Request.Headers.Get("NoVerifyCert") != null)
+            if (Request.Headers.Get("NoVerifyCert") != null)
             {
                 return true;
             }
+            
             return chain.Build(new X509Certificate2(certificate));
         }
         #region IHttpRequestModule Members
@@ -206,7 +206,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         * Not sure how important ordering is is here - the next first
         * one completed in the list is returned, based soley on its list
         * position, not the order in which the request was started or
-        * finsihed.  I thought about setting up a queue for this, but
+        * finished.  I thought about setting up a queue for this, but
         * it will need some refactoring and this works 'enough' right now
         */
 
@@ -254,8 +254,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
             m_scene.RegisterModuleInterface<IHttpRequestModule>(this);
 
-        m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
-        m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
+            m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
+            m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
 
             m_pendingRequests = new Dictionary<UUID, HttpRequestClass>();
         }
@@ -363,10 +363,10 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
                 if(!HttpVerifyCert)
                 {
-                    // Connection Group Name is probably not used so we hijack it to identify
-                    // a desired security exception
-//                    Request.ConnectionGroupName="NoVerify";
-                    Request.Headers.Add("NoVerifyCert" , "true");
+                    // We could hijack Connection Group Name to identify
+                    // a desired security exception.  But at the moment we'll use a dummy header instead.
+//                    Request.ConnectionGroupName = "NoVerify";
+                    Request.Headers.Add("NoVerifyCert", "true");
                 }
 //                else
 //                {
