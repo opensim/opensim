@@ -299,7 +299,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         public string HttpMethod  = "GET";
         public string HttpMIMEType = "text/plain;charset=utf-8";
         public int HttpTimeout;
-        public bool HttpVerifyCert = true; // not implemented
+        public bool HttpVerifyCert = true;
         private Thread httpThread;
 
         // Request info
