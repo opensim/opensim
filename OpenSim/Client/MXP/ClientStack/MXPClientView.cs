@@ -66,8 +66,8 @@ namespace OpenSim.Client.MXP.ClientStack
         private readonly IScene m_scene;
         private readonly string m_firstName;
         private readonly string m_lastName;
-        private int m_objectsToSynchronize = 0;
-        private int m_objectsSynchronized = -1;
+//        private int m_objectsToSynchronize = 0;
+//        private int m_objectsSynchronized = -1;
 
         private Vector3 m_startPosition=new Vector3(128f, 128f, 128f);
         #endregion
@@ -462,8 +462,8 @@ namespace OpenSim.Client.MXP.ClientStack
 
         public void MXPSendSynchronizationBegin(int objectCount)
         {
-            m_objectsToSynchronize = objectCount;
-            m_objectsSynchronized = 0;
+//            m_objectsToSynchronize = objectCount;
+//            m_objectsSynchronized = 0;
             SynchronizationBeginEventMessage synchronizationBeginEventMessage = new SynchronizationBeginEventMessage();
             synchronizationBeginEventMessage.ObjectCount = (uint)objectCount;
             Session.Send(synchronizationBeginEventMessage);

@@ -49,6 +49,8 @@ using Timer = System.Timers.Timer;
 using AssetLandmark = OpenSim.Framework.AssetLandmark;
 using Nini.Config;
 
+using System.IO;
+
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public delegate bool PacketMethod(IClientAPI simClient, Packet packet);
@@ -298,6 +300,77 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>Used to adjust Sun Orbit values so Linden based viewers properly position sun</summary>
         private const float m_sunPainDaHalfOrbitalCutoff = 4.712388980384689858f;
+
+                        // First log file or time has expired, start writing to a new log file
+//<MIC>
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// THIS IS DEBUGGING CODE & SHOULD BE REMOVED
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+        public class QueueLogger
+        {
+            public Int32 start = 0;
+            public StreamWriter Log = null;
+            private Dictionary<UUID,int> m_idMap = new Dictionary<UUID,int>();
+
+            public QueueLogger()
+            {
+                DateTime now = DateTime.Now;
+                String fname = String.Format("queue-{0}.log", now.ToString("yyyyMMddHHmmss"));
+                Log = new StreamWriter(fname);
+
+                start = Util.EnvironmentTickCount();
+            }
+
+            public int LookupID(UUID uuid)
+            {
+                int localid;
+                if (! m_idMap.TryGetValue(uuid,out localid))
+                {
+                    localid = m_idMap.Count + 1;
+                    m_idMap[uuid] = localid;
+                }
+                
+                return localid;                
+            }
+        }
+
+        public static QueueLogger QueueLog = null;
+
+        // -----------------------------------------------------------------
+        public void LogAvatarUpdateEvent(UUID client, UUID avatar, Int32 timeinqueue)
+        {
+            if (QueueLog == null)
+                QueueLog = new QueueLogger();
+
+            Int32 ticks = Util.EnvironmentTickCountSubtract(QueueLog.start);
+            lock(QueueLog)
+            {
+                int cid = QueueLog.LookupID(client);
+                int aid = QueueLog.LookupID(avatar);
+                QueueLog.Log.WriteLine("{0},AU,AV{1:D4},AV{2:D4},{3}",ticks,cid,aid,timeinqueue);
+            }
+        }
+
+        // -----------------------------------------------------------------
+        public void LogQueueProcessEvent(UUID client, PriorityQueue queue, uint maxup)
+        {
+            if (QueueLog == null)
+                QueueLog = new QueueLogger();
+
+            Int32 ticks = Util.EnvironmentTickCountSubtract(QueueLog.start);
+            lock(QueueLog)
+            {
+                int cid = QueueLog.LookupID(client);
+                QueueLog.Log.WriteLine("{0},PQ,AV{1:D4},{2},{3}",ticks,cid,maxup,queue.ToString());
+            }
+        }
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+//</MIC>
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
@@ -3575,6 +3648,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Primitive Packet/Data Sending Methods
 
+        
         /// <summary>
         /// Generate one of the object update packets based on PrimUpdateFlags
         /// and broadcast the packet to clients
@@ -3590,11 +3664,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         return; // Don't send updates for other people's HUDs
             }
 
-            double priority = m_prioritizer.GetUpdatePriority(this, entity);
+            uint priority = m_prioritizer.GetUpdatePriority(this, entity);
 
             lock (m_entityUpdates.SyncRoot)
-                m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags, m_scene.TimeDilation), entity.LocalId);
+                m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags, m_scene.TimeDilation));
         }
+
+        private Int32 m_LastQueueFill = 0;
+        private uint m_maxUpdates = 0;
 
         private void ProcessEntityUpdates(int maxUpdates)
         {
@@ -3603,195 +3680,232 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>> terseUpdateBlocks = new OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>>();
             OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>> terseAgentUpdateBlocks = new OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>>();
 
-            if (maxUpdates <= 0) maxUpdates = Int32.MaxValue;
-            int updatesThisCall = 0;
-
-            float avgTimeDilation = 0;
-
-            EntityUpdate update;
-            while (updatesThisCall < maxUpdates)
+            if (maxUpdates <= 0)
             {
-                lock (m_entityUpdates.SyncRoot)
-                    if (!m_entityUpdates.TryDequeue(out update))
-                        break;
-
-                avgTimeDilation += update.TimeDilation;
-                avgTimeDilation *= 0.5f;
-
-                if (update.Entity is SceneObjectPart)
+                m_maxUpdates = Int32.MaxValue;
+            }
+            else
+            {
+                if (m_maxUpdates == 0 || m_LastQueueFill == 0)
                 {
-                    SceneObjectPart part = (SceneObjectPart)update.Entity;
-
-                    // Please do not remove this unless you can demonstrate on the OpenSim mailing list that a client
-                    // will never receive an update after a prim kill.  Even then, keeping the kill record may be a good
-                    // safety measure.
-                    //
-                    // If a Linden Lab 1.23.5 client (and possibly later and earlier) receives an object update
-                    // after a kill, it will keep displaying the deleted object until relog.  OpenSim currently performs
-                    // updates and kills on different threads with different scheduling strategies, hence this protection.
-                    // 
-                    // This doesn't appear to apply to child prims - a client will happily ignore these updates
-                    // after the root prim has been deleted.
-                    lock (m_killRecord)
-                    {
-                        if (m_killRecord.Contains(part.LocalId))
-                            continue;
-                        if (m_killRecord.Contains(part.ParentGroup.RootPart.LocalId))
-                            continue;
-                    }
-
-                    if (part.ParentGroup.IsDeleted)
-                        continue;
-
-                    if (part.ParentGroup.IsAttachment)
-                    {   // Someone else's HUD, why are we getting these?
-                        if (part.ParentGroup.OwnerID != AgentId &&
-                            part.ParentGroup.RootPart.Shape.State >= 30)
-                            continue;
-                        ScenePresence sp;
-                        // Owner is not in the sim, don't update it to
-                        // anyone
-                        if (!m_scene.TryGetScenePresence(part.OwnerID, out sp))
-                            continue;
-
-                        List<SceneObjectGroup> atts = sp.Attachments;
-                        bool found = false;
-                        foreach (SceneObjectGroup att in atts)
-                        {
-                            if (att == part.ParentGroup)
-                            {
-                                found = true;
-                                break;
-                            }
-                        }
-
-                        // It's an attachment of a valid avatar, but
-                        // doesn't seem to be attached, skip
-                        if (!found)
-                            continue;
-                    }
-
-                    if (part.ParentGroup.IsAttachment && m_disableFacelights)
-                    {
-                        if (part.ParentGroup.RootPart.Shape.State != (byte)AttachmentPoint.LeftHand &&
-                            part.ParentGroup.RootPart.Shape.State != (byte)AttachmentPoint.RightHand)
-                        {
-                            part.Shape.LightEntry = false;
-                        }
-                    }
-                }
-
-                ++updatesThisCall;
-
-                #region UpdateFlags to packet type conversion
-
-                PrimUpdateFlags updateFlags = update.Flags;
-
-                bool canUseCompressed = true;
-                bool canUseImproved = true;
-
-                // Compressed object updates only make sense for LL primitives
-                if (!(update.Entity is SceneObjectPart))
-                {
-                    canUseCompressed = false;
-                }
-
-                if (updateFlags.HasFlag(PrimUpdateFlags.FullUpdate))
-                {
-                    canUseCompressed = false;
-                    canUseImproved = false;
+                    m_maxUpdates = (uint)maxUpdates;
                 }
                 else
                 {
-                    if (updateFlags.HasFlag(PrimUpdateFlags.Velocity) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Acceleration) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.CollisionPlane) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Joint))
+                    if (Util.EnvironmentTickCountSubtract(m_LastQueueFill) < 200)
+                        m_maxUpdates += 5;
+                    else
+                        m_maxUpdates = m_maxUpdates >> 1;
+                }
+                m_maxUpdates = Util.Clamp<uint>(m_maxUpdates,10,500);
+            }
+            m_LastQueueFill = Util.EnvironmentTickCount();
+            
+            int updatesThisCall = 0;
+
+//<MIC>
+// DEBUGGING CODE... REMOVE
+//            LogQueueProcessEvent(this.m_agentId,m_entityUpdates,m_maxUpdates);
+//</MIC>            
+            // We must lock for both manipulating the kill record and sending the packet, in order to avoid a race
+            // condition where a kill can be processed before an out-of-date update for the same object.                        
+            float avgTimeDilation = 1.0f;
+
+            lock (m_killRecord)
+            {
+                EntityUpdate update;
+                Int32 timeinqueue; // this is just debugging code & can be dropped later
+                
+                while (updatesThisCall < m_maxUpdates)
+                {
+                    lock (m_entityUpdates.SyncRoot)
+                        if (!m_entityUpdates.TryDequeue(out update, out timeinqueue))
+                            break;
+                    avgTimeDilation += update.TimeDilation;
+                    avgTimeDilation *= 0.5f;
+
+                    if (update.Entity is SceneObjectPart)
+                    {
+                        SceneObjectPart part = (SceneObjectPart)update.Entity;
+
+                        // Please do not remove this unless you can demonstrate on the OpenSim mailing list that a client
+                        // will never receive an update after a prim kill.  Even then, keeping the kill record may be a good
+                        // safety measure.
+                        //
+                        // If a Linden Lab 1.23.5 client (and possibly later and earlier) receives an object update
+                        // after a kill, it will keep displaying the deleted object until relog.  OpenSim currently performs
+                        // updates and kills on different threads with different scheduling strategies, hence this protection.
+                        // 
+                        // This doesn't appear to apply to child prims - a client will happily ignore these updates
+                        // after the root prim has been deleted.
+                        lock (m_killRecord)
+                        {
+                            if (m_killRecord.Contains(part.LocalId))
+                                continue;
+                            if (m_killRecord.Contains(part.ParentGroup.RootPart.LocalId))
+                                continue;
+                        }
+
+                        if (part.ParentGroup.IsDeleted)
+                            continue;
+
+                        if (part.ParentGroup.IsAttachment)
+                        {   // Someone else's HUD, why are we getting these?
+                            if (part.ParentGroup.OwnerID != AgentId &&
+                                part.ParentGroup.RootPart.Shape.State >= 30)
+                                continue;
+                            ScenePresence sp;
+                            // Owner is not in the sim, don't update it to
+                            // anyone
+                            if (!m_scene.TryGetScenePresence(part.OwnerID, out sp))
+                                continue;
+
+                            List<SceneObjectGroup> atts = sp.Attachments;
+                            bool found = false;
+                            foreach (SceneObjectGroup att in atts)
+                            {
+                                if (att == part.ParentGroup)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            // It's an attachment of a valid avatar, but
+                            // doesn't seem to be attached, skip
+                            if (!found)
+                                continue;
+                        }
+
+                        if (part.ParentGroup.IsAttachment && m_disableFacelights)
+                        {
+                            if (part.ParentGroup.RootPart.Shape.State != (byte)AttachmentPoint.LeftHand &&
+                                part.ParentGroup.RootPart.Shape.State != (byte)AttachmentPoint.RightHand)
+                            {
+                                part.Shape.LightEntry = false;
+                            }
+                        }
+                    }
+
+                    ++updatesThisCall;
+
+                    #region UpdateFlags to packet type conversion
+
+                    PrimUpdateFlags updateFlags = update.Flags;
+
+                    bool canUseCompressed = true;
+                    bool canUseImproved = true;
+
+                    // Compressed object updates only make sense for LL primitives
+                    if (!(update.Entity is SceneObjectPart))
                     {
                         canUseCompressed = false;
                     }
 
-                    if (updateFlags.HasFlag(PrimUpdateFlags.PrimFlags) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.ParentID) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Scale) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.PrimData) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Text) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.NameValue) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.ExtraData) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.TextureAnim) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Sound) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Particles) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Material) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.ClickAction) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.MediaURL) ||
-                        updateFlags.HasFlag(PrimUpdateFlags.Joint))
+                    if (updateFlags.HasFlag(PrimUpdateFlags.FullUpdate))
                     {
+                        canUseCompressed = false;
                         canUseImproved = false;
                     }
-                }
-
-                #endregion UpdateFlags to packet type conversion
-
-                #region Block Construction
-
-                // TODO: Remove this once we can build compressed updates
-                canUseCompressed = false;
-
-                if (!canUseImproved && !canUseCompressed)
-                {
-                    if (update.Entity is ScenePresence)
+                    else
                     {
-                        objectUpdateBlocks.Value.Add(CreateAvatarUpdateBlock((ScenePresence)update.Entity));
+                        if (updateFlags.HasFlag(PrimUpdateFlags.Velocity) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.Acceleration) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.CollisionPlane) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.Joint))
+                        {
+                            if (update.Entity is ScenePresence)
+                            {
+                                objectUpdateBlocks.Value.Add(CreateAvatarUpdateBlock((ScenePresence)update.Entity));
+                            }
+                            else
+                            {
+                                objectUpdateBlocks.Value.Add(CreatePrimUpdateBlock((SceneObjectPart)update.Entity, this.m_agentId));
+                            }
+                        }
+
+                        if (updateFlags.HasFlag(PrimUpdateFlags.PrimFlags) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.ParentID) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.Scale) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.PrimData) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.Text) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.NameValue) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.ExtraData) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.TextureAnim) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.Sound) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.Particles) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.Material) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.ClickAction) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.MediaURL) ||
+                            updateFlags.HasFlag(PrimUpdateFlags.Joint))
+                        {
+                            canUseImproved = false;
+                        }
+                    }
+
+                    #endregion UpdateFlags to packet type conversion
+
+                    #region Block Construction
+
+                    // TODO: Remove this once we can build compressed updates
+                    canUseCompressed = false;
+
+                    if (!canUseImproved && !canUseCompressed)
+                    {
+                        if (update.Entity is ScenePresence)
+                        {
+                            objectUpdateBlocks.Value.Add(CreateAvatarUpdateBlock((ScenePresence)update.Entity));
+                        }
+                        else
+                        {
+    //                            if (update.Entity is SceneObjectPart && ((SceneObjectPart)update.Entity).IsAttachment)
+    //                            {
+    //                                SceneObjectPart sop = (SceneObjectPart)update.Entity;
+    //                                string text = sop.Text;
+    //                                if (text.IndexOf("\n") >= 0)
+    //                                    text = text.Remove(text.IndexOf("\n"));
+    //
+    //                                if (m_attachmentsSent.Contains(sop.ParentID))
+    //                                {
+    ////                                    m_log.DebugFormat(
+    ////                                        "[CLIENT]: Sending full info about attached prim {0} text {1}",
+    ////                                        sop.LocalId, text);
+    //
+    //                                    objectUpdateBlocks.Value.Add(CreatePrimUpdateBlock(sop, this.m_agentId));
+    //
+    //                                    m_attachmentsSent.Add(sop.LocalId);
+    //                                }
+    //                                else
+    //                                {
+    //                                    m_log.DebugFormat(
+    //                                        "[CLIENT]: Requeueing full update of prim {0} text {1} since we haven't sent its parent {2} yet",
+    //                                        sop.LocalId, text, sop.ParentID);
+    //
+    //                                    m_entityUpdates.Enqueue(double.MaxValue, update, sop.LocalId);
+    //                                }
+    //                            }
+    //                            else
+    //                            {
+                                objectUpdateBlocks.Value.Add(CreatePrimUpdateBlock((SceneObjectPart)update.Entity, this.m_agentId));
+    //                            }
+                        }
+                    }
+                    else if (!canUseImproved)
+                    {
+                        compressedUpdateBlocks.Value.Add(CreateCompressedUpdateBlock((SceneObjectPart)update.Entity, updateFlags));
                     }
                     else
                     {
-//                            if (update.Entity is SceneObjectPart && ((SceneObjectPart)update.Entity).IsAttachment)
-//                            {
-//                                SceneObjectPart sop = (SceneObjectPart)update.Entity;
-//                                string text = sop.Text;
-//                                if (text.IndexOf("\n") >= 0)
-//                                    text = text.Remove(text.IndexOf("\n"));
-//
-//                                if (m_attachmentsSent.Contains(sop.ParentID))
-//                                {
-////                                    m_log.DebugFormat(
-////                                        "[CLIENT]: Sending full info about attached prim {0} text {1}",
-////                                        sop.LocalId, text);
-//
-//                                    objectUpdateBlocks.Value.Add(CreatePrimUpdateBlock(sop, this.m_agentId));
-//
-//                                    m_attachmentsSent.Add(sop.LocalId);
-//                                }
-//                                else
-//                                {
-//                                    m_log.DebugFormat(
-//                                        "[CLIENT]: Requeueing full update of prim {0} text {1} since we haven't sent its parent {2} yet",
-//                                        sop.LocalId, text, sop.ParentID);
-//
-//                                    m_entityUpdates.Enqueue(double.MaxValue, update, sop.LocalId);
-//                                }
-//                            }
-//                            else
-//                            {
-                            objectUpdateBlocks.Value.Add(CreatePrimUpdateBlock((SceneObjectPart)update.Entity, this.m_agentId));
-//                            }
+                        if (update.Entity is ScenePresence && ((ScenePresence)update.Entity).UUID == AgentId)
+                            // Self updates go into a special list
+                            terseAgentUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
+                        else
+                            // Everything else goes here
+                            terseUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
                     }
-                }
-                else if (!canUseImproved)
-                {
-                    compressedUpdateBlocks.Value.Add(CreateCompressedUpdateBlock((SceneObjectPart)update.Entity, updateFlags));
-                }
-                else
-                {
-                    if (update.Entity is ScenePresence && ((ScenePresence)update.Entity).UUID == AgentId)
-                        // Self updates go into a special list
-                        terseAgentUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
-                    else
-                        // Everything else goes here
-                        terseUpdateBlocks.Value.Add(CreateImprovedTerseBlock(update.Entity, updateFlags.HasFlag(PrimUpdateFlags.Textures)));
-                }
 
-                #endregion Block Construction
+                    #endregion Block Construction
+                }
             }
 
             #region Packet Sending
@@ -3864,26 +3978,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void ReprioritizeUpdates()
         {
-            //m_log.Debug("[CLIENT]: Reprioritizing prim updates for " + m_firstName + " " + m_lastName);
-
             lock (m_entityUpdates.SyncRoot)
                 m_entityUpdates.Reprioritize(UpdatePriorityHandler);
         }
 
-        private bool UpdatePriorityHandler(ref double priority, uint localID)
+        private bool UpdatePriorityHandler(ref uint priority, ISceneEntity entity)
         {
-            EntityBase entity;
-            if (m_scene.Entities.TryGetValue(localID, out entity))
+            if (entity != null)
             {
                 priority = m_prioritizer.GetUpdatePriority(this, entity);
+                return true;
             }
 
-            return priority != double.NaN;
+            return false;
         }
 
         public void FlushPrimUpdates()
         {
-            m_log.Debug("[CLIENT]: Flushing prim updates to " + m_firstName + " " + m_lastName);
+            m_log.WarnFormat("[CLIENT]: Flushing prim updates to " + m_firstName + " " + m_lastName);
 
             while (m_entityUpdates.Count > 0)
                 ProcessEntityUpdates(-1);
@@ -11831,171 +11943,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(pack, ThrottleOutPacketType.Task);
         }
 
-        #region PriorityQueue
-        public class PriorityQueue
-        {
-            internal delegate bool UpdatePriorityHandler(ref double priority, uint local_id);
-
-            private MinHeap<MinHeapItem>[] m_heaps = new MinHeap<MinHeapItem>[1];
-            private Dictionary<uint, LookupItem> m_lookupTable;
-            private Comparison<double> m_comparison;
-            private object m_syncRoot = new object();
-
-            internal PriorityQueue() :
-                this(MinHeap<MinHeapItem>.DEFAULT_CAPACITY, Comparer<double>.Default) { }
-            internal PriorityQueue(int capacity) :
-                this(capacity, Comparer<double>.Default) { }
-            internal PriorityQueue(IComparer<double> comparer) :
-                this(new Comparison<double>(comparer.Compare)) { }
-            internal PriorityQueue(Comparison<double> comparison) :
-                this(MinHeap<MinHeapItem>.DEFAULT_CAPACITY, comparison) { }
-            internal PriorityQueue(int capacity, IComparer<double> comparer) :
-                this(capacity, new Comparison<double>(comparer.Compare)) { }
-            internal PriorityQueue(int capacity, Comparison<double> comparison)
-            {
-                m_lookupTable = new Dictionary<uint, LookupItem>(capacity);
-
-                for (int i = 0; i < m_heaps.Length; ++i)
-                    m_heaps[i] = new MinHeap<MinHeapItem>(capacity);
-                this.m_comparison = comparison;
-            }
-
-            public object SyncRoot { get { return this.m_syncRoot; } }
-            internal int Count
-            {
-                get
-                {
-                    int count = 0;
-                    for (int i = 0; i < m_heaps.Length; ++i)
-                        count = m_heaps[i].Count;
-                    return count;
-                }
-            }
-
-            public bool Enqueue(double priority, EntityUpdate value, uint local_id)
-            {
-                LookupItem item;
-
-                if (m_lookupTable.TryGetValue(local_id, out item))
-                {
-                    // Combine flags
-                    value.Flags |= item.Heap[item.Handle].Value.Flags;
-
-                    item.Heap[item.Handle] = new MinHeapItem(priority, value, local_id, this.m_comparison);
-                    return false;
-                }
-                else
-                {
-                    item.Heap = m_heaps[0];
-                    item.Heap.Add(new MinHeapItem(priority, value, local_id, this.m_comparison), ref item.Handle);
-                    m_lookupTable.Add(local_id, item);
-                    return true;
-                }
-            }
-
-            internal EntityUpdate Peek()
-            {
-                for (int i = 0; i < m_heaps.Length; ++i)
-                    if (m_heaps[i].Count > 0)
-                        return m_heaps[i].Min().Value;
-                throw new InvalidOperationException(string.Format("The {0} is empty", this.GetType().ToString()));
-            }
-
-            internal bool TryDequeue(out EntityUpdate value)
-            {
-                for (int i = 0; i < m_heaps.Length; ++i)
-                {
-                    if (m_heaps[i].Count > 0)
-                    {
-                        MinHeapItem item = m_heaps[i].RemoveMin();
-                        m_lookupTable.Remove(item.LocalID);
-                        value = item.Value;
-                        return true;
-                    }
-                }
-
-                value = default(EntityUpdate);
-                return false;
-            }
-
-            internal void Reprioritize(UpdatePriorityHandler handler)
-            {
-                MinHeapItem item;
-                double priority;
-
-                foreach (LookupItem lookup in new List<LookupItem>(this.m_lookupTable.Values))
-                {
-                    if (lookup.Heap.TryGetValue(lookup.Handle, out item))
-                    {
-                        priority = item.Priority;
-                        if (handler(ref priority, item.LocalID))
-                        {
-                            if (lookup.Heap.ContainsHandle(lookup.Handle))
-                                lookup.Heap[lookup.Handle] =
-                                    new MinHeapItem(priority, item.Value, item.LocalID, this.m_comparison);
-                        }
-                        else
-                        {
-                            m_log.Warn("[LLCLIENTVIEW]: UpdatePriorityHandler returned false, dropping update");
-                            lookup.Heap.Remove(lookup.Handle);
-                            this.m_lookupTable.Remove(item.LocalID);
-                        }
-                    }
-                }
-            }
-
-            #region MinHeapItem
-            private struct MinHeapItem : IComparable<MinHeapItem>
-            {
-                private double priority;
-                private EntityUpdate value;
-                private uint local_id;
-                private Comparison<double> comparison;
-
-                internal MinHeapItem(double priority, EntityUpdate value, uint local_id) :
-                    this(priority, value, local_id, Comparer<double>.Default) { }
-                internal MinHeapItem(double priority, EntityUpdate value, uint local_id, IComparer<double> comparer) :
-                    this(priority, value, local_id, new Comparison<double>(comparer.Compare)) { }
-                internal MinHeapItem(double priority, EntityUpdate value, uint local_id, Comparison<double> comparison)
-                {
-                    this.priority = priority;
-                    this.value = value;
-                    this.local_id = local_id;
-                    this.comparison = comparison;
-                }
-
-                internal double Priority { get { return this.priority; } }
-                internal EntityUpdate Value { get { return this.value; } }
-                internal uint LocalID { get { return this.local_id; } }
-
-                public override string ToString()
-                {
-                    StringBuilder sb = new StringBuilder();
-                    sb.Append("[");
-                    sb.Append(this.priority.ToString());
-                    sb.Append(",");
-                    if (this.value != null)
-                        sb.Append(this.value.ToString());
-                    sb.Append("]");
-                    return sb.ToString();
-                }
-
-                public int CompareTo(MinHeapItem other)
-                {
-                    return this.comparison(this.priority, other.priority);
-                }
-            }
-            #endregion
-
-            #region LookupItem
-            private struct LookupItem
-            {
-                internal MinHeap<MinHeapItem> Heap;
-                internal IHandle Handle;
-            }
-            #endregion
-        }
-
         public struct PacketProcessor
         {
             public PacketMethod method;
@@ -12015,8 +11962,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Pack = pPack;
             }
         }
-
-        #endregion
 
         public static OSD BuildEvent(string eventName, OSD eventBody)
         {

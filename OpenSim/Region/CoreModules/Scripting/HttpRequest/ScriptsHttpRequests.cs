@@ -29,8 +29,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Security;
 using System.Text;
 using System.Threading;
+using System.Security.Cryptography.X509Certificates;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -100,8 +102,24 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
         public HttpRequestModule()
         {
+            ServicePointManager.ServerCertificateValidationCallback +=ValidateServerCertificate;
         }
 
+        public static bool ValidateServerCertificate(
+            object sender,
+            X509Certificate  certificate,
+            X509Chain  chain,
+            SslPolicyErrors  sslPolicyErrors)
+        {
+            HttpWebRequest Request = (HttpWebRequest)sender;
+
+            if (Request.Headers.Get("NoVerifyCert") != null)
+            {
+                return true;
+            }
+            
+            return chain.Build(new X509Certificate2(certificate));
+        }
         #region IHttpRequestModule Members
 
         public UUID MakeHttpRequest(string url, string parameters, string body)
@@ -141,8 +159,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                             break;
 
                         case (int)HttpRequestConstants.HTTP_VERIFY_CERT:
-
-                            // TODO implement me
+                            htc.HttpVerifyCert = (int.Parse(parms[i + 1]) != 0);
                             break;
                     }
                 }
@@ -189,7 +206,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         * Not sure how important ordering is is here - the next first
         * one completed in the list is returned, based soley on its list
         * position, not the order in which the request was started or
-        * finsihed.  I thought about setting up a queue for this, but
+        * finished.  I thought about setting up a queue for this, but
         * it will need some refactoring and this works 'enough' right now
         */
 
@@ -237,8 +254,8 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
             m_scene.RegisterModuleInterface<IHttpRequestModule>(this);
 
-        m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
-        m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
+            m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
+            m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
 
             m_pendingRequests = new Dictionary<UUID, HttpRequestClass>();
         }
@@ -282,7 +299,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         public string HttpMethod  = "GET";
         public string HttpMIMEType = "text/plain;charset=utf-8";
         public int HttpTimeout;
-        // public bool HttpVerifyCert = true; // not implemented
+        public bool HttpVerifyCert = true;
         private Thread httpThread;
 
         // Request info
@@ -348,6 +365,17 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 Request.Method = HttpMethod;
                 Request.ContentType = HttpMIMEType;
 
+                if(!HttpVerifyCert)
+                {
+                    // We could hijack Connection Group Name to identify
+                    // a desired security exception.  But at the moment we'll use a dummy header instead.
+//                    Request.ConnectionGroupName = "NoVerify";
+                    Request.Headers.Add("NoVerifyCert", "true");
+                }
+//                else
+//                {
+//                    Request.ConnectionGroupName="Verify";
+//                }
                 if (proxyurl != null && proxyurl.Length > 0) 
                 {
                     if (proxyexcepts != null && proxyexcepts.Length > 0) 
