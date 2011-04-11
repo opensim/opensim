@@ -166,8 +166,9 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence presence = m_scene.GetScenePresence(client.AgentId);
             if (presence == null)
             {
-                m_log.WarnFormat("[PRIORITIZER] attempt to prioritize agent no longer in the scene");
-                throw new InvalidOperationException("Prioritization agent not defined");
+                m_log.WarnFormat("[PRIORITIZER] attempt to use agent {0} not in the scene",client.AgentId);
+                // throw new InvalidOperationException("Prioritization agent not defined");
+                return Int32.MaxValue;
             }
                 
             // Use group position for child prims, since we are putting child prims in
