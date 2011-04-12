@@ -1955,11 +1955,60 @@ namespace OpenSim.Region.Framework.Scenes
                                     UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                     bool RezSelected, bool RemoveItem, UUID fromTaskID)
         {
-            IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
-            if (invAccess != null)
-                invAccess.RezObject(
-                    remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
-                    RezSelected, RemoveItem, fromTaskID, false);
+//            m_log.DebugFormat(
+//                "[PRIM INVENTORY]: RezObject from {0} for item {1} from task id {2}", 
+//                remoteClient.Name, itemID, fromTaskID);
+            
+            if (fromTaskID == UUID.Zero)
+            {
+                IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
+                if (invAccess != null)
+                    invAccess.RezObject(
+                        remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
+                        RezSelected, RemoveItem, fromTaskID, false);
+            }
+            else
+            {            
+                SceneObjectPart part = GetSceneObjectPart(fromTaskID);
+                if (part == null)
+                {
+                    m_log.ErrorFormat(                                     
+                        "[TASK INVENTORY]: {0} tried to rez item id {1} from object id {2} but there is no such scene object", 
+                        remoteClient.Name, itemID, fromTaskID);
+                    
+                    return;
+                }
+                
+                TaskInventoryItem item = part.Inventory.GetInventoryItem(itemID);
+                if (item == null)
+                {
+                    m_log.ErrorFormat(                                     
+                        "[TASK INVENTORY]: {0} tried to rez item id {1} from object id {2} but there is no such item", 
+                        remoteClient.Name, itemID, fromTaskID);
+                    
+                    return;
+                }                
+                               
+                // Work out position details
+                byte bRayEndIsIntersection = (byte)0;
+    
+                if (RayEndIsIntersection)
+                {
+                    bRayEndIsIntersection = (byte)1;
+                }
+                else
+                {
+                    bRayEndIsIntersection = (byte)0;
+                }
+    
+                Vector3 scale = new Vector3(0.5f, 0.5f, 0.5f);
+                Vector3 pos 
+                    = GetNewRezLocation(
+                        RayStart, RayEnd, RayTargetID, Quaternion.Identity,
+                        BypassRayCast, bRayEndIsIntersection, true, scale, false);            
+                
+                RezObject(part, item, pos, Quaternion.Identity, Vector3.Zero, 0);
+            }
         }
         
         /// <summary>
