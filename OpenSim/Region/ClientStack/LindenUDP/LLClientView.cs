@@ -386,6 +386,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private int m_cachedTextureSerial;
         private PriorityQueue m_entityUpdates;
+        private PriorityQueue m_entityProps;
         private Prioritizer m_prioritizer;
         private bool m_disableFacelights = false;
 
@@ -432,9 +433,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected IAssetService m_assetService;
         private const bool m_checkPackets = true;
-
-        private Timer m_propertiesPacketTimer;
-        private List<ObjectPropertiesPacket.ObjectDataBlock> m_propertiesBlocks = new List<ObjectPropertiesPacket.ObjectDataBlock>();
 
         #endregion Class Members
 
@@ -511,6 +509,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_scene = scene;
 
             m_entityUpdates = new PriorityQueue(m_scene.Entities.Count);
+            m_entityProps = new PriorityQueue(m_scene.Entities.Count);
             m_fullUpdateDataBlocksBuilder = new List<ObjectUpdatePacket.ObjectDataBlock>();
             m_killRecord = new HashSet<uint>();
 //            m_attachmentsSent = new HashSet<uint>();
@@ -533,9 +532,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpClient = udpClient;
             m_udpClient.OnQueueEmpty += HandleQueueEmpty;
             m_udpClient.OnPacketStats += PopulateStats;
-
-            m_propertiesPacketTimer = new Timer(100);
-            m_propertiesPacketTimer.Elapsed += ProcessObjectPropertiesPacket;
 
             m_prioritizer = new Prioritizer(m_scene);
 
@@ -3636,9 +3632,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_entityUpdates.Enqueue(priority, new EntityUpdate(entity, updateFlags, m_scene.TimeDilation));
         }
 
-        private Int32 m_LastQueueFill = 0;
-        private uint m_maxUpdates = 0;
-
         private void ProcessEntityUpdates(int maxUpdates)
         {
             OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>> objectUpdateBlocks = new OpenSim.Framework.Lazy<List<ObjectUpdatePacket.ObjectDataBlock>>();
@@ -3646,46 +3639,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>> terseUpdateBlocks = new OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>>();
             OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>> terseAgentUpdateBlocks = new OpenSim.Framework.Lazy<List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>>();
 
+            // Check to see if this is a flush
             if (maxUpdates <= 0)
             {
-                m_maxUpdates = Int32.MaxValue;
+                maxUpdates = Int32.MaxValue;
             }
-            else
-            {
-                if (m_maxUpdates == 0 || m_LastQueueFill == 0)
-                {
-                    m_maxUpdates = (uint)maxUpdates;
-                }
-                else
-                {
-                    if (Util.EnvironmentTickCountSubtract(m_LastQueueFill) < 200)
-                        m_maxUpdates += 5;
-                    else
-                        m_maxUpdates = m_maxUpdates >> 1;
-                }
-                m_maxUpdates = Util.Clamp<uint>(m_maxUpdates,10,500);
-            }
-            m_LastQueueFill = Util.EnvironmentTickCount();
-            
+
             int updatesThisCall = 0;
 
-//<MIC>
-// DEBUGGING CODE... REMOVE
-//            LogQueueProcessEvent(this.m_agentId,m_entityUpdates,m_maxUpdates);
-//</MIC>            
             // We must lock for both manipulating the kill record and sending the packet, in order to avoid a race
             // condition where a kill can be processed before an out-of-date update for the same object.                        
             lock (m_killRecord)
             {
                 float avgTimeDilation = 1.0f;
-                EntityUpdate update;
+                IEntityUpdate iupdate;
                 Int32 timeinqueue; // this is just debugging code & can be dropped later
                 
-                while (updatesThisCall < m_maxUpdates)
+                while (updatesThisCall < maxUpdates)
                 {
                     lock (m_entityUpdates.SyncRoot)
-                        if (!m_entityUpdates.TryDequeue(out update, out timeinqueue))
+                        if (!m_entityUpdates.TryDequeue(out iupdate, out timeinqueue))
                             break;
+
+                    EntityUpdate update = (EntityUpdate)iupdate;
+                    
                     avgTimeDilation += update.TimeDilation;
                     avgTimeDilation *= 0.5f;
 
@@ -3725,7 +3702,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
                     #region UpdateFlags to packet type conversion
     
-                    PrimUpdateFlags updateFlags = update.Flags;
+                    PrimUpdateFlags updateFlags = (PrimUpdateFlags)update.Flags;
     
                     bool canUseCompressed = true;
                     bool canUseImproved = true;
@@ -3804,6 +3781,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     
                     #endregion Block Construction
                 }
+                
     
                 #region Packet Sending
         
@@ -3904,12 +3882,36 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion Primitive Packet/Data Sending Methods
 
+        // These are used to implement an adaptive backoff in the number
+        // of updates converted to packets. Since we don't want packets
+        // to sit in the queue with old data, only convert enough updates
+        // to packets that can be sent in 200ms.
+        private Int32 m_LastQueueFill = 0;
+        private Int32 m_maxUpdates = 0;
+
         void HandleQueueEmpty(ThrottleOutPacketTypeFlags categories)
         {
             if ((categories & ThrottleOutPacketTypeFlags.Task) != 0)
             {
+                if (m_maxUpdates == 0 || m_LastQueueFill == 0)
+                {
+                    m_maxUpdates = m_udpServer.PrimUpdatesPerCallback;
+                }
+                else
+                {
+                    if (Util.EnvironmentTickCountSubtract(m_LastQueueFill) < 200)
+                        m_maxUpdates += 5;
+                    else
+                        m_maxUpdates = m_maxUpdates >> 1;
+                }
+                m_maxUpdates = Util.Clamp<Int32>(m_maxUpdates,10,500);
+                m_LastQueueFill = Util.EnvironmentTickCount();
+            
                 if (m_entityUpdates.Count > 0)
-                    ProcessEntityUpdates(m_udpServer.PrimUpdatesPerCallback);
+                    ProcessEntityUpdates(m_maxUpdates);
+
+                if (m_entityProps.Count > 0)
+                    ProcessEntityPropertyRequests(m_maxUpdates);
             }
 
             if ((categories & ThrottleOutPacketTypeFlags.Texture) != 0)
@@ -4023,47 +4025,147 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(pack, ThrottleOutPacketType.Task);
         }
 
-        public void SendObjectPropertiesFamilyData(uint RequestFlags, UUID ObjectUUID, UUID OwnerID, UUID GroupID,
-                                                    uint BaseMask, uint OwnerMask, uint GroupMask, uint EveryoneMask,
-                                                    uint NextOwnerMask, int OwnershipCost, byte SaleType, int SalePrice, uint Category,
-                                                    UUID LastOwnerID, string ObjectName, string Description)
+/// -----------------------------------------------------------------
+/// <mic>
+/// -----------------------------------------------------------------
+
+        private class ObjectPropertyUpdate : IEntityUpdate
         {
-            ObjectPropertiesFamilyPacket objPropFamilyPack = (ObjectPropertiesFamilyPacket)PacketPool.Instance.GetPacket(PacketType.ObjectPropertiesFamily);
-            // TODO: don't create new blocks if recycling an old packet
-
-            ObjectPropertiesFamilyPacket.ObjectDataBlock objPropDB = new ObjectPropertiesFamilyPacket.ObjectDataBlock();
-            objPropDB.RequestFlags = RequestFlags;
-            objPropDB.ObjectID = ObjectUUID;
-            if (OwnerID == GroupID)
-                objPropDB.OwnerID = UUID.Zero;
-            else
-                objPropDB.OwnerID = OwnerID;
-            objPropDB.GroupID = GroupID;
-            objPropDB.BaseMask = BaseMask;
-            objPropDB.OwnerMask = OwnerMask;
-            objPropDB.GroupMask = GroupMask;
-            objPropDB.EveryoneMask = EveryoneMask;
-            objPropDB.NextOwnerMask = NextOwnerMask;
-
-            // TODO: More properties are needed in SceneObjectPart!
-            objPropDB.OwnershipCost = OwnershipCost;
-            objPropDB.SaleType = SaleType;
-            objPropDB.SalePrice = SalePrice;
-            objPropDB.Category = Category;
-            objPropDB.LastOwnerID = LastOwnerID;
-            objPropDB.Name = Util.StringToBytes256(ObjectName);
-            objPropDB.Description = Util.StringToBytes256(Description);
-            objPropFamilyPack.ObjectData = objPropDB;
-            objPropFamilyPack.Header.Zerocoded = true;
-            OutPacket(objPropFamilyPack, ThrottleOutPacketType.Task);
+            internal bool SendFamilyProps;
+            
+            public ObjectPropertyUpdate(ISceneEntity entity, uint flags, bool sendfam)
+                : base(entity,flags)
+            {
+                SendFamilyProps = sendfam;
+            }
+        }
+        
+        public void SendObjectPropertiesFamilyData(ISceneEntity entity, uint requestFlags)
+        {
+            uint priority = m_prioritizer.GetUpdatePriority(this, entity);
+            lock (m_entityProps.SyncRoot)
+                m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,requestFlags,true));
         }
 
-        public void SendObjectPropertiesReply(
-            UUID ItemID, ulong CreationDate, UUID CreatorUUID, UUID FolderUUID, UUID FromTaskUUID,
-            UUID GroupUUID, short InventorySerial, UUID LastOwnerUUID, UUID ObjectUUID,
-            UUID OwnerUUID, string TouchTitle, byte[] TextureID, string SitTitle, string ItemName,
-            string ItemDescription, uint OwnerMask, uint NextOwnerMask, uint GroupMask, uint EveryoneMask,
-            uint BaseMask, byte saleType, int salePrice)
+        public void SendObjectPropertiesReply(ISceneEntity entity)
+        {
+            uint priority = m_prioritizer.GetUpdatePriority(this, entity);
+            lock (m_entityProps.SyncRoot)
+                m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,0,false));
+        }
+
+        private void ProcessEntityPropertyRequests(int maxUpdates)
+        {
+            OpenSim.Framework.Lazy<List<ObjectPropertiesFamilyPacket.ObjectDataBlock>> objectFamilyBlocks =
+                new OpenSim.Framework.Lazy<List<ObjectPropertiesFamilyPacket.ObjectDataBlock>>();
+
+            OpenSim.Framework.Lazy<List<ObjectPropertiesPacket.ObjectDataBlock>> objectPropertiesBlocks =
+                new OpenSim.Framework.Lazy<List<ObjectPropertiesPacket.ObjectDataBlock>>();
+
+            IEntityUpdate iupdate;
+            Int32 timeinqueue; // this is just debugging code & can be dropped later
+
+            int updatesThisCall = 0;
+            while (updatesThisCall < m_maxUpdates)
+            {
+                lock (m_entityProps.SyncRoot)
+                        if (!m_entityProps.TryDequeue(out iupdate, out timeinqueue))
+                            break;
+
+                ObjectPropertyUpdate update = (ObjectPropertyUpdate)iupdate;
+                if (update.SendFamilyProps)
+                {
+                    if (update.Entity is SceneObjectPart)
+                    {
+                        SceneObjectPart sop = (SceneObjectPart)update.Entity;
+                        ObjectPropertiesFamilyPacket.ObjectDataBlock objPropDB = CreateObjectPropertiesFamilyBlock(sop,update.Flags);
+                        objectFamilyBlocks.Value.Add(objPropDB);
+                    }
+                }
+                else
+                {
+                    if (update.Entity is SceneObjectPart)
+                    {
+                        SceneObjectPart sop = (SceneObjectPart)update.Entity;
+                        ObjectPropertiesPacket.ObjectDataBlock objPropDB = CreateObjectPropertiesBlock(sop);
+                        objectPropertiesBlocks.Value.Add(objPropDB);
+                    }
+                }
+            }
+            
+
+            if (objectPropertiesBlocks.IsValueCreated)
+            {
+                List<ObjectPropertiesPacket.ObjectDataBlock> blocks = objectPropertiesBlocks.Value;
+
+                ObjectPropertiesPacket packet = (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
+                packet.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[blocks.Count];
+                for (int i = 0; i < blocks.Count; i++)
+                    packet.ObjectData[i] = blocks[i];
+
+                packet.Header.Zerocoded = true;
+                OutPacket(packet, ThrottleOutPacketType.Task, true);
+            }
+            
+
+            if (objectFamilyBlocks.IsValueCreated)
+            {
+                List<ObjectPropertiesFamilyPacket.ObjectDataBlock> blocks = objectFamilyBlocks.Value;
+
+                // ObjectPropertiesFamilyPacket objPropFamilyPack =
+                //     (ObjectPropertiesFamilyPacket)PacketPool.Instance.GetPacket(PacketType.ObjectPropertiesFamily);
+                //
+                // objPropFamilyPack.ObjectData = new ObjectPropertiesFamilyPacket.ObjectDataBlock[blocks.Count];
+                // for (int i = 0; i < blocks.Count; i++)
+                //     objPropFamilyPack.ObjectData[i] = blocks[i];
+                //
+                // OutPacket(objPropFamilyPack, ThrottleOutPacketType.Task, true);
+
+                // one packet per object block... uggh...
+                for (int i = 0; i < blocks.Count; i++)
+                {
+                    ObjectPropertiesFamilyPacket packet =
+                        (ObjectPropertiesFamilyPacket)PacketPool.Instance.GetPacket(PacketType.ObjectPropertiesFamily);
+
+                    packet.ObjectData = blocks[i];
+                    packet.Header.Zerocoded = true;
+                    OutPacket(packet, ThrottleOutPacketType.Task);
+                }
+                
+            }
+            
+        }
+
+        private ObjectPropertiesFamilyPacket.ObjectDataBlock CreateObjectPropertiesFamilyBlock(SceneObjectPart sop, uint requestFlags)
+        {
+            ObjectPropertiesFamilyPacket.ObjectDataBlock block = new ObjectPropertiesFamilyPacket.ObjectDataBlock();
+
+            block.RequestFlags = requestFlags;
+            block.ObjectID = sop.UUID;
+            if (sop.OwnerID == sop.GroupID)
+                block.OwnerID = UUID.Zero;
+            else
+                block.OwnerID = sop.OwnerID;
+            block.GroupID = sop.GroupID;
+            block.BaseMask = sop.BaseMask;
+            block.OwnerMask = sop.OwnerMask;
+            block.GroupMask = sop.GroupMask;
+            block.EveryoneMask = sop.EveryoneMask;
+            block.NextOwnerMask = sop.NextOwnerMask;
+
+            // TODO: More properties are needed in SceneObjectPart!
+            block.OwnershipCost = sop.OwnershipCost;
+            block.SaleType = sop.ObjectSaleType;
+            block.SalePrice = sop.SalePrice;
+            block.Category = sop.Category;
+            block.LastOwnerID = sop.CreatorID; // copied from old SOG call... is this right?
+            block.Name = Util.StringToBytes256(sop.Name);
+            block.Description = Util.StringToBytes256(sop.Description);
+
+            return block;
+        }
+
+        private ObjectPropertiesPacket.ObjectDataBlock CreateObjectPropertiesBlock(SceneObjectPart sop)
         {
             //ObjectPropertiesPacket proper = (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
             // TODO: don't create new blocks if recycling an old packet
@@ -4071,85 +4173,43 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ObjectPropertiesPacket.ObjectDataBlock block =
                     new ObjectPropertiesPacket.ObjectDataBlock();
 
-            block.ItemID = ItemID;
-            block.CreationDate = CreationDate;
-            block.CreatorID = CreatorUUID;
-            block.FolderID = FolderUUID;
-            block.FromTaskID = FromTaskUUID;
-            block.GroupID = GroupUUID;
-            block.InventorySerial = InventorySerial;
+            block.ObjectID = sop.UUID;
+            block.Name = Util.StringToBytes256(sop.Name);
+            block.Description = Util.StringToBytes256(sop.Description);
 
-            block.LastOwnerID = LastOwnerUUID;
-            //            proper.ObjectData[0].LastOwnerID = UUID.Zero;
-
-            block.ObjectID = ObjectUUID;
-            if (OwnerUUID == GroupUUID)
+            block.CreationDate = (ulong)sop.CreationDate * 1000000; // viewer wants date in microseconds
+            block.CreatorID = sop.CreatorID;
+            block.GroupID = sop.GroupID;
+            block.LastOwnerID = sop.LastOwnerID;
+            if (sop.OwnerID == sop.GroupID)
                 block.OwnerID = UUID.Zero;
             else
-                block.OwnerID = OwnerUUID;
-            block.TouchName = Util.StringToBytes256(TouchTitle);
-            block.TextureID = TextureID;
-            block.SitName = Util.StringToBytes256(SitTitle);
-            block.Name = Util.StringToBytes256(ItemName);
-            block.Description = Util.StringToBytes256(ItemDescription);
-            block.OwnerMask = OwnerMask;
-            block.NextOwnerMask = NextOwnerMask;
-            block.GroupMask = GroupMask;
-            block.EveryoneMask = EveryoneMask;
-            block.BaseMask = BaseMask;
-            //            proper.ObjectData[0].AggregatePerms = 53;
-            //            proper.ObjectData[0].AggregatePermTextures = 0;
-            //            proper.ObjectData[0].AggregatePermTexturesOwner = 0;
-            block.SaleType = saleType;
-            block.SalePrice = salePrice;
+                block.OwnerID = sop.OwnerID;
 
-            lock (m_propertiesPacketTimer)
-            {
-                m_propertiesBlocks.Add(block);
+            block.ItemID = sop.FromUserInventoryItemID;
+            block.FolderID = UUID.Zero; // sop.FromFolderID ??
+            block.FromTaskID = UUID.Zero; // ???
+            block.InventorySerial = (short)sop.InventorySerial;
+            
+            SceneObjectPart root = sop.ParentGroup.RootPart;
 
-                int length = 0;
-                foreach (ObjectPropertiesPacket.ObjectDataBlock b in m_propertiesBlocks)
-                {
-                    length += b.Length;
-                }
-                if (length > 1100) // FIXME: use real MTU
-                {
-                    ProcessObjectPropertiesPacket(null, null);
-                    m_propertiesPacketTimer.Stop();
-                    return;
-                }
+            block.TouchName = Util.StringToBytes256(root.TouchName);
+            block.TextureID = new byte[0]; // TextureID ???
+            block.SitName = Util.StringToBytes256(root.SitName);
+            block.OwnerMask = root.OwnerMask;
+            block.NextOwnerMask = root.NextOwnerMask;
+            block.GroupMask = root.GroupMask;
+            block.EveryoneMask = root.EveryoneMask;
+            block.BaseMask = root.BaseMask;
+            block.SaleType = root.ObjectSaleType;
+            block.SalePrice = root.SalePrice;
 
-                m_propertiesPacketTimer.Stop();
-                m_propertiesPacketTimer.Start();
-            }
-
-            //proper.Header.Zerocoded = true;
-            //OutPacket(proper, ThrottleOutPacketType.Task);
+            return block;
         }
 
-        private void ProcessObjectPropertiesPacket(Object sender, ElapsedEventArgs e)
-        {
-            ObjectPropertiesPacket proper = (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
-
-            lock (m_propertiesPacketTimer)
-            {
-                m_propertiesPacketTimer.Stop();
-
-                proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[m_propertiesBlocks.Count];
-
-                int index = 0;
-
-                foreach (ObjectPropertiesPacket.ObjectDataBlock b in m_propertiesBlocks)
-                {
-                    proper.ObjectData[index++] = b;
-                }
-
-                m_propertiesBlocks.Clear();
-            }
-
-            proper.Header.Zerocoded = true;
-            OutPacket(proper, ThrottleOutPacketType.Task);
-        }
+/// -----------------------------------------------------------------
+/// </mic>
+/// -----------------------------------------------------------------
 
         #region Estate Data Sending Methods
 
@@ -4482,6 +4542,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendForceClientSelectObjects(List<uint> ObjectIDs)
         {
+            m_log.WarnFormat("[LLCLIENTVIEW] sending select with {0} objects", ObjectIDs.Count);
+            
             bool firstCall = true;
             const int MAX_OBJECTS_PER_PACKET = 251;
             ForceObjectSelectPacket pack = (ForceObjectSelectPacket)PacketPool.Instance.GetPacket(PacketType.ForceObjectSelect);
@@ -11374,6 +11436,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_log.DebugFormat("[CLIENT]: Packet OUT {0}", packet.Type);
             }
 
+            if (throttlePacketType == ThrottleOutPacketType.Task)
+            {
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();           // get call stack
+                System.Diagnostics.StackFrame[] stackFrames = stackTrace.GetFrames();  // get method calls (frames)
+
+                string stack = "";
+                for (int count = 1; count < stackFrames.Length; count++)
+                {
+                    stack += (stack == "" ? "" : ",") + stackFrames[count].GetMethod().Name;
+                    if (count > 5) break;
+                }
+                
+                // m_log.WarnFormat("[BADGUY] {0}", stack);
+            }
+            
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, doAutomaticSplitting);
         }
 
