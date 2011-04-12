@@ -2007,7 +2007,7 @@ namespace OpenSim.Region.Framework.Scenes
                         RayStart, RayEnd, RayTargetID, Quaternion.Identity,
                         BypassRayCast, bRayEndIsIntersection, true, scale, false);            
                 
-                RezObject(part, item, pos, Quaternion.Identity, Vector3.Zero, 0);
+                RezObject(part, item, pos, null, Vector3.Zero, 0);
             }
         }
         
