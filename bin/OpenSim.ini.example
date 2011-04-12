@@ -16,7 +16,7 @@
 ;; files are loaded then type "config show" on the region console command line.
 ;;
 ;; 
-;; NOTES FOR DEVELOPERS REGARDING FORMAT OF TIHS FILE
+;; NOTES FOR DEVELOPERS REGARDING THE FORMAT OF THIS FILE
 ;;
 ;; All leading white space is ignored, but preserved.
 ;;
