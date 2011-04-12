@@ -574,21 +574,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
 //            m_log.DebugFormat("[INVENTORY ACCESS MODULE]: RezObject for {0}, item {1}", remoteClient.Name, itemID);
             
-            // Work out position details
-            byte bRayEndIsIntersection = (byte)0;
-
-            if (RayEndIsIntersection)
-            {
-                bRayEndIsIntersection = (byte)1;
-            }
-            else
-            {
-                bRayEndIsIntersection = (byte)0;
-            }
-
+            byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
             Vector3 scale = new Vector3(0.5f, 0.5f, 0.5f);
-
-
             Vector3 pos = m_Scene.GetNewRezLocation(
                       RayStart, RayEnd, RayTargetID, Quaternion.Identity,
                       BypassRayCast, bRayEndIsIntersection, true, scale, false);

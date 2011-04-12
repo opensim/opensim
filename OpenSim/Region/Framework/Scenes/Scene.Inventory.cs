@@ -1989,18 +1989,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }                
                                
-                // Work out position details
-                byte bRayEndIsIntersection = (byte)0;
-    
-                if (RayEndIsIntersection)
-                {
-                    bRayEndIsIntersection = (byte)1;
-                }
-                else
-                {
-                    bRayEndIsIntersection = (byte)0;
-                }
-    
+                byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
                 Vector3 scale = new Vector3(0.5f, 0.5f, 0.5f);
                 Vector3 pos 
                     = GetNewRezLocation(
