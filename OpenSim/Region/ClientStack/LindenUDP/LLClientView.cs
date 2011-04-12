@@ -4032,26 +4032,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private class ObjectPropertyUpdate : IEntityUpdate
         {
             internal bool SendFamilyProps;
+            internal bool SendObjectProps;
             
-            public ObjectPropertyUpdate(ISceneEntity entity, uint flags, bool sendfam)
+            public ObjectPropertyUpdate(ISceneEntity entity, uint flags, bool sendfam, bool sendobj)
                 : base(entity,flags)
             {
                 SendFamilyProps = sendfam;
+                SendObjectProps = sendobj;
+            }
+            public void Update(ObjectPropertyUpdate update)
+            {
+                SendFamilyProps = SendFamilyProps || update.SendFamilyProps;
+                SendObjectProps = SendObjectProps || update.SendObjectProps;
+                Flags |= update.Flags;
             }
         }
         
         public void SendObjectPropertiesFamilyData(ISceneEntity entity, uint requestFlags)
         {
-            uint priority = m_prioritizer.GetUpdatePriority(this, entity);
+            uint priority = 0;  // time based ordering only
             lock (m_entityProps.SyncRoot)
-                m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,requestFlags,true));
+                m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,requestFlags,true,false));
         }
 
         public void SendObjectPropertiesReply(ISceneEntity entity)
         {
-            uint priority = m_prioritizer.GetUpdatePriority(this, entity);
+            uint priority = 0;  // time based ordering only
             lock (m_entityProps.SyncRoot)
-                m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,0,false));
+                m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,0,false,true));
         }
 
         private void ProcessEntityPropertyRequests(int maxUpdates)
@@ -4082,7 +4090,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         objectFamilyBlocks.Value.Add(objPropDB);
                     }
                 }
-                else
+
+                if (update.SendObjectProps)
                 {
                     if (update.Entity is SceneObjectPart)
                     {
