@@ -300,77 +300,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Used to adjust Sun Orbit values so Linden based viewers properly position sun</summary>
         private const float m_sunPainDaHalfOrbitalCutoff = 4.712388980384689858f;
 
-                        // First log file or time has expired, start writing to a new log file
-//<MIC>
-// -----------------------------------------------------------------
-// -----------------------------------------------------------------
-// THIS IS DEBUGGING CODE & SHOULD BE REMOVED
-// -----------------------------------------------------------------
-// -----------------------------------------------------------------
-        public class QueueLogger
-        {
-            public Int32 start = 0;
-            public StreamWriter Log = null;
-            private Dictionary<UUID,int> m_idMap = new Dictionary<UUID,int>();
-
-            public QueueLogger()
-            {
-                DateTime now = DateTime.Now;
-                String fname = String.Format("queue-{0}.log", now.ToString("yyyyMMddHHmmss"));
-                Log = new StreamWriter(fname);
-
-                start = Util.EnvironmentTickCount();
-            }
-
-            public int LookupID(UUID uuid)
-            {
-                int localid;
-                if (! m_idMap.TryGetValue(uuid,out localid))
-                {
-                    localid = m_idMap.Count + 1;
-                    m_idMap[uuid] = localid;
-                }
-                
-                return localid;                
-            }
-        }
-
-        public static QueueLogger QueueLog = null;
-
-        // -----------------------------------------------------------------
-        public void LogAvatarUpdateEvent(UUID client, UUID avatar, Int32 timeinqueue)
-        {
-            if (QueueLog == null)
-                QueueLog = new QueueLogger();
-
-            Int32 ticks = Util.EnvironmentTickCountSubtract(QueueLog.start);
-            lock(QueueLog)
-            {
-                int cid = QueueLog.LookupID(client);
-                int aid = QueueLog.LookupID(avatar);
-                QueueLog.Log.WriteLine("{0},AU,AV{1:D4},AV{2:D4},{3}",ticks,cid,aid,timeinqueue);
-            }
-        }
-
-        // -----------------------------------------------------------------
-        public void LogQueueProcessEvent(UUID client, PriorityQueue queue, uint maxup)
-        {
-            if (QueueLog == null)
-                QueueLog = new QueueLogger();
-
-            Int32 ticks = Util.EnvironmentTickCountSubtract(QueueLog.start);
-            lock(QueueLog)
-            {
-                int cid = QueueLog.LookupID(client);
-                QueueLog.Log.WriteLine("{0},PQ,AV{1:D4},{2},{3}",ticks,cid,maxup,queue.ToString());
-            }
-        }
-// -----------------------------------------------------------------
-// -----------------------------------------------------------------
-// -----------------------------------------------------------------
-// -----------------------------------------------------------------
-//</MIC>
-
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
 
@@ -4025,10 +3954,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(pack, ThrottleOutPacketType.Task);
         }
 
-/// -----------------------------------------------------------------
-/// <mic>
-/// -----------------------------------------------------------------
-
         private class ObjectPropertyUpdate : IEntityUpdate
         {
             internal bool SendFamilyProps;
@@ -4157,8 +4082,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 
             }
             
-            m_log.WarnFormat("[PACKETCOUNTS] queued {0} property packets with {1} blocks",ppcnt,pbcnt);
-            m_log.WarnFormat("[PACKETCOUNTS] queued {0} family property packets with {1} blocks",fpcnt,fbcnt);
+            // m_log.WarnFormat("[PACKETCOUNTS] queued {0} property packets with {1} blocks",ppcnt,pbcnt);
+            // m_log.WarnFormat("[PACKETCOUNTS] queued {0} family property packets with {1} blocks",fpcnt,fbcnt);
         }
 
         private ObjectPropertiesFamilyPacket.ObjectDataBlock CreateObjectPropertiesFamilyBlock(SceneObjectPart sop, uint requestFlags)
@@ -4231,10 +4156,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             return block;
         }
-
-/// -----------------------------------------------------------------
-/// </mic>
-/// -----------------------------------------------------------------
 
         #region Estate Data Sending Methods
 
@@ -11426,11 +11347,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(packet, throttlePacketType, true);
         }
 
-/// <MIC>
-        Dictionary<string,uint> pktsrc = new Dictionary<string,uint>();
-        uint pktcnt = 0;
-/// </MIC>
-
         /// <summary>
         /// This is the starting point for sending a simulator packet out to the client
         /// </summary>
@@ -11464,36 +11380,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (logPacket)
                     m_log.DebugFormat("[CLIENT]: Packet OUT {0}", packet.Type);
-            }
-
-            if (throttlePacketType == ThrottleOutPacketType.Task)
-            {
-                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace();           // get call stack
-                System.Diagnostics.StackFrame[] stackFrames = stackTrace.GetFrames();  // get method calls (frames)
-
-                string stack = "";
-                for (int count = 1; count < stackFrames.Length; count++)
-                {
-                    stack += (stack == "" ? "" : ",") + stackFrames[count].GetMethod().Name;
-                    if (count > 5) break;
-                }
-                
-                lock(pktsrc)
-                {
-                    if (! pktsrc.ContainsKey(stack))
-                        pktsrc.Add(stack,0);
-                    pktsrc[stack]++;
-
-                    if (++pktcnt > 500)
-                    {
-                        pktcnt = 0;
-                        m_log.WarnFormat("[PACKETCOUNTS] START");
-                        foreach (KeyValuePair<string,uint> pkt in pktsrc)
-                            m_log.WarnFormat("[PACKETCOUNTS] {0,8}, {1}", pkt.Value, pkt.Key);
-                        pktsrc.Clear();
-                        m_log.WarnFormat("[PACKETCOUNTS] END");
-                    }
-                }
             }
             
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, doAutomaticSplitting);
