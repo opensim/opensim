@@ -2055,15 +2055,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void GetProperties(IClientAPI client)
         {
-            //Viewer wants date in microseconds so multiply it by 1,000,000.
-            client.SendObjectPropertiesReply(
-                m_fromUserInventoryItemID, (ulong)_creationDate*(ulong)1e6, _creatorID, UUID.Zero, UUID.Zero,
-                _groupID, (short)InventorySerial, _lastOwnerID, UUID, _ownerID,
-                ParentGroup.RootPart.TouchName, new byte[0], ParentGroup.RootPart.SitName, Name, Description,
-                ParentGroup.RootPart._ownerMask, ParentGroup.RootPart._nextOwnerMask, ParentGroup.RootPart._groupMask, ParentGroup.RootPart._everyoneMask,
-                ParentGroup.RootPart._baseMask,
-                ParentGroup.RootPart.ObjectSaleType,
-                ParentGroup.RootPart.SalePrice);
+            client.SendObjectPropertiesReply(this);
         }
 
         public UUID GetRootPartUUID()
