@@ -575,6 +575,11 @@ namespace OpenSim.Framework
         public ISceneEntity Entity;
         public uint Flags;
 
+        public virtual void Update(IEntityUpdate update)
+        {
+            this.Flags |= update.Flags;
+        }
+
         public IEntityUpdate(ISceneEntity entity, uint flags)
         {
             Entity = entity;
