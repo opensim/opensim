@@ -2016,14 +2016,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="sourcePart"></param>
         /// <param name="item"></param>
-        /// <param name="pos"></param>
-        /// <param name="rot"></param>
-        /// <param name="vel"></param>
+        /// <param name="pos">The position of the rezzed object.</param>
+        /// <param name="rot">The rotation of the rezzed object.  If null, then the rotation stored with the object
+        /// will be used if it exists.</param>
+        /// <param name="vel">The velocity of the rezzed object.</param>
         /// <param name="param"></param>
         /// <returns>The SceneObjectGroup rezzed or null if rez was unsuccessful</returns>
         public virtual SceneObjectGroup RezObject(
-            SceneObjectPart sourcePart, TaskInventoryItem item,
-            Vector3 pos, Quaternion rot, Vector3 vel, int param)
+            SceneObjectPart sourcePart, TaskInventoryItem item, Vector3 pos, Quaternion? rot, Vector3 vel, int param)
         {
             if (null == item)
                 return null;
@@ -2041,8 +2041,14 @@ namespace OpenSim.Region.Framework.Scenes
                 if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                     sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
             }
-                        
-            AddNewSceneObject(group, true, pos, rot, vel);
+                                    
+            AddNewSceneObject(group, true);
+            
+            group.AbsolutePosition = pos;
+            group.Velocity = vel;            
+            
+            if (rot != null)
+                group.UpdateGroupRotationR((Quaternion)rot);
             
             // We can only call this after adding the scene object, since the scene object references the scene
             // to find out if scripts should be activated at all.
