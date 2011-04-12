@@ -238,7 +238,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			defTimer.AutoReset = true;
 			defTimer.Start ();
 			
-			AutoBackupModuleState abms = ParseConfig(null, false);
+			AutoBackupModuleState abms = ParseConfig(null, true);
 			m_log.Debug("[AUTO BACKUP]: Config for default");
 			m_log.Debug(abms.ToString());
 		}
@@ -262,16 +262,23 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			if (!m_Enabled)
 				return;
 			
-			AutoBackupModuleState abms = states[scene];
-			Timer timer = abms.GetTimer ();
-			List<IScene> list = timerMap[timer];
-			list.Remove (scene);
-			if (list.Count == 0) {
-				timerMap.Remove (timer);
-				timers.Remove (timer.Interval);
-				timer.Close ();
+			if(states.ContainsKey(scene))
+			{
+				AutoBackupModuleState abms = states[scene];
+				
+				//Remove this scene out of the timer map list
+				Timer timer = abms.GetTimer ();
+				List<IScene> list = timerMap[timer];
+				list.Remove (scene);
+				
+				//Shut down the timer if this was the last scene for the timer
+				if (list.Count == 0) {
+					timerMap.Remove (timer);
+					timers.Remove (timer.Interval);
+					timer.Close ();
+				}
+				states.Remove(scene);
 			}
-			states.Remove(scene);
 		}
 
 		void IRegionModuleBase.RegionLoaded (Framework.Scenes.Scene scene)
@@ -283,9 +290,9 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			if (scene == null)
 				return;
 					
-			AutoBackupModuleState abms = ParseConfig(scene, true);
+			AutoBackupModuleState abms = ParseConfig(scene, false);
 			m_log.Debug("[AUTO BACKUP]: Config for " + scene.RegionInfo.RegionName);
-			m_log.Debug(abms.ToString());
+			m_log.Debug((abms == null ? "DEFAULT" : abms.ToString()));
 		}
 		
 		AutoBackupModuleState ParseConfig (IScene scene, bool parseDefault)
@@ -322,13 +329,16 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 			if(state == null && tmpEnabled != defaultState.GetEnabled()) //Varies from default state
 			{
 			    state = new AutoBackupModuleState();
-			    state.SetEnabled (tmpEnabled);
+			}
+			
+			if(state != null)
+			{
+			    state.SetEnabled (tmpEnabled);	
 			}
 			
 			//If you don't want AutoBackup, we stop.
-			if ((state == null && !defaultState.GetEnabled()) || !state.GetEnabled ()) {
+			if ((state == null && !defaultState.GetEnabled()) || (state != null && !state.GetEnabled ())) {
 				m_log.Info ("[AUTO BACKUP]: Region " + sRegionLabel + " is NOT AutoBackup enabled.");
-				state = defaultState;
 				return state;
 			} else {
 				m_log.Info ("[AUTO BACKUP]: Region " + sRegionLabel + " is AutoBackup ENABLED.");
