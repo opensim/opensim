@@ -10289,12 +10289,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             UUID rq = UUID.Random();
 
-            UUID tid = AsyncCommands.
-                DataserverPlugin.RegisterRequest(m_localID,
-                                             m_itemID, rq.ToString());
+            AsyncCommands.DataserverPlugin.RegisterRequest(m_localID, m_itemID, rq.ToString());
 
-            AsyncCommands.
-                DataserverPlugin.DataserverReply(rq.ToString(), Name2Username(llKey2Name(id)));
+            AsyncCommands.DataserverPlugin.DataserverReply(rq.ToString(), Name2Username(llKey2Name(id)));
 
             return rq.ToString();
         }
@@ -10308,12 +10305,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             UUID rq = UUID.Random();
 
-            UUID tid = AsyncCommands.
-                DataserverPlugin.RegisterRequest(m_localID,
-                                             m_itemID, rq.ToString());
+            AsyncCommands.DataserverPlugin.RegisterRequest(m_localID, m_itemID, rq.ToString());
 
-            AsyncCommands.
-                DataserverPlugin.DataserverReply(rq.ToString(), llKey2Name(id));
+            AsyncCommands.DataserverPlugin.DataserverReply(rq.ToString(), llKey2Name(id));
 
             return rq.ToString();
         }
