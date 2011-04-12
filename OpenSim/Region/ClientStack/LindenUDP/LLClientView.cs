@@ -4091,9 +4091,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         objectPropertiesBlocks.Value.Add(objPropDB);
                     }
                 }
+
+                updatesThisCall++;
             }
             
 
+            Int32 ppcnt = 0;
+            Int32 pbcnt = 0;
+            
             if (objectPropertiesBlocks.IsValueCreated)
             {
                 List<ObjectPropertiesPacket.ObjectDataBlock> blocks = objectPropertiesBlocks.Value;
@@ -4105,9 +4110,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 packet.Header.Zerocoded = true;
                 OutPacket(packet, ThrottleOutPacketType.Task, true);
+
+                pbcnt += blocks.Count;
+                ppcnt++;
             }
             
 
+            Int32 fpcnt = 0;
+            Int32 fbcnt = 0;
+            
             if (objectFamilyBlocks.IsValueCreated)
             {
                 List<ObjectPropertiesFamilyPacket.ObjectDataBlock> blocks = objectFamilyBlocks.Value;
@@ -4130,10 +4141,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     packet.ObjectData = blocks[i];
                     packet.Header.Zerocoded = true;
                     OutPacket(packet, ThrottleOutPacketType.Task);
+
+                    fpcnt++;
+                    fbcnt++;
                 }
                 
             }
             
+            m_log.WarnFormat("[PACKETCOUNTS] queued {0} property packets with {1} blocks",ppcnt,pbcnt);
+            m_log.WarnFormat("[PACKETCOUNTS] queued {0} family property packets with {1} blocks",fpcnt,fbcnt);
         }
 
         private ObjectPropertiesFamilyPacket.ObjectDataBlock CreateObjectPropertiesFamilyBlock(SceneObjectPart sop, uint requestFlags)
@@ -11401,6 +11417,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(packet, throttlePacketType, true);
         }
 
+/// <MIC>
+        Dictionary<string,uint> pktsrc = new Dictionary<string,uint>();
+        uint pktcnt = 0;
+/// </MIC>
+
         /// <summary>
         /// This is the starting point for sending a simulator packet out to the client
         /// </summary>
@@ -11448,7 +11469,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (count > 5) break;
                 }
                 
-                // m_log.WarnFormat("[BADGUY] {0}", stack);
+                lock(pktsrc)
+                {
+                    if (! pktsrc.ContainsKey(stack))
+                        pktsrc.Add(stack,0);
+                    pktsrc[stack]++;
+
+                    if (++pktcnt > 500)
+                    {
+                        pktcnt = 0;
+                        m_log.WarnFormat("[PACKETCOUNTS] START");
+                        foreach (KeyValuePair<string,uint> pkt in pktsrc)
+                            m_log.WarnFormat("[PACKETCOUNTS] {0,8}, {1}", pkt.Value, pkt.Key);
+                        pktsrc.Clear();
+                        m_log.WarnFormat("[PACKETCOUNTS] END");
+                    }
+                }
             }
             
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, doAutomaticSplitting);
