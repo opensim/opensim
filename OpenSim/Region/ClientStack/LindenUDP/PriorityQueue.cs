@@ -87,7 +87,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_lookupTable.TryGetValue(localid, out lookup))
             {
                 entry = lookup.Heap[lookup.Handle].EntryOrder;
-                value.Flags |=  lookup.Heap[lookup.Handle].Value.Flags;
+                value.Update(lookup.Heap[lookup.Handle].Value);
                 lookup.Heap.Remove(lookup.Handle);
             }
 
