@@ -154,9 +154,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             Assert.That(retrievedObj1Part, Is.Not.Null);
             Assert.That(retrievedObj1Part.Name, Is.EqualTo(item1.Name));
             
-            // FIXME: Can't test yet due to a bug where objects in coalescence all get the item name when rerezzed.
-//            SceneObjectPart retrievedObj2Part = m_scene.GetSceneObjectPart(object2.Name);
-//            Assert.That(retrievedObj2Part, Is.Not.Null);            
+            SceneObjectPart retrievedObj2Part = m_scene.GetSceneObjectPart(object2.Name);
+            Assert.That(retrievedObj2Part, Is.Not.Null);            
         }        
         
         [Test]

@@ -762,10 +762,15 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         // affect the name stored in the serialization, transfer
                         // the correct name from the inventory to the
                         // object itself before we rez.
-                        rootPart.Name = item.Name;
-                        rootPart.Description = item.Description;
-                        rootPart.ObjectSaleType = item.SaleType;
-                        rootPart.SalePrice = item.SalePrice;
+                        //
+                        // Only do these for the first object if we are rezzing a coalescence.
+                        if (i == 0)
+                        {
+                            rootPart.Name = item.Name;
+                            rootPart.Description = item.Description;
+                            rootPart.ObjectSaleType = item.SaleType;
+                            rootPart.SalePrice = item.SalePrice;
+                        }
 
                         group.SetGroup(remoteClient.ActiveGroupId, remoteClient);
                         if ((rootPart.OwnerID != item.Owner) ||
