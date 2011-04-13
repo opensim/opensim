@@ -1318,7 +1318,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 writer.WriteStartElement("SculptData");
                 byte[] sd;
                 if (shp.SculptData != null)
-                    sd = shp.ExtraParams;
+                    sd = shp.SculptData;
                 else
                     sd = Utils.EmptyBytes;
                 writer.WriteBase64(sd, 0, sd.Length);
