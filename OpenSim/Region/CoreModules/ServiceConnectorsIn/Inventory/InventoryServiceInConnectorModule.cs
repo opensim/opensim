@@ -31,9 +31,8 @@ using System.Collections.Generic;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
 
