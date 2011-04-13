@@ -54,6 +54,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
     {      
         protected TestScene m_scene;
         protected BasicInventoryAccessModule m_iam;
+        protected UUID m_userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
+        protected TestClient m_tc;
             
         [SetUp]
         public void SetUp()
@@ -66,20 +68,23 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             
             m_scene = SceneSetupHelpers.SetupScene("Inventory");
             SceneSetupHelpers.SetupSceneModules(m_scene, config, m_iam);
+            
+            // Create user
+            string userFirstName = "Jock";
+            string userLastName = "Stirrup";
+            string userPassword = "troll";
+            UserProfileTestUtils.CreateUserWithInventory(m_scene, userFirstName, userLastName, m_userId, userPassword);                        
+            
+            AgentCircuitData acd = new AgentCircuitData();
+            acd.AgentID = m_userId;
+            m_tc = new TestClient(acd, m_scene);            
         }
         
         [Test]
         public void TestRezObject()
         {
             TestHelper.InMethod();
-            log4net.Config.XmlConfigurator.Configure();
-
-            // Create user
-            string userFirstName = "Jock";
-            string userLastName = "Stirrup";
-            string userPassword = "troll";
-            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
-            UserProfileTestUtils.CreateUserWithInventory(m_scene, userFirstName, userLastName, userId, userPassword);
+//            log4net.Config.XmlConfigurator.Configure();
             
             // Create asset
             SceneObjectGroup object1;
@@ -112,17 +117,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             InventoryFolderBase objsFolder 
-                = InventoryArchiveUtils.FindFolderByPath(m_scene.InventoryService, userId, "Objects")[0];
+                = InventoryArchiveUtils.FindFolderByPath(m_scene.InventoryService, m_userId, "Objects")[0];
             item1.Folder = objsFolder.ID;
             m_scene.AddInventoryItem(item1);
             
-            AgentCircuitData acd = new AgentCircuitData();
-            acd.AgentID = userId;
-            TestClient tc = new TestClient(acd, m_scene);
-            
             SceneObjectGroup so 
                 = m_iam.RezObject(
-                    tc, item1Id, Vector3.Zero, Vector3.Zero, UUID.Zero, 1, false, false, false, UUID.Zero, false);            
+                    m_tc, item1Id, Vector3.Zero, Vector3.Zero, UUID.Zero, 1, false, false, false, UUID.Zero, false);            
             
             Assert.That(so, Is.Not.Null);
             
