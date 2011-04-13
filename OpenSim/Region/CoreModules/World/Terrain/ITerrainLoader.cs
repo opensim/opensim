@@ -38,5 +38,6 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         ITerrainChannel LoadStream(Stream stream);
         void SaveFile(string filename, ITerrainChannel map);
         void SaveStream(Stream stream, ITerrainChannel map);
+        void SaveFile(ITerrainChannel map, string filename, int offsetX, int offsetY, int fileWidth, int fileHeight, int regionSizeX, int regionSizeY);
     }
 }

@@ -124,6 +124,52 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             colours.Save(stream, ImageFormat.Png);
         }
 
+        public virtual void SaveFile(ITerrainChannel m_channel, string filename, 
+                                     int offsetX, int offsetY,
+                                     int fileWidth, int fileHeight,
+                                     int regionSizeX, int regionSizeY)
+
+        {
+            // We need to do this because:
+            // "Saving the image to the same file it was constructed from is not allowed and throws an exception."
+            string tempName = offsetX + "_ " + offsetY + "_" + filename;
+
+            Bitmap entireBitmap = null;
+            Bitmap thisBitmap = null;
+            if (File.Exists(filename))
+            {
+                File.Copy(filename, tempName);
+                entireBitmap = new Bitmap(tempName);
+                if (entireBitmap.Width != fileWidth * regionSizeX || entireBitmap.Height != fileHeight * regionSizeY)
+                {
+                    // old file, let's overwrite it
+                    entireBitmap = new Bitmap(fileWidth * regionSizeX, fileHeight * regionSizeY);
+                }
+            }
+            else
+            {
+                entireBitmap = new Bitmap(fileWidth * regionSizeX, fileHeight * regionSizeY);
+            }
+
+            thisBitmap = CreateGrayscaleBitmapFromMap(m_channel);
+            Console.WriteLine("offsetX=" + offsetX + " offsetY=" + offsetY);
+            for (int x = 0; x < regionSizeX; x++)
+                for (int y = 0; y < regionSizeY; y++)
+                    entireBitmap.SetPixel(x + offsetX * regionSizeX, y + (fileHeight - 1 - offsetY) * regionSizeY, thisBitmap.GetPixel(x, y));
+
+            Save(entireBitmap, filename);
+            thisBitmap.Dispose();
+            entireBitmap.Dispose();
+
+            if (File.Exists(tempName))
+                File.Delete(tempName);
+        }
+
+        protected virtual void Save(Bitmap bmp, string filename)
+        {
+            bmp.Save(filename, ImageFormat.Png);
+        }
+
         #endregion
 
         public override string ToString()
