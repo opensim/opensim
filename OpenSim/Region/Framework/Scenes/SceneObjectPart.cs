@@ -2080,7 +2080,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             axPos *= parentRot;
             Vector3 translationOffsetPosition = axPos;
-            return GroupPosition + translationOffsetPosition;
+            
+//            m_log.DebugFormat("[SCENE OBJECT PART]: Found group pos {0} for part {1}", GroupPosition, Name);
+            
+            Vector3 worldPos = GroupPosition + translationOffsetPosition;
+                
+//            m_log.DebugFormat("[SCENE OBJECT PART]: Found world pos {0} for part {1}", worldPos, Name);
+            
+            return worldPos;
         }
 
         /// <summary>

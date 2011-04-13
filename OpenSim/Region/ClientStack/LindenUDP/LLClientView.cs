@@ -4049,7 +4049,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ppcnt++;
             }
             
-
             Int32 fpcnt = 0;
             Int32 fbcnt = 0;
             
@@ -4298,6 +4297,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendEstateCovenantInformation(UUID covenant)
         {
+//            m_log.DebugFormat("[LLCLIENTVIEW]: Sending estate covenant asset id of {0} to {1}", covenant, Name);
+            
             EstateCovenantReplyPacket einfopack = new EstateCovenantReplyPacket();
             EstateCovenantReplyPacket.DataBlock edata = new EstateCovenantReplyPacket.DataBlock();
             edata.CovenantID = covenant;
@@ -4308,8 +4309,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(einfopack, ThrottleOutPacketType.Task);
         }
 
-        public void SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, UUID covenant, string abuseEmail, UUID estateOwner)
+        public void SendDetailedEstateData(
+            UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, 
+            UUID covenant, string abuseEmail, UUID estateOwner)
         {
+//            m_log.DebugFormat(
+//                "[LLCLIENTVIEW]: Sending detailed estate data to {0} with covenant asset id {1}", Name, covenant);
+            
             EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
             packet.MethodData.Invoice = invoice;
             packet.AgentData.TransactionID = UUID.Random();

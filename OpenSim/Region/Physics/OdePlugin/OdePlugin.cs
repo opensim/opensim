@@ -2528,6 +2528,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (pbs.ProfileHollow != 0)
                 iPropertiesNotSupportedDefault++;
 
+            if ((pbs.PathBegin != 0) || pbs.PathEnd != 0)
+                iPropertiesNotSupportedDefault++;
+
             if ((pbs.PathTwistBegin != 0) || (pbs.PathTwist != 0))
                 iPropertiesNotSupportedDefault++; 
 

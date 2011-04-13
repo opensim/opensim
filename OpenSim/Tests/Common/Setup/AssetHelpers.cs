@@ -71,6 +71,21 @@ namespace OpenSim.Tests.Common
                 Encoding.ASCII.GetBytes(SceneObjectSerializer.ToOriginalXmlFormat(sog)), 
                 sog.OwnerID);
         }
+        
+        /// <summary>
+        /// Create an asset from the given scene object.
+        /// </summary>
+        /// <param name="assetUuid"></param>
+        /// <param name="coa"></param>
+        /// <returns></returns>
+        public static AssetBase CreateAsset(UUID assetUuid, CoalescedSceneObjects coa)
+        {
+            return CreateAsset(
+                assetUuid, 
+                AssetType.Object, 
+                Encoding.ASCII.GetBytes(CoalescedSceneObjectsSerializer.ToXml(coa)), 
+                coa.CreatorId);
+        }        
             
         /// <summary>
         /// Create an asset from the given data.
