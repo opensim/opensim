@@ -93,12 +93,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
                 UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
                 PrimitiveBaseShape shape = PrimitiveBaseShape.CreateSphere();
                 Vector3 groupPosition = new Vector3(10, 20, 30);
-                Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
+                Quaternion rotationOffset = Quaternion.Identity;
                 Vector3 offsetPosition = new Vector3(5, 10, 15);
 
                 SceneObjectPart part1
                     = new SceneObjectPart(
                         ownerId, shape, groupPosition, rotationOffset, offsetPosition);
+                part1.Scale = new Vector3(1, 1, 1);
                 part1.Name = partName;
 
                 object1 = new SceneObjectGroup(part1);
@@ -109,13 +110,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
                 string partName = "Object2";
                 UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
                 PrimitiveBaseShape shape = PrimitiveBaseShape.CreateSphere();
-                Vector3 groupPosition = new Vector3(10, 20, 30);
-                Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
+                Vector3 groupPosition = new Vector3(20, 40, 60);
+                Quaternion rotationOffset = Quaternion.Identity;
                 Vector3 offsetPosition = new Vector3(5, 10, 15);
 
                 SceneObjectPart part1
                     = new SceneObjectPart(
                         ownerId, shape, groupPosition, rotationOffset, offsetPosition);
+                part1.Scale = new Vector3(1, 1, 1);
                 part1.Name = partName;
 
                 object2 = new SceneObjectGroup(part1);
@@ -141,7 +143,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             
             SceneObjectGroup so 
                 = m_iam.RezObject(
-                    m_tc, item1Id, Vector3.Zero, Vector3.Zero, UUID.Zero, 1, false, false, false, UUID.Zero, false);            
+                    m_tc, item1Id, new Vector3(100, 100, 100), Vector3.Zero, UUID.Zero, 1, false, false, false, UUID.Zero, false);            
             
             Assert.That(so, Is.Not.Null);
             
@@ -154,8 +156,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             Assert.That(retrievedObj1Part, Is.Not.Null);
             Assert.That(retrievedObj1Part.Name, Is.EqualTo(item1.Name));
             
+            // Bottom of coalescence is placed on ground, hence we end up with 100.5 rather than 85 since the bottom
+            // object is unit square.
+            Assert.That(retrievedObj1Part.AbsolutePosition, Is.EqualTo(new Vector3(95, 90, 100.5f)));
+            
             SceneObjectPart retrievedObj2Part = m_scene.GetSceneObjectPart(object2.Name);
             Assert.That(retrievedObj2Part, Is.Not.Null);            
+            Assert.That(retrievedObj2Part.Name, Is.EqualTo(object2.Name));
+            Assert.That(retrievedObj2Part.AbsolutePosition, Is.EqualTo(new Vector3(105, 110, 130.5f)));
         }        
         
         [Test]

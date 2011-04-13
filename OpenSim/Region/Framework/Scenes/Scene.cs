@@ -4870,6 +4870,10 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 vec = g.AbsolutePosition;
 
                 g.GetAxisAlignedBoundingBoxRaw(out ominX, out omaxX, out ominY, out omaxY, out ominZ, out omaxZ);
+               
+//                m_log.DebugFormat(
+//                    "[SCENE]: For {0} found AxisAlignedBoundingBoxRaw {1}, {2}", 
+//                    g.Name, new Vector3(ominX, ominY, ominZ), new Vector3(omaxX, omaxY, omaxZ));
 
                 ominX += vec.X;
                 omaxX += vec.X;
