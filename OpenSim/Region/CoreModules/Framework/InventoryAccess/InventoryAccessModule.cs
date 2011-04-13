@@ -552,8 +552,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         /// <summary>
         /// Rez an object into the scene from the user's inventory
         /// </summary>
+        /// <remarks>
         /// FIXME: It would be really nice if inventory access modules didn't also actually do the work of rezzing
         /// things to the scene.  The caller should be doing that, I think.
+        /// </remarks>
         /// <param name="remoteClient"></param>
         /// <param name="itemID"></param>
         /// <param name="RayEnd"></param>
@@ -570,21 +572,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                     UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                     bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
-            // Work out position details
-            byte bRayEndIsIntersection = (byte)0;
-
-            if (RayEndIsIntersection)
-            {
-                bRayEndIsIntersection = (byte)1;
-            }
-            else
-            {
-                bRayEndIsIntersection = (byte)0;
-            }
-
+//            m_log.DebugFormat("[INVENTORY ACCESS MODULE]: RezObject for {0}, item {1}", remoteClient.Name, itemID);
+            
+            byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
             Vector3 scale = new Vector3(0.5f, 0.5f, 0.5f);
-
-
             Vector3 pos = m_Scene.GetNewRezLocation(
                       RayStart, RayEnd, RayTargetID, Quaternion.Identity,
                       BypassRayCast, bRayEndIsIntersection, true, scale, false);
