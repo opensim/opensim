@@ -84,7 +84,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
         public void TestRezCoalescedObject()
         {
             TestHelper.InMethod();
-            log4net.Config.XmlConfigurator.Configure();
+//            log4net.Config.XmlConfigurator.Configure();
             
             // Create asset
             SceneObjectGroup object1;

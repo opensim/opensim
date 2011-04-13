@@ -42,6 +42,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
     /// <summary>
     /// Serialize and deserialize coalesced scene objects.
     /// </summary>
+    /// <remarks>
+    /// Deserialization not yet here.
+    /// </remarks>
     public class CoalescedSceneObjectsSerializer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);        
@@ -60,29 +63,23 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             using (StringWriter sw = new StringWriter())
             {
                 using (XmlTextWriter writer = new XmlTextWriter(sw))
-                {                    
+                {                                        
+                    Vector3 size;
+                    
                     List<SceneObjectGroup> coaObjects = coa.Objects;
                     
 //                    m_log.DebugFormat(
 //                        "[COALESCED SCENE OBJECTS SERIALIZER]: Writing {0} objects for coalesced object", 
 //                        coaObjects.Count);
                     
-                    float minX, minY, minZ;
-                    float maxX, maxY, maxZ;
-
-                    Vector3[] offsets = Scene.GetCombinedBoundingBox(coaObjects,
-                            out minX, out maxX, out minY, out maxY,
-                            out minZ, out maxZ);
+                    // This is weak - we're relying on the set of coalesced objects still being identical
+                    Vector3[] offsets = coa.GetSizeAndOffsets(out size);
 
                     writer.WriteStartElement("CoalescedObject");
                     
-                    float sizeX = maxX - minX;
-                    float sizeY = maxY - minY;
-                    float sizeZ = maxZ - minZ;
-                    
-                    writer.WriteAttributeString("x", sizeX.ToString());
-                    writer.WriteAttributeString("y", sizeY.ToString());
-                    writer.WriteAttributeString("z", sizeZ.ToString());                    
+                    writer.WriteAttributeString("x", size.X.ToString());
+                    writer.WriteAttributeString("y", size.Y.ToString());
+                    writer.WriteAttributeString("z", size.Z.ToString());                    
                     
                     // Embed the offsets into the group XML
                     for (int i = 0; i < coaObjects.Count; i++)
@@ -100,7 +97,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                         
                         SceneObjectSerializer.ToOriginalXmlFormat(obj, writer, true);
                         
-                        writer.WriteEndElement();
+                        writer.WriteEndElement(); // SceneObjectGroup
                     }  
                     
                     writer.WriteEndElement(); // CoalescedObject

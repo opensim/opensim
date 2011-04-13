@@ -124,5 +124,31 @@ namespace OpenSim.Region.Framework.Scenes
             lock (m_memberObjects)
                 return m_memberObjects.Remove(obj);
         }
+        
+        /// <summary>
+        /// Get the total size of the coalescence (the size required to cover all the objects within it) and the
+        /// offsets of each of those objects.
+        /// </summary>
+        /// <param name="size"></param>
+        /// <returns>
+        /// An array of offsets.  The order of objects is the same as returned from the Objects property
+        /// </returns>
+        public Vector3[] GetSizeAndOffsets(out Vector3 size)
+        {
+            float minX, minY, minZ;
+            float maxX, maxY, maxZ;
+
+            Vector3[] offsets 
+                = Scene.GetCombinedBoundingBox(
+                    Objects, out minX, out maxX, out minY, out maxY, out minZ, out maxZ);
+            
+            float sizeX = maxX - minX;
+            float sizeY = maxY - minY;
+            float sizeZ = maxZ - minZ;
+            
+            size = new Vector3(sizeX, sizeY, sizeZ);
+            
+            return offsets;
+        }
     }
 }
