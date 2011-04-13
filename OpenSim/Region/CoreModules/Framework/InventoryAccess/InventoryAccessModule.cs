@@ -222,7 +222,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 deletes[g.OwnerID].Add(g);
             }
 
-            // This is pethod scoped and will be returned. It will be the
+            // This is method scoped and will be returned. It will be the
             // last created asset id
             UUID assetID = UUID.Zero;
 
@@ -230,8 +230,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             // with distinct destinations as well.
             foreach (List<SceneObjectGroup> objlist in deletes.Values)
             {
-                Dictionary<UUID, string> xmlStrings =
-                        new Dictionary<UUID, string>();
+                CoalescedSceneObjects coa = new CoalescedSceneObjects(UUID.Zero);                
+                Dictionary<UUID, Vector3> originalPositions = new Dictionary<UUID, Vector3>();
 
                 foreach (SceneObjectGroup objectGroup in objlist)
                 {
@@ -245,7 +245,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                      : objectGroup.AbsolutePosition.X,
                                  objectGroup.AbsolutePosition.Z);
 
-                    Vector3 originalPosition = objectGroup.AbsolutePosition;
+                    originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
 
                     objectGroup.AbsolutePosition = inventoryStoredPosition;
 
@@ -259,59 +259,20 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                              (uint)PermissionMask.Modify);
                     objectGroup.RootPart.NextOwnerMask |=
                             (uint)PermissionMask.Move;
-
-                    string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(objectGroup);
-
-                    objectGroup.AbsolutePosition = originalPosition;
-
-                    xmlStrings[objectGroup.UUID] = sceneObjectXml;
+                    
+                    coa.Add(objectGroup);
                 }
 
                 string itemXml;
 
                 if (objlist.Count > 1)
-                {
-                    float minX, minY, minZ;
-                    float maxX, maxY, maxZ;
-
-                    Vector3[] offsets = Scene.GetCombinedBoundingBox(objlist,
-                            out minX, out maxX, out minY, out maxY,
-                            out minZ, out maxZ);
-
-                    // CreateWrapper
-                    XmlDocument itemDoc = new XmlDocument();
-                    XmlElement root = itemDoc.CreateElement("", "CoalescedObject", "");
-                    itemDoc.AppendChild(root);
-
-                    // Embed the offsets into the group XML
-                    for ( int i = 0 ; i < objlist.Count ; i++ )
-                    {
-                        XmlDocument doc = new XmlDocument();
-                        SceneObjectGroup g = objlist[i];
-                        doc.LoadXml(xmlStrings[g.UUID]);
-                        XmlElement e = (XmlElement)doc.SelectSingleNode("/SceneObjectGroup");                        
-                        e.SetAttribute("offsetx", offsets[i].X.ToString());
-                        e.SetAttribute("offsety", offsets[i].Y.ToString());
-                        e.SetAttribute("offsetz", offsets[i].Z.ToString());
-
-                        XmlNode objectNode = itemDoc.ImportNode(e, true);
-                        root.AppendChild(objectNode);
-                    }
-
-                    float sizeX = maxX - minX;
-                    float sizeY = maxY - minY;
-                    float sizeZ = maxZ - minZ;
-
-                    root.SetAttribute("x", sizeX.ToString());
-                    root.SetAttribute("y", sizeY.ToString());
-                    root.SetAttribute("z", sizeZ.ToString());
-
-                    itemXml = itemDoc.InnerXml;
-                }
+                    itemXml = CoalescedSceneObjectsSerializer.ToXml(coa);
                 else
-                {
-                    itemXml = xmlStrings[objlist[0].UUID];
-                }
+                    itemXml = SceneObjectSerializer.ToOriginalXmlFormat(objlist[0]);
+                
+                // Restore the position of each group now that it has been stored to inventory.
+                foreach (SceneObjectGroup objectGroup in objlist)
+                    objectGroup.AbsolutePosition = originalPositions[objectGroup.UUID];
 
                 // Get the user info of the item destination
                 //
@@ -332,7 +293,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     // All returns / deletes go to the object owner
                     //
-
                     userID = objlist[0].RootPart.OwnerID;
                 }
 
@@ -346,7 +306,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 // Delete is treated like return in this case
                 // Deleting your own items makes them go to trash
                 //
-
+                
                 InventoryFolderBase folder = null;
                 InventoryItemBase item = null;
 
@@ -547,7 +507,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
             return assetID;
         }
-
 
         /// <summary>
         /// Rez an object into the scene from the user's inventory
