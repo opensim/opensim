@@ -123,7 +123,7 @@ namespace OpenSim
             m_log.Info("====================================================================");
             m_log.Info("========================= STARTING OPENSIM =========================");
             m_log.Info("====================================================================");
-            m_log.InfoFormat("[OPENSIM MAIN]: Running ");
+            
             //m_log.InfoFormat("[OPENSIM MAIN]: GC Is Server GC: {0}", GCSettings.IsServerGC.ToString());
             // http://msdn.microsoft.com/en-us/library/bb384202.aspx
             //GCSettings.LatencyMode = GCLatencyMode.Batch;
@@ -341,10 +341,15 @@ namespace OpenSim
 
             m_console.Commands.AddCommand("region", false, "config get",
                                           "config get [<section>] [<key>]",
-                                          "Show a config option", 
+                                          "Synonym for config show",
+                                          HandleConfig);
+            
+            m_console.Commands.AddCommand("region", false, "config show",
+                                          "config show [<section>] [<key>]",
+                                          "Show config information", 
                                           "If neither section nor field are specified, then the whole current configuration is printed." + Environment.NewLine
                                           + "If a section is given but not a field, then all fields in that section are printed.",
-                                          HandleConfig);
+                                          HandleConfig);            
 
             m_console.Commands.AddCommand("region", false, "config save",
                                           "config save <path>",
@@ -593,7 +598,9 @@ namespace OpenSim
 
             if (cmdparams.Length > 0)
             {
-                switch (cmdparams[0].ToLower())
+                string firstParam = cmdparams[0].ToLower();
+                
+                switch (firstParam)
                 {
                     case "set":
                         if (cmdparams.Length < 4)
@@ -618,6 +625,7 @@ namespace OpenSim
                         break;
 
                     case "get":
+                    case "show":
                         if (cmdparams.Length == 1)
                         {
                             foreach (IConfig config in m_config.Source.Configs)
@@ -654,8 +662,8 @@ namespace OpenSim
                         }
                         else
                         {
-                            Notice("Syntax: config get [<section>] [<key>]");
-                            Notice("Example: config get ScriptEngine.DotNetEngine NumberOfScriptThreads");
+                            Notice("Syntax: config {0} [<section>] [<key>]", firstParam);
+                            Notice("Example: config {0} ScriptEngine.DotNetEngine NumberOfScriptThreads", firstParam);
                         }
 
                         break;

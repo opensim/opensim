@@ -65,6 +65,8 @@ namespace OpenSim.Services.GridService
         protected UUID m_ScopeID = UUID.Zero;
         protected bool m_Check4096 = true;
         protected string m_MapTileDirectory = string.Empty;
+        protected string m_ThisGatekeeper = string.Empty;
+        protected Uri m_ThisGatekeeperURI = null;
 
         // Hyperlink regions are hyperlinks on the map
         public readonly Dictionary<UUID, GridRegion> m_HyperlinkRegions = new Dictionary<UUID, GridRegion>();
@@ -122,6 +124,16 @@ namespace OpenSim.Services.GridService
                 m_Check4096 = gridConfig.GetBoolean("Check4096", true);
 
                 m_MapTileDirectory = gridConfig.GetString("MapTileDirectory", "maptiles");
+
+                m_ThisGatekeeper = gridConfig.GetString("Gatekeeper", string.Empty);
+                try
+                {
+                    m_ThisGatekeeperURI = new Uri(m_ThisGatekeeper);
+                }
+                catch
+                {
+                    m_log.WarnFormat("[HYPERGRID LINKER]: Malformed URL in [GridService], variable Gatekeeper = {0}", m_ThisGatekeeper);
+                }
 
                 m_GatekeeperConnector = new GatekeeperServiceConnector(m_AssetService);
 
@@ -246,6 +258,8 @@ namespace OpenSim.Services.GridService
                 remoteRegionName, xloc / Constants.RegionSize, yloc / Constants.RegionSize);
 
             reason = string.Empty;
+            Uri uri = null;
+
             regInfo = new GridRegion();
             if ( externalPort > 0)
                 regInfo.HttpPort = externalPort;
@@ -256,8 +270,17 @@ namespace OpenSim.Services.GridService
             else
                 regInfo.ExternalHostName = "0.0.0.0";
             if ( serverURI != null)
+            {
                 regInfo.ServerURI = serverURI;
-            
+                try
+                {
+                    uri = new Uri(serverURI);
+                    regInfo.ExternalHostName = uri.Host;
+                    regInfo.HttpPort = (uint)uri.Port;
+                }
+                catch {}
+            }
+
             if ( remoteRegionName != string.Empty )
                 regInfo.RegionName = remoteRegionName;
                 
@@ -265,6 +288,18 @@ namespace OpenSim.Services.GridService
             regInfo.RegionLocY = yloc;
             regInfo.ScopeID = scopeID;
             regInfo.EstateOwner = ownerID;
+
+            // Make sure we're not hyperlinking to regions on this grid!
+            if (m_ThisGatekeeperURI != null)
+            {
+                if (regInfo.ExternalHostName == m_ThisGatekeeperURI.Host && regInfo.HttpPort == m_ThisGatekeeperURI.Port)
+                {
+                    reason = "Cannot hyperlink to regions on the same grid";
+                    return false;
+                }
+            }
+            else
+                m_log.WarnFormat("[HYPERGRID LINKER]: Please set this grid's Gatekeeper's address in [GridService]!");
 
             // Check for free coordinates
             GridRegion region = m_GridService.GetRegionByPosition(regInfo.ScopeID, regInfo.RegionLocX, regInfo.RegionLocY);

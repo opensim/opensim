@@ -43,7 +43,7 @@ namespace OpenSim.Data.MSSQL
     public class MSSQLGridUserData : MSSQLGenericTableHandler<GridUserData>,
             IGridUserData
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public MSSQLGridUserData(string connectionString, string realm) :
             base(connectionString, realm, "GridUserStore")

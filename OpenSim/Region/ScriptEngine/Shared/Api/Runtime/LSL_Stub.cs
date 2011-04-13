@@ -894,6 +894,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llKey2Name(id);
         }
 
+        public LSL_String llGetUsername(string id)
+        {
+            return m_LSL_Functions.llGetUsername(id);
+        }
+
+        public LSL_String llRequestUsername(string id)
+        {
+            return m_LSL_Functions.llRequestUsername(id);
+        }
+
+        public LSL_String llGetDisplayName(string id)
+        {
+            return m_LSL_Functions.llGetDisplayName(id);
+        }
+
+        public LSL_String llRequestDisplayName(string id)
+        {
+            return m_LSL_Functions.llRequestDisplayName(id);
+        }
+
         public void llLinkParticleSystem(int linknum, LSL_List rules)
         {
             m_LSL_Functions.llLinkParticleSystem(linknum, rules);
@@ -1846,6 +1866,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public LSL_Integer llClearPrimMedia(LSL_Integer face)
         {
             return m_LSL_Functions.llClearPrimMedia(face);
+        }
+
+        public void print(string str)
+        {
+            m_LSL_Functions.print(str);
         }
     }
 }

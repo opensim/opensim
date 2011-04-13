@@ -149,7 +149,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Caches packed throttle information</summary>
         private byte[] m_packedThrottles;
 
-        private int m_defaultRTO = 3000;
+        private int m_defaultRTO = 1000; // 1sec is the recommendation in the RFC
         private int m_maxRTO = 60000;
 
         /// <summary>
@@ -557,7 +557,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int rto = (int)(SRTT + Math.Max(m_udpServer.TickCountResolution, K * RTTVAR));
 
             // Clamp the retransmission timeout to manageable values
-            rto = Utils.Clamp(RTO, m_defaultRTO, m_maxRTO);
+            rto = Utils.Clamp(rto, m_defaultRTO, m_maxRTO);
 
             RTO = rto;
 

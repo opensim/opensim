@@ -81,7 +81,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     /// </summary>
     public class LSL_Api : MarshalByRefObject, ILSL_Api, IScriptApi
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
         protected uint m_localID;
@@ -9835,63 +9835,42 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetParcelPrimCount(LSL_Vector pos, int category, int sim_wide)
         {
             m_host.AddScriptLPS(1);
+            
+            ILandObject lo = World.LandChannel.GetLandObject((float)pos.x, (float)pos.y);
 
-            LandData land = World.GetLandData((float)pos.x, (float)pos.y);
-
-            if (land == null)
-            {
+            if (lo == null)
                 return 0;
-            }
+            
+            IPrimCounts pc = lo.PrimCounts;
 
-            else
+            if (sim_wide != ScriptBaseClass.FALSE)
             {
-                if (sim_wide != 0)
+                if (category == ScriptBaseClass.PARCEL_COUNT_TOTAL)
                 {
-                    if (category == 0)
-                    {
-                        return land.SimwidePrims;
-                    }
-
-                    else
-                    {
-                        //public int simwideArea = 0;
-                        return 0;
-                    }
+                    return pc.Simulator;
                 }
-
                 else
                 {
-                    if (category == 0)//Total Prims
-                    {
-                        return 0;//land.
-                    }
-
-                    else if (category == 1)//Owner Prims
-                    {
-                        return land.OwnerPrims;
-                    }
-
-                    else if (category == 2)//Group Prims
-                    {
-                        return land.GroupPrims;
-                    }
-
-                    else if (category == 3)//Other Prims
-                    {
-                        return land.OtherPrims;
-                    }
-
-                    else if (category == 4)//Selected
-                    {
-                        return land.SelectedPrims;
-                    }
-
-                    else if (category == 5)//Temp
-                    {
-                        return 0;//land.
-                    }
+                    // counts not implemented yet
+                    return 0;
                 }
             }
+            else
+            {
+                if (category == ScriptBaseClass.PARCEL_COUNT_TOTAL)
+                    return pc.Total;
+                else if (category == ScriptBaseClass.PARCEL_COUNT_OWNER)
+                    return pc.Owner;
+                else if (category == ScriptBaseClass.PARCEL_COUNT_GROUP)
+                    return pc.Group;
+                else if (category == ScriptBaseClass.PARCEL_COUNT_OTHER)
+                    return pc.Others;
+                else if (category == ScriptBaseClass.PARCEL_COUNT_SELECTED)
+                    return pc.Selected;
+                else if (category == ScriptBaseClass.PARCEL_COUNT_TEMP)
+                    return 0; // counts not implemented yet
+            }
+            
             return 0;
         }
 
@@ -10277,6 +10256,60 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return new LSL_List();
 
             return GetLinkPrimitiveParams(obj, rules);
+        }
+
+        public void print(string str)
+        {
+            // yes, this is a real LSL function. See: http://wiki.secondlife.com/wiki/Print
+            IOSSL_Api ossl = (IOSSL_Api)m_ScriptEngine.GetApi(m_itemID, "OSSL");
+            if (ossl != null)
+            {
+                ossl.CheckThreatLevel(ThreatLevel.High, "print");
+                m_log.Info("LSL print():" + str);
+            }
+        }
+
+        private string Name2Username(string name)
+        {
+            string[] parts = name.Split(new char[] {' '});
+            if (parts.Length < 2)
+                return name.ToLower();
+            if (parts[1] == "Resident")
+                return parts[0].ToLower();
+
+            return name.Replace(" ", ".").ToLower();
+        }
+
+        public LSL_String llGetUsername(string id)
+        {
+            return Name2Username(llKey2Name(id));
+        }
+
+        public LSL_String llRequestUsername(string id)
+        {
+            UUID rq = UUID.Random();
+
+            AsyncCommands.DataserverPlugin.RegisterRequest(m_localID, m_itemID, rq.ToString());
+
+            AsyncCommands.DataserverPlugin.DataserverReply(rq.ToString(), Name2Username(llKey2Name(id)));
+
+            return rq.ToString();
+        }
+
+        public LSL_String llGetDisplayName(string id)
+        {
+            return llKey2Name(id);
+        }
+
+        public LSL_String llRequestDisplayName(string id)
+        {
+            UUID rq = UUID.Random();
+
+            AsyncCommands.DataserverPlugin.RegisterRequest(m_localID, m_itemID, rq.ToString());
+
+            AsyncCommands.DataserverPlugin.DataserverReply(rq.ToString(), llKey2Name(id));
+
+            return rq.ToString();
         }
     }
 

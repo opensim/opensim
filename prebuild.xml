@@ -402,6 +402,7 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes" path="../../../../bin/"/>
+      <Reference name="log4net" path="../../../../bin/"/>
       <Reference name="XMLRPC" path="../../../../bin/"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -1058,6 +1059,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Server.Base"/>
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenSim.Services.Base"/>
       <Reference name="OpenSim.Services.Connectors"/>
@@ -2094,44 +2096,6 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Data.SQLiteLegacy" path="OpenSim/Data/SQLiteLegacy" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Data"/>
-      <Reference name="System.Data.SQLite" path="../../../bin/"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="System.Drawing"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
-      <Reference name="OpenMetaverse" path="../../../bin/"/>
-      <Reference name="Mono.Data.SqliteClient" path="../../../bin/"/>
-      <Reference name="Mono.Addins" path="../../../bin/"/>
-      <Reference name="log4net" path="../../../bin/"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-          <Exclude name="Tests" pattern="Tests"/>
-        </Match>
-        <Match buildAction="EmbeddedResource" path="Resources" pattern="*.sql"/>
-        <Match buildAction="EmbeddedResource" path="Resources" pattern="*.migrations"/>
-        <Match buildAction="EmbeddedResource" path="Resources" pattern="*.addin.xml" recurse="true"/>
-      </Files>
-    </Project>
-
     <Project frameworkVersion="v3_5" name="OpenSim.Data.SQLite" path="OpenSim/Data/SQLite" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -2156,8 +2120,8 @@
       <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
       <Reference name="OpenMetaverse" path="../../../bin/"/>
       <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
-      <Reference name="Community.CsharpSqlite"/>
-      <Reference name="Community.CsharpSqlite.Sqlite"/>
+      <Reference name="Community.CsharpSqlite" path="../../../bin/"/>
+      <Reference name="Community.CsharpSqlite.Sqlite" path="../../../bin"/>
       <Reference name="Mono.Data.Sqlite"/>
       <Reference name="Mono.Addins" path="../../../bin/"/>
       <Reference name="log4net" path="../../../bin/"/>
@@ -2927,6 +2891,7 @@
         <Match path="Avatar/Inventory/Archiver/Tests" pattern="*.cs" recurse="true"/>
         <Match path="World/Archiver/Tests" pattern="*.cs" recurse="true"/>
         <Match buildAction="EmbeddedResource" path="World/Archiver/Tests/Resources" pattern="*"/>
+        <Match path="World/Land/Tests" pattern="*.cs" recurse="true"/>
         <Match path="World/Media/Moap/Tests" pattern="*.cs" recurse="true"/>
         <Match path="World/Serialiser/Tests" pattern="*.cs" recurse="true"/>
         <Match path="World/Terrain/Tests" pattern="*.cs" recurse="true"/>

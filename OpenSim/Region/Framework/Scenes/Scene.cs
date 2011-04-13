@@ -563,7 +563,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_regInfo = regInfo;
             m_regionHandle = m_regInfo.RegionHandle;
             m_regionName = m_regInfo.RegionName;
-            m_datastore = m_regInfo.DataStore;
             m_lastUpdate = Util.EnvironmentTickCount();
 
             m_physicalPrim = physicalPrim;
@@ -1109,7 +1108,7 @@ namespace OpenSim.Region.Framework.Scenes
             //
             while (m_regInfo.EstateSettings.EstateOwner == UUID.Zero && MainConsole.Instance != null)
             {
-                MainConsole.Instance.Output("The current estate has no owner set.");
+                MainConsole.Instance.OutputFormat("Estate {0} has no owner set.", m_regInfo.EstateSettings.EstateName);
                 List<char> excluded = new List<char>(new char[1]{' '});
                 string first = MainConsole.Instance.CmdPrompt("Estate owner first name", "Test", excluded);
                 string last = MainConsole.Instance.CmdPrompt("Estate owner last name", "User", excluded);
@@ -1429,20 +1428,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Recount SceneObjectPart in parcel aabb
-        /// </summary>
-        private void UpdateLand()
-        {
-            if (LandChannel != null)
-            {
-                if (LandChannel.IsLandPrimCountTainted())
-                {
-                    EventManager.TriggerParcelPrimCountUpdate();
-                }
-            }
-        }
-
-        /// <summary>
         /// Update the terrain if it needs to be updated.
         /// </summary>
         private void UpdateTerrain()
@@ -1536,8 +1521,11 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Return object to avatar Message
+        /// Tell an agent that their object has been returned. 
         /// </summary>
+        /// <remarks>
+        /// The actual return is handled by the caller.
+        /// </remarks>
         /// <param name="agentID">Avatar Unique Id</param>
         /// <param name="objectName">Name of object returned</param>
         /// <param name="location">Location of object returned</param>
@@ -1956,8 +1944,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// If false, it is left to the caller to schedule the update
         /// </param>
         public bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
-        {
-            return m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, sendClientUpdates);
+        {           
+            if (m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, sendClientUpdates))
+            {
+                EventManager.TriggerObjectAddedToScene(sceneObject);
+                return true;       
+            }
+            
+            return false;
         }
         
         /// <summary>
@@ -1974,7 +1968,13 @@ namespace OpenSim.Region.Framework.Scenes
         public bool AddNewSceneObject(
             SceneObjectGroup sceneObject, bool attachToBackup, Vector3 pos, Quaternion rot, Vector3 vel)
         {
-            return m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, pos, rot, vel);
+            if (m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, pos, rot, vel))
+            {            
+                EventManager.TriggerObjectAddedToScene(sceneObject);
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -4854,7 +4854,16 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 float ominX, ominY, ominZ, omaxX, omaxY, omaxZ;
 
+                Vector3 vec = g.AbsolutePosition;
+
                 g.GetAxisAlignedBoundingBoxRaw(out ominX, out omaxX, out ominY, out omaxY, out ominZ, out omaxZ);
+
+                ominX += vec.X;
+                omaxX += vec.X;
+                ominY += vec.Y;
+                omaxY += vec.Y;
+                ominZ += vec.Z;
+                omaxZ += vec.Z;
 
                 if (minX > ominX)
                     minX = ominX;

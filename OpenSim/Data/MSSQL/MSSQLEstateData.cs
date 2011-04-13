@@ -350,26 +350,48 @@ namespace OpenSim.Data.MSSQL
 
         public EstateSettings LoadEstateSettings(int estateID)
         {
+            // TODO: Implementation!
             return new EstateSettings();
+        }
+        
+        public List<EstateSettings> LoadEstateSettingsAll()
+        {
+            // TODO: Implementation!
+            return new List<EstateSettings>();            
         }
 
         public List<int> GetEstates(string search)
+        {
+            // TODO: Implementation!            
+            return new List<int>();
+        }
+        
+        public List<int> GetEstatesAll()
+        {
+            // TODO: Implementation!            
+            return new List<int>();
+        }
+
+        public List<int> GetEstatesByOwner(UUID ownerID)
         {
             return new List<int>();
         }
 
         public bool LinkRegion(UUID regionID, int estateID)
         {
+            // TODO: Implementation!            
             return false;
         }
 
         public List<UUID> GetRegions(int estateID)
         {
+            // TODO: Implementation!            
             return new List<UUID>();
         }
 
         public bool DeleteEstate(int estateID)
         {
+            // TODO: Implementation!            
             return false;
         }
         #endregion

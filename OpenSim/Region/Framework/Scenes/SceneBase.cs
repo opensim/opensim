@@ -136,8 +136,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_permissions; }
         }
 
-        protected string m_datastore;
-
          /* Used by the loadbalancer plugin on GForge */
         protected RegionStatus m_regStatus;
         public RegionStatus RegionStatus

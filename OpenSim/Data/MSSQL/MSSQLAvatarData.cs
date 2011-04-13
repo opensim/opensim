@@ -43,7 +43,7 @@ namespace OpenSim.Data.MSSQL
     public class MSSQLAvatarData : MSSQLGenericTableHandler<AvatarBaseData>,
             IAvatarData
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         public MSSQLAvatarData(string connectionString, string realm) :
                 base(connectionString, realm, "Avatar")

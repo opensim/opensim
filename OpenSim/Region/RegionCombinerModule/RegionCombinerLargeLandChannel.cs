@@ -130,11 +130,6 @@ public class RegionCombinerLargeLandChannel : ILandChannel
             }
         }
 
-        public bool IsLandPrimCountTainted()
-        {
-            return RootRegionLandChannel.IsLandPrimCountTainted();
-        }
-
         public bool IsForcefulBansAllowed()
         {
             return RootRegionLandChannel.IsForcefulBansAllowed();

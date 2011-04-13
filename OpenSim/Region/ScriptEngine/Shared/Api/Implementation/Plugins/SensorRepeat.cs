@@ -50,6 +50,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         private Object SenseLock = new Object();
 
         private const int AGENT = 1;
+        private const int AGENT_BY_USERNAME = 0x10;
         private const int ACTIVE = 2;
         private const int PASSIVE = 4;
         private const int SCRIPTED = 8;
@@ -202,7 +203,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             List<SensedEntity> sensedEntities = new List<SensedEntity>();
 
             // Is the sensor type is AGENT and not SCRIPTED then include agents
-            if ((ts.type & AGENT) != 0 && (ts.type & SCRIPTED) == 0)
+            if ((ts.type & (AGENT | AGENT_BY_USERNAME)) != 0 && (ts.type & SCRIPTED) == 0)
             {
                sensedEntities.AddRange(doAgentSensor(ts));
             }
@@ -493,9 +494,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             {
                 ScenePresence sp;
                 // Try lookup by name will return if/when found
-                if (!m_CmdManager.m_ScriptEngine.World.TryGetAvatarByName(ts.name, out sp))
-                    return sensedEntities;
-                senseEntity(sp);
+                if (((ts.type & AGENT) != 0) && m_CmdManager.m_ScriptEngine.World.TryGetAvatarByName(ts.name, out sp))
+                    senseEntity(sp);
+                if ((ts.type & AGENT_BY_USERNAME) != 0)
+                {
+                    m_CmdManager.m_ScriptEngine.World.ForEachScenePresence(
+                        delegate (ScenePresence ssp)
+                        {
+                            if (ssp.Lastname == "Resident")
+                            {
+                                if (ssp.Firstname.ToLower() == ts.name)
+                                    senseEntity(ssp);
+                                return;
+                            }
+                            if (ssp.Name.Replace(" ", ".").ToLower() == ts.name)
+                                senseEntity(ssp);
+                        }
+                    );
+                }
+
+                return sensedEntities;
             }
             else
             {

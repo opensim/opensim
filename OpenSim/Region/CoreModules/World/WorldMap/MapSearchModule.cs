@@ -100,8 +100,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 // service wasn't available; maybe still an old GridServer. Try the old API, though it will return only one region
                 regionInfos = new List<GridRegion>();
                 GridRegion info = m_scene.GridService.GetRegionByName(m_scene.RegionInfo.ScopeID, mapName);
-                if (info != null) regionInfos.Add(info);
+                if (info != null) 
+                    regionInfos.Add(info);
             }
+            else if (regionInfos.Count == 0 && mapName.StartsWith("http://"))
+                remoteClient.SendAlertMessage("Hyperlink could not be established.");
+
             m_log.DebugFormat("[MAPSEARCHMODULE]: search {0} returned {1} regions", mapName, regionInfos.Count);
             List<MapBlockData> blocks = new List<MapBlockData>();
 
