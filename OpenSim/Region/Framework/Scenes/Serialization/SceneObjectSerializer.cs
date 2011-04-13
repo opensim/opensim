@@ -139,6 +139,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 return sw.ToString();
             }
         }
+        
 
         /// <summary>
         /// Serialize a scene object to the original xml format
@@ -147,10 +148,24 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <returns></returns>
         public static void ToOriginalXmlFormat(SceneObjectGroup sceneObject, XmlTextWriter writer)
         {
+            ToOriginalXmlFormat(sceneObject, writer, false);
+        }
+        
+        /// <summary>
+        /// Serialize a scene object to the original xml format
+        /// </summary>
+        /// <param name="sceneObject"></param>
+        /// <param name="writer"></param>
+        /// <param name="noRootElement">If false, don't write the enclosing SceneObjectGroup element</param>
+        /// <returns></returns>
+        public static void ToOriginalXmlFormat(SceneObjectGroup sceneObject, XmlTextWriter writer, bool noRootElement)
+        {
             //m_log.DebugFormat("[SERIALIZER]: Starting serialization of {0}", Name);
             //int time = System.Environment.TickCount;
 
-            writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
+            if (!noRootElement)
+                writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
+            
             writer.WriteStartElement(String.Empty, "RootPart", String.Empty);
             ToXmlFormat(sceneObject.RootPart, writer);
             writer.WriteEndElement();
@@ -170,10 +185,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             writer.WriteEndElement(); // OtherParts
             sceneObject.SaveScriptedState(writer);
-            writer.WriteEndElement(); // SceneObjectGroup
+            
+            if (!noRootElement)
+                writer.WriteEndElement(); // SceneObjectGroup
 
             //m_log.DebugFormat("[SERIALIZER]: Finished serialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
-        }
+        }        
 
         protected static void ToXmlFormat(SceneObjectPart part, XmlTextWriter writer)
         {

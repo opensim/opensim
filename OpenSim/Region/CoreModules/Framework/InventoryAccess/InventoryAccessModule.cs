@@ -274,7 +274,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     float minX, minY, minZ;
                     float maxX, maxY, maxZ;
 
-                    Vector3[] offsets = m_Scene.GetCombinedBoundingBox(objlist,
+                    Vector3[] offsets = Scene.GetCombinedBoundingBox(objlist,
                             out minX, out maxX, out minY, out maxY,
                             out minZ, out maxZ);
 
@@ -289,7 +289,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         XmlDocument doc = new XmlDocument();
                         SceneObjectGroup g = objlist[i];
                         doc.LoadXml(xmlStrings[g.UUID]);
-                        XmlElement e = (XmlElement)doc.SelectSingleNode("/SceneObjectGroup");
+                        XmlElement e = (XmlElement)doc.SelectSingleNode("/SceneObjectGroup");                        
                         e.SetAttribute("offsetx", offsets[i].X.ToString());
                         e.SetAttribute("offsety", offsets[i].Y.ToString());
                         e.SetAttribute("offsetz", offsets[i].Z.ToString());
@@ -659,9 +659,18 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                     itemId, n.OuterXml);
                             objlist.Add(g);
                             XmlElement el = (XmlElement)n;
-                            float x = Convert.ToSingle(el.GetAttribute("offsetx"));
-                            float y = Convert.ToSingle(el.GetAttribute("offsety"));
-                            float z = Convert.ToSingle(el.GetAttribute("offsetz"));
+                            
+                            string rawX = el.GetAttribute("offsetx");
+                            string rawY = el.GetAttribute("offsety");
+                            string rawZ = el.GetAttribute("offsetz");
+//                        
+//                            m_log.DebugFormat(
+//                                "[INVENTORY ACCESS MODULE]: Converting coalesced object {0} offset <{1}, {2}, {3}>", 
+//                                g.Name, rawX, rawY, rawZ);
+                            
+                            float x = Convert.ToSingle(rawX);
+                            float y = Convert.ToSingle(rawY);
+                            float z = Convert.ToSingle(rawZ);
                             veclist.Add(new Vector3(x, y, z));
                         }
                     }
