@@ -87,41 +87,13 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
 //            log4net.Config.XmlConfigurator.Configure();
             
             // Create asset
-            SceneObjectGroup object1;
-            {
-                string partName = "Object1";
-                UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
-                PrimitiveBaseShape shape = PrimitiveBaseShape.CreateSphere();
-                Vector3 groupPosition = new Vector3(10, 20, 30);
-                Quaternion rotationOffset = Quaternion.Identity;
-                Vector3 offsetPosition = new Vector3(5, 10, 15);
-
-                SceneObjectPart part1
-                    = new SceneObjectPart(
-                        ownerId, shape, groupPosition, rotationOffset, offsetPosition);
-                part1.Scale = new Vector3(1, 1, 1);
-                part1.Name = partName;
-
-                object1 = new SceneObjectGroup(part1);
-            }
+            SceneObjectGroup object1 = SceneSetupHelpers.CreateSceneObject(1, m_userId, "Object1", 0x20);
+            object1.AbsolutePosition = new Vector3(15, 30, 45);
+            object1.Parts[0].Scale = new Vector3(1, 1, 1);
             
-            SceneObjectGroup object2;
-            {
-                string partName = "Object2";
-                UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
-                PrimitiveBaseShape shape = PrimitiveBaseShape.CreateSphere();
-                Vector3 groupPosition = new Vector3(20, 40, 60);
-                Quaternion rotationOffset = Quaternion.Identity;
-                Vector3 offsetPosition = new Vector3(5, 10, 15);
-
-                SceneObjectPart part1
-                    = new SceneObjectPart(
-                        ownerId, shape, groupPosition, rotationOffset, offsetPosition);
-                part1.Scale = new Vector3(1, 1, 1);
-                part1.Name = partName;
-
-                object2 = new SceneObjectGroup(part1);
-            }            
+            SceneObjectGroup object2 = SceneSetupHelpers.CreateSceneObject(1, m_userId, "Object2", 0x40);
+            object2.AbsolutePosition = new Vector3(25, 50, 75);
+            object2.Parts[0].Scale = new Vector3(1, 1, 1);                     
             
             CoalescedSceneObjects coa = new CoalescedSceneObjects(m_userId, object1, object2);
 

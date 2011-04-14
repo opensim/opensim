@@ -296,11 +296,14 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Vector3 val = value;
 
-                if ((m_scene.TestBorderCross(val - Vector3.UnitX, Cardinals.E) || m_scene.TestBorderCross(val + Vector3.UnitX, Cardinals.W)
-                    || m_scene.TestBorderCross(val - Vector3.UnitY, Cardinals.N) || m_scene.TestBorderCross(val + Vector3.UnitY, Cardinals.S)) 
-                    && !IsAttachmentCheckFull() && (!m_scene.LoadingPrims))
+                if (Scene != null)
                 {
-                    m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
+                    if ((Scene.TestBorderCross(val - Vector3.UnitX, Cardinals.E) || Scene.TestBorderCross(val + Vector3.UnitX, Cardinals.W)
+                        || Scene.TestBorderCross(val - Vector3.UnitY, Cardinals.N) || Scene.TestBorderCross(val + Vector3.UnitY, Cardinals.S)) 
+                        && !IsAttachmentCheckFull() && (!Scene.LoadingPrims))
+                    {
+                        m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
+                    }
                 }
                 
                 if (RootPart.GetStatusSandbox())
@@ -308,8 +311,11 @@ namespace OpenSim.Region.Framework.Scenes
                     if (Util.GetDistanceTo(RootPart.StatusSandboxPos, value) > 10)
                     {
                         RootPart.ScriptSetPhysicsStatus(false);
-                        Scene.SimChat(Utils.StringToBytes("Hit Sandbox Limit"),
-                              ChatTypeEnum.DebugChannel, 0x7FFFFFFF, RootPart.AbsolutePosition, Name, UUID, false);
+                        
+                        if (Scene != null)
+                            Scene.SimChat(Utils.StringToBytes("Hit Sandbox Limit"),
+                                  ChatTypeEnum.DebugChannel, 0x7FFFFFFF, RootPart.AbsolutePosition, Name, UUID, false);
+                        
                         return;
                     }
                 }
@@ -326,7 +332,8 @@ namespace OpenSim.Region.Framework.Scenes
                 //m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
                 //}
                 
-                m_scene.EventManager.TriggerParcelPrimCountTainted();
+                if (Scene != null)
+                    Scene.EventManager.TriggerParcelPrimCountTainted();
             }
         }
 
