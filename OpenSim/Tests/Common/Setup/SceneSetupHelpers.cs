@@ -168,14 +168,17 @@ namespace OpenSim.Tests.Common.Setup
         {
             LocalAssetServicesConnector assetService = new LocalAssetServicesConnector();
             IConfigSource config = new IniConfigSource();
-            config.AddConfig("Modules");
-            config.AddConfig("AssetService");
+            config.AddConfig("Modules");            
             config.Configs["Modules"].Set("AssetServices", "LocalAssetServicesConnector");
+            
+            config.AddConfig("AssetService");
             if (real)
                 config.Configs["AssetService"].Set("LocalServiceModule", "OpenSim.Services.AssetService.dll:AssetService");
             else
                 config.Configs["AssetService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:MockAssetService");
+            
             config.Configs["AssetService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
+            
             assetService.Initialise(config);
             assetService.AddRegion(testScene);
             assetService.RegionLoaded(testScene);

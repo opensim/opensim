@@ -54,13 +54,19 @@ namespace OpenSim.Tests.Common.Mock
         
         public AssetBase Get(string id)
         {
-            m_log.DebugFormat("[MOCK ASSET SERVICE]: Getting asset with id {0}", id);
+//            m_log.DebugFormat("[MOCK ASSET SERVICE]: Getting asset with id {0}", id);
             
             AssetBase asset;
             if (Assets.ContainsKey(id))
+            {
                 asset = Assets[id];
+//                m_log.DebugFormat(
+//                    "[MOCK ASSET SERVICE]: Got asset {0} {1}, bytes {2}", asset.Name, asset.ID, asset.Data.Length);                
+            }
             else
-                asset = null;
+            {
+                asset = null;           
+            }
             
             return asset;
         }
@@ -77,7 +83,14 @@ namespace OpenSim.Tests.Common.Mock
 
         public byte[] GetData(string id)
         {
-            throw new System.NotImplementedException();
+//            m_log.DebugFormat("[MOCK ASSET SERVICE]: Requesting data for asset {0}", id);
+            
+            AssetBase asset = Get(id);
+            
+            if (asset == null)
+                return null;
+            else
+                return asset.Data;
         }
 
         public bool Get(string id, object sender, AssetRetrieved handler)
@@ -89,7 +102,8 @@ namespace OpenSim.Tests.Common.Mock
 
         public string Store(AssetBase asset)
         {
-            m_log.DebugFormat("[MOCK ASSET SERVICE]: Storing asset {0}", asset.ID);
+//            m_log.DebugFormat(
+//                "[MOCK ASSET SERVICE]: Storing asset {0} {1}, bytes {2}", asset.Name, asset.ID, asset.Data.Length);
             
             Assets[asset.ID] = asset;
 

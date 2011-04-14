@@ -143,7 +143,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             InventoryItemBase coaItem = new InventoryItemBase();
             coaItem.Name = m_coaItemName;
             coaItem.ID = UUID.Parse("00000000-0000-0000-0000-000000000180");            
-            coaItem.AssetID = asset1.FullID;
+            coaItem.AssetID = coaAsset.FullID;
             coaItem.GroupID = UUID.Random();
             coaItem.CreatorIdAsUuid = m_uaLL1.PrincipalID;
             coaItem.Owner = m_uaLL1.PrincipalID;

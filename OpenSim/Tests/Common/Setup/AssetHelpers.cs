@@ -30,6 +30,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Tests.Common
 {
@@ -117,6 +118,12 @@ namespace OpenSim.Tests.Common
             AssetBase asset = new AssetBase(assetUuid, assetUuid.ToString(), (sbyte)assetType, creatorID.ToString());
             asset.Data = data;
             return asset;
+        }
+        
+        public static string ReadAssetAsString(IAssetService assetService, UUID uuid)
+        {            
+            byte[] assetData = assetService.GetData(uuid.ToString());
+            return Encoding.ASCII.GetString(assetData);
         }
     }
 }
