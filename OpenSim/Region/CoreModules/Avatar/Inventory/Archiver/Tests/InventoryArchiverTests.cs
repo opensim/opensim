@@ -257,5 +257,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             Assert.That(sog1.RootPart.CreatorID, Is.EqualTo(m_uaMT.PrincipalID));            
         }
+        
+        [Test]
+        public void TestLoadCoalesecedItem()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+            
+            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_uaLL1, "password");
+            m_archiverModule.DearchiveInventory(m_uaLL1.FirstName, m_uaLL1.LastName, "/", "password", m_iarStream);            
+            
+            InventoryItemBase coaItem
+                = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_uaLL1.PrincipalID, m_coaItemName);
+            
+            Assert.That(coaItem, Is.Not.Null, "Didn't find loaded item 1");            
+            
+            // TODO: Check that the loaded coalesence is valid and that the required scene object assets are around
+        }
     }
 }

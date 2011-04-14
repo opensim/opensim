@@ -68,17 +68,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 PrincipalID = UUID.Parse("00000000-0000-0000-0000-000000000555"),
                 FirstName = "Mr",
                 LastName = "Tiddles" };
+        
         protected UserAccount m_uaLL1
             = new UserAccount { 
                 PrincipalID = UUID.Parse("00000000-0000-0000-0000-000000000666"),
                 FirstName = "Lord",
                 LastName = "Lucan" }; 
+        
         protected UserAccount m_uaLL2
             = new UserAccount { 
                 PrincipalID = UUID.Parse("00000000-0000-0000-0000-000000000777"),
                 FirstName = "Lord",
-                LastName = "Lucan" };         
+                LastName = "Lucan" };       
+        
         protected string m_item1Name = "Ray Gun Item";
+        protected string m_coaItemName = "Coalesced Item";
         
         [SetUp]
         public virtual void SetUp()
@@ -104,7 +108,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             MemoryStream archiveWriteStream = new MemoryStream();
             
-            // Create asset
+            // Create scene object asset
             UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
             SceneObjectGroup object1 = SceneSetupHelpers.CreateSceneObject(1, ownerId, "Ray Gun Object", 0x50);         
 
@@ -112,7 +116,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);
             scene.AssetService.Store(asset1);            
 
-            // Create item
+            // Create scene object item
             InventoryItemBase item1 = new InventoryItemBase();
             item1.Name = m_item1Name;
             item1.ID = UUID.Parse("00000000-0000-0000-0000-000000000020");            
@@ -123,8 +127,31 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.Folder = scene.InventoryService.GetRootFolder(m_uaLL1.PrincipalID).ID;            
             scene.AddInventoryItem(item1);
             
+            // Create coalesced objects asset
+            SceneObjectGroup cobj1 = SceneSetupHelpers.CreateSceneObject(1, m_uaLL1.PrincipalID, "Object1", 0x120);
+            cobj1.AbsolutePosition = new Vector3(15, 30, 45);
+            
+            SceneObjectGroup cobj2 = SceneSetupHelpers.CreateSceneObject(1, m_uaLL1.PrincipalID, "Object2", 0x140);
+            cobj2.AbsolutePosition = new Vector3(25, 50, 75);               
+            
+            CoalescedSceneObjects coa = new CoalescedSceneObjects(m_uaLL1.PrincipalID, cobj1, cobj2);
+            
+            AssetBase coaAsset = AssetHelpers.CreateAsset(0x160, coa);
+            scene.AssetService.Store(coaAsset);            
+            
+            // Create coalesced objects inventory item
+            InventoryItemBase coaItem = new InventoryItemBase();
+            coaItem.Name = m_coaItemName;
+            coaItem.ID = UUID.Parse("00000000-0000-0000-0000-000000000180");            
+            coaItem.AssetID = asset1.FullID;
+            coaItem.GroupID = UUID.Random();
+            coaItem.CreatorIdAsUuid = m_uaLL1.PrincipalID;
+            coaItem.Owner = m_uaLL1.PrincipalID;
+            coaItem.Folder = scene.InventoryService.GetRootFolder(m_uaLL1.PrincipalID).ID;            
+            scene.AddInventoryItem(coaItem);            
+            
             archiverModule.ArchiveInventory(
-                Guid.NewGuid(), m_uaLL1.FirstName, m_uaLL1.LastName, m_item1Name, "hampshire", archiveWriteStream);            
+                Guid.NewGuid(), m_uaLL1.FirstName, m_uaLL1.LastName, "/*", "hampshire", archiveWriteStream);            
             
             m_iarStreamBytes = archiveWriteStream.ToArray();
         }
