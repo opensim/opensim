@@ -143,23 +143,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
 //            log4net.Config.XmlConfigurator.Configure();
             
             // Create asset
-            SceneObjectGroup object1;
-            SceneObjectPart part1;
-            {
-                string partName = "My Little Dog Object";
-                UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
-                PrimitiveBaseShape shape = PrimitiveBaseShape.CreateSphere();
-                Vector3 groupPosition = new Vector3(10, 20, 30);
-                Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
-                Vector3 offsetPosition = new Vector3(5, 10, 15);
-
-                part1
-                    = new SceneObjectPart(
-                        ownerId, shape, groupPosition, rotationOffset, offsetPosition);
-                part1.Name = partName;
-
-                object1 = new SceneObjectGroup(part1);
-            }
+            SceneObjectGroup object1 = SceneSetupHelpers.CreateSceneObject(1, m_userId, "My Little Dog Object", 0x40);         
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
             AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);
