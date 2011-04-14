@@ -89,11 +89,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             // Create asset
             SceneObjectGroup object1 = SceneSetupHelpers.CreateSceneObject(1, m_userId, "Object1", 0x20);
             object1.AbsolutePosition = new Vector3(15, 30, 45);
-            object1.Parts[0].Scale = new Vector3(1, 1, 1);
             
             SceneObjectGroup object2 = SceneSetupHelpers.CreateSceneObject(1, m_userId, "Object2", 0x40);
-            object2.AbsolutePosition = new Vector3(25, 50, 75);
-            object2.Parts[0].Scale = new Vector3(1, 1, 1);                     
+            object2.AbsolutePosition = new Vector3(25, 50, 75);                 
             
             CoalescedSceneObjects coa = new CoalescedSceneObjects(m_userId, object1, object2);
 

@@ -472,10 +472,10 @@ namespace OpenSim.Tests.Common.Setup
         /// <param name="ownerId"></param>
         /// <returns></returns>
         public static SceneObjectPart CreateSceneObjectPart(string name, UUID id, UUID ownerId)
-        {
+        {            
             return new SceneObjectPart(
                 ownerId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
-                    { Name = name, UUID = id };            
+                    { Name = name, UUID = id, Scale = new Vector3(1, 1, 1) };            
         }
         
         /// <summary>
