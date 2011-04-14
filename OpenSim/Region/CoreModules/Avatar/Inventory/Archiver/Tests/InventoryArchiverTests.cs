@@ -86,8 +86,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             bool readResult = CoalescedSceneObjectsSerializer.TryFromXml(assetXml, out coa);
             
             Assert.That(readResult, Is.True);
+            Assert.That(coa.Count, Is.EqualTo(2));
             
-            // TODO: Check that the loaded coalesence is valid and that the required scene object assets are around
+            List<SceneObjectGroup> coaObjects = coa.Objects;
+            Assert.That(coaObjects[0].UUID, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000120")));
+            Assert.That(coaObjects[0].AbsolutePosition, Is.EqualTo(new Vector3(15, 30, 45)));
+            
+            Assert.That(coaObjects[1].UUID, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000140")));
+            Assert.That(coaObjects[1].AbsolutePosition, Is.EqualTo(new Vector3(25, 50, 75)));            
         }        
         
         /// <summary>
