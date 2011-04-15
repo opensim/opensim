@@ -308,48 +308,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
                 else
                 {
-                    uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move) | 7;
-                    foreach (SceneObjectGroup grp in objlist)
-                        effectivePerms &= grp.GetEffectivePermissions();
-                    effectivePerms |= (uint)PermissionMask.Move;
-
-                    if (remoteClient != null && (remoteClient.AgentId != objlist[0].RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())
-                    {
-                        uint perms = effectivePerms;
-                        uint nextPerms = (perms & 7) << 13;
-                        if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                            perms &= ~(uint)PermissionMask.Copy;
-                        if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                            perms &= ~(uint)PermissionMask.Transfer;
-                        if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                            perms &= ~(uint)PermissionMask.Modify;
-
-                        item.BasePermissions = perms & objlist[0].RootPart.NextOwnerMask;
-                        item.CurrentPermissions = item.BasePermissions;
-                        item.NextPermissions = perms & objlist[0].RootPart.NextOwnerMask;
-                        item.EveryOnePermissions = objlist[0].RootPart.EveryoneMask & objlist[0].RootPart.NextOwnerMask;
-                        item.GroupPermissions = objlist[0].RootPart.GroupMask & objlist[0].RootPart.NextOwnerMask;
-                        
-                        // Magic number badness. Maybe this deserves an enum.
-                        // bit 4 (16) is the "Slam" bit, it means treat as passed
-                        // and apply next owner perms on rez
-                        item.CurrentPermissions |= 16; // Slam!
-                    }
-                    else
-                    {
-                        item.BasePermissions = effectivePerms;
-                        item.CurrentPermissions = effectivePerms;
-                        item.NextPermissions = objlist[0].RootPart.NextOwnerMask & effectivePerms;
-                        item.EveryOnePermissions = objlist[0].RootPart.EveryoneMask & effectivePerms;
-                        item.GroupPermissions = objlist[0].RootPart.GroupMask & effectivePerms;
-
-                        item.CurrentPermissions &=
-                                ((uint)PermissionMask.Copy |
-                                 (uint)PermissionMask.Transfer |
-                                 (uint)PermissionMask.Modify |
-                                 (uint)PermissionMask.Move |
-                                 7); // Preserve folded permissions
-                    }
+                    AddPermissions(item, objlist[0], objlist, remoteClient);
 
                     item.CreationDate = Util.UnixTimeSinceEpoch();
                     item.Description = asset.Description;
@@ -374,6 +333,64 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
             
             return assetID;
+        }
+        
+        /// <summary>
+        /// Add relevant permissions for an object to the item.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="so"></param>
+        /// <param name="objsForEffectivePermissions"></param>
+        /// <param name="remoteClient"></param>
+        /// <returns></returns>
+        protected InventoryItemBase AddPermissions(
+            InventoryItemBase item, SceneObjectGroup so, List<SceneObjectGroup> objsForEffectivePermissions, 
+            IClientAPI remoteClient)
+        {
+            uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move) | 7;
+            foreach (SceneObjectGroup grp in objsForEffectivePermissions)
+                effectivePerms &= grp.GetEffectivePermissions();
+            effectivePerms |= (uint)PermissionMask.Move;
+
+            if (remoteClient != null && (remoteClient.AgentId != so.RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())
+            {
+                uint perms = effectivePerms;
+                uint nextPerms = (perms & 7) << 13;
+                if ((nextPerms & (uint)PermissionMask.Copy) == 0)
+                    perms &= ~(uint)PermissionMask.Copy;
+                if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
+                    perms &= ~(uint)PermissionMask.Transfer;
+                if ((nextPerms & (uint)PermissionMask.Modify) == 0)
+                    perms &= ~(uint)PermissionMask.Modify;
+
+                item.BasePermissions = perms & so.RootPart.NextOwnerMask;
+                item.CurrentPermissions = item.BasePermissions;
+                item.NextPermissions = perms & so.RootPart.NextOwnerMask;
+                item.EveryOnePermissions = so.RootPart.EveryoneMask & so.RootPart.NextOwnerMask;
+                item.GroupPermissions = so.RootPart.GroupMask & so.RootPart.NextOwnerMask;
+                
+                // Magic number badness. Maybe this deserves an enum.
+                // bit 4 (16) is the "Slam" bit, it means treat as passed
+                // and apply next owner perms on rez
+                item.CurrentPermissions |= 16; // Slam!
+            }
+            else
+            {
+                item.BasePermissions = effectivePerms;
+                item.CurrentPermissions = effectivePerms;
+                item.NextPermissions = so.RootPart.NextOwnerMask & effectivePerms;
+                item.EveryOnePermissions = so.RootPart.EveryoneMask & effectivePerms;
+                item.GroupPermissions = so.RootPart.GroupMask & effectivePerms;
+
+                item.CurrentPermissions &=
+                        ((uint)PermissionMask.Copy |
+                         (uint)PermissionMask.Transfer |
+                         (uint)PermissionMask.Modify |
+                         (uint)PermissionMask.Move |
+                         7); // Preserve folded permissions
+            }    
+            
+            return item;
         }
         
         /// <summary>
