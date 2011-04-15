@@ -298,17 +298,16 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     Utils.StringToBytes(itemXml),
                     objlist[0].OwnerID.ToString());
                 m_Scene.AssetService.Store(asset);
-                assetID = asset.FullID;
+                
+                item.AssetID = asset.FullID;  
+                assetID = asset.FullID;                              
 
                 if (DeRezAction.SaveToExistingUserInventoryItem == action)
                 {
-                    item.AssetID = asset.FullID;
                     m_Scene.InventoryService.UpdateItem(item);
                 }
                 else
                 {
-                    item.AssetID = asset.FullID;
-
                     uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move) | 7;
                     foreach (SceneObjectGroup grp in objlist)
                         effectivePerms &= grp.GetEffectivePermissions();
