@@ -66,32 +66,7 @@ namespace OpenSim.Tests.Common.Setup
         /// <returns></returns>
         public static TestScene SetupScene()
         {
-            return SetupScene("");
-        }
-
-        /// <summary>
-        /// Set up a test scene
-        /// </summary>
-        ///
-        /// <param name="realServices">Starts real inventory and asset services, as opposed to mock ones, if true</param>
-        /// <returns></returns>
-        public static TestScene SetupScene(String realServices)
-        {
-            return SetupScene("Unit test region", UUID.Random(), 1000, 1000, realServices);
-        }
-
-        /// <summary>
-        /// Set up a test scene
-        /// </summary>
-        /// <param name="name">Name of the region</param>
-        /// <param name="id">ID of the region</param>
-        /// <param name="x">X co-ordinate of the region</param>
-        /// <param name="y">Y co-ordinate of the region</param>
-        /// <param name="cm">This should be the same if simulating two scenes within a standalone</param>
-        /// <returns></returns>
-        public static TestScene SetupScene(string name, UUID id, uint x, uint y)
-        {
-            return SetupScene(name, id, x, y, "");
+            return SetupScene("Unit test region", UUID.Random(), 1000, 1000);
         }
 
         /// <summary>
@@ -103,10 +78,8 @@ namespace OpenSim.Tests.Common.Setup
         /// <param name="x">X co-ordinate of the region</param>
         /// <param name="y">Y co-ordinate of the region</param>
         /// <param name="cm">This should be the same if simulating two scenes within a standalone</param>
-        /// <param name="realServices">Starts real inventory and asset services, as opposed to mock ones, if true</param>
         /// <returns></returns>
-        public static TestScene SetupScene(
-            string name, UUID id, uint x, uint y, String realServices)
+        public static TestScene SetupScene(string name, UUID id, uint x, uint y)
         {
             Console.WriteLine("Setting up test scene {0}", name);
 
@@ -130,12 +103,11 @@ namespace OpenSim.Tests.Common.Setup
             IRegionModule godsModule = new GodsModule();
             godsModule.Initialise(testScene, new IniConfigSource());
             testScene.AddModule(godsModule.Name, godsModule);
-            realServices = realServices.ToLower();
 
             LocalAssetServicesConnector       assetService       = StartAssetService(testScene);
                                                                    StartAuthenticationService(testScene);
             LocalInventoryServicesConnector   inventoryService   = StartInventoryService(testScene);
-                                                                   StartGridService(testScene, true);
+                                                                   StartGridService(testScene);
             LocalUserAccountServicesConnector userAccountService = StartUserAccountService(testScene);            
             LocalPresenceServicesConnector    presenceService    = StartPresenceService(testScene);
 
@@ -218,24 +190,19 @@ namespace OpenSim.Tests.Common.Setup
             return inventoryService;           
         }
 
-        private static LocalGridServicesConnector StartGridService(Scene testScene, bool real)
+        private static LocalGridServicesConnector StartGridService(Scene testScene)
         {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("GridService");
             config.Configs["Modules"].Set("GridServices", "LocalGridServicesConnector");
             config.Configs["GridService"].Set("StorageProvider", "OpenSim.Data.Null.dll:NullRegionData");
-            if (real)
-                config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Services.GridService.dll:GridService");
+            config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Services.GridService.dll:GridService");
 
             LocalGridServicesConnector gridService = new LocalGridServicesConnector();
             gridService.Initialise(config);
-
-            //else
-            //    config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:TestGridService");
             gridService.AddRegion(testScene);
             gridService.RegionLoaded(testScene);
-            //testScene.AddRegionModule(m_gridService.Name, m_gridService);
             
             return gridService;
         }
