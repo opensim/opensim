@@ -137,7 +137,7 @@ namespace OpenSim.Tests.Common.Setup
             // For now, always started a 'real' authentication service
             StartAuthenticationService(testScene, true);
 
-            LocalInventoryServicesConnector   inventoryService   = StartInventoryService(testScene, realServices.Contains("inventory"));
+            LocalInventoryServicesConnector   inventoryService   = StartInventoryService(testScene);
                                                                    StartGridService(testScene, true);
             LocalUserAccountServicesConnector userAccountService = StartUserAccountService(testScene);            
             LocalPresenceServicesConnector    presenceService    = StartPresenceService(testScene);
@@ -208,24 +208,17 @@ namespace OpenSim.Tests.Common.Setup
             //m_authenticationService = service;
         }
 
-        private static LocalInventoryServicesConnector StartInventoryService(Scene testScene, bool real)
+        private static LocalInventoryServicesConnector StartInventoryService(Scene testScene)
         {
             LocalInventoryServicesConnector inventoryService = new LocalInventoryServicesConnector();
-            IConfigSource config = new IniConfigSource();
+            
+            IConfigSource config = new IniConfigSource();            
             config.AddConfig("Modules");
             config.AddConfig("InventoryService");
             config.Configs["Modules"].Set("InventoryServices", "LocalInventoryServicesConnector");
-
-            if (real)
-            {
-                config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Services.InventoryService.dll:InventoryService");
-            }
-            else
-            {
-                config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:MockInventoryService");
-            }
-
+            config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Services.InventoryService.dll:InventoryService");
             config.Configs["InventoryService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
+            
             inventoryService.Initialise(config);
             inventoryService.AddRegion(testScene);
             inventoryService.RegionLoaded(testScene);
