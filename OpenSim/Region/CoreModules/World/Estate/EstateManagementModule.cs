@@ -125,7 +125,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
             else
                 Scene.RegionInfo.RegionSettings.AllowLandResell = true;
 
-            Scene.RegionInfo.RegionSettings.AgentLimit = (byte) maxAgents;
+            if((byte)maxAgents <= Scene.RegionInfo.AgentCapacity)
+                Scene.RegionInfo.RegionSettings.AgentLimit = (byte) maxAgents;
+			else
+                Scene.RegionInfo.RegionSettings.AgentLimit = Scene.RegionInfo.AgentCapacity;
 
             Scene.RegionInfo.RegionSettings.ObjectBonus = objectBonusFactor;
 
