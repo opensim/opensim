@@ -1587,6 +1587,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     {
                         InventoryItemBase destinationItem = new InventoryItemBase(UUID.Random(), destination);
                         destinationItem.Name = item.Name;
+                        destinationItem.Owner = destination;
                         destinationItem.Description = item.Description;
                         destinationItem.InvType = item.InvType;
                         destinationItem.CreatorId = item.CreatorId;
@@ -1606,6 +1607,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         destinationItem.Flags = item.Flags;
                         destinationItem.CreationDate = item.CreationDate;
                         destinationItem.Folder = destinationFolder.ID;
+                        ApplyNextOwnerPermissions(destinationItem);
 
                         m_application.SceneManager.CurrentOrFirstScene.AddInventoryItem(destinationItem);
                         m_log.DebugFormat("[RADMIN]: Added item {0} to folder {1}", destinationItem.ID, destinationFolder.ID);
@@ -1640,6 +1642,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     {
                         InventoryItemBase destinationItem = new InventoryItemBase(UUID.Random(), destination);
                         destinationItem.Name = item.Name;
+                        destinationItem.Owner = destination;
                         destinationItem.Description = item.Description;
                         destinationItem.InvType = item.InvType;
                         destinationItem.CreatorId = item.CreatorId;
@@ -1659,6 +1662,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         destinationItem.Flags = item.Flags;
                         destinationItem.CreationDate = item.CreationDate;
                         destinationItem.Folder = destinationFolder.ID;
+                        ApplyNextOwnerPermissions(destinationItem);
 
                         m_application.SceneManager.CurrentOrFirstScene.AddInventoryItem(destinationItem);
                         m_log.DebugFormat("[RADMIN]: Added item {0} to folder {1}", destinationItem.ID, destinationFolder.ID);
@@ -1716,7 +1720,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             {
                 destinationFolder = new InventoryFolderBase();
                 destinationFolder.ID       = UUID.Random();
-                destinationFolder.Name     = assetType.ToString();
+                if (assetType == AssetType.Clothing) {
+                    destinationFolder.Name  = "Clothing";
+                } else {
+                    destinationFolder.Name  = "Body Parts";
+                }
                 destinationFolder.Owner    = destination;
                 destinationFolder.Type     = (short)assetType;
                 destinationFolder.ParentID = inventoryService.GetRootFolder(destination).ID;
@@ -1748,6 +1756,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 {
                     InventoryItemBase destinationItem = new InventoryItemBase(UUID.Random(), destination);
                     destinationItem.Name = item.Name;
+                    destinationItem.Owner = destination;
                     destinationItem.Description = item.Description;
                     destinationItem.InvType = item.InvType;
                     destinationItem.CreatorId = item.CreatorId;
@@ -1767,6 +1776,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     destinationItem.Flags = item.Flags;
                     destinationItem.CreationDate = item.CreationDate;
                     destinationItem.Folder = extraFolder.ID;
+                    ApplyNextOwnerPermissions(destinationItem);
 
                     m_application.SceneManager.CurrentOrFirstScene.AddInventoryItem(destinationItem);
                     inventoryMap.Add(item.ID, destinationItem.ID);
@@ -1781,6 +1791,29 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Apply next owner permissions.
+        /// </summary>
+
+        private void ApplyNextOwnerPermissions(InventoryItemBase item)
+        {
+            if (item.InvType == (int)InventoryType.Object && (item.CurrentPermissions & 7) != 0)
+            {
+                if ((item.CurrentPermissions & ((uint)PermissionMask.Copy >> 13)) == 0)
+                    item.CurrentPermissions &= ~(uint)PermissionMask.Copy;
+                if ((item.CurrentPermissions & ((uint)PermissionMask.Transfer >> 13)) == 0)
+                    item.CurrentPermissions &= ~(uint)PermissionMask.Transfer;
+                if ((item.CurrentPermissions & ((uint)PermissionMask.Modify >> 13)) == 0)
+                    item.CurrentPermissions &= ~(uint)PermissionMask.Modify;
+            }
+            item.CurrentPermissions &= item.NextPermissions;
+            item.BasePermissions &= item.NextPermissions;
+            item.EveryOnePermissions &= item.NextPermissions;
+            // item.OwnerChanged = true;
+            // item.PermsMask = 0;
+            // item.PermsGranter = UUID.Zero;
         }
 
         /// <summary>
