@@ -135,7 +135,7 @@ namespace OpenSim.Tests.Common.Setup
             LocalAssetServicesConnector       assetService       = StartAssetService(testScene);
                                                                    StartAuthenticationService(testScene);
             LocalInventoryServicesConnector   inventoryService   = StartInventoryService(testScene);
-                                                                   StartGridService(testScene, true);
+                                                                   StartGridService(testScene);
             LocalUserAccountServicesConnector userAccountService = StartUserAccountService(testScene);            
             LocalPresenceServicesConnector    presenceService    = StartPresenceService(testScene);
 
@@ -218,24 +218,19 @@ namespace OpenSim.Tests.Common.Setup
             return inventoryService;           
         }
 
-        private static LocalGridServicesConnector StartGridService(Scene testScene, bool real)
+        private static LocalGridServicesConnector StartGridService(Scene testScene)
         {
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("GridService");
             config.Configs["Modules"].Set("GridServices", "LocalGridServicesConnector");
             config.Configs["GridService"].Set("StorageProvider", "OpenSim.Data.Null.dll:NullRegionData");
-            if (real)
-                config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Services.GridService.dll:GridService");
+            config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Services.GridService.dll:GridService");
 
             LocalGridServicesConnector gridService = new LocalGridServicesConnector();
             gridService.Initialise(config);
-
-            //else
-            //    config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:TestGridService");
             gridService.AddRegion(testScene);
             gridService.RegionLoaded(testScene);
-            //testScene.AddRegionModule(m_gridService.Name, m_gridService);
             
             return gridService;
         }
