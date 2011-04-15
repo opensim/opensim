@@ -132,11 +132,8 @@ namespace OpenSim.Tests.Common.Setup
             testScene.AddModule(godsModule.Name, godsModule);
             realServices = realServices.ToLower();
 
-            LocalAssetServicesConnector assetService = StartAssetService(testScene);
-
-            // For now, always started a 'real' authentication service
-            StartAuthenticationService(testScene, true);
-
+            LocalAssetServicesConnector       assetService       = StartAssetService(testScene);
+                                                                   StartAuthenticationService(testScene);
             LocalInventoryServicesConnector   inventoryService   = StartInventoryService(testScene);
                                                                    StartGridService(testScene, true);
             LocalUserAccountServicesConnector userAccountService = StartUserAccountService(testScene);            
@@ -183,20 +180,18 @@ namespace OpenSim.Tests.Common.Setup
             return assetService;
         }
 
-        private static void StartAuthenticationService(Scene testScene, bool real)
+        private static void StartAuthenticationService(Scene testScene)
         {
             ISharedRegionModule service = new LocalAuthenticationServicesConnector();
             IConfigSource config = new IniConfigSource();
+            
             config.AddConfig("Modules");
             config.AddConfig("AuthenticationService");
             config.Configs["Modules"].Set("AuthenticationServices", "LocalAuthenticationServicesConnector");
-            if (real)
-                config.Configs["AuthenticationService"].Set(
-                    "LocalServiceModule", "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService");
-            else
-                config.Configs["AuthenticationService"].Set(
-                    "LocalServiceModule", "OpenSim.Tests.Common.dll:MockAuthenticationService");
+            config.Configs["AuthenticationService"].Set(
+                "LocalServiceModule", "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService");
             config.Configs["AuthenticationService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
+            
             service.Initialise(config);
             service.AddRegion(testScene);
             service.RegionLoaded(testScene);
