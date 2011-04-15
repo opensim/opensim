@@ -47,7 +47,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [SetUp]
         public void Init()
         {
-            m_assetService = new MockAssetService();
+            // FIXME: We don't need a full scene here - it would be enough to set up the asset service.
+            Scene scene = SceneSetupHelpers.SetupScene();
+            m_assetService = scene.AssetService;
             m_uuidGatherer = new UuidGatherer(m_assetService);
         }
 

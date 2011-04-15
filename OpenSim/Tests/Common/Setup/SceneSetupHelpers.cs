@@ -132,7 +132,7 @@ namespace OpenSim.Tests.Common.Setup
             testScene.AddModule(godsModule.Name, godsModule);
             realServices = realServices.ToLower();
 
-            LocalAssetServicesConnector assetService = StartAssetService(testScene, realServices.Contains("asset"));
+            LocalAssetServicesConnector assetService = StartAssetService(testScene);
 
             // For now, always started a 'real' authentication service
             StartAuthenticationService(testScene, true);
@@ -164,19 +164,15 @@ namespace OpenSim.Tests.Common.Setup
             return testScene;
         }
 
-        private static LocalAssetServicesConnector StartAssetService(Scene testScene, bool real)
+        private static LocalAssetServicesConnector StartAssetService(Scene testScene)
         {
             LocalAssetServicesConnector assetService = new LocalAssetServicesConnector();
             IConfigSource config = new IniConfigSource();
+            
             config.AddConfig("Modules");            
-            config.Configs["Modules"].Set("AssetServices", "LocalAssetServicesConnector");
-            
+            config.Configs["Modules"].Set("AssetServices", "LocalAssetServicesConnector");            
             config.AddConfig("AssetService");
-            if (real)
-                config.Configs["AssetService"].Set("LocalServiceModule", "OpenSim.Services.AssetService.dll:AssetService");
-            else
-                config.Configs["AssetService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:MockAssetService");
-            
+            config.Configs["AssetService"].Set("LocalServiceModule", "OpenSim.Services.AssetService.dll:AssetService");            
             config.Configs["AssetService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
             
             assetService.Initialise(config);
