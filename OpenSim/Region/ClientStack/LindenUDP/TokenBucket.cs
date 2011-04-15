@@ -255,11 +255,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // If we have enough tokens then remove them and return
             if (m_tokenCount - amount >= 0)
             {
-                if (m_parent == null || m_parent.RemoveTokens(amount))
-                {
-                    m_tokenCount -= amount;
-                    return true;
-                }
+                // we don't have to remove from the parent, the drip rate is already
+                // reflective of the drip rate limits in the parent
+                m_tokenCount -= amount;
+                return true;
             }
 
             return false;

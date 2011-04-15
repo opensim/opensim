@@ -440,6 +440,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OpenSim.Framework.LocklessQueue<OutgoingPacket> queue = m_packetOutboxes[category];
                 TokenBucket bucket = m_throttleCategories[category];
 
+                // Don't send this packet if there is already a packet waiting in the queue
+                // even if we have the tokens to send it, tokens should go to the already
+                // queued packets
+                if (queue.Count > 0)
+                {
+                    queue.Enqueue(packet);
+                    return true;
+                }
+                
+                    
                 if (!forceQueue && bucket.RemoveTokens(packet.Buffer.DataLength))
                 {
                     // Enough tokens were removed from the bucket, the packet will not be queued
