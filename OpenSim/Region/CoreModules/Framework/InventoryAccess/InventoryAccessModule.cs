@@ -330,11 +330,19 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         }
                     }
                 }
+
+                // This is a hook to do some per-asset post-processing for subclasses that need that
+                ExportAsset(remoteClient.AgentId, assetID);
             }
             
             return assetID;
         }
-        
+
+        protected virtual void ExportAsset(UUID agentID, UUID assetID)
+        {
+            // nothing to do here
+        }
+
         /// <summary>
         /// Add relevant permissions for an object to the item.
         /// </summary>
