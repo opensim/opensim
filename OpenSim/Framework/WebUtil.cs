@@ -222,8 +222,8 @@ namespace OpenSim.Framework
                     m_log.InfoFormat("[WEB UTIL]: osd request <{0}> (URI:{1}, METHOD:{2}) took {3}ms overall, {4}ms writing",
                                      reqnum,url,method,tickdiff,tickdata);
             }
-            
-            m_log.WarnFormat("[WEB UTIL] <{0}> osd request failed: {1}",reqnum,errorMessage);
+           
+	    m_log.WarnFormat("[WEB UTIL]: <{0}> osd request for {1}, method {2} FAILED: {3}", reqnum, url, method, errorMessage); 
             return ErrorResponseMap(errorMessage);
         }
 
