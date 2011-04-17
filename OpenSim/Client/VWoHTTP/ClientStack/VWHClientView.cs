@@ -399,7 +399,7 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         public event ClassifiedInfoRequest OnClassifiedInfoRequest = delegate { };
         public event ClassifiedInfoUpdate OnClassifiedInfoUpdate = delegate { };
         public event ClassifiedDelete OnClassifiedDelete = delegate { };
-        public event ClassifiedDelete OnClassifiedGodDelete = delegate { };
+        public event ClassifiedGodDelete OnClassifiedGodDelete = delegate { };
         public event EventNotificationAddRequest OnEventNotificationAddRequest = delegate { };
         public event EventNotificationRemoveRequest OnEventNotificationRemoveRequest = delegate { };
         public event EventGodDelete OnEventGodDelete = delegate { };

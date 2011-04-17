@@ -10808,7 +10808,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             #endregion
 
-            ClassifiedDelete handlerClassifiedGodDelete = OnClassifiedGodDelete;
+            ClassifiedGodDelete handlerClassifiedGodDelete = OnClassifiedGodDelete;
             if (handlerClassifiedGodDelete != null)
                 handlerClassifiedGodDelete(
                          classifiedGodDelete.Data.ClassifiedID,
