@@ -8052,7 +8052,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 // This BBox is in sim coordinates, with the offset being
                 // a contained point.
-                Vector3[] offsets = World.GetCombinedBoundingBox(new List<SceneObjectGroup> { part.ParentGroup },
+                Vector3[] offsets = Scene.GetCombinedBoundingBox(new List<SceneObjectGroup> { part.ParentGroup },
                         out minX, out maxX, out minY, out maxY, out minZ, out maxZ);
 
                 minX -= offsets[0].X;

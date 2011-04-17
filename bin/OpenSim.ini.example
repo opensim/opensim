@@ -16,7 +16,7 @@
 ;; files are loaded then type "config show" on the region console command line.
 ;;
 ;; 
-;; NOTES FOR DEVELOPERS REGARDING FORMAT OF TIHS FILE
+;; NOTES FOR DEVELOPERS REGARDING THE FORMAT OF THIS FILE
 ;;
 ;; All leading white space is ignored, but preserved.
 ;;
@@ -200,6 +200,14 @@
 
     ;; If not generating maptiles, use this static texture asset ID
     ; MaptileStaticUUID = "00000000-0000-0000-0000-000000000000"
+
+    ;; Http proxy setting for llHTTPRequest and dynamic texture loading, if required
+    ; HttpProxy = "http://proxy.com:8080"
+
+    ;; If you're using HttpProxy, then you can set HttpProxyExceptions to a list of regular expressions for URLs that you don't want to go through the proxy 
+    ;; For example, servers inside your firewall.
+    ;; Separate patterns with a ';'
+    ; HttpProxyExceptions = ".mydomain.com;localhost"
 
     ;# {emailmodule} {} {Provide llEmail and llGetNextEmail functionality? (requires SMTP server)} {true false} false
     ;; The email module requires some configuration. It needs an SMTP
