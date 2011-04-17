@@ -118,7 +118,15 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 return true;
             }
             
-            return chain.Build(new X509Certificate2(certificate));
+            if ((((int)sslPolicyErrors) & ~4) != 0)
+                return false;
+
+            if (ServicePointManager.CertificatePolicy != null)
+            {
+                ServicePoint sp = Request.ServicePoint;
+                return ServicePointManager.CertificatePolicy.CheckValidationResult (sp, certificate, Request, 0);
+            }
+            return true;
         }
         #region IHttpRequestModule Members
 
