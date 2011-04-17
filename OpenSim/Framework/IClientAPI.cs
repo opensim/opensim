@@ -441,6 +441,7 @@ namespace OpenSim.Framework
     public delegate void ClassifiedInfoRequest(UUID classifiedID, IClientAPI client);
     public delegate void ClassifiedInfoUpdate(UUID classifiedID, uint category, string name, string description, UUID parcelID, uint parentEstate, UUID snapshotID, Vector3 globalPos, byte classifiedFlags, int price, IClientAPI client);
     public delegate void ClassifiedDelete(UUID classifiedID, IClientAPI client);
+    public delegate void ClassifiedGodDelete(UUID classifiedID, UUID queryID, IClientAPI client);
 
     public delegate void EventNotificationAddRequest(uint EventID, IClientAPI client);
     public delegate void EventNotificationRemoveRequest(uint EventID, IClientAPI client);
@@ -914,7 +915,7 @@ namespace OpenSim.Framework
         event ClassifiedInfoRequest OnClassifiedInfoRequest;
         event ClassifiedInfoUpdate OnClassifiedInfoUpdate;
         event ClassifiedDelete OnClassifiedDelete;
-        event ClassifiedDelete OnClassifiedGodDelete;
+        event ClassifiedGodDelete OnClassifiedGodDelete;
 
         event EventNotificationAddRequest OnEventNotificationAddRequest;
         event EventNotificationRemoveRequest OnEventNotificationRemoveRequest;
