@@ -131,6 +131,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     availableMethods["admin_dialog"] = XmlRpcDialogMethod;
                     availableMethods["admin_restart"] = XmlRpcRestartMethod;
                     availableMethods["admin_load_heightmap"] = XmlRpcLoadHeightmapMethod;
+                    availableMethods["admin_save_heightmap"] = XmlRpcSaveHeightmapMethod;
                     // User management
                     availableMethods["admin_create_user"] = XmlRpcCreateUserMethod;
                     availableMethods["admin_create_user_email"] = XmlRpcCreateUserMethod;
@@ -436,6 +437,61 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
 
             m_log.Info("[RADMIN]: Load height maps request complete");
+
+            return response;
+        }
+
+        public XmlRpcResponse XmlRpcSaveHeightmapMethod(XmlRpcRequest request, IPEndPoint remoteClient)
+
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            m_log.Info("[RADMIN]: Save height maps request started");
+
+            try
+            {
+                Hashtable requestData = (Hashtable)request.Params[0];
+
+                m_log.DebugFormat("[RADMIN]: Save Terrain: XmlRpc {0}", request.ToString());
+
+                CheckStringParameters(request, new string[] { "password", "filename", "regionid" });
+
+                if (m_requiredPassword != String.Empty &&
+                    (!requestData.Contains("password") || (string)requestData["password"] != m_requiredPassword))
+                    throw new Exception("wrong password");
+
+                string file = (string)requestData["filename"];
+                UUID regionID = (UUID)(string)requestData["regionid"];
+                m_log.InfoFormat("[RADMIN]: Terrain Saving: {0}", file);
+
+                responseData["accepted"] = true;
+
+                Scene region = null;
+
+                if (!m_application.SceneManager.TryGetScene(regionID, out region))
+                    throw new Exception("1: unable to get a scene with that name");
+
+                ITerrainModule terrainModule = region.RequestModuleInterface<ITerrainModule>();
+                if (null == terrainModule) throw new Exception("terrain module not available");
+
+                terrainModule.SaveToFile(file);
+
+                responseData["success"] = false;
+
+                response.Value = responseData;
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[RADMIN]: Terrain Saving: failed: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN]: Terrain Saving: failed: {0}", e.ToString());
+
+                responseData["success"] = false;
+                responseData["error"] = e.Message;
+
+            }
+
+            m_log.Info("[RADMIN]: Save height maps request complete");
 
             return response;
         }
