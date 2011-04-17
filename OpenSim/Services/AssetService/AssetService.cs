@@ -89,6 +89,8 @@ namespace OpenSim.Services.AssetService
 
         public virtual AssetBase Get(string id)
         {
+//            m_log.DebugFormat("[ASSET SERVICE]: Get asset for {0}", id);
+            
             UUID assetID;
 
             if (!UUID.TryParse(id, out assetID))
@@ -107,6 +109,8 @@ namespace OpenSim.Services.AssetService
 
         public virtual AssetMetadata GetMetadata(string id)
         {
+//            m_log.DebugFormat("[ASSET SERVICE]: Get asset metadata for {0}", id);
+            
             UUID assetID;
 
             if (!UUID.TryParse(id, out assetID))
@@ -121,6 +125,8 @@ namespace OpenSim.Services.AssetService
 
         public virtual byte[] GetData(string id)
         {
+//            m_log.DebugFormat("[ASSET SERVICE]: Get asset data for {0}", id);
+            
             UUID assetID;
 
             if (!UUID.TryParse(id, out assetID))

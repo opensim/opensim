@@ -279,7 +279,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     float minX, minY, minZ;
                     float maxX, maxY, maxZ;
 
-                    Vector3[] offsets = m_Scene.GetCombinedBoundingBox(objlist,
+                    Vector3[] offsets = Scene.GetCombinedBoundingBox(objlist,
                             out minX, out maxX, out minY, out maxY,
                             out minZ, out maxZ);
 
@@ -785,8 +785,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         // affect the name stored in the serialization, transfer
                         // the correct name from the inventory to the
                         // object itself before we rez.
-                        // On coalesced objects, this has no effect.
-                        if ((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0)
+                        // On coalesced objects, do the first one
+                        if (((item.Flags & (uint)InventoryItemFlags.ObjectHasMultipleItems) == 0) || i == 0)
                         {
                             rootPart.Name = item.Name;
                             rootPart.Description = item.Description;
@@ -984,5 +984,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         }
 
         #endregion
+
+        protected virtual void ExportAsset(UUID agentID, UUID assetID)
+        {
+        }
     }
 }

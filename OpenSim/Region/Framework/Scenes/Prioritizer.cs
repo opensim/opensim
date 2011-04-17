@@ -174,7 +174,11 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence presence = m_scene.GetScenePresence(client.AgentId);
             if (presence == null)
             {
-                m_log.WarnFormat("[PRIORITIZER] attempt to use agent {0} not in the scene",client.AgentId);
+                // this shouldn't happen, it basically means that we are prioritizing 
+                // updates to send to a client that doesn't have a presence in the scene
+                // seems like there's race condition here...
+
+                // m_log.WarnFormat("[PRIORITIZER] attempt to use agent {0} not in the scene",client.AgentId);
                 // throw new InvalidOperationException("Prioritization agent not defined");
                 return Int32.MaxValue;
             }

@@ -1077,6 +1077,8 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         foreach (SceneObjectPart p in ((SceneObjectGroup)entity).Parts)
                         {
+//                            m_log.DebugFormat("[SCENE GRAPH]: Part {0} has name {1}", p.UUID, p.Name);
+                        
                             if (p.Name == name)
                             {
                                 sop = p;
