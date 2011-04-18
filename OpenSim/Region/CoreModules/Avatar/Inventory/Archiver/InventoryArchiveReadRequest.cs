@@ -82,6 +82,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </summary>
         public bool ControlFileLoaded { get; private set; }
         
+        /// <summary>
+        /// Do we want to enforce the check.  IAR versions before 0.2 and 1.1 do not guarantee this order, so we can't
+        /// enforce.
+        /// </summary>
+        public bool EnforceControlFileCheck { get; private set; }
+        
         protected bool m_assetsLoaded;
         protected bool m_inventoryNodesLoaded;
         
