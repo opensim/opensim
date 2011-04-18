@@ -213,19 +213,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             return UUID.Zero;
         }
-
-        /// <summary>
-        /// Delete a scene object from a scene and place in the given avatar's inventory.
-        /// Returns the UUID of the newly created asset.
-        /// </summary>
-        /// <param name="action"></param>
-        /// <param name="folderID"></param>
-        /// <param name="objectGroup"></param>
-        /// <param name="remoteClient"> </param>
+        
         public virtual UUID CopyToInventory(DeRezAction action, UUID folderID,
                 List<SceneObjectGroup> objectGroups, IClientAPI remoteClient)
         {
-            Dictionary<UUID, List<SceneObjectGroup>> deletes = new Dictionary<UUID, List<SceneObjectGroup>>();
+            Dictionary<UUID, List<SceneObjectGroup>> bundlesToCopy = new Dictionary<UUID, List<SceneObjectGroup>>();
             
             if (CoalesceMultipleObjectsToInventory)
             {
@@ -234,10 +226,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 // reasons.
                 foreach (SceneObjectGroup g in objectGroups)
                 {
-                    if (!deletes.ContainsKey(g.OwnerID))
-                        deletes[g.OwnerID] = new List<SceneObjectGroup>();
+                    if (!bundlesToCopy.ContainsKey(g.OwnerID))
+                        bundlesToCopy[g.OwnerID] = new List<SceneObjectGroup>();
     
-                    deletes[g.OwnerID].Add(g);
+                    bundlesToCopy[g.OwnerID].Add(g);
                 }
             }
             else
@@ -247,7 +239,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     List<SceneObjectGroup> bundle = new List<SceneObjectGroup>();
                     bundle.Add(g);
-                    deletes[g.UUID] = bundle;                    
+                    bundlesToCopy[g.UUID] = bundle;                    
                 }
             }
 
@@ -257,112 +249,129 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             // Each iteration is really a separate asset being created,
             // with distinct destinations as well.
-            foreach (List<SceneObjectGroup> objlist in deletes.Values)
+            foreach (List<SceneObjectGroup> bundle in bundlesToCopy.Values)
+                assetID = CopyBundleToInventory(action, folderID, bundle, remoteClient);
+            
+            return assetID;
+        }
+        
+        /// <summary>
+        /// Copy a bundle of objects to inventory.  If there is only one object, then this will create an object
+        /// item.  If there are multiple objects then these will be saved as a single coalesced item.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <param name="folderID"></param>
+        /// <param name="objlist"></param>
+        /// <param name="remoteClient"></param>
+        /// <returns></returns>
+        protected UUID CopyBundleToInventory(
+            DeRezAction action, UUID folderID, List<SceneObjectGroup> objlist, IClientAPI remoteClient)
+        {
+            UUID assetID = UUID.Zero;
+            
+            CoalescedSceneObjects coa = new CoalescedSceneObjects(UUID.Zero);                
+            Dictionary<UUID, Vector3> originalPositions = new Dictionary<UUID, Vector3>();
+
+            foreach (SceneObjectGroup objectGroup in objlist)
             {
-                CoalescedSceneObjects coa = new CoalescedSceneObjects(UUID.Zero);                
-                Dictionary<UUID, Vector3> originalPositions = new Dictionary<UUID, Vector3>();
+                Vector3 inventoryStoredPosition = new Vector3
+                            (((objectGroup.AbsolutePosition.X > (int)Constants.RegionSize)
+                                  ? 250
+                                  : objectGroup.AbsolutePosition.X)
+                             ,
+                             (objectGroup.AbsolutePosition.Y > (int)Constants.RegionSize)
+                                 ? 250
+                                 : objectGroup.AbsolutePosition.Y,
+                             objectGroup.AbsolutePosition.Z);
 
-                foreach (SceneObjectGroup objectGroup in objlist)
-                {
-                    Vector3 inventoryStoredPosition = new Vector3
-                                (((objectGroup.AbsolutePosition.X > (int)Constants.RegionSize)
-                                      ? 250
-                                      : objectGroup.AbsolutePosition.X)
-                                 ,
-                                 (objectGroup.AbsolutePosition.Y > (int)Constants.RegionSize)
-                                     ? 250
-                                     : objectGroup.AbsolutePosition.Y,
-                                 objectGroup.AbsolutePosition.Z);
+                originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
 
-                    originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
+                objectGroup.AbsolutePosition = inventoryStoredPosition;
 
-                    objectGroup.AbsolutePosition = inventoryStoredPosition;
-
-                    // Make sure all bits but the ones we want are clear
-                    // on take.
-                    // This will be applied to the current perms, so
-                    // it will do what we want.
-                    objectGroup.RootPart.NextOwnerMask &=
-                            ((uint)PermissionMask.Copy |
-                             (uint)PermissionMask.Transfer |
-                             (uint)PermissionMask.Modify);
-                    objectGroup.RootPart.NextOwnerMask |=
-                            (uint)PermissionMask.Move;
-                    
-                    coa.Add(objectGroup);
-                }
-
-                string itemXml;
-
-                if (objlist.Count > 1)
-                    itemXml = CoalescedSceneObjectsSerializer.ToXml(coa);
-                else
-                    itemXml = SceneObjectSerializer.ToOriginalXmlFormat(objlist[0]);
+                // Make sure all bits but the ones we want are clear
+                // on take.
+                // This will be applied to the current perms, so
+                // it will do what we want.
+                objectGroup.RootPart.NextOwnerMask &=
+                        ((uint)PermissionMask.Copy |
+                         (uint)PermissionMask.Transfer |
+                         (uint)PermissionMask.Modify);
+                objectGroup.RootPart.NextOwnerMask |=
+                        (uint)PermissionMask.Move;
                 
-                // Restore the position of each group now that it has been stored to inventory.
-                foreach (SceneObjectGroup objectGroup in objlist)
-                    objectGroup.AbsolutePosition = originalPositions[objectGroup.UUID];
-
-                InventoryItemBase item = CreateItemForObject(action, remoteClient, objlist[0], folderID);
-                if (item == null)
-                    return UUID.Zero;
-                                
-                // Can't know creator is the same, so null it in inventory
-                if (objlist.Count > 1)
-                {
-                    item.CreatorId = UUID.Zero.ToString();
-                    item.Flags = (uint)InventoryItemFlags.ObjectHasMultipleItems;
-                }
-                else
-                {
-                    item.CreatorId = objlist[0].RootPart.CreatorID.ToString();                
-                    item.SaleType = objlist[0].RootPart.ObjectSaleType;
-                    item.SalePrice = objlist[0].RootPart.SalePrice;                    
-                }              
-
-                AssetBase asset = CreateAsset(
-                    objlist[0].GetPartName(objlist[0].RootPart.LocalId),
-                    objlist[0].GetPartDescription(objlist[0].RootPart.LocalId),
-                    (sbyte)AssetType.Object,
-                    Utils.StringToBytes(itemXml),
-                    objlist[0].OwnerID.ToString());
-                m_Scene.AssetService.Store(asset);
-                
-                item.AssetID = asset.FullID;  
-                assetID = asset.FullID;                              
-
-                if (DeRezAction.SaveToExistingUserInventoryItem == action)
-                {
-                    m_Scene.InventoryService.UpdateItem(item);
-                }
-                else
-                {
-                    AddPermissions(item, objlist[0], objlist, remoteClient);
-
-                    item.CreationDate = Util.UnixTimeSinceEpoch();
-                    item.Description = asset.Description;
-                    item.Name = asset.Name;
-                    item.AssetType = asset.Type;
-
-                    m_Scene.AddInventoryItem(item);
-
-                    if (remoteClient != null && item.Owner == remoteClient.AgentId)
-                    {
-                        remoteClient.SendInventoryItemCreateUpdate(item, 0);
-                    }
-                    else
-                    {
-                        ScenePresence notifyUser = m_Scene.GetScenePresence(item.Owner);
-                        if (notifyUser != null)
-                        {
-                            notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item, 0);
-                        }
-                    }
-                }
-
-                // This is a hook to do some per-asset post-processing for subclasses that need that
-                ExportAsset(remoteClient.AgentId, assetID);
+                coa.Add(objectGroup);
             }
+
+            string itemXml;
+
+            if (objlist.Count > 1)
+                itemXml = CoalescedSceneObjectsSerializer.ToXml(coa);
+            else
+                itemXml = SceneObjectSerializer.ToOriginalXmlFormat(objlist[0]);
+            
+            // Restore the position of each group now that it has been stored to inventory.
+            foreach (SceneObjectGroup objectGroup in objlist)
+                objectGroup.AbsolutePosition = originalPositions[objectGroup.UUID];
+
+            InventoryItemBase item = CreateItemForObject(action, remoteClient, objlist[0], folderID);
+            if (item == null)
+                return UUID.Zero;
+                            
+            // Can't know creator is the same, so null it in inventory
+            if (objlist.Count > 1)
+            {
+                item.CreatorId = UUID.Zero.ToString();
+                item.Flags = (uint)InventoryItemFlags.ObjectHasMultipleItems;
+            }
+            else
+            {
+                item.CreatorId = objlist[0].RootPart.CreatorID.ToString();                
+                item.SaleType = objlist[0].RootPart.ObjectSaleType;
+                item.SalePrice = objlist[0].RootPart.SalePrice;                    
+            }              
+
+            AssetBase asset = CreateAsset(
+                objlist[0].GetPartName(objlist[0].RootPart.LocalId),
+                objlist[0].GetPartDescription(objlist[0].RootPart.LocalId),
+                (sbyte)AssetType.Object,
+                Utils.StringToBytes(itemXml),
+                objlist[0].OwnerID.ToString());
+            m_Scene.AssetService.Store(asset);
+            
+            item.AssetID = asset.FullID;  
+            assetID = asset.FullID;                              
+
+            if (DeRezAction.SaveToExistingUserInventoryItem == action)
+            {
+                m_Scene.InventoryService.UpdateItem(item);
+            }
+            else
+            {
+                AddPermissions(item, objlist[0], objlist, remoteClient);
+
+                item.CreationDate = Util.UnixTimeSinceEpoch();
+                item.Description = asset.Description;
+                item.Name = asset.Name;
+                item.AssetType = asset.Type;
+
+                m_Scene.AddInventoryItem(item);
+
+                if (remoteClient != null && item.Owner == remoteClient.AgentId)
+                {
+                    remoteClient.SendInventoryItemCreateUpdate(item, 0);
+                }
+                else
+                {
+                    ScenePresence notifyUser = m_Scene.GetScenePresence(item.Owner);
+                    if (notifyUser != null)
+                    {
+                        notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item, 0);
+                    }
+                }
+            }
+
+            // This is a hook to do some per-asset post-processing for subclasses that need that
+            ExportAsset(remoteClient.AgentId, assetID);
             
             return assetID;
         }
