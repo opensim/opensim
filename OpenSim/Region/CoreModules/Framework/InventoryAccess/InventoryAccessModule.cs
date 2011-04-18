@@ -269,9 +269,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                       ? 250
                                       : objectGroup.AbsolutePosition.X)
                                  ,
-                                 (objectGroup.AbsolutePosition.X > (int)Constants.RegionSize)
+                                 (objectGroup.AbsolutePosition.Y > (int)Constants.RegionSize)
                                      ? 250
-                                     : objectGroup.AbsolutePosition.X,
+                                     : objectGroup.AbsolutePosition.Y,
                                  objectGroup.AbsolutePosition.Z);
 
                     originalPositions[objectGroup.UUID] = objectGroup.AbsolutePosition;
