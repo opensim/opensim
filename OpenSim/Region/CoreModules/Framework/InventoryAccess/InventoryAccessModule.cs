@@ -64,7 +64,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 return m_UserManagement;
             }
         }
-
+        
+        public bool CoalesceMultipleObjectsToInventory { get; set; }
 
         #region INonSharedRegionModule
 
@@ -87,9 +88,27 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (name == Name)
                 {
                     m_Enabled = true;
-                    m_log.InfoFormat("[INVENTORY ACCESS MODULE]: {0} enabled.", Name);
+                    
+                    InitialiseCommon(source);
+                        
+                    m_log.InfoFormat("[INVENTORY ACCESS MODULE]: {0} enabled.", Name);                                        
                 }
             }
+        }
+        
+        /// <summary>
+        /// Common module config for both this and descendant classes.
+        /// </summary>
+        /// <param name="source"></param>
+        protected virtual void InitialiseCommon(IConfigSource source)
+        {
+            IConfig inventoryConfig = source.Configs["Inventory"];
+            
+            if (inventoryConfig != null)
+                CoalesceMultipleObjectsToInventory 
+                    = inventoryConfig.GetBoolean("CoalesceMultipleObjectsToInventory", true);
+            else
+                CoalesceMultipleObjectsToInventory = true;
         }
 
         public virtual void PostInitialise()
@@ -206,20 +225,30 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         public virtual UUID DeleteToInventory(DeRezAction action, UUID folderID,
                 List<SceneObjectGroup> objectGroups, IClientAPI remoteClient)
         {
-            UUID ret = UUID.Zero; 
-
-            // The following code groups the SOG's by owner. No objects
-            // belonging to different people can be coalesced, for obvious
-            // reasons.
-            Dictionary<UUID, List<SceneObjectGroup>> deletes =
-                    new Dictionary<UUID, List<SceneObjectGroup>>();
-
-            foreach (SceneObjectGroup g in objectGroups)
+            Dictionary<UUID, List<SceneObjectGroup>> deletes = new Dictionary<UUID, List<SceneObjectGroup>>();
+            
+            if (CoalesceMultipleObjectsToInventory)
             {
-                if (!deletes.ContainsKey(g.OwnerID))
-                    deletes[g.OwnerID] = new List<SceneObjectGroup>();
-
-                deletes[g.OwnerID].Add(g);
+                // The following code groups the SOG's by owner. No objects
+                // belonging to different people can be coalesced, for obvious
+                // reasons.
+                foreach (SceneObjectGroup g in objectGroups)
+                {
+                    if (!deletes.ContainsKey(g.OwnerID))
+                        deletes[g.OwnerID] = new List<SceneObjectGroup>();
+    
+                    deletes[g.OwnerID].Add(g);
+                }
+            }
+            else
+            {
+                // If we don't want to coalesce then put every object in its own bundle.
+                foreach (SceneObjectGroup g in objectGroups)
+                {
+                    List<SceneObjectGroup> bundle = new List<SceneObjectGroup>();
+                    bundle.Add(g);
+                    deletes[g.UUID] = bundle;                    
+                }
             }
 
             // This is method scoped and will be returned. It will be the
