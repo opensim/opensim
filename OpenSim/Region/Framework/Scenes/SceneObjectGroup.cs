@@ -2111,10 +2111,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="part"></param>
         public void ServiceObjectPropertiesFamilyRequest(IClientAPI remoteClient, UUID AgentID, uint RequestFlags)
         {
-            remoteClient.SendObjectPropertiesFamilyData(RequestFlags, RootPart.UUID, RootPart.OwnerID, RootPart.GroupID, RootPart.BaseMask,
-                                                        RootPart.OwnerMask, RootPart.GroupMask, RootPart.EveryoneMask, RootPart.NextOwnerMask,
-                                                        RootPart.OwnershipCost, RootPart.ObjectSaleType, RootPart.SalePrice, RootPart.Category,
-                                                        RootPart.CreatorID, RootPart.Name, RootPart.Description);
+            remoteClient.SendObjectPropertiesFamilyData(RootPart, RequestFlags);
+            
+//             remoteClient.SendObjectPropertiesFamilyData(RequestFlags, RootPart.UUID, RootPart.OwnerID, RootPart.GroupID, RootPart.BaseMask,
+//                                                         RootPart.OwnerMask, RootPart.GroupMask, RootPart.EveryoneMask, RootPart.NextOwnerMask,
+//                                                         RootPart.OwnershipCost, RootPart.ObjectSaleType, RootPart.SalePrice, RootPart.Category,
+//                                                         RootPart.CreatorID, RootPart.Name, RootPart.Description);
         }
 
         public void SetPartOwner(SceneObjectPart part, UUID cAgentID, UUID cGroupID)
