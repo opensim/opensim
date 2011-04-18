@@ -471,16 +471,30 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     if (m_creatorIdForAssetId.ContainsKey(assetId))
                     {
                         string xmlData = Utils.BytesToString(data);
-                        SceneObjectGroup sog = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);                        
-                        foreach (SceneObjectPart sop in sog.Parts)
+                        List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
+                        
+                        CoalescedSceneObjects coa = null;
+                        if (CoalescedSceneObjectsSerializer.TryFromXml(xmlData, out coa))
                         {
-                            if (sop.CreatorData == null || sop.CreatorData == "")
-                            {
-                                sop.CreatorID = m_creatorIdForAssetId[assetId];
-                            }
+//                            m_log.DebugFormat(
+//                                "[INVENTORY ARCHIVER]: Loaded coalescence {0} has {1} objects", assetId, coa.Count);
+                            
+                            sceneObjects.AddRange(coa.Objects);
+                        }
+                        else
+                        {
+                            sceneObjects.Add(SceneObjectSerializer.FromOriginalXmlFormat(xmlData));
                         }
                         
-                        data = Utils.StringToBytes(SceneObjectSerializer.ToOriginalXmlFormat(sog));
+                        foreach (SceneObjectGroup sog in sceneObjects)
+                            foreach (SceneObjectPart sop in sog.Parts)
+                                if (sop.CreatorData == null || sop.CreatorData == "")
+                                    sop.CreatorID = m_creatorIdForAssetId[assetId];
+
+                        if (coa != null)
+                            data = Utils.StringToBytes(CoalescedSceneObjectsSerializer.ToXml(coa));
+                        else
+                            data = Utils.StringToBytes(SceneObjectSerializer.ToOriginalXmlFormat(sceneObjects[0]));
                     }
                 }
 

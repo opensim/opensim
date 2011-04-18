@@ -48,6 +48,11 @@ namespace OpenSim.Services.Interfaces
         /// <returns></returns>
         AssetMetadata GetMetadata(string id);
         
+        /// <summary>
+        /// Get an asset's data, ignoring the metadata.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>null if there is no such asset</returns>
         byte[] GetData(string id);
 
         /// <summary>

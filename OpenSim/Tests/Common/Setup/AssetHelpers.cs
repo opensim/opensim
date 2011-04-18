@@ -30,6 +30,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Tests.Common
 {
@@ -55,7 +56,7 @@ namespace OpenSim.Tests.Common
             AssetBase asset = CreateAsset(UUID.Random(), AssetType.Notecard, "hello", creatorId);
             scene.AssetService.Store(asset);
             return asset;
-        }
+        }                
                 
         /// <summary>
         /// Create an asset from the given scene object.
@@ -75,6 +76,20 @@ namespace OpenSim.Tests.Common
         /// <summary>
         /// Create an asset from the given scene object.
         /// </summary>
+        /// <param name="assetUuidTailZ">
+        /// The hexadecimal last part of the UUID for the asset created.  A UUID of the form "00000000-0000-0000-0000-{0:XD12}"
+        /// will be used.
+        /// </param>
+        /// <param name="coa"></param>
+        /// <returns></returns>
+        public static AssetBase CreateAsset(int assetUuidTail, CoalescedSceneObjects coa)
+        {
+            return CreateAsset(new UUID(string.Format("00000000-0000-0000-0000-{0:X12}", assetUuidTail)), coa);
+        } 
+        
+        /// <summary>
+        /// Create an asset from the given scene object.
+        /// </summary>
         /// <param name="assetUuid"></param>
         /// <param name="coa"></param>
         /// <returns></returns>
@@ -85,7 +100,7 @@ namespace OpenSim.Tests.Common
                 AssetType.Object, 
                 Encoding.ASCII.GetBytes(CoalescedSceneObjectsSerializer.ToXml(coa)), 
                 coa.CreatorId);
-        }        
+        }         
             
         /// <summary>
         /// Create an asset from the given data.
@@ -103,6 +118,12 @@ namespace OpenSim.Tests.Common
             AssetBase asset = new AssetBase(assetUuid, assetUuid.ToString(), (sbyte)assetType, creatorID.ToString());
             asset.Data = data;
             return asset;
+        }
+        
+        public static string ReadAssetAsString(IAssetService assetService, UUID uuid)
+        {            
+            byte[] assetData = assetService.GetData(uuid.ToString());
+            return Encoding.ASCII.GetString(assetData);
         }
     }
 }

@@ -55,11 +55,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <param name="coa"></param>
         /// <returns></returns>
         public static string ToXml(CoalescedSceneObjects coa)
-        {
-            // TODO: Should probably return an empty xml serialization rather than a blank string
-            if (!coa.HasObjects)
-                return "";
-            
+        {            
             using (StringWriter sw = new StringWriter())
             {
                 using (XmlTextWriter writer = new XmlTextWriter(sw))
@@ -105,10 +101,49 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
                 string output = sw.ToString();
                 
-//                m_log.Debug(output);
+//                Console.WriteLine(output);
                 
                 return output;
             }
+        }
+        
+        public static bool TryFromXml(string xml, out CoalescedSceneObjects coa)
+        {
+//            m_log.DebugFormat("[COALESCED SCENE OBJECTS SERIALIZER]: TryFromXml() deserializing {0}", xml);
+            
+            coa = null;
+            
+            using (StringReader sr = new StringReader(xml))
+            {                
+                using (XmlTextReader reader = new XmlTextReader(sr))
+                {
+                    reader.Read();
+                    if (reader.Name != "CoalescedObject")
+                    {
+//                        m_log.DebugFormat(
+//                            "[COALESCED SCENE OBJECTS SERIALIZER]: TryFromXml() root element was {0} so returning false", 
+//                            reader.Name);
+                        
+                        return false;
+                    }
+                    
+                    coa = new CoalescedSceneObjects(UUID.Zero);                    
+                    reader.Read();                                            
+                    
+                    while (reader.NodeType != XmlNodeType.EndElement && reader.Name != "CoalescedObject")
+                    {
+                        if (reader.Name == "SceneObjectGroup")
+                        {
+                            string soXml = reader.ReadOuterXml();
+                            coa.Add(SceneObjectSerializer.FromOriginalXmlFormat(soXml));
+                        }
+                    }
+                    
+                    reader.ReadEndElement(); // CoalescedObject
+                }
+            }
+            
+            return true;
         }
     }
 }

@@ -274,154 +274,22 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 foreach (SceneObjectGroup objectGroup in objlist)
                     objectGroup.AbsolutePosition = originalPositions[objectGroup.UUID];
 
-                // Get the user info of the item destination
-                //
-                UUID userID = UUID.Zero;
-
-                if (action == DeRezAction.Take || action == DeRezAction.TakeCopy ||
-                    action == DeRezAction.SaveToExistingUserInventoryItem)
-                {
-                    // Take or take copy require a taker
-                    // Saving changes requires a local user
-                    //
-                    if (remoteClient == null)
-                        return UUID.Zero;
-
-                    userID = remoteClient.AgentId;
-                }
-                else
-                {
-                    // All returns / deletes go to the object owner
-                    //
-                    userID = objlist[0].RootPart.OwnerID;
-                }
-
-                if (userID == UUID.Zero) // Can't proceed
-                {
+                InventoryItemBase item = CreateItemForObject(action, remoteClient, objlist[0], folderID);
+                if (item == null)
                     return UUID.Zero;
-                }
-
-                // If we're returning someone's item, it goes back to the
-                // owner's Lost And Found folder.
-                // Delete is treated like return in this case
-                // Deleting your own items makes them go to trash
-                //
-                
-                InventoryFolderBase folder = null;
-                InventoryItemBase item = null;
-
-                if (DeRezAction.SaveToExistingUserInventoryItem == action)
+                                
+                // Can't know creator is the same, so null it in inventory
+                if (objlist.Count > 1)
                 {
-                    item = new InventoryItemBase(objlist[0].RootPart.FromUserInventoryItemID, userID);
-                    item = m_Scene.InventoryService.GetItem(item);
-
-                    //item = userInfo.RootFolder.FindItem(
-                    //        objectGroup.RootPart.FromUserInventoryItemID);
-
-                    if (null == item)
-                    {
-                        m_log.DebugFormat(
-                            "[AGENT INVENTORY]: Object {0} {1} scheduled for save to inventory has already been deleted.",
-                            objlist[0].Name, objlist[0].UUID);
-                        return UUID.Zero;
-                    }
+                    item.CreatorId = UUID.Zero.ToString();
+                    item.Flags = (uint)InventoryItemFlags.ObjectHasMultipleItems;
                 }
                 else
                 {
-                    // Folder magic
-                    //
-                    if (action == DeRezAction.Delete)
-                    {
-                        // Deleting someone else's item
-                        //
-                        if (remoteClient == null ||
-                            objlist[0].OwnerID != remoteClient.AgentId)
-                        {
-
-                            folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.LostAndFoundFolder);
-                        }
-                        else
-                        {
-                             folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.TrashFolder);
-                        }
-                    }
-                    else if (action == DeRezAction.Return)
-                    {
-
-                        // Dump to lost + found unconditionally
-                        //
-                        folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.LostAndFoundFolder);
-                    }
-
-                    if (folderID == UUID.Zero && folder == null)
-                    {
-                        if (action == DeRezAction.Delete)
-                        {
-                            // Deletes go to trash by default
-                            //
-                            folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.TrashFolder);
-                        }
-                        else
-                        {
-                            if (remoteClient == null ||
-                                objlist[0].OwnerID != remoteClient.AgentId)
-                            {
-                                // Taking copy of another person's item. Take to
-                                // Objects folder.
-                                folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.Object);
-                            }
-                            else
-                            {
-                                // Catch all. Use lost & found
-                                //
-
-                                folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.LostAndFoundFolder);
-                            }
-                        }
-                    }
-
-                    // Override and put into where it came from, if it came
-                    // from anywhere in inventory
-                    //
-                    if (action == DeRezAction.Take || action == DeRezAction.TakeCopy)
-                    {
-                        if (objlist[0].RootPart.FromFolderID != UUID.Zero)
-                        {
-                            InventoryFolderBase f = new InventoryFolderBase(objlist[0].RootPart.FromFolderID, userID);
-                            folder = m_Scene.InventoryService.GetFolder(f);
-                        }
-                    }
-
-                    if (folder == null) // None of the above
-                    {
-                        folder = new InventoryFolderBase(folderID);
-
-                        if (folder == null) // Nowhere to put it
-                        {
-                            return UUID.Zero;
-                        }
-                    }
-
-                    item = new InventoryItemBase();
-                    // Can't know creator is the same, so null it in inventory
-                    if (objlist.Count > 1)
-                        item.CreatorId = UUID.Zero.ToString();
-                    else
-                        item.CreatorId = objlist[0].RootPart.CreatorID.ToString();
-                    item.ID = UUID.Random();
-                    item.InvType = (int)InventoryType.Object;
-                    item.Folder = folder.ID;
-                    item.Owner = userID;
-                    if (objlist.Count > 1)
-                    {
-                        item.Flags = (uint)InventoryItemFlags.ObjectHasMultipleItems;
-                    }
-                    else
-                    {
-                        item.SaleType = objlist[0].RootPart.ObjectSaleType;
-                        item.SalePrice = objlist[0].RootPart.SalePrice;
-                    }
-                }
+                    item.CreatorId = objlist[0].RootPart.CreatorID.ToString();                
+                    item.SaleType = objlist[0].RootPart.ObjectSaleType;
+                    item.SalePrice = objlist[0].RootPart.SalePrice;                    
+                }              
 
                 AssetBase asset = CreateAsset(
                     objlist[0].GetPartName(objlist[0].RootPart.LocalId),
@@ -430,59 +298,17 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     Utils.StringToBytes(itemXml),
                     objlist[0].OwnerID.ToString());
                 m_Scene.AssetService.Store(asset);
-                assetID = asset.FullID;
+                
+                item.AssetID = asset.FullID;  
+                assetID = asset.FullID;                              
 
                 if (DeRezAction.SaveToExistingUserInventoryItem == action)
                 {
-                    item.AssetID = asset.FullID;
                     m_Scene.InventoryService.UpdateItem(item);
                 }
                 else
                 {
-                    item.AssetID = asset.FullID;
-
-                    uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move) | 7;
-                    foreach (SceneObjectGroup grp in objlist)
-                        effectivePerms &= grp.GetEffectivePermissions();
-                    effectivePerms |= (uint)PermissionMask.Move;
-
-                    if (remoteClient != null && (remoteClient.AgentId != objlist[0].RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())
-                    {
-                        uint perms = effectivePerms;
-                        uint nextPerms = (perms & 7) << 13;
-                        if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                            perms &= ~(uint)PermissionMask.Copy;
-                        if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                            perms &= ~(uint)PermissionMask.Transfer;
-                        if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                            perms &= ~(uint)PermissionMask.Modify;
-
-                        item.BasePermissions = perms & objlist[0].RootPart.NextOwnerMask;
-                        item.CurrentPermissions = item.BasePermissions;
-                        item.NextPermissions = perms & objlist[0].RootPart.NextOwnerMask;
-                        item.EveryOnePermissions = objlist[0].RootPart.EveryoneMask & objlist[0].RootPart.NextOwnerMask;
-                        item.GroupPermissions = objlist[0].RootPart.GroupMask & objlist[0].RootPart.NextOwnerMask;
-                        
-                        // Magic number badness. Maybe this deserves an enum.
-                        // bit 4 (16) is the "Slam" bit, it means treat as passed
-                        // and apply next owner perms on rez
-                        item.CurrentPermissions |= 16; // Slam!
-                    }
-                    else
-                    {
-                        item.BasePermissions = effectivePerms;
-                        item.CurrentPermissions = effectivePerms;
-                        item.NextPermissions = objlist[0].RootPart.NextOwnerMask & effectivePerms;
-                        item.EveryOnePermissions = objlist[0].RootPart.EveryoneMask & effectivePerms;
-                        item.GroupPermissions = objlist[0].RootPart.GroupMask & effectivePerms;
-
-                        item.CurrentPermissions &=
-                                ((uint)PermissionMask.Copy |
-                                 (uint)PermissionMask.Transfer |
-                                 (uint)PermissionMask.Modify |
-                                 (uint)PermissionMask.Move |
-                                 7); // Preserve folded permissions
-                    }
+                    AddPermissions(item, objlist[0], objlist, remoteClient);
 
                     item.CreationDate = Util.UnixTimeSinceEpoch();
                     item.Description = asset.Description;
@@ -504,8 +330,222 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         }
                     }
                 }
+
+                // This is a hook to do some per-asset post-processing for subclasses that need that
+                ExportAsset(remoteClient.AgentId, assetID);
             }
+            
             return assetID;
+        }
+
+        protected virtual void ExportAsset(UUID agentID, UUID assetID)
+        {
+            // nothing to do here
+        }
+
+        /// <summary>
+        /// Add relevant permissions for an object to the item.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="so"></param>
+        /// <param name="objsForEffectivePermissions"></param>
+        /// <param name="remoteClient"></param>
+        /// <returns></returns>
+        protected InventoryItemBase AddPermissions(
+            InventoryItemBase item, SceneObjectGroup so, List<SceneObjectGroup> objsForEffectivePermissions, 
+            IClientAPI remoteClient)
+        {
+            uint effectivePerms = (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify | PermissionMask.Move) | 7;
+            foreach (SceneObjectGroup grp in objsForEffectivePermissions)
+                effectivePerms &= grp.GetEffectivePermissions();
+            effectivePerms |= (uint)PermissionMask.Move;
+
+            if (remoteClient != null && (remoteClient.AgentId != so.RootPart.OwnerID) && m_Scene.Permissions.PropagatePermissions())
+            {
+                uint perms = effectivePerms;
+                uint nextPerms = (perms & 7) << 13;
+                if ((nextPerms & (uint)PermissionMask.Copy) == 0)
+                    perms &= ~(uint)PermissionMask.Copy;
+                if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
+                    perms &= ~(uint)PermissionMask.Transfer;
+                if ((nextPerms & (uint)PermissionMask.Modify) == 0)
+                    perms &= ~(uint)PermissionMask.Modify;
+
+                item.BasePermissions = perms & so.RootPart.NextOwnerMask;
+                item.CurrentPermissions = item.BasePermissions;
+                item.NextPermissions = perms & so.RootPart.NextOwnerMask;
+                item.EveryOnePermissions = so.RootPart.EveryoneMask & so.RootPart.NextOwnerMask;
+                item.GroupPermissions = so.RootPart.GroupMask & so.RootPart.NextOwnerMask;
+                
+                // Magic number badness. Maybe this deserves an enum.
+                // bit 4 (16) is the "Slam" bit, it means treat as passed
+                // and apply next owner perms on rez
+                item.CurrentPermissions |= 16; // Slam!
+            }
+            else
+            {
+                item.BasePermissions = effectivePerms;
+                item.CurrentPermissions = effectivePerms;
+                item.NextPermissions = so.RootPart.NextOwnerMask & effectivePerms;
+                item.EveryOnePermissions = so.RootPart.EveryoneMask & effectivePerms;
+                item.GroupPermissions = so.RootPart.GroupMask & effectivePerms;
+
+                item.CurrentPermissions &=
+                        ((uint)PermissionMask.Copy |
+                         (uint)PermissionMask.Transfer |
+                         (uint)PermissionMask.Modify |
+                         (uint)PermissionMask.Move |
+                         7); // Preserve folded permissions
+            }    
+            
+            return item;
+        }
+        
+        /// <summary>
+        /// Create an item using details for the given scene object.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <param name="remoteClient"></param>
+        /// <param name="so"></param>
+        /// <param name="folderID"></param>
+        /// <returns></returns>
+        protected InventoryItemBase CreateItemForObject(
+            DeRezAction action, IClientAPI remoteClient, SceneObjectGroup so, UUID folderID)
+        {
+            // Get the user info of the item destination
+            //
+            UUID userID = UUID.Zero;
+
+            if (action == DeRezAction.Take || action == DeRezAction.TakeCopy ||
+                action == DeRezAction.SaveToExistingUserInventoryItem)
+            {
+                // Take or take copy require a taker
+                // Saving changes requires a local user
+                //
+                if (remoteClient == null)
+                    return null;
+
+                userID = remoteClient.AgentId;
+            }
+            else
+            {
+                // All returns / deletes go to the object owner
+                //
+                userID = so.RootPart.OwnerID;
+            }
+
+            if (userID == UUID.Zero) // Can't proceed
+            {
+                return null;
+            }
+
+            // If we're returning someone's item, it goes back to the
+            // owner's Lost And Found folder.
+            // Delete is treated like return in this case
+            // Deleting your own items makes them go to trash
+            //
+            
+            InventoryFolderBase folder = null;
+            InventoryItemBase item = null;
+
+            if (DeRezAction.SaveToExistingUserInventoryItem == action)
+            {
+                item = new InventoryItemBase(so.RootPart.FromUserInventoryItemID, userID);
+                item = m_Scene.InventoryService.GetItem(item);
+
+                //item = userInfo.RootFolder.FindItem(
+                //        objectGroup.RootPart.FromUserInventoryItemID);
+
+                if (null == item)
+                {
+                    m_log.DebugFormat(
+                        "[AGENT INVENTORY]: Object {0} {1} scheduled for save to inventory has already been deleted.",
+                        so.Name, so.UUID);
+                    
+                    return null;
+                }
+            }
+            else
+            {
+                // Folder magic
+                //
+                if (action == DeRezAction.Delete)
+                {
+                    // Deleting someone else's item
+                    //
+                    if (remoteClient == null ||
+                        so.OwnerID != remoteClient.AgentId)
+                    {
+                        folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.LostAndFoundFolder);
+                    }
+                    else
+                    {
+                        folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.TrashFolder);
+                    }
+                }
+                else if (action == DeRezAction.Return)
+                {
+                    // Dump to lost + found unconditionally
+                    //
+                    folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.LostAndFoundFolder);
+                }
+
+                if (folderID == UUID.Zero && folder == null)
+                {
+                    if (action == DeRezAction.Delete)
+                    {
+                        // Deletes go to trash by default
+                        //
+                        folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.TrashFolder);
+                    }
+                    else
+                    {
+                        if (remoteClient == null || so.OwnerID != remoteClient.AgentId)
+                        {
+                            // Taking copy of another person's item. Take to
+                            // Objects folder.
+                            folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.Object);
+                        }
+                        else
+                        {
+                            // Catch all. Use lost & found
+                            //
+
+                            folder = m_Scene.InventoryService.GetFolderForType(userID, AssetType.LostAndFoundFolder);
+                        }
+                    }
+                }
+
+                // Override and put into where it came from, if it came
+                // from anywhere in inventory
+                //
+                if (action == DeRezAction.Take || action == DeRezAction.TakeCopy)
+                {
+                    if (so.RootPart.FromFolderID != UUID.Zero)
+                    {
+                        InventoryFolderBase f = new InventoryFolderBase(so.RootPart.FromFolderID, userID);
+                        folder = m_Scene.InventoryService.GetFolder(f);
+                    }
+                }
+
+                if (folder == null) // None of the above
+                {
+                    folder = new InventoryFolderBase(folderID);
+
+                    if (folder == null) // Nowhere to put it
+                    {
+                        return null;
+                    }
+                }
+
+                item = new InventoryItemBase();                
+                item.ID = UUID.Random();
+                item.InvType = (int)InventoryType.Object;
+                item.Folder = folder.ID;
+                item.Owner = userID;
+            }   
+            
+            return item;
         }
 
         /// <summary>
