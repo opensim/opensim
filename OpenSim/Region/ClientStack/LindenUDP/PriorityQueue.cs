@@ -78,7 +78,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public bool Enqueue(uint pqueue, EntityUpdate value)
+        public bool Enqueue(uint pqueue, IEntityUpdate value)
         {
             LookupItem lookup;
 
@@ -87,7 +87,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_lookupTable.TryGetValue(localid, out lookup))
             {
                 entry = lookup.Heap[lookup.Handle].EntryOrder;
-                value.Flags |=  lookup.Heap[lookup.Handle].Value.Flags;
+                value.Update(lookup.Heap[lookup.Handle].Value);
                 lookup.Heap.Remove(lookup.Handle);
             }
 
@@ -99,7 +99,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
-        internal bool TryDequeue(out EntityUpdate value, out Int32 timeinqueue)
+        internal bool TryDequeue(out IEntityUpdate value, out Int32 timeinqueue)
         {
             for (int i = 0; i < m_numberOfQueues; ++i)
             {
@@ -122,7 +122,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             timeinqueue = 0;
-            value = default(EntityUpdate);
+            value = default(IEntityUpdate);
             return false;
         }
 
@@ -175,8 +175,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 #region MinHeapItem
         private struct MinHeapItem : IComparable<MinHeapItem>
         {
-            private EntityUpdate value;
-            internal EntityUpdate Value {
+            private IEntityUpdate value;
+            internal IEntityUpdate Value {
                 get {
                     return this.value;
                 }
@@ -212,7 +212,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 this.pqueue = pqueue;
             }
 
-            internal MinHeapItem(uint pqueue, UInt64 entryorder, EntityUpdate value)
+            internal MinHeapItem(uint pqueue, UInt64 entryorder, IEntityUpdate value)
             {
                 this.entrytime = Util.EnvironmentTickCount();
                 this.entryorder = entryorder;
