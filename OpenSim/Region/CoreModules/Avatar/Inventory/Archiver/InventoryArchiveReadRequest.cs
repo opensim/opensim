@@ -77,6 +77,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </value>
         private Stream m_loadStream;
         
+        /// <summary>
+        /// Has the control file been loaded for this archive?
+        /// </summary>
         public bool ControlFileLoaded { get; private set; }
         
         protected bool m_assetsLoaded;
