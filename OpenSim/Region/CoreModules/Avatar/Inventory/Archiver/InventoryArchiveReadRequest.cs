@@ -77,12 +77,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </value>
         private Stream m_loadStream;
         
-        /// <summary>
-        /// FIXME: Do not perform this check since older versions of OpenSim do save the control file after other things
-        /// (I thought they weren't).  We will need to bump the version number and perform this check on all 
-        /// subsequent IAR versions only
-        /// </summary>
-        protected bool m_controlFileLoaded = true;
+        public bool ControlFileLoaded { get; private set; }
+        
         protected bool m_assetsLoaded;
         protected bool m_inventoryNodesLoaded;
         
@@ -131,6 +127,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_userInfo = userInfo;
             m_invPath = invPath;
             m_loadStream = loadStream;
+            
+            // FIXME: Do not perform this check since older versions of OpenSim do save the control file after other things
+            // (I thought they weren't).  We will need to bump the version number and perform this check on all 
+            // subsequent IAR versions only
+            ControlFileLoaded = true;
         }
 
         /// <summary>
@@ -522,7 +523,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </summary>
         /// <param name="path"></param>
         /// <param name="data"></param>
-        protected void LoadControlFile(string path, byte[] data)
+        public void LoadControlFile(string path, byte[] data)
         {
             XDocument doc = XDocument.Parse(Encoding.ASCII.GetString(data));
             XElement archiveElement = doc.Element("archive");
@@ -538,7 +539,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         majorVersion, MAX_MAJOR_VERSION));
             }
             
-            m_controlFileLoaded = true;            
+            ControlFileLoaded = true;            
             m_log.InfoFormat("[INVENTORY ARCHIVER]: Loading IAR with version {0}", version);                        
         }
         
@@ -550,7 +551,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="data"></param>        
         protected void LoadInventoryFile(string path, TarArchiveReader.TarEntryType entryType, byte[] data)
         {
-            if (!m_controlFileLoaded)
+            if (!ControlFileLoaded)
                 throw new Exception(
                     string.Format(
                         "The IAR you are trying to load does not list {0} before {1}.  Aborting load", 
@@ -597,7 +598,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="data"></param>
         protected void LoadAssetFile(string path, byte[] data)
         {
-            if (!m_controlFileLoaded)
+            if (!ControlFileLoaded)
                 throw new Exception(
                     string.Format(
                         "The IAR you are trying to load does not list {0} before {1}.  Aborting load", 
