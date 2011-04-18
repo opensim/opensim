@@ -143,7 +143,8 @@ namespace OpenSim.Region.Framework.Scenes
                         {
                             IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
                             if (invAccess != null)
-                                invAccess.DeleteToInventory(x.action, x.folderID, x.objectGroups, x.remoteClient);
+                                invAccess.CopyToInventory(x.action, x.folderID, x.objectGroups, x.remoteClient);
+                            
                             if (x.permissionToDelete)
                             {
                                 foreach (SceneObjectGroup g in x.objectGroups)

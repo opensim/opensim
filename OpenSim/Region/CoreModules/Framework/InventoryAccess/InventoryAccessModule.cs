@@ -222,7 +222,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         /// <param name="folderID"></param>
         /// <param name="objectGroup"></param>
         /// <param name="remoteClient"> </param>
-        public virtual UUID DeleteToInventory(DeRezAction action, UUID folderID,
+        public virtual UUID CopyToInventory(DeRezAction action, UUID folderID,
                 List<SceneObjectGroup> objectGroups, IClientAPI remoteClient)
         {
             Dictionary<UUID, List<SceneObjectGroup>> deletes = new Dictionary<UUID, List<SceneObjectGroup>>();
