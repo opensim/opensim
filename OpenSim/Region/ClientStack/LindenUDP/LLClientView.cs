@@ -3567,7 +3567,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// with any other updates that may be queued for the same entity. 
         /// The original update time is used for the merged update.
         /// </summary>
-        public void ResendPrimUpdate(EntityUpdate update)
+        private void ResendPrimUpdate(EntityUpdate update)
         {
             // If the update exists in priority queue, it will be updated.
             // If it does not exist then it will be added with the current (rather than its original) priority
@@ -3583,7 +3583,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// with any other updates that may be queued for the same entity. 
         /// The original update time is used for the merged update.
         /// </summary>
-        void ResendPrimUpdates(List<EntityUpdate> updates)
+        private void ResendPrimUpdates(List<EntityUpdate> updates)
         {
             foreach (EntityUpdate update in updates)
                 ResendPrimUpdate(update);
@@ -4018,6 +4018,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_entityProps.Enqueue(priority, new ObjectPropertyUpdate(entity,requestFlags,true,false));
         }
 
+        private void ResendPropertyUpdate(ObjectPropertyUpdate update)
+        {
+            uint priority = 0;
+            lock (m_entityProps.SyncRoot)
+                m_entityProps.Enqueue(priority, update);
+        }
+
+        private void ResendPropertyUpdates(List<ObjectPropertyUpdate> updates)
+        {
+            foreach (ObjectPropertyUpdate update in updates)
+                ResendPropertyUpdate(update);
+        }
+        
         public void SendObjectPropertiesReply(ISceneEntity entity)
         {
             uint priority = 0;  // time based ordering only
@@ -4033,6 +4046,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OpenSim.Framework.Lazy<List<ObjectPropertiesPacket.ObjectDataBlock>> objectPropertiesBlocks =
                 new OpenSim.Framework.Lazy<List<ObjectPropertiesPacket.ObjectDataBlock>>();
 
+            OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>> familyUpdates =
+                new OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>>();
+
+            OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>> propertyUpdates =
+                new OpenSim.Framework.Lazy<List<ObjectPropertyUpdate>>();
+            
             IEntityUpdate iupdate;
             Int32 timeinqueue; // this is just debugging code & can be dropped later
 
@@ -4051,6 +4070,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         SceneObjectPart sop = (SceneObjectPart)update.Entity;
                         ObjectPropertiesFamilyPacket.ObjectDataBlock objPropDB = CreateObjectPropertiesFamilyBlock(sop,update.Flags);
                         objectFamilyBlocks.Value.Add(objPropDB);
+                        familyUpdates.Value.Add(update);
                     }
                 }
 
@@ -4061,6 +4081,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         SceneObjectPart sop = (SceneObjectPart)update.Entity;
                         ObjectPropertiesPacket.ObjectDataBlock objPropDB = CreateObjectPropertiesBlock(sop);
                         objectPropertiesBlocks.Value.Add(objPropDB);
+                        propertyUpdates.Value.Add(update);
                     }
                 }
 
@@ -4068,12 +4089,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             
 
-            Int32 ppcnt = 0;
-            Int32 pbcnt = 0;
+            // Int32 ppcnt = 0;
+            // Int32 pbcnt = 0;
             
             if (objectPropertiesBlocks.IsValueCreated)
             {
                 List<ObjectPropertiesPacket.ObjectDataBlock> blocks = objectPropertiesBlocks.Value;
+                List<ObjectPropertyUpdate> updates = propertyUpdates.Value;
 
                 ObjectPropertiesPacket packet = (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
                 packet.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[blocks.Count];
@@ -4081,28 +4103,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     packet.ObjectData[i] = blocks[i];
 
                 packet.Header.Zerocoded = true;
-                OutPacket(packet, ThrottleOutPacketType.Task, true);
 
-                pbcnt += blocks.Count;
-                ppcnt++;
+                // Pass in the delegate so that if this packet needs to be resent, we send the current properties
+                // of the object rather than the properties when the packet was created
+                OutPacket(packet, ThrottleOutPacketType.Task, true,
+                          delegate()
+                          {
+                              ResendPropertyUpdates(updates);
+                          });
+
+                // pbcnt += blocks.Count;
+                // ppcnt++;
             }
             
-            Int32 fpcnt = 0;
-            Int32 fbcnt = 0;
+            // Int32 fpcnt = 0;
+            // Int32 fbcnt = 0;
             
             if (objectFamilyBlocks.IsValueCreated)
             {
                 List<ObjectPropertiesFamilyPacket.ObjectDataBlock> blocks = objectFamilyBlocks.Value;
-
-                // ObjectPropertiesFamilyPacket objPropFamilyPack =
-                //     (ObjectPropertiesFamilyPacket)PacketPool.Instance.GetPacket(PacketType.ObjectPropertiesFamily);
-                //
-                // objPropFamilyPack.ObjectData = new ObjectPropertiesFamilyPacket.ObjectDataBlock[blocks.Count];
-                // for (int i = 0; i < blocks.Count; i++)
-                //     objPropFamilyPack.ObjectData[i] = blocks[i];
-                //
-                // OutPacket(objPropFamilyPack, ThrottleOutPacketType.Task, true);
-
+                List<ObjectPropertyUpdate> updates = familyUpdates.Value;
+                
                 // one packet per object block... uggh...
                 for (int i = 0; i < blocks.Count; i++)
                 {
@@ -4111,10 +4132,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     packet.ObjectData = blocks[i];
                     packet.Header.Zerocoded = true;
-                    OutPacket(packet, ThrottleOutPacketType.Task);
 
-                    fpcnt++;
-                    fbcnt++;
+                    // Pass in the delegate so that if this packet needs to be resent, we send the current properties
+                    // of the object rather than the properties when the packet was created
+                    ObjectPropertyUpdate update = updates[i];
+                    OutPacket(packet, ThrottleOutPacketType.Task, true,
+                              delegate()
+                              {
+                                  ResendPropertyUpdate(update);
+                              });
+
+                    // fpcnt++;
+                    // fbcnt++;
                 }
                 
             }
@@ -4151,7 +4180,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             return block;
         }
-
+    
         private ObjectPropertiesPacket.ObjectDataBlock CreateObjectPropertiesBlock(SceneObjectPart sop)
         {
             //ObjectPropertiesPacket proper = (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
