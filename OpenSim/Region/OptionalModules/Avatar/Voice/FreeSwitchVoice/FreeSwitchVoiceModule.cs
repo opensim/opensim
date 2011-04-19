@@ -118,7 +118,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
                 if (serviceDll == String.Empty)
                 {
-                    m_log.Error("[FreeSwitchVoice]: No LocalServiceModule named in section FreeSwitchVoice");
+                    m_log.Error("[FreeSwitchVoice]: No LocalServiceModule named in section FreeSwitchVoice.  Not starting.");
                     return;
                 }
 
@@ -143,8 +143,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 if (String.IsNullOrEmpty(m_freeSwitchRealm) ||
                     String.IsNullOrEmpty(m_freeSwitchAPIPrefix))
                 {
-                    m_log.Error("[FreeSwitchVoice] plugin mis-configured");
-                    m_log.Info("[FreeSwitchVoice] plugin disabled: incomplete configuration");
+                    m_log.Error("[FreeSwitchVoice]: Freeswitch service mis-configured.  Not starting.");                    
                     return;
                 }
 
@@ -172,16 +171,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_buddy.php", m_freeSwitchAPIPrefix),
                                  FreeSwitchSLVoiceBuddyHTTPHandler);
 
-                m_log.InfoFormat("[FreeSwitchVoice] using FreeSwitch server {0}", m_freeSwitchRealm);
+                m_log.InfoFormat("[FreeSwitchVoice]: using FreeSwitch server {0}", m_freeSwitchRealm);
 
                 m_Enabled = true;
 
-                m_log.Info("[FreeSwitchVoice] plugin enabled");
+                m_log.Info("[FreeSwitchVoice]: plugin enabled");
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[FreeSwitchVoice] plugin initialization failed: {0}", e.Message);
-                m_log.DebugFormat("[FreeSwitchVoice] plugin initialization failed: {0}", e.ToString());
+                m_log.ErrorFormat("[FreeSwitchVoice]: plugin initialization failed: {0} {1}", e.Message, e.StackTrace);
                 return;
             }
 
@@ -240,7 +238,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         {
             if (m_Enabled)
             {
-                m_log.Info("[FreeSwitchVoice] registering IVoiceModule with the scene");
+                m_log.Info("[FreeSwitchVoice]: registering IVoiceModule with the scene");
 
                 // register the voice interface for this module, so the script engine can call us
                 scene.RegisterModuleInterface<IVoiceModule>(this);
@@ -302,7 +300,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         // </summary>
         public void OnRegisterCaps(Scene scene, UUID agentID, Caps caps)
         {
-            m_log.DebugFormat("[FreeSwitchVoice] OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
+            m_log.DebugFormat(
+                "[FreeSwitchVoice]: OnRegisterCaps called with agentID {0} caps {1} in scene {2}", 
+                agentID, caps, scene.RegionInfo.RegionName);
 
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
             caps.RegisterHandler("ProvisionVoiceAccountRequest",
@@ -558,7 +558,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
         public Hashtable FreeSwitchSLVoiceGetPreloginHTTPHandler(Hashtable request)
         {
-            m_log.Debug("[FreeSwitchVoice] FreeSwitchSLVoiceGetPreloginHTTPHandler called");
+            m_log.Debug("[FreeSwitchVoice]: FreeSwitchSLVoiceGetPreloginHTTPHandler called");
 
             Hashtable response = new Hashtable();
             response["content_type"] = "text/xml";
@@ -664,7 +664,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
         public Hashtable FreeSwitchSLVoiceSigninHTTPHandler(Hashtable request)
         {
-            m_log.Debug("[FreeSwitchVoice] FreeSwitchSLVoiceSigninHTTPHandler called");
+            m_log.Debug("[FreeSwitchVoice]: FreeSwitchSLVoiceSigninHTTPHandler called");
 //            string requestbody = (string)request["body"];
 //            string uri = (string)request["uri"];
 //            string contenttype = (string)request["content-type"];
@@ -795,16 +795,18 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             response["keepalive"] = false;
             response["int_response_code"] = 500;
 
-            Hashtable requestBody = ParseRequestBody((string) request["body"]);
+            Hashtable requestBody = ParseRequestBody((string)request["body"]);                                   
 
             string section = (string) requestBody["section"];
+            
+            m_log.DebugFormat("[FreeSwitchVoice]: Received request for config section {0}", section);            
 
             if (section == "directory")
                 response = m_FreeswitchService.HandleDirectoryRequest(requestBody);
             else if (section == "dialplan")
                 response = m_FreeswitchService.HandleDialplanRequest(requestBody);
             else
-                m_log.WarnFormat("[FreeSwitchVoice]: section was {0}", section);
+                m_log.WarnFormat("[FreeSwitchVoice]: Unknown section {0} was requested.", section);
 
             return response;
         }

@@ -50,13 +50,13 @@ namespace OpenSim.Services.FreeswitchService
 
         public Hashtable HandleDialplanRequest(Hashtable request)
         {
-            m_log.DebugFormat("[FreeSwitchVoice] HandleDialplanRequest called with {0}",request.ToString());
+            m_log.DebugFormat("[FreeSwitchVoice]: HandleDialplanRequest called with {0}",request.ToString());
 
             Hashtable response = new Hashtable();
 
             foreach (DictionaryEntry item in request)
             {
-               m_log.InfoFormat("[FreeSwitchDirectory] requestBody item {0} {1}",item.Key, item.Value);
+               m_log.InfoFormat("[FreeSwitchDirectory]: requestBody item {0} {1}",item.Key, item.Value);
             }
 
             string requestcontext = (string) request["Hunt-Context"];
@@ -66,7 +66,7 @@ namespace OpenSim.Services.FreeswitchService
 
             if (m_freeSwitchContext != String.Empty && m_freeSwitchContext != requestcontext)
             {
-                m_log.Debug("[FreeSwitchDirectory] returning empty as it's for another context");
+                m_log.Debug("[FreeSwitchDirectory]: returning empty as it's for another context");
                 response["str_response_string"] = "";
             }
             else
@@ -116,13 +116,16 @@ namespace OpenSim.Services.FreeswitchService
         {
             Hashtable response = new Hashtable();
             string domain = (string) request["domain"];
-            if (domain != m_freeSwitchRealm) {
+            if (domain != m_freeSwitchRealm) 
+            {
                 response["content_type"] = "text/xml";
                 response["keepalive"] = false;
                 response["int_response_code"] = 200;
                 response["str_response_string"] = "";
-            } else {
-                 m_log.DebugFormat("[FreeSwitchDirectory] HandleDirectoryRequest called with {0}",request.ToString());
+            } 
+            else 
+            {
+//                 m_log.DebugFormat("[FreeSwitchDirectory]: HandleDirectoryRequest called with {0}",request.ToString());
             
                  // information in the request we might be interested in
              
@@ -145,7 +148,7 @@ namespace OpenSim.Services.FreeswitchService
              
                  foreach (DictionaryEntry item in request)
                  {
-                    m_log.InfoFormat("[FreeSwitchDirectory] requestBody item {0} {1}", item.Key, item.Value);
+                    m_log.DebugFormat("[FreeSwitchDirectory]: requestBody item {0} {1}", item.Key, item.Value);
                  }
              
                  string eventCallingFunction = (string) request["Event-Calling-Function"];
@@ -173,7 +176,7 @@ namespace OpenSim.Services.FreeswitchService
                      }
                      else
                      {
-                         m_log.ErrorFormat("[FreeSwitchVoice] HandleDirectoryRequest unknown sip_auth_method {0}",sipAuthMethod);
+                         m_log.ErrorFormat("[FreeSwitchVoice]: HandleDirectoryRequest unknown sip_auth_method {0}",sipAuthMethod);
                          response["int_response_code"] = 404;
                          response["content_type"] = "text/xml";
                          response["str_response_string"] = "";
@@ -205,7 +208,7 @@ namespace OpenSim.Services.FreeswitchService
                  }
                  else
                  {
-                     m_log.ErrorFormat("[FreeSwitchVoice] HandleDirectoryRequest unknown Event-Calling-Function {0}",eventCallingFunction);
+                     m_log.ErrorFormat("[FreeSwitchVoice]: HandleDirectoryRequest unknown Event-Calling-Function {0}",eventCallingFunction);
                      response["int_response_code"] = 404;
                      response["keepalive"] = false;
                      response["content_type"] = "text/xml";
@@ -217,7 +220,7 @@ namespace OpenSim.Services.FreeswitchService
         
         private Hashtable HandleRegister(string Context, string Realm, Hashtable request)
         {
-            m_log.Info("[FreeSwitchDirectory] HandleRegister called");
+            m_log.Info("[FreeSwitchDirectory]: HandleRegister called");
             
             // TODO the password we return needs to match that sent in the request, this is hard coded for now
             string password = "1234";
@@ -254,7 +257,7 @@ namespace OpenSim.Services.FreeswitchService
         
         private Hashtable HandleInvite(string Context, string Realm, Hashtable request)
         {
-            m_log.Info("[FreeSwitchDirectory] HandleInvite called");
+            m_log.Info("[FreeSwitchDirectory]: HandleInvite called");
             
             // TODO the password we return needs to match that sent in the request, this is hard coded for now
             string password = "1234";
@@ -301,7 +304,7 @@ namespace OpenSim.Services.FreeswitchService
 
         private Hashtable HandleLocateUser(String Realm, Hashtable request)
         {
-            m_log.Info("[FreeSwitchDirectory] HandleLocateUser called");
+            m_log.Info("[FreeSwitchDirectory]: HandleLocateUser called");
             
             // TODO the password we return needs to match that sent in the request, this is hard coded for now
             string domain = (string) request["domain"];
@@ -335,7 +338,7 @@ namespace OpenSim.Services.FreeswitchService
        
         private Hashtable HandleConfigSofia(string Context, string Realm, Hashtable request)
         {
-            m_log.Info("[FreeSwitchDirectory] HandleConfigSofia called");
+            m_log.Info("[FreeSwitchDirectory]: HandleConfigSofia called.");
             
             // TODO the password we return needs to match that sent in the request, this is hard coded for now
             string domain = (string) request["domain"];
