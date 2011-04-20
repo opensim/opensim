@@ -3585,6 +3585,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         private void ResendPrimUpdates(List<EntityUpdate> updates)
         {
+            // m_log.WarnFormat("[CLIENT] resending prim update {0}",updates[0].UpdateTime);
+            
             foreach (EntityUpdate update in updates)
                 ResendPrimUpdate(update);
         }
@@ -4027,6 +4029,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void ResendPropertyUpdates(List<ObjectPropertyUpdate> updates)
         {
+            // m_log.WarnFormat("[CLIENT] resending object property {0}",updates[0].UpdateTime);
+
             foreach (ObjectPropertyUpdate update in updates)
                 ResendPropertyUpdate(update);
         }

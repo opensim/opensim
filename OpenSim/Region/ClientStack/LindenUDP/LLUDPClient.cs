@@ -135,7 +135,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_nextOnQueueEmpty = 1;
 
         /// <summary>Throttle bucket for this agent's connection</summary>
-        private readonly TokenBucket m_throttleClient;
+        private readonly AdaptiveTokenBucket m_throttleClient;
+        public AdaptiveTokenBucket FlowThrottle
+        {
+            get { return m_throttleClient; }
+        }
+
         /// <summary>Throttle bucket for this agent's connection</summary>
         private readonly TokenBucket m_throttleCategory;
         /// <summary>Throttle buckets for each packet category</summary>
@@ -176,7 +181,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_maxRTO = maxRTO;
 
             // Create a token bucket throttle for this client that has the scene token bucket as a parent
-            m_throttleClient = new TokenBucket(parentThrottle, rates.TotalLimit);
+            m_throttleClient = new AdaptiveTokenBucket(parentThrottle, rates.TotalLimit);
             // Create a token bucket throttle for the total categary with the client bucket as a throttle
             m_throttleCategory = new TokenBucket(m_throttleClient, rates.TotalLimit);
             // Create an array of token buckets for this clients different throttle categories
