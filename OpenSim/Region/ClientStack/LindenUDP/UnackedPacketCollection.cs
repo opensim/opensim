@@ -83,6 +83,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         /// <summary>
         /// Marks a packet as acknowledged
+        /// This method is used when an acknowledgement is received from the network for a previously
+        /// sent packet. Effects of removal this way are to update unacked byte count, adjust RTT
+        /// and increase throttle to the coresponding client.
         /// </summary>
         /// <param name="sequenceNumber">Sequence number of the packet to
         /// acknowledge</param>
@@ -92,6 +95,31 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void Remove(uint sequenceNumber, int currentTime, bool fromResend)
         {
             m_pendingRemoves.Enqueue(new PendingAck(sequenceNumber, currentTime, fromResend));
+        }
+
+        /// <summary>
+        /// Marks a packet as no longer needing acknowledgement without a received acknowledgement.
+        /// This method is called when a packet expires and we no longer need an acknowledgement.
+        /// When some reliable packet types expire, they are handled in a way other than simply 
+        /// resending them. The only effect of removal this way is to update unacked byte count.
+        /// </summary>
+        /// <param name="sequenceNumber">Sequence number of the packet to
+        /// acknowledge</param>
+        /// <remarks>The packet is removed from the collection immediately. 
+        /// This function is not threadsafe. It must be called by the thread calling GetExpiredPackets.</remarks>
+        public void Remove(uint sequenceNumber)
+        {
+            OutgoingPacket removedPacket;
+            if (m_packets.TryGetValue(sequenceNumber, out removedPacket))
+            {
+                if (removedPacket != null)
+                {
+                    m_packets.Remove(sequenceNumber);
+
+                    // Update stats
+                    Interlocked.Add(ref removedPacket.Client.UnackedBytes, -removedPacket.Buffer.DataLength);
+                }
+            }
         }
 
         /// <summary>
