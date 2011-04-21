@@ -29,6 +29,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using OpenSim.Framework;
+
 using log4net;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
@@ -177,7 +179,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RequestedDripRate = dripRate;
             // TotalDripRequest = dripRate; // this will be overwritten when a child node registers
             // MaxBurst = (Int64)((double)dripRate * m_quantumsPerBurst);
-            m_lastDrip = Environment.TickCount & Int32.MaxValue;
+            m_lastDrip = Util.EnvironmentTickCount();
         }
 
 #endregion Constructor
@@ -211,12 +213,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void RegisterRequest(TokenBucket child, Int64 request)
         {
-            m_children[child] = request;
-            // m_totalDripRequest = m_children.Values.Sum();
+            lock (m_children)
+            {
+                m_children[child] = request;
+                // m_totalDripRequest = m_children.Values.Sum();
 
-            m_totalDripRequest = 0;
-            foreach (KeyValuePair<TokenBucket, Int64> cref in m_children)
-                m_totalDripRequest += cref.Value;
+                m_totalDripRequest = 0;
+                foreach (KeyValuePair<TokenBucket, Int64> cref in m_children)
+                    m_totalDripRequest += cref.Value;
+            }
             
             // Pass the new values up to the parent
             if (m_parent != null)
@@ -229,12 +234,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void UnregisterRequest(TokenBucket child)
         {
-            m_children.Remove(child);
-            // m_totalDripRequest = m_children.Values.Sum();
+            lock (m_children)
+            {
+                m_children.Remove(child);
+                // m_totalDripRequest = m_children.Values.Sum();
 
-            m_totalDripRequest = 0;
-            foreach (KeyValuePair<TokenBucket, Int64> cref in m_children)
-                m_totalDripRequest += cref.Value;
+                m_totalDripRequest = 0;
+                foreach (KeyValuePair<TokenBucket, Int64> cref in m_children)
+                    m_totalDripRequest += cref.Value;
+            }
+            
 
             // Pass the new values up to the parent
             if (m_parent != null)
@@ -297,10 +306,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
             // Determine the interval over which we are adding tokens, never add
             // more than a single quantum of tokens
-            Int32 now = Environment.TickCount & Int32.MaxValue;
-            Int32 deltaMS = Math.Min(now - m_lastDrip, m_ticksPerQuantum);
-
-            m_lastDrip = now;
+            Int32 deltaMS = Math.Min(Util.EnvironmentTickCountSubtract(m_lastDrip), m_ticksPerQuantum);
+            m_lastDrip = Util.EnvironmentTickCount();
 
             // This can be 0 in the very unusual case that the timer wrapped
             // It can be 0 if we try add tokens at a sub-tick rate
