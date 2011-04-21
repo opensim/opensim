@@ -298,10 +298,20 @@ namespace OpenSim.Region.Framework.Scenes
             if (null != objectAsset)
             {
                 string xml = Utils.BytesToString(objectAsset.Data);
-                SceneObjectGroup sog = SceneObjectSerializer.FromOriginalXmlFormat(xml);
-
-                if (null != sog)
-                    GatherAssetUuids(sog, assetUuids);
+                
+                CoalescedSceneObjects coa;
+                if (CoalescedSceneObjectsSerializer.TryFromXml(xml, out coa))
+                {
+                    foreach (SceneObjectGroup sog in coa.Objects)
+                        GatherAssetUuids(sog, assetUuids);
+                }
+                else
+                {
+                    SceneObjectGroup sog = SceneObjectSerializer.FromOriginalXmlFormat(xml);
+    
+                    if (null != sog)
+                        GatherAssetUuids(sog, assetUuids);
+                }
             }
         }
 
