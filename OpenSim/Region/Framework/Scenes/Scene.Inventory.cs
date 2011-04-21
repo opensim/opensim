@@ -1955,11 +1955,49 @@ namespace OpenSim.Region.Framework.Scenes
                                     UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                     bool RezSelected, bool RemoveItem, UUID fromTaskID)
         {
-            IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
-            if (invAccess != null)
-                invAccess.RezObject(
-                    remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
-                    RezSelected, RemoveItem, fromTaskID, false);
+//            m_log.DebugFormat(
+//                "[PRIM INVENTORY]: RezObject from {0} for item {1} from task id {2}", 
+//                remoteClient.Name, itemID, fromTaskID);
+            
+            if (fromTaskID == UUID.Zero)
+            {
+                IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
+                if (invAccess != null)
+                    invAccess.RezObject(
+                        remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
+                        RezSelected, RemoveItem, fromTaskID, false);
+            }
+            else
+            {            
+                SceneObjectPart part = GetSceneObjectPart(fromTaskID);
+                if (part == null)
+                {
+                    m_log.ErrorFormat(                                     
+                        "[TASK INVENTORY]: {0} tried to rez item id {1} from object id {2} but there is no such scene object", 
+                        remoteClient.Name, itemID, fromTaskID);
+                    
+                    return;
+                }
+                
+                TaskInventoryItem item = part.Inventory.GetInventoryItem(itemID);
+                if (item == null)
+                {
+                    m_log.ErrorFormat(                                     
+                        "[TASK INVENTORY]: {0} tried to rez item id {1} from object id {2} but there is no such item", 
+                        remoteClient.Name, itemID, fromTaskID);
+                    
+                    return;
+                }                
+                               
+                byte bRayEndIsIntersection = (byte)(RayEndIsIntersection ? 1 : 0);
+                Vector3 scale = new Vector3(0.5f, 0.5f, 0.5f);
+                Vector3 pos 
+                    = GetNewRezLocation(
+                        RayStart, RayEnd, RayTargetID, Quaternion.Identity,
+                        BypassRayCast, bRayEndIsIntersection, true, scale, false);            
+                
+                RezObject(part, item, pos, null, Vector3.Zero, 0);
+            }
         }
         
         /// <summary>
@@ -1967,14 +2005,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="sourcePart"></param>
         /// <param name="item"></param>
-        /// <param name="pos"></param>
-        /// <param name="rot"></param>
-        /// <param name="vel"></param>
+        /// <param name="pos">The position of the rezzed object.</param>
+        /// <param name="rot">The rotation of the rezzed object.  If null, then the rotation stored with the object
+        /// will be used if it exists.</param>
+        /// <param name="vel">The velocity of the rezzed object.</param>
         /// <param name="param"></param>
         /// <returns>The SceneObjectGroup rezzed or null if rez was unsuccessful</returns>
         public virtual SceneObjectGroup RezObject(
-            SceneObjectPart sourcePart, TaskInventoryItem item,
-            Vector3 pos, Quaternion rot, Vector3 vel, int param)
+            SceneObjectPart sourcePart, TaskInventoryItem item, Vector3 pos, Quaternion? rot, Vector3 vel, int param)
         {
             if (null == item)
                 return null;
@@ -1992,8 +2030,14 @@ namespace OpenSim.Region.Framework.Scenes
                 if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                     sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
             }
-                        
-            AddNewSceneObject(group, true, pos, rot, vel);
+                                    
+            AddNewSceneObject(group, true);
+            
+            group.AbsolutePosition = pos;
+            group.Velocity = vel;            
+            
+            if (rot != null)
+                group.UpdateGroupRotationR((Quaternion)rot);
             
             // We can only call this after adding the scene object, since the scene object references the scene
             // to find out if scripts should be activated at all.

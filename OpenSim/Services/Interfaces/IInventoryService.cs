@@ -169,7 +169,7 @@ namespace OpenSim.Services.Interfaces
         /// Get an item, given by its UUID
         /// </summary>
         /// <param name="item"></param>
-        /// <returns></returns>
+        /// <returns>null if no item was found, otherwise the found item</returns>
         InventoryItemBase GetItem(InventoryItemBase item);
 
         /// <summary>

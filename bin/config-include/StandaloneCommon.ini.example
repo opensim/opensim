@@ -28,10 +28,10 @@
 
 [HGInventoryAccessModule]
     ProfileServerURI = "http://127.0.0.1:9000/profiles"
-	;; If you want to protect your assets from being copied by foreign visitors
-	;; uncomment the next line. You may want to do this on sims that have licensed content.
-	; OutboundPermission = False
 
+    ;; If you want to protect your assets from being copied by foreign visitors
+    ;; uncomment the next line. You may want to do this on sims that have licensed content.
+    ; OutboundPermission = False
 
 [Modules]
     ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.
@@ -45,15 +45,8 @@
     AssetCaching = "CenomeMemoryAssetCache"
     Include-CenomeCache = "config-include/CenomeCache.ini"
 
-    ;; Enable this to use Freeswitch on a standalone
-    ;FreeswitchServiceInConnector = True
-
     ;; Authorization is not on by default, as it depends on external php
     ;AuthorizationServices = "LocalAuthorizationServicesConnector"
-
-[FreeswitchService]
-    ;; Configuration for the freeswitch service goes here
-    LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"
 
 [GridService]
     ;; For in-memory region storage (default)
@@ -74,9 +67,8 @@
     Region_Welcome_Area = "DefaultRegion, FallbackRegion"
 
     ; === HG ONLY ===
-	;; change this to the address of your simulator
-	Gatekeeper="http://127.0.0.1:9000"
-
+    ;; change this to the address of your simulator
+    Gatekeeper="http://127.0.0.1:9000"
 
 [LibraryModule]
     ; Set this if you want to change the name of the OpenSim Library

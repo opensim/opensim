@@ -78,11 +78,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         private Stream m_loadStream;
         
         /// <summary>
-        /// FIXME: Do not perform this check since older versions of OpenSim do save the control file after other things
-        /// (I thought they weren't).  We will need to bump the version number and perform this check on all 
-        /// subsequent IAR versions only
+        /// Has the control file been loaded for this archive?
         /// </summary>
-        protected bool m_controlFileLoaded = true;
+        public bool ControlFileLoaded { get; private set; }
+        
+        /// <summary>
+        /// Do we want to enforce the check.  IAR versions before 0.2 and 1.1 do not guarantee this order, so we can't
+        /// enforce.
+        /// </summary>
+        public bool EnforceControlFileCheck { get; private set; }
+        
         protected bool m_assetsLoaded;
         protected bool m_inventoryNodesLoaded;
         
@@ -131,6 +136,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_userInfo = userInfo;
             m_invPath = invPath;
             m_loadStream = loadStream;
+            
+            // FIXME: Do not perform this check since older versions of OpenSim do save the control file after other things
+            // (I thought they weren't).  We will need to bump the version number and perform this check on all 
+            // subsequent IAR versions only
+            ControlFileLoaded = true;
         }
 
         /// <summary>
@@ -471,16 +481,30 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     if (m_creatorIdForAssetId.ContainsKey(assetId))
                     {
                         string xmlData = Utils.BytesToString(data);
-                        SceneObjectGroup sog = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);                        
-                        foreach (SceneObjectPart sop in sog.Parts)
+                        List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
+                        
+                        CoalescedSceneObjects coa = null;
+                        if (CoalescedSceneObjectsSerializer.TryFromXml(xmlData, out coa))
                         {
-                            if (sop.CreatorData == null || sop.CreatorData == "")
-                            {
-                                sop.CreatorID = m_creatorIdForAssetId[assetId];
-                            }
+//                            m_log.DebugFormat(
+//                                "[INVENTORY ARCHIVER]: Loaded coalescence {0} has {1} objects", assetId, coa.Count);
+                            
+                            sceneObjects.AddRange(coa.Objects);
+                        }
+                        else
+                        {
+                            sceneObjects.Add(SceneObjectSerializer.FromOriginalXmlFormat(xmlData));
                         }
                         
-                        data = Utils.StringToBytes(SceneObjectSerializer.ToOriginalXmlFormat(sog));
+                        foreach (SceneObjectGroup sog in sceneObjects)
+                            foreach (SceneObjectPart sop in sog.Parts)
+                                if (sop.CreatorData == null || sop.CreatorData == "")
+                                    sop.CreatorID = m_creatorIdForAssetId[assetId];
+
+                        if (coa != null)
+                            data = Utils.StringToBytes(CoalescedSceneObjectsSerializer.ToXml(coa));
+                        else
+                            data = Utils.StringToBytes(SceneObjectSerializer.ToOriginalXmlFormat(sceneObjects[0]));
                     }
                 }
 
@@ -508,7 +532,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </summary>
         /// <param name="path"></param>
         /// <param name="data"></param>
-        protected void LoadControlFile(string path, byte[] data)
+        public void LoadControlFile(string path, byte[] data)
         {
             XDocument doc = XDocument.Parse(Encoding.ASCII.GetString(data));
             XElement archiveElement = doc.Element("archive");
@@ -524,7 +548,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         majorVersion, MAX_MAJOR_VERSION));
             }
             
-            m_controlFileLoaded = true;            
+            ControlFileLoaded = true;            
             m_log.InfoFormat("[INVENTORY ARCHIVER]: Loading IAR with version {0}", version);                        
         }
         
@@ -536,7 +560,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="data"></param>        
         protected void LoadInventoryFile(string path, TarArchiveReader.TarEntryType entryType, byte[] data)
         {
-            if (!m_controlFileLoaded)
+            if (!ControlFileLoaded)
                 throw new Exception(
                     string.Format(
                         "The IAR you are trying to load does not list {0} before {1}.  Aborting load", 
@@ -583,7 +607,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="data"></param>
         protected void LoadAssetFile(string path, byte[] data)
         {
-            if (!m_controlFileLoaded)
+            if (!ControlFileLoaded)
                 throw new Exception(
                     string.Format(
                         "The IAR you are trying to load does not list {0} before {1}.  Aborting load", 

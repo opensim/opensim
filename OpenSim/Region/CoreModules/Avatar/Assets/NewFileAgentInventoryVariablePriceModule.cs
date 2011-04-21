@@ -56,6 +56,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
         private Scene m_scene;
 //        private IAssetService m_assetService;
         private bool m_dumpAssetsToFile = false;
+        private bool m_enabled = true;
 
         #region IRegionModuleBase Members
 
@@ -67,7 +68,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
 
         public void Initialise(IConfigSource source)
         {
-           
+            IConfig meshConfig = source.Configs["Mesh"];
+            if (meshConfig == null)
+                return;
+
+            m_enabled = meshConfig.GetBoolean("ColladaMesh", true);
         }
 
         public void AddRegion(Scene pScene)
@@ -103,6 +108,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
+            if(!m_enabled)
+                return;
+
             UUID capID = UUID.Random();
 
 //            m_log.Debug("[NEW FILE AGENT INVENTORY VARIABLE PRICE]: /CAPS/" + capID);

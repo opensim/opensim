@@ -38,9 +38,9 @@ namespace OpenSim.Data.Null
 {
     public class NullEstateStore : IEstateDataStore
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_connectionString;
+//        private string m_connectionString;
 
         protected virtual Assembly Assembly
         {
@@ -58,7 +58,7 @@ namespace OpenSim.Data.Null
 
         public void Initialise(string connectionString)
         {
-            m_connectionString = connectionString;
+//            m_connectionString = connectionString;
         }
 
         private string[] FieldList
