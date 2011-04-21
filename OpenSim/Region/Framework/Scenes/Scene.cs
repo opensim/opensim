@@ -5191,6 +5191,17 @@ namespace OpenSim.Region.Framework.Scenes
                 return true;
             }
 
+            int num = m_sceneGraph.GetNumberOfScenePresences();
+
+            if (num >= RegionInfo.RegionSettings.AgentLimit)
+            {
+                if (!Permissions.IsAdministrator(cAgentData.AgentID))
+                {
+                    reason = "The region is full";
+                    return false;
+                }
+            }
+
             if (!AuthorizeUser(agentID, out reason))
             {
                 // m_log.DebugFormat("[SCENE]: Denying access for {0}", agentID);
