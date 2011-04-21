@@ -117,29 +117,40 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             {                
                 using (XmlTextReader reader = new XmlTextReader(sr))
                 {
-                    reader.Read();
-                    if (reader.Name != "CoalescedObject")
+                    try
                     {
-//                        m_log.DebugFormat(
-//                            "[COALESCED SCENE OBJECTS SERIALIZER]: TryFromXml() root element was {0} so returning false", 
-//                            reader.Name);
+                        reader.Read();
+                        if (reader.Name != "CoalescedObject")
+                        {
+    //                        m_log.DebugFormat(
+    //                            "[COALESCED SCENE OBJECTS SERIALIZER]: TryFromXml() root element was {0} so returning false", 
+    //                            reader.Name);
+                            
+                            return false;
+                        }
+                        
+                        coa = new CoalescedSceneObjects(UUID.Zero);                    
+                        reader.Read();                                            
+                        
+                        while (reader.NodeType != XmlNodeType.EndElement && reader.Name != "CoalescedObject")
+                        {
+                            if (reader.Name == "SceneObjectGroup")
+                            {
+                                string soXml = reader.ReadOuterXml();
+                                coa.Add(SceneObjectSerializer.FromOriginalXmlFormat(soXml));
+                            }
+                        }
+                        
+                        reader.ReadEndElement(); // CoalescedObject
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[COALESCED SCENE OBJECTS SERIALIZER]: Deserialization of xml failed with {0} {1}", 
+                            e.Message, e.StackTrace);
                         
                         return false;
-                    }
-                    
-                    coa = new CoalescedSceneObjects(UUID.Zero);                    
-                    reader.Read();                                            
-                    
-                    while (reader.NodeType != XmlNodeType.EndElement && reader.Name != "CoalescedObject")
-                    {
-                        if (reader.Name == "SceneObjectGroup")
-                        {
-                            string soXml = reader.ReadOuterXml();
-                            coa.Add(SceneObjectSerializer.FromOriginalXmlFormat(soXml));
-                        }
-                    }
-                    
-                    reader.ReadEndElement(); // CoalescedObject
+                    }                        
                 }
             }
             

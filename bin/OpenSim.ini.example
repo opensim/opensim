@@ -621,10 +621,11 @@
 
     ;; You need to load a local service for a standalone, and a remote service
     ;; for a grid region. Use one of the lines below, as appropriate
+    ;; If you're using Freeswitch on a standalone then you will also need to configure the [FreeswitchService] section
     ; LocalServiceModule = OpenSim.Services.FreeswitchService.dll:FreeswitchService
     ; LocalServiceModule = OpenSim.Services.Connectors.dll:RemoteFreeswitchConnector
 
-    ;; If using a remote module, specify the server URL
+    ;; If using a remote connector, specify the server URL
     ; FreeswitchServiceURL = http://my.grid.server:8003/fsapi
 
 
@@ -632,20 +633,37 @@
     ;; !!!!!!!!!!!!!!!!!!!!!!!!!!!
     ;; !!!!!!STANDALONE ONLY!!!!!!
     ;; !!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ;; IP of your FS server
-    ;ServerAddress = 85.25.142.92
+    ;; The IP address of your FreeSWITCH server.  The common case is for this to be the same as the server running the OpenSim standalone
+    ;; This has to be set for the FreeSWITCH service to work
+    ;ServerAddress = 127.0.0.1
 
-    ;; All other options are - well - optional
-    ; Realm = "127.0.0.1"
-    ; SIPProxy = "127.0.0.1:5060"
-    ; EchoServer = "127.0.0.1"
-    ; EchoPort = 50505
-    ; AttemptSTUN = "false"
+    ;; The following configuration parameters are optional
+
+    ;; By default, this is the same as the ServerAddress
+    ; Realm = 127.0.0.1
+
+    ;; By default, this is the same as the ServerAddress on port 5060
+    ; SIPProxy = 127.0.0.1:5060
+
+    ;; Default is 5000ms
     ; DefaultTimeout = 5000
-    ; Context = "default"
-    ; UserName = "freeswitch"
-    ; Password = "password"
 
+    ;; The dial plan context.  Default is "default"
+    ; Context = default
+
+    ;; Currently unused
+    ; UserName = freeswitch
+
+    ;; Currently unused
+    ; Password = password
+
+    ;; The following parameters are for STUN = Simple Traversal of UDP through NATs
+    ;; See http://wiki.freeswitch.org/wiki/NAT_Traversal
+    ;; stun.freeswitch.org is not guaranteed to be running so use it in
+    ;; production at your own risk    
+    ; EchoServer = 127.0.0.1
+    ; EchoPort = 50505
+    ; AttemptSTUN = false
 
 [Groups]
     ;# {Enabled} {} {Enable groups?} {true false} false

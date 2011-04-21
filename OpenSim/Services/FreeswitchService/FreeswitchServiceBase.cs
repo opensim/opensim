@@ -64,7 +64,7 @@ namespace OpenSim.Services.FreeswitchService
                 m_freeSwitchDefaultWellKnownIP = freeswitchConfig.GetString("ServerAddress", String.Empty);
                 if (m_freeSwitchDefaultWellKnownIP == String.Empty)
                 {
-                    m_log.Error("[FREESWITCH]: No FreeswitchServerAddress given, can't continue");
+                    m_log.Error("[FREESWITCH]: No ServerAddress given, cannot start service.");
                     return;
                 }
 
