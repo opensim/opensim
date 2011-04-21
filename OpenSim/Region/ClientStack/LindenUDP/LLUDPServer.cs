@@ -413,7 +413,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category, null);
             // If we were not provided a method for handling unacked, use the UDPServer default method
-            outgoingPacket.UnackedMethod = ((method == null) ? delegate() { ResendUnacked(outgoingPacket); } : method);
+            outgoingPacket.UnackedMethod = ((method == null) ? delegate(OutgoingPacket oPacket) { ResendUnacked(oPacket); } : method);
 
             // If a Linden Lab 1.23.5 client receives an update packet after a kill packet for an object, it will 
             // continue to display the deleted object until relog.  Therefore, we need to always queue a kill object
@@ -494,7 +494,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Exponential backoff of the retransmission timeout
                 udpClient.BackoffRTO();
                 for (int i = 0; i < expiredPackets.Count; ++i)
-                    expiredPackets[i].UnackedMethod();
+                    expiredPackets[i].UnackedMethod(expiredPackets[i]);
             }
         }
 

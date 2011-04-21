@@ -31,7 +31,8 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
-    public delegate void UnackedPacketMethod();
+
+    public delegate void UnackedPacketMethod(OutgoingPacket oPacket);
     /// <summary>
     /// Holds a reference to the <seealso cref="LLUDPClient"/> this packet is
     /// destined for, along with the serialized packet data, sequence number

@@ -3583,10 +3583,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// with any other updates that may be queued for the same entity. 
         /// The original update time is used for the merged update.
         /// </summary>
-        private void ResendPrimUpdates(List<EntityUpdate> updates)
+        private void ResendPrimUpdates(List<EntityUpdate> updates, OutgoingPacket oPacket)
         {
             // m_log.WarnFormat("[CLIENT] resending prim update {0}",updates[0].UpdateTime);
-            
+
+            // Remove the update packet from the list of packets waiting for acknowledgement
+            // because we are requeuing the list of updates. They will be resent in new packets
+            // with the most recent state and priority.
+            m_udpClient.NeedAcks.Remove(oPacket.SequenceNumber, 0, true);
             foreach (EntityUpdate update in updates)
                 ResendPrimUpdate(update);
         }
@@ -3771,7 +3775,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     for (int i = 0; i < blocks.Count; i++)
                         packet.ObjectData[i] = blocks[i];
                     // If any of the packets created from this call go unacknowledged, all of the updates will be resent
-                    OutPacket(packet, ThrottleOutPacketType.Unknown, true, delegate() { ResendPrimUpdates(terseAgentUpdates.Value); });
+                    OutPacket(packet, ThrottleOutPacketType.Unknown, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseAgentUpdates.Value, oPacket); });
                 }
 
                 if (objectUpdateBlocks.IsValueCreated)
@@ -3786,7 +3790,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     for (int i = 0; i < blocks.Count; i++)
                         packet.ObjectData[i] = blocks[i];
                     // If any of the packets created from this call go unacknowledged, all of the updates will be resent
-                    OutPacket(packet, ThrottleOutPacketType.Task, true, delegate() { ResendPrimUpdates(objectUpdates.Value); });
+                    OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(objectUpdates.Value, oPacket); });
                 }
         
                 if (compressedUpdateBlocks.IsValueCreated)
@@ -3801,7 +3805,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     for (int i = 0; i < blocks.Count; i++)
                         packet.ObjectData[i] = blocks[i];
                     // If any of the packets created from this call go unacknowledged, all of the updates will be resent
-                    OutPacket(packet, ThrottleOutPacketType.Task, true, delegate() { ResendPrimUpdates(compressedUpdates.Value); });
+                    OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(compressedUpdates.Value, oPacket); });
                 }
 
                 if (terseUpdateBlocks.IsValueCreated)
@@ -3816,7 +3820,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     for (int i = 0; i < blocks.Count; i++)
                         packet.ObjectData[i] = blocks[i];
                     // If any of the packets created from this call go unacknowledged, all of the updates will be resent
-                    OutPacket(packet, ThrottleOutPacketType.Task, true, delegate() { ResendPrimUpdates(terseUpdates.Value); });
+                    OutPacket(packet, ThrottleOutPacketType.Task, true, delegate(OutgoingPacket oPacket) { ResendPrimUpdates(terseUpdates.Value, oPacket); });
                 }
             }
 
@@ -4027,10 +4031,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_entityProps.Enqueue(priority, update);
         }
 
-        private void ResendPropertyUpdates(List<ObjectPropertyUpdate> updates)
+        private void ResendPropertyUpdates(List<ObjectPropertyUpdate> updates, OutgoingPacket oPacket)
         {
             // m_log.WarnFormat("[CLIENT] resending object property {0}",updates[0].UpdateTime);
 
+            // Remove the update packet from the list of packets waiting for acknowledgement
+            // because we are requeuing the list of updates. They will be resent in new packets
+            // with the most recent state.
+            m_udpClient.NeedAcks.Remove(oPacket.SequenceNumber, 0, true);
             foreach (ObjectPropertyUpdate update in updates)
                 ResendPropertyUpdate(update);
         }
@@ -4111,9 +4119,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Pass in the delegate so that if this packet needs to be resent, we send the current properties
                 // of the object rather than the properties when the packet was created
                 OutPacket(packet, ThrottleOutPacketType.Task, true,
-                          delegate()
+                          delegate(OutgoingPacket oPacket)
                           {
-                              ResendPropertyUpdates(updates);
+                              ResendPropertyUpdates(updates, oPacket);
                           });
 
                 // pbcnt += blocks.Count;
@@ -4126,7 +4134,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (objectFamilyBlocks.IsValueCreated)
             {
                 List<ObjectPropertiesFamilyPacket.ObjectDataBlock> blocks = objectFamilyBlocks.Value;
-                List<ObjectPropertyUpdate> updates = familyUpdates.Value;
                 
                 // one packet per object block... uggh...
                 for (int i = 0; i < blocks.Count; i++)
@@ -4139,11 +4146,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     // Pass in the delegate so that if this packet needs to be resent, we send the current properties
                     // of the object rather than the properties when the packet was created
-                    ObjectPropertyUpdate update = updates[i];
+                    List<ObjectPropertyUpdate> updates = new List<ObjectPropertyUpdate>();
+                    updates.Add(familyUpdates.Value[i]);
                     OutPacket(packet, ThrottleOutPacketType.Task, true,
-                              delegate()
+                              delegate(OutgoingPacket oPacket)
                               {
-                                  ResendPropertyUpdate(update);
+                                  ResendPropertyUpdates(updates, oPacket);
                               });
 
                     // fpcnt++;
