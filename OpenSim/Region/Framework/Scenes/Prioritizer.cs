@@ -88,7 +88,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // If this is an update for our own avatar give it the highest priority
             if (client.AgentId == entity.UUID)
-                return 0;
+                return PriorityQueue.ImmediateQueue;
 
             uint priority;
             
@@ -172,7 +172,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // m_log.WarnFormat("[PRIORITIZER] attempt to use agent {0} not in the scene",client.AgentId);
                 // throw new InvalidOperationException("Prioritization agent not defined");
-                return Int32.MaxValue;
+                return PriorityQueue.NumberOfQueues - 1;
             }
                 
             // Use group position for child prims, since we are putting child prims in
