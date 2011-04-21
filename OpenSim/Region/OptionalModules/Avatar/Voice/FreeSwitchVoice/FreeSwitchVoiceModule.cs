@@ -118,7 +118,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
                 if (serviceDll == String.Empty)
                 {
-                    m_log.Error("[FreeSwitchVoice]: No LocalServiceModule named in section FreeSwitchVoice");
+                    m_log.Error("[FreeSwitchVoice]: No LocalServiceModule named in section FreeSwitchVoice.  Not starting.");
                     return;
                 }
 
@@ -143,8 +143,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 if (String.IsNullOrEmpty(m_freeSwitchRealm) ||
                     String.IsNullOrEmpty(m_freeSwitchAPIPrefix))
                 {
-                    m_log.Error("[FreeSwitchVoice] plugin mis-configured");
-                    m_log.Info("[FreeSwitchVoice] plugin disabled: incomplete configuration");
+                    m_log.Error("[FreeSwitchVoice]: Freeswitch service mis-configured.  Not starting.");                    
                     return;
                 }
 
@@ -164,24 +163,24 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 // String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix), FreeSwitchSLVoiceGetPreloginHTTPHandler);
                 //  MainServer.Instance.AddStreamHandler(h);
 
-
-
                 MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_signin.php", m_freeSwitchAPIPrefix),
                                  FreeSwitchSLVoiceSigninHTTPHandler);
 
                 MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_buddy.php", m_freeSwitchAPIPrefix),
                                  FreeSwitchSLVoiceBuddyHTTPHandler);
+                
+                MainServer.Instance.AddHTTPHandler(String.Format("{0}/viv_watcher.php", m_freeSwitchAPIPrefix),
+                                 FreeSwitchSLVoiceWatcherHTTPHandler);                
 
-                m_log.InfoFormat("[FreeSwitchVoice] using FreeSwitch server {0}", m_freeSwitchRealm);
+                m_log.InfoFormat("[FreeSwitchVoice]: using FreeSwitch server {0}", m_freeSwitchRealm);
 
                 m_Enabled = true;
 
-                m_log.Info("[FreeSwitchVoice] plugin enabled");
+                m_log.Info("[FreeSwitchVoice]: plugin enabled");
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[FreeSwitchVoice] plugin initialization failed: {0}", e.Message);
-                m_log.DebugFormat("[FreeSwitchVoice] plugin initialization failed: {0}", e.ToString());
+                m_log.ErrorFormat("[FreeSwitchVoice]: plugin initialization failed: {0} {1}", e.Message, e.StackTrace);
                 return;
             }
 
@@ -240,7 +239,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         {
             if (m_Enabled)
             {
-                m_log.Info("[FreeSwitchVoice] registering IVoiceModule with the scene");
+                m_log.Info("[FreeSwitchVoice]: registering IVoiceModule with the scene");
 
                 // register the voice interface for this module, so the script engine can call us
                 scene.RegisterModuleInterface<IVoiceModule>(this);
@@ -302,7 +301,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         // </summary>
         public void OnRegisterCaps(Scene scene, UUID agentID, Caps caps)
         {
-            m_log.DebugFormat("[FreeSwitchVoice] OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
+            m_log.DebugFormat(
+                "[FreeSwitchVoice]: OnRegisterCaps() called with agentID {0} caps {1} in scene {2}", 
+                agentID, caps, scene.RegionInfo.RegionName);
 
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
             caps.RegisterHandler("ProvisionVoiceAccountRequest",
@@ -344,6 +345,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         public string ProvisionVoiceAccountRequest(Scene scene, string request, string path, string param,
                                                    UUID agentID, Caps caps)
         {
+            m_log.DebugFormat(
+                "[FreeSwitchVoice][PROVISIONVOICE]: ProvisionVoiceAccountRequest() request: {0}, path: {1}, param: {2}", request, path, param);
+            
             ScenePresence avatar = scene.GetScenePresence(agentID);
             if (avatar == null)
             {
@@ -357,9 +361,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
             try
             {
-                //m_log.DebugFormat("[FreeSwitchVoice][PROVISIONVOICE]: request: {0}, path: {1}, param: {2}",
-                //                  request, path, param);
-
                 //XmlElement    resp;
                 string agentname = "x" + Convert.ToBase64String(agentID.GetBytes());
                 string password  = "1234";//temp hack//new UUID(Guid.NewGuid()).ToString().Replace('-','Z').Substring(0,16);
@@ -390,7 +391,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
                 string r = LLSDHelpers.SerialiseLLSDReply(voiceAccountResponse);
 
-                m_log.DebugFormat("[FreeSwitchVoice][PROVISIONVOICE]: avatar \"{0}\": {1}", avatarName, r);
+//                m_log.DebugFormat("[FreeSwitchVoice][PROVISIONVOICE]: avatar \"{0}\": {1}", avatarName, r);
 
                 return r;
             }
@@ -416,6 +417,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         public string ParcelVoiceInfoRequest(Scene scene, string request, string path, string param,
                                              UUID agentID, Caps caps)
         {
+//            m_log.DebugFormat(
+//                "[FreeSwitchVoice][PARCELVOICE]: ParcelVoiceInfoRequest() on {0} for {1}", 
+//                scene.RegionInfo.RegionName, agentID);
+            
             ScenePresence avatar = scene.GetScenePresence(agentID);
             string avatarName = avatar.Name;
 
@@ -453,8 +458,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
                 if ((land.Flags & (uint)ParcelFlags.AllowVoiceChat) == 0)
                 {
-                    m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": voice not enabled for parcel",
-                                      scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName);
+//                    m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": voice not enabled for parcel",
+//                                      scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName);
                     channelUri = String.Empty;
                 }
                 else
@@ -469,8 +474,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 parcelVoiceInfo = new LLSDParcelVoiceInfoResponse(scene.RegionInfo.RegionName, land.LocalID, creds);
                 string r = LLSDHelpers.SerialiseLLSDReply(parcelVoiceInfo);
 
-                m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": {4}",
-                                  scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName, r);
+//                m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": {4}",
+//                                  scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName, r);
                 return r;
             }
             catch (Exception e)
@@ -502,6 +507,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
             m_log.DebugFormat("[FreeSwitchVoice][CHATSESSION]: avatar \"{0}\": request: {1}, path: {2}, param: {3}",
                               avatarName, request, path, param);
+            
             return "<llsd>true</llsd>";
         }
 
@@ -555,10 +561,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             return response;
         }
 
-
         public Hashtable FreeSwitchSLVoiceGetPreloginHTTPHandler(Hashtable request)
         {
-            m_log.Debug("[FreeSwitchVoice] FreeSwitchSLVoiceGetPreloginHTTPHandler called");
+            m_log.Debug("[FreeSwitchVoice]: FreeSwitchSLVoiceGetPreloginHTTPHandler called");
 
             Hashtable response = new Hashtable();
             response["content_type"] = "text/xml";
@@ -592,6 +597,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
         public Hashtable FreeSwitchSLVoiceBuddyHTTPHandler(Hashtable request)
         {
+            m_log.Debug("[FreeSwitchVoice]: FreeSwitchSLVoiceBuddyHTTPHandler called");
+            
             Hashtable response = new Hashtable();
             response["int_response_code"] = 200;
             response["str_response_string"] = string.Empty;
@@ -650,21 +657,64 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                                     <bdy_status>A</bdy_status>
                                     <modified_ts>{3}</modified_ts>
                                     <b2g_group_id></b2g_group_id>
-                                </level3>", ids[i],i,m_freeSwitchRealm,dt));
+                                </level3>", ids[i], i ,m_freeSwitchRealm, dt));
             }
 
             resp.Append("</buddies><groups></groups></body></level0></response>");
 
             response["str_response_string"] = resp.ToString();
-//            Regex normalizeEndLines = new Regex(@"\r\n", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.Multiline);
-
-            //m_log.DebugFormat("[FREESWITCH]: {0}", normalizeEndLines.Replace((string)response["str_response_string"],""));
+//            Regex normalizeEndLines = new Regex(@"(\r\n|\n)", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.Multiline);
+//
+//            m_log.DebugFormat(
+//                "[FREESWITCH]: FreeSwitchSLVoiceBuddyHTTPHandler() response {0}", 
+//                normalizeEndLines.Replace((string)response["str_response_string"],""));
+            
             return response;
         }
 
+        public Hashtable FreeSwitchSLVoiceWatcherHTTPHandler(Hashtable request)
+        {
+            m_log.Debug("[FreeSwitchVoice]: FreeSwitchSLVoiceWatcherHTTPHandler called");
+            
+            Hashtable response = new Hashtable();
+            response["int_response_code"] = 200;
+            response["content-type"] = "text/xml";
+
+            Hashtable requestBody = ParseRequestBody((string)request["body"]);
+
+            string auth_token = (string)requestBody["auth_token"];
+            //string[] auth_tokenvals = auth_token.Split(':');
+            //string username = auth_tokenvals[0];
+
+            StringBuilder resp = new StringBuilder();
+            resp.Append("<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?><response xmlns=\"http://www.vivox.com\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation= \"/xsd/buddy_list.xsd\">");
+            
+            // FIXME: This is enough of a response to stop viewer 2 complaining about a login failure and get voice to work.  If we don't 
+            // give an OK response, then viewer 2 engages in an continuous viv_signin.php, viv_buddy.php, viv_watcher.php loop
+            // Viewer 1 appeared happy to ignore the lack of reply and still works with this reply.
+            //
+            // However, really we need to fill in whatever watcher data should be here (whatever that is).
+            resp.Append(string.Format(@"<level0>
+                        <status>OK</status>
+                        <cookie_name>lib_session</cookie_name>
+                        <cookie>{0}</cookie>
+                        <auth_token>{0}</auth_token>
+                        <body/></level0></response>", auth_token));            
+            
+            response["str_response_string"] = resp.ToString();
+            
+//            Regex normalizeEndLines = new Regex(@"(\r\n|\n)", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.Multiline);
+//
+//            m_log.DebugFormat(
+//                "[FREESWITCH]: FreeSwitchSLVoiceWatcherHTTPHandler() response {0}", 
+//                normalizeEndLines.Replace((string)response["str_response_string"],""));
+            
+            return response;
+        }
+        
         public Hashtable FreeSwitchSLVoiceSigninHTTPHandler(Hashtable request)
         {
-            m_log.Debug("[FreeSwitchVoice] FreeSwitchSLVoiceSigninHTTPHandler called");
+            m_log.Debug("[FreeSwitchVoice]: FreeSwitchSLVoiceSigninHTTPHandler called");
 //            string requestbody = (string)request["body"];
 //            string uri = (string)request["uri"];
 //            string contenttype = (string)request["content-type"];
@@ -709,7 +759,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     </level0>
                 </response>", userid, pos, avatarName);
 
-            response["int_response_code"] = 200;
+            response["int_response_code"] = 200;            
+            
+//            m_log.DebugFormat("[FreeSwitchVoice]: Sending FreeSwitchSLVoiceSigninHTTPHandler response");
+            
             return response;
         }
 
@@ -795,16 +848,27 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             response["keepalive"] = false;
             response["int_response_code"] = 500;
 
-            Hashtable requestBody = ParseRequestBody((string) request["body"]);
+            Hashtable requestBody = ParseRequestBody((string)request["body"]);                                   
 
-            string section = (string) requestBody["section"];
+            string section = (string) requestBody["section"];                       
 
             if (section == "directory")
+            {
+                string eventCallingFunction = (string)requestBody["Event-Calling-Function"];
+                m_log.DebugFormat(
+                    "[FreeSwitchVoice]: Received request for config section directory, event calling function '{0}'", 
+                    eventCallingFunction);                            
+                
                 response = m_FreeswitchService.HandleDirectoryRequest(requestBody);
+            }
             else if (section == "dialplan")
+            {     
+                m_log.DebugFormat("[FreeSwitchVoice]: Received request for config section dialplan");
+                
                 response = m_FreeswitchService.HandleDialplanRequest(requestBody);
+            }
             else
-                m_log.WarnFormat("[FreeSwitchVoice]: section was {0}", section);
+                m_log.WarnFormat("[FreeSwitchVoice]: Unknown section {0} was requested from config.", section);
 
             return response;
         }

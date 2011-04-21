@@ -81,16 +81,20 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Add an inventory item to a prim in this group.
+        /// Add an inventory item from a user's inventory to a prim in this scene object.
         /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="localID"></param>
-        /// <param name="item"></param>
+        /// <param name="remoteClient">The client adding the item.</param>
+        /// <param name="localID">The local ID of the part receiving the add.</param>
+        /// <param name="item">The user inventory item being added.</param>
         /// <param name="copyItemID">The item UUID that should be used by the new item.</param>
         /// <returns></returns>
         public bool AddInventoryItem(IClientAPI remoteClient, uint localID,
                                      InventoryItemBase item, UUID copyItemID)
         {
+//            m_log.DebugFormat(
+//                "[PRIM INVENTORY]: Adding inventory item {0} from {1} to part with local ID {2}", 
+//                item.Name, remoteClient.Name, localID);
+            
             UUID newItemId = (copyItemID != UUID.Zero) ? copyItemID : item.ID;
 
             SceneObjectPart part = GetChildPart(localID);
@@ -132,15 +136,20 @@ namespace OpenSim.Region.Framework.Scenes
                     taskItem.GroupPermissions = item.GroupPermissions;
                     taskItem.NextPermissions = item.NextPermissions;
                 }
-
+                          
                 taskItem.Flags = item.Flags;
+
+//                m_log.DebugFormat(
+//                    "[PRIM INVENTORY]: Flags are 0x{0:X} for item {1} added to part {2} by {3}", 
+//                    taskItem.Flags, taskItem.Name, localID, remoteClient.Name);                      
+                
                 // TODO: These are pending addition of those fields to TaskInventoryItem
 //                taskItem.SalePrice = item.SalePrice;
 //                taskItem.SaleType = item.SaleType;
                 taskItem.CreationDate = (uint)item.CreationDate;
 
                 bool addFromAllowedDrop = false;
-                if (remoteClient!=null) 
+                if (remoteClient != null) 
                 {
                     addFromAllowedDrop = remoteClient.AgentId != part.OwnerID;
                 }
