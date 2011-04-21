@@ -56,7 +56,7 @@ namespace OpenSim.Services.FreeswitchService
 
             foreach (DictionaryEntry item in request)
             {
-               m_log.InfoFormat("[FreeSwitchDirectory]: requestBody item {0} {1}",item.Key, item.Value);
+//               m_log.InfoFormat("[FreeSwitchDirectory]: requestBody item {0} {1}",item.Key, item.Value);
             }
 
             string requestcontext = (string) request["Hunt-Context"];
@@ -146,10 +146,8 @@ namespace OpenSim.Services.FreeswitchService
                  //domain=9.20.151.43
                  //ip=9.167.220.137    // this is the correct IP rather than sip_contact_host above when through a vpn or NAT setup
              
-                 foreach (DictionaryEntry item in request)
-                 {
-                    m_log.DebugFormat("[FreeSwitchDirectory]: requestBody item {0} {1}", item.Key, item.Value);
-                 }
+//                 foreach (DictionaryEntry item in request)
+//                    m_log.DebugFormat("[FreeSwitchDirectory]: requestBody item {0} {1}", item.Key, item.Value);
              
                  string eventCallingFunction = (string) request["Event-Calling-Function"];
                  if (eventCallingFunction == null)
