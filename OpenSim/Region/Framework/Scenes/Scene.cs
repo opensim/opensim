@@ -5195,7 +5195,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (num >= RegionInfo.RegionSettings.AgentLimit)
             {
-                if (!Permissions.IsAdministrator(cAgentData.AgentID))
+                if (!Permissions.IsAdministrator(agentID))
                 {
                     reason = "The region is full";
                     return false;
