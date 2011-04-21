@@ -117,10 +117,6 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; EchoPort = 50505
     ; AttemptSTUN = false
 
-    LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"
-    ;; IP of your FS server
-    ; ServerAddress = 127.0.0.1
-
 ; * This is the new style authentication service. Currently, only MySQL
 ; * is implemented. 
 ; *
