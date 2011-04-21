@@ -391,7 +391,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
                 string r = LLSDHelpers.SerialiseLLSDReply(voiceAccountResponse);
 
-                m_log.DebugFormat("[FreeSwitchVoice][PROVISIONVOICE]: avatar \"{0}\": {1}", avatarName, r);
+//                m_log.DebugFormat("[FreeSwitchVoice][PROVISIONVOICE]: avatar \"{0}\": {1}", avatarName, r);
 
                 return r;
             }
@@ -458,8 +458,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
                 if ((land.Flags & (uint)ParcelFlags.AllowVoiceChat) == 0)
                 {
-                    m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": voice not enabled for parcel",
-                                      scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName);
+//                    m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": voice not enabled for parcel",
+//                                      scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName);
                     channelUri = String.Empty;
                 }
                 else
@@ -474,8 +474,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 parcelVoiceInfo = new LLSDParcelVoiceInfoResponse(scene.RegionInfo.RegionName, land.LocalID, creds);
                 string r = LLSDHelpers.SerialiseLLSDReply(parcelVoiceInfo);
 
-                m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": {4}",
-                                  scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName, r);
+//                m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": {4}",
+//                                  scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName, r);
                 return r;
             }
             catch (Exception e)
@@ -850,16 +850,25 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
             Hashtable requestBody = ParseRequestBody((string)request["body"]);                                   
 
-            string section = (string) requestBody["section"];
-            
-            m_log.DebugFormat("[FreeSwitchVoice]: Received request for config section {0}", section);            
+            string section = (string) requestBody["section"];                       
 
             if (section == "directory")
+            {
+                string eventCallingFunction = (string)requestBody["Event-Calling-Function"];
+                m_log.DebugFormat(
+                    "[FreeSwitchVoice]: Received request for config section directory, event calling function '{0}'", 
+                    eventCallingFunction);                            
+                
                 response = m_FreeswitchService.HandleDirectoryRequest(requestBody);
+            }
             else if (section == "dialplan")
+            {     
+                m_log.DebugFormat("[FreeSwitchVoice]: Received request for config section dialplan");
+                
                 response = m_FreeswitchService.HandleDialplanRequest(requestBody);
+            }
             else
-                m_log.WarnFormat("[FreeSwitchVoice]: Unknown section {0} was requested.", section);
+                m_log.WarnFormat("[FreeSwitchVoice]: Unknown section {0} was requested from config.", section);
 
             return response;
         }
