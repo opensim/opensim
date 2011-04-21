@@ -672,7 +672,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packet.Header.AppendedAcks && packet.Header.AckList != null)
             {
                 for (int i = 0; i < packet.Header.AckList.Length; i++)
-                    udpClient.NeedAcks.Remove(packet.Header.AckList[i], now, packet.Header.Resent);
+                    udpClient.NeedAcks.Acknowledge(packet.Header.AckList[i], now, packet.Header.Resent);
             }
 
             // Handle PacketAck packets
@@ -681,7 +681,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 PacketAckPacket ackPacket = (PacketAckPacket)packet;
 
                 for (int i = 0; i < ackPacket.Packets.Length; i++)
-                    udpClient.NeedAcks.Remove(ackPacket.Packets[i].ID, now, packet.Header.Resent);
+                    udpClient.NeedAcks.Acknowledge(ackPacket.Packets[i].ID, now, packet.Header.Resent);
 
                 // We don't need to do anything else with PacketAck packets
                 return;
