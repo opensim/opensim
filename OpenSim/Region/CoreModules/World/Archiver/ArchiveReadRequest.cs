@@ -57,6 +57,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// bumps here should be compatible.
         /// </summary>
         public static int MAX_MAJOR_VERSION = 1;
+        
+        /// <summary>
+        /// Has the control file been loaded for this archive?
+        /// </summary>
+        public bool ControlFileLoaded { get; private set; }        
 
         protected Scene m_scene;
         protected Stream m_loadStream;
@@ -545,7 +550,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         /// <param name="path"></param>
         /// <param name="data"></param>
-        protected void LoadControlFile(string path, byte[] data)
+        public void LoadControlFile(string path, byte[] data)
         {
             XmlNamespaceManager nsmgr = new XmlNamespaceManager(new NameTable());
             XmlParserContext context = new XmlParserContext(null, nsmgr, null, XmlSpace.None);
@@ -591,6 +596,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
             
             currentRegionSettings.Save();
+            
+            ControlFileLoaded = true;
         }
     }
 }

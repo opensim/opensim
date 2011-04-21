@@ -171,7 +171,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             MemoryStream archiveReadStream = new MemoryStream(archive);
             TarArchiveReader tar = new TarArchiveReader(archiveReadStream);
 
-            bool gotControlFile = false;
             bool gotNcAssetFile = false;
             
             string expectedNcAssetFileName = string.Format("{0}_{1}", ncAssetUuid, "notecard.txt");
@@ -182,15 +181,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             expectedPaths.Add(ArchiveHelpers.CreateObjectPath(sog2));
 
             string filePath;
-            TarArchiveReader.TarEntryType tarEntryType;
+            TarArchiveReader.TarEntryType tarEntryType;         
 
+            byte[] data = tar.ReadEntry(out filePath, out tarEntryType);
+            Assert.That(filePath, Is.EqualTo(ArchiveConstants.CONTROL_FILE_PATH));
+            
+            ArchiveReadRequest arr = new ArchiveReadRequest(m_scene, (Stream)null, false, false, Guid.Empty);
+            arr.LoadControlFile(filePath, data);
+            
+            Assert.That(arr.ControlFileLoaded, Is.True);        
+            
             while (tar.ReadEntry(out filePath, out tarEntryType) != null)
             {
-                if (ArchiveConstants.CONTROL_FILE_PATH == filePath)
-                {
-                    gotControlFile = true;
-                }
-                else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
+                if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                 {
                     string fileName = filePath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
 
@@ -203,7 +206,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 }
             }
 
-            Assert.That(gotControlFile, Is.True, "No control file in archive");
             Assert.That(gotNcAssetFile, Is.True, "No notecard asset file in archive");
             Assert.That(foundPaths, Is.EquivalentTo(expectedPaths));
 

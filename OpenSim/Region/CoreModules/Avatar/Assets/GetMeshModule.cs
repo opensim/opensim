@@ -66,12 +66,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
 
         public void Initialise(IConfigSource source)
         {
-            IConfig startupConfig = source.Configs["Startup"];
-            if (startupConfig == null)
+            IConfig meshConfig = source.Configs["Mesh"];
+            if (meshConfig == null)
                 return;
 
-            if (!startupConfig.GetBoolean("ColladaMesh",true))
-                m_enabled = false;
+            m_enabled = meshConfig.GetBoolean("ColladaMesh", true);
         }
 
         public void AddRegion(Scene pScene)

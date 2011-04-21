@@ -94,7 +94,34 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             Assert.That(coaObjects[1].UUID, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000140")));
             Assert.That(coaObjects[1].AbsolutePosition, Is.EqualTo(new Vector3(25, 50, 75)));            
-        }        
+        }   
+        
+        /// <summary>
+        /// Test that the IAR has the required files in the right order.
+        /// </summary>
+        /// <remarks>
+        /// At the moment, the only thing that matters is that the control file is the very first one.
+        /// </remarks>
+        [Test]
+        public void TestOrder()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();            
+            
+            MemoryStream archiveReadStream = new MemoryStream(m_iarStreamBytes);
+            TarArchiveReader tar = new TarArchiveReader(archiveReadStream);            
+            string filePath;
+            TarArchiveReader.TarEntryType tarEntryType;
+            
+            byte[] data = tar.ReadEntry(out filePath, out tarEntryType);
+            Assert.That(filePath, Is.EqualTo(ArchiveConstants.CONTROL_FILE_PATH));
+            
+            InventoryArchiveReadRequest iarr 
+                = new InventoryArchiveReadRequest(null, null, null, (Stream)null, false);
+            iarr.LoadControlFile(filePath, data);
+            
+            Assert.That(iarr.ControlFileLoaded, Is.True);
+        }
         
         /// <summary>
         /// Test saving a single inventory item to a V0.1 OpenSim Inventory Archive 

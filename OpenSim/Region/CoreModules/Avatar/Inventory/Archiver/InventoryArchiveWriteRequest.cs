@@ -388,12 +388,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (options.ContainsKey("profile"))
             {
                 majorVersion = 1;
-                minorVersion = 0;
+                minorVersion = 1;
             }
             else
             {
                 majorVersion = 0;
-                minorVersion = 1;
+                minorVersion = 2;
             }            
             
             m_log.InfoFormat("[INVENTORY ARCHIVER]: Creating version {0}.{1} IAR", majorVersion, minorVersion);
