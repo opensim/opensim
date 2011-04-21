@@ -130,6 +130,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // is actually sent out again
                         packet.TickCount = 0;
 
+                        // As with other network applications, assume that an expired packet is
+                        // an indication of some network problem, slow transmission
+                        packet.Client.FlowThrottle.ExpirePackets(1);
+                        
                         expiredPackets.Add(packet);
                     }
                 }
@@ -156,6 +160,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (ackedPacket != null)
                     {
                         m_packets.Remove(pendingRemove.SequenceNumber);
+
+                        // As with other network applications, assume that an acknowledged packet is an
+                        // indication that the network can handle a little more load, speed up the transmission
+                        ackedPacket.Client.FlowThrottle.AcknowledgePackets(ackedPacket.Buffer.DataLength);
 
                         // Update stats
                         Interlocked.Add(ref ackedPacket.Client.UnackedBytes, -ackedPacket.Buffer.DataLength);

@@ -297,7 +297,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         delegate(IClientAPI client)
                         {
                             if (client is LLClientView)
-                                SendPacketData(((LLClientView)client).UDPClient, data, packet.Type, category);
+                                SendPacketData(((LLClientView)client).UDPClient, data, packet.Type, category, null);
                         }
                     );
                 }
@@ -309,7 +309,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     delegate(IClientAPI client)
                     {
                         if (client is LLClientView)
-                            SendPacketData(((LLClientView)client).UDPClient, data, packet.Type, category);
+                            SendPacketData(((LLClientView)client).UDPClient, data, packet.Type, category, null);
                     }
                 );
             }
@@ -322,7 +322,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="packet"></param>
         /// <param name="category"></param>
         /// <param name="allowSplitting"></param>
-        public void SendPacket(LLUDPClient udpClient, Packet packet, ThrottleOutPacketType category, bool allowSplitting)
+        public void SendPacket(LLUDPClient udpClient, Packet packet, ThrottleOutPacketType category, bool allowSplitting, UnackedPacketMethod method)
         {
             // CoarseLocationUpdate packets cannot be split in an automated way
             if (packet.Type == PacketType.CoarseLocationUpdate && allowSplitting)
@@ -339,13 +339,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < packetCount; i++)
                 {
                     byte[] data = datas[i];
-                    SendPacketData(udpClient, data, packet.Type, category);
+                    SendPacketData(udpClient, data, packet.Type, category, method);
                 }
             }
             else
             {
                 byte[] data = packet.ToBytes();
-                SendPacketData(udpClient, data, packet.Type, category);
+                SendPacketData(udpClient, data, packet.Type, category, method);
             }
         }
 
@@ -356,7 +356,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="data"></param>
         /// <param name="type"></param>
         /// <param name="category"></param>        
-        public void SendPacketData(LLUDPClient udpClient, byte[] data, PacketType type, ThrottleOutPacketType category)
+        public void SendPacketData(LLUDPClient udpClient, byte[] data, PacketType type, ThrottleOutPacketType category, UnackedPacketMethod method)
         {
             int dataLength = data.Length;
             bool doZerocode = (data[0] & Helpers.MSG_ZEROCODED) != 0;
@@ -411,7 +411,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #region Queue or Send
 
-            OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category);
+            OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category, null);
+            // If we were not provided a method for handling unacked, use the UDPServer default method
+            outgoingPacket.UnackedMethod = ((method == null) ? delegate(OutgoingPacket oPacket) { ResendUnacked(oPacket); } : method);
 
             // If a Linden Lab 1.23.5 client receives an update packet after a kill packet for an object, it will 
             // continue to display the deleted object until relog.  Therefore, we need to always queue a kill object
@@ -445,7 +447,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.Header.Reliable = false;
                 packet.Packets = blocks.ToArray();
 
-                SendPacket(udpClient, packet, ThrottleOutPacketType.Unknown, true);
+                SendPacket(udpClient, packet, ThrottleOutPacketType.Unknown, true, null);
             }
         }
 
@@ -458,17 +460,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // We *could* get OldestUnacked, but it would hurt performance and not provide any benefit
             pc.PingID.OldestUnacked = 0;
 
-            SendPacket(udpClient, pc, ThrottleOutPacketType.Unknown, false);
+            SendPacket(udpClient, pc, ThrottleOutPacketType.Unknown, false, null);
         }
 
         public void CompletePing(LLUDPClient udpClient, byte pingID)
         {
             CompletePingCheckPacket completePing = new CompletePingCheckPacket();
             completePing.PingID.PingID = pingID;
-            SendPacket(udpClient, completePing, ThrottleOutPacketType.Unknown, false);
+            SendPacket(udpClient, completePing, ThrottleOutPacketType.Unknown, false, null);
         }
 
-        public void ResendUnacked(LLUDPClient udpClient)
+        public void HandleUnacked(LLUDPClient udpClient)
         {
             if (!udpClient.IsConnected)
                 return;
@@ -488,31 +490,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (expiredPackets != null)
             {
-                //m_log.Debug("[LLUDPSERVER]: Resending " + expiredPackets.Count + " packets to " + udpClient.AgentID + ", RTO=" + udpClient.RTO);
-
+                //m_log.Debug("[LLUDPSERVER]: Handling " + expiredPackets.Count + " packets to " + udpClient.AgentID + ", RTO=" + udpClient.RTO);
                 // Exponential backoff of the retransmission timeout
                 udpClient.BackoffRTO();
-
-                // Resend packets
-                for (int i = 0; i < expiredPackets.Count; i++)
-                {
-                    OutgoingPacket outgoingPacket = expiredPackets[i];
-
-                    //m_log.DebugFormat("[LLUDPSERVER]: Resending packet #{0} (attempt {1}), {2}ms have passed",
-                    //    outgoingPacket.SequenceNumber, outgoingPacket.ResendCount, Environment.TickCount - outgoingPacket.TickCount);
-
-                    // Set the resent flag
-                    outgoingPacket.Buffer.Data[0] = (byte)(outgoingPacket.Buffer.Data[0] | Helpers.MSG_RESENT);
-                    outgoingPacket.Category = ThrottleOutPacketType.Resend;
-
-                    // Bump up the resend count on this packet
-                    Interlocked.Increment(ref outgoingPacket.ResendCount);
-
-                    // Requeue or resend the packet
-                    if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, false))
-                        SendPacketFinal(outgoingPacket);
-                }
+                for (int i = 0; i < expiredPackets.Count; ++i)
+                    expiredPackets[i].UnackedMethod(expiredPackets[i]);
             }
+        }
+
+        public void ResendUnacked(OutgoingPacket outgoingPacket)
+        {
+            //m_log.DebugFormat("[LLUDPSERVER]: Resending packet #{0} (attempt {1}), {2}ms have passed",
+            //    outgoingPacket.SequenceNumber, outgoingPacket.ResendCount, Environment.TickCount - outgoingPacket.TickCount);
+
+            // Set the resent flag
+            outgoingPacket.Buffer.Data[0] = (byte)(outgoingPacket.Buffer.Data[0] | Helpers.MSG_RESENT);
+            outgoingPacket.Category = ThrottleOutPacketType.Resend;
+
+            // Bump up the resend count on this packet
+            Interlocked.Increment(ref outgoingPacket.ResendCount);
+
+            // Requeue or resend the packet
+            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket, false))
+                SendPacketFinal(outgoingPacket);
         }
 
         public void Flush(LLUDPClient udpClient)
@@ -1098,7 +1098,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (udpClient.IsConnected)
                     {
                         if (m_resendUnacked)
-                            ResendUnacked(udpClient);
+                            HandleUnacked(udpClient);
 
                         if (m_sendAcks)
                             SendAcks(udpClient);
@@ -1154,7 +1154,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             nticksUnack++;
                             watch2.Start();
 
-                            ResendUnacked(udpClient);
+                            HandleUnacked(udpClient);
 
                             watch2.Stop();
                             avgResendUnackedTicks = (nticksUnack - 1)/(float)nticksUnack * avgResendUnackedTicks + (watch2.ElapsedTicks / (float)nticksUnack);

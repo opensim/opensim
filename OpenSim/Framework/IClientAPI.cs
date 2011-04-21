@@ -576,34 +576,69 @@ namespace OpenSim.Framework
 
     public class IEntityUpdate
     {
-        public ISceneEntity Entity;
-        public uint Flags;
+        private ISceneEntity m_entity;
+        private uint m_flags;
+        private int m_updateTime;
+
+        public ISceneEntity Entity
+        {
+            get { return m_entity; }
+        }
+
+        public uint Flags
+        {
+            get { return m_flags; }
+        }
+
+        public int UpdateTime
+        {
+            get { return m_updateTime; }
+        }
 
         public virtual void Update(IEntityUpdate update)
         {
-            this.Flags |= update.Flags;
+            m_flags |= update.Flags;
+
+            // Use the older of the updates as the updateTime
+            if (Util.EnvironmentTickCountCompare(UpdateTime, update.UpdateTime) > 0)
+                m_updateTime = update.UpdateTime;
         }
 
         public IEntityUpdate(ISceneEntity entity, uint flags)
         {
-            Entity = entity;
-            Flags = flags;
+            m_entity = entity;
+            m_flags = flags;
+            m_updateTime = Util.EnvironmentTickCount();
+        }
+
+        public IEntityUpdate(ISceneEntity entity, uint flags, Int32 updateTime)
+        {
+            m_entity = entity;
+            m_flags = flags;
+            m_updateTime = updateTime;
         }
     }
-    
 
     public class EntityUpdate : IEntityUpdate
     {
-        // public ISceneEntity Entity;
-        // public PrimUpdateFlags Flags;
-        public float TimeDilation;
+        private float m_timeDilation;
+
+        public float TimeDilation
+        {
+            get { return m_timeDilation; }
+        }
 
         public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags, float timedilation)
-            : base(entity,(uint)flags)
+            : base(entity, (uint)flags)
         {
-            //Entity = entity;
             // Flags = flags;
-            TimeDilation = timedilation;
+            m_timeDilation = timedilation;
+        }
+
+        public EntityUpdate(ISceneEntity entity, PrimUpdateFlags flags, float timedilation, Int32 updateTime)
+            : base(entity,(uint)flags,updateTime)
+        {
+            m_timeDilation = timedilation;
         }
     }
 

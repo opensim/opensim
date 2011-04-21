@@ -1549,6 +1549,23 @@ namespace OpenSim.Framework
             return (diff >= 0) ? diff : (diff + EnvironmentTickCountMask + 1);
         }
 
+        // Returns value of Tick Count A - TickCount B accounting for wrapping of TickCount
+        // Assumes both tcA and tcB came from previous calls to Util.EnvironmentTickCount().
+        // A positive return value indicates A occured later than B
+        public static Int32 EnvironmentTickCountCompare(Int32 tcA, Int32 tcB)
+        {
+            // A, B and TC are all between 0 and 0x3fffffff
+            int tc = EnvironmentTickCount();
+
+            if (tc - tcA >= 0)
+                tcA += EnvironmentTickCountMask + 1;
+
+            if (tc - tcB >= 0)
+                tcB += EnvironmentTickCountMask + 1;
+
+            return tcA - tcB;
+        }
+
         /// <summary>
         /// Prints the call stack at any given point. Useful for debugging.
         /// </summary>
