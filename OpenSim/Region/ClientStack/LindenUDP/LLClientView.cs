@@ -385,6 +385,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public bool IsGroupMember(UUID groupID) { return m_groupPowers.ContainsKey(groupID); }
 
         /// <summary>
+        /// Entity update queues
+        /// </summary>
+        public PriorityQueue EntityUpdateQueue { get { return m_entityUpdates; } }
+        
+        /// <summary>
         /// First name of the agent/avatar represented by the client
         /// </summary>
         public string FirstName { get { return m_firstName; } }

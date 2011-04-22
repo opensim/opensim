@@ -174,14 +174,13 @@ namespace OpenSim.Framework
             }
         }
 
+        /// <summary>
+        /// </summary>
         public override string ToString()
         {
             string s = "";
             for (int i = 0; i < NumberOfQueues; i++)
-            {
-                if (s != "") s += ",";
-                s += m_heaps[i].Count.ToString();
-            }
+                s += String.Format("{0,7} ",m_heaps[i].Count);
             return s;
         }
 

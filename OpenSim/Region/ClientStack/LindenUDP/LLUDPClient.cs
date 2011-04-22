@@ -228,26 +228,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns>Information about the client connection</returns>
         public ClientInfo GetClientInfo()
         {
-///<mic>
-            TokenBucket tb;
-
-            tb = m_throttleClient.Parent;
-            m_log.WarnFormat("[TOKENS] {3}: Actual={0},Request={1},TotalRequest={2}",tb.DripRate,tb.RequestedDripRate,tb.TotalDripRequest,"ROOT");
-
-            tb = m_throttleClient;
-            m_log.WarnFormat("[TOKENS] {3}: Actual={0},Request={1},TotalRequest={2}",tb.DripRate,tb.RequestedDripRate,tb.TotalDripRequest,"  CLIENT");
-
-            tb = m_throttleCategory;
-            m_log.WarnFormat("[TOKENS] {3}: Actual={0},Request={1},TotalRequest={2}",tb.DripRate,tb.RequestedDripRate,tb.TotalDripRequest,"    CATEGORY");
-
-            for (int i = 0; i < THROTTLE_CATEGORY_COUNT; i++)
-            {
-                tb = m_throttleCategories[i];
-                m_log.WarnFormat("[TOKENS] {4} <{0}:{1}>: Actual={2},Requested={3}",AgentID,i,tb.DripRate,tb.RequestedDripRate,"      BUCKET");
-            }
-                
-///</mic>
-
             // TODO: This data structure is wrong in so many ways. Locking and copying the entire lists
             // of pending and needed ACKs for every client every time some method wants information about
             // this connection is a recipe for poor performance
@@ -259,12 +239,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             info.landThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Land].DripRate;
             info.windThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Wind].DripRate;
             info.cloudThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Cloud].DripRate;
-            // info.taskThrottle = m_throttleCategories[(int)ThrottleOutPacketType.State].DripRate + m_throttleCategories[(int)ThrottleOutPacketType.Task].DripRate;
             info.taskThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Task].DripRate;
             info.assetThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Asset].DripRate;
             info.textureThrottle = (int)m_throttleCategories[(int)ThrottleOutPacketType.Texture].DripRate;
-            info.totalThrottle = info.resendThrottle + info.landThrottle + info.windThrottle + info.cloudThrottle +
-                info.taskThrottle + info.assetThrottle + info.textureThrottle;
+            info.totalThrottle = (int)m_throttleCategory.DripRate;
 
             return info;
         }

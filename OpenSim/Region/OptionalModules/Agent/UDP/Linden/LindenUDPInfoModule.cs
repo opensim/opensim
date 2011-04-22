@@ -82,6 +82,14 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 m_scenes[scene.RegionInfo.RegionID] = scene;            
 
             scene.AddCommand(
+                this, "show pqueues",
+                "show pqueues [full]",
+                "Show priority queue data for each client", 
+                "Without the 'full' option, only root agents are shown."
+                  + "  With the 'full' option child agents are also shown.",                                          
+                ShowPQueuesReport);   
+            
+            scene.AddCommand(
                 this, "show queues",
                 "show queues [full]",
                 "Show queue data for each client", 
@@ -119,6 +127,11 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
 //            m_log.DebugFormat("[LINDEN UDP INFO MODULE]: REGION {0} LOADED", scene.RegionInfo.RegionName);
         }                 
 
+        protected void ShowPQueuesReport(string module, string[] cmd)
+        {                       
+            MainConsole.Instance.Output(GetPQueuesReport(cmd));
+        }
+        
         protected void ShowQueuesReport(string module, string[] cmd)
         {                       
             MainConsole.Instance.Output(GetQueuesReport(cmd));
@@ -155,6 +168,80 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                 "");
         }
         
+
+        /// <summary>
+        /// Generate UDP Queue data report for each client
+        /// </summary>
+        /// <param name="showParams"></param>
+        /// <returns></returns>
+        protected string GetPQueuesReport(string[] showParams)
+        {
+            bool showChildren = false;
+            string pname = "";
+            
+            if (showParams.Length > 2 && showParams[2] == "full")
+                showChildren = true;               
+            else if (showParams.Length > 3)
+                pname = showParams[2] + " " + showParams[3];
+            
+            StringBuilder report = new StringBuilder();            
+
+            int columnPadding = 2;
+            int maxNameLength = 18;                                    
+            int maxRegionNameLength = 14;
+            int maxTypeLength = 4;
+            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;                        
+                                    
+            report.Append(GetColumnEntry("User", maxNameLength, columnPadding));
+            report.Append(GetColumnEntry("Region", maxRegionNameLength, columnPadding));
+            report.Append(GetColumnEntry("Type", maxTypeLength, columnPadding));
+            
+            report.AppendFormat(
+                "{0,7} {1,7} {2,7} {3,7} {4,7} {5,7} {6,7} {7,7} {8,7} {9,7} {10,7} {11,7}\n",
+                "Pri 0",
+                "Pri 1",
+                "Pri 2",                                
+                "Pri 3",
+                "Pri 4",
+                "Pri 5",
+                "Pri 6",
+                "Pri 7",
+                "Pri 8",
+                "Pri 9",
+                "Pri 10",
+                "Pri 11");
+
+            lock (m_scenes)
+            {
+                foreach (Scene scene in m_scenes.Values)
+                {
+                    scene.ForEachClient(
+                        delegate(IClientAPI client)
+                        {
+                            if (client is LLClientView)
+                            {
+                                bool isChild = scene.PresenceChildStatus(client.AgentId);
+                                if (isChild && !showChildren)
+                                    return;
+                        
+                                string name = client.Name;
+                                if (pname != "" && name != pname)
+                                    return;
+                                
+                                string regionName = scene.RegionInfo.RegionName;
+                                
+                                report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
+                                report.Append(GetColumnEntry(regionName, maxRegionNameLength, columnPadding));
+                                report.Append(GetColumnEntry(isChild ? "Cd" : "Rt", maxTypeLength, columnPadding));                                  
+                                report.AppendLine(((LLClientView)client).EntityUpdateQueue.ToString());
+                            }
+                        });
+                }
+            }
+
+            return report.ToString();
+        }
+        
         /// <summary>
         /// Generate UDP Queue data report for each client
         /// </summary>
@@ -163,10 +250,13 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
         protected string GetQueuesReport(string[] showParams)
         {
             bool showChildren = false;
+            string pname = "";
             
             if (showParams.Length > 2 && showParams[2] == "full")
                 showChildren = true;               
-                
+            else if (showParams.Length > 3)
+                pname = showParams[2] + " " + showParams[3];
+            
             StringBuilder report = new StringBuilder();            
             
             int columnPadding = 2;
@@ -224,6 +314,9 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                                     return;
                         
                                 string name = client.Name;
+                                if (pname != "" && name != pname)
+                                    return;
+
                                 string regionName = scene.RegionInfo.RegionName;
                                 
                                 report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
@@ -249,10 +342,13 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
         protected string GetThrottlesReport(string[] showParams)
         {
             bool showChildren = false;
+            string pname = "";
             
             if (showParams.Length > 2 && showParams[2] == "full")
                 showChildren = true;               
-                
+            else if (showParams.Length > 3)
+                pname = showParams[2] + " " + showParams[3];
+            
             StringBuilder report = new StringBuilder();               
             
             int columnPadding = 2;
@@ -314,6 +410,9 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                                     return;
                         
                                 string name = client.Name;
+                                if (pname != "" && name != pname)
+                                    return;
+
                                 string regionName = scene.RegionInfo.RegionName;
                             
                                 LLUDPClient llUdpClient = llClient.UDPClient;
