@@ -322,10 +322,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        // <summary>
-        // The minimum rate for flow control. 
-        // </summary>
-        protected const Int64 m_minimumFlow = m_minimumDripRate * 10;
+        /// <summary>
+        /// The minimum rate for flow control. Minimum drip rate is one
+        /// packet per second. Open the throttle to 15 packets per second
+        /// or about 160kbps.
+        /// </summary>
+        protected const Int64 m_minimumFlow = m_minimumDripRate * 15;
 
         // <summary>
         // The maximum rate for flow control. Drip rate can never be
