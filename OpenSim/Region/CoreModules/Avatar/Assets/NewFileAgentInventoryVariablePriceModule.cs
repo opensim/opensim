@@ -72,7 +72,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
             if (meshConfig == null)
                 return;
 
-            m_enabled = meshConfig.GetBoolean("ColladaMesh", true);
+            m_enabled = meshConfig.GetBoolean("AllowMeshUpload", true);
         }
 
         public void AddRegion(Scene pScene)
