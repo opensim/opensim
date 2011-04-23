@@ -76,6 +76,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             colours.Save(stream, ImageFormat.Jpeg);
         }
 
+        public virtual void SaveFile(ITerrainChannel m_channel, string filename,
+                             int offsetX, int offsetY,
+                             int fileWidth, int fileHeight,
+                             int regionSizeX, int regionSizeY)
+        {
+            throw new System.Exception("Not Implemented");
+        }
+
         #endregion
 
         public override string ToString()

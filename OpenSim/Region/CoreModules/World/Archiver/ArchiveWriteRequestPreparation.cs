@@ -206,7 +206,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <returns></returns>
         public static string CreateControlFile(Dictionary<string, object> options)
         {
-            int majorVersion = MAX_MAJOR_VERSION, minorVersion = 5;
+            int majorVersion = MAX_MAJOR_VERSION, minorVersion = 6;
 //
 //            if (options.ContainsKey("version"))
 //            {

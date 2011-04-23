@@ -125,7 +125,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
             else
                 Scene.RegionInfo.RegionSettings.AllowLandResell = true;
 
-            Scene.RegionInfo.RegionSettings.AgentLimit = (byte) maxAgents;
+            if((byte)maxAgents <= Scene.RegionInfo.AgentCapacity)
+                Scene.RegionInfo.RegionSettings.AgentLimit = (byte) maxAgents;
+			else
+                Scene.RegionInfo.RegionSettings.AgentLimit = Scene.RegionInfo.AgentCapacity;
 
             Scene.RegionInfo.RegionSettings.ObjectBonus = objectBonusFactor;
 
@@ -259,6 +262,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void handleChangeEstateCovenantRequest(IClientAPI remoteClient, UUID estateCovenantID)
         {
+//            m_log.DebugFormat(
+//                "[ESTATE MANAGEMENT MODULE]: Handling request from {0} to change estate covenant to {1}", 
+//                remoteClient.Name, estateCovenantID);
+            
             Scene.RegionInfo.RegionSettings.Covenant = estateCovenantID;
             Scene.RegionInfo.RegionSettings.Save();
             TriggerRegionInfoChange();

@@ -62,8 +62,65 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             SerialiserModule serialiserModule = new SerialiserModule();
             m_archiverModule = new InventoryArchiverModule();
 
-            m_scene = SceneSetupHelpers.SetupScene("Inventory");
+            m_scene = SceneSetupHelpers.SetupScene();
             SceneSetupHelpers.SetupSceneModules(m_scene, serialiserModule, m_archiverModule);            
+        }
+                
+        [Test]
+        public void TestLoadCoalesecedItem()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+            
+            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_uaLL1, "password");
+            m_archiverModule.DearchiveInventory(m_uaLL1.FirstName, m_uaLL1.LastName, "/", "password", m_iarStream);            
+            
+            InventoryItemBase coaItem
+                = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, m_uaLL1.PrincipalID, m_coaItemName);
+            
+            Assert.That(coaItem, Is.Not.Null, "Didn't find loaded item 1");            
+            
+            string assetXml = AssetHelpers.ReadAssetAsString(m_scene.AssetService, coaItem.AssetID);
+            
+            CoalescedSceneObjects coa;            
+            bool readResult = CoalescedSceneObjectsSerializer.TryFromXml(assetXml, out coa);
+            
+            Assert.That(readResult, Is.True);
+            Assert.That(coa.Count, Is.EqualTo(2));
+            
+            List<SceneObjectGroup> coaObjects = coa.Objects;
+            Assert.That(coaObjects[0].UUID, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000120")));
+            Assert.That(coaObjects[0].AbsolutePosition, Is.EqualTo(new Vector3(15, 30, 45)));
+            
+            Assert.That(coaObjects[1].UUID, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000140")));
+            Assert.That(coaObjects[1].AbsolutePosition, Is.EqualTo(new Vector3(25, 50, 75)));            
+        }   
+        
+        /// <summary>
+        /// Test that the IAR has the required files in the right order.
+        /// </summary>
+        /// <remarks>
+        /// At the moment, the only thing that matters is that the control file is the very first one.
+        /// </remarks>
+        [Test]
+        public void TestOrder()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();            
+            
+            MemoryStream archiveReadStream = new MemoryStream(m_iarStreamBytes);
+            TarArchiveReader tar = new TarArchiveReader(archiveReadStream);            
+            string filePath;
+            TarArchiveReader.TarEntryType tarEntryType;
+            
+            byte[] data = tar.ReadEntry(out filePath, out tarEntryType);
+            Assert.That(filePath, Is.EqualTo(ArchiveConstants.CONTROL_FILE_PATH));
+            
+            InventoryArchiveReadRequest iarr 
+                = new InventoryArchiveReadRequest(null, null, null, (Stream)null, false);
+            iarr.LoadControlFile(filePath, data);
+            
+            Assert.That(iarr.ControlFileLoaded, Is.True);
         }
         
         /// <summary>
@@ -84,24 +141,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             UserProfileTestUtils.CreateUserWithInventory(m_scene, userFirstName, userLastName, userId, userPassword);
             
             // Create asset
-            SceneObjectGroup object1;
-            SceneObjectPart part1;
-            {
-                string partName = "My Little Dog Object";
-                UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
-                PrimitiveBaseShape shape = PrimitiveBaseShape.CreateSphere();
-                Vector3 groupPosition = new Vector3(10, 20, 30);
-                Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
-                Vector3 offsetPosition = new Vector3(5, 10, 15);
-
-                part1
-                    = new SceneObjectPart(
-                        ownerId, shape, groupPosition, rotationOffset, offsetPosition);
-                part1.Name = partName;
-
-                object1 = new SceneObjectGroup(part1);
-                m_scene.AddNewSceneObject(object1, false);
-            }
+            UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
+            SceneObjectGroup object1 = SceneSetupHelpers.CreateSceneObject(1, ownerId, "My Little Dog Object", 0x50);         
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
             AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);

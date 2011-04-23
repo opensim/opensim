@@ -3665,6 +3665,15 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
+            int num = m_sceneGraph.GetNumberOfScenePresences();
+
+            if (num >= RegionInfo.RegionSettings.AgentLimit)
+            {
+                if (!Permissions.IsAdministrator(cAgentData.AgentID))
+                    return false;
+            }
+
+
             ScenePresence childAgentUpdate = WaitGetScenePresence(cAgentData.AgentID);
 
             if (childAgentUpdate != null)
@@ -4839,7 +4848,20 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public Vector3[] GetCombinedBoundingBox(List<SceneObjectGroup> objects, out float minX, out float maxX, out float minY, out float maxY, out float minZ, out float maxZ)
+        /// <summary>
+        /// Get the volume of space that will encompass all the given objects.
+        /// </summary>
+        /// <param name="objects"></param>
+        /// <param name="minX"></param>
+        /// <param name="maxX"></param>
+        /// <param name="minY"></param>
+        /// <param name="maxY"></param>
+        /// <param name="minZ"></param>
+        /// <param name="maxZ"></param>
+        /// <returns></returns>
+        public static Vector3[] GetCombinedBoundingBox(
+           List<SceneObjectGroup> objects, 
+           out float minX, out float maxX, out float minY, out float maxY, out float minZ, out float maxZ)
         {
             minX = 256;
             maxX = -256;
@@ -4857,6 +4879,10 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 vec = g.AbsolutePosition;
 
                 g.GetAxisAlignedBoundingBoxRaw(out ominX, out omaxX, out ominY, out omaxY, out ominZ, out omaxZ);
+               
+//                m_log.DebugFormat(
+//                    "[SCENE]: For {0} found AxisAlignedBoundingBoxRaw {1}, {2}", 
+//                    g.Name, new Vector3(ominX, ominY, ominZ), new Vector3(omaxX, omaxY, omaxZ));
 
                 ominX += vec.X;
                 omaxX += vec.X;
@@ -4949,6 +4975,17 @@ namespace OpenSim.Region.Framework.Scenes
         // child agent creation, thereby emulating the SL behavior.
         public bool QueryAccess(UUID agentID, Vector3 position, out string reason)
         {
+            int num = m_sceneGraph.GetNumberOfScenePresences();
+
+            if (num >= RegionInfo.RegionSettings.AgentLimit)
+            {
+                if (!Permissions.IsAdministrator(agentID))
+                {
+                    reason = "The region is full";
+                    return false;
+                }
+            }
+
             reason = String.Empty;
             return true;
         }

@@ -1,4 +1,22 @@
-;; A note on the format of this file
+;; This is the main configuration file for OpenSimulator.  If it's named OpenSim.ini
+;; then it will be loaded by OpenSimulator.  If it's named OpenSim.ini.example then
+;; you will need to copy it to OpenSim.ini first (if that file does not already exist)
+;;
+;; If you are copying, then once you have copied OpenSim.ini.example to OpenSim.ini you will
+;; need to pick an architecture in the [Architecture] section at the end of this file.
+;;
+;; The settings in this file are in the form "<key> = <value>".  For example, save_crashes = false
+;; in the [Startup] section below.
+;;
+;; All settings are initially commented out and the default value used, as found in
+;; OpenSimDefaults.ini.  To change a setting, first uncomment it by deleting the initial semicolon (;)
+;; and then change the value.  This will override the value in OpenSimDefaults.ini
+;; 
+;; If you want to find out what configuration OpenSimulator has finished with once all the configuration
+;; files are loaded then type "config show" on the region console command line.
+;;
+;; 
+;; NOTES FOR DEVELOPERS REGARDING THE FORMAT OF THIS FILE
 ;;
 ;; All leading white space is ignored, but preserved.
 ;;
@@ -8,15 +26,14 @@
 ;;    formatted as:
 ;;    {option} {depends on} {question to ask} {choices} default value
 ;;    Any text comments following the declaration, up to the next blank line.
-;;    will be copied to the generated file.
-;;    A * in the choices list will allow an empty entry.\
+;;    will be copied to the generated file (NOTE: generation is not yet implemented)
+;;    A * in the choices list will allow an empty entry.
 ;;    An empty question will set the default if the dependencies are
 ;;    satisfied.
 ;;
-;; ;  denotes a commented out option. Uncomment it to actvate it
-;;    and change it to the desired value
-;;    Any options added to OpenSim.ini.exmaple must be commented out,
-;;    and their value must represent the default.
+;; ;  denotes a commented out option.
+;;    Any options added to OpenSim.ini.example should be initially commented out.
+
 
 [Startup]
     ;# {save_crashes} {} {Save crashes to disk?} {true false} false
@@ -35,7 +52,7 @@
 
     ;; Determine where OpenSimulator looks for the files which tell it
     ;; which regions to server
-    ;; Defaults to "filesystem" if this setting isn't present
+    ;; Default is "filesystem"
     ; region_info_source = "filesystem"
     ; region_info_source = "web"
 
@@ -131,6 +148,7 @@
     ;; ZeroMesher is faster but leaves the physics engine to model the mesh
     ;; using the basic shapes that it supports.
     ;; Usually this is only a box.
+    ;; Default is Meshmerizer
     ; meshing = Meshmerizer
     ; meshing = ZeroMesher
 
@@ -138,6 +156,7 @@
     ;; OpenDynamicsEngine is by some distance the most developed physics engine
     ;; basicphysics effectively does not model physics at all, making all
     ;; objects phantom
+    ;; Default is OpenDynamicsEngine
     ; physics = OpenDynamicsEngine
     ; physics = basicphysics
     ; physics = POS
@@ -154,7 +173,6 @@
     ;; permission checks (allowing anybody to copy
     ;; any item, etc.  This may not yet be implemented uniformally.
     ;; If set to true, then all permissions checks are carried out
-    ;; Default is false
     ; serverside_object_permissions = false
 
     ;; This allows users with a UserLevel of 200 or more to assume god
@@ -183,10 +201,19 @@
     ;; If not generating maptiles, use this static texture asset ID
     ; MaptileStaticUUID = "00000000-0000-0000-0000-000000000000"
 
+    ;; Http proxy setting for llHTTPRequest and dynamic texture loading, if required
+    ; HttpProxy = "http://proxy.com:8080"
+
+    ;; If you're using HttpProxy, then you can set HttpProxyExceptions to a list of regular expressions for URLs that you don't want to go through the proxy 
+    ;; For example, servers inside your firewall.
+    ;; Separate patterns with a ';'
+    ; HttpProxyExceptions = ".mydomain.com;localhost"
+
     ;# {emailmodule} {} {Provide llEmail and llGetNextEmail functionality? (requires SMTP server)} {true false} false
     ;; The email module requires some configuration. It needs an SMTP
     ;; server to send mail through.
     ; emailmodule = DefaultEmailModule
+
 
 [SMTP]
     ;; The SMTP server enabled the email module to send email to external
@@ -213,6 +240,7 @@
 
     ;# {SMTP_SERVER_PASSWORD} {[Startup]emailmodule:DefaultEmailModule enabled:true} {SMTP server password} {}
     ; SMTP_SERVER_PASSWORD = ""
+
 
 [Network]
     ;; Configure the remote console user here. This will not actually be used
@@ -247,6 +275,7 @@
     ;; " (Mozilla Compatible)" to the text where there are problems with a web server
     ; user_agent = "OpenSim LSL (Mozilla Compatible)"
 
+
 [ClientStack.LindenUDP]
     ;; See OpensSimDefaults.ini for the throttle options. You can copy the
     ;; relevant sections and override them here.
@@ -263,17 +292,18 @@
     ;; building's lights to possibly not be rendered.
     ; DisableFacelights = "false"
 
+
 [Chat]
     ;# {whisper_distance} {} {Distance at which a whisper is heard, in meters?} {} 10
-    ;; Distance in meters that whispers should travel.  Default is 10m
+    ;; Distance in meters that whispers should travel.
     ; whisper_distance = 10
 
     ;# {say_distance} {} {Distance at which normal chat is heard, in meters? (SL uses 20 here)} {} 30
-    ;; Distance in meters that ordinary chat should travel.  Default is 30m
+    ;; Distance in meters that ordinary chat should travel.
     ; say_distance = 30
 
     ;# {shout_distance} {Distance at which a shout is heard, in meters?} {} 100
-    ;; Distance in meters that shouts should travel.  Default is 100m
+    ;; Distance in meters that shouts should travel.
     ; shout_distance = 100
 
 
@@ -337,13 +367,13 @@
     ;# {create_region_enable_voice} {enabled:true} {Enable voice for newly created regions?} {true false} false
     ;; set this variable to true if you want the create_region XmlRpc
     ;; call to unconditionally enable voice on all parcels for a newly
-    ;; created region [default: false]
+    ;; created region
     ; create_region_enable_voice = false
 
     ;# {create_region_public} {enabled:true} {Make newly created regions public?} {true false} false
     ;; set this variable to false if you want the create_region XmlRpc
     ;; call to create all regions as private per default (can be
-    ;; overridden in the XmlRpc call) [default: true]
+    ;; overridden in the XmlRpc call)
     ; create_region_public = false
 
     ;# {enabled_methods} {enabled:true} {List of methods to allow, separated by |} {} all
@@ -372,15 +402,16 @@
     ;; default avatars
     ; default_appearance = default_appearance.xml
 
+
 [Wind]
     ;# {enabled} {} {Enable wind module?} {true false} true
-    ;; Enables the wind module.  Default is true
-    ;enabled = true
+    ;; Enables the wind module.
+    ; enabled = true
 
     ;# {wind_update_rate} {enabled:true} {Wind update rate in frames?} {} 150
     ;; How often should wind be updated, as a function of world frames.
     ;; Approximately 50 frames a second
-    wind_update_rate = 150
+    ; wind_update_rate = 150
 
     ;; The Default Wind Plugin to load
     ; wind_plugin = SimpleRandomWind
@@ -396,8 +427,9 @@
 
     ;# {strength} {enabled:true wind_plugin:SimpleRandomWind} {Wind strength?} {} 1.0
     ;; This setting is specific to the SimpleRandomWind plugin
-    ;; Adjusts wind strength. 0.0 = no wind, 1.0 = normal wind.  Default is 1.0
+    ;; Adjusts wind strength. 0.0 = no wind, 1.0 = normal wind.
     ; strength = 1.0
+
 
 [LightShare]
     ;# {enable_windlight} {} {Enable LightShare technology?} {true false} false
@@ -406,7 +438,8 @@
     ;; It has no ill effect on viewers which do not support server-side
     ;; windlight settings.
     ;; Currently we only have support for MySQL databases.
-    ; enable_windlight = false;
+    ; enable_windlight = false
+
 
 [DataSnapshot]
     ;# {index_sims} {} {Enable data snapshotting (search)?} {true false} false
@@ -416,7 +449,6 @@
     ;; If false, no data will be exposed, DataSnapshot module will be off,
     ;; and you can ignore the rest of these search-related configs.
     ; index_sims = false
-
 
     ;# {data_exposure} {index_sims:true} {How much data should be exposed?} {minimum all} minimum
     ;; The variable data_exposure controls what the regions expose:
@@ -461,6 +493,7 @@
 
     ;; Money Unit fee to create groups
     ; PriceGroupCreate = 0
+
 
 [XEngine]
     ;# {Enabled} {} {Enable the XEngine scripting engine?} {true false} true
@@ -556,9 +589,9 @@
     ;; Default is ./bin/ScriptEngines
     ; ScriptEnginesPath = "ScriptEngines"
 
+
 [MRM]
     ;; Enables the Mini Region Modules Script Engine.
-    ;; default is false
     ; Enabled = false
 
     ;; Runs MRM in a Security Sandbox
@@ -580,6 +613,7 @@
     ;; May represent a security risk if you disable this.
     ; OwnerOnly = true
 
+
 [FreeSwitchVoice]
     ;; In order for this to work you need a functioning FreeSWITCH PBX set up.
     ;; Configuration details at http://opensimulator.org/wiki/Freeswitch_Module
@@ -587,29 +621,49 @@
 
     ;; You need to load a local service for a standalone, and a remote service
     ;; for a grid region. Use one of the lines below, as appropriate
+    ;; If you're using Freeswitch on a standalone then you will also need to configure the [FreeswitchService] section
     ; LocalServiceModule = OpenSim.Services.FreeswitchService.dll:FreeswitchService
     ; LocalServiceModule = OpenSim.Services.Connectors.dll:RemoteFreeswitchConnector
 
-    ;; If using a remote module, specify the server URL
+    ;; If using a remote connector, specify the server URL
     ; FreeswitchServiceURL = http://my.grid.server:8003/fsapi
+
 
 [FreeswitchService]
     ;; !!!!!!!!!!!!!!!!!!!!!!!!!!!
     ;; !!!!!!STANDALONE ONLY!!!!!!
     ;; !!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ;; IP of your FS server
-    ;ServerAddress = 85.25.142.92
+    ;; The IP address of your FreeSWITCH server.  The common case is for this to be the same as the server running the OpenSim standalone
+    ;; This has to be set for the FreeSWITCH service to work
+    ;ServerAddress = 127.0.0.1
 
-    ;; All other options are - well - optional
-    ; Realm = "127.0.0.1"
-    ; SIPProxy = "127.0.0.1:5060"
-    ; EchoServer = "127.0.0.1"
-    ; EchoPort = 50505
-    ; AttemptSTUN = "false"
+    ;; The following configuration parameters are optional
+
+    ;; By default, this is the same as the ServerAddress
+    ; Realm = 127.0.0.1
+
+    ;; By default, this is the same as the ServerAddress on port 5060
+    ; SIPProxy = 127.0.0.1:5060
+
+    ;; Default is 5000ms
     ; DefaultTimeout = 5000
-    ; Context = "default"
-    ; UserName = "freeswitch"
-    ; Password = "password"
+
+    ;; The dial plan context.  Default is "default"
+    ; Context = default
+
+    ;; Currently unused
+    ; UserName = freeswitch
+
+    ;; Currently unused
+    ; Password = password
+
+    ;; The following parameters are for STUN = Simple Traversal of UDP through NATs
+    ;; See http://wiki.freeswitch.org/wiki/NAT_Traversal
+    ;; stun.freeswitch.org is not guaranteed to be running so use it in
+    ;; production at your own risk    
+    ; EchoServer = 127.0.0.1
+    ; EchoPort = 50505
+    ; AttemptSTUN = false
 
 [Groups]
     ;# {Enabled} {} {Enable groups?} {true false} false
@@ -634,7 +688,7 @@
     ;# {ServicesConnectorModule} {Module:GroupsModule} {Service connector to use for groups} {XmlRpcGroupsServicesConnector SimianGroupsServicesConnector} XmlRpcGroupsServicesConnector
     ;; Service connectors to the Groups Service as used in the GroupsModule.  Select one depending on
     ;; whether you're using a Flotsam XmlRpc backend or a SimianGrid backend
-    ; ServicesConnectorModule = SimianGroupsServicesConnector
+    ; ServicesConnectorModule = XmlRpcGroupsServicesConnector
 
     ;# {GroupsServerURI} {Module:GroupsModule} {Groups Server URI} {}
     ;; URI for the groups services
@@ -654,6 +708,7 @@
     ; XmlRpcServiceReadKey    = 1234
     ; XmlRpcServiceWriteKey   = 1234
 
+
 [InterestManagement]
      ;# {UpdatePrioritizationScheme} {} {Update prioritization scheme?} {BestAvatarResponsiveness Time Distance SimpleAngularDistance FrontBack} BestAvatarResponsiveness
      ;; This section controls how state updates are prioritized for each client
@@ -661,24 +716,28 @@
      ;; SimpleAngularDistance, FrontBack
      ; UpdatePrioritizationScheme = BestAvatarResponsiveness
 
+
 [MediaOnAPrim]
     ;# {Enabled} {} {Enable Media-on-a-Prim (MOAP)} {true false} true
     ;; Enable media on a prim facilities
     ; Enabled = true;
 
+
 [Architecture]
     ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini config-include/SimianGrid.ini config-include/HyperSimianGrid.ini} config-include/Standalone.ini
-    ;; Choose one of these architecture includes:
-    ;; Include-Architecture = "config-include/Standalone.ini"
-    ;; Include-Architecture = "config-include/StandaloneHypergrid.ini"
-    ;; Include-Architecture = "config-include/Grid.ini"
-    ;; Include-Architecture = "config-include/GridHypergrid.ini"
-    ;; Include-Architecture = "config-include/SimianGrid.ini"
-    ;; Include-Architecture = "config-include/HyperSimianGrid.ini"
+    ;; Uncomment one of the following includes as required.  For instance, to create a standalone OpenSim,
+    ;; uncomment Include-Architecture = "config-include/Standalone.ini"
+    ;; 
+    ;; Then you will need to copy and edit the corresponding *Common.example file in config-include/
+    ;; that the referenced .ini file goes on to include.
+    ;;
+    ;; For instance, if you chose "config-include/Standalone.ini" then you will need to copy 
+    ;; "config-include/StandaloneCommon.ini.example" to "config-include/StandaloneCommon.ini" before
+    ;; editing it to set the database and backend services that OpenSim will use.
+    ;;
     ; Include-Architecture = "config-include/Standalone.ini"
-
-    ;; Then choose
-    ;; config-include/StandaloneCommon.ini.example (if you're in standlone) OR
-    ;; config-include/GridCommon.ini.example (if you're connected to a grid)
-    ;; Copy to your own .ini there (without .example extension) and edit it
-    ;; to customize your data
+    ; Include-Architecture = "config-include/StandaloneHypergrid.ini"
+    ; Include-Architecture = "config-include/Grid.ini"
+    ; Include-Architecture = "config-include/GridHypergrid.ini"
+    ; Include-Architecture = "config-include/SimianGrid.ini"
+    ; Include-Architecture = "config-include/HyperSimianGrid.ini"

@@ -541,6 +541,39 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         }
 
         /// <summary>
+        /// Saves the terrain to a larger terrain file.
+        /// </summary>
+        /// <param name="filename">The terrain file to save</param>
+        /// <param name="fileWidth">The width of the file in units</param>
+        /// <param name="fileHeight">The height of the file in units</param>
+        /// <param name="fileStartX">Where to begin our slice</param>
+        /// <param name="fileStartY">Where to begin our slice</param>
+        public void SaveToFile(string filename, int fileWidth, int fileHeight, int fileStartX, int fileStartY)
+        {
+            int offsetX = (int)m_scene.RegionInfo.RegionLocX - fileStartX;
+            int offsetY = (int)m_scene.RegionInfo.RegionLocY - fileStartY;
+
+            if (offsetX >= 0 && offsetX < fileWidth && offsetY >= 0 && offsetY < fileHeight)
+            {
+                // this region is included in the tile request
+                foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
+                {
+                    if (filename.EndsWith(loader.Key))
+                    {
+                        lock (m_scene)
+                        {
+                            loader.Value.SaveFile(m_channel, filename, offsetX, offsetY,
+                                                  fileWidth, fileHeight,
+                                                  (int)Constants.RegionSize,
+                                                  (int)Constants.RegionSize);
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Performs updates to the region periodically, synchronising physics and other heightmap aware sections
         /// </summary>
         private void EventManager_OnTerrainTick()
@@ -860,6 +893,15 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             SaveToFile((string) args[0]);
         }
 
+        private void InterfaceSaveTileFile(Object[] args)
+        {
+            SaveToFile((string)args[0],
+                         (int)args[1],
+                         (int)args[2],
+                         (int)args[3],
+                         (int)args[4]);
+        }
+
         private void InterfaceBakeTerrain(Object[] args)
         {
             UpdateRevertMap();
@@ -1115,6 +1157,17 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             loadFromTileCommand.AddArgument("minimum Y tile", "The Y region coordinate of the first section on the file",
                                             "Integer");
 
+            Command saveToTileCommand =
+                new Command("save-tile", CommandIntentions.COMMAND_HAZARDOUS, InterfaceSaveTileFile, "Saves the current heightmap to the larger file.");
+            saveToTileCommand.AddArgument("filename",
+                                            "The file you wish to save to, the file extension determines the loader to be used. Supported extensions include: " +
+                                            supportedFileExtensions, "String");
+            saveToTileCommand.AddArgument("file width", "The width of the file in tiles", "Integer");
+            saveToTileCommand.AddArgument("file height", "The height of the file in tiles", "Integer");
+            saveToTileCommand.AddArgument("minimum X tile", "The X region coordinate of the first section on the file",
+                                            "Integer");
+            saveToTileCommand.AddArgument("minimum Y tile", "The Y region coordinate of the first section on the file",
+                                            "Integer");
             // Terrain adjustments
             Command fillRegionCommand =
                 new Command("fill", CommandIntentions.COMMAND_HAZARDOUS, InterfaceFillTerrain, "Fills the current heightmap with a specified value.");
@@ -1166,6 +1219,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             m_commander.RegisterCommand("load", loadFromFileCommand);
             m_commander.RegisterCommand("load-tile", loadFromTileCommand);
             m_commander.RegisterCommand("save", saveToFileCommand);
+            m_commander.RegisterCommand("save-tile", saveToTileCommand);
             m_commander.RegisterCommand("fill", fillRegionCommand);
             m_commander.RegisterCommand("elevate", elevateCommand);
             m_commander.RegisterCommand("lower", lowerCommand);

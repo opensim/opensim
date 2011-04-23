@@ -38,7 +38,23 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IInventoryAccessModule
     {
         UUID CapsUpdateInventoryItemAsset(IClientAPI remoteClient, UUID itemID, byte[] data);
-        UUID DeleteToInventory(DeRezAction action, UUID folderID, List<SceneObjectGroup> objectGroups, IClientAPI remoteClient);
+        
+        /// <summary>
+        /// Copy objects to a user's inventory.
+        /// </summary>
+        /// <remarks>
+        /// Is it left to the caller to delete them from the scene if required.
+        /// </remarks>
+        /// <param name="action"></param>
+        /// <param name="folderID"></param>
+        /// <param name="objectGroups"></param>
+        /// <param name="remoteClient"></param>
+        /// <returns>
+        /// Returns the UUID of the newly created item asset (not the item itself).
+        /// FIXME: This is not very useful.  It would be far more useful to return a list of items instead.
+        /// </returns>
+        UUID CopyToInventory(DeRezAction action, UUID folderID, List<SceneObjectGroup> objectGroups, IClientAPI remoteClient);
+        
         SceneObjectGroup RezObject(IClientAPI remoteClient, UUID itemID, Vector3 RayEnd, Vector3 RayStart,
                                     UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                     bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment);

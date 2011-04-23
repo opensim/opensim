@@ -75,6 +75,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 if (name == Name)
                 {
                     m_Enabled = true;
+                    
+                    InitialiseCommon(source);
+                        
                     m_log.InfoFormat("[HG INVENTORY ACCESS MODULE]: {0} enabled.", Name);
 
                     IConfig thisModuleConfig = source.Configs["HGInventoryAccessModule"];
@@ -129,35 +132,14 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         }
 
         ///
-        /// DeleteToInventory
+        /// Used in DeleteToInventory
         ///
-        public override UUID DeleteToInventory(DeRezAction action, UUID folderID, List<SceneObjectGroup> objectGroups, IClientAPI remoteClient)
+        protected override void ExportAsset(UUID agentID, UUID assetID)
         {
-            UUID ret = UUID.Zero;
-
-            // HACK: Only works for lists of length one.
-            // Intermediate version, just to make things compile
-            foreach (SceneObjectGroup g in objectGroups)
-                ret = DeleteToInventory(action, folderID, g, remoteClient);
-            
-            return ret;
-        }
-
-        // DO NOT OVERRIDE THE BASE METHOD
-        public new virtual UUID DeleteToInventory(DeRezAction action, UUID folderID,
-                SceneObjectGroup objectGroup, IClientAPI remoteClient)
-        {
-            UUID assetID = base.DeleteToInventory(action, folderID, new List<SceneObjectGroup>() {objectGroup}, remoteClient);
-
             if (!assetID.Equals(UUID.Zero))
-            {
-                if (remoteClient != null)
-                    UploadInventoryItem(remoteClient.AgentId, assetID, "", 0);
-            }
+                UploadInventoryItem(agentID, assetID, "", 0);
             else
                 m_log.Debug("[HGScene]: Scene.Inventory did not create asset");
-
-            return assetID;
         }
 
         ///

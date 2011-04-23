@@ -32,7 +32,7 @@ using System.Reflection;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Server.Base;
-using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Framework;
 
 using OpenMetaverse;
 using log4net;
