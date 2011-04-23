@@ -101,6 +101,7 @@ namespace OpenSim.Framework
                 int count = 0;
                 for (int i = 0; i < m_heaps.Length; ++i)
                     count += m_heaps[i].Count;
+                
                 return count;
             }
         }
@@ -171,9 +172,9 @@ namespace OpenSim.Framework
             }
             
             // Find the next non-immediate queue with updates in it
-            for (int i = 1; i < NumberOfQueues; ++i)
+            for (int i = 0; i < NumberOfQueues; ++i)
             {
-                m_nextQueue = (uint)((m_nextQueue + i) % NumberOfQueues);
+                m_nextQueue = (uint)((m_nextQueue + 1) % NumberOfQueues);
                 m_countFromQueue = m_queueCounts[m_nextQueue];
 
                 // if this is one of the immediate queues, just skip it
