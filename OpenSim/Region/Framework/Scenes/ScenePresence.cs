@@ -2632,18 +2632,17 @@ namespace OpenSim.Region.Framework.Scenes
                 cadu.GroupAccess = 0;
                 cadu.Position = AbsolutePosition;
                 cadu.regionHandle = m_rootRegionHandle;
-                float multiplier = 1;
-                int innacurateNeighbors = m_scene.GetInaccurateNeighborCount();
-                if (innacurateNeighbors != 0)
-                {
-                    multiplier = 1f / (float)innacurateNeighbors;
-                }
-                if (multiplier <= 0f)
-                {
-                    multiplier = 0.25f;
-                }
 
-                //m_log.Info("[NeighborThrottle]: " + m_scene.GetInaccurateNeighborCount().ToString() + " - m: " + multiplier.ToString());
+                // Throttles 
+                float multiplier = 1;
+                int childRegions = m_knownChildRegions.Count;
+                if (childRegions != 0)
+                    multiplier = 1f / childRegions;
+
+                // Minimum throttle for a child region is 1/4 of the root region throttle
+                if (multiplier <= 0.25f)
+                    multiplier = 0.25f;
+
                 cadu.throttles = ControllingClient.GetThrottlesPacked(multiplier);
                 cadu.Velocity = Velocity;
 
@@ -3039,16 +3038,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Throttles 
             float multiplier = 1;
-            int innacurateNeighbors = m_scene.GetInaccurateNeighborCount();
-            if (innacurateNeighbors != 0)
-            {
-                multiplier = 1f / innacurateNeighbors;
-            }
-            if (multiplier <= 0f)
-            {
+            int childRegions = m_knownChildRegions.Count;
+            if (childRegions != 0)
+                multiplier = 1f / childRegions;
+
+            // Minimum throttle for a child region is 1/4 of the root region throttle
+            if (multiplier <= 0.25f)
                 multiplier = 0.25f;
-            }
-            //m_log.Info("[NeighborThrottle]: " + m_scene.GetInaccurateNeighborCount().ToString() + " - m: " + multiplier.ToString());
+
             cAgent.Throttles = ControllingClient.GetThrottlesPacked(multiplier);
 
             cAgent.HeadRotation = m_headrotation;

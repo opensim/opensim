@@ -11420,7 +11420,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns></returns>
         public byte[] GetThrottlesPacked(float multiplier)
         {
-            return m_udpClient.GetThrottlesPacked();
+            return m_udpClient.GetThrottlesPacked(multiplier);
         }
 
         /// <summary>

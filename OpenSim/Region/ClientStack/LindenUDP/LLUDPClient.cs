@@ -329,8 +329,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int asset = (int)(BitConverter.ToSingle(adjData, pos) * 0.125f);
             // State is a subcategory of task that we allocate a percentage to
             int state = 0;
-            // int state = (int)((float)task * STATE_TASK_PERCENTAGE);
-            // task -= state;
 
             // Make sure none of the throttles are set below our packet MTU,
             // otherwise a throttle could become permanently clogged
@@ -342,16 +340,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             texture = Math.Max(texture, LLUDPServer.MTU);
             asset = Math.Max(asset, LLUDPServer.MTU);
 
-            int total = resend + land + wind + cloud + task + texture + asset;
-
+            //int total = resend + land + wind + cloud + task + texture + asset;
             //m_log.DebugFormat("[LLUDPCLIENT]: {0} is setting throttles. Resend={1}, Land={2}, Wind={3}, Cloud={4}, Task={5}, Texture={6}, Asset={7}, Total={8}",
             //                  AgentID, resend, land, wind, cloud, task, texture, asset, total);
 
             // Update the token buckets with new throttle values
             TokenBucket bucket;
-
-            bucket = m_throttleCategory;
-            bucket.RequestedDripRate = total;
 
             bucket = m_throttleCategories[(int)ThrottleOutPacketType.Resend];
             bucket.RequestedDripRate = resend;
@@ -381,22 +375,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_packedThrottles = null;
         }
 
-        public byte[] GetThrottlesPacked()
+        public byte[] GetThrottlesPacked(float multiplier)
         {
             byte[] data = m_packedThrottles;
 
             if (data == null)
             {
+                float rate;
+
                 data = new byte[7 * 4];
                 int i = 0;
 
-                Buffer.BlockCopy(Utils.FloatToBytes((float)m_throttleCategories[(int)ThrottleOutPacketType.Resend].RequestedDripRate), 0, data, i, 4); i += 4;
-                Buffer.BlockCopy(Utils.FloatToBytes((float)m_throttleCategories[(int)ThrottleOutPacketType.Land].RequestedDripRate), 0, data, i, 4); i += 4;
-                Buffer.BlockCopy(Utils.FloatToBytes((float)m_throttleCategories[(int)ThrottleOutPacketType.Wind].RequestedDripRate), 0, data, i, 4); i += 4;
-                Buffer.BlockCopy(Utils.FloatToBytes((float)m_throttleCategories[(int)ThrottleOutPacketType.Cloud].RequestedDripRate), 0, data, i, 4); i += 4;
-                Buffer.BlockCopy(Utils.FloatToBytes((float)m_throttleCategories[(int)ThrottleOutPacketType.Task].RequestedDripRate), 0, data, i, 4); i += 4;
-                Buffer.BlockCopy(Utils.FloatToBytes((float)m_throttleCategories[(int)ThrottleOutPacketType.Texture].RequestedDripRate), 0, data, i, 4); i += 4;
-                Buffer.BlockCopy(Utils.FloatToBytes((float)m_throttleCategories[(int)ThrottleOutPacketType.Asset].RequestedDripRate), 0, data, i, 4); i += 4;
+                // multiply by 8 to convert bytes back to bits
+                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Resend].RequestedDripRate * 8 * multiplier;
+                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
+
+                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Land].RequestedDripRate * 8 * multiplier;
+                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
+
+                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Wind].RequestedDripRate * 8 * multiplier;
+                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
+
+                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Cloud].RequestedDripRate * 8 * multiplier;
+                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
+
+                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Task].RequestedDripRate * 8 * multiplier;
+                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
+
+                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Texture].RequestedDripRate * 8 * multiplier;
+                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
+
+                rate = (float)m_throttleCategories[(int)ThrottleOutPacketType.Asset].RequestedDripRate * 8 * multiplier;
+                Buffer.BlockCopy(Utils.FloatToBytes(rate), 0, data, i, 4); i += 4;
 
                 m_packedThrottles = data;
             }
