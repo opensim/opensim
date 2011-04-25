@@ -84,10 +84,11 @@ namespace OpenSim.Region.Physics.Meshing
         public Meshmerizer(IConfigSource config)
         {
             IConfig start_config = config.Configs["Startup"];
+            IConfig mesh_config = config.Configs["Mesh"];
 
             decodedSculptMapPath = start_config.GetString("DecodedSculptMapPath","j2kDecodeCache");
             cacheSculptMaps = start_config.GetBoolean("CacheSculptMaps", cacheSculptMaps);
-            useMeshiesPhysicsMesh = start_config.GetBoolean("UseMeshiesPhysicsMesh", useMeshiesPhysicsMesh);
+            useMeshiesPhysicsMesh = mesh_config.GetBoolean("UseMeshiesPhysicsMesh", useMeshiesPhysicsMesh);
 
             try
             {

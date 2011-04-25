@@ -2163,7 +2163,6 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="Nini" path="../../../../bin/"/>
-      <Reference name="RAIL" path="../../../../bin/"/>
       <Reference name="Nini" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
       <Reference name="SmartThreadPool"/>
@@ -2201,8 +2200,6 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="Nini" path="../../../../../../bin/"/>
-      <Reference name="RAIL" path="../../../../../../bin/"/>
-      <Reference name="Nini" path="../../../../../../bin/"/>
       <Reference name="log4net" path="../../../../../../bin/"/>
 
       <Files>
@@ -2234,8 +2231,6 @@
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
-      <Reference name="Nini" path="../../../../../../../bin/"/>
-      <Reference name="RAIL" path="../../../../../../../bin/"/>
       <Reference name="Nini" path="../../../../../../../bin/"/>
       <Reference name="log4net" path="../../../../../../../bin/"/>
 
@@ -2274,8 +2269,6 @@
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.Api.Runtime"/>
       <Reference name="Nini" path="../../../../../../bin/"/>
-      <Reference name="RAIL" path="../../../../../../bin/"/>
-      <Reference name="Nini" path="../../../../../../bin/"/>
       <Reference name="log4net" path="../../../../../../bin/"/>
 
       <Files>
@@ -2304,7 +2297,6 @@
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenMetaverseTypes" path="../../../../../bin/"/>
       <Reference name="Nini" path="../../../../../bin/"/>
-      <Reference name="RAIL" path="../../../../../bin/"/>
       <Reference name="log4net" path="../../../../../bin/"/>
       <Reference name="Tools" path="../../../../../bin/"/>
 
@@ -2346,7 +2338,6 @@
       <Reference name="SmartThreadPool"/>
       <Reference name="Axiom.MathLib" path="../../../../../bin/"/>
       <Reference name="Nini" path="../../../../../bin/"/>
-      <Reference name="RAIL" path="../../../../../bin/"/>
       <Reference name="log4net" path="../../../../../bin/"/>
 
       <Files>
@@ -2385,7 +2376,6 @@
       <Reference name="OpenSim.Region.ScriptEngine.Shared.Api"/>
       <Reference name="SmartThreadPool"/>
       <Reference name="Nini" path="../../../../bin/"/>
-      <Reference name="RAIL" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
 
       <Files>
