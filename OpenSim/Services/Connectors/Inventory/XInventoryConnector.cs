@@ -158,7 +158,10 @@ namespace OpenSim.Services.Connectors
         public InventoryCollection GetFolderContent(UUID principalID, UUID folderID)
         {
             InventoryCollection inventory = new InventoryCollection();
-            
+            inventory.Folders = new List<InventoryFolderBase>();
+            inventory.Items = new List<InventoryItemBase>();
+            inventory.UserID = principalID;
+
             try
             {
                 Dictionary<string,object> ret = MakeRequest("GETFOLDERCONTENT",
@@ -172,11 +175,6 @@ namespace OpenSim.Services.Connectors
                 if (ret.Count == 0)
                     return null;
 
-                
-                inventory.Folders = new List<InventoryFolderBase>();
-                inventory.Items = new List<InventoryItemBase>();
-                inventory.UserID = principalID;
-                
                 Dictionary<string,object> folders =
                         (Dictionary<string,object>)ret["FOLDERS"];
                 Dictionary<string,object> items =
