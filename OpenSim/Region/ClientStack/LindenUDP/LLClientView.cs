@@ -395,6 +395,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public bool IsGroupMember(UUID groupID) { return m_groupPowers.ContainsKey(groupID); }
 
         /// <summary>
+        /// Entity update queues
+        /// </summary>
+        public PriorityQueue EntityUpdateQueue { get { return m_entityUpdates; } }
+        
+        /// <summary>
         /// First name of the agent/avatar represented by the client
         /// </summary>
         public string FirstName { get { return m_firstName; } }
@@ -3625,7 +3630,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Remove the update packet from the list of packets waiting for acknowledgement
             // because we are requeuing the list of updates. They will be resent in new packets
             // with the most recent state and priority.
-            m_udpClient.NeedAcks.Remove(oPacket.SequenceNumber, 0, true);
+            m_udpClient.NeedAcks.Remove(oPacket.SequenceNumber);
+
+            // Count this as a resent packet since we are going to requeue all of the updates contained in it
+            Interlocked.Increment(ref m_udpClient.PacketsResent);
+
             foreach (EntityUpdate update in updates)
                 ResendPrimUpdate(update);
         }
@@ -4092,7 +4101,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Remove the update packet from the list of packets waiting for acknowledgement
             // because we are requeuing the list of updates. They will be resent in new packets
             // with the most recent state.
-            m_udpClient.NeedAcks.Remove(oPacket.SequenceNumber, 0, true);
+            m_udpClient.NeedAcks.Remove(oPacket.SequenceNumber);
+
+            // Count this as a resent packet since we are going to requeue all of the updates contained in it
+            Interlocked.Increment(ref m_udpClient.PacketsResent);
+
             foreach (ObjectPropertyUpdate update in updates)
                 ResendPropertyUpdate(update);
         }
@@ -11513,7 +11526,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <returns></returns>
         public byte[] GetThrottlesPacked(float multiplier)
         {
-            return m_udpClient.GetThrottlesPacked();
+            return m_udpClient.GetThrottlesPacked(multiplier);
         }
 
         /// <summary>

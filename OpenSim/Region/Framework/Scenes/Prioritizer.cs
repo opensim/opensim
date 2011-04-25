@@ -88,7 +88,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // If this is an update for our own avatar give it the highest priority
             if (client.AgentId == entity.UUID)
-                return PriorityQueue.ImmediateQueue;
+                return 0;
 
             uint priority;
             
@@ -119,16 +119,40 @@ namespace OpenSim.Region.Framework.Scenes
 
         private uint GetPriorityByTime(IClientAPI client, ISceneEntity entity)
         {
-            return 1;
+            // And anything attached to this avatar gets top priority as well
+            if (entity is SceneObjectPart)
+            {
+                SceneObjectPart sop = (SceneObjectPart)entity;
+                if (sop.ParentGroup.RootPart.IsAttachment && client.AgentId == sop.ParentGroup.RootPart.AttachedAvatar)
+                    return 1;
+            }
+
+            return PriorityQueue.NumberOfImmediateQueues; // first queue past the immediate queues
         }
 
         private uint GetPriorityByDistance(IClientAPI client, ISceneEntity entity)
         {
+            // And anything attached to this avatar gets top priority as well
+            if (entity is SceneObjectPart)
+            {
+                SceneObjectPart sop = (SceneObjectPart)entity;
+                if (sop.ParentGroup.RootPart.IsAttachment && client.AgentId == sop.ParentGroup.RootPart.AttachedAvatar)
+                    return 1;
+            }
+
             return ComputeDistancePriority(client,entity,false);
         }
         
         private uint GetPriorityByFrontBack(IClientAPI client, ISceneEntity entity)
         {
+            // And anything attached to this avatar gets top priority as well
+            if (entity is SceneObjectPart)
+            {
+                SceneObjectPart sop = (SceneObjectPart)entity;
+                if (sop.ParentGroup.RootPart.IsAttachment && client.AgentId == sop.ParentGroup.RootPart.AttachedAvatar)
+                    return 1;
+            }
+
             return ComputeDistancePriority(client,entity,true);
         }
 
@@ -205,8 +229,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             // And convert the distance to a priority queue, this computation gives queues
             // at 10, 20, 40, 80, 160, 320, 640, and 1280m
-            uint pqueue = 1;
-            for (int i = 0; i < 8; i++)
+            uint pqueue = PriorityQueue.NumberOfImmediateQueues;
+            uint queues = PriorityQueue.NumberOfQueues - PriorityQueue.NumberOfImmediateQueues;
+            
+            for (int i = 0; i < queues - 1; i++)
             {
                 if (distance < 10 * Math.Pow(2.0,i))
                     break;
