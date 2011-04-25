@@ -52,30 +52,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public int Texture;
         /// <summary>Drip rate for asset packets</summary>
         public int Asset;
-        /// <summary>Drip rate for state packets</summary>
-        public int State;
+
         /// <summary>Drip rate for the parent token bucket</summary>
         public int Total;
 
-        /// <summary>Maximum burst rate for resent packets</summary>
-        public int ResendLimit;
-        /// <summary>Maximum burst rate for land packets</summary>
-        public int LandLimit;
-        /// <summary>Maximum burst rate for wind packets</summary>
-        public int WindLimit;
-        /// <summary>Maximum burst rate for cloud packets</summary>
-        public int CloudLimit;
-        /// <summary>Maximum burst rate for task (state and transaction) packets</summary>
-        public int TaskLimit;
-        /// <summary>Maximum burst rate for texture packets</summary>
-        public int TextureLimit;
-        /// <summary>Maximum burst rate for asset packets</summary>
-        public int AssetLimit;
-        /// <summary>Maximum burst rate for state packets</summary>
-        public int StateLimit;
-        /// <summary>Burst rate for the parent token bucket</summary>
-        public int TotalLimit;
-
+        /// <summary>Flag used to enable adaptive throttles</summary>
+        public bool AdaptiveThrottlesEnabled;
+        
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -86,26 +69,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 IConfig throttleConfig = config.Configs["ClientStack.LindenUDP"];
 
-                Resend = throttleConfig.GetInt("resend_default", 12500);
-                Land = throttleConfig.GetInt("land_default", 1000);
-                Wind = throttleConfig.GetInt("wind_default", 1000);
-                Cloud = throttleConfig.GetInt("cloud_default", 1000);
-                Task = throttleConfig.GetInt("task_default", 1000);
-                Texture = throttleConfig.GetInt("texture_default", 1000);
-                Asset = throttleConfig.GetInt("asset_default", 1000);
-                State = throttleConfig.GetInt("state_default", 1000);
-
-                ResendLimit = throttleConfig.GetInt("resend_limit", 18750);
-                LandLimit = throttleConfig.GetInt("land_limit", 29750);
-                WindLimit = throttleConfig.GetInt("wind_limit", 18750);
-                CloudLimit = throttleConfig.GetInt("cloud_limit", 18750);
-                TaskLimit = throttleConfig.GetInt("task_limit", 18750);
-                TextureLimit = throttleConfig.GetInt("texture_limit", 55750);
-                AssetLimit = throttleConfig.GetInt("asset_limit", 27500);
-                StateLimit = throttleConfig.GetInt("state_limit", 37000);
+                Resend = throttleConfig.GetInt("resend_default", 6625);
+                Land = throttleConfig.GetInt("land_default", 9125);
+                Wind = throttleConfig.GetInt("wind_default", 1750);
+                Cloud = throttleConfig.GetInt("cloud_default", 1750);
+                Task = throttleConfig.GetInt("task_default", 18500);
+                Texture = throttleConfig.GetInt("texture_default", 18500);
+                Asset = throttleConfig.GetInt("asset_default", 10500);
 
                 Total = throttleConfig.GetInt("client_throttle_max_bps", 0);
-                TotalLimit = Total;
+
+                AdaptiveThrottlesEnabled = throttleConfig.GetBoolean("enable_adaptive_throttles", false);
             }
             catch (Exception) { }
         }
@@ -128,34 +102,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return Texture;
                 case ThrottleOutPacketType.Asset:
                     return Asset;
-                case ThrottleOutPacketType.State:
-                    return State;
-                case ThrottleOutPacketType.Unknown:
-                default:
-                    return 0;
-            }
-        }
-
-        public int GetLimit(ThrottleOutPacketType type)
-        {
-            switch (type)
-            {
-                case ThrottleOutPacketType.Resend:
-                    return ResendLimit;
-                case ThrottleOutPacketType.Land:
-                    return LandLimit;
-                case ThrottleOutPacketType.Wind:
-                    return WindLimit;
-                case ThrottleOutPacketType.Cloud:
-                    return CloudLimit;
-                case ThrottleOutPacketType.Task:
-                    return TaskLimit;
-                case ThrottleOutPacketType.Texture:
-                    return TextureLimit;
-                case ThrottleOutPacketType.Asset:
-                    return AssetLimit;
-                case ThrottleOutPacketType.State:
-                    return StateLimit;
                 case ThrottleOutPacketType.Unknown:
                 default:
                     return 0;

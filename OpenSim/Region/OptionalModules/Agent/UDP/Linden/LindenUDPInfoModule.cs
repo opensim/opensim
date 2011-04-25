@@ -398,7 +398,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
                             if (client is LLClientView)
                             {
                                 LLClientView llClient = client as LLClientView;
-                            
+
                                 if (firstClient)
                                 {
                                     report.AppendLine(GetServerThrottlesReport(llClient.UDPServer));
@@ -451,7 +451,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             int maxRegionNameLength = 14;
             int maxTypeLength = 4;
             
-            string name = "SERVER AGENT LIMITS";
+            string name = "SERVER AGENT RATES";
                                 
             report.Append(GetColumnEntry(name, maxNameLength, columnPadding));
             report.Append(GetColumnEntry("-", maxRegionNameLength, columnPadding));
@@ -461,13 +461,13 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             report.AppendFormat(
                 "{0,7} {1,8} {2,7} {3,7} {4,7} {5,7} {6,9} {7,7}",
                 (throttleRates.Total * 8) / 1000,
-                (throttleRates.ResendLimit * 8) / 1000,
-                (throttleRates.LandLimit * 8) / 1000,
-                (throttleRates.WindLimit * 8) / 1000,
-                (throttleRates.CloudLimit * 8) / 1000,
-                (throttleRates.TaskLimit * 8) / 1000,
-                (throttleRates.TextureLimit  * 8) / 1000,
-                (throttleRates.AssetLimit  * 8) / 1000);  
+                (throttleRates.Resend * 8) / 1000,
+                (throttleRates.Land * 8) / 1000,
+                (throttleRates.Wind * 8) / 1000,
+                (throttleRates.Cloud * 8) / 1000,
+                (throttleRates.Task * 8) / 1000,
+                (throttleRates.Texture  * 8) / 1000,
+                (throttleRates.Asset  * 8) / 1000);  
 
             return report.ToString();
         }        

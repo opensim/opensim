@@ -181,9 +181,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_maxRTO = maxRTO;
 
             // Create a token bucket throttle for this client that has the scene token bucket as a parent
-            m_throttleClient = new AdaptiveTokenBucket(parentThrottle, rates.TotalLimit);
+            m_throttleClient = new AdaptiveTokenBucket(parentThrottle, rates.Total, rates.AdaptiveThrottlesEnabled);
             // Create a token bucket throttle for the total categary with the client bucket as a throttle
-            m_throttleCategory = new TokenBucket(m_throttleClient, rates.TotalLimit);
+            m_throttleCategory = new TokenBucket(m_throttleClient, rates.Total);
             // Create an array of token buckets for this clients different throttle categories
             m_throttleCategories = new TokenBucket[THROTTLE_CATEGORY_COUNT];
 
@@ -194,7 +194,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Initialize the packet outboxes, where packets sit while they are waiting for tokens
                 m_packetOutboxes[i] = new OpenSim.Framework.LocklessQueue<OutgoingPacket>();
                 // Initialize the token buckets that control the throttling for each category
-                m_throttleCategories[i] = new TokenBucket(m_throttleCategory, rates.GetLimit(type));
+                m_throttleCategories[i] = new TokenBucket(m_throttleCategory, rates.GetRate(type));
             }
 
             // Default the retransmission timeout to three seconds
@@ -341,12 +341,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             task = Math.Max(task, LLUDPServer.MTU);
             texture = Math.Max(texture, LLUDPServer.MTU);
             asset = Math.Max(asset, LLUDPServer.MTU);
-            state = Math.Max(state, LLUDPServer.MTU);
 
-            int total = resend + land + wind + cloud + task + texture + asset + state;
+            int total = resend + land + wind + cloud + task + texture + asset;
 
-            //m_log.DebugFormat("[LLUDPCLIENT]: {0} is setting throttles. Resend={1}, Land={2}, Wind={3}, Cloud={4}, Task={5}, Texture={6}, Asset={7}, State={8}, Total={9}",
-            //    AgentID, resend, land, wind, cloud, task, texture, asset, state, total);
+            //m_log.DebugFormat("[LLUDPCLIENT]: {0} is setting throttles. Resend={1}, Land={2}, Wind={3}, Cloud={4}, Task={5}, Texture={6}, Asset={7}, Total={8}",
+            //                  AgentID, resend, land, wind, cloud, task, texture, asset, total);
 
             // Update the token buckets with new throttle values
             TokenBucket bucket;
