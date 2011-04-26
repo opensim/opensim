@@ -182,9 +182,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
         {
             InventoryCollection invCol = m_InventoryService.GetFolderContent(userID, folderID);
-            if (UserManager != null)
-                foreach (InventoryItemBase item in invCol.Items)
-                    UserManager.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+            Util.FireAndForget(delegate
+            {
+                if (UserManager != null)
+                    foreach (InventoryItemBase item in invCol.Items)
+                        UserManager.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+            });
 
             return invCol;
         }

@@ -371,6 +371,7 @@ namespace OpenSim.Framework
         private int m_physPrimMax = 0;
         private bool m_clampPrimSize = false;
         private int m_objectCapacity = 0;
+        private int m_agentCapacity = 0;
         private string m_regionType = String.Empty;
         private RegionLightShareData m_windlight = new RegionLightShareData();
         protected uint m_httpPort;
@@ -547,6 +548,11 @@ namespace OpenSim.Framework
         public int ObjectCapacity
         {
             get { return m_objectCapacity; }
+        }
+
+        public int AgentCapacity
+        {
+            get { return m_agentCapacity; }
         }
 
         public byte AccessLevel
@@ -827,6 +833,8 @@ namespace OpenSim.Framework
 
             m_objectCapacity = config.GetInt("MaxPrims", 15000);
 
+            m_agentCapacity = config.GetInt("MaxAgents", 100);
+
 
             // Multi-tenancy
             //
@@ -865,6 +873,9 @@ namespace OpenSim.Framework
 
             if (m_objectCapacity != 0)
                 config.Set("MaxPrims", m_objectCapacity);
+
+            if (m_agentCapacity != 0)
+                config.Set("MaxAgents", m_agentCapacity);
 
             if (ScopeID != UUID.Zero)
                 config.Set("ScopeID", ScopeID.ToString());
@@ -951,6 +962,9 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Max objects this sim will hold", m_objectCapacity.ToString(), true);
+
+            configMember.addConfigurationOption("agent_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                                                "Max avatars this sim will hold", m_agentCapacity.ToString(), true);
 
             configMember.addConfigurationOption("scope_id", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                                                 "Scope ID for this region", ScopeID.ToString(), true);
@@ -1066,6 +1080,9 @@ namespace OpenSim.Framework
                     break;
                 case "object_capacity":
                     m_objectCapacity = (int)configuration_result;
+                    break;
+                case "agent_capacity":
+                    m_agentCapacity = (int)configuration_result;
                     break;
                 case "scope_id":
                     ScopeID = (UUID)configuration_result;
