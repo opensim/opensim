@@ -2340,12 +2340,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Update Client(s)
 
+
         /// <summary>
         /// Sends a location update to the client connected to this scenePresence
         /// </summary>
         /// <param name="remoteClient"></param>
         public void SendTerseUpdateToClient(IClientAPI remoteClient)
         {
+
             // If the client is inactive, it's getting its updates from another
             // server.
             if (remoteClient.IsActive)
@@ -2358,8 +2360,8 @@ namespace OpenSim.Region.Framework.Scenes
                 //m_log.DebugFormat("[SCENEPRESENCE]: TerseUpdate: Pos={0} Rot={1} Vel={2}", m_pos, m_bodyRot, m_velocity);
 
                 remoteClient.SendPrimUpdate(
-                    this, 
-                    PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity 
+                    this,
+                    PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
                     | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
 
                 m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
@@ -2367,16 +2369,31 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+
+        // vars to support reduced update frequency when velocity is unchanged
+        private Vector3 lastVelocitySentToAllClients = Vector3.Zero;
+        private int lastTerseUpdateToAllClientsTick = Util.EnvironmentTickCount();
+
         /// <summary>
         /// Send a location/velocity/accelleration update to all agents in scene
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
-            m_perfMonMS = Util.EnvironmentTickCount();
-            
-            m_scene.ForEachClient(SendTerseUpdateToClient);
+            int currentTick = Util.EnvironmentTickCount();
 
-            m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
+            // decrease update frequency when avatar is moving but velocity is not changing
+            if (m_velocity.Length() < 0.01f
+                || Vector3.Distance(lastVelocitySentToAllClients, m_velocity) > 0.01f
+                || currentTick - lastTerseUpdateToAllClientsTick > 1500)
+            {
+                m_perfMonMS = currentTick;
+                lastVelocitySentToAllClients = m_velocity;
+                lastTerseUpdateToAllClientsTick = currentTick;
+
+                m_scene.ForEachClient(SendTerseUpdateToClient);
+
+                m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
+            }
         }
 
         public void SendCoarseLocations(List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
@@ -3268,10 +3285,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_updateflag = true;
 
-                // The magic constant 0.95f seems to make walking feel less jerky,
-                // probably because it hackishly accounts for the overall latency of
-                // these Velocity updates -- Diva
-                Velocity = force * .95F;
+                Velocity = force;
 
                 m_forceToApply = null;
             }
