@@ -4035,6 +4035,10 @@ if (m_animator.m_jumping) force.Z = m_animator.m_jumpVelocity;     // add for ju
         {
             lock (m_attachments)
             {
+                // This may be true when the attachment comes back
+                // from serialization after login. Clear it.
+                gobj.IsDeleted = false;
+
                 m_attachments.Add(gobj);
             }
         }
