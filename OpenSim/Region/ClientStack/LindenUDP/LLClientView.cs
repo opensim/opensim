@@ -4764,7 +4764,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             data.RelativePosition.ToBytes(objectData, 0);
             data.Velocity.ToBytes(objectData, 12);
             data.Acceleration.ToBytes(objectData, 24);
-            data.RotationOffset.ToBytes(objectData, 36);
+            try
+            {
+                data.RotationOffset.ToBytes(objectData, 36);
+            }
+            catch (Exception e)
+            {
+                m_log.Warn("[LLClientView]: exception converting quaternion to bytes, using Quaternion.Identity. Exception: " + e.ToString());
+                OpenMetaverse.Quaternion.Identity.ToBytes(objectData, 36);
+            }
             data.AngularVelocity.ToBytes(objectData, 48);
 
             ObjectUpdatePacket.ObjectDataBlock update = new ObjectUpdatePacket.ObjectDataBlock();
