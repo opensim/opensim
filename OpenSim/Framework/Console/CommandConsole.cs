@@ -592,9 +592,7 @@ namespace OpenSim.Framework.Console
             string line = ReadLine(m_defaultPrompt + "# ", true, true);
 
             if (line != String.Empty)
-            {
-                m_log.Info("[CONSOLE] Invalid command");
-            }
+                Output("Invalid command");
         }
 
         public void RunCommand(string cmd)
