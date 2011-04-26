@@ -26,11 +26,17 @@
 /// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ///
 
+using System;
+using System.Collections.Generic;
+
+
 namespace OpenSim.Region.OptionalModules.World.AutoBackup
 {
     /// AutoBackupModuleState: Auto-Backup state for one region (scene).
     public class AutoBackupModuleState
     {
+        private Dictionary<Guid, string> m_liveRequests = null;
+
         public AutoBackupModuleState()
         {
             this.Enabled = false;
@@ -39,6 +45,14 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             this.Timer = null;
             this.NamingType = NamingType.Time;
             this.Script = null;
+        }
+
+        public Dictionary<Guid, string> LiveRequests
+        {
+            get {
+                return this.m_liveRequests ??
+                       (this.m_liveRequests = new Dictionary<Guid, string>(1));
+            }
         }
 
         public bool Enabled

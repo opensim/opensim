@@ -94,18 +94,14 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        /// True means IRegionModuleBase.Close() was called on us, and we should stop operation ASAP.
-        /// Used to prevent elapsing timers after Close() is called from trying to start an autobackup while the sim is shutting down.
-        private readonly AutoBackupModuleState m_defaultState = new AutoBackupModuleState();
-
         /// Save memory by setting low initial capacities. Minimizes impact in common cases of all regions using same interval, and instances hosting 1 ~ 4 regions.
         /// Also helps if you don't want AutoBackup at all
+        private readonly Dictionary<Guid, IScene> m_pendingSaves = new Dictionary<Guid, IScene>(1);
+        private readonly AutoBackupModuleState m_defaultState = new AutoBackupModuleState();
         private readonly Dictionary<IScene, AutoBackupModuleState> m_states =
             new Dictionary<IScene, AutoBackupModuleState>(1);
-
         private readonly Dictionary<Timer, List<IScene>> m_timerMap =
             new Dictionary<Timer, List<IScene>>(1);
-
         private readonly Dictionary<double, Timer> m_timers = new Dictionary<double, Timer>(1);
 
         private bool m_enabled;
@@ -528,8 +524,19 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
                 m_log.Warn("[AUTO BACKUP]: savePath is null in HandleElapsed");
                 return;
             }
-            iram.ArchiveRegion(savePath, Guid.NewGuid(), null);
-            ExecuteScript(state.Script, savePath);
+            Guid guid = Guid.NewGuid();
+            m_pendingSaves.Add(guid, scene);
+            state.LiveRequests.Add(guid, savePath);
+            ((Scene) scene).EventManager.OnOarFileSaved += new EventManager.OarFileSaved(EventManager_OnOarFileSaved);
+            iram.ArchiveRegion(savePath, guid, null);
+        }
+
+        void EventManager_OnOarFileSaved(Guid guid, string message)
+        {
+            AutoBackupModuleState abms = m_states[(m_pendingSaves[guid])];
+            ExecuteScript(abms.Script, abms.LiveRequests[guid]);
+            m_pendingSaves.Remove(guid);
+            abms.LiveRequests.Remove(guid);
         }
 
         /// This format may turn out to be too unwieldy to keep...
