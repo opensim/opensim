@@ -2039,6 +2039,12 @@ namespace OpenSim.Region.Framework.Scenes
             if (rot != null)
                 group.UpdateGroupRotationR((Quaternion)rot);
             
+            // TODO: This needs to be refactored with the similar code in 
+            // SceneGraph.AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, Vector3 pos, Quaternion rot, Vector3 vel)
+            // possibly by allowing this method to take a null rotation.
+            if (group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical && vel != Vector3.Zero)
+                group.RootPart.ApplyImpulse((vel * group.GetMass()), false);
+            
             // We can only call this after adding the scene object, since the scene object references the scene
             // to find out if scripts should be activated at all.
             group.CreateScriptInstances(param, true, DefaultScriptEngine, 3);
