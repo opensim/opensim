@@ -1,34 +1,36 @@
 The following people have contributed to OpenSim (Thank you 
 for your effort!)
 
-Add your name in here if you have committed to OpenSim
-
 = Current OpenSim Developers (in very rough order of appearance) =
 These folks represent the current core team for OpenSim, and are the
 people that make the day to day of OpenSim happen.
 
+* justincc
+* chi11ken (Genkii)
+* dahlia
+* Melanie Thielker
+* Diva (Crista Lopes, University of California, Irvine)
+* Dan Lake (Intel)
+* Marck
+* Mic Bowman (Intel)
+* BlueWall (James Hughes)
+
+= Core Developers Following the White Rabbit =
+Core developers who have temporarily (we hope) gone chasing the white rabbit. 
+They are in all similar to the active core developers, except that they haven't
+been that active lately, so their voting rights are awaiting their come back. 
+
 * MW (Tribal Media AB)
 * Adam Frisby 	(DeepThink Pty Ltd)
-* MingChen 	(DeepThink Pty Ltd)
 * lbsa71 (Tribal Media AB)
-* Sean Dague / sdague (IBM)
-* Tedd
-* justincc
 * Teravus (w3z)
-* Johan Berntsson (3Di)
 * Ckrinke (Charles Krinke)
-* chi11ken (Genkii)
-* adjohn (Genkii)
 * Dr Scofield aka Dirk Husemann (IBM Research - Zurich)
-* dahlia
 * mikem (3Di)
-* Melanie Thielker
 * Homer_Horwitz
-* idb (Ian Brown)
-* Diva (Crista Lopes, University of California, Irvine)
 * nlin (3Di)
 * Arthur Rodrigo S Valadares (IBM)
-* BlueWall (James Hughes)
+* John Hurliman
 
 = Past Open Sim Developers =
 These folks are alumns of the OpenSim core group, but are now
@@ -44,6 +46,12 @@ where we are today.
 * Dalien
 * Darok
 * Alondria
+* Sean Dague / sdague (IBM)
+* Tedd
+* MingChen 	(DeepThink Pty Ltd)
+* adjohn (Genkii)
+* idb (Ian Brown)
+* Johan Berntsson (3Di)
 
 
 = Additional OpenSim Contributors =
@@ -102,6 +110,7 @@ what it is today.
 * Misterblue (Intel)
 * Mircea Kitsune
 * mpallari
+* MrMonkE
 * nornalbion
 * Omar Vera Ustariz (IBM)
 * openlifegrid.com
