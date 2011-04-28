@@ -492,12 +492,11 @@ ELSE
             using (SqlConnection conn = new SqlConnection(m_connectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
+                conn.Open();
                 foreach (TaskInventoryItem taskItem in items)
                 {
                     cmd.Parameters.AddRange(CreatePrimInventoryParameters(taskItem));
-                    conn.Open();
                     cmd.ExecuteNonQuery();
-
                     cmd.Parameters.Clear();
                 }
             }
@@ -1154,9 +1153,9 @@ VALUES
             PrimitiveBaseShape baseShape = new PrimitiveBaseShape();
 
             baseShape.Scale = new Vector3(
-                        Convert.ToSingle(shapeRow["ScaleX"]),
-                        Convert.ToSingle(shapeRow["ScaleY"]),
-                        Convert.ToSingle(shapeRow["ScaleZ"]));
+                        (float)Convert.ToDouble(shapeRow["ScaleX"]),
+                        (float)Convert.ToDouble(shapeRow["ScaleY"]),
+                        (float)Convert.ToDouble(shapeRow["ScaleZ"]));
 
             // paths
             baseShape.PCode = Convert.ToByte(shapeRow["PCode"]);
@@ -1193,8 +1192,11 @@ VALUES
             {
             }
 
-            if (!(shapeRow["Media"] is System.DBNull))
+            if (!(shapeRow["Media"] is System.DBNull) )
+            {
                 baseShape.Media = PrimitiveBaseShape.MediaList.FromXml((string)shapeRow["Media"]);
+            }
+                
 
             return baseShape;
         }
@@ -1573,7 +1575,16 @@ VALUES
             parameters.Add(_Database.CreateParameter("Texture", s.TextureEntry));
             parameters.Add(_Database.CreateParameter("ExtraParams", s.ExtraParams));
             parameters.Add(_Database.CreateParameter("State", s.State));
-            parameters.Add(_Database.CreateParameter("Media", null == s.Media ? null : s.Media.ToXml()));
+
+            if(null == s.Media )
+            {
+                parameters.Add(_Database.CreateParameter("Media", DBNull.Value));    
+            }
+            else
+            {
+                parameters.Add(_Database.CreateParameter("Media", s.Media.ToXml()));    
+            }
+            
 
             return parameters.ToArray();
         }
