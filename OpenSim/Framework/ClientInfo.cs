@@ -31,7 +31,6 @@ using System.Net;
 
 namespace OpenSim.Framework
 {
-    [Serializable]
     public class ClientInfo
     {
         public AgentCircuitData agentcircuit;
