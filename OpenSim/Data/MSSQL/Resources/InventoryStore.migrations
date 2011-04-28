@@ -238,7 +238,10 @@ alter table inventoryitems
 
 COMMIT	
    
- 
+:VERSION 8
 
-
-
+ALTER TABLE inventoryitems
+ADD CONSTRAINT DF_inventoryitems_creatorID 
+DEFAULT '00000000-0000-0000-0000-000000000000' FOR creatorID
+   
+:GO
