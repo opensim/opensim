@@ -41,8 +41,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
     /// </summary>
     public class AgentAssetTransactions
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(
-//                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // Fields
         private bool m_dumpAssetsToFile;
@@ -149,6 +148,10 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
                 if (asset != null)
                 {
+//                    m_log.DebugFormat(
+//                        "[AGENT ASSETS TRANSACTIONS]: Updating item {0} in {1} for transaction {2}", 
+//                        item.Name, part.Name, transactionID);
+                    
                     asset.FullID = UUID.Random();
                     asset.Name = item.Name;
                     asset.Description = item.Description;
@@ -156,8 +159,6 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                     item.AssetID = asset.FullID;
 
                     m_Scene.AssetService.Store(asset);
-
-                    part.Inventory.UpdateInventoryItem(item);
                 }
             }
         }
