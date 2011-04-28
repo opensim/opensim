@@ -34,7 +34,7 @@ namespace OpenSim.Framework
     [Serializable]
     public class ClientInfo
     {
-        public sAgentCircuitData agentcircuit;
+        public AgentCircuitData agentcircuit;
 
         public Dictionary<uint, byte[]> needAck;
 

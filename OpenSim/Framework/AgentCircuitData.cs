@@ -152,27 +152,6 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Create AgentCircuitData from a Serializable AgentCircuitData
-        /// </summary>
-        /// <param name="cAgent"></param>
-        public AgentCircuitData(sAgentCircuitData cAgent)
-        {
-            AgentID = new UUID(cAgent.AgentID);
-            SessionID = new UUID(cAgent.SessionID);
-            SecureSessionID = new UUID(cAgent.SecureSessionID);
-            startpos = new Vector3(cAgent.startposx, cAgent.startposy, cAgent.startposz);
-            firstname = cAgent.firstname;
-            lastname = cAgent.lastname;
-            circuitcode = cAgent.circuitcode;
-            child = cAgent.child;
-            InventoryFolder = new UUID(cAgent.InventoryFolder);
-            BaseFolder = new UUID(cAgent.BaseFolder);
-            CapsPath = cAgent.CapsPath;
-            ChildrenCapSeeds = cAgent.ChildrenCapSeeds;
-            Viewer = cAgent.Viewer;
-        }
-
-        /// <summary>
         /// Pack AgentCircuitData into an OSDMap for transmission over LLSD XML or LLSD json
         /// </summary>
         /// <returns>map of the agent circuit data</returns>
@@ -369,52 +348,4 @@ namespace OpenSim.Framework
     }
 
 
-    /// <summary>
-    /// Serializable Agent Circuit Data
-    /// </summary>
-    [Serializable]
-    public class sAgentCircuitData
-    {
-        public Guid AgentID;
-        public Guid BaseFolder;
-        public string CapsPath = String.Empty;
-        public Dictionary<ulong, string> ChildrenCapSeeds;
-        public bool child;
-        public uint circuitcode;
-        public string firstname;
-        public Guid InventoryFolder;
-        public string lastname;
-        public Guid SecureSessionID;
-        public Guid SessionID;
-        public float startposx;
-        public float startposy;
-        public float startposz;
-        public string Viewer;
-        public string Channel;
-        public string Mac;
-        public string Id0;
-
-        public sAgentCircuitData()
-        {
-        }
-
-        public sAgentCircuitData(AgentCircuitData cAgent)
-        {
-            AgentID = cAgent.AgentID.Guid;
-            SessionID = cAgent.SessionID.Guid;
-            SecureSessionID = cAgent.SecureSessionID.Guid;
-            startposx = cAgent.startpos.X;
-            startposy = cAgent.startpos.Y;
-            startposz = cAgent.startpos.Z;
-            firstname = cAgent.firstname;
-            lastname = cAgent.lastname;
-            circuitcode = cAgent.circuitcode;
-            child = cAgent.child;
-            InventoryFolder = cAgent.InventoryFolder.Guid;
-            BaseFolder = cAgent.BaseFolder.Guid;
-            CapsPath = cAgent.CapsPath;
-            ChildrenCapSeeds = cAgent.ChildrenCapSeeds;
-            Viewer = cAgent.Viewer;
-        }
-    }
 }
