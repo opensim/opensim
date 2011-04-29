@@ -279,7 +279,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
                 bool success = result["success"].AsBoolean();
                 reason = data["reason"].AsString();
-                if (data["version"] != null)
+                if (data["version"] != null && data["version"].AsString() != string.Empty)
                     version = data["version"].AsString();
 
                 m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1} version {2} ({3})", uri, success, version, data["version"].AsString());
