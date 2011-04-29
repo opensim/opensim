@@ -3113,6 +3113,8 @@ namespace OpenSim.Region.Framework.Scenes
                     ((SceneObjectGroup)clone).RootPart.IsAttachment = false;
                     cAgent.AttachmentObjects.Add(clone);
                     cAgent.AttachmentObjectStates.Add(sog.GetStateSnapshot());
+                    // Let's remove the scripts of the original object here
+                    sog.RemoveScriptInstances(true);
                 }
             }
         }

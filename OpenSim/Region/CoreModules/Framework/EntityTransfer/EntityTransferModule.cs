@@ -479,7 +479,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // Fail. Reset it back
             sp.IsChildAgent = false;
-
+            ReInstantiateScripts(sp);
             ResetFromTransit(sp.UUID);
 
             EnableChildAgents(sp);
@@ -930,6 +930,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (!WaitForCallback(agent.UUID))
                 {
                     m_log.Debug("[ENTITY TRANSFER MODULE]: Callback never came in crossing agent");
+                    ReInstantiateScripts(agent);
                     ResetFromTransit(agent.UUID);
 
                     // Yikes! We should just have a ref to scene here.
@@ -1756,7 +1757,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return false;
         }
 
-
+        protected void ReInstantiateScripts(ScenePresence sp)
+        {
+            sp.Attachments.ForEach(delegate(SceneObjectGroup sog)
+            {
+                sog.CreateScriptInstances(0, false, sp.Scene.DefaultScriptEngine, 0);
+                sog.ResumeScripts();
+            });
+        }
         #endregion
 
     }
