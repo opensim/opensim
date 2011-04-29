@@ -56,15 +56,15 @@ namespace OpenSim.Data.MSSQL
                 string realm, string storeName)
         {
             m_Realm = realm;
+            
+            m_ConnectionString = connectionString;
 
             if (storeName != String.Empty)
             {
-                Assembly assem = GetType().Assembly;
-                m_ConnectionString = connectionString;
                 using (SqlConnection conn = new SqlConnection(m_ConnectionString))
                 {
                     conn.Open();
-                    Migration m = new Migration(conn, assem, storeName);
+                    Migration m = new Migration(conn, GetType().Assembly, storeName);
                     m.Update();
                 }
 

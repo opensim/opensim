@@ -46,9 +46,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
-        private bool m_Initialized = false;
-//        private Scene m_Scene;
+        private Scene m_Scene;
         private XInventoryServicesConnector m_RemoteConnector;
+
+        private IUserManagement m_UserManager;
+        private IUserManagement UserManager
+        {
+            get
+            {
+                if (m_UserManager == null)
+                {
+                    m_UserManager = m_Scene.RequestModuleInterface<IUserManagement>();
+                }
+                return m_UserManager;
+            }
+        }
 
         public Type ReplaceableInterface 
         {
@@ -114,12 +126,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (!m_Enabled)
                 return;
 
-            if (!m_Initialized)
-            {
-                m_Initialized = true;
-            }
-
             scene.RegisterModuleInterface<IInventoryService>(this);
+
+            if (m_Scene == null)
+                m_Scene = scene;
         }
 
         public void RemoveRegion(Scene scene)
@@ -173,7 +183,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public  InventoryCollection GetFolderContent(UUID userID, UUID folderID)
         {
-            return m_RemoteConnector.GetFolderContent(userID, folderID);
+            InventoryCollection invCol = m_RemoteConnector.GetFolderContent(userID, folderID);
+            Util.FireAndForget(delegate
+            {
+                if (UserManager != null)
+                    foreach (InventoryItemBase item in invCol.Items)
+                        UserManager.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+            });
+
+            return invCol;
         }
 
         public  List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)

@@ -119,16 +119,40 @@ namespace OpenSim.Region.Framework.Scenes
 
         private uint GetPriorityByTime(IClientAPI client, ISceneEntity entity)
         {
-            return 1;
+            // And anything attached to this avatar gets top priority as well
+            if (entity is SceneObjectPart)
+            {
+                SceneObjectPart sop = (SceneObjectPart)entity;
+                if (sop.ParentGroup.RootPart.IsAttachment && client.AgentId == sop.ParentGroup.RootPart.AttachedAvatar)
+                    return 1;
+            }
+
+            return PriorityQueue.NumberOfImmediateQueues; // first queue past the immediate queues
         }
 
         private uint GetPriorityByDistance(IClientAPI client, ISceneEntity entity)
         {
+            // And anything attached to this avatar gets top priority as well
+            if (entity is SceneObjectPart)
+            {
+                SceneObjectPart sop = (SceneObjectPart)entity;
+                if (sop.ParentGroup.RootPart.IsAttachment && client.AgentId == sop.ParentGroup.RootPart.AttachedAvatar)
+                    return 1;
+            }
+
             return ComputeDistancePriority(client,entity,false);
         }
         
         private uint GetPriorityByFrontBack(IClientAPI client, ISceneEntity entity)
         {
+            // And anything attached to this avatar gets top priority as well
+            if (entity is SceneObjectPart)
+            {
+                SceneObjectPart sop = (SceneObjectPart)entity;
+                if (sop.ParentGroup.RootPart.IsAttachment && client.AgentId == sop.ParentGroup.RootPart.AttachedAvatar)
+                    return 1;
+            }
+
             return ComputeDistancePriority(client,entity,true);
         }
 
@@ -141,18 +165,20 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (!presence.IsChildAgent)
                 {
+                    // All avatars other than our own go into pqueue 1
+                    if (entity is ScenePresence)
+                        return 1;
+                    
                     if (entity is SceneObjectPart)
                     {
+                        // Attachments are high priority, 
+                        if (((SceneObjectPart)entity).ParentGroup.RootPart.IsAttachment)
+                            return 1;
+
                         // Non physical prims are lower priority than physical prims
                         PhysicsActor physActor = ((SceneObjectPart)entity).ParentGroup.RootPart.PhysActor;
                         if (physActor == null || !physActor.IsPhysical)
                             pqueue++;
-
-                        // Attachments are high priority, 
-                        // MIC: shouldn't these already be in the highest priority queue already
-                        // since their root position is same as the avatars?
-                        if (((SceneObjectPart)entity).ParentGroup.RootPart.IsAttachment)
-                            pqueue = 1;
                     }
                 }
             }
@@ -172,7 +198,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // m_log.WarnFormat("[PRIORITIZER] attempt to use agent {0} not in the scene",client.AgentId);
                 // throw new InvalidOperationException("Prioritization agent not defined");
-                return Int32.MaxValue;
+                return PriorityQueue.NumberOfQueues - 1;
             }
                 
             // Use group position for child prims, since we are putting child prims in
@@ -197,8 +223,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             // And convert the distance to a priority queue, this computation gives queues
             // at 10, 20, 40, 80, 160, 320, 640, and 1280m
-            uint pqueue = 1;
-            for (int i = 0; i < 8; i++)
+            uint pqueue = PriorityQueue.NumberOfImmediateQueues;
+            uint queues = PriorityQueue.NumberOfQueues - PriorityQueue.NumberOfImmediateQueues;
+            
+            for (int i = 0; i < queues - 1; i++)
             {
                 if (distance < 10 * Math.Pow(2.0,i))
                     break;

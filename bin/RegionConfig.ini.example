@@ -28,6 +28,7 @@ ExternalHostName = "SYSTEMIP"
 ; PhysicalPrimMax = 10
 ; ClampPrimSize = False
 ; MaxPrims = 15000
+; MaxAgents = 100
 
 ; *
 ; * Multi-Tenancy. Only set if needed

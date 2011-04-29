@@ -21,7 +21,7 @@
 ; * [[<ConfigName>@]<port>/]<dll name>[:<class name>]
 ; *
 [Startup]
-ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector,8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector,HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector,HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector,8002/OpenSim.Server.Handlers.dll:HeloServiceInConnector"
+ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector,8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector,HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector,HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector,8002/OpenSim.Server.Handlers.dll:HeloServiceInConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above
@@ -197,6 +197,23 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     SRV_AssetServerURI = "http://127.0.0.1:8002"
     SRV_ProfileServerURI = "http://127.0.0.1:8002/user"
 
+	;; Regular expressions for controlling which client versions are accepted/denied.
+	;; An empty string means nothing is checked.
+	;;
+	;; Example 1: allow only these 3 types of clients (any version of them)
+	;; AllowedClients = "Imprudence|Hippo|Second Life"
+	;;
+	;; Example 2: allow all clients except these
+	;; DeniedClients = "Twisted|Crawler|Cryolife|FuckLife|StreetLife|GreenLife|AntiLife|KORE-Phaze|Synlyfe|Purple Second Life|SecondLi |Emerald"
+	;;
+	;; Note that these are regular expressions, so every character counts.
+	;; Also note that this is very weak security and should not be trusted as a reliable means
+	;; for keeping bad clients out; modified clients can fake their identifiers.
+	;;
+	;;
+    ;AllowedClients = ""
+    ;DeniedClients = ""
+
 [GridInfoService]
     ; These settings are used to return information on a get_grid_info call.
     ; Client launcher scripts and third-party clients make use of this to
@@ -256,6 +273,22 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     ; If you run this gatekeeper server behind a proxy, set this to true
     ; HasProxy = false
 
+	;; Regular expressions for controlling which client versions are accepted/denied.
+	;; An empty string means nothing is checked.
+	;;
+	;; Example 1: allow only these 3 types of clients (any version of them)
+	;; AllowedClients = "Imprudence|Hippo|Second Life"
+	;;
+	;; Example 2: allow all clients except these
+	;; DeniedClients = "Twisted|Crawler|Cryolife|FuckLife|StreetLife|GreenLife|AntiLife|KORE-Phaze|Synlyfe|Purple Second Life|SecondLi |Emerald"
+	;;
+	;; Note that these are regular expressions, so every character counts.
+	;; Also note that this is very weak security and should not be trusted as a reliable means
+	;; for keeping bad clients out; modified clients can fake their identifiers.
+	;;
+	;;
+    ;AllowedClients = ""
+    ;DeniedClients = ""
 
 [UserAgentService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:UserAgentService"

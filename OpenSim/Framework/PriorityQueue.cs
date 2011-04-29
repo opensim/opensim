@@ -34,50 +34,81 @@ using OpenSim.Framework;
 using OpenSim.Framework.Client;
 using log4net;
 
-namespace OpenSim.Region.ClientStack.LindenUDP
+namespace OpenSim.Framework
 {
     public class PriorityQueue
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        internal delegate bool UpdatePriorityHandler(ref uint priority, ISceneEntity entity);
+        public delegate bool UpdatePriorityHandler(ref uint priority, ISceneEntity entity);
 
-        // Heap[0] for self updates
-        // Heap[1..12] for entity updates
+        /// <summary>
+        /// Total number of queues (priorities) available
+        /// </summary>
+        public const uint NumberOfQueues = 12;
 
-        internal const uint m_numberOfQueues = 12;
+        /// <summary>
+        /// Number of queuest (priorities) that are processed immediately
+        /// </summary.
+        public const uint NumberOfImmediateQueues = 2;
 
-        private MinHeap<MinHeapItem>[] m_heaps = new MinHeap<MinHeapItem>[m_numberOfQueues];
+        private MinHeap<MinHeapItem>[] m_heaps = new MinHeap<MinHeapItem>[NumberOfQueues];
         private Dictionary<uint, LookupItem> m_lookupTable;
+
+        // internal state used to ensure the deqeues are spread across the priority
+        // queues "fairly". queuecounts is the amount to pull from each queue in 
+        // each pass. weighted towards the higher priority queues
         private uint m_nextQueue = 0;
+        private uint m_countFromQueue = 0;
+        private uint[] m_queueCounts = { 8, 4, 4, 2, 2, 2, 2, 1, 1, 1, 1, 1 };
+
+        // next request is a counter of the number of updates queued, it provides
+        // a total ordering on the updates coming through the queue and is more
+        // lightweight (and more discriminating) than tick count
         private UInt64 m_nextRequest = 0;
 
+        /// <summary>
+        /// Lock for enqueue and dequeue operations on the priority queue
+        /// </summary>
         private object m_syncRoot = new object();
         public object SyncRoot {
             get { return this.m_syncRoot; }
         }
 
-        internal PriorityQueue() : this(MinHeap<MinHeapItem>.DEFAULT_CAPACITY) { }
+#region constructor
+        public PriorityQueue() : this(MinHeap<MinHeapItem>.DEFAULT_CAPACITY) { }
 
-        internal PriorityQueue(int capacity)
+        public PriorityQueue(int capacity)
         {
             m_lookupTable = new Dictionary<uint, LookupItem>(capacity);
 
             for (int i = 0; i < m_heaps.Length; ++i)
                 m_heaps[i] = new MinHeap<MinHeapItem>(capacity);
-        }
 
-        internal int Count
+            m_nextQueue = NumberOfImmediateQueues;
+            m_countFromQueue = m_queueCounts[m_nextQueue];
+        }
+#endregion Constructor
+
+#region PublicMethods
+        /// <summary>
+        /// Return the number of items in the queues
+        /// </summary>
+        public int Count
         {
             get
             {
                 int count = 0;
                 for (int i = 0; i < m_heaps.Length; ++i)
                     count += m_heaps[i].Count;
+                
                 return count;
             }
         }
 
+        /// <summary>
+        /// Enqueue an item into the specified priority queue
+        /// </summary>
         public bool Enqueue(uint pqueue, IEntityUpdate value)
         {
             LookupItem lookup;
@@ -91,7 +122,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 lookup.Heap.Remove(lookup.Handle);
             }
 
-            pqueue = Util.Clamp<uint>(pqueue, 0, m_numberOfQueues - 1);
+            pqueue = Util.Clamp<uint>(pqueue, 0, NumberOfQueues - 1);
             lookup.Heap = m_heaps[pqueue];
             lookup.Heap.Add(new MinHeapItem(pqueue, entry, value), ref lookup.Handle);
             m_lookupTable[localid] = lookup;
@@ -99,20 +130,62 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
-        internal bool TryDequeue(out IEntityUpdate value, out Int32 timeinqueue)
+        /// <summary>
+        /// Remove an item from one of the queues. Specifically, it removes the
+        /// oldest item from the next queue in order to provide fair access to
+        /// all of the queues
+        /// </summary>
+        public bool TryDequeue(out IEntityUpdate value, out Int32 timeinqueue)
         {
-            for (int i = 0; i < m_numberOfQueues; ++i)
+            // If there is anything in priority queue 0, return it first no
+            // matter what else. Breaks fairness. But very useful.
+            for (int iq = 0; iq < NumberOfImmediateQueues; iq++)
             {
-                // To get the fair queing, we cycle through each of the
-                // queues when finding an element to dequeue, this code
-                // assumes that the distribution of updates in the queues
-                // is polynomial, probably quadractic (eg distance of PI * R^2)
-                uint h = (uint)((m_nextQueue + i) % m_numberOfQueues);
-                if (m_heaps[h].Count > 0)
+                if (m_heaps[iq].Count > 0)
                 {
-                    m_nextQueue = (uint)((h + 1) % m_numberOfQueues);
+                    MinHeapItem item = m_heaps[iq].RemoveMin();
+                    m_lookupTable.Remove(item.Value.Entity.LocalId);
+                    timeinqueue = Util.EnvironmentTickCountSubtract(item.EntryTime);
+                    value = item.Value;
 
-                    MinHeapItem item = m_heaps[h].RemoveMin();
+                    return true;
+                }
+            }
+            
+            // To get the fair queing, we cycle through each of the
+            // queues when finding an element to dequeue. 
+            // We pull (NumberOfQueues - QueueIndex) items from each queue in order
+            // to give lower numbered queues a higher priority and higher percentage
+            // of the bandwidth. 
+            
+            // Check for more items to be pulled from the current queue
+            if (m_heaps[m_nextQueue].Count > 0 && m_countFromQueue > 0)
+            {
+                m_countFromQueue--;
+                
+                MinHeapItem item = m_heaps[m_nextQueue].RemoveMin();
+                m_lookupTable.Remove(item.Value.Entity.LocalId);
+                timeinqueue = Util.EnvironmentTickCountSubtract(item.EntryTime);
+                value = item.Value;
+                
+                return true;
+            }
+            
+            // Find the next non-immediate queue with updates in it
+            for (int i = 0; i < NumberOfQueues; ++i)
+            {
+                m_nextQueue = (uint)((m_nextQueue + 1) % NumberOfQueues);
+                m_countFromQueue = m_queueCounts[m_nextQueue];
+
+                // if this is one of the immediate queues, just skip it
+                if (m_nextQueue < NumberOfImmediateQueues)
+                    continue;
+                
+                if (m_heaps[m_nextQueue].Count > 0)
+                {
+                    m_countFromQueue--;
+
+                    MinHeapItem item = m_heaps[m_nextQueue].RemoveMin();
                     m_lookupTable.Remove(item.Value.Entity.LocalId);
                     timeinqueue = Util.EnvironmentTickCountSubtract(item.EntryTime);
                     value = item.Value;
@@ -126,7 +199,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return false;
         }
 
-        internal void Reprioritize(UpdatePriorityHandler handler)
+        /// <summary>
+        /// Reapply the prioritization function to each of the updates currently
+        /// stored in the priority queues. 
+        /// </summary
+        public void Reprioritize(UpdatePriorityHandler handler)
         {
             MinHeapItem item;
             foreach (LookupItem lookup in new List<LookupItem>(this.m_lookupTable.Values))
@@ -140,7 +217,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         // unless the priority queue has changed, there is no need to modify
                         // the entry
-                        pqueue = Util.Clamp<uint>(pqueue, 0, m_numberOfQueues - 1);
+                        pqueue = Util.Clamp<uint>(pqueue, 0, NumberOfQueues - 1);
                         if (pqueue != item.PriorityQueue)
                         {
                             lookup.Heap.Remove(lookup.Handle);
@@ -161,16 +238,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        /// <summary>
+        /// </summary>
         public override string ToString()
         {
             string s = "";
-            for (int i = 0; i < m_numberOfQueues; i++)
-            {
-                if (s != "") s += ",";
-                s += m_heaps[i].Count.ToString();
-            }
+            for (int i = 0; i < NumberOfQueues; i++)
+                s += String.Format("{0,7} ",m_heaps[i].Count);
             return s;
         }
+
+#endregion PublicMethods
 
 #region MinHeapItem
         private struct MinHeapItem : IComparable<MinHeapItem>

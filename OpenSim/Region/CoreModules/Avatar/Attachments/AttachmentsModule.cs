@@ -562,14 +562,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="sp"></param>
         /// <param name="so"></param>
         /// <param name="attachmentpoint"></param>
-        /// <param name="AttachOffset"></param>
+        /// <param name="attachOffset"></param>
         /// <param name="silent"></param>
-        protected void AttachToAgent(ScenePresence avatar, SceneObjectGroup so, uint attachmentpoint, Vector3 AttachOffset, bool silent)
+        protected void AttachToAgent(ScenePresence avatar, SceneObjectGroup so, uint attachmentpoint, Vector3 attachOffset, bool silent)
         {
-            // don't attach attachments to child agents
-            if (avatar.IsChildAgent) return;
 
-//                m_log.DebugFormat("[ATTACHMENTS MODULE]: Adding attachment {0} to avatar {1}", Name, avatar.Name);
+            m_log.DebugFormat("[ATTACHMENTS MODULE]: Adding attachment {0} to avatar {1} in pt {2} pos {3} {4}", Name, avatar.Name,
+                attachmentpoint, attachOffset, so.RootPart.AttachedPos);
                               
             so.DetachFromBackup();
 
@@ -590,8 +589,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 so.RootPart.PhysActor = null;
             }
 
-            so.AbsolutePosition = AttachOffset;
-            so.RootPart.AttachedPos = AttachOffset;
+            so.AbsolutePosition = attachOffset;
+            so.RootPart.AttachedPos = attachOffset;
             so.RootPart.IsAttachment = true;
 
             so.RootPart.SetParentLocalId(avatar.LocalId);

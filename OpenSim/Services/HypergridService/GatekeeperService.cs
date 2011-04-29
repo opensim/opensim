@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
@@ -56,6 +57,9 @@ namespace OpenSim.Services.HypergridService
         private static IUserAccountService m_UserAccountService;
         private static IUserAgentService m_UserAgentService;
         private static ISimulationService m_SimulationService;
+
+        protected string m_AllowedClients = string.Empty;
+        protected string m_DeniedClients = string.Empty;
 
         private static UUID m_ScopeID;
         private static bool m_AllowTeleportsToAnyRegion;
@@ -103,6 +107,9 @@ namespace OpenSim.Services.HypergridService
                     m_SimulationService = simService;
                 else if (simulationService != string.Empty)
                         m_SimulationService = ServerUtils.LoadPlugin<ISimulationService>(simulationService, args);
+
+                m_AllowedClients = serverConfig.GetString("AllowedClients", string.Empty);
+                m_DeniedClients = serverConfig.GetString("DeniedClients", string.Empty);
 
                 if (m_GridService == null || m_PresenceService == null || m_SimulationService == null)
                     throw new Exception("Unable to load a required plugin, Gatekeeper Service cannot function.");
@@ -181,8 +188,36 @@ namespace OpenSim.Services.HypergridService
             string authURL = string.Empty;
             if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
                 authURL = aCircuit.ServiceURLs["HomeURI"].ToString();
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to login foreign agent {0} {1} @ {2} ({3}) at destination {4}", 
-                aCircuit.firstname, aCircuit.lastname, authURL, aCircuit.AgentID, destination.RegionName);
+            m_log.InfoFormat("[GATEKEEPER SERVICE]: Login request for {0} {1} @ {2} ({3}) at {4} using viewer {5}, channel {6}, IP {7}, Mac {8}, Id0 {9}",
+                aCircuit.firstname, aCircuit.lastname, authURL, aCircuit.AgentID, destination.RegionName,
+                aCircuit.Viewer, aCircuit.Channel, aCircuit.IPAddress, aCircuit.Mac, aCircuit.Id0);
+            
+            //
+            // Check client
+            //
+            if (m_AllowedClients != string.Empty)
+            {
+                Regex arx = new Regex(m_AllowedClients);
+                Match am = arx.Match(aCircuit.Viewer);
+
+                if (!am.Success)
+                {
+                    m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: client {0} is not allowed", aCircuit.Viewer);
+                    return false;
+                }
+            }
+
+            if (m_DeniedClients != string.Empty)
+            {
+                Regex drx = new Regex(m_DeniedClients);
+                Match dm = drx.Match(aCircuit.Viewer);
+
+                if (dm.Success)
+                {
+                    m_log.InfoFormat("[GATEKEEPER SERVICE]: Login failed, reason: client {0} is denied", aCircuit.Viewer);
+                    return false;
+                }
+            }
 
             //
             // Authenticate the user

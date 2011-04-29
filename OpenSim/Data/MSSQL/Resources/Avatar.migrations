@@ -13,5 +13,28 @@ PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 
 
+COMMIT
+
+:VERSION 2
+
+BEGIN TRANSACTION
+
+CREATE TABLE dbo.Tmp_Avatars
+	(
+	PrincipalID uniqueidentifier NOT NULL,
+	[Name] varchar(32) NOT NULL, 
+	Value text NOT NULL DEFAULT '',
+	)  ON [PRIMARY]
+	 TEXTIMAGE_ON [PRIMARY]
+
+IF EXISTS(SELECT * FROM dbo.Avatars)
+	 EXEC('INSERT INTO dbo.Tmp_Avatars (PrincipalID, Name, Value)
+		SELECT PrincipalID, CONVERT(text, Name), Value FROM dbo.Avatars WITH (HOLDLOCK TABLOCKX)')
+
+DROP TABLE dbo.Avatars
+
+EXECUTE sp_rename N'dbo.Tmp_Avatars', N'Avatars', 'OBJECT' 
 
 COMMIT
+
+
