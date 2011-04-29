@@ -3078,54 +3078,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             cAgent.Appearance = new AvatarAppearance(m_appearance);
             
-/*
-            try
-            {
-                // We might not pass the Wearables in all cases...
-                // They're only needed so that persistent changes to the appearance
-                // are preserved in the new region where the user is moving to.
-                // But in Hypergrid we might not let this happen.
-                int i = 0;
-                UUID[] wears = new UUID[m_appearance.Wearables.Length * 2];
-                foreach (AvatarWearable aw in m_appearance.Wearables)
-                {
-                    if (aw != null)
-                    {
-                        wears[i++] = aw.ItemID;
-                        wears[i++] = aw.AssetID;
-                    }
-                    else
-                    {
-                        wears[i++] = UUID.Zero;
-                        wears[i++] = UUID.Zero;
-                    }
-                }
-                cAgent.Wearables = wears;
-
-                cAgent.VisualParams = m_appearance.VisualParams;
-
-                if (m_appearance.Texture != null)
-                    cAgent.AgentTextures = m_appearance.Texture.GetBytes();
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[SCENE PRESENCE]: exception in CopyTo " + e.Message);
-            }
-
-            //Attachments
-            List<int> attPoints = m_appearance.GetAttachedPoints();
-            if (attPoints != null)
-            {
-                //m_log.DebugFormat("[SCENE PRESENCE]: attachments {0}", attPoints.Count);
-                int i = 0;
-                AvatarAttachment[] attachs = new AvatarAttachment[attPoints.Count];
-                foreach (int point in attPoints)
-                {
-                    attachs[i++] = new AvatarAttachment(point, m_appearance.GetAttachedItem(point), m_appearance.GetAttachedAsset(point));
-                }
-                cAgent.Attachments = attachs;
-            }
-*/
             lock (scriptedcontrols)
             {
                 ControllerData[] controls = new ControllerData[scriptedcontrols.Count];
@@ -3145,9 +3097,21 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch { }
 
-            // cAgent.GroupID = ??
-            // Groups???
-
+            // Attachment objects
+            if (m_attachments != null && m_attachments.Count > 0)
+            {
+                cAgent.AttachmentObjects = new List<ISceneObject>();
+                cAgent.AttachmentObjectStates = new List<string>();
+                IScriptModule se = m_scene.RequestModuleInterface<IScriptModule>();
+                foreach (SceneObjectGroup sog in m_attachments)
+                {
+                    // We need to make a copy and pass that copy
+                    // because of transfers withn the same sim
+                    ISceneObject clone = sog.CloneForNewScene();
+                    cAgent.AttachmentObjects.Add(clone);
+                    cAgent.AttachmentObjectStates.Add(sog.GetStateSnapshot());
+                }
+            }
         }
 
         public void CopyFrom(AgentData cAgent)
@@ -3188,50 +3152,6 @@ namespace OpenSim.Region.Framework.Scenes
                 AddToPhysicalScene(isFlying);
             }
             
-/*
-            uint i = 0;
-            try
-            {
-                if (cAgent.Wearables == null)
-                   cAgent.Wearables  = new UUID[0];
-                AvatarWearable[] wears = new AvatarWearable[cAgent.Wearables.Length / 2];
-                for (uint n = 0; n < cAgent.Wearables.Length; n += 2)
-                {
-                    UUID itemId = cAgent.Wearables[n];
-                    UUID assetId = cAgent.Wearables[n + 1];
-                    wears[i++] = new AvatarWearable(itemId, assetId);
-                }
-                // m_appearance.Wearables = wears;
-                Primitive.TextureEntry textures = null;
-                if (cAgent.AgentTextures != null && cAgent.AgentTextures.Length > 1)
-                    textures = new Primitive.TextureEntry(cAgent.AgentTextures, 0, cAgent.AgentTextures.Length);
-
-                byte[] visuals = null;
-
-                if ((cAgent.VisualParams != null) && (cAgent.VisualParams.Length < AvatarAppearance.VISUALPARAM_COUNT))
-                    visuals = (byte[])cAgent.VisualParams.Clone();
-
-                m_appearance = new AvatarAppearance(cAgent.AgentID,wears,textures,visuals);
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[SCENE PRESENCE]: exception in CopyFrom " + e.Message);
-            }
-
-            // Attachments
-            try
-            {
-                if (cAgent.Attachments != null)
-                {
-                    m_appearance.ClearAttachments();
-                    foreach (AvatarAttachment att in cAgent.Attachments)
-                    {
-                        m_appearance.SetAttachment(att.AttachPoint, att.ItemID, att.AssetID);
-                    }
-                }
-            }
-            catch { } 
-*/
             try
             {
                 lock (scriptedcontrols)
@@ -3261,8 +3181,18 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch {  }
 
-            //cAgent.GroupID = ??
-            //Groups???
+            if (cAgent.AttachmentObjects != null && cAgent.AttachmentObjects.Count > 0)
+            {
+                m_attachments = new List<SceneObjectGroup>();
+                int i = 0;
+                foreach (ISceneObject so in cAgent.AttachmentObjects)
+                {
+                    ((SceneObjectGroup)so).LocalId = 0;
+                    ((SceneObjectGroup)so).RootPart.UpdateFlag = 0;
+                    so.SetState(cAgent.AttachmentObjectStates[i++], m_scene);
+                    m_scene.IncomingCreateObject(so);
+                }
+            }
         }
 
         public bool CopyAgent(out IAgentData agent)

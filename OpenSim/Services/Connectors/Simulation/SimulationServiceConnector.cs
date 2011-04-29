@@ -241,7 +241,7 @@ namespace OpenSim.Services.Connectors.Simulation
                     if (args != null)
                     {
                         agent = new CompleteAgentData();
-                        agent.Unpack(args);
+                        agent.Unpack(args, null);
                         return true;
                     }
                 }
@@ -256,9 +256,10 @@ namespace OpenSim.Services.Connectors.Simulation
 
         /// <summary>
         /// </summary>
-        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string reason)
+        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string version, out string reason)
         {
             reason = "Failed to contact destination";
+            version = "Unknown";
 
             // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess start, position={0}", position);
 
@@ -274,23 +275,27 @@ namespace OpenSim.Services.Connectors.Simulation
             try
             {
                 OSDMap result = WebUtil.ServiceOSDRequest(uri, request, "QUERYACCESS", 10000);
-                bool success = result["success"].AsBoolean();
-                reason = result["reason"].AsString();
+                OSDMap data = (OSDMap)result["_Result"];
 
-                //m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1}", uri, success);
+                bool success = result["success"].AsBoolean();
+                reason = data["reason"].AsString();
+                if (data["version"] != null)
+                    version = data["version"].AsString();
+
+                m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1} version {2} ({3})", uri, success, version, data["version"].AsString());
 
                 if (!success)
                 {
-                    if (result.ContainsKey("Message"))
+                    if (data.ContainsKey("Message"))
                     {
-                        string message = result["Message"].AsString();
+                        string message = data["Message"].AsString();
                         if (message == "Service request failed: [MethodNotAllowed] MethodNotAllowed") // Old style region
                         {
                             m_log.Info("[REMOTE SIMULATION CONNECTOR]: The above web util error was caused by a TP to a sim that doesn't support QUERYACCESS and can be ignored");
                             return true;
                         }
 
-                        reason = result["Message"];
+                        reason = data["Message"];
                     }
                     else
                     {
