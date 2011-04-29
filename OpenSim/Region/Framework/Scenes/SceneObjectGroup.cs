@@ -3361,8 +3361,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectGroup sog = Copy(false);
             sog.m_isDeleted = false;
-            sog.RootPart.IsAttachment = false;
-            sog.RootPart.GroupPosition = sog.RootPart.AttachedPos;
             return sog;
         }
 

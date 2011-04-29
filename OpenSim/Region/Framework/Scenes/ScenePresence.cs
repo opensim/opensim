@@ -3108,6 +3108,9 @@ namespace OpenSim.Region.Framework.Scenes
                     // We need to make a copy and pass that copy
                     // because of transfers withn the same sim
                     ISceneObject clone = sog.CloneForNewScene();
+                    // Attachment module assumes that GroupPosition holds the offsets...!
+                    ((SceneObjectGroup)clone).RootPart.GroupPosition = sog.RootPart.AttachedPos;
+                    ((SceneObjectGroup)clone).RootPart.IsAttachment = false;
                     cAgent.AttachmentObjects.Add(clone);
                     cAgent.AttachmentObjectStates.Add(sog.GetStateSnapshot());
                 }
