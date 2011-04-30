@@ -454,6 +454,7 @@ namespace OpenSim.Framework
                 {
                     OSDMap info = new OSDMap(4);
                     info["sog"] = OSD.FromString(so.ToXml2());
+                    m_log.DebugFormat("[XXX] {0}", so.ToXml2());
                     info["extra"] = OSD.FromString(so.ExtraToXmlString());
                     info["modified"] = OSD.FromBoolean(so.HasGroupChanged);
                     try
@@ -462,7 +463,7 @@ namespace OpenSim.Framework
                     }
                     catch (IndexOutOfRangeException e)
                     {
-                        m_log.WarnFormat("[CHILD AGENT DATA]: scrtips list is shorter than object list.");
+                        m_log.WarnFormat("[CHILD AGENT DATA]: scripts list is shorter than object list.");
                     }
 
                     attObjs.Add(info);

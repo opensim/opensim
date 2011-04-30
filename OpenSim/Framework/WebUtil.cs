@@ -177,7 +177,16 @@ namespace OpenSim.Framework
                 // If there is some input, write it into the request
                 if (data != null)
                 {
-                    string strBuffer = OSDParser.SerializeJsonString(data);
+                    string strBuffer = string.Empty;
+                    try
+                    {
+                        strBuffer = OSDParser.SerializeJsonString(data);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.DebugFormat("[WEB UTIL]: Exception serializing data {0}", e.Message);
+                        throw e;
+                    }
                     byte[] buffer = System.Text.Encoding.UTF8.GetBytes(strBuffer);
                         
                     request.ContentType = "application/json";
