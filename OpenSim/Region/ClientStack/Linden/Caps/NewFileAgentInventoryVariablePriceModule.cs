@@ -45,7 +45,7 @@ using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using OpenSim.Framework.Capabilities;
 
-namespace OpenSim.Region.CoreModules.Capabilities
+namespace OpenSim.Region.ClientStack.Linden
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class NewFileAgentInventoryVariablePriceModule : INonSharedRegionModule

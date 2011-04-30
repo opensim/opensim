@@ -33,6 +33,7 @@ using System.Reflection;
 using System.Threading;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 using OpenMetaverse;
 using OpenMetaverse.Messages.Linden;
 using OpenMetaverse.Packets;
@@ -53,6 +54,7 @@ namespace OpenSim.Region.ClientStack.Linden
         public OSDMap body;
     }
 
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class EventQueueGetModule : IEventQueue, IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

@@ -35,6 +35,7 @@ using System.IO;
 using System.Web;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenMetaverse.Imaging;
@@ -46,7 +47,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 
-namespace OpenSim.Region.CoreModules.Capabilities
+namespace OpenSim.Region.ClientStack.Linden
 {
     #region Stream Handler
 
@@ -70,6 +71,7 @@ namespace OpenSim.Region.CoreModules.Capabilities
 
     #endregion Stream Handler
 
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class GetTextureModule : IRegionModule
     {
         private static readonly ILog m_log =

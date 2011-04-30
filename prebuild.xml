@@ -1524,7 +1524,9 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Core"/>
+      <Reference name="System.Drawing"/>
       <Reference name="System.Xml"/>
+      <Reference name="System.Web"/>
       <Reference name="OpenMetaverseTypes" path="../../../../bin/"/>
       <Reference name="OpenMetaverse.StructuredData" path="../../../../bin/"/>
       <Reference name="OpenMetaverse" path="../../../../bin/"/>
@@ -1540,7 +1542,7 @@
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Services.Interfaces"/>
-      <Reference name="XMLRPC" path="../../../../bin/"/>
+      <Reference name="Mono.Addins" path="../../../bin/"/>
       <Reference name="Nini" path="../../../../bin/"/>
       <Reference name="log4net" path="../../../../bin/"/>
       <Reference name="C5" path="../../../../bin/"/>
