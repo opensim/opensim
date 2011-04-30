@@ -803,6 +803,9 @@ namespace OpenSim.Region.Framework.Scenes
             string xmlData = Utils.BytesToString(rezAsset.Data);
             SceneObjectGroup group = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
 
+            group.RootPart.AttachPoint = group.RootPart.Shape.State;
+            group.RootPart.AttachOffset = group.AbsolutePosition;
+
             group.ResetIDs();
 
             SceneObjectPart rootPart = group.GetChildPart(group.UUID);
