@@ -44,7 +44,6 @@ using OpenSim.Region.Framework.Scenes;
 
 using OpenSim.Services.Interfaces;
 
-using Caps = OpenSim.Framework.Capabilities.Caps;
 using DirFindFlags = OpenMetaverse.DirectoryManager.DirFindFlags;
 
 

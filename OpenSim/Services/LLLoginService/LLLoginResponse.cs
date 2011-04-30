@@ -32,7 +32,6 @@ using System.Net;
 using System.Reflection;
 
 using OpenSim.Framework;
-using OpenSim.Framework.Capabilities;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
