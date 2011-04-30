@@ -626,7 +626,7 @@
     ; LocalServiceModule = OpenSim.Services.Connectors.dll:RemoteFreeswitchConnector
 
     ;; If using a remote connector, specify the server URL
-    ; FreeswitchServiceURL = http://my.grid.server:8003/fsapi
+    ; FreeswitchServiceURL = http://my.grid.server:8004/fsapi
 
 
 [FreeswitchService]

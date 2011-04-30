@@ -77,7 +77,11 @@ namespace OpenSim.Services.LLLoginService
         protected string m_MapTileURL;
         protected string m_SearchURL;
 
+        protected string m_AllowedClients;
+        protected string m_DeniedClients;
+
         IConfig m_LoginServerConfig;
+        IConfig m_ClientsConfig;
 
         public LLLoginService(IConfigSource config, ISimulationService simService, ILibraryService libraryService)
         {
@@ -105,7 +109,10 @@ namespace OpenSim.Services.LLLoginService
             m_GatekeeperURL = m_LoginServerConfig.GetString("GatekeeperURI", string.Empty);
             m_MapTileURL = m_LoginServerConfig.GetString("MapTileURL", string.Empty);
             m_SearchURL = m_LoginServerConfig.GetString("SearchURL", string.Empty);
-            
+
+            m_AllowedClients = m_LoginServerConfig.GetString("AllowedClients", string.Empty);
+            m_DeniedClients = m_LoginServerConfig.GetString("DeniedClients", string.Empty);
+
             // These are required; the others aren't
             if (accountService == string.Empty || authService == string.Empty)
                 throw new Exception("LoginService is missing service specifications");
@@ -216,10 +223,37 @@ namespace OpenSim.Services.LLLoginService
             bool success = false;
             UUID session = UUID.Random();
 
-            m_log.InfoFormat("[LLOGIN SERVICE]: Login request for {0} {1} from {2} with user agent {3} starting in {4}", 
-                firstName, lastName, clientIP.Address.ToString(), clientVersion, startLocation);
+            m_log.InfoFormat("[LLOGIN SERVICE]: Login request for {0} {1} at {2} using viewer {3}, channel {4}, IP {5}, Mac {6}, Id0 {7}",
+                firstName, lastName, startLocation, clientVersion, channel, clientIP.Address.ToString(), mac, id0);
             try
             {
+                //
+                // Check client
+                //
+                if (m_AllowedClients != string.Empty)
+                {
+                    Regex arx = new Regex(m_AllowedClients);
+                    Match am = arx.Match(clientVersion);
+
+                    if (!am.Success)
+                    {
+                        m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: client {0} is not allowed", clientVersion);
+                        return LLFailedLoginResponse.LoginBlockedProblem;
+                    }
+                }
+
+                if (m_DeniedClients != string.Empty)
+                {
+                    Regex drx = new Regex(m_DeniedClients);
+                    Match dm = drx.Match(clientVersion);
+
+                    if (dm.Success)
+                    {
+                        m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: client {0} is denied", clientVersion);
+                        return LLFailedLoginResponse.LoginBlockedProblem;
+                    }
+                }
+
                 //
                 // Get the account and check that it exists
                 //

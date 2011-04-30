@@ -50,6 +50,7 @@ namespace OpenSim.Server.Handlers.Simulation
     public class AgentHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private ISimulationService m_SimulationService;
 
         protected bool m_Proxy = false;
@@ -280,7 +281,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 AgentData agent = new AgentData();
                 try
                 {
-                    agent.Unpack(args);
+                    agent.Unpack(args, m_SimulationService.GetScene(destination.RegionHandle));
                 }
                 catch (Exception ex)
                 {
@@ -300,7 +301,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 AgentPosition agent = new AgentPosition();
                 try
                 {
-                    agent.Unpack(args);
+                    agent.Unpack(args, m_SimulationService.GetScene(destination.RegionHandle));
                 }
                 catch (Exception ex)
                 {
@@ -347,7 +348,8 @@ namespace OpenSim.Server.Handlers.Simulation
             destination.RegionID = regionID;
 
             string reason;
-            bool result = m_SimulationService.QueryAccess(destination, id, position, out reason);
+            string version;
+            bool result = m_SimulationService.QueryAccess(destination, id, position, out version, out reason);
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
 
@@ -355,6 +357,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
             resp["success"] = OSD.FromBoolean(result);
             resp["reason"] = OSD.FromString(reason);
+            resp["version"] = OSD.FromString(version);
 
             responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp);
         }

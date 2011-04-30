@@ -924,6 +924,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             //m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
 
+            bool wasChild = m_isChildAgent;
+            m_isChildAgent = false;
+
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
                 m_grouptitle = gm.GetGroupTitle(m_uuid);
@@ -1069,14 +1072,21 @@ namespace OpenSim.Region.Framework.Scenes
             // Animator.SendAnimPack();
 
             m_scene.SwapRootAgentCount(false);
-            
-            //CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(m_uuid);
-            //if (userInfo != null)
-            //        userInfo.FetchInventory();
-            //else
-            //    m_log.ErrorFormat("[SCENE]: Could not find user info for {0} when making it a root agent", m_uuid);
-            
-            m_isChildAgent = false;
+
+            // The initial login scene presence is already root when it gets here
+            // and it has already rezzed the attachments and started their scripts.
+            // We do the following only for non-login agents, because their scripts
+            // haven't started yet.
+            if (wasChild)
+            {
+                m_log.DebugFormat("[SCENE PRESENCE]: Restarting scripts in attachments...");
+                // Resume scripts
+                Attachments.ForEach(delegate(SceneObjectGroup sog)
+                {
+                    sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
+                    sog.ResumeScripts();
+                });
+            }
 
             // send the animations of the other presences to me
             m_scene.ForEachScenePresence(delegate(ScenePresence presence)
@@ -1086,6 +1096,20 @@ namespace OpenSim.Region.Framework.Scenes
             });
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
+        }
+
+        public int GetStateSource()
+        {
+            AgentCircuitData aCircuit = m_scene.AuthenticateHandler.GetAgentCircuitData(UUID);
+
+            if (aCircuit != null && (aCircuit.teleportFlags != (uint)TeleportFlags.Default))
+            {
+                // This will get your attention
+                //m_log.Error("[XXX] Triggering CHANGED_TELEPORT");
+
+                return 5; // StateSource.Teleporting
+            }
+            return 2; // StateSource.PrimCrossing
         }
 
         /// <summary>
@@ -1288,7 +1312,6 @@ namespace OpenSim.Region.Framework.Scenes
                 AbsolutePosition = pos;
             }
 
-            m_isChildAgent = false;
             bool m_flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
             MakeRootAgent(AbsolutePosition, m_flying);
 
@@ -2757,12 +2780,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Update Client(s)
 
+
         /// <summary>
         /// Sends a location update to the client connected to this scenePresence
         /// </summary>
         /// <param name="remoteClient"></param>
         public void SendTerseUpdateToClient(IClientAPI remoteClient)
         {
+
             // If the client is inactive, it's getting its updates from another
             // server.
             if (remoteClient.IsActive)
@@ -2775,8 +2800,8 @@ namespace OpenSim.Region.Framework.Scenes
                 //m_log.DebugFormat("[SCENEPRESENCE]: TerseUpdate: Pos={0} Rot={1} Vel={2}", m_pos, m_bodyRot, m_velocity);
 
                 remoteClient.SendPrimUpdate(
-                    this, 
-                    PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity 
+                    this,
+                    PrimUpdateFlags.Position | PrimUpdateFlags.Rotation | PrimUpdateFlags.Velocity
                     | PrimUpdateFlags.Acceleration | PrimUpdateFlags.AngularVelocity);
 
                 m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
@@ -2784,16 +2809,31 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+
+        // vars to support reduced update frequency when velocity is unchanged
+        private Vector3 lastVelocitySentToAllClients = Vector3.Zero;
+        private int lastTerseUpdateToAllClientsTick = Util.EnvironmentTickCount();
+
         /// <summary>
         /// Send a location/velocity/accelleration update to all agents in scene
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
-            m_perfMonMS = Util.EnvironmentTickCount();
-            
-            m_scene.ForEachClient(SendTerseUpdateToClient);
+            int currentTick = Util.EnvironmentTickCount();
 
-            m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
+            // decrease update frequency when avatar is moving but velocity is not changing
+            if (m_velocity.Length() < 0.01f
+                || Vector3.Distance(lastVelocitySentToAllClients, m_velocity) > 0.01f
+                || currentTick - lastTerseUpdateToAllClientsTick > 1500)
+            {
+                m_perfMonMS = currentTick;
+                lastVelocitySentToAllClients = m_velocity;
+                lastTerseUpdateToAllClientsTick = currentTick;
+
+                m_scene.ForEachClient(SendTerseUpdateToClient);
+
+                m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
+            }
         }
 
         public void SendCoarseLocations(List<Vector3> coarseLocations, List<UUID> avatarUUIDs)
@@ -3049,18 +3089,17 @@ namespace OpenSim.Region.Framework.Scenes
                 cadu.GroupAccess = 0;
                 cadu.Position = AbsolutePosition;
                 cadu.regionHandle = m_rootRegionHandle;
-                float multiplier = 1;
-                int innacurateNeighbors = m_scene.GetInaccurateNeighborCount();
-                if (innacurateNeighbors != 0)
-                {
-                    multiplier = 1f / (float)innacurateNeighbors;
-                }
-                if (multiplier <= 0f)
-                {
-                    multiplier = 0.25f;
-                }
 
-                //m_log.Info("[NeighborThrottle]: " + m_scene.GetInaccurateNeighborCount().ToString() + " - m: " + multiplier.ToString());
+                // Throttles 
+                float multiplier = 1;
+                int childRegions = m_knownChildRegions.Count;
+                if (childRegions != 0)
+                    multiplier = 1f / childRegions;
+
+                // Minimum throttle for a child region is 1/4 of the root region throttle
+                if (multiplier <= 0.25f)
+                    multiplier = 0.25f;
+
                 cadu.throttles = ControllingClient.GetThrottlesPacked(multiplier);
                 cadu.Velocity = Velocity;
 
@@ -3456,16 +3495,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Throttles 
             float multiplier = 1;
-            int innacurateNeighbors = m_scene.GetInaccurateNeighborCount();
-            if (innacurateNeighbors != 0)
-            {
-                multiplier = 1f / innacurateNeighbors;
-            }
-            if (multiplier <= 0f)
-            {
+            int childRegions = m_knownChildRegions.Count;
+            if (childRegions != 0)
+                multiplier = 1f / childRegions;
+
+            // Minimum throttle for a child region is 1/4 of the root region throttle
+            if (multiplier <= 0.25f)
                 multiplier = 0.25f;
-            }
-            //m_log.Info("[NeighborThrottle]: " + m_scene.GetInaccurateNeighborCount().ToString() + " - m: " + multiplier.ToString());
+
             cAgent.Throttles = ControllingClient.GetThrottlesPacked(multiplier);
 
             cAgent.HeadRotation = m_headrotation;
@@ -3481,54 +3518,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             cAgent.Appearance = new AvatarAppearance(m_appearance);
             
-/*
-            try
-            {
-                // We might not pass the Wearables in all cases...
-                // They're only needed so that persistent changes to the appearance
-                // are preserved in the new region where the user is moving to.
-                // But in Hypergrid we might not let this happen.
-                int i = 0;
-                UUID[] wears = new UUID[m_appearance.Wearables.Length * 2];
-                foreach (AvatarWearable aw in m_appearance.Wearables)
-                {
-                    if (aw != null)
-                    {
-                        wears[i++] = aw.ItemID;
-                        wears[i++] = aw.AssetID;
-                    }
-                    else
-                    {
-                        wears[i++] = UUID.Zero;
-                        wears[i++] = UUID.Zero;
-                    }
-                }
-                cAgent.Wearables = wears;
-
-                cAgent.VisualParams = m_appearance.VisualParams;
-
-                if (m_appearance.Texture != null)
-                    cAgent.AgentTextures = m_appearance.Texture.GetBytes();
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[SCENE PRESENCE]: exception in CopyTo " + e.Message);
-            }
-
-            //Attachments
-            List<int> attPoints = m_appearance.GetAttachedPoints();
-            if (attPoints != null)
-            {
-                //m_log.DebugFormat("[SCENE PRESENCE]: attachments {0}", attPoints.Count);
-                int i = 0;
-                AvatarAttachment[] attachs = new AvatarAttachment[attPoints.Count];
-                foreach (int point in attPoints)
-                {
-                    attachs[i++] = new AvatarAttachment(point, m_appearance.GetAttachedItem(point), m_appearance.GetAttachedAsset(point));
-                }
-                cAgent.Attachments = attachs;
-            }
-*/
             lock (scriptedcontrols)
             {
                 ControllerData[] controls = new ControllerData[scriptedcontrols.Count];
@@ -3548,9 +3537,26 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch { }
 
-            // cAgent.GroupID = ??
-            // Groups???
-
+            // Attachment objects
+            if (m_attachments != null && m_attachments.Count > 0)
+            {
+                cAgent.AttachmentObjects = new List<ISceneObject>();
+                cAgent.AttachmentObjectStates = new List<string>();
+                IScriptModule se = m_scene.RequestModuleInterface<IScriptModule>();
+                foreach (SceneObjectGroup sog in m_attachments)
+                {
+                    // We need to make a copy and pass that copy
+                    // because of transfers withn the same sim
+                    ISceneObject clone = sog.CloneForNewScene();
+                    // Attachment module assumes that GroupPosition holds the offsets...!
+                    ((SceneObjectGroup)clone).RootPart.GroupPosition = sog.RootPart.AttachedPos;
+                    ((SceneObjectGroup)clone).RootPart.IsAttachment = false;
+                    cAgent.AttachmentObjects.Add(clone);
+                    cAgent.AttachmentObjectStates.Add(sog.GetStateSnapshot());
+                    // Let's remove the scripts of the original object here
+                    sog.RemoveScriptInstances(true);
+                }
+            }
         }
 
         public void CopyFrom(AgentData cAgent)
@@ -3592,50 +3598,6 @@ namespace OpenSim.Region.Framework.Scenes
                 AddToPhysicalScene(isFlying);
             }
             
-/*
-            uint i = 0;
-            try
-            {
-                if (cAgent.Wearables == null)
-                   cAgent.Wearables  = new UUID[0];
-                AvatarWearable[] wears = new AvatarWearable[cAgent.Wearables.Length / 2];
-                for (uint n = 0; n < cAgent.Wearables.Length; n += 2)
-                {
-                    UUID itemId = cAgent.Wearables[n];
-                    UUID assetId = cAgent.Wearables[n + 1];
-                    wears[i++] = new AvatarWearable(itemId, assetId);
-                }
-                // m_appearance.Wearables = wears;
-                Primitive.TextureEntry textures = null;
-                if (cAgent.AgentTextures != null && cAgent.AgentTextures.Length > 1)
-                    textures = new Primitive.TextureEntry(cAgent.AgentTextures, 0, cAgent.AgentTextures.Length);
-
-                byte[] visuals = null;
-
-                if ((cAgent.VisualParams != null) && (cAgent.VisualParams.Length < AvatarAppearance.VISUALPARAM_COUNT))
-                    visuals = (byte[])cAgent.VisualParams.Clone();
-
-                m_appearance = new AvatarAppearance(cAgent.AgentID,wears,textures,visuals);
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[SCENE PRESENCE]: exception in CopyFrom " + e.Message);
-            }
-
-            // Attachments
-            try
-            {
-                if (cAgent.Attachments != null)
-                {
-                    m_appearance.ClearAttachments();
-                    foreach (AvatarAttachment att in cAgent.Attachments)
-                    {
-                        m_appearance.SetAttachment(att.AttachPoint, att.ItemID, att.AssetID);
-                    }
-                }
-            }
-            catch { } 
-*/
             try
             {
                 lock (scriptedcontrols)
@@ -3665,8 +3627,18 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch {  }
 
-            //cAgent.GroupID = ??
-            //Groups???
+            if (cAgent.AttachmentObjects != null && cAgent.AttachmentObjects.Count > 0)
+            {
+                m_attachments = new List<SceneObjectGroup>();
+                int i = 0;
+                foreach (ISceneObject so in cAgent.AttachmentObjects)
+                {
+                    ((SceneObjectGroup)so).LocalId = 0;
+                    ((SceneObjectGroup)so).RootPart.UpdateFlag = 0;
+                    so.SetState(cAgent.AttachmentObjectStates[i++], m_scene);
+                    m_scene.IncomingCreateObject(so);
+                }
+            }
         }
 
         public bool CopyAgent(out IAgentData agent)
