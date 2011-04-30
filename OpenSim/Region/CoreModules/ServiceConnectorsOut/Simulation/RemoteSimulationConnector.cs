@@ -179,7 +179,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 return true;
 
             // else do the remote thing
-            if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
+            if (!m_localBackend.IsLocalRegion(destination.RegionID))
             {
                 return m_remoteConnector.CreateAgent(destination, aCircuit, teleportFlags, out reason);
             }
@@ -241,7 +241,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 return true;
 
             // else do the remote thing
-            if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
+            if (!m_localBackend.IsLocalRegion(destination.RegionID))
                 return m_remoteConnector.QueryAccess(destination, id, position, out version, out reason);
 
             return false;
