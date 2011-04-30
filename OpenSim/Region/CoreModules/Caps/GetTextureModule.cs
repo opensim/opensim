@@ -46,7 +46,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 
-namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
+namespace OpenSim.Region.CoreModules.Capabilities
 {
     #region Stream Handler
 

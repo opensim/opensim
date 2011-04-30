@@ -38,7 +38,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Caps=OpenSim.Framework.Capabilities.Caps;
 
-namespace OpenSim.Region.CoreModules.Agent.Capabilities
+namespace OpenSim.Region.CoreModules.Capabilities
 {
     public class CapabilitiesModule : INonSharedRegionModule, ICapabilitiesModule
     { 

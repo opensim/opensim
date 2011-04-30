@@ -39,7 +39,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Caps=OpenSim.Framework.Capabilities.Caps;
 
-namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
+namespace OpenSim.Region.CoreModules.Capabilities
 {
     public class ObjectAdd : IRegionModule
     {
