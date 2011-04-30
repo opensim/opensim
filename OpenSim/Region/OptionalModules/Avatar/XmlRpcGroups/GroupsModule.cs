@@ -39,7 +39,6 @@ using OpenMetaverse.StructuredData;
 
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Region.CoreModules.Framework.EventQueue;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -1154,7 +1153,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             if (queue != null)
             {
-                queue.Enqueue(EventQueueHelper.buildEvent("AgentGroupDataUpdate", llDataStruct), GetRequestingAgentID(remoteClient));
+                queue.Enqueue(queue.BuildEvent("AgentGroupDataUpdate", llDataStruct), GetRequestingAgentID(remoteClient));
             }
             
         }

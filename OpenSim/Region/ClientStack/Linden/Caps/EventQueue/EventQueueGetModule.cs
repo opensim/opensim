@@ -45,7 +45,7 @@ using OpenSim.Region.Framework.Scenes;
 using BlockingLLSDQueue = OpenSim.Framework.BlockingQueue<OpenMetaverse.StructuredData.OSD>;
 using Caps=OpenSim.Framework.Capabilities.Caps;
 
-namespace OpenSim.Region.CoreModules.Framework.EventQueue
+namespace OpenSim.Region.ClientStack.Linden
 {
     public struct QueueItem
     {
@@ -714,6 +714,16 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
         {
             OSD item = EventQueueHelper.PlacesQuery(groupUpdate);
             Enqueue(item, avatarID);
+        }
+
+        public OSD ScriptRunningEvent(UUID objectID, UUID itemID, bool running, bool mono)
+        {
+            return EventQueueHelper.ScriptRunningReplyEvent(objectID, itemID, running, mono);
+        }
+
+        public OSD BuildEvent(string eventName, OSD eventBody)
+        {
+            return EventQueueHelper.BuildEvent(eventName, eventBody);
         }
     }
 }

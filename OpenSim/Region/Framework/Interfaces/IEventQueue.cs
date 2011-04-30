@@ -57,5 +57,7 @@ namespace OpenSim.Region.Framework.Interfaces
                                                bool isModerator, bool textMute);
         void ParcelProperties(ParcelPropertiesMessage parcelPropertiesMessage, UUID avatarID);
         void GroupMembership(AgentGroupDataUpdatePacket groupUpdate, UUID avatarID);
+        OSD ScriptRunningEvent(UUID objectID, UUID itemID, bool running, bool mono);
+        OSD BuildEvent(string eventName, OSD eventBody);
     }
 }

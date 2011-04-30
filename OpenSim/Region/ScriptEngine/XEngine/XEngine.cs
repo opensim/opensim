@@ -41,7 +41,6 @@ using log4net;
 using Nini.Config;
 using Amib.Threading;
 using OpenSim.Framework;
-using OpenSim.Region.CoreModules.Framework.EventQueue;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
@@ -1283,7 +1282,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
             else
             {
-                eq.Enqueue(EventQueueHelper.ScriptRunningReplyEvent(objectID, itemID, GetScriptState(itemID), true),
+                eq.Enqueue(eq.ScriptRunningEvent(objectID, itemID, GetScriptState(itemID), true),
                            controllingClient.AgentId);
             }
         }
