@@ -365,7 +365,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (m_enabled)
             {
-                m_log.WarnFormat("[TOKENBUCKET] Adaptive throttle enabled");
+                // m_log.DebugFormat("[TOKENBUCKET] Adaptive throttle enabled");
                 MaxDripRate = maxDripRate;
                 AdjustedDripRate = m_minimumFlow;
             }

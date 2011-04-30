@@ -62,7 +62,7 @@ namespace OpenSim.Framework
         UUID AgentID { get; set; }
 
         OSDMap Pack();
-        void Unpack(OSDMap map);
+        void Unpack(OSDMap map, IScene scene);
     }
 
     /// <summary>
@@ -122,7 +122,7 @@ namespace OpenSim.Framework
             return args;
         }
 
-        public void Unpack(OSDMap args)
+        public void Unpack(OSDMap args, IScene scene)
         {
             if (args.ContainsKey("region_handle"))
                 UInt64.TryParse(args["region_handle"].AsString(), out RegionHandle);
@@ -329,6 +329,10 @@ namespace OpenSim.Framework
 
         public string CallbackURI;
 
+        // These two must have the same Count
+        public List<ISceneObject> AttachmentObjects;
+        public List<string> AttachmentObjectStates;
+
         public virtual OSDMap Pack()
         {
             m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Pack data");
@@ -441,7 +445,30 @@ namespace OpenSim.Framework
             if ((CallbackURI != null) && (!CallbackURI.Equals("")))
                 args["callback_uri"] = OSD.FromString(CallbackURI);
 
+            // Attachment objects for fatpack messages
+            if (AttachmentObjects != null)
+            {
+                int i = 0;
+                OSDArray attObjs = new OSDArray(AttachmentObjects.Count);
+                foreach (ISceneObject so in AttachmentObjects)
+                {
+                    OSDMap info = new OSDMap(4);
+                    info["sog"] = OSD.FromString(so.ToXml2());
+                    info["extra"] = OSD.FromString(so.ExtraToXmlString());
+                    info["modified"] = OSD.FromBoolean(so.HasGroupChanged);
+                    try
+                    {
+                        info["state"] = OSD.FromString(AttachmentObjectStates[i++]);
+                    }
+                    catch (IndexOutOfRangeException e)
+                    {
+                        m_log.WarnFormat("[CHILD AGENT DATA]: scrtips list is shorter than object list.");
+                    }
 
+                    attObjs.Add(info);
+                }
+                args["attach_objects"] = attObjs;
+            }
             return args;
         }
 
@@ -450,7 +477,7 @@ namespace OpenSim.Framework
         /// Avoiding reflection makes it painful to write, but that's the price!
         /// </summary>
         /// <param name="hash"></param>
-        public virtual void Unpack(OSDMap args)
+        public virtual void Unpack(OSDMap args, IScene scene)
         {
             m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Unpack data");
 
@@ -628,6 +655,26 @@ namespace OpenSim.Framework
 
             if (args["callback_uri"] != null)
                 CallbackURI = args["callback_uri"].AsString();
+
+            // Attachment objects
+            if (args["attach_objects"] != null && args["attach_objects"].Type == OSDType.Array)
+            {
+                OSDArray attObjs = (OSDArray)(args["attach_objects"]);
+                AttachmentObjects = new List<ISceneObject>();
+                AttachmentObjectStates = new List<string>();
+                foreach (OSD o in attObjs)
+                {
+                    if (o.Type == OSDType.Map)
+                    {
+                        OSDMap info = (OSDMap)o;
+                        ISceneObject so = scene.DeserializeObject(info["sog"].AsString());
+                        so.ExtraFromXmlString(info["extra"].AsString());
+                        so.HasGroupChanged = info["modified"].AsBoolean();
+                        AttachmentObjects.Add(so);
+                        AttachmentObjectStates.Add(info["state"].AsString());
+                    }
+                }
+            }
         }
 
         public AgentData()
@@ -655,9 +702,9 @@ namespace OpenSim.Framework
             return base.Pack();
         }
 
-        public override void Unpack(OSDMap map)
+        public override void Unpack(OSDMap map, IScene scene)
         {
-            base.Unpack(map);
+            base.Unpack(map, scene);
         }
     }
 }

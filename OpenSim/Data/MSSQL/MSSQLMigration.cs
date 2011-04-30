@@ -61,7 +61,8 @@ namespace OpenSim.Data.MSSQL
                 }
                 catch
                 {
-                    // Something went wrong, so we're version 0
+                    // Return -1 to indicate table does not exist
+                    return -1;
                 }
             }
             return version;

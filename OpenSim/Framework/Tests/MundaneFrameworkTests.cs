@@ -115,7 +115,7 @@ namespace OpenSim.Framework.Tests
             position2 = new AgentPosition();
 
             Assert.IsFalse(position2.AgentID == position1.AgentID, "Test Error, position2 should be a blank uninitialized AgentPosition");
-            position2.Unpack(position1.Pack());
+            position2.Unpack(position1.Pack(), null);
 
             Assert.IsTrue(position2.AgentID == position1.AgentID, "Agent ID didn't unpack the same way it packed");
             Assert.IsTrue(position2.Position == position1.Position, "Position didn't unpack the same way it packed");

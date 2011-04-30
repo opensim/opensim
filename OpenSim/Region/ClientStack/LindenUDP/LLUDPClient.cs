@@ -184,7 +184,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Create a token bucket throttle for this client that has the scene token bucket as a parent
             m_throttleClient = new AdaptiveTokenBucket(parentThrottle, rates.Total, rates.AdaptiveThrottlesEnabled);
             // Create a token bucket throttle for the total categary with the client bucket as a throttle
-            m_throttleCategory = new TokenBucket(m_throttleClient, rates.Total);
+            m_throttleCategory = new TokenBucket(m_throttleClient, 0);
             // Create an array of token buckets for this clients different throttle categories
             m_throttleCategories = new TokenBucket[THROTTLE_CATEGORY_COUNT];
 

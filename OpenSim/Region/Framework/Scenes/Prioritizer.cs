@@ -167,18 +167,20 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (!presence.IsChildAgent)
                 {
+                    // All avatars other than our own go into pqueue 1
+                    if (entity is ScenePresence)
+                        return 1;
+                    
                     if (entity is SceneObjectPart)
                     {
+                        // Attachments are high priority, 
+                        if (((SceneObjectPart)entity).ParentGroup.RootPart.IsAttachment)
+                            return 1;
+
                         // Non physical prims are lower priority than physical prims
                         PhysicsActor physActor = ((SceneObjectPart)entity).ParentGroup.RootPart.PhysActor;
                         if (physActor == null || !physActor.IsPhysical)
                             pqueue++;
-
-                        // Attachments are high priority, 
-                        // MIC: shouldn't these already be in the highest priority queue already
-                        // since their root position is same as the avatars?
-                        if (((SceneObjectPart)entity).ParentGroup.RootPart.IsAttachment)
-                            pqueue = 1;
                     }
                 }
             }
