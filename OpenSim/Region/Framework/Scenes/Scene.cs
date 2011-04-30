@@ -2409,6 +2409,22 @@ namespace OpenSim.Region.Framework.Scenes
                 newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, GetStateSource(newObject));
                 newObject.ResumeScripts();
             }
+            else
+            {
+                ScenePresence sp;
+                if (TryGetScenePresence(newObject.OwnerID, out sp))
+                {
+                    // If the scene presence is here and already a root
+                    // agent, we came from a ;egacy region. Start the scripts
+                    // here as they used to start.
+                    // TODO: Remove in 0.7.3
+                    if (!sp.IsChildAgent)
+                    {
+                        newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, GetStateSource(newObject));
+                        newObject.ResumeScripts();
+                    }
+                }
+            }
 
             // Do this as late as possible so that listeners have full access to the incoming object
             EventManager.TriggerOnIncomingSceneObject(newObject);
