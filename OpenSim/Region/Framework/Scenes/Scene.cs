@@ -1229,7 +1229,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Increment the frame counter
             ++Frame;
-
             try
             {
                 // Check if any objects have reached their targets
@@ -2336,9 +2335,13 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
-            newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, GetStateSource(newObject));
-
-            newObject.ResumeScripts();
+            // For attachments, we need to wait until the agent is root
+            // before we restart the scripts, or else some functions won't work.
+            if (!newObject.IsAttachment)
+            {
+                newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, GetStateSource(newObject));
+                newObject.ResumeScripts();
+            }
 
             // Do this as late as possible so that listeners have full access to the incoming object
             EventManager.TriggerOnIncomingSceneObject(newObject);
@@ -2455,17 +2458,8 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence sp = GetScenePresence(sog.OwnerID);
 
             if (sp != null)
-            {
-                AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(sp.UUID);
+                return sp.GetStateSource();
 
-                if (aCircuit != null && (aCircuit.teleportFlags != (uint)TeleportFlags.Default))
-                {
-                    // This will get your attention
-                    //m_log.Error("[XXX] Triggering CHANGED_TELEPORT");
-
-                    return 5; // StateSource.Teleporting
-                }
-            }
             return 2; // StateSource.PrimCrossing
         }
 

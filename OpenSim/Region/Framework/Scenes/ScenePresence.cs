@@ -840,6 +840,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             //m_log.DebugFormat("[SCENE]: known regions in {0}: {1}", Scene.RegionInfo.RegionName, KnownChildRegionHandles.Count);
 
+            bool wasChild = m_isChildAgent;
+            m_isChildAgent = false;
+
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
                 m_grouptitle = gm.GetGroupTitle(m_uuid);
@@ -929,14 +932,21 @@ namespace OpenSim.Region.Framework.Scenes
             // Animator.SendAnimPack();
 
             m_scene.SwapRootAgentCount(false);
-            
-            //CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(m_uuid);
-            //if (userInfo != null)
-            //        userInfo.FetchInventory();
-            //else
-            //    m_log.ErrorFormat("[SCENE]: Could not find user info for {0} when making it a root agent", m_uuid);
-            
-            m_isChildAgent = false;
+
+            // The initial login scene presence is already root when it gets here
+            // and it has already rezzed the attachments and started their scripts.
+            // We do the following only for non-login agents, because their scripts
+            // haven't started yet.
+            if (wasChild)
+            {
+                m_log.DebugFormat("[SCENE PRESENCE]: Restarting scripts in attachments...");
+                // Resume scripts
+                Attachments.ForEach(delegate(SceneObjectGroup sog)
+                {
+                    sog.RootPart.ParentGroup.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, GetStateSource());
+                    sog.ResumeScripts();
+                });
+            }
 
             // send the animations of the other presences to me
             m_scene.ForEachScenePresence(delegate(ScenePresence presence)
@@ -946,6 +956,20 @@ namespace OpenSim.Region.Framework.Scenes
             });
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
+        }
+
+        public int GetStateSource()
+        {
+            AgentCircuitData aCircuit = m_scene.AuthenticateHandler.GetAgentCircuitData(UUID);
+
+            if (aCircuit != null && (aCircuit.teleportFlags != (uint)TeleportFlags.Default))
+            {
+                // This will get your attention
+                //m_log.Error("[XXX] Triggering CHANGED_TELEPORT");
+
+                return 5; // StateSource.Teleporting
+            }
+            return 2; // StateSource.PrimCrossing
         }
 
         /// <summary>
@@ -1139,7 +1163,6 @@ namespace OpenSim.Region.Framework.Scenes
                 AbsolutePosition = pos;
             }
 
-            m_isChildAgent = false;
             bool m_flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
             MakeRootAgent(AbsolutePosition, m_flying);
 
