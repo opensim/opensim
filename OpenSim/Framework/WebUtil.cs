@@ -171,24 +171,15 @@ namespace OpenSim.Framework
                 request.Timeout = timeout;
                 request.KeepAlive = false;
                 request.MaximumAutomaticRedirections = 10;
-                request.ReadWriteTimeout = timeout / 4;
+                request.ReadWriteTimeout = timeout * 8;
                 request.Headers[OSHeaderRequestID] = reqnum.ToString();
                 
                 // If there is some input, write it into the request
                 if (data != null)
                 {
-                    string strBuffer = string.Empty;
-                    try
-                    {
-                        strBuffer = OSDParser.SerializeJsonString(data);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.DebugFormat("[WEB UTIL]: Exception serializing data {0}", e.Message);
-                        throw e;
-                    }
+                    string strBuffer =  OSDParser.SerializeJsonString(data);
                     byte[] buffer = System.Text.Encoding.UTF8.GetBytes(strBuffer);
-                        
+
                     request.ContentType = "application/json";
                     request.ContentLength = buffer.Length;   //Count bytes to send
                     using (Stream requestStream = request.GetRequestStream())

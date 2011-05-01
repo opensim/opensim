@@ -454,7 +454,6 @@ namespace OpenSim.Framework
                 {
                     OSDMap info = new OSDMap(4);
                     info["sog"] = OSD.FromString(so.ToXml2());
-                    m_log.DebugFormat("[XXX] {0}", so.ToXml2());
                     info["extra"] = OSD.FromString(so.ExtraToXmlString());
                     info["modified"] = OSD.FromBoolean(so.HasGroupChanged);
                     try
