@@ -462,7 +462,7 @@ namespace OpenSim.Framework
                     }
                     catch (IndexOutOfRangeException e)
                     {
-                        m_log.WarnFormat("[CHILD AGENT DATA]: scrtips list is shorter than object list.");
+                        m_log.WarnFormat("[CHILD AGENT DATA]: scripts list is shorter than object list.");
                     }
 
                     attObjs.Add(info);

@@ -937,7 +937,7 @@ namespace OpenSim.Region.Framework.Scenes
             // and it has already rezzed the attachments and started their scripts.
             // We do the following only for non-login agents, because their scripts
             // haven't started yet.
-            if (wasChild)
+            if (wasChild && Attachments != null && Attachments.Count > 0)
             {
                 m_log.DebugFormat("[SCENE PRESENCE]: Restarting scripts in attachments...");
                 // Resume scripts
