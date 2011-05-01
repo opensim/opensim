@@ -85,6 +85,7 @@ namespace OpenSim.Framework.Capabilities
         public string CapsObjectPath { get { return m_capsObjectPath; } }
 
         private CapsHandlers m_capsHandlers;
+        private Dictionary<string, string> m_externalCapsHandlers;
 
         private static readonly string m_requestPath = "0000/";
         // private static readonly string m_mapLayerPath = "0001/";
@@ -167,6 +168,7 @@ namespace OpenSim.Framework.Capabilities
             m_agentID = agent;
             m_dumpAssetsToFile = dumpAssetsToFile;
             m_capsHandlers = new CapsHandlers(httpServer, httpListen, httpPort, (httpServer == null) ? false : httpServer.UseSSL);
+            m_externalCapsHandlers = new Dictionary<string, string>();
             m_regionName = regionName;
         }
 
@@ -264,6 +266,17 @@ namespace OpenSim.Framework.Capabilities
         {
             m_capsHandlers[capName] = handler;
             //m_log.DebugFormat("[CAPS]: Registering handler for \"{0}\": path {1}", capName, handler.Path);
+        }
+
+        /// <summary>
+        /// Register an external handler. The service for this capability is somewhere else
+        /// given by the URL.
+        /// </summary>
+        /// <param name="capsName"></param>
+        /// <param name="url"></param>
+        public void RegisterHandler(string capsName, string url)
+        {
+            m_externalCapsHandlers.Add(capsName, url);
         }
 
         /// <summary>
