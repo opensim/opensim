@@ -52,7 +52,7 @@ namespace OpenSim.Region.ClientStack.Linden
 {
 
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class GetTextureModule : IRegionModule
+    public class GetTextureModule : ISharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -64,12 +64,22 @@ namespace OpenSim.Region.ClientStack.Linden
         // TODO: Change this to a config option
         const string REDIRECT_URL = null;
 
+        #region ISharedRegionModule Members
 
-        #region IRegionModule Members
-
-        public void Initialise(Scene pScene, IConfigSource pSource)
+        public void Initialise(IConfigSource pSource)
         {
-            m_scene = pScene;
+        }
+
+        public void AddRegion(Scene s)
+        {
+        }
+
+        public void RemoveRegion(Scene s)
+        {
+        }
+
+        public void RegionLoaded(Scene s)
+        {
         }
 
         public void PostInitialise()
@@ -81,7 +91,13 @@ namespace OpenSim.Region.ClientStack.Linden
         public void Close() { }
 
         public string Name { get { return "GetTextureModule"; } }
-        public bool IsSharedModule { get { return false; } }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        #endregion
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
@@ -92,6 +108,5 @@ namespace OpenSim.Region.ClientStack.Linden
             caps.RegisterHandler("GetTexture", new GetTextureHandler("/CAPS/" + capID + "/", m_assetService));
         }
 
-        #endregion
     }
 }
