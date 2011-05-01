@@ -275,27 +275,30 @@ namespace OpenSim.Services.Connectors.Simulation
             try
             {
                 OSDMap result = WebUtil.ServiceOSDRequest(uri, request, "QUERYACCESS", 10000);
-                OSDMap data = (OSDMap)result["_Result"];
-
                 bool success = result["success"].AsBoolean();
-                reason = data["reason"].AsString();
-                if (data["version"] != null && data["version"].AsString() != string.Empty)
-                    version = data["version"].AsString();
+                if (result.ContainsKey("_Result"))
+                {
+                    OSDMap data = (OSDMap)result["_Result"];
 
-                m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1} version {2} ({3})", uri, success, version, data["version"].AsString());
+                    reason = data["reason"].AsString();
+                    if (data["version"] != null && data["version"].AsString() != string.Empty)
+                        version = data["version"].AsString();
+
+                    m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1} version {2} ({3})", uri, success, version, data["version"].AsString());
+                }
 
                 if (!success)
                 {
-                    if (data.ContainsKey("Message"))
+                    if (result.ContainsKey("Message"))
                     {
-                        string message = data["Message"].AsString();
+                        string message = result["Message"].AsString();
                         if (message == "Service request failed: [MethodNotAllowed] MethodNotAllowed") // Old style region
                         {
                             m_log.Info("[REMOTE SIMULATION CONNECTOR]: The above web util error was caused by a TP to a sim that doesn't support QUERYACCESS and can be ignored");
                             return true;
                         }
 
-                        reason = data["Message"];
+                        reason = result["Message"];
                     }
                     else
                     {
