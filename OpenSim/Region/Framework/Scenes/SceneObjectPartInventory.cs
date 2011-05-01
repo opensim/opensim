@@ -693,8 +693,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             TaskInventoryItem it = GetInventoryItem(item.ItemID);
             if (it != null)
-
             {
+//                m_log.DebugFormat("[PRIM INVENTORY]: Updating item {0} in {1}", item.Name, m_part.Name);
+                
                 item.ParentID = m_part.UUID;
                 item.ParentPartID = m_part.UUID;
 
@@ -711,14 +712,16 @@ namespace OpenSim.Region.Framework.Scenes
                     m_items[item.ItemID] = item;
                     m_inventorySerial++;
                 }
-
+                
                 if (fireScriptEvents)
                     m_part.TriggerScriptChangedEvent(Changed.INVENTORY);
+                
                 if (considerChanged)
                 {
                     HasInventoryChanged = true;
                     m_part.ParentGroup.HasGroupChanged = true;
                 }
+                
                 return true;
             }
             else

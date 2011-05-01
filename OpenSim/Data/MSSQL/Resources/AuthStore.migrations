@@ -22,7 +22,11 @@ COMMIT
 
 BEGIN TRANSACTION
 
-INSERT INTO auth (UUID, passwordHash, passwordSalt, webLoginKey, accountType) SELECT [UUID] AS UUID, [passwordHash] AS passwordHash, [passwordSalt] AS passwordSalt, [webLoginKey] AS webLoginKey, 'UserAccount' as [accountType] FROM users;
-
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[users]') AND type in (N'U'))
+	INSERT INTO auth (UUID, passwordHash, passwordSalt, webLoginKey, accountType) SELECT [UUID] AS UUID, [passwordHash] AS passwordHash, [passwordSalt] AS passwordSalt, [webLoginKey] AS webLoginKey, 'UserAccount' as [accountType] FROM users;
 
 COMMIT
+
+
+
+
