@@ -126,7 +126,7 @@ namespace OpenSim.Services.Connectors.Simulation
         /// </summary>
         public bool UpdateAgent(GridRegion destination, AgentData data)
         {
-            return UpdateAgent(destination, (IAgentData)data, 100000); // yes, 100 seconds
+            return UpdateAgent(destination, (IAgentData)data, 200000); // yes, 200 seconds
         }
 
         /// <summary>
