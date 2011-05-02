@@ -140,19 +140,19 @@ namespace OpenSim.Framework
         /// PUT JSON-encoded data to a web service that returns LLSD or
         /// JSON data
         /// </summary>
-        public static OSDMap PutToService(string url, OSDMap data)
+        public static OSDMap PutToService(string url, OSDMap data, int timeout)
         {
-            return ServiceOSDRequest(url,data,"PUT",30000);
+            return ServiceOSDRequest(url,data, "PUT", timeout);
         }
-        
-        public static OSDMap PostToService(string url, OSDMap data)
+
+        public static OSDMap PostToService(string url, OSDMap data, int timeout)
         {
-            return ServiceOSDRequest(url,data,"POST",30000);
+            return ServiceOSDRequest(url, data, "POST", timeout);
         }
-        
-        public static OSDMap GetFromService(string url)
+
+        public static OSDMap GetFromService(string url, int timeout)
         {
-            return ServiceOSDRequest(url,null,"GET",30000);
+            return ServiceOSDRequest(url, null, "GET", timeout);
         }
         
         public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout)
@@ -171,7 +171,7 @@ namespace OpenSim.Framework
                 request.Timeout = timeout;
                 request.KeepAlive = false;
                 request.MaximumAutomaticRedirections = 10;
-                request.ReadWriteTimeout = timeout * 4;
+                request.ReadWriteTimeout = timeout / 4;
                 request.Headers[OSHeaderRequestID] = reqnum.ToString();
                 
                 // If there is some input, write it into the request
