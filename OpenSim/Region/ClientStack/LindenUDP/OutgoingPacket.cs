@@ -31,6 +31,8 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
+
+    public delegate void UnackedPacketMethod(OutgoingPacket oPacket);
     /// <summary>
     /// Holds a reference to the <seealso cref="LLUDPClient"/> this packet is
     /// destined for, along with the serialized packet data, sequence number
@@ -52,6 +54,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public int TickCount;
         /// <summary>Category this packet belongs to</summary>
         public ThrottleOutPacketType Category;
+        /// <summary>The delegate to be called if this packet is determined to be unacknowledged</summary>
+        public UnackedPacketMethod UnackedMethod;
 
         /// <summary>
         /// Default constructor
@@ -60,11 +64,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="buffer">Serialized packet data. If the flags or sequence number
         /// need to be updated, they will be injected directly into this binary buffer</param>
         /// <param name="category">Throttling category for this packet</param>
-        public OutgoingPacket(LLUDPClient client, UDPPacketBuffer buffer, ThrottleOutPacketType category)
+        public OutgoingPacket(LLUDPClient client, UDPPacketBuffer buffer, ThrottleOutPacketType category, UnackedPacketMethod method)
         {
             Client = client;
             Buffer = buffer;
             Category = category;
+            UnackedMethod = method;
         }
     }
 }

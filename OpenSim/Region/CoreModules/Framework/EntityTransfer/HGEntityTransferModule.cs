@@ -142,11 +142,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return false;
         }
 
-        protected override void AgentHasMovedAway(UUID sessionID, bool logout)
+        protected override void AgentHasMovedAway(ScenePresence sp, bool logout)
         {
+            base.AgentHasMovedAway(sp, logout);
             if (logout)
                 // Log them out of this grid
-                m_aScene.PresenceService.LogoutAgent(sessionID);
+                m_aScene.PresenceService.LogoutAgent(sp.ControllingClient.SessionId);
         }
 
         protected override bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason, out bool logout)

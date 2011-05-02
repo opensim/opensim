@@ -179,7 +179,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 return true;
 
             // else do the remote thing
-            if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
+            if (!m_localBackend.IsLocalRegion(destination.RegionID))
             {
                 return m_remoteConnector.CreateAgent(destination, aCircuit, teleportFlags, out reason);
             }
@@ -229,19 +229,20 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         }
 
-        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string reason)
+        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string version, out string reason)
         {
             reason = "Communications failure";
+            version = "Unknown";
             if (destination == null)
                 return false;
 
             // Try local first
-            if (m_localBackend.QueryAccess(destination, id, position, out reason))
+            if (m_localBackend.QueryAccess(destination, id, position, out version, out reason))
                 return true;
 
             // else do the remote thing
-            if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
-                return m_remoteConnector.QueryAccess(destination, id, position, out reason);
+            if (!m_localBackend.IsLocalRegion(destination.RegionID))
+                return m_remoteConnector.QueryAccess(destination, id, position, out version, out reason);
 
             return false;
 

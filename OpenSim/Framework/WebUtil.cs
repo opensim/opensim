@@ -142,17 +142,17 @@ namespace OpenSim.Framework
         /// </summary>
         public static OSDMap PutToService(string url, OSDMap data)
         {
-            return ServiceOSDRequest(url,data,"PUT",10000);
+            return ServiceOSDRequest(url,data,"PUT",30000);
         }
         
         public static OSDMap PostToService(string url, OSDMap data)
         {
-            return ServiceOSDRequest(url,data,"POST",10000);
+            return ServiceOSDRequest(url,data,"POST",30000);
         }
         
         public static OSDMap GetFromService(string url)
         {
-            return ServiceOSDRequest(url,null,"GET",10000);
+            return ServiceOSDRequest(url,null,"GET",30000);
         }
         
         public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout)
@@ -171,15 +171,15 @@ namespace OpenSim.Framework
                 request.Timeout = timeout;
                 request.KeepAlive = false;
                 request.MaximumAutomaticRedirections = 10;
-                request.ReadWriteTimeout = timeout / 4;
+                request.ReadWriteTimeout = timeout * 8;
                 request.Headers[OSHeaderRequestID] = reqnum.ToString();
                 
                 // If there is some input, write it into the request
                 if (data != null)
                 {
-                    string strBuffer = OSDParser.SerializeJsonString(data);
+                    string strBuffer =  OSDParser.SerializeJsonString(data);
                     byte[] buffer = System.Text.Encoding.UTF8.GetBytes(strBuffer);
-                        
+
                     request.ContentType = "application/json";
                     request.ContentLength = buffer.Length;   //Count bytes to send
                     using (Stream requestStream = request.GetRequestStream())

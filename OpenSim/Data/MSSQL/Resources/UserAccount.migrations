@@ -19,7 +19,7 @@ CREATE TABLE [UserAccounts] (
 :VERSION 2
 
 BEGIN TRANSACTION
-
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[users]') AND type in (N'U'))
 INSERT INTO UserAccounts (PrincipalID, ScopeID, FirstName, LastName, Email, ServiceURLs, Created) SELECT [UUID] AS PrincipalID, '00000000-0000-0000-0000-000000000000' AS ScopeID, 
 username AS FirstName, 
 lastname AS LastName, 

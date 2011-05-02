@@ -41,6 +41,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
     public class LocalSimulationConnectorModule : ISharedRegionModule, ISimulationService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // Version of this service
+        private const string m_Version = "SIMULATION/0.1";
+
         private List<Scene> m_sceneList = new List<Scene>();
 
         private IEntityTransferModule m_AgentTransferModule;
@@ -257,9 +260,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return false;
         }
 
-        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string reason)
+        public bool QueryAccess(GridRegion destination, UUID id, Vector3 position, out string version, out string reason)
         {
             reason = "Communications failure";
+            version = m_Version;
             if (destination == null)
                 return false;
 
