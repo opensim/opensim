@@ -59,15 +59,20 @@ namespace OpenSim.Region.ClientStack.Linden
         private Scene m_scene;
         private IAssetService m_assetService;
 
-        public const string DefaultFormat = "x-j2c";
-
         // TODO: Change this to a config option
         const string REDIRECT_URL = null;
 
+        private string m_URL;
+
         #region ISharedRegionModule Members
 
-        public void Initialise(IConfigSource pSource)
+        public void Initialise(IConfigSource source)
         {
+            IConfig config = source.Configs["ClientStack.LindenCaps"];
+            if (config == null)
+                return;
+
+            m_URL = config.GetString("Cap_GetTexture", "localhost");
         }
 
         public void AddRegion(Scene s)
@@ -105,7 +110,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
             //            m_log.InfoFormat("[GETTEXTURE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
             //caps.RegisterHandler("GetTexture", new StreamHandler("GET", "/CAPS/" + capID, ProcessGetTexture));
-            caps.RegisterHandler("GetTexture", new GetTextureHandler("/CAPS/" + capID + "/", m_assetService));
+            if (m_URL == "localhost")
+                caps.RegisterHandler("GetTexture", new GetTextureHandler("/CAPS/" + capID + "/", m_assetService));
+            else
+                caps.RegisterHandler("GetTexture", m_URL);
         }
 
     }
