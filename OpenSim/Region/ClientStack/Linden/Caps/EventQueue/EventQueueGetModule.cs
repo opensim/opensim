@@ -54,7 +54,7 @@ namespace OpenSim.Region.ClientStack.Linden
         public OSDMap body;
     }
 
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    //[Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class EventQueueGetModule : IEventQueue, IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

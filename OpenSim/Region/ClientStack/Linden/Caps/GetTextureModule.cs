@@ -52,12 +52,14 @@ namespace OpenSim.Region.ClientStack.Linden
 {
 
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class GetTextureModule : ISharedRegionModule
+    public class GetTextureModule : INonSharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
         private IAssetService m_assetService;
+
+        private bool m_Enabled = false;
 
         // TODO: Change this to a config option
         const string REDIRECT_URL = null;
@@ -72,11 +74,18 @@ namespace OpenSim.Region.ClientStack.Linden
             if (config == null)
                 return;
 
-            m_URL = config.GetString("Cap_GetTexture", "localhost");
+            m_URL = config.GetString("Cap_GetTexture", string.Empty);
+            // Cap doesn't exist
+            if (m_URL != string.Empty)
+                m_Enabled = true;
         }
 
         public void AddRegion(Scene s)
         {
+            if (!m_Enabled)
+                return;
+
+            m_scene = s;
         }
 
         public void RemoveRegion(Scene s)
@@ -85,12 +94,15 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegionLoaded(Scene s)
         {
+            if (!m_Enabled)
+                return;
+
+            m_assetService = m_scene.RequestModuleInterface<IAssetService>();
+            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
         }
 
         public void PostInitialise()
         {
-            m_assetService = m_scene.RequestModuleInterface<IAssetService>();
-            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
         }
 
         public void Close() { }
@@ -108,12 +120,17 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             UUID capID = UUID.Random();
 
-            //            m_log.InfoFormat("[GETTEXTURE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
             //caps.RegisterHandler("GetTexture", new StreamHandler("GET", "/CAPS/" + capID, ProcessGetTexture));
             if (m_URL == "localhost")
+            {
+                m_log.InfoFormat("[GETTEXTURE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
                 caps.RegisterHandler("GetTexture", new GetTextureHandler("/CAPS/" + capID + "/", m_assetService));
+            }
             else
+            {
+                m_log.InfoFormat("[GETTEXTURE]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
                 caps.RegisterHandler("GetTexture", m_URL);
+            }
         }
 
     }

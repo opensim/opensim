@@ -32,6 +32,7 @@ using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using Mono.Addins;
 
 using OpenSim.Framework;
 using OpenSim.Region.Framework;
@@ -39,9 +40,12 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 
+[assembly: Addin("LindenCaps", "0.1")]
+[assembly: AddinDependency("OpenSim", "0.5")]
 namespace OpenSim.Region.ClientStack.Linden
 {
 
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class BunchOfCapsModule : INonSharedRegionModule
     {
         private static readonly ILog m_log =

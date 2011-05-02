@@ -67,12 +67,13 @@ namespace OpenSim.Capabilities.Handlers
 
         public override byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            //m_log.DebugFormat("[GETTEXTURE]: called in {0}", m_scene.RegionInfo.RegionName);
 
             // Try to parse the texture ID from the request URL
             NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
             string textureStr = query.GetOne("texture_id");
             string format = query.GetOne("format");
+
+            m_log.DebugFormat("[GETTEXTURE]: called {0}", textureStr);
 
             if (m_assetService == null)
             {

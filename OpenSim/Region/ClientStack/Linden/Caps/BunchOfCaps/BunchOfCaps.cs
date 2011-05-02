@@ -78,7 +78,7 @@ namespace OpenSim.Region.ClientStack.Linden
         public GetClientDelegate GetClient = null;
 
         private bool m_persistBakedTextures = false;
-        private IAssetService m_assetCache;
+        private IAssetService m_assetService;
         private bool m_dumpAssetsToFile;
         private string m_regionName;
         private object m_fetchLock = new Object();
@@ -94,6 +94,9 @@ namespace OpenSim.Region.ClientStack.Linden
                 if (sconfig != null)
                     m_persistBakedTextures = sconfig.GetBoolean("PersistBakedTextures", m_persistBakedTextures);
             }
+
+            m_assetService = m_Scene.AssetService;
+            m_regionName = m_Scene.RegionInfo.RegionName;
 
             RegisterHandlers();
 
@@ -347,7 +350,7 @@ namespace OpenSim.Region.ClientStack.Linden
             asset.Data = data;
             asset.Temporary = true;
             asset.Local = !m_persistBakedTextures; // Local assets aren't persisted, non-local are
-            m_assetCache.Store(asset);
+            m_assetService.Store(asset);
         }
 
         /// <summary>
@@ -476,8 +479,8 @@ namespace OpenSim.Region.ClientStack.Linden
             asset.Data = data;
             if (AddNewAsset != null)
                 AddNewAsset(asset);
-            else if (m_assetCache != null)
-                m_assetCache.Store(asset);
+            else if (m_assetService != null)
+                m_assetService.Store(asset);
 
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = m_HostCapsObj.AgentID;

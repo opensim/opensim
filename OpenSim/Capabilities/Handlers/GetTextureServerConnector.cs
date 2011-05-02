@@ -32,16 +32,15 @@ using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
 using OpenMetaverse;
-using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Capabilities.Handlers
 {
-    public class CapsServerConnector : ServiceConnector
+    public class GetTextureServerConnector : ServiceConnector
     {
         private IAssetService m_AssetService;
         private string m_ConfigName = "CapsService";
 
-        public CapsServerConnector(IConfigSource config, IHttpServer server, string configName) :
+        public GetTextureServerConnector(IConfigSource config, IHttpServer server, string configName) :
                 base(config, server, configName)
         {
             if (configName != String.Empty)
@@ -51,11 +50,10 @@ namespace OpenSim.Capabilities.Handlers
             if (serverConfig == null)
                 throw new Exception(String.Format("No section '{0}' in config file", m_ConfigName));
 
-            string assetService = serverConfig.GetString("LocalServiceModule",
-                    String.Empty);
+            string assetService = serverConfig.GetString("AssetService", String.Empty);
 
             if (assetService == String.Empty)
-                throw new Exception("No LocalServiceModule in config file");
+                throw new Exception("No AssetService in config file");
 
             Object[] args = new Object[] { config };
             m_AssetService =
@@ -63,8 +61,6 @@ namespace OpenSim.Capabilities.Handlers
 
             if (m_AssetService == null)
                 throw new Exception(String.Format("Failed to load AssetService from {0}; config is {1}", assetService, m_ConfigName));
-
-            bool allowDelete = serverConfig.GetBoolean("AllowRemoteDelete", false);
 
             server.AddStreamHandler(new GetTextureHandler("/CAPS/" + UUID.Random() + "/", m_AssetService));
         }
