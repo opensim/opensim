@@ -110,6 +110,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             new Dictionary<Timer, List<IScene>>(1);
         private readonly Dictionary<double, Timer> m_timers = new Dictionary<double, Timer>(1);
 
+        private delegate T DefaultGetter<T>(string settingName, T defaultValue);
         private bool m_enabled;
 
         /// <summary>
@@ -299,16 +300,16 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             }
 
             // Read the config settings and set variables.
+            IConfig regionConfig = (scene != null ? scene.Config.Configs[sRegionName] : null);
             IConfig config = this.m_configSource.Configs["AutoBackupModule"];
             if (config == null)
             {
                 // defaultState would be disabled too if the section doesn't exist.
                 state = this.m_defaultState;
-                m_log.Info("[AUTO BACKUP]: Region " + sRegionLabel + " is NOT AutoBackup enabled.");
                 return state;
             }
 
-            bool tmpEnabled = config.GetBoolean(prepend + "AutoBackup", this.m_defaultState.Enabled);
+            bool tmpEnabled = ResolveBoolean("AutoBackup", this.m_defaultState.Enabled, config, regionConfig);
             if (state == null && tmpEnabled != this.m_defaultState.Enabled)
                 //Varies from default state
             {
@@ -332,8 +333,8 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 
             // Borrow an existing timer if one exists for the same interval; otherwise, make a new one.
             double interval =
-                config.GetDouble(prepend + "AutoBackupInterval", this.m_defaultState.IntervalMinutes)*
-                60000.0;
+                this.ResolveDouble("AutoBackupInterval", this.m_defaultState.IntervalMinutes,
+                 config, regionConfig) * 60000.0;
             if (state == null && interval != this.m_defaultState.IntervalMinutes*60000.0)
             {
                 state = new AutoBackupModuleState();
@@ -400,8 +401,8 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
                 }
             }
 
-            bool tmpBusyCheck = config.GetBoolean(prepend + "AutoBackupBusyCheck",
-                                                  this.m_defaultState.BusyCheck);
+            bool tmpBusyCheck = ResolveBoolean("AutoBackupBusyCheck",
+                                                  this.m_defaultState.BusyCheck, config, regionConfig);
             if (state == null && tmpBusyCheck != this.m_defaultState.BusyCheck)
             {
                 state = new AutoBackupModuleState();
@@ -413,8 +414,8 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             }
 
             // Set file naming algorithm
-            string stmpNamingType = config.GetString(prepend + "AutoBackupNaming",
-                                                     this.m_defaultState.NamingType.ToString());
+            string stmpNamingType = ResolveString("AutoBackupNaming",
+                                                     this.m_defaultState.NamingType.ToString(), config, regionConfig);
             NamingType tmpNamingType;
             if (stmpNamingType.Equals("Time", StringComparison.CurrentCultureIgnoreCase))
             {
@@ -445,8 +446,8 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
                 state.NamingType = tmpNamingType;
             }
 
-            string tmpScript = config.GetString(prepend + "AutoBackupScript",
-                                                this.m_defaultState.Script);
+            string tmpScript = ResolveString("AutoBackupScript",
+                                                this.m_defaultState.Script, config, regionConfig);
             if (state == null && tmpScript != this.m_defaultState.Script)
             {
                 state = new AutoBackupModuleState();
@@ -457,7 +458,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
                 state.Script = tmpScript;
             }
 
-            string tmpBackupDir = config.GetString(prepend + "AutoBackupDir", ".");
+            string tmpBackupDir = ResolveString("AutoBackupDir", ".", config, regionConfig);
             if (state == null && tmpBackupDir != this.m_defaultState.BackupDir)
             {
                 state = new AutoBackupModuleState();
@@ -489,6 +490,86 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             }
 
             return state;
+        }
+
+        /// <summary>
+        /// Helper function for ParseConfig.
+        /// </summary>
+        /// <param name="settingName"></param>
+        /// <param name="defaultValue"></param>
+        /// <param name="global"></param>
+        /// <param name="local"></param>
+        /// <returns></returns>
+        private bool ResolveBoolean(string settingName, bool defaultValue, IConfig global, IConfig local)
+        {
+            if(local != null)
+            {
+                return local.GetBoolean(settingName, global.GetBoolean(settingName, defaultValue));
+            }
+            else
+            {
+                return global.GetBoolean(settingName, defaultValue);
+            }
+        }
+
+        /// <summary>
+        /// Helper function for ParseConfig.
+        /// </summary>
+        /// <param name="settingName"></param>
+        /// <param name="defaultValue"></param>
+        /// <param name="global"></param>
+        /// <param name="local"></param>
+        /// <returns></returns>
+        private double ResolveDouble(string settingName, double defaultValue, IConfig global, IConfig local)
+        {
+            if (local != null)
+            {
+                return local.GetDouble(settingName, global.GetDouble(settingName, defaultValue));
+            }
+            else
+            {
+                return global.GetDouble(settingName, defaultValue);
+            }
+        }
+
+        /// <summary>
+        /// Helper function for ParseConfig.
+        /// </summary>
+        /// <param name="settingName"></param>
+        /// <param name="defaultValue"></param>
+        /// <param name="global"></param>
+        /// <param name="local"></param>
+        /// <returns></returns>
+        private int ResolveInt(string settingName, int defaultValue, IConfig global, IConfig local)
+        {
+            if (local != null)
+            {
+                return local.GetInt(settingName, global.GetInt(settingName, defaultValue));
+            }
+            else
+            {
+                return global.GetInt(settingName, defaultValue);
+            }
+        }
+
+        /// <summary>
+        /// Helper function for ParseConfig.
+        /// </summary>
+        /// <param name="settingName"></param>
+        /// <param name="defaultValue"></param>
+        /// <param name="global"></param>
+        /// <param name="local"></param>
+        /// <returns></returns>
+        private string ResolveString(string settingName, string defaultValue, IConfig global, IConfig local)
+        {
+            if (local != null)
+            {
+                return local.GetString(settingName, global.GetString(settingName, defaultValue));
+            }
+            else
+            {
+                return global.GetString(settingName, defaultValue);
+            }
         }
 
         /// <summary>
