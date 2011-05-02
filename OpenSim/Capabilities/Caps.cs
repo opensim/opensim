@@ -106,6 +106,10 @@ namespace OpenSim.Framework.Capabilities
         {
             get { return m_capsHandlers; }
         }
+        public Dictionary<string, string> ExternalCapsHandlers
+        {
+            get { return m_externalCapsHandlers; }
+        }
 
         public Caps(IHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
                     UUID agent, string regionName)
