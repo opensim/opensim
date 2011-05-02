@@ -36,6 +36,7 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using OpenSim.Capabilities.Handlers;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
@@ -49,15 +50,15 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class GetMeshModule : INonSharedRegionModule
     {
-//        private static readonly ILog m_log =
-//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private Scene m_scene;
-        private IAssetService m_assetService;
-        private bool m_enabled = true;
+        private IAssetService m_AssetService;
+        private bool m_Enabled = true;
+        private string m_URL;
 
         #region IRegionModuleBase Members
-
 
         public Type ReplaceableInterface
         {
@@ -66,146 +67,70 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void Initialise(IConfigSource source)
         {
-            IConfig meshConfig = source.Configs["Mesh"];
-            if (meshConfig == null)
+            IConfig config = source.Configs["ClientStack.LindenCaps"];
+            if (config == null)
                 return;
 
-            m_enabled = meshConfig.GetBoolean("AllowMeshUpload", true);
+            m_URL = config.GetString("Cap_GetMesh", string.Empty);
+            // Cap doesn't exist
+            if (m_URL != string.Empty)
+                m_Enabled = true;
         }
 
         public void AddRegion(Scene pScene)
         {
+            if (!m_Enabled)
+                return;
+
             m_scene = pScene;
         }
 
         public void RemoveRegion(Scene scene)
         {
-            
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
             m_scene = null;
         }
 
         public void RegionLoaded(Scene scene)
         {
-            
-            m_assetService = m_scene.RequestModuleInterface<IAssetService>();
+            if (!m_Enabled)
+                return;
+
+            m_AssetService = m_scene.RequestModuleInterface<IAssetService>();
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
         }
 
-        #endregion
-
-
-        #region IRegionModule Members
-
-       
 
         public void Close() { }
 
         public string Name { get { return "GetMeshModule"; } }
 
+        #endregion
+
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            if(!m_enabled)
-                return;
-
             UUID capID = UUID.Random();
 
-//            m_log.Info("[GETMESH]: /CAPS/" + capID);
-
-            caps.RegisterHandler("GetMesh",
-                                 new RestHTTPHandler("GET", "/CAPS/" + capID,
-                                                       delegate(Hashtable m_dhttpMethod)
-                                                       {
-                                                           return ProcessGetMesh(m_dhttpMethod, agentID, caps);
-                                                       }));
-        }
-
-        #endregion
-
-        public Hashtable ProcessGetMesh(Hashtable request, UUID AgentId, Caps cap)
-        {
-            
-            Hashtable responsedata = new Hashtable();
-            responsedata["int_response_code"] = 400; //501; //410; //404;
-            responsedata["content_type"] = "text/plain";
-            responsedata["keepalive"] = false;
-            responsedata["str_response_string"] = "Request wasn't what was expected";
-
-            string meshStr = string.Empty;
-
-            if (request.ContainsKey("mesh_id"))
-                meshStr = request["mesh_id"].ToString();
-
-
-            UUID meshID = UUID.Zero;
-            if (!String.IsNullOrEmpty(meshStr) && UUID.TryParse(meshStr, out meshID))
+            //caps.RegisterHandler("GetTexture", new StreamHandler("GET", "/CAPS/" + capID, ProcessGetTexture));
+            if (m_URL == "localhost")
             {
-                if (m_assetService == null)
-                {
-                    responsedata["int_response_code"] = 404; //501; //410; //404;
-                    responsedata["content_type"] = "text/plain";
-                    responsedata["keepalive"] = false;
-                    responsedata["str_response_string"] = "The asset service is unavailable.  So is your mesh.";
-                    return responsedata;
-                }
+                m_log.InfoFormat("[GETMESH]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
+                GetMeshHandler gmeshHandler = new GetMeshHandler(m_AssetService);
+                IRequestHandler reqHandler = new RestHTTPHandler("GET", "/CAPS/" + UUID.Random(),
+                                                           delegate(Hashtable m_dhttpMethod)
+                                                           {
+                                                               return gmeshHandler.ProcessGetMesh(m_dhttpMethod, UUID.Zero, null);
+                                                           });
 
-                AssetBase mesh;
-                // Only try to fetch locally cached textures. Misses are redirected
-                mesh = m_assetService.GetCached(meshID.ToString());
-                if (mesh != null)
-                {
-                    if (mesh.Type == (SByte)AssetType.Mesh) 
-                    {
-                        responsedata["str_response_string"] = Convert.ToBase64String(mesh.Data);
-                        responsedata["content_type"] = "application/vnd.ll.mesh";
-                        responsedata["int_response_code"] = 200;
-                    }
-                    // Optionally add additional mesh types here
-                    else
-                    {
-                        responsedata["int_response_code"] = 404; //501; //410; //404;
-                        responsedata["content_type"] = "text/plain";
-                        responsedata["keepalive"] = false;
-                        responsedata["str_response_string"] = "Unfortunately, this asset isn't a mesh.";
-                        return responsedata;
-                    }
-                }
-                else
-                {
-                    mesh = m_assetService.Get(meshID.ToString());
-                    if (mesh != null)
-                    {
-                        if (mesh.Type == (SByte)AssetType.Mesh) 
-                        {
-                            responsedata["str_response_string"] = Convert.ToBase64String(mesh.Data);
-                            responsedata["content_type"] = "application/vnd.ll.mesh";
-                            responsedata["int_response_code"] = 200;
-                        }
-                        // Optionally add additional mesh types here
-                        else
-                        {
-                            responsedata["int_response_code"] = 404; //501; //410; //404;
-                            responsedata["content_type"] = "text/plain";
-                            responsedata["keepalive"] = false;
-                            responsedata["str_response_string"] = "Unfortunately, this asset isn't a mesh.";
-                            return responsedata;
-                        }
-                    }
-
-                    else
-                    {
-                        responsedata["int_response_code"] = 404; //501; //410; //404;
-                        responsedata["content_type"] = "text/plain";
-                        responsedata["keepalive"] = false;
-                        responsedata["str_response_string"] = "Your Mesh wasn't found.  Sorry!";
-                        return responsedata;
-                    }
-                }
-
+                caps.RegisterHandler("GetMesh", reqHandler);
             }
-
-            return responsedata;
+            else
+            {
+                m_log.InfoFormat("[GETMESH]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
+                caps.RegisterHandler("GetMesh", m_URL);
+            }
         }
+
     }
 }
