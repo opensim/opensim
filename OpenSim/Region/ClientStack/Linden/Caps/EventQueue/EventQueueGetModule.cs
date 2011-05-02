@@ -522,7 +522,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 }
                 if (AvatarID != UUID.Zero)
                 {
-                    return ProcessQueue(request, AvatarID, m_scene.CapsModule.GetCapsHandlerForUser(AvatarID));
+                    return ProcessQueue(request, AvatarID, m_scene.CapsModule.GetCapsForUser(AvatarID));
                 }
                 else
                 {

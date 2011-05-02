@@ -3033,7 +3033,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_sceneGraph.removeUserCount(!childagentYN);
                     
                     if (CapsModule != null)
-                        CapsModule.RemoveCapsHandler(agentID);
+                        CapsModule.RemoveCaps(agentID);
 
                     // REFACTORING PROBLEM -- well not really a problem, but just to point out that whatever
                     // this method is doing is HORRIBLE!!!
@@ -3290,8 +3290,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (CapsModule != null)
                 {
-                    CapsModule.NewUserConnection(agent);
-                    CapsModule.AddCapsHandler(agent.AgentID);
+                    CapsModule.SetAgentCapsSeeds(agent);
+                    CapsModule.CreateCaps(agent.AgentID);
                 }
             }
             else
@@ -3309,7 +3309,7 @@ namespace OpenSim.Region.Framework.Scenes
                     sp.AdjustKnownSeeds();
                     
                     if (CapsModule != null)
-                        CapsModule.NewUserConnection(agent);
+                        CapsModule.SetAgentCapsSeeds(agent);
                 }
             }
 

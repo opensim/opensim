@@ -575,7 +575,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             string derezAvatarPath = "/agent/" + AvatarRezCapUUID + "/rez_avatar/derez";
             // Get a reference to the user's cap so we can pull out the Caps Object Path
             Caps userCap 
-                = homeScene.CapsModule.GetCapsHandlerForUser(agentData.AgentID);
+                = homeScene.CapsModule.GetCapsForUser(agentData.AgentID);
 
             string rezHttpProtocol = "http://";
             string regionCapsHttpProtocol = "http://";
@@ -700,7 +700,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
                 {
                     // Get a referenceokay -  to their Cap object so we can pull out the capobjectroot
                     Caps userCap 
-                        = homeScene.CapsModule.GetCapsHandlerForUser(userData.AgentID);
+                        = homeScene.CapsModule.GetCapsForUser(userData.AgentID);
 
                     //Update the circuit data in the region so this user is authorized
                     homeScene.UpdateCircuitData(userData);

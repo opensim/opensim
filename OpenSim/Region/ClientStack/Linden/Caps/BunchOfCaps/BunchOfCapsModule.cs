@@ -25,45 +25,63 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
+using System.Reflection;
+
+using log4net;
+using Nini.Config;
 using OpenMetaverse;
+
 using OpenSim.Framework;
-using Caps=OpenSim.Framework.Capabilities.Caps;
+using OpenSim.Region.Framework;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
+using Caps = OpenSim.Framework.Capabilities.Caps;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Region.ClientStack.Linden
 {
-    public interface ICapabilitiesModule
+
+    public class BunchOfCapsModule : INonSharedRegionModule
     {
-        /// <summary>
-        /// Add a caps handler for the given agent.  If the CAPS handler already exists for this agent,
-        /// then it is replaced by a new CAPS handler.
-        /// </summary>
-        /// <param name="agentId"></param>
-        /// <param name="capsObjectPath"></param>
-        void CreateCaps(UUID agentId);
-        
-        /// <summary>
-        /// Remove the caps handler for a given agent.
-        /// </summary>
-        /// <param name="agentId"></param>
-        void RemoveCaps(UUID agentId);
-        
-        /// <summary>
-        /// Will return null if the agent doesn't have a caps handler registered
-        /// </summary>
-        /// <param name="agentId"></param>
-        Caps GetCapsForUser(UUID agentId);
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        void SetAgentCapsSeeds(AgentCircuitData agent);
-        
-        Dictionary<ulong, string> GetChildrenSeeds(UUID agentID);
-        
-        string GetChildSeed(UUID agentID, ulong handle);
-        
-        void SetChildrenSeed(UUID agentID, Dictionary<ulong, string> seeds);
-        
-        void DropChildSeed(UUID agentID, ulong handle);
+        private Scene m_Scene;
 
-        string GetCapsPath(UUID agentId);
+        #region INonSharedRegionModule
+
+        public string Name { get { return "BunchOfCapsModule"; } }
+
+        public Type ReplaceableInterface { get { return null; } }
+
+        public void Initialise(IConfigSource source)
+        {
+        }
+
+        public void Close() { } 
+
+        public void AddRegion(Scene scene)
+        {
+            m_Scene = scene;
+            m_Scene.EventManager.OnRegisterCaps += OnRegisterCaps;
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void PostInitialise() { }
+        #endregion 
+
+        private void OnRegisterCaps(UUID agentID, Caps caps)
+        {
+            new BunchOfCaps(m_Scene, caps);
+        }
+
     }
 }
