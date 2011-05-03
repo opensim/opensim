@@ -140,24 +140,19 @@ namespace OpenSim.Framework
         /// PUT JSON-encoded data to a web service that returns LLSD or
         /// JSON data
         /// </summary>
-        public static OSDMap PutToService(string url, OSDMap data)
+        public static OSDMap PutToService(string url, OSDMap data, int timeout)
         {
-            return ServiceOSDRequest(url,data,"PUT", 20000);
-        }
-        
-        public static OSDMap PostToService(string url, OSDMap data)
-        {
-            return PostToService(url, data, 20000);
+            return ServiceOSDRequest(url,data, "PUT", timeout);
         }
 
         public static OSDMap PostToService(string url, OSDMap data, int timeout)
         {
-            return ServiceOSDRequest(url,data,"POST", timeout);
+            return ServiceOSDRequest(url, data, "POST", timeout);
         }
-        
-        public static OSDMap GetFromService(string url)
+
+        public static OSDMap GetFromService(string url, int timeout)
         {
-            return ServiceOSDRequest(url,null,"GET", 20000);
+            return ServiceOSDRequest(url, null, "GET", timeout);
         }
         
         public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout)
@@ -182,9 +177,9 @@ namespace OpenSim.Framework
                 // If there is some input, write it into the request
                 if (data != null)
                 {
-                    string strBuffer = OSDParser.SerializeJsonString(data);
+                    string strBuffer =  OSDParser.SerializeJsonString(data);
                     byte[] buffer = System.Text.Encoding.UTF8.GetBytes(strBuffer);
-                        
+
                     request.ContentType = "application/json";
                     request.ContentLength = buffer.Length;   //Count bytes to send
                     using (Stream requestStream = request.GetRequestStream())

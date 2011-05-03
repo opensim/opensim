@@ -306,7 +306,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
                 args["teleport_flags"] = OSD.FromString(flags.ToString());
 
-                OSDMap result = WebUtil.PostToService(uri,args);
+                OSDMap result = WebUtil.PostToService(uri, args, 20000);
                 if (result["Success"].AsBoolean())
                 {
                     OSDMap unpacked = (OSDMap)result["_Result"];

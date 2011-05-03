@@ -102,7 +102,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
                 args["teleport_flags"] = OSD.FromString(flags.ToString());
 
-                OSDMap result = WebUtil.PostToService(uri, args, 5000);
+                OSDMap result = WebUtil.PostToService(uri, args, 20000);
                 if (result["Success"].AsBoolean())
                     return true;
                 
@@ -126,7 +126,7 @@ namespace OpenSim.Services.Connectors.Simulation
         /// </summary>
         public bool UpdateAgent(GridRegion destination, AgentData data)
         {
-            return UpdateAgent(destination, (IAgentData)data);
+            return UpdateAgent(destination, (IAgentData)data, 200000); // yes, 200 seconds
         }
 
         /// <summary>
@@ -181,7 +181,7 @@ namespace OpenSim.Services.Connectors.Simulation
                     }
                 }
 
-                UpdateAgent(destination,(IAgentData)pos);
+                UpdateAgent(destination, (IAgentData)pos, 10000);
             }
 
             // unreachable
@@ -191,7 +191,7 @@ namespace OpenSim.Services.Connectors.Simulation
         /// <summary>
         /// This is the worker function to send AgentData to a neighbor region
         /// </summary>
-        private bool UpdateAgent(GridRegion destination, IAgentData cAgentData)
+        private bool UpdateAgent(GridRegion destination, IAgentData cAgentData, int timeout)
         {
             // m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: UpdateAgent start");
 
@@ -207,7 +207,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 args["destination_name"] = OSD.FromString(destination.RegionName);
                 args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
 
-                OSDMap result = WebUtil.PutToService(uri,args);
+                OSDMap result = WebUtil.PutToService(uri, args, timeout);
                 return result["Success"].AsBoolean();
             }
             catch (Exception e)
@@ -233,7 +233,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
             try
             {
-                OSDMap result = WebUtil.GetFromService(uri);
+                OSDMap result = WebUtil.GetFromService(uri, 10000);
                 if (result["Success"].AsBoolean())
                 {
                     // OSDMap args = Util.GetOSDMap(result["_RawResult"].AsString());
@@ -275,27 +275,30 @@ namespace OpenSim.Services.Connectors.Simulation
             try
             {
                 OSDMap result = WebUtil.ServiceOSDRequest(uri, request, "QUERYACCESS", 10000);
-                OSDMap data = (OSDMap)result["_Result"];
-
                 bool success = result["success"].AsBoolean();
-                reason = data["reason"].AsString();
-                if (data["version"] != null && data["version"].AsString() != string.Empty)
-                    version = data["version"].AsString();
+                if (result.ContainsKey("_Result"))
+                {
+                    OSDMap data = (OSDMap)result["_Result"];
 
-                m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1} version {2} ({3})", uri, success, version, data["version"].AsString());
+                    reason = data["reason"].AsString();
+                    if (data["version"] != null && data["version"].AsString() != string.Empty)
+                        version = data["version"].AsString();
+
+                    m_log.DebugFormat("[REMOTE SIMULATION CONNECTOR]: QueryAccess to {0} returned {1} version {2} ({3})", uri, success, version, data["version"].AsString());
+                }
 
                 if (!success)
                 {
-                    if (data.ContainsKey("Message"))
+                    if (result.ContainsKey("Message"))
                     {
-                        string message = data["Message"].AsString();
+                        string message = result["Message"].AsString();
                         if (message == "Service request failed: [MethodNotAllowed] MethodNotAllowed") // Old style region
                         {
                             m_log.Info("[REMOTE SIMULATION CONNECTOR]: The above web util error was caused by a TP to a sim that doesn't support QUERYACCESS and can be ignored");
                             return true;
                         }
 
-                        reason = data["Message"];
+                        reason = result["Message"];
                     }
                     else
                     {
@@ -401,7 +404,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 args["destination_name"] = OSD.FromString(destination.RegionName);
                 args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
 
-                WebUtil.PostToService(uri, args);
+                WebUtil.PostToService(uri, args, 40000);
             }
             catch (Exception e)
             {
