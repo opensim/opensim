@@ -158,8 +158,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private uint GetPriorityByBestAvatarResponsiveness(IClientAPI client, ISceneEntity entity)
         {
-            if (entity == null) return 0;
-
             uint pqueue = ComputeDistancePriority(client,entity,true);
 
             ScenePresence presence = m_scene.GetScenePresence(client.AgentId);
@@ -190,12 +188,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private uint ComputeDistancePriority(IClientAPI client, ISceneEntity entity, bool useFrontBack)
         {
-            // If this is an update for our own avatar give it the highest priority
-            if (client.AgentId == entity.UUID)
-                return 0;
-            if (entity == null)
-                return 0;
-
             // Get this agent's position
             ScenePresence presence = m_scene.GetScenePresence(client.AgentId);
             if (presence == null)
