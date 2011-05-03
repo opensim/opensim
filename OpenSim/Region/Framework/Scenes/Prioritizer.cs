@@ -158,7 +158,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private uint GetPriorityByBestAvatarResponsiveness(IClientAPI client, ISceneEntity entity)
         {
-            uint pqueue = ComputeDistancePriority(client,entity,true);
+            uint pqueue = ComputeDistancePriority(client,entity,false);
 
             ScenePresence presence = m_scene.GetScenePresence(client.AgentId);
             if (presence != null)
@@ -228,7 +228,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             for (int i = 0; i < queues - 1; i++)
             {
-                if (distance < 10 * Math.Pow(2.0,i))
+                if (distance < 30 * Math.Pow(2.0,i))
                     break;
                 pqueue++;
             }
