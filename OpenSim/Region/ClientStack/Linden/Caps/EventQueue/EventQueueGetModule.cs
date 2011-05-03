@@ -272,9 +272,9 @@ namespace OpenSim.Region.ClientStack.Linden
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
             // Register an event queue for the client
-            
+
             //m_log.DebugFormat(
-            //    "[EVENTQUEUE]: OnRegisterCaps: agentID {0} caps {1} region {2}", 
+            //    "[EVENTQUEUE]: OnRegisterCaps: agentID {0} caps {1} region {2}",
             //    agentID, caps, m_scene.RegionInfo.RegionName);
 
             // Let's instantiate a Queue for this agent right now
@@ -317,7 +317,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                                        {
                                                            return ProcessQueue(m_dhttpMethod, agentID, caps);
                                                        }));
-            
+
             // This will persist this beyond the expiry of the caps handlers
             MainServer.Instance.AddPollServiceHTTPHandler(
                 capsBase + EventQueueGetUUID.ToString() + "/", EventQueuePoll, new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents, agentID));

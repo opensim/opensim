@@ -112,8 +112,6 @@ namespace OpenSim.Region.ClientStack.Linden
         /// </summary>
         public void RegisterHandlers()
         {
-            m_HostCapsObj.DeregisterHandlers();
-
             string capsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath;
 
             RegisterRegionServiceHandlers(capsBase);
