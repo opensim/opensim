@@ -292,6 +292,20 @@
     ;; building's lights to possibly not be rendered.
     ; DisableFacelights = "false"
 
+[ClientStack.LindenCaps]
+	;; For the long list of capabilities, see OpenSimDefaults.ini
+	;; Here are the few ones you may want to change. Possible values
+	;; are:
+	;;   "" -- empty, capability disabled
+	;;   "localhost" -- capability enabled and served by the simulator
+	;;   "<url>" -- capability enabled and served by some other server
+	;;
+	; These are enabled by default to localhost. Change if you see fit.
+    Cap_GetTexture = "localhost"
+	Cap_GetMesh = "localhost"
+	; This is disabled by default. Change if you see fit. Note that
+	; serving this cap from the simulators may lead to poor performace.
+	Cap_WebFetchInventoryDescendents = ""
 
 [Chat]
     ;# {whisper_distance} {} {Distance at which a whisper is heard, in meters?} {} 10

@@ -239,6 +239,8 @@ namespace OpenSim.Region.CoreModules.Framework
                     Uri uri = new Uri(kvp2.Value.ToString());
                     caps.AppendFormat("   {0} = {1}\n", kvp2.Key, uri.PathAndQuery);
                 }
+                foreach (KeyValuePair<string, string> kvp3 in kvp.Value.ExternalCapsHandlers)
+                    caps.AppendFormat("   {0} = {1}\n", kvp3.Key, kvp3.Value);
             }
 
             MainConsole.Instance.Output(caps.ToString());
