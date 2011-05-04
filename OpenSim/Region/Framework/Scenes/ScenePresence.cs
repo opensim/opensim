@@ -2415,17 +2415,19 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 expectedPosition = lastPositionSentToAllClients + lastVelocitySentToAllClients * timeSinceLastUpdate;
 
-            float absoluteDistanceError = (float)Math.Abs(Vector3.Distance(m_pos, expectedPosition));
+            float distanceError = Vector3.Distance(OffsetPosition, expectedPosition);
 
+            float speed = Velocity.Length();
+            float velocidyDiff = Vector3.Distance(lastVelocitySentToAllClients, Velocity);
 
-            if (m_velocity.Length() < 0.01f
-                || absoluteDistanceError > 0.25f // arbitrary distance error threshold
-                || Vector3.Distance(lastVelocitySentToAllClients, m_velocity) > 0.01f)
+            if (speed < 0.01f // allow rotation updates if avatar position is unchanged
+                || Math.Abs(distanceError) > 0.25f // arbitrary distance error threshold
+                || velocidyDiff > 0.01f) // did velocity change from last update?
             {
                 m_perfMonMS = currentTick;
-                lastVelocitySentToAllClients = m_velocity;
+                lastVelocitySentToAllClients = Velocity;
                 lastTerseUpdateToAllClientsTick = currentTick;
-                lastPositionSentToAllClients = m_pos;
+                lastPositionSentToAllClients = OffsetPosition;
 
                 m_scene.ForEachClient(SendTerseUpdateToClient);
 
