@@ -1785,11 +1785,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected void ReInstantiateScripts(ScenePresence sp)
         {
+            int i = 0;
             sp.Attachments.ForEach(delegate(SceneObjectGroup sog)
             {
+                sog.SetState(sp.InTransitScriptStates[i++], sp.Scene);
                 sog.CreateScriptInstances(0, false, sp.Scene.DefaultScriptEngine, 0);
                 sog.ResumeScripts();
             });
+
+            sp.InTransitScriptStates.Clear();
         }
         #endregion
 

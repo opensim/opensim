@@ -594,9 +594,18 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     }
                 }
             }
+
+            // This is a hook to do some per-asset post-processing for subclasses that need that
+            if (remoteClient != null)
+                ExportAsset(remoteClient.AgentId, assetID);
+            
             return assetID;
         }
 
+        protected virtual void ExportAsset(UUID agentID, UUID assetID)
+        {
+            // nothing to do here
+        }
 
         /// <summary>
         /// Rez an object into the scene from the user's inventory
@@ -1025,9 +1034,5 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         }
 
         #endregion
-
-        protected virtual void ExportAsset(UUID agentID, UUID assetID)
-        {
-        }
     }
 }
