@@ -371,7 +371,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
 
             // This is a hook to do some per-asset post-processing for subclasses that need that
-            ExportAsset(remoteClient.AgentId, assetID);
+            if (remoteClient != null)
+                ExportAsset(remoteClient.AgentId, assetID);
             
             return assetID;
         }
