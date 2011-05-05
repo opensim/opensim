@@ -232,6 +232,16 @@ namespace OpenSim.Region.Framework.Scenes
         private Dictionary<ulong, string> m_knownChildRegions = new Dictionary<ulong, string>();
 
         /// <summary>
+        /// Copy of the script states while the agent is in transit. This state may
+        /// need to be placed back in case of transfer fail.
+        /// </summary>
+        public List<string> InTransitScriptStates
+        {
+            get { return m_InTransitScriptStates; }
+        }
+        private List<string> m_InTransitScriptStates = new List<string>();
+
+        /// <summary>
         /// Implemented Control Flags
         /// </summary>
         private enum Dir_ControlFlags
@@ -3142,6 +3152,7 @@ namespace OpenSim.Region.Framework.Scenes
                 cAgent.AttachmentObjects = new List<ISceneObject>();
                 cAgent.AttachmentObjectStates = new List<string>();
                 IScriptModule se = m_scene.RequestModuleInterface<IScriptModule>();
+                m_InTransitScriptStates.Clear();
                 foreach (SceneObjectGroup sog in m_attachments)
                 {
                     // We need to make a copy and pass that copy
@@ -3151,7 +3162,9 @@ namespace OpenSim.Region.Framework.Scenes
                     ((SceneObjectGroup)clone).RootPart.GroupPosition = sog.RootPart.AttachedPos;
                     ((SceneObjectGroup)clone).RootPart.IsAttachment = false;
                     cAgent.AttachmentObjects.Add(clone);
-                    cAgent.AttachmentObjectStates.Add(sog.GetStateSnapshot());
+                    string state = sog.GetStateSnapshot();
+                    cAgent.AttachmentObjectStates.Add(state);
+                    m_InTransitScriptStates.Add(state);
                     // Let's remove the scripts of the original object here
                     sog.RemoveScriptInstances(true);
                 }
