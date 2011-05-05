@@ -87,6 +87,9 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RemoveRegion(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
             m_scene = null;
         }
