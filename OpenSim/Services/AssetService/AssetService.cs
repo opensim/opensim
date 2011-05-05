@@ -26,9 +26,12 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using Nini.Config;
 using log4net;
+using NDesk.Options;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Data;
@@ -60,6 +63,13 @@ namespace OpenSim.Services.AssetService
                         "delete asset",
                         "delete asset <ID>",
                         "Delete asset from database", HandleDeleteAsset);
+                
+                MainConsole.Instance.Commands.AddCommand("kfs", false,
+                        "dump asset",
+                        "dump asset <ID>",
+                        "Dump asset to a file", 
+                        "The filename is the same as the ID given.", 
+                        HandleDumpAsset);
 
                 if (m_AssetLoader != null)
                 {
@@ -188,6 +198,39 @@ namespace OpenSim.Services.AssetService
                 m_log.DebugFormat("[ASSET SERVICE]: Request to delete asset {0}, but flags are not Maptile", id);
 
             return false;
+        }
+        
+        void HandleDumpAsset(string module, string[] args)
+        {
+            if (args.Length < 3)
+            {
+                MainConsole.Instance.Output("Usage is dump asset <ID>");
+                return;
+            }
+            
+            string rawAssetId = args[2];
+            UUID assetId;
+            
+            if (!UUID.TryParse(rawAssetId, out assetId))
+            {
+                MainConsole.Instance.OutputFormat("ERROR: {0} is not a valid ID format", rawAssetId);
+                return;
+            }
+            
+            AssetBase asset = m_Database.GetAsset(assetId);
+            if (asset == null)
+            {                
+                MainConsole.Instance.OutputFormat("ERROR: No asset found with ID {0}", assetId);
+                return;                
+            }
+            
+            using (FileStream fs = new FileStream(rawAssetId, FileMode.CreateNew))
+            {
+                using (BinaryWriter bw = new BinaryWriter(fs))
+                {
+                    bw.Write(asset.Data);
+                }
+            }         
         }
 
         void HandleShowDigest(string module, string[] args)
