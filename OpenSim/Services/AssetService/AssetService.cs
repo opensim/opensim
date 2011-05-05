@@ -31,7 +31,6 @@ using System.IO;
 using System.Reflection;
 using Nini.Config;
 using log4net;
-using NDesk.Options;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Data;
