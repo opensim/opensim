@@ -45,7 +45,7 @@ using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using OpenSim.Framework.Capabilities;
 
-namespace OpenSim.Region.CoreModules.Avatar.Assets
+namespace OpenSim.Region.ClientStack.Linden
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class NewFileAgentInventoryVariablePriceModule : INonSharedRegionModule
@@ -171,8 +171,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Assets
             UUID parentFolder = llsdRequest.folder_id;
             string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000") + "/";
 
-            Caps.AssetUploader uploader =
-                new Caps.AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
+            AssetUploader uploader =
+                new AssetUploader(assetName, assetDes, newAsset, newInvItem, parentFolder, llsdRequest.inventory_type,
                                   llsdRequest.asset_type, capsBase + uploaderPath, MainServer.Instance, m_dumpAssetsToFile);
             MainServer.Instance.AddStreamHandler(
                 new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));

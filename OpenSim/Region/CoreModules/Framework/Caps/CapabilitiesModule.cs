@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -38,8 +39,9 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Caps=OpenSim.Framework.Capabilities.Caps;
 
-namespace OpenSim.Region.CoreModules.Agent.Capabilities
+namespace OpenSim.Region.CoreModules.Framework
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class CapabilitiesModule : INonSharedRegionModule, ICapabilitiesModule
     { 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -49,7 +51,7 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
         /// <summary>
         /// Each agent has its own capabilities handler.
         /// </summary>
-        protected Dictionary<UUID, Caps> m_capsHandlers = new Dictionary<UUID, Caps>();
+        protected Dictionary<UUID, Caps> m_capsObjects = new Dictionary<UUID, Caps>();
         
         protected Dictionary<UUID, string> capsPaths = new Dictionary<UUID, string>();
         protected Dictionary<UUID, Dictionary<ulong, string>> childrenSeeds 
@@ -93,7 +95,7 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
             get { return null; }
         }
 
-        public void AddCapsHandler(UUID agentId)
+        public void CreateCaps(UUID agentId)
         {
             int flags = m_scene.GetUserFlags(agentId);
             if (m_scene.RegionInfo.EstateSettings.IsBanned(agentId, flags))
@@ -101,12 +103,12 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
 
             String capsObjectPath = GetCapsPath(agentId);
 
-            if (m_capsHandlers.ContainsKey(agentId))
+            if (m_capsObjects.ContainsKey(agentId))
             {
-                Caps oldCaps = m_capsHandlers[agentId];
+                Caps oldCaps = m_capsObjects[agentId];
                 
                 m_log.DebugFormat(
-                    "[CAPS]: Reregistering caps for agent {0}.  Old caps path {1}, new caps path {2}. ", 
+                    "[CAPS]: Recreating caps for agent {0}.  Old caps path {1}, new caps path {2}. ", 
                     agentId, oldCaps.CapsObjectPath, capsObjectPath);
                 // This should not happen. The caller code is confused. We need to fix that.
                 // CAPs can never be reregistered, or the client will be confused.
@@ -114,39 +116,29 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
                 //return;
             }
 
-            Caps caps
-                = new Caps(m_scene,
-                    m_scene.AssetService, MainServer.Instance, m_scene.RegionInfo.ExternalHostName,
+            Caps caps = new Caps(MainServer.Instance, m_scene.RegionInfo.ExternalHostName,
                     (MainServer.Instance == null) ? 0: MainServer.Instance.Port,
-                    capsObjectPath, agentId, m_scene.DumpAssetsToFile, m_scene.RegionInfo.RegionName);
+                    capsObjectPath, agentId, m_scene.RegionInfo.RegionName);
 
-            caps.RegisterHandlers();
+            m_capsObjects[agentId] = caps;
 
             m_scene.EventManager.TriggerOnRegisterCaps(agentId, caps);
-
-            caps.AddNewInventoryItem = m_scene.AddUploadedInventoryItem;
-            caps.ItemUpdatedCall = m_scene.CapsUpdateInventoryItemAsset;
-            caps.TaskScriptUpdatedCall = m_scene.CapsUpdateTaskInventoryScriptAsset;
-            caps.CAPSFetchInventoryDescendents = m_scene.HandleFetchInventoryDescendentsCAPS;
-            caps.GetClient = m_scene.SceneContents.GetControllingClient;
-
-            m_capsHandlers[agentId] = caps;
         }
 
-        public void RemoveCapsHandler(UUID agentId)
+        public void RemoveCaps(UUID agentId)
         {
             if (childrenSeeds.ContainsKey(agentId))
             {
                 childrenSeeds.Remove(agentId);
             }
 
-            lock (m_capsHandlers)
+            lock (m_capsObjects)
             {
-                if (m_capsHandlers.ContainsKey(agentId))
+                if (m_capsObjects.ContainsKey(agentId))
                 {
-                    m_capsHandlers[agentId].DeregisterHandlers();
-                    m_scene.EventManager.TriggerOnDeregisterCaps(agentId, m_capsHandlers[agentId]);
-                    m_capsHandlers.Remove(agentId);
+                    m_capsObjects[agentId].DeregisterHandlers();
+                    m_scene.EventManager.TriggerOnDeregisterCaps(agentId, m_capsObjects[agentId]);
+                    m_capsObjects.Remove(agentId);
                 }
                 else
                 {
@@ -157,20 +149,20 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
             }
         }
         
-        public Caps GetCapsHandlerForUser(UUID agentId)
+        public Caps GetCapsForUser(UUID agentId)
         {
-            lock (m_capsHandlers)
+            lock (m_capsObjects)
             {
-                if (m_capsHandlers.ContainsKey(agentId))
+                if (m_capsObjects.ContainsKey(agentId))
                 {
-                    return m_capsHandlers[agentId];
+                    return m_capsObjects[agentId];
                 }
             }
             
             return null;
         }
         
-        public void NewUserConnection(AgentCircuitData agent)
+        public void SetAgentCapsSeeds(AgentCircuitData agent)
         {
             capsPaths[agent.AgentID] = agent.CapsPath;
             childrenSeeds[agent.AgentID] 
@@ -240,7 +232,7 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
             System.Text.StringBuilder caps = new System.Text.StringBuilder();
             caps.AppendFormat("Region {0}:\n", m_scene.RegionInfo.RegionName);
 
-            foreach (KeyValuePair<UUID, Caps> kvp in m_capsHandlers)
+            foreach (KeyValuePair<UUID, Caps> kvp in m_capsObjects)
             {
                 caps.AppendFormat("** User {0}:\n", kvp.Key);
                 for (IDictionaryEnumerator kvp2 = kvp.Value.CapsHandlers.CapsDetails.GetEnumerator(); kvp2.MoveNext(); )
@@ -248,6 +240,8 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
                     Uri uri = new Uri(kvp2.Value.ToString());
                     caps.AppendFormat("   {0} = {1}\n", kvp2.Key, uri.PathAndQuery);
                 }
+                foreach (KeyValuePair<string, string> kvp3 in kvp.Value.ExternalCapsHandlers)
+                    caps.AppendFormat("   {0} = {1}\n", kvp3.Key, kvp3.Value);
             }
 
             MainConsole.Instance.Output(caps.ToString());

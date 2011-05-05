@@ -39,7 +39,6 @@ using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules.Agent.Capabilities;
 using OpenSim.Region.CoreModules.Avatar.Gods;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication;

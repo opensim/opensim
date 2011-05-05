@@ -44,7 +44,6 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Mono.Data.SqliteClient;
 
-
 using Caps = OpenSim.Framework.Capabilities.Caps;
 
 using OSD = OpenMetaverse.StructuredData.OSD;

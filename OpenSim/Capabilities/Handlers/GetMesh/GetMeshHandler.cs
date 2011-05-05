@@ -31,7 +31,6 @@ using System.Collections.Specialized;
 using System.Reflection;
 using System.IO;
 using System.Web;
-using Mono.Addins;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
@@ -39,89 +38,22 @@ using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 
-namespace OpenSim.Region.CoreModules.Avatar.Assets
+namespace OpenSim.Capabilities.Handlers
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class GetMeshModule : INonSharedRegionModule
+    public class GetMeshHandler 
     {
 //        private static readonly ILog m_log =
 //            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
-        private Scene m_scene;
         private IAssetService m_assetService;
-        private bool m_enabled = true;
 
-        #region IRegionModuleBase Members
-
-
-        public Type ReplaceableInterface
+        public GetMeshHandler(IAssetService assService)
         {
-            get { return null; }
+            m_assetService = assService;
         }
-
-        public void Initialise(IConfigSource source)
-        {
-            IConfig meshConfig = source.Configs["Mesh"];
-            if (meshConfig == null)
-                return;
-
-            m_enabled = meshConfig.GetBoolean("AllowMeshUpload", true);
-        }
-
-        public void AddRegion(Scene pScene)
-        {
-            m_scene = pScene;
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            
-            m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
-            m_scene = null;
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-            
-            m_assetService = m_scene.RequestModuleInterface<IAssetService>();
-            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
-        }
-
-        #endregion
-
-
-        #region IRegionModule Members
-
-       
-
-        public void Close() { }
-
-        public string Name { get { return "GetMeshModule"; } }
-
-
-        public void RegisterCaps(UUID agentID, Caps caps)
-        {
-            if(!m_enabled)
-                return;
-
-            UUID capID = UUID.Random();
-
-//            m_log.Info("[GETMESH]: /CAPS/" + capID);
-
-            caps.RegisterHandler("GetMesh",
-                                 new RestHTTPHandler("GET", "/CAPS/" + capID,
-                                                       delegate(Hashtable m_dhttpMethod)
-                                                       {
-                                                           return ProcessGetMesh(m_dhttpMethod, agentID, caps);
-                                                       }));
-        }
-
-        #endregion
 
         public Hashtable ProcessGetMesh(Hashtable request, UUID AgentId, Caps cap)
         {

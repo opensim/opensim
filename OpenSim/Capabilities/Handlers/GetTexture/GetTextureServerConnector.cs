@@ -25,38 +25,45 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using Nini.Config;
+using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Server.Handlers.Base;
 using OpenMetaverse;
 
-namespace OpenSim.Framework.Capabilities
+namespace OpenSim.Capabilities.Handlers
 {
-    /// <summary>
-    /// Capabilities utility methods
-    /// </summary>
-    public class CapsUtil
+    public class GetTextureServerConnector : ServiceConnector
     {
-        /// <summary>
-        /// Generate a CAPS seed path using a previously generated CAPS object path component
-        /// </summary>
-        /// <param name="capsKey"></param>
-        /// <returns></returns>
-        public static string GetCapsSeedPath(string capsObjectPath)
+        private IAssetService m_AssetService;
+        private string m_ConfigName = "CapsService";
+
+        public GetTextureServerConnector(IConfigSource config, IHttpServer server, string configName) :
+                base(config, server, configName)
         {
-            return "CAPS/" + capsObjectPath + "0000/";
+            if (configName != String.Empty)
+                m_ConfigName = configName;
+
+            IConfig serverConfig = config.Configs[m_ConfigName];
+            if (serverConfig == null)
+                throw new Exception(String.Format("No section '{0}' in config file", m_ConfigName));
+
+            string assetService = serverConfig.GetString("AssetService", String.Empty);
+
+            if (assetService == String.Empty)
+                throw new Exception("No AssetService in config file");
+
+            Object[] args = new Object[] { config };
+            m_AssetService =
+                    ServerUtils.LoadPlugin<IAssetService>(assetService, args);
+
+            if (m_AssetService == null)
+                throw new Exception(String.Format("Failed to load AssetService from {0}; config is {1}", assetService, m_ConfigName));
+
+            server.AddStreamHandler(new GetTextureHandler("/CAPS/GetTexture/" /*+ UUID.Random() */, m_AssetService));
         }
-        
-        /// <summary>
-        /// Get a random CAPS object path component that will be used as the identifying part of all future CAPS requests
-        /// </summary>
-        /// <returns></returns>
-        public static string GetRandomCapsObjectPath()
-        {
-            UUID caps = UUID.Random();
-            string capsPath = caps.ToString();
-            // I'm commenting this, rather than delete, to keep as historical record.
-            // The caps seed is now a full UUID string that gets added four more digits
-            // for producing certain CAPs URLs in OpenSim
-            //capsPath = capsPath.Remove(capsPath.Length - 4, 4);
-            return capsPath;
-        }
+
     }
 }

@@ -17,7 +17,6 @@
         <RegionModule id="PrimCountModule" type="OpenSim.Region.CoreModules.World.Land.PrimCountModule" />
         <RegionModule id="ExportSerialisationModule" type="OpenSim.Region.CoreModules.World.Serialiser.SerialiserModule" />
         <RegionModule id="ArchiverModule" type="OpenSim.Region.CoreModules.World.Archiver.ArchiverModule" />
-        <RegionModule id="CapabilitiesModule" type="OpenSim.Region.CoreModules.Agent.Capabilities.CapabilitiesModule" />
         <RegionModule id="TerrainModule" type="OpenSim.Region.CoreModules.World.Terrain.TerrainModule" />
         <RegionModule id="WorldMapModule" type="OpenSim.Region.CoreModules.World.WorldMap.WorldMapModule" />
         <RegionModule id="Warp3DImageModule" type="OpenSim.Region.CoreModules.World.Warp3DMap.Warp3DImageModule" />

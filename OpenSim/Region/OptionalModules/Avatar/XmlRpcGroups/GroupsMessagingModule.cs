@@ -34,11 +34,8 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
-using OpenSim.Region.CoreModules.Framework.EventQueue;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-
-using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
@@ -472,7 +469,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             if (queue != null)
             {
-                queue.Enqueue(EventQueueHelper.buildEvent("ChatterBoxSessionStartReply", bodyMap), remoteClient.AgentId);
+                queue.Enqueue(queue.BuildEvent("ChatterBoxSessionStartReply", bodyMap), remoteClient.AgentId);
             }
         }
 

@@ -32,7 +32,7 @@ using OpenMetaverse.Packets;
 using OpenMetaverse.StructuredData;
 using OpenMetaverse.Messages.Linden;
 
-namespace OpenSim.Region.CoreModules.Framework.EventQueue
+namespace OpenSim.Region.ClientStack.Linden
 {
     public class EventQueueHelper
     {
@@ -61,7 +61,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
 //            return result;
 //        }
 
-        public static OSD buildEvent(string eventName, OSD eventBody)
+        public static OSD BuildEvent(string eventName, OSD eventBody)
         {
             OSDMap llsdEvent = new OSDMap(2);
             llsdEvent.Add("message", new OSDString(eventName));
@@ -84,7 +84,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             OSDMap llsdBody = new OSDMap(1);
             llsdBody.Add("SimulatorInfo", arr);
 
-            return buildEvent("EnableSimulator", llsdBody);
+            return BuildEvent("EnableSimulator", llsdBody);
         }
 
         public static OSD DisableSimulator(ulong handle)
@@ -99,7 +99,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             OSDMap llsdBody = new OSDMap(0);
             //llsdBody.Add("SimulatorInfo", arr);
 
-            return buildEvent("DisableSimulator", llsdBody);
+            return BuildEvent("DisableSimulator", llsdBody);
         }
         
         public static OSD CrossRegion(ulong handle, Vector3 pos, Vector3 lookAt,
@@ -144,7 +144,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             llsdBody.Add("AgentData", agentDataArr);
             llsdBody.Add("RegionData", regionDataArr);
 
-            return buildEvent("CrossedRegion", llsdBody);
+            return BuildEvent("CrossedRegion", llsdBody);
         }
 
         public static OSD TeleportFinishEvent(
@@ -167,7 +167,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             OSDMap body = new OSDMap();
             body.Add("Info", infoArr);
 
-            return buildEvent("TeleportFinish", body);
+            return BuildEvent("TeleportFinish", body);
         }
 
         public static OSD ScriptRunningReplyEvent(UUID objectID, UUID itemID, bool running, bool mono)
@@ -184,7 +184,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             OSDMap body = new OSDMap();
             body.Add("Script", scriptArr);
             
-            return buildEvent("ScriptRunningReply", body);
+            return BuildEvent("ScriptRunningReply", body);
         }
 
         public static OSD EstablishAgentCommunication(UUID agentID, string simIpAndPort, string seedcap)
@@ -194,12 +194,12 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             body.Add("sim-ip-and-port", new OSDString(simIpAndPort));
             body.Add("seed-capability", new OSDString(seedcap));
 
-            return buildEvent("EstablishAgentCommunication", body);
+            return BuildEvent("EstablishAgentCommunication", body);
         }
 
         public static OSD KeepAliveEvent()
         {
-            return buildEvent("FAKEEVENT", new OSDMap());
+            return BuildEvent("FAKEEVENT", new OSDMap());
         }
 
         public static OSD AgentParams(UUID agentID, bool checkEstate, int godLevel, bool limitedToEstate)

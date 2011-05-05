@@ -33,6 +33,7 @@ using System.Reflection;
 using System.Threading;
 using log4net;
 using Nini.Config;
+using Mono.Addins;
 using OpenMetaverse;
 using OpenMetaverse.Messages.Linden;
 using OpenMetaverse.Packets;
@@ -45,7 +46,7 @@ using OpenSim.Region.Framework.Scenes;
 using BlockingLLSDQueue = OpenSim.Framework.BlockingQueue<OpenMetaverse.StructuredData.OSD>;
 using Caps=OpenSim.Framework.Capabilities.Caps;
 
-namespace OpenSim.Region.CoreModules.Framework.EventQueue
+namespace OpenSim.Region.ClientStack.Linden
 {
     public struct QueueItem
     {
@@ -53,6 +54,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
         public OSDMap body;
     }
 
+    //[Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class EventQueueGetModule : IEventQueue, IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -270,9 +272,9 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
             // Register an event queue for the client
-            
+
             //m_log.DebugFormat(
-            //    "[EVENTQUEUE]: OnRegisterCaps: agentID {0} caps {1} region {2}", 
+            //    "[EVENTQUEUE]: OnRegisterCaps: agentID {0} caps {1} region {2}",
             //    agentID, caps, m_scene.RegionInfo.RegionName);
 
             // Let's instantiate a Queue for this agent right now
@@ -315,7 +317,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
                                                        {
                                                            return ProcessQueue(m_dhttpMethod, agentID, caps);
                                                        }));
-            
+
             // This will persist this beyond the expiry of the caps handlers
             MainServer.Instance.AddPollServiceHTTPHandler(
                 capsBase + EventQueueGetUUID.ToString() + "/", EventQueuePoll, new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents, agentID));
@@ -520,7 +522,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
                 }
                 if (AvatarID != UUID.Zero)
                 {
-                    return ProcessQueue(request, AvatarID, m_scene.CapsModule.GetCapsHandlerForUser(AvatarID));
+                    return ProcessQueue(request, AvatarID, m_scene.CapsModule.GetCapsForUser(AvatarID));
                 }
                 else
                 {
@@ -714,6 +716,16 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
         {
             OSD item = EventQueueHelper.PlacesQuery(groupUpdate);
             Enqueue(item, avatarID);
+        }
+
+        public OSD ScriptRunningEvent(UUID objectID, UUID itemID, bool running, bool mono)
+        {
+            return EventQueueHelper.ScriptRunningReplyEvent(objectID, itemID, running, mono);
+        }
+
+        public OSD BuildEvent(string eventName, OSD eventBody)
+        {
+            return EventQueueHelper.BuildEvent(eventName, eventBody);
         }
     }
 }

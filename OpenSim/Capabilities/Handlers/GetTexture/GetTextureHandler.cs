@@ -42,39 +42,16 @@ using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 
-namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
+namespace OpenSim.Capabilities.Handlers
 {
-    #region Stream Handler
 
-    public delegate byte[] StreamHandlerCallback(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse);
-
-    public class StreamHandler : BaseStreamHandler
-    {
-        StreamHandlerCallback m_callback;
-
-        public StreamHandler(string httpMethod, string path, StreamHandlerCallback callback)
-            : base(httpMethod, path)
-        {
-            m_callback = callback;
-        }
-
-        public override byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
-        {
-            return m_callback(path, request, httpRequest, httpResponse);
-        }
-    }
-
-    #endregion Stream Handler
-
-    public class GetTextureModule : IRegionModule
+    public class GetTextureHandler : BaseStreamHandler
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private Scene m_scene;
         private IAssetService m_assetService;
 
         public const string DefaultFormat = "x-j2c";
@@ -82,43 +59,21 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
         // TODO: Change this to a config option
         const string REDIRECT_URL = null;
 
-
-        #region IRegionModule Members
-
-        public void Initialise(Scene pScene, IConfigSource pSource)
+        public GetTextureHandler(string path, IAssetService assService) :
+                base("GET", path)
         {
-            m_scene = pScene;
+            m_assetService = assService;
         }
 
-        public void PostInitialise()
+        public override byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            m_assetService = m_scene.RequestModuleInterface<IAssetService>();
-            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
-        }
-
-        public void Close() { }
-
-        public string Name { get { return "GetTextureModule"; } }
-        public bool IsSharedModule { get { return false; } }
-
-        public void RegisterCaps(UUID agentID, Caps caps)
-        {
-            UUID capID = UUID.Random();
-
-//            m_log.InfoFormat("[GETTEXTURE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
-            caps.RegisterHandler("GetTexture", new StreamHandler("GET", "/CAPS/" + capID, ProcessGetTexture));
-        }
-
-        #endregion
-
-        private byte[] ProcessGetTexture(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
-        {
-            //m_log.DebugFormat("[GETTEXTURE]: called in {0}", m_scene.RegionInfo.RegionName);
 
             // Try to parse the texture ID from the request URL
             NameValueCollection query = HttpUtility.ParseQueryString(httpRequest.Url.Query);
             string textureStr = query.GetOne("texture_id");
             string format = query.GetOne("format");
+
+            m_log.DebugFormat("[GETTEXTURE]: called {0}", textureStr);
 
             if (m_assetService == null)
             {

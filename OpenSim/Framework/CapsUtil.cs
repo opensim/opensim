@@ -25,45 +25,38 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Collections.Generic;
 using OpenMetaverse;
-using OpenSim.Framework;
-using Caps=OpenSim.Framework.Capabilities.Caps;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Framework
 {
-    public interface ICapabilitiesModule
+    /// <summary>
+    /// Capabilities utility methods
+    /// </summary>
+    public class CapsUtil
     {
         /// <summary>
-        /// Add a caps handler for the given agent.  If the CAPS handler already exists for this agent,
-        /// then it is replaced by a new CAPS handler.
+        /// Generate a CAPS seed path using a previously generated CAPS object path component
         /// </summary>
-        /// <param name="agentId"></param>
-        /// <param name="capsObjectPath"></param>
-        void CreateCaps(UUID agentId);
+        /// <param name="capsKey"></param>
+        /// <returns></returns>
+        public static string GetCapsSeedPath(string capsObjectPath)
+        {
+            return "CAPS/" + capsObjectPath + "0000/";
+        }
         
         /// <summary>
-        /// Remove the caps handler for a given agent.
+        /// Get a random CAPS object path component that will be used as the identifying part of all future CAPS requests
         /// </summary>
-        /// <param name="agentId"></param>
-        void RemoveCaps(UUID agentId);
-        
-        /// <summary>
-        /// Will return null if the agent doesn't have a caps handler registered
-        /// </summary>
-        /// <param name="agentId"></param>
-        Caps GetCapsForUser(UUID agentId);
-
-        void SetAgentCapsSeeds(AgentCircuitData agent);
-        
-        Dictionary<ulong, string> GetChildrenSeeds(UUID agentID);
-        
-        string GetChildSeed(UUID agentID, ulong handle);
-        
-        void SetChildrenSeed(UUID agentID, Dictionary<ulong, string> seeds);
-        
-        void DropChildSeed(UUID agentID, ulong handle);
-
-        string GetCapsPath(UUID agentId);
+        /// <returns></returns>
+        public static string GetRandomCapsObjectPath()
+        {
+            UUID caps = UUID.Random();
+            string capsPath = caps.ToString();
+            // I'm commenting this, rather than delete, to keep as historical record.
+            // The caps seed is now a full UUID string that gets added four more digits
+            // for producing certain CAPs URLs in OpenSim
+            //capsPath = capsPath.Remove(capsPath.Length - 4, 4);
+            return capsPath;
+        }
     }
 }
