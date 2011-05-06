@@ -775,6 +775,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_regInfo = regInfo;
             m_eventManager = new EventManager();
 
+            m_permissions = new ScenePermissions(this);
+
             m_lastUpdate = Util.EnvironmentTickCount();
         }
 
