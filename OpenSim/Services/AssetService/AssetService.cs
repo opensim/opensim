@@ -254,11 +254,11 @@ namespace OpenSim.Services.AssetService
 
             int i;
 
-            MainConsole.Instance.Output(String.Format("Name: {0}", asset.Name));
-            MainConsole.Instance.Output(String.Format("Description: {0}", asset.Description));
-            MainConsole.Instance.Output(String.Format("Type: {0} (type number = {1})", (AssetType)asset.Type, asset.Type));
-            MainConsole.Instance.Output(String.Format("Content-type: {0}", asset.Metadata.ContentType));
-            MainConsole.Instance.Output(String.Format("Flags: {0}", asset.Metadata.Flags.ToString()));
+            MainConsole.Instance.OutputFormat("Name: {0}", asset.Name);
+            MainConsole.Instance.OutputFormat("Description: {0}", asset.Description);
+            MainConsole.Instance.OutputFormat("Type: {0} (type number = {1})", (AssetType)asset.Type, asset.Type);
+            MainConsole.Instance.OutputFormat("Content-type: {0}", asset.Metadata.ContentType);
+            MainConsole.Instance.OutputFormat("Flags: {0}", asset.Metadata.Flags);
 
             for (i = 0 ; i < 5 ; i++)
             {
