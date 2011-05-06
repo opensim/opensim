@@ -2430,8 +2430,12 @@ namespace OpenSim.Region.Framework.Scenes
             float speed = Velocity.Length();
             float velocidyDiff = Vector3.Distance(lastVelocitySentToAllClients, Velocity);
 
+            // assuming 5 ms. worst case precision for timer, use 2x that 
+            // for distance error threshold
+            float distanceErrorThreshold = speed * 0.01f;
+
             if (speed < 0.01f // allow rotation updates if avatar position is unchanged
-                || Math.Abs(distanceError) > 0.25f // arbitrary distance error threshold
+                || Math.Abs(distanceError) > distanceErrorThreshold
                 || velocidyDiff > 0.01f) // did velocity change from last update?
             {
                 m_perfMonMS = currentTick;
