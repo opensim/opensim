@@ -48,7 +48,7 @@ namespace OpenSim.Data.MySQL
         private string m_connectionString;
         private long m_waitTimeout;
         private long m_waitTimeoutLeeway = 60 * TimeSpan.TicksPerSecond;
-        private long m_lastConnectionUse;
+//        private long m_lastConnectionUse;
 
         private FieldInfo[] m_Fields;
         private Dictionary<string, FieldInfo> m_FieldMap =
@@ -127,7 +127,7 @@ namespace OpenSim.Data.MySQL
                     }
                 }
 
-                m_lastConnectionUse = DateTime.Now.Ticks;
+//                m_lastConnectionUse = DateTime.Now.Ticks;
 
                 m_log.DebugFormat(
                     "[REGION DB]: Connection wait timeout {0} seconds",

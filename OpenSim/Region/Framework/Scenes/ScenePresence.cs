@@ -3151,7 +3151,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 cAgent.AttachmentObjects = new List<ISceneObject>();
                 cAgent.AttachmentObjectStates = new List<string>();
-                IScriptModule se = m_scene.RequestModuleInterface<IScriptModule>();
+//                IScriptModule se = m_scene.RequestModuleInterface<IScriptModule>();
                 m_InTransitScriptStates.Clear();
                 foreach (SceneObjectGroup sog in m_attachments)
                 {
