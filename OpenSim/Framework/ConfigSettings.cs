@@ -76,54 +76,6 @@ namespace OpenSim.Framework
             set { m_physicalPrim = value; }
         }
 
-        private bool m_standaloneAuthenticate = false;
-
-        public bool StandaloneAuthenticate
-        {
-            get { return m_standaloneAuthenticate; }
-            set { m_standaloneAuthenticate = value; }
-        }
-
-        private string m_standaloneWelcomeMessage = null;
-
-        public string StandaloneWelcomeMessage
-        {
-            get { return m_standaloneWelcomeMessage; }
-            set { m_standaloneWelcomeMessage = value; }
-        }
-
-        private string m_standaloneInventoryPlugin;
-
-        public string StandaloneInventoryPlugin
-        {
-            get { return m_standaloneInventoryPlugin; }
-            set { m_standaloneInventoryPlugin = value; }
-        }
-
-        private string m_standaloneUserPlugin;
-
-        public string StandaloneUserPlugin
-        {
-            get { return m_standaloneUserPlugin; }
-            set { m_standaloneUserPlugin = value; }
-        }
-
-        private string m_standaloneInventorySource;
-
-        public string StandaloneInventorySource
-        {
-            get { return m_standaloneInventorySource; }
-            set { m_standaloneInventorySource = value; }
-        }
-
-        private string m_standaloneUserSource;
-
-        public string StandaloneUserSource
-        {
-            get { return m_standaloneUserSource; }
-            set { m_standaloneUserSource = value; }
-        }
-
         protected string m_librariesXMLFile;
         public string LibrariesXMLFile
         {
