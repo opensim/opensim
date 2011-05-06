@@ -29,65 +29,13 @@ namespace OpenSim.Framework
 {
     public class ConfigSettings
     {
-        private string m_physicsEngine;
-
-        public string PhysicsEngine
-        {
-            get { return m_physicsEngine; }
-            set { m_physicsEngine = value; }
-        }
-        private string m_meshEngineName;
-
-        public string MeshEngineName
-        {
-            get { return m_meshEngineName; }
-            set { m_meshEngineName = value; }
-        }
-
-        private bool m_see_into_region_from_neighbor;
-
-        public bool See_into_region_from_neighbor
-        {
-            get { return m_see_into_region_from_neighbor; }
-            set { m_see_into_region_from_neighbor = value; }
-        }
-
-        private string m_storageDll;
-
-        public string StorageDll
-        {
-            get { return m_storageDll; }
-            set { m_storageDll = value; }
-        }
-
-        private string m_clientstackDll;
-
-        public string ClientstackDll
-        {
-            get { return m_clientstackDll; }
-            set { m_clientstackDll = value; }
-        }
-
-        private bool m_physicalPrim;
-
-        public bool PhysicalPrim
-        {
-            get { return m_physicalPrim; }
-            set { m_physicalPrim = value; }
-        }
-
-        protected string m_librariesXMLFile;
-        public string LibrariesXMLFile
-        {
-            get
-            {
-                return m_librariesXMLFile;
-            }
-            set
-            {
-                m_librariesXMLFile = value;
-            }
-        }
+        public string PhysicsEngine                 { get; set; }
+        public string MeshEngineName                { get; set; }
+        public bool   See_into_region_from_neighbor { get; set; }
+        public string StorageDll                    { get; set; }
+        public string ClientstackDll                { get; set; }
+        public bool   PhysicalPrim                  { get; set; }
+        public string LibrariesXMLFile              { get; set; }
 
         public const uint DefaultAssetServerHttpPort = 8003;
         public const uint DefaultRegionHttpPort = 9000;
