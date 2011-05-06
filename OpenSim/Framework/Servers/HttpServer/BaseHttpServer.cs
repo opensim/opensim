@@ -32,6 +32,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Reflection;
 using System.Globalization;
 using System.Text;
@@ -72,6 +73,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected uint m_port;
         protected uint m_sslport;
         protected bool m_ssl;
+        private X509Certificate2 m_cert;
         protected bool m_firstcaps = true;
         protected string m_SSLCommonName = "";
 
@@ -120,6 +122,14 @@ namespace OpenSim.Framework.Servers.HttpServer
             if (m_ssl)
             {
                 m_sslport = sslport;
+            }
+        }
+
+        public BaseHttpServer(uint port, bool ssl, string CPath, string CPass) : this (port, ssl)
+        {
+            if (m_ssl)
+            {
+                m_cert = new X509Certificate2(CPath, CPass);
             }
         }
 
@@ -1683,6 +1693,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             try
             {
                 //m_httpListener = new HttpListener();
+
                 NotSocketErrors = 0;
                 if (!m_ssl)
                 {
@@ -1702,6 +1713,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     //m_httpListener.Prefixes.Add("https://+:" + (m_sslport) + "/");
                     //m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
+                    m_httpListener2 = CoolHTTPListener.Create(IPAddress.Any, (int)m_port, m_cert);
+                    m_httpListener2.ExceptionThrown += httpServerException;
+                    m_httpListener2.LogWriter = httpserverlog;
                 }
 
                 m_httpListener2.RequestReceived += OnRequest;

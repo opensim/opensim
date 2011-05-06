@@ -49,6 +49,12 @@ namespace OpenSim.Framework
         public string HttpSSLCN = "";
         public uint httpSSLPort = 9001;
 
+        // "Out of band" managemnt https
+        public bool ssl_listener = false;
+        public uint https_port = 0;
+        public string cert_path = String.Empty;
+        public string cert_pass = String.Empty;
+
         public string MessagingURL = String.Empty;
 
         public NetworkServersInfo()
@@ -86,6 +92,15 @@ namespace OpenSim.Framework
             secureInventoryServer = config.Configs["Network"].GetBoolean("secure_inventory_server", true);
 
             MessagingURL = config.Configs["Network"].GetString("messaging_server_url", string.Empty);
+
+            // "Out of band management https"
+            ssl_listener = config.Configs["Network"].GetBoolean("https_listener",false);
+            if( ssl_listener)
+            {
+                cert_path = config.Configs["Network"].GetString("cert_path",String.Empty);
+                cert_pass = config.Configs["Network"].GetString("cert_pass",String.Empty);
+                https_port = (uint)config.Configs["Network"].GetInt("https_port", 0);
+            }
         }
     }
 }

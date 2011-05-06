@@ -107,11 +107,10 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
 
             scene.AddCommand(
                 this, "emergency-monitoring",
-                "Go on/off emergency monitoring mode",
+                "emergency-monitoring",
                 "Go on/off emergency monitoring mode",
                 "Go on/off emergency monitoring mode",
                 EmergencyMonitoring);                             
-
         }
         
         public void RemoveRegion(Scene scene)
