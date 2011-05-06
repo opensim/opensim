@@ -223,13 +223,17 @@ namespace OpenSim.Services.AssetService
                 return;                
             }
             
-            using (FileStream fs = new FileStream(rawAssetId, FileMode.CreateNew))
+            string fileName = rawAssetId;
+            
+            using (FileStream fs = new FileStream(fileName, FileMode.CreateNew))
             {
                 using (BinaryWriter bw = new BinaryWriter(fs))
                 {
                     bw.Write(asset.Data);
                 }
-            }         
+            }   
+            
+            MainConsole.Instance.OutputFormat("Asset dumped to file {0}", fileName);
         }
 
         void HandleShowDigest(string module, string[] args)
