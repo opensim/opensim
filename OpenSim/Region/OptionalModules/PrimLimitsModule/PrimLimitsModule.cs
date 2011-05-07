@@ -56,13 +56,23 @@ namespace OpenSim.Region.OptionalModules
     {
         protected IDialogModule m_dialogModule;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+        private bool m_enabled;
+
         public string Name { get { return "Prim Limits Module"; } }        
         
         public Type ReplaceableInterface { get { return null; } }
         
         public void Initialise(IConfigSource source)
         {
+            IConfig moduleConfig = source.Configs["PrimLimitsModule"];
+            if (moduleConfig != null)
+            {
+                this.m_enabled = moduleConfig.GetBoolean("EnforcePrimLimits", false);
+            }
+            else
+            {
+                this.m_enabled = false;
+            }
             m_log.DebugFormat("[PRIM LIMITS]: INITIALIZED MODULE");
         }
         
@@ -73,6 +83,10 @@ namespace OpenSim.Region.OptionalModules
         
         public void AddRegion(Scene scene)
         {
+            if(!m_enabled)
+            {
+                return;
+            }
             scene.Permissions.OnRezObject += CanRezObject;
             scene.Permissions.OnObjectEntry += CanObjectEnter;
             scene.Permissions.OnDuplicateObject += CanDuplicateObject;
@@ -81,6 +95,10 @@ namespace OpenSim.Region.OptionalModules
         
         public void RemoveRegion(Scene scene)
         {
+            if(m_enabled)
+            {
+                return;
+            }
             scene.Permissions.OnRezObject -= CanRezObject;
             scene.Permissions.OnObjectEntry -= CanObjectEnter;
             scene.Permissions.OnDuplicateObject -= CanDuplicateObject;
