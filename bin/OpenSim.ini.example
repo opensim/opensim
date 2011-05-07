@@ -736,6 +736,10 @@
     ;; Enable media on a prim facilities
     ; Enabled = true;
 
+[PrimLimitsModule]
+    ;# {EnforcePrimLimits} {} {Enforce parcel prim limits} {true false} false
+    ;; Enable parcel prim limits.  Off by default to emulate pre-existing behavior.
+    ; EnforcePrimLimits = false
 
 [Architecture]
     ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini config-include/SimianGrid.ini config-include/HyperSimianGrid.ini} config-include/Standalone.ini
