@@ -38,21 +38,13 @@ using OpenSim.Region.Framework.Scenes;
 namespace OpenSim.Region.OptionalModules
 {
     /// <summary>
-    /// Simplest possible example of a non-shared region module.
+    /// Enables Prim limits for parcel.
     /// </summary>
     /// <remarks>
-    /// This module is the simplest possible example of a non-shared region module (a module where each scene/region
-    /// in the simulator has its own copy).  If anybody wants to create a more complex example in the future then 
-    /// please create a separate class.
-    /// 
-    /// This module is not active by default.  If you want to see it in action, 
-    /// then just uncomment the line below starting with [Extension(Path...
-    /// 
-    /// When the module is enabled it will print messages when it receives certain events to the screen and the log
-    /// file.
+    /// This module selectivly enables parcel prim limits.
     /// </remarks>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "PrimLimitsModule")]
-    public class BareBonesNonSharedModule : INonSharedRegionModule
+    public class PrimLimitsModule : INonSharedRegionModule
     {
         protected IDialogModule m_dialogModule;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
