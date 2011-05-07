@@ -70,14 +70,14 @@ namespace OpenSim.Region.CoreModules.World.Region
                     false, "region restart bluebox",
                     "region restart bluebox <message> <delta seconds>+",
                     "Schedule a region restart", 
-                    "Schedule a region restart after a given number of seconds.  If one delta is given then the region is restarted in delta seconds time.  A time to restart is sent to users in the region as a transient notice.  If multiple deltas are given then a notice is sent when we reach each delta.",
+                    "Schedule a region restart after a given number of seconds.  If one delta is given then the region is restarted in delta seconds time.  A time to restart is sent to users in the region as a dismissable bluebox notice.  If multiple deltas are given then a notice is sent when we reach each delta.",
                     HandleRegionRestart);
             
             MainConsole.Instance.Commands.AddCommand("RestartModule",
                     false, "region restart notice",
                     "region restart notice <message> <delta seconds>+",
                     "Schedule a region restart", 
-                    "Schedule a region restart after a given number of seconds.  If one delta is given then the region is restarted in delta seconds time.  A time to restart is sent to users in the region as a dismissable bluebox notice.  If multiple deltas are given then a notice is sent when we reach each delta.",
+                    "Schedule a region restart after a given number of seconds.  If one delta is given then the region is restarted in delta seconds time.  A time to restart is sent to users in the region as a transient notice.  If multiple deltas are given then a notice is sent when we reach each delta.",
                     HandleRegionRestart);
             
             MainConsole.Instance.Commands.AddCommand("RestartModule",
