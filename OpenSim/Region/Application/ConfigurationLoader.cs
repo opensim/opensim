@@ -372,20 +372,6 @@ namespace OpenSim
                     = startupConfig.GetString("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
             }
 
-            IConfig standaloneConfig = m_config.Source.Configs["StandAlone"];
-            if (standaloneConfig != null)
-            {
-                m_configSettings.StandaloneAuthenticate = standaloneConfig.GetBoolean("accounts_authenticate", true);
-                m_configSettings.StandaloneWelcomeMessage = standaloneConfig.GetString("welcome_message");
-
-                m_configSettings.StandaloneInventoryPlugin = standaloneConfig.GetString("inventory_plugin");
-                m_configSettings.StandaloneInventorySource = standaloneConfig.GetString("inventory_source");
-                m_configSettings.StandaloneUserPlugin = standaloneConfig.GetString("userDatabase_plugin");
-                m_configSettings.StandaloneUserSource = standaloneConfig.GetString("user_source");
-
-                m_configSettings.LibrariesXMLFile = standaloneConfig.GetString("LibrariesXMLFile");
-            }
-
             m_networkServersInfo.loadFromConfiguration(m_config.Source);
         }
     }

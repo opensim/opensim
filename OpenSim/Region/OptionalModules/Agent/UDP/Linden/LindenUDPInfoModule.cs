@@ -107,11 +107,10 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
 
             scene.AddCommand(
                 this, "emergency-monitoring",
-                "Go on/off emergency monitoring mode",
+                "emergency-monitoring",
                 "Go on/off emergency monitoring mode",
                 "Go on/off emergency monitoring mode",
                 EmergencyMonitoring);                             
-
         }
         
         public void RemoveRegion(Scene scene)
@@ -190,7 +189,7 @@ namespace OpenSim.Region.CoreModules.UDP.Linden
             int maxNameLength = 18;                                    
             int maxRegionNameLength = 14;
             int maxTypeLength = 4;
-            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;                        
+//            int totalInfoFieldsLength = maxNameLength + columnPadding + maxRegionNameLength + columnPadding + maxTypeLength + columnPadding;                        
                                     
             report.Append(GetColumnEntry("User", maxNameLength, columnPadding));
             report.Append(GetColumnEntry("Region", maxRegionNameLength, columnPadding));

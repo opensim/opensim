@@ -43,7 +43,7 @@ namespace OpenSim.Data.MySQL
     public class MySQLPresenceData : MySQLGenericTableHandler<PresenceData>,
             IPresenceData
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public MySQLPresenceData(string connectionString, string realm) :
                 base(connectionString, realm, "Presence")

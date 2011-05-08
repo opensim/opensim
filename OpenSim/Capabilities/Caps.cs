@@ -50,8 +50,8 @@ namespace OpenSim.Framework.Capabilities
 
     public class Caps
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_httpListenerHostName;
         private uint m_httpListenPort;

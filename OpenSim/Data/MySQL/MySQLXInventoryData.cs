@@ -189,7 +189,7 @@ namespace OpenSim.Data.MySQL
                     {
                         cmd.ExecuteNonQuery();
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         return false;
                     }

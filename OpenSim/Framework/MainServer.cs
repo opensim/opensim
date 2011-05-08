@@ -52,6 +52,11 @@ namespace OpenSim.Framework
             return GetHttpServer(port,null);
         }
 
+        public static void AddHttpServer(BaseHttpServer server)
+        {
+            m_Servers.Add(server.Port, server);
+        }
+
         public static IHttpServer GetHttpServer(uint port, IPAddress ipaddr)
         {
             if (port == 0)

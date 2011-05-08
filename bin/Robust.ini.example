@@ -21,6 +21,27 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [Network]
     port = 8003
 
+
+    ; HTTPS for "Out of band" management applications such as the remote admin
+    ; module. May specify https_main = True to make the main http server
+    ; use https or "False" to make the main server HTTP
+    ; https_main = False
+    ;
+    ; Create https_listener = "True" will create a listener on the port
+    ; specified. Provide the path to your server certificate along with it's
+    ; password
+    ; https_listener = False
+    ;
+    ; Set our listener to this port
+    ; https_port = 0
+    ;
+    ; Path to X509 certificate
+    ; cert_path = "path/to/cert.p12"
+    ;
+    ; Password for cert
+    ; cert_pass = "password"
+
+
 ; * The following are for the remote console
 ; * They have no effect for the local or basic console types
 ; * Leave commented to diable logins to the console

@@ -33,7 +33,7 @@ using System.Reflection;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using log4net;
+
 #if CSharpSqlite
     using Community.CsharpSqlite.Sqlite;
 #else
@@ -49,7 +49,6 @@ namespace OpenSim.Data.SQLite
         private string m_Realm;
         private List<string> m_ColumnNames;
         private int m_LastExpire;
-        private string m_connectionString;
 
         protected static SqliteConnection m_Connection;
         private static bool m_initialized = false;
@@ -58,7 +57,6 @@ namespace OpenSim.Data.SQLite
                 : base(connectionString)
         {
             m_Realm = realm;
-            m_connectionString = connectionString;
 
             if (!m_initialized)
             {
