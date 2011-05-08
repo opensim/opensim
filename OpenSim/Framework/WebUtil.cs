@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Security;
 using System.Reflection;
@@ -142,20 +143,25 @@ namespace OpenSim.Framework
         /// </summary>
         public static OSDMap PutToService(string url, OSDMap data, int timeout)
         {
-            return ServiceOSDRequest(url,data, "PUT", timeout);
+            return ServiceOSDRequest(url,data, "PUT", timeout, false);
         }
 
         public static OSDMap PostToService(string url, OSDMap data, int timeout)
         {
-            return ServiceOSDRequest(url, data, "POST", timeout);
+            return ServiceOSDRequest(url, data, "POST", timeout, false);
+        }
+
+        public static OSDMap PostToServiceCompressed(string url, OSDMap data, int timeout)
+        {
+            return ServiceOSDRequest(url, data, "POST", timeout, true);
         }
 
         public static OSDMap GetFromService(string url, int timeout)
         {
-            return ServiceOSDRequest(url, null, "GET", timeout);
+            return ServiceOSDRequest(url, null, "GET", timeout, false);
         }
         
-        public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout)
+        public static OSDMap ServiceOSDRequest(string url, OSDMap data, string method, int timeout, bool compressed)
         {
             int reqnum = m_requestNumber++;
             // m_log.DebugFormat("[WEB UTIL]: <{0}> start osd request for {1}, method {2}",reqnum,url,method);
@@ -180,10 +186,31 @@ namespace OpenSim.Framework
                     string strBuffer =  OSDParser.SerializeJsonString(data);
                     byte[] buffer = System.Text.Encoding.UTF8.GetBytes(strBuffer);
 
-                    request.ContentType = "application/json";
-                    request.ContentLength = buffer.Length;   //Count bytes to send
-                    using (Stream requestStream = request.GetRequestStream())
-                            requestStream.Write(buffer, 0, buffer.Length);         //Send it
+                    if (compressed)
+                    {
+                        request.ContentType = "application/x-gzip";
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            using (GZipStream comp = new GZipStream(ms, CompressionMode.Compress))
+                            {
+                                comp.Write(buffer, 0, buffer.Length);
+                                comp.Flush();
+
+                                ms.Seek(0, SeekOrigin.Begin);
+
+                                request.ContentLength = ms.Length;   //Count bytes to send
+                                using (Stream requestStream = request.GetRequestStream())
+                                        requestStream.Write(ms.ToArray(), 0, (int)ms.Length);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        request.ContentType = "application/json";
+                        request.ContentLength = buffer.Length;   //Count bytes to send
+                        using (Stream requestStream = request.GetRequestStream())
+                                requestStream.Write(buffer, 0, buffer.Length);         //Send it
+                    }
                 }
                 
                 // capture how much time was spent writing, this may seem silly

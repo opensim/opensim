@@ -329,6 +329,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 // Let's create an agent there if one doesn't exist yet. 
                 bool logout = false;
+                sp.ControllingClient.SendTeleportProgress(teleportFlags | (uint)TeleportFlags.DisableCancel, "Creating agent...");
                 if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, out reason, out logout))
                 {
                     sp.ControllingClient.SendTeleportFailed(String.Format("Destination refused: {0}",
