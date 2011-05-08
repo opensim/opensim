@@ -43,30 +43,15 @@ namespace OpenSim.Server.Handlers.Simulation
         public SimulationServiceInConnector(IConfigSource config, IHttpServer server, IScene scene) :
                 base(config, server, String.Empty)
         {
-            //IConfig serverConfig = config.Configs["SimulationService"];
-            //if (serverConfig == null)
-            //    throw new Exception("No section 'SimulationService' in config file");
-
-            //string simService = serverConfig.GetString("LocalServiceModule",
-            //        String.Empty);
-
-            //if (simService == String.Empty)
-            //    throw new Exception("No SimulationService in config file");
-
-            //Object[] args = new Object[] { config };
             m_LocalSimulationService = scene.RequestModuleInterface<ISimulationService>();
             m_LocalSimulationService = m_LocalSimulationService.GetInnerService();
-                    //ServerUtils.LoadPlugin<ISimulationService>(simService, args);
 
-            //System.Console.WriteLine("XXXXXXXXXXXXXXXXXXX m_AssetSetvice == null? " + ((m_AssetService == null) ? "yes" : "no"));
-            //server.AddStreamHandler(new AgentGetHandler(m_SimulationService, m_AuthenticationService));
-            //server.AddStreamHandler(new AgentPostHandler(m_SimulationService, m_AuthenticationService));
-            //server.AddStreamHandler(new AgentPutHandler(m_SimulationService, m_AuthenticationService));
-            //server.AddStreamHandler(new AgentDeleteHandler(m_SimulationService, m_AuthenticationService));
+            // This one MUST be a stream handler because compressed fatpacks
+            // are pure binary and shoehorning that into a string with UTF-8
+            // encoding breaks it
+            server.AddStreamHandler(new AgentPostHandler(m_LocalSimulationService));
             server.AddHTTPHandler("/agent/", new AgentHandler(m_LocalSimulationService).Handler);
             server.AddHTTPHandler("/object/", new ObjectHandler(m_LocalSimulationService).Handler);
-
-            //server.AddStreamHandler(new ObjectPostHandler(m_SimulationService, authentication));
         }
     }
 }

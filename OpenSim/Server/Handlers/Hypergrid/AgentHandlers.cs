@@ -49,13 +49,13 @@ using log4net;
 
 namespace OpenSim.Server.Handlers.Hypergrid
 {
-    public class GatekeeperAgentHandler : OpenSim.Server.Handlers.Simulation.AgentHandler
+    public class GatekeeperAgentHandler : OpenSim.Server.Handlers.Simulation.AgentPostHandler
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private IGatekeeperService m_GatekeeperService;
 
-        public GatekeeperAgentHandler(IGatekeeperService gatekeeper, bool proxy)
+        public GatekeeperAgentHandler(IGatekeeperService gatekeeper, bool proxy) : base("/foreignagent")
         {
             m_GatekeeperService = gatekeeper;
             m_Proxy = proxy;
@@ -65,7 +65,5 @@ namespace OpenSim.Server.Handlers.Hypergrid
         {
             return m_GatekeeperService.LoginAgent(aCircuit, destination, out reason);
         }
-
     }
-
 }
