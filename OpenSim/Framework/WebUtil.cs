@@ -836,7 +836,7 @@ namespace OpenSim.Framework
             {
                 if ((verb == "POST") || (verb == "PUT"))
                 {
-                    request.ContentType = "text/www-form-urlencoded";
+                    request.ContentType = "application/x-www-form-urlencoded";
 
                     int length = 0;
                     using (StreamWriter writer = new StreamWriter(buffer))
