@@ -216,7 +216,12 @@ namespace OpenSim.Services.Connectors.Simulation
                 args["destination_name"] = OSD.FromString(destination.RegionName);
                 args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
 
-                OSDMap result = WebUtil.PutToService(uri, args, timeout);
+                OSDMap result = WebUtil.PutToServiceCompressed(uri, args, timeout);
+                if (result["Success"].AsBoolean())
+                    return true;
+
+                result = WebUtil.PutToService(uri, args, timeout);
+
                 return result["Success"].AsBoolean();
             }
             catch (Exception e)

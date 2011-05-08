@@ -90,12 +90,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
             // Next, let's parse the verb
             string method = (string)request["http-method"];
-            if (method.Equals("PUT"))
-            {
-                DoAgentPut(request, responsedata);
-                return responsedata;
-            }
-            else if (method.Equals("GET"))
+            if (method.Equals("GET"))
             {
                 DoAgentGet(request, responsedata, agentID, regionID);
                 return responsedata;
@@ -124,94 +119,6 @@ namespace OpenSim.Server.Handlers.Simulation
                 return responsedata;
             }
 
-        }
-
-        protected void DoAgentPut(Hashtable request, Hashtable responsedata)
-        {
-            OSDMap args = Utils.GetOSDMap((string)request["body"]);
-            if (args == null)
-            {
-                responsedata["int_response_code"] = HttpStatusCode.BadRequest;
-                responsedata["str_response_string"] = "Bad request";
-                return;
-            }
-
-            // retrieve the input arguments
-            int x = 0, y = 0;
-            UUID uuid = UUID.Zero;
-            string regionname = string.Empty;
-            if (args.ContainsKey("destination_x") && args["destination_x"] != null)
-                Int32.TryParse(args["destination_x"].AsString(), out x);
-            if (args.ContainsKey("destination_y") && args["destination_y"] != null)
-                Int32.TryParse(args["destination_y"].AsString(), out y);
-            if (args.ContainsKey("destination_uuid") && args["destination_uuid"] != null)
-                UUID.TryParse(args["destination_uuid"].AsString(), out uuid);
-            if (args.ContainsKey("destination_name") && args["destination_name"] != null)
-                regionname = args["destination_name"].ToString();
-
-            GridRegion destination = new GridRegion();
-            destination.RegionID = uuid;
-            destination.RegionLocX = x;
-            destination.RegionLocY = y;
-            destination.RegionName = regionname;
-
-            string messageType;
-            if (args["message_type"] != null)
-                messageType = args["message_type"].AsString();
-            else
-            {
-                m_log.Warn("[AGENT HANDLER]: Agent Put Message Type not found. ");
-                messageType = "AgentData";
-            }
-
-            bool result = true;
-            if ("AgentData".Equals(messageType))
-            {
-                AgentData agent = new AgentData();
-                try
-                {
-                    agent.Unpack(args, m_SimulationService.GetScene(destination.RegionHandle));
-                }
-                catch (Exception ex)
-                {
-                    m_log.InfoFormat("[AGENT HANDLER]: exception on unpacking ChildAgentUpdate message {0}", ex.Message);
-                    responsedata["int_response_code"] = HttpStatusCode.BadRequest;
-                    responsedata["str_response_string"] = "Bad request";
-                    return;
-                }
-
-                //agent.Dump();
-                // This is one of the meanings of PUT agent
-                result = UpdateAgent(destination, agent);
-
-            }
-            else if ("AgentPosition".Equals(messageType))
-            {
-                AgentPosition agent = new AgentPosition();
-                try
-                {
-                    agent.Unpack(args, m_SimulationService.GetScene(destination.RegionHandle));
-                }
-                catch (Exception ex)
-                {
-                    m_log.InfoFormat("[AGENT HANDLER]: exception on unpacking ChildAgentUpdate message {0}", ex.Message);
-                    return;
-                }
-                //agent.Dump();
-                // This is one of the meanings of PUT agent
-                result = m_SimulationService.UpdateAgent(destination, agent);
-
-            }
-
-            responsedata["int_response_code"] = HttpStatusCode.OK;
-            responsedata["str_response_string"] = result.ToString();
-            //responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp); ??? instead
-        }
-
-        // subclasses can override this
-        protected virtual bool UpdateAgent(GridRegion destination, AgentData agent)
-        {
-            return m_SimulationService.UpdateAgent(destination, agent);
         }
 
         protected virtual void DoQueryAccess(Hashtable request, Hashtable responsedata, UUID id, UUID regionID)
@@ -529,6 +436,175 @@ namespace OpenSim.Server.Handlers.Simulation
         protected virtual bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint teleportFlags, out string reason)
         {
             return m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
+        }
+    }
+
+    public class AgentPutHandler : BaseStreamHandler
+    {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private ISimulationService m_SimulationService;
+        protected bool m_Proxy = false;
+
+        public AgentPutHandler(ISimulationService service) :
+                base("PUT", "/agent")
+        {
+            m_SimulationService = service;
+        }
+
+        public AgentPutHandler(string path) :
+                base("PUT", path)
+        {
+            m_SimulationService = null;
+        }
+
+        public override byte[] Handle(string path, Stream request,
+                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        {
+            m_log.DebugFormat("[SIMULATION]: Stream handler called");
+
+            Hashtable keysvals = new Hashtable();
+            Hashtable headervals = new Hashtable();
+
+            string[] querystringkeys = httpRequest.QueryString.AllKeys;
+            string[] rHeaders = httpRequest.Headers.AllKeys;
+
+            keysvals.Add("uri", httpRequest.RawUrl);
+            keysvals.Add("content-type", httpRequest.ContentType);
+            keysvals.Add("http-method", httpRequest.HttpMethod);
+
+            foreach (string queryname in querystringkeys)
+                keysvals.Add(queryname, httpRequest.QueryString[queryname]);
+
+            foreach (string headername in rHeaders)
+                headervals[headername] = httpRequest.Headers[headername];
+
+            keysvals.Add("headers", headervals);
+            keysvals.Add("querystringkeys", querystringkeys);
+
+            Stream inputStream;
+            if (httpRequest.ContentType == "application/x-gzip")
+                inputStream = new GZipStream(request, CompressionMode.Decompress);
+            else
+                inputStream = request;
+
+            Encoding encoding = Encoding.UTF8;
+            StreamReader reader = new StreamReader(inputStream, encoding);
+
+            string requestBody = reader.ReadToEnd();
+            keysvals.Add("body", requestBody);
+
+            httpResponse.StatusCode = 200;
+            httpResponse.ContentType = "text/html";
+            httpResponse.KeepAlive = false;
+
+            Hashtable responsedata = new Hashtable();
+
+            UUID agentID;
+            UUID regionID;
+            string action;
+
+            if (!Utils.GetParams((string)keysvals["uri"], out agentID, out regionID, out action))
+            {
+                m_log.InfoFormat("[AGENT HANDLER]: Invalid parameters for agent message {0}", keysvals["uri"]);
+
+                httpResponse.StatusCode = 404;
+
+                return encoding.GetBytes("false");
+            }
+
+            DoAgentPut(keysvals, responsedata);
+
+            httpResponse.StatusCode = (int)responsedata["int_response_code"];
+            return encoding.GetBytes((string)responsedata["str_response_string"]);
+        }
+
+        protected void DoAgentPut(Hashtable request, Hashtable responsedata)
+        {
+            OSDMap args = Utils.GetOSDMap((string)request["body"]);
+            if (args == null)
+            {
+                responsedata["int_response_code"] = HttpStatusCode.BadRequest;
+                responsedata["str_response_string"] = "Bad request";
+                return;
+            }
+
+            // retrieve the input arguments
+            int x = 0, y = 0;
+            UUID uuid = UUID.Zero;
+            string regionname = string.Empty;
+            if (args.ContainsKey("destination_x") && args["destination_x"] != null)
+                Int32.TryParse(args["destination_x"].AsString(), out x);
+            if (args.ContainsKey("destination_y") && args["destination_y"] != null)
+                Int32.TryParse(args["destination_y"].AsString(), out y);
+            if (args.ContainsKey("destination_uuid") && args["destination_uuid"] != null)
+                UUID.TryParse(args["destination_uuid"].AsString(), out uuid);
+            if (args.ContainsKey("destination_name") && args["destination_name"] != null)
+                regionname = args["destination_name"].ToString();
+
+            GridRegion destination = new GridRegion();
+            destination.RegionID = uuid;
+            destination.RegionLocX = x;
+            destination.RegionLocY = y;
+            destination.RegionName = regionname;
+
+            string messageType;
+            if (args["message_type"] != null)
+                messageType = args["message_type"].AsString();
+            else
+            {
+                m_log.Warn("[AGENT HANDLER]: Agent Put Message Type not found. ");
+                messageType = "AgentData";
+            }
+
+            bool result = true;
+            if ("AgentData".Equals(messageType))
+            {
+                AgentData agent = new AgentData();
+                try
+                {
+                    agent.Unpack(args, m_SimulationService.GetScene(destination.RegionHandle));
+                }
+                catch (Exception ex)
+                {
+                    m_log.InfoFormat("[AGENT HANDLER]: exception on unpacking ChildAgentUpdate message {0}", ex.Message);
+                    responsedata["int_response_code"] = HttpStatusCode.BadRequest;
+                    responsedata["str_response_string"] = "Bad request";
+                    return;
+                }
+
+                //agent.Dump();
+                // This is one of the meanings of PUT agent
+                result = UpdateAgent(destination, agent);
+
+            }
+            else if ("AgentPosition".Equals(messageType))
+            {
+                AgentPosition agent = new AgentPosition();
+                try
+                {
+                    agent.Unpack(args, m_SimulationService.GetScene(destination.RegionHandle));
+                }
+                catch (Exception ex)
+                {
+                    m_log.InfoFormat("[AGENT HANDLER]: exception on unpacking ChildAgentUpdate message {0}", ex.Message);
+                    return;
+                }
+                //agent.Dump();
+                // This is one of the meanings of PUT agent
+                result = m_SimulationService.UpdateAgent(destination, agent);
+
+            }
+
+            responsedata["int_response_code"] = HttpStatusCode.OK;
+            responsedata["str_response_string"] = result.ToString();
+            //responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp); ??? instead
+        }
+
+        // subclasses can override this
+        protected virtual bool UpdateAgent(GridRegion destination, AgentData agent)
+        {
+            return m_SimulationService.UpdateAgent(destination, agent);
         }
     }
 }
