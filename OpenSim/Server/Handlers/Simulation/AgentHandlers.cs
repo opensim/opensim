@@ -90,7 +90,6 @@ namespace OpenSim.Server.Handlers.Simulation
 
             // Next, let's parse the verb
             string method = (string)request["http-method"];
-            m_log.DebugFormat("[SIMULATION]: Got verb {0} in HTTP handler", method);
             if (method.Equals("PUT"))
             {
                 DoAgentPut(request, responsedata);
