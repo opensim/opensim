@@ -451,6 +451,9 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (m_scene.Permissions.IsAdministrator(avatar))
                 return false;
 
+            if (m_scene.RegionInfo.EstateSettings.IsEstateManager(avatar))
+                return false;
+
             if ((LandData.Flags & (uint) ParcelFlags.UseBanList) > 0)
             {
                 if (LandData.ParcelAccessList.FindIndex(
@@ -470,6 +473,9 @@ namespace OpenSim.Region.CoreModules.World.Land
         public bool IsRestrictedFromLand(UUID avatar)
         {
             if (m_scene.Permissions.IsAdministrator(avatar))
+                return false;
+
+            if (m_scene.RegionInfo.EstateSettings.IsEstateManager(avatar))
                 return false;
 
             if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) > 0)
