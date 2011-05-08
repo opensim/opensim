@@ -73,7 +73,7 @@ namespace OpenSim.Capabilities.Handlers
             string textureStr = query.GetOne("texture_id");
             string format = query.GetOne("format");
 
-            m_log.DebugFormat("[GETTEXTURE]: called {0}", textureStr);
+            //m_log.DebugFormat("[GETTEXTURE]: called {0}", textureStr);
 
             if (m_assetService == null)
             {
