@@ -50,6 +50,7 @@ namespace OpenSim.Server.Handlers.Simulation
             // are pure binary and shoehorning that into a string with UTF-8
             // encoding breaks it
             server.AddStreamHandler(new AgentPostHandler(m_LocalSimulationService));
+            server.AddStreamHandler(new AgentPutHandler(m_LocalSimulationService));
             server.AddHTTPHandler("/agent/", new AgentHandler(m_LocalSimulationService).Handler);
             server.AddHTTPHandler("/object/", new ObjectHandler(m_LocalSimulationService).Handler);
         }
