@@ -97,22 +97,95 @@ namespace OpenSim.Server.Base
 
             if (port == 0)
             {
-                System.Console.WriteLine("Port number not specified or 0, server can't start");
+
                 Thread.CurrentThread.Abort();
             }
+            //
+            bool ssl_main = networkConfig.GetBoolean("https_main",false);
+            bool ssl_listener = networkConfig.GetBoolean("https_listener",false);
 
             m_consolePort = (uint)networkConfig.GetInt("ConsolePort", 0);
             m_Port = port;
+            //
+            // This is where to make the servers:
+            //
+            //
+            // Make the base server according to the port, etc.
+            // ADD: Possibility to make main server ssl
+            // Then, check for https settings and ADD a server to
+            // m_Servers
+            //
+            if ( !ssl_main )
+            {
+                m_HttpServer = new BaseHttpServer(port);
 
-            m_HttpServer = new BaseHttpServer(port);
+            }
+            else
+            {
+                string cert_path = networkConfig.GetString("cert_path",String.Empty);
+                if ( cert_path == String.Empty )
+                {
+                    System.Console.WriteLine("Path to X509 certificate is missing, server can't start.");
+                    Thread.CurrentThread.Abort();
+                }
+                string cert_pass = networkConfig.GetString("cert_pass",String.Empty);
+                if ( cert_pass == String.Empty )
+                {
+                    System.Console.WriteLine("Password for X509 certificate is missing, server can't start.");
+                    Thread.CurrentThread.Abort();
+                }
+                m_HttpServer = new BaseHttpServer(port, ssl_main, cert_path, cert_pass);
+            }
 
             MainServer.Instance = m_HttpServer;
+
+            // If https_listener = true, then add an ssl listener on the https_port...
+            if ( ssl_listener == true ) {
+
+                uint https_port = (uint)networkConfig.GetInt("https_port", 0);
+
+                string cert_path = networkConfig.GetString("cert_path",String.Empty);
+                if ( cert_path == String.Empty )
+                {
+                    System.Console.WriteLine("Path to X509 certificate is missing, server can't start.");
+                    Thread.CurrentThread.Abort();
+                }
+                string cert_pass = networkConfig.GetString("cert_pass",String.Empty);
+                if ( cert_pass == String.Empty )
+                {
+                    System.Console.WriteLine("Password for X509 certificate is missing, server can't start.");
+                    Thread.CurrentThread.Abort();
+                }
+                // Add our https_server
+                BaseHttpServer server = null;
+                server = new BaseHttpServer(https_port, ssl_listener, cert_path, cert_pass);
+                if (server != null)
+                {
+                    m_Log.InfoFormat("[SERVER]: Starting HTTPS server on port {0}", https_port);
+                    m_Servers.Add(https_port,server);
+                }
+                else
+                    System.Console.WriteLine(String.Format("Failed to start HTTPS server on port {0}",https_port));
+            }
         }
 
         protected override void Initialise()
         {
             m_Log.InfoFormat("[SERVER]: Starting HTTP server on port {0}", m_HttpServer.Port);
             m_HttpServer.Start();
+
+            if (m_Servers.Count > 0)
+            {
+                foreach (BaseHttpServer s in m_Servers.Values)
+                {
+                    if (!s.UseSSL)
+                        m_Log.InfoFormat("[SERVER]: Starting HTTP server on port {0}", s.Port);
+                    else
+                        m_Log.InfoFormat("[SERVER]: Starting HTTPS server on port {0}", s.Port);
+
+                    s.Start();
+                }
+            }
 
             if (MainConsole.Instance is RemoteConsole)
             {

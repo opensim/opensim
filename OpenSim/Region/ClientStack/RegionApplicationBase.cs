@@ -96,6 +96,22 @@ namespace OpenSim.Region.ClientStack
 
             MainServer.Instance = m_httpServer;
 
+            // "OOB" Server
+            if (m_networkServersInfo.ssl_listener)
+            {
+                BaseHttpServer server = null;
+                server = new BaseHttpServer(
+                    m_networkServersInfo.https_port, m_networkServersInfo.ssl_listener, m_networkServersInfo.cert_path,
+                    m_networkServersInfo.cert_pass);
+                // Add the server to m_Servers
+                if(server != null)
+                {
+                    m_log.InfoFormat("[REGION SERVER]: Starting HTTPS server on port {0}", server.Port);
+                    MainServer.AddHttpServer(server);
+                    server.Start();
+                }
+            }
+
             base.StartupSpecific();
         }
 

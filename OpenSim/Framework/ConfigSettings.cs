@@ -29,113 +29,13 @@ namespace OpenSim.Framework
 {
     public class ConfigSettings
     {
-        private string m_physicsEngine;
-
-        public string PhysicsEngine
-        {
-            get { return m_physicsEngine; }
-            set { m_physicsEngine = value; }
-        }
-        private string m_meshEngineName;
-
-        public string MeshEngineName
-        {
-            get { return m_meshEngineName; }
-            set { m_meshEngineName = value; }
-        }
-
-        private bool m_see_into_region_from_neighbor;
-
-        public bool See_into_region_from_neighbor
-        {
-            get { return m_see_into_region_from_neighbor; }
-            set { m_see_into_region_from_neighbor = value; }
-        }
-
-        private string m_storageDll;
-
-        public string StorageDll
-        {
-            get { return m_storageDll; }
-            set { m_storageDll = value; }
-        }
-
-        private string m_clientstackDll;
-
-        public string ClientstackDll
-        {
-            get { return m_clientstackDll; }
-            set { m_clientstackDll = value; }
-        }
-
-        private bool m_physicalPrim;
-
-        public bool PhysicalPrim
-        {
-            get { return m_physicalPrim; }
-            set { m_physicalPrim = value; }
-        }
-
-        private bool m_standaloneAuthenticate = false;
-
-        public bool StandaloneAuthenticate
-        {
-            get { return m_standaloneAuthenticate; }
-            set { m_standaloneAuthenticate = value; }
-        }
-
-        private string m_standaloneWelcomeMessage = null;
-
-        public string StandaloneWelcomeMessage
-        {
-            get { return m_standaloneWelcomeMessage; }
-            set { m_standaloneWelcomeMessage = value; }
-        }
-
-        private string m_standaloneInventoryPlugin;
-
-        public string StandaloneInventoryPlugin
-        {
-            get { return m_standaloneInventoryPlugin; }
-            set { m_standaloneInventoryPlugin = value; }
-        }
-
-        private string m_standaloneUserPlugin;
-
-        public string StandaloneUserPlugin
-        {
-            get { return m_standaloneUserPlugin; }
-            set { m_standaloneUserPlugin = value; }
-        }
-
-        private string m_standaloneInventorySource;
-
-        public string StandaloneInventorySource
-        {
-            get { return m_standaloneInventorySource; }
-            set { m_standaloneInventorySource = value; }
-        }
-
-        private string m_standaloneUserSource;
-
-        public string StandaloneUserSource
-        {
-            get { return m_standaloneUserSource; }
-            set { m_standaloneUserSource = value; }
-        }
-
-        protected string m_librariesXMLFile;
-        public string LibrariesXMLFile
-        {
-            get
-            {
-                return m_librariesXMLFile;
-            }
-            set
-            {
-                m_librariesXMLFile = value;
-            }
-        }
+        public string PhysicsEngine                 { get; set; }
+        public string MeshEngineName                { get; set; }
+        public bool   See_into_region_from_neighbor { get; set; }
+        public string StorageDll                    { get; set; }
+        public string ClientstackDll                { get; set; }
+        public bool   PhysicalPrim                  { get; set; }
+        public string LibrariesXMLFile              { get; set; }
 
         public const uint DefaultAssetServerHttpPort = 8003;
         public const uint DefaultRegionHttpPort = 9000;

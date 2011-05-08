@@ -78,7 +78,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         private int m_TotalUrls = 100;
 
+        private uint https_port = 0;
         private IHttpServer m_HttpServer = null;
+        private IHttpServer m_HttpsServer = null;
 
         private string m_ExternalHostNameForLSL = "";
 
@@ -100,6 +102,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         public void Initialise(IConfigSource config)
         {
             m_ExternalHostNameForLSL = config.Configs["Network"].GetString("ExternalHostNameForLSL", System.Environment.MachineName);
+            bool ssl_enabled = config.Configs["Network"].GetBoolean("https_listener",false);
+            if (ssl_enabled)
+            {
+                https_port = (uint) config.Configs["Network"].GetInt("https_port",0);
+            }
         }
 
         public void PostInitialise()
@@ -113,6 +120,12 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 // There can only be one
                 //
                 m_HttpServer = MainServer.Instance;
+                //
+                // We can use the https if it is enabled
+                if (https_port > 0)
+                {
+                    m_HttpsServer = MainServer.GetHttpServer(https_port);
+                }
             }
 
             scene.RegisterModuleInterface<IUrlModule>(this);
@@ -171,7 +184,40 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         {
             UUID urlcode = UUID.Random();
 
-            engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
+            if (m_HttpsServer == null)
+            {
+                engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
+                return urlcode;
+            }
+
+            lock (m_UrlMap)
+            {
+                if (m_UrlMap.Count >= m_TotalUrls)
+                {
+                    engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
+                    return urlcode;
+                }
+                string url = "https://" + m_ExternalHostNameForLSL + ":" + m_HttpsServer.Port.ToString() + "/lslhttps/" + urlcode.ToString() + "/";
+
+                UrlData urlData = new UrlData();
+                urlData.hostID = host.UUID;
+                urlData.itemID = itemID;
+                urlData.engine = engine;
+                urlData.url = url;
+                urlData.urlcode = urlcode;
+                urlData.requests = new Dictionary<UUID, RequestData>();
+
+                
+                m_UrlMap[url] = urlData;
+                
+                string uri = "/lslhttps/" + urlcode.ToString() + "/";
+               
+                m_HttpsServer.AddPollServiceHTTPHandler(uri,HandleHttpPoll,
+                        new PollServiceEventArgs(HttpRequestHandler,HasEvents, GetEvents, NoEvents,
+                            urlcode));
+
+                engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
+            }
 
             return urlcode;
         }
@@ -345,7 +391,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         }
         private Hashtable GetEvents(UUID requestID, UUID sessionID, string request)
         {
-            UrlData url = null;
+             UrlData url = null;
             RequestData requestData = null;
 
             lock (m_RequestMap)
@@ -391,11 +437,12 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             lock (request)
             {
                 string uri = request["uri"].ToString();
-                
+                bool is_ssl = uri.Contains("lslhttps");
+
                 try
                 {
                     Hashtable headers = (Hashtable)request["headers"];
-                    
+
 //                    string uri_full = "http://" + m_ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + uri;// "/lslhttp/" + urlcode.ToString() + "/";
 
                     int pos1 = uri.IndexOf("/");// /lslhttp
@@ -409,7 +456,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
                     pathInfo = uri.Substring(pos3);
 
-                    UrlData url = m_UrlMap["http://" + m_ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + uri_tmp];
+                    UrlData url = null;
+                    if (!is_ssl)
+                        url = m_UrlMap["http://" + m_ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + uri_tmp];
+                    else
+                        url = m_UrlMap["https://" + m_ExternalHostNameForLSL + ":" + m_HttpsServer.Port.ToString() + uri_tmp];
 
                     //for llGetHttpHeader support we need to store original URI here
                     //to make x-path-info / x-query-string / x-script-url / x-remote-ip headers 

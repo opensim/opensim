@@ -892,6 +892,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (!m_scene.SimulationService.UpdateAgent(neighbourRegion, cAgent))
                 {
                     // region doesn't take it
+                    ReInstantiateScripts(agent);
                     ResetFromTransit(agent.UUID);
                     return agent;
                 }
@@ -1761,14 +1762,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected void ReInstantiateScripts(ScenePresence sp)
         {
             int i = 0;
-            sp.Attachments.ForEach(delegate(SceneObjectGroup sog)
+            if (sp.InTransitScriptStates.Count > 0)
             {
-                sog.SetState(sp.InTransitScriptStates[i++], sp.Scene);
-                sog.CreateScriptInstances(0, false, sp.Scene.DefaultScriptEngine, 0);
-                sog.ResumeScripts();
-            });
+                sp.Attachments.ForEach(delegate(SceneObjectGroup sog)
+                {
+                    if (i < sp.InTransitScriptStates.Count)
+                    {
+                        sog.SetState(sp.InTransitScriptStates[i++], sp.Scene);
+                        sog.CreateScriptInstances(0, false, sp.Scene.DefaultScriptEngine, 0);
+                        sog.ResumeScripts();
+                    }
+                    else
+                        m_log.ErrorFormat("[ENTITY TRANSFER MODULE]: InTransitScriptStates.Count={0} smaller than Attachments.Count={1}", sp.InTransitScriptStates.Count, sp.Attachments.Count);
+                });
 
-            sp.InTransitScriptStates.Clear();
+                sp.InTransitScriptStates.Clear();
+            }
         }
         #endregion
 

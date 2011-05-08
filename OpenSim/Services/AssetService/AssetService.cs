@@ -26,6 +26,8 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using Nini.Config;
 using log4net;
@@ -60,6 +62,13 @@ namespace OpenSim.Services.AssetService
                         "delete asset",
                         "delete asset <ID>",
                         "Delete asset from database", HandleDeleteAsset);
+                
+                MainConsole.Instance.Commands.AddCommand("kfs", false,
+                        "dump asset",
+                        "dump asset <ID>",
+                        "Dump asset to a file", 
+                        "The filename is the same as the ID given.", 
+                        HandleDumpAsset);
 
                 if (m_AssetLoader != null)
                 {
@@ -189,6 +198,43 @@ namespace OpenSim.Services.AssetService
 
             return false;
         }
+        
+        void HandleDumpAsset(string module, string[] args)
+        {
+            if (args.Length < 3)
+            {
+                MainConsole.Instance.Output("Usage is dump asset <ID>");
+                return;
+            }
+            
+            string rawAssetId = args[2];
+            UUID assetId;
+            
+            if (!UUID.TryParse(rawAssetId, out assetId))
+            {
+                MainConsole.Instance.OutputFormat("ERROR: {0} is not a valid ID format", rawAssetId);
+                return;
+            }
+            
+            AssetBase asset = m_Database.GetAsset(assetId);
+            if (asset == null)
+            {                
+                MainConsole.Instance.OutputFormat("ERROR: No asset found with ID {0}", assetId);
+                return;                
+            }
+            
+            string fileName = rawAssetId;
+            
+            using (FileStream fs = new FileStream(fileName, FileMode.CreateNew))
+            {
+                using (BinaryWriter bw = new BinaryWriter(fs))
+                {
+                    bw.Write(asset.Data);
+                }
+            }   
+            
+            MainConsole.Instance.OutputFormat("Asset dumped to file {0}", fileName);
+        }
 
         void HandleShowDigest(string module, string[] args)
         {
@@ -208,11 +254,11 @@ namespace OpenSim.Services.AssetService
 
             int i;
 
-            MainConsole.Instance.Output(String.Format("Name: {0}", asset.Name));
-            MainConsole.Instance.Output(String.Format("Description: {0}", asset.Description));
-            MainConsole.Instance.Output(String.Format("Type: {0}", asset.Type));
-            MainConsole.Instance.Output(String.Format("Content-type: {0}", asset.Metadata.ContentType));
-            MainConsole.Instance.Output(String.Format("Flags: {0}", asset.Metadata.Flags.ToString()));
+            MainConsole.Instance.OutputFormat("Name: {0}", asset.Name);
+            MainConsole.Instance.OutputFormat("Description: {0}", asset.Description);
+            MainConsole.Instance.OutputFormat("Type: {0} (type number = {1})", (AssetType)asset.Type, asset.Type);
+            MainConsole.Instance.OutputFormat("Content-type: {0}", asset.Metadata.ContentType);
+            MainConsole.Instance.OutputFormat("Flags: {0}", asset.Metadata.Flags);
 
             for (i = 0 ; i < 5 ; i++)
             {

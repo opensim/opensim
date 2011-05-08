@@ -47,7 +47,7 @@ namespace OpenSim.Data.SQLite
     public class SQLiteAvatarData : SQLiteGenericTableHandler<AvatarBaseData>,
             IAvatarData
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public SQLiteAvatarData(string connectionString, string realm) :
                 base(connectionString, realm, "Avatar")

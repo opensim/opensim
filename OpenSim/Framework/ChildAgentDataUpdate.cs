@@ -460,7 +460,7 @@ namespace OpenSim.Framework
                     {
                         info["state"] = OSD.FromString(AttachmentObjectStates[i++]);
                     }
-                    catch (IndexOutOfRangeException e)
+                    catch (IndexOutOfRangeException)
                     {
                         m_log.WarnFormat("[CHILD AGENT DATA]: scripts list is shorter than object list.");
                     }
