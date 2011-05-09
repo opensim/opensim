@@ -205,8 +205,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         {
             //try
             //{
-                //m_log.DebugFormat("[MAPLAYER]: request: {0}, path: {1}, param: {2}, agent:{3}",
-                                  //request, path, param,agentID.ToString());
+            //m_log.DebugFormat("[MAPLAYER]: path: {0}, param: {1}, agent:{2}",
+            //                  path, param, agentID.ToString());
 
             // this is here because CAPS map requests work even beyond the 10,000 limit.
             ScenePresence avatarPresence = null;
@@ -784,7 +784,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         /// <param name="maxY"></param>
         public virtual void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
-            if ((flag & 0x10000) != 0)  // user clicked on the map a tile that isn't visible
+            //m_log.ErrorFormat("[YYY] RequestMapBlocks {0}={1}={2}={3} {4}", minX, minY, maxX, maxY, flag);
+            if ((flag & 0x10000) != 0)  // user clicked on qthe map a tile that isn't visible
             {
                 List<MapBlockData> response = new List<MapBlockData>();
 

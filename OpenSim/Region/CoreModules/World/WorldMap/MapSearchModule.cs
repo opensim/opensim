@@ -84,7 +84,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             client.OnMapNameRequest += OnMapNameRequest;
         }
 
-        private void OnMapNameRequest(IClientAPI remoteClient, string mapName)
+        private void OnMapNameRequest(IClientAPI remoteClient, string mapName, uint flags)
         {
             if (mapName.Length < 2)
             {
@@ -117,7 +117,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     data = new MapBlockData();
                     data.Agents = 0;
                     data.Access = info.Access;
-                    data.MapImageId = UUID.Zero; // could use info.TerrainImage but it seems to break viewer2
+                    if (flags == 2) // V2 sends this
+                        data.MapImageId = UUID.Zero; 
+                    else
+                        data.MapImageId = info.TerrainImage;
                     data.Name = info.RegionName;
                     data.RegionFlags = 0; // TODO not used?
                     data.WaterHeight = 0; // not used
@@ -139,7 +142,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             data.Y = 0;
             blocks.Add(data);
 
-            remoteClient.SendMapBlock(blocks, 2);
+            // flags are agent flags sent from the viewer.
+            // they have different values depending on different viewers, apparently
+            remoteClient.SendMapBlock(blocks, flags);
         }
 
 //        private Scene GetClientScene(IClientAPI client)

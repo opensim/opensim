@@ -77,7 +77,7 @@ namespace OpenSim.Framework
 
     public delegate void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag);
 
-    public delegate void RequestMapName(IClientAPI remoteClient, string mapName);
+    public delegate void RequestMapName(IClientAPI remoteClient, string mapName, uint flags);
 
     public delegate void TeleportLocationRequest(
         IClientAPI remoteClient, ulong regionHandle, Vector3 position, Vector3 lookAt, uint flags);
