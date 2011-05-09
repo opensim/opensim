@@ -27,6 +27,7 @@
 
 using System;
 using System.Reflection;
+using System.Collections.Generic;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
@@ -50,27 +51,27 @@ namespace OpenSim.Region.OptionalModules
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool m_enabled;
 
-        public string Name { get { return "Prim Limits Module"; } }        
+        public string Name { get { return "PrimLimitsModule"; } }        
         
         public Type ReplaceableInterface { get { return null; } }
         
-        public void Initialise(IConfigSource source)
+        public void Initialise(IConfigSource config)
         {
-            IConfig moduleConfig = source.Configs["PrimLimitsModule"];
-            if (moduleConfig != null)
-            {
-                this.m_enabled = moduleConfig.GetBoolean("EnforcePrimLimits", false);
-            }
-            else
-            {
-                this.m_enabled = false;
-            }
-            m_log.DebugFormat("[PRIM LIMITS]: INITIALIZED MODULE");
+            IConfig myConfig = config.Configs["Startup"];
+
+            string permissionModules = myConfig.GetString("permissionmodules", "DefaultPermissionsModule");
+
+            List<string> modules=new List<string>(permissionModules.Split(','));
+
+            if(!modules.Contains("PrimLimitsModule"))
+                return;
+
+            m_log.DebugFormat("[PRIM LIMITS]: Initialized module");
+            m_enabled = true;
         }
         
         public void Close()
         {
-            m_log.DebugFormat("[PRIM LIMITS]: CLOSED MODULE");
         }
         
         public void AddRegion(Scene scene)
@@ -82,7 +83,7 @@ namespace OpenSim.Region.OptionalModules
             scene.Permissions.OnRezObject += CanRezObject;
             scene.Permissions.OnObjectEntry += CanObjectEnter;
             scene.Permissions.OnDuplicateObject += CanDuplicateObject;
-            m_log.DebugFormat("[PRIM LIMITS]: REGION {0} ADDED", scene.RegionInfo.RegionName);
+            m_log.DebugFormat("[PRIM LIMITS]: Region {0} added", scene.RegionInfo.RegionName);
         }
         
         public void RemoveRegion(Scene scene)
@@ -94,14 +95,13 @@ namespace OpenSim.Region.OptionalModules
             scene.Permissions.OnRezObject -= CanRezObject;
             scene.Permissions.OnObjectEntry -= CanObjectEnter;
             scene.Permissions.OnDuplicateObject -= CanDuplicateObject;
-            m_log.DebugFormat("[PRIM LIMITS]: REGION {0} REMOVED", scene.RegionInfo.RegionName);
         }        
         
         public void RegionLoaded(Scene scene)
         {
             m_dialogModule = scene.RequestModuleInterface<IDialogModule>();
-            m_log.DebugFormat("[PRIM LIMITS]: REGION {0} LOADED", scene.RegionInfo.RegionName);
         }                
+
         private bool CanRezObject(int objectCount, UUID owner, Vector3 objectPosition, Scene scene)
         {
             // This may be a little long winded and can probably be optomized
