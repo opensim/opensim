@@ -1363,7 +1363,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendMapBlock(List<MapBlockData> mapBlocks, uint flag)
         {
-
             MapBlockData[] mapBlocks2 = mapBlocks.ToArray();
 
             int maxsend = 10;
