@@ -84,7 +84,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             client.OnMapNameRequest += OnMapNameRequest;
         }
 
-        private void OnMapNameRequest(IClientAPI remoteClient, string mapName)
+        private void OnMapNameRequest(IClientAPI remoteClient, string mapName, uint flags)
         {
             if (mapName.Length < 3)
             {
@@ -139,9 +139,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             data.Y = 0;
             blocks.Add(data);
 
-            // not sure what the flags do here, but seems to be necessary
-            // to set to "2" for viewer 2
-            remoteClient.SendMapBlock(blocks, 2);
+            // flags are agent flags sent from the viewer.
+            // they have different values depending on different viewers, apparently
+            remoteClient.SendMapBlock(blocks, flags);
         }
 
 //        private Scene GetClientScene(IClientAPI client)
