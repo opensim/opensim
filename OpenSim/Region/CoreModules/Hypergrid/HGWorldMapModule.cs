@@ -76,7 +76,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             FillInMap(mapBlocks, minX, minY, maxX, maxY);
             //
 
-            remoteClient.SendMapBlock(mapBlocks, flag);
+            remoteClient.SendMapBlock(mapBlocks, 0);
         }
 
 

@@ -846,7 +846,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 MapBlockFromGridRegion(block, r);
                 mapBlocks.Add(block);
             }
-            remoteClient.SendMapBlock(mapBlocks, flag);
+            remoteClient.SendMapBlock(mapBlocks, 0);
         }
 
         protected void MapBlockFromGridRegion(MapBlockData block, GridRegion r)
