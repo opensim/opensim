@@ -93,7 +93,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                         mblock.X = (ushort)x;
                         mblock.Y = (ushort)y;
                         mblock.Name = "";
-                        mblock.Access = 254; // not here???
+                        mblock.Access = 255; // means 'simulator does not exist'
                         mblock.MapImageId = UUID.Zero;
                         mapBlocks.Add(mblock);
                     }

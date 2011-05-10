@@ -820,7 +820,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     MapBlockData block = new MapBlockData();
                     block.X = (ushort)minX;
                     block.Y = (ushort)minY;
-                    block.Access = 254; // == not there
+                    block.Access = 254; // means 'simulator is offline'
                     response.Add(block);
                 }
                 remoteClient.SendMapBlock(response, 0);
