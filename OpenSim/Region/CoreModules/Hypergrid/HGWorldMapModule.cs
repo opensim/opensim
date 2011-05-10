@@ -62,8 +62,8 @@ namespace OpenSim.Region.CoreModules.Hypergrid
         {
             List<MapBlockData> mapBlocks = new List<MapBlockData>();
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                (minX - 4) * (int)Constants.RegionSize, (maxX + 4) * (int)Constants.RegionSize, 
-                (minY - 4) * (int)Constants.RegionSize, (maxY + 4) * (int)Constants.RegionSize);
+                minX * (int)Constants.RegionSize, maxX * (int)Constants.RegionSize, 
+                minY * (int)Constants.RegionSize, maxY * (int)Constants.RegionSize);
 
             foreach (GridRegion r in regions)
             {
@@ -93,7 +93,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                         mblock.X = (ushort)x;
                         mblock.Y = (ushort)y;
                         mblock.Name = "";
-                        mblock.Access = 255; // means 'simulator does not exist'
+                        mblock.Access = 254; // means 'simulator is offline'. We need this because the viewer ignores 255's
                         mblock.MapImageId = UUID.Zero;
                         mapBlocks.Add(mblock);
                     }
