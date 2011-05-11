@@ -461,10 +461,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
             Stream inputStream;
             if (httpRequest.ContentType == "application/x-gzip")
-            {
-                m_log.DebugFormat("[XXX]: Update called with application/x-gzip");
                 inputStream = new GZipStream(request, CompressionMode.Decompress);
-            }
             else
             {
                 m_log.DebugFormat("[XXX]: Update called with {0}", httpRequest.ContentType);
@@ -474,22 +471,8 @@ namespace OpenSim.Server.Handlers.Simulation
             Encoding encoding = Encoding.UTF8;
             StreamReader reader = new StreamReader(inputStream, encoding);
 
-            try
-            {
-                string requestBody = reader.ReadToEnd();
-                m_log.DebugFormat("[XXX] body {0}", requestBody);
-                keysvals.Add("body", requestBody);
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[AGENT HANDLER]: Exception readin gzip stream: {0}", e);
-                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
-                return new byte[0];
-            }
-            finally
-            {
-                reader.Close();
-            }
+            string requestBody = reader.ReadToEnd();
+            keysvals.Add("body", requestBody);
 
             httpResponse.StatusCode = 200;
             httpResponse.ContentType = "text/html";
