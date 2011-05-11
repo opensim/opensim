@@ -466,7 +466,10 @@ namespace OpenSim.Server.Handlers.Simulation
                 inputStream = new GZipStream(request, CompressionMode.Decompress);
             }
             else
+            {
+                m_log.DebugFormat("[XXX]: Update called with {0}", httpRequest.ContentType);
                 inputStream = request;
+            }
 
             Encoding encoding = Encoding.UTF8;
             StreamReader reader = new StreamReader(inputStream, encoding);
