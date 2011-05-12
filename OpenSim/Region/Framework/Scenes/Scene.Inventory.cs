@@ -904,11 +904,25 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Link an inventory item to an existing item.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="transActionID"></param>
+        /// <param name="folderID"></param>
+        /// <param name="callbackID"></param>
+        /// <param name="description"></param>
+        /// <param name="name"></param>
+        /// <param name="invType"></param>
+        /// <param name="type">/param>
+        /// <param name="olditemID"></param>
         private void HandleLinkInventoryItem(IClientAPI remoteClient, UUID transActionID, UUID folderID,
                                              uint callbackID, string description, string name,
                                              sbyte invType, sbyte type, UUID olditemID)
         {
-            m_log.DebugFormat("[AGENT INVENTORY]: Received request to create inventory item link {0} in folder {1} pointing to {2}", name, folderID, olditemID);
+            m_log.DebugFormat(
+                "[AGENT INVENTORY]: Received request from {0} to create inventory item link {1} in folder {2} pointing to {3}",
+                remoteClient.Name, name, folderID, olditemID);
 
             if (!Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
                 return;
@@ -916,7 +930,20 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence presence;
             if (TryGetScenePresence(remoteClient.AgentId, out presence))
             {
-//                byte[] data = null;
+                bool linkAlreadyExists = false;
+                List<InventoryItemBase> existingItems = InventoryService.GetFolderItems(remoteClient.AgentId, folderID);
+                foreach (InventoryItemBase item in existingItems)
+                    if (item.AssetID == olditemID)
+                        linkAlreadyExists = true;
+
+                if (linkAlreadyExists)
+                {
+                    m_log.WarnFormat(
+                        "[AGENT INVENTORY]: Ignoring request from {0} to create item link {1} in folder {2} pointing to {3} since a link already exists",
+                        remoteClient.Name, name, folderID, olditemID);
+
+                    return;
+                }
 
                 AssetBase asset = new AssetBase();
                 asset.FullID = olditemID;
