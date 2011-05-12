@@ -283,6 +283,7 @@ namespace OpenSim.Server.Handlers.Simulation
             StreamReader reader = new StreamReader(inputStream, encoding);
 
             string requestBody = reader.ReadToEnd();
+            reader.Close();
             keysvals.Add("body", requestBody);
 
             httpResponse.StatusCode = 200;
@@ -463,15 +464,13 @@ namespace OpenSim.Server.Handlers.Simulation
             if (httpRequest.ContentType == "application/x-gzip")
                 inputStream = new GZipStream(request, CompressionMode.Decompress);
             else
-            {
-                m_log.DebugFormat("[XXX]: Update called with {0}", httpRequest.ContentType);
                 inputStream = request;
-            }
 
             Encoding encoding = Encoding.UTF8;
             StreamReader reader = new StreamReader(inputStream, encoding);
 
             string requestBody = reader.ReadToEnd();
+            reader.Close();
             keysvals.Add("body", requestBody);
 
             httpResponse.StatusCode = 200;

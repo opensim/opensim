@@ -199,14 +199,14 @@ namespace OpenSim.Framework
                             using (GZipStream comp = new GZipStream(ms, CompressionMode.Compress))
                             {
                                 comp.Write(buffer, 0, buffer.Length);
-                                comp.Flush();
-
-                                ms.Seek(0, SeekOrigin.Begin);
-
-                                request.ContentLength = ms.Length;   //Count bytes to send
-                                using (Stream requestStream = request.GetRequestStream())
-                                        requestStream.Write(ms.ToArray(), 0, (int)ms.Length);
+                                // We need to close the gzip stream before we write it anywhere
+                                // because apparently something important related to gzip compression
+                                // gets written on the strteam upon Dispose()
                             }
+                            byte[] buf = ms.ToArray();
+                            request.ContentLength = buf.Length;   //Count bytes to send
+                            using (Stream requestStream = request.GetRequestStream())
+                                requestStream.Write(buf, 0, (int)buf.Length);
                         }
                     }
                     else
