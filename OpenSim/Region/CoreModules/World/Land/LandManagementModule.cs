@@ -668,14 +668,14 @@ namespace OpenSim.Region.CoreModules.World.Land
                     //m_scene.SimulationDataService.RemoveLandObject(lo.LandData.GlobalID);
                     m_scene.EventManager.TriggerLandObjectRemoved(lo.LandData.GlobalID);
                 }
-                
+
                 m_landList.Clear();
+
+                ResetSimLandObjects();
+
+                if (setupDefaultParcel)
+                    CreateDefaultParcel();
             }
-            
-            ResetSimLandObjects();
-            
-            if (setupDefaultParcel)
-                CreateDefaultParcel();
         }
 
         private void performFinalLandJoin(ILandObject master, ILandObject slave)
@@ -1391,8 +1391,11 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void EventManagerOnNoLandDataFromStorage()
         {
-            ResetSimLandObjects();
-            CreateDefaultParcel();
+            lock (m_landList)
+            {
+                ResetSimLandObjects();
+                CreateDefaultParcel();
+            }
         }
 
         #endregion
