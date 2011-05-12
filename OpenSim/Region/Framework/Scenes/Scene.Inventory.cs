@@ -907,6 +907,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Link an inventory item to an existing item.
         /// </summary>
+        /// <remarks>
+        /// The linkee item id is placed in the asset id slot.  This appears to be what the viewer expects when
+        /// it receives inventory information.
+        /// </remarks>
         /// <param name="remoteClient"></param>
         /// <param name="transActionID"></param>
         /// <param name="folderID"></param>
