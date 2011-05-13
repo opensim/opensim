@@ -1382,11 +1382,28 @@ namespace OpenSim.Region.Framework.Scenes
             InventoryFolderBase containingFolder = new InventoryFolderBase(folder.ID, client.AgentId);
             containingFolder = InventoryService.GetFolder(containingFolder);
 
-            //m_log.DebugFormat("[AGENT INVENTORY]: Sending inventory folder contents ({0} nodes) for \"{1}\" to {2} {3}",
-            //    contents.Folders.Count + contents.Items.Count, containingFolder.Name, client.FirstName, client.LastName);
+//            m_log.DebugFormat("[AGENT INVENTORY]: Sending inventory folder contents ({0} nodes) for \"{1}\" to {2} {3}",
+//                contents.Folders.Count + contents.Items.Count, containingFolder.Name, client.FirstName, client.LastName);
 
             if (containingFolder != null && containingFolder != null)
+            {
+                // If the folder requested contains links, then we need to send those folders first, otherwise the links
+                // will be broken in the viewer.
+                HashSet<UUID> linkedItemFolderIdsToSend = new HashSet<UUID>();
+                foreach (InventoryItemBase item in contents.Items)
+                {
+                    if (item.AssetType == (int)AssetType.Link)
+                    {
+                        InventoryItemBase linkedItem = InventoryService.GetItem(new InventoryItemBase(item.AssetID));
+                        linkedItemFolderIdsToSend.Add(linkedItem.Folder);
+                    }
+                }
+
+                foreach (UUID linkedItemFolderId in linkedItemFolderIdsToSend)
+                    SendInventoryUpdate(client, new InventoryFolderBase(linkedItemFolderId), false, true);
+
                 client.SendInventoryFolderDetails(client.AgentId, folder.ID, contents.Items, contents.Folders, containingFolder.Version, fetchFolders, fetchItems);
+            }
         }
 
         /// <summary>
