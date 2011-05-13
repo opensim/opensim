@@ -944,7 +944,7 @@ namespace OpenSim.Framework
             {
                 using (WebResponse resp = request.GetResponse())
                 {
-                    if (resp.ContentLength > 0)
+                    if (resp.ContentLength != 0)
                     {
                         Stream respStream = resp.GetResponseStream();
                         XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
