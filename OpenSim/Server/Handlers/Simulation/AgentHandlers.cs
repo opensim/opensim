@@ -283,6 +283,7 @@ namespace OpenSim.Server.Handlers.Simulation
             StreamReader reader = new StreamReader(inputStream, encoding);
 
             string requestBody = reader.ReadToEnd();
+            reader.Close();
             keysvals.Add("body", requestBody);
 
             httpResponse.StatusCode = 200;
@@ -469,6 +470,7 @@ namespace OpenSim.Server.Handlers.Simulation
             StreamReader reader = new StreamReader(inputStream, encoding);
 
             string requestBody = reader.ReadToEnd();
+            reader.Close();
             keysvals.Add("body", requestBody);
 
             httpResponse.StatusCode = 200;

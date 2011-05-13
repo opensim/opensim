@@ -499,6 +499,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void HandleFetchInventoryDescendents(IClientAPI remoteClient, UUID folderID, UUID ownerID,
                                                     bool fetchFolders, bool fetchItems, int sortOrder)
         {
+//            m_log.DebugFormat(
+//                "[USER INVENTORY]: HandleFetchInventoryDescendents() for {0}, folder={1}, fetchFolders={2}, fetchItems={3}, sortOrder={4}",
+//                remoteClient.Name, folderID, fetchFolders, fetchItems, sortOrder);
+
             if (folderID == UUID.Zero)
                 return;
 
