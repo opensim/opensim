@@ -965,8 +965,9 @@ namespace OpenSim.Framework
                     requestStream = request.GetRequestStream();
                     requestStream.Write(buffer.ToArray(), 0, length);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    m_log.WarnFormat("[SynchronousRestObjectRequester]: exception in sending data to {0}: {1}", requestUrl, e); 
                     return deserial;
                 }
                 finally
