@@ -991,15 +991,7 @@ namespace OpenSim.Framework
                 catch (System.InvalidOperationException)
                 {
                     // This is what happens when there is invalid XML
-                    try
-                    {
-                        m_log.WarnFormat("[SynchronousRestObjectRequester]: Invalid XML:");
-                        using (StreamReader sr = new StreamReader(resp.GetResponseStream()))
-                            m_log.WarnFormat("{0}", sr.ReadToEnd());
-                    }
-                    catch (Exception e)
-                    { }
-
+                    m_log.WarnFormat("[SynchronousRestObjectRequester]: Invalid XML {0} {1}", requestUrl, typeof(TResponse).ToString());
                 }
             }
             return deserial;
