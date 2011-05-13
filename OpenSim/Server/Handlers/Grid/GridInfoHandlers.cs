@@ -30,6 +30,7 @@ using System.Collections;
 using System.IO;
 using System.Net;
 using System.Reflection;
+using System.Security;
 using System.Text;
 using log4net;
 using Nini.Config;
@@ -143,7 +144,7 @@ namespace OpenSim.Server.Handlers.Grid
             sb.Append("<gridinfo>\n");
             foreach (string k in _info.Keys)
             {
-                sb.AppendFormat("<{0}>{1}</{0}>\n", k, _info[k]);
+                sb.AppendFormat("<{0}>{1}</{0}>\n", k, SecurityElement.Escape(_info[k].ToString()));
             }
             sb.Append("</gridinfo>\n");
 
