@@ -918,6 +918,10 @@ namespace OpenSim.Framework
 
     public class SynchronousRestObjectRequester
     {
+        private static readonly ILog m_log =
+            LogManager.GetLogger(
+            MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Perform a synchronous REST request.
         /// </summary>
@@ -972,9 +976,9 @@ namespace OpenSim.Framework
                 }
             }
 
-            try
+            using (WebResponse resp = request.GetResponse())
             {
-                using (WebResponse resp = request.GetResponse())
+                try
                 {
                     if (resp.ContentLength > 0)
                     {
@@ -984,10 +988,19 @@ namespace OpenSim.Framework
                         respStream.Close();
                     }
                 }
-            }
-            catch (System.InvalidOperationException)
-            {
-                // This is what happens when there is invalid XML
+                catch (System.InvalidOperationException)
+                {
+                    // This is what happens when there is invalid XML
+                    try
+                    {
+                        m_log.WarnFormat("[SynchronousRestObjectRequester]: Invalid XML:");
+                        using (StreamReader sr = new StreamReader(resp.GetResponseStream()))
+                            m_log.WarnFormat("{0}", sr.ReadToEnd());
+                    }
+                    catch (Exception e)
+                    { }
+
+                }
             }
             return deserial;
         }
