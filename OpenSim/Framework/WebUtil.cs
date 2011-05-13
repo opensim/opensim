@@ -940,8 +940,6 @@ namespace OpenSim.Framework
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
 
-            m_log.DebugFormat("[XXX] 1");
-
             if ((verb == "POST") || (verb == "PUT"))
             {
                 request.ContentType = "text/xml";
@@ -961,7 +959,6 @@ namespace OpenSim.Framework
                 int length = (int)buffer.Length;
                 request.ContentLength = length;
 
-                m_log.DebugFormat("[XXX] 2");
                 Stream requestStream = null;
                 try
                 {
@@ -996,7 +993,7 @@ namespace OpenSim.Framework
                         respStream.Close();
                     }
                     else
-                        m_log.DebugFormat("[SynchronousRestObjectRequester]: Oops! no content found in response stream from {0} {1}", requestUrl, verb);
+                        m_log.DebugFormat("[SynchronousRestObjectRequester]: Oops! no content found in response stream from {0} {1}, ContentLength = {2}", requestUrl, verb, resp.ContentLength);
 
                 }
             }
