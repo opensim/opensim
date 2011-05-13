@@ -940,6 +940,8 @@ namespace OpenSim.Framework
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
 
+            m_log.DebugFormat("[XXX] 1");
+
             if ((verb == "POST") || (verb == "PUT"))
             {
                 request.ContentType = "text/xml";
@@ -959,11 +961,14 @@ namespace OpenSim.Framework
                 int length = (int)buffer.Length;
                 request.ContentLength = length;
 
+                m_log.DebugFormat("[XXX] 2");
                 Stream requestStream = null;
                 try
                 {
                     requestStream = request.GetRequestStream();
                     requestStream.Write(buffer.ToArray(), 0, length);
+                    m_log.DebugFormat("[XXX] Wrote to stream ok");
+
                 }
                 catch (Exception e)
                 {
@@ -977,6 +982,8 @@ namespace OpenSim.Framework
                 }
             }
 
+            m_log.DebugFormat("[XXX] Getting response now... {0}", requestUrl);
+
             try
             {
                 using (WebResponse resp = request.GetResponse())
@@ -988,6 +995,9 @@ namespace OpenSim.Framework
                         deserial = (TResponse)deserializer.Deserialize(respStream);
                         respStream.Close();
                     }
+                    else
+                        m_log.DebugFormat("[SynchronousRestObjectRequester]: Oops! no content found in response stream from {0} {1}", requestUrl, verb);
+
                 }
             }
             catch (System.InvalidOperationException)
@@ -995,6 +1005,12 @@ namespace OpenSim.Framework
                 // This is what happens when there is invalid XML
                 m_log.WarnFormat("[SynchronousRestObjectRequester]: Invalid XML {0} {1}", requestUrl, typeof(TResponse).ToString());
             }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[SynchronousRestObjectRequester]: Exception on response from {0} {1}", requestUrl, e);
+            }
+
+            m_log.DebugFormat("[XXX] reply is null? {0}", (deserial == null) ? "yes": "no");
             return deserial;
         }
     }

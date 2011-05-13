@@ -178,6 +178,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 List<GridInstantMessage> msglist = SynchronousRestObjectPoster.BeginPostObject<UUID, List<GridInstantMessage>>(
                         "POST", m_RestURL + "/RetrieveMessages/", client.AgentId);
 
+                if (msglist == null)
+                    m_log.WarnFormat("[OFFLINE MESSAGING]: WARNING null message list.");
+
                 foreach (GridInstantMessage im in msglist)
                 {
                     // client.SendInstantMessage(im);
