@@ -199,14 +199,14 @@ namespace OpenSim.Framework
                             using (GZipStream comp = new GZipStream(ms, CompressionMode.Compress))
                             {
                                 comp.Write(buffer, 0, buffer.Length);
-                                comp.Flush();
-
-                                ms.Seek(0, SeekOrigin.Begin);
-
-                                request.ContentLength = ms.Length;   //Count bytes to send
-                                using (Stream requestStream = request.GetRequestStream())
-                                        requestStream.Write(ms.ToArray(), 0, (int)ms.Length);
+                                // We need to close the gzip stream before we write it anywhere
+                                // because apparently something important related to gzip compression
+                                // gets written on the strteam upon Dispose()
                             }
+                            byte[] buf = ms.ToArray();
+                            request.ContentLength = buf.Length;   //Count bytes to send
+                            using (Stream requestStream = request.GetRequestStream())
+                                requestStream.Write(buf, 0, (int)buf.Length);
                         }
                     }
                     else
@@ -918,6 +918,10 @@ namespace OpenSim.Framework
 
     public class SynchronousRestObjectRequester
     {
+        private static readonly ILog m_log =
+            LogManager.GetLogger(
+            MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Perform a synchronous REST request.
         /// </summary>
@@ -968,8 +972,9 @@ namespace OpenSim.Framework
                     requestStream = request.GetRequestStream();
                     requestStream.Write(buffer.ToArray(), 0, length);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    m_log.WarnFormat("[SynchronousRestObjectRequester]: exception in sending data to {0}: {1}", requestUrl, e); 
                     return deserial;
                 }
                 finally
@@ -983,19 +988,28 @@ namespace OpenSim.Framework
             {
                 using (WebResponse resp = request.GetResponse())
                 {
-                    if (resp.ContentLength > 0)
+                    if (resp.ContentLength != 0)
                     {
                         Stream respStream = resp.GetResponseStream();
                         XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
                         deserial = (TResponse)deserializer.Deserialize(respStream);
                         respStream.Close();
                     }
+                    else
+                        m_log.WarnFormat("[SynchronousRestObjectRequester]: Oops! no content found in response stream from {0} {1}", requestUrl, verb);
+
                 }
             }
             catch (System.InvalidOperationException)
             {
                 // This is what happens when there is invalid XML
+                m_log.WarnFormat("[SynchronousRestObjectRequester]: Invalid XML {0} {1}", requestUrl, typeof(TResponse).ToString());
             }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[SynchronousRestObjectRequester]: Exception on response from {0} {1}", requestUrl, e);
+            }
+
             return deserial;
         }
     }
