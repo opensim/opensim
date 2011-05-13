@@ -976,9 +976,9 @@ namespace OpenSim.Framework
                 }
             }
 
-            using (WebResponse resp = request.GetResponse())
+            try
             {
-                try
+                using (WebResponse resp = request.GetResponse())
                 {
                     if (resp.ContentLength > 0)
                     {
@@ -988,11 +988,11 @@ namespace OpenSim.Framework
                         respStream.Close();
                     }
                 }
-                catch (System.InvalidOperationException)
-                {
-                    // This is what happens when there is invalid XML
-                    m_log.WarnFormat("[SynchronousRestObjectRequester]: Invalid XML {0} {1}", requestUrl, typeof(TResponse).ToString());
-                }
+            }
+            catch (System.InvalidOperationException)
+            {
+                // This is what happens when there is invalid XML
+                m_log.WarnFormat("[SynchronousRestObjectRequester]: Invalid XML {0} {1}", requestUrl, typeof(TResponse).ToString());
             }
             return deserial;
         }
