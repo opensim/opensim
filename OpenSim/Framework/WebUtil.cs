@@ -964,8 +964,6 @@ namespace OpenSim.Framework
                 {
                     requestStream = request.GetRequestStream();
                     requestStream.Write(buffer.ToArray(), 0, length);
-                    m_log.DebugFormat("[XXX] Wrote to stream ok");
-
                 }
                 catch (Exception e)
                 {
@@ -979,13 +977,11 @@ namespace OpenSim.Framework
                 }
             }
 
-            m_log.DebugFormat("[XXX] Getting response now... {0}", requestUrl);
-
             try
             {
                 using (WebResponse resp = request.GetResponse())
                 {
-                    if (resp.ContentLength > 0)
+                    if (resp.ContentLength != 0)
                     {
                         Stream respStream = resp.GetResponseStream();
                         XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
@@ -993,7 +989,7 @@ namespace OpenSim.Framework
                         respStream.Close();
                     }
                     else
-                        m_log.DebugFormat("[SynchronousRestObjectRequester]: Oops! no content found in response stream from {0} {1}, ContentLength = {2}", requestUrl, verb, resp.ContentLength);
+                        m_log.WarnFormat("[SynchronousRestObjectRequester]: Oops! no content found in response stream from {0} {1}", requestUrl, verb);
 
                 }
             }
@@ -1007,7 +1003,6 @@ namespace OpenSim.Framework
                 m_log.WarnFormat("[SynchronousRestObjectRequester]: Exception on response from {0} {1}", requestUrl, e);
             }
 
-            m_log.DebugFormat("[XXX] reply is null? {0}", (deserial == null) ? "yes": "no");
             return deserial;
         }
     }
