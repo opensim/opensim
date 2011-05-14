@@ -3877,6 +3877,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (targetPart.ParentGroup.RootPart.AttachmentPoint != 0)
                 return; // Fail silently if attached
+
+            if (targetPart.ParentGroup.RootPart.OwnerID != m_host.ParentGroup.RootPart.OwnerID)
+                return;
+
             SceneObjectGroup parentPrim = null, childPrim = null;
 
             if (targetPart != null)
@@ -4021,6 +4025,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llBreakAllLinks()
         {
             m_host.AddScriptLPS(1);
+
+            UUID invItemID = InventorySelf();
+
+            TaskInventoryItem item;
+            m_host.TaskInventory.LockItemsForRead(true);
+            item = m_host.TaskInventory[invItemID];
+            m_host.TaskInventory.LockItemsForRead(false);
+             
+            if ((item.PermsMask & ScriptBaseClass.PERMISSION_CHANGE_LINKS) == 0
+                && !m_automaticLinkPermission)
+            {
+                ShoutError("Script trying to link but PERMISSION_CHANGE_LINKS permission not set!");
+                return;
+            }
+
             SceneObjectGroup parentPrim = m_host.ParentGroup;
             if (parentPrim.RootPart.AttachmentPoint != 0)
                 return; // Fail silently if attached
