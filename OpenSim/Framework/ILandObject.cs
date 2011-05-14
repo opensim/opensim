@@ -35,8 +35,8 @@ namespace OpenSim.Framework
 
     public interface ILandObject
     {
-        int GetParcelMaxPrimCount(ILandObject thisObject);
-        int GetSimulatorMaxPrimCount(ILandObject thisObject);
+        int GetParcelMaxPrimCount();
+        int GetSimulatorMaxPrimCount();
         int GetPrimsFree();
 
         LandData LandData { get; set; }

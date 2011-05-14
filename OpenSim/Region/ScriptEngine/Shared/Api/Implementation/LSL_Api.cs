@@ -9915,9 +9915,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return 0;
 
             if (sim_wide != 0)
-                return lo.GetSimulatorMaxPrimCount(lo);
+                return lo.GetSimulatorMaxPrimCount();
             else
-                return lo.GetParcelMaxPrimCount(lo);
+                return lo.GetParcelMaxPrimCount();
         }
 
         public LSL_List llGetParcelDetails(LSL_Vector pos, LSL_List param)
