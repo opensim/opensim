@@ -40,10 +40,12 @@ namespace OpenSim.Tests.Common.Mock
     public class TestLandChannel : ILandChannel
     {
         private Scene m_scene;
+        private List<ILandObject> m_parcels;
 
         public TestLandChannel(Scene scene)
         {
             m_scene = scene;
+            m_parcels = new List<ILandObject>();
         }
 
         public List<ILandObject> ParcelsNearPoint(Vector3 position)
@@ -53,12 +55,19 @@ namespace OpenSim.Tests.Common.Mock
 
         public List<ILandObject> AllParcels()
         {
-            return new List<ILandObject>();
+            return m_parcels;
         }
         
         public void Clear(bool setupDefaultParcel)
         {
-            // Intentionally blank since we don't save any parcel data in the test channel
+            m_parcels.Clear();
+
+            if (setupDefaultParcel)
+            {
+                ILandObject obj = new LandObject(UUID.Zero, false, m_scene);
+                obj.LandData.Name = "Your Parcel";
+                m_parcels.Add(obj);
+            }
         }
 
         protected ILandObject GetNoLand()

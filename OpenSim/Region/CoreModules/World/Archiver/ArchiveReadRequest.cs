@@ -347,12 +347,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 
                 landData.Add(parcel);
             }
-            
-            if (!m_merge)                
-                m_scene.LandChannel.Clear(false);
+
+            if (!m_merge)
+            {
+                bool setupDefaultParcel = (landData.Count == 0);
+                m_scene.LandChannel.Clear(setupDefaultParcel);
+            }
             
             m_scene.EventManager.TriggerIncomingLandDataFromStorage(landData);
-            m_log.InfoFormat("[ARCHIVER]: Restored {0} parcels.", landData.Count);            
+            m_log.InfoFormat("[ARCHIVER]: Restored {0} parcels.", landData.Count);
         }
 
         /// <summary>

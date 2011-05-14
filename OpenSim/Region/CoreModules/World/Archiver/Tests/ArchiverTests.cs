@@ -313,6 +313,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(loadedSoundAsset, Is.Not.Null, "loaded sound asset was null");
             Assert.That(loadedSoundAsset.Data, Is.EqualTo(soundData), "saved and loaded sound data do not match");
 
+            Assert.Greater(m_scene.LandChannel.AllParcels().Count, 0, "incorrect number of parcels");
+
             // Temporary
             Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());
         }
