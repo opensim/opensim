@@ -33,6 +33,7 @@ using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Threading;
 using System.Text.RegularExpressions;
+using System.Timers;
 using Nini.Config;
 using log4net;
 using OpenMetaverse;
@@ -66,6 +67,7 @@ using LSL_Rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
 using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
 using LSL_Vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using System.Reflection;
+using Timer = System.Timers.Timer;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api
 {
@@ -105,8 +107,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected Dictionary<UUID, UserInfoCacheEntry> m_userInfoCache =
                 new Dictionary<UUID, UserInfoCacheEntry>();
 
+        protected Timer m_ShoutSayTimer;
+        protected int m_SayShoutCount = 0;
+
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
         {
+            m_ShoutSayTimer = new Timer(1000);
+            m_ShoutSayTimer.Elapsed += SayShoutTimerElapsed;
+            m_ShoutSayTimer.AutoReset = true;
+            m_ShoutSayTimer.Start();
+
             m_ScriptEngine = ScriptEngine;
             m_host = host;
             m_localID = localID;
@@ -883,6 +893,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
+            if (channelID == 0)
+                m_SayShoutCount++;
+
+            if (m_SayShoutCount >= 11)
+                ScriptSleep(2000);
+
             if (m_scriptConsoleChannelEnabled && (channelID == m_scriptConsoleChannel))
             {
                 Console.WriteLine(text);
@@ -904,6 +920,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llShout(int channelID, string text)
         {
             m_host.AddScriptLPS(1);
+
+            if (channelID == 0)
+                m_SayShoutCount++;
+
+            if (m_SayShoutCount >= 11)
+                ScriptSleep(2000);
 
             if (text.Length > 1023)
                 text = text.Substring(0, 1023);
@@ -10971,6 +10993,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             AsyncCommands.DataserverPlugin.DataserverReply(rq.ToString(), llKey2Name(id));
 
             return rq.ToString();
+        }
+
+        private void SayShoutTimerElapsed(Object sender, ElapsedEventArgs args)
+        {
+            m_SayShoutCount = 0;
         }
     }
 
