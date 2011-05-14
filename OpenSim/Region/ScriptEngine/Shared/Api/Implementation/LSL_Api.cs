@@ -9908,8 +9908,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetParcelMaxPrims(LSL_Vector pos, int sim_wide)
         {
             m_host.AddScriptLPS(1);
-            // Alondria: This currently just is utilizing the normal grid's 0.22 prims/m2 calculation
-            // Which probably will be irrelevent in OpenSim....
+
             LandData land = World.GetLandData((float)pos.x, (float)pos.y);
 
             float bonusfactor = (float)World.RegionInfo.RegionSettings.ObjectBonus;
@@ -9921,16 +9920,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (sim_wide != 0)
             {
-                decimal v = land.SimwideArea * (decimal)(0.22) * (decimal)bonusfactor;
+                int v = (int)((land.SimwideArea / 65536.0f) * (float)World.RegionInfo.ObjectCapacity * bonusfactor);
 
-                return (int)v;
+                return v;
             }
 
             else
             {
-                decimal v = land.Area * (decimal)(0.22) * (decimal)bonusfactor;
+                int v = (int)((land.Area / 65536.0f) * (float)World.RegionInfo.ObjectCapacity * bonusfactor);
 
-                return (int)v;
+                return v;
             }
 
         }
