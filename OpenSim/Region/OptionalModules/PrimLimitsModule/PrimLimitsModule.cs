@@ -76,22 +76,24 @@ namespace OpenSim.Region.OptionalModules
         
         public void AddRegion(Scene scene)
         {
-            if(!m_enabled)
+            if (!m_enabled)
             {
                 return;
             }
             scene.Permissions.OnRezObject += CanRezObject;
             scene.Permissions.OnObjectEntry += CanObjectEnter;
             scene.Permissions.OnDuplicateObject += CanDuplicateObject;
+
             m_log.DebugFormat("[PRIM LIMITS]: Region {0} added", scene.RegionInfo.RegionName);
         }
         
         public void RemoveRegion(Scene scene)
         {
-            if(m_enabled)
+            if (m_enabled)
             {
                 return;
             }
+
             scene.Permissions.OnRezObject -= CanRezObject;
             scene.Permissions.OnObjectEntry -= CanObjectEnter;
             scene.Permissions.OnDuplicateObject -= CanDuplicateObject;
@@ -104,13 +106,11 @@ namespace OpenSim.Region.OptionalModules
 
         private bool CanRezObject(int objectCount, UUID owner, Vector3 objectPosition, Scene scene)
         {
-            // This may be a little long winded and can probably be optomized
-            int usedPrims = scene.LandChannel.GetLandObject(objectPosition.X,objectPosition.Y).PrimCounts.Total;
-            LandData landData = scene.LandChannel.GetLandObject(objectPosition.X,objectPosition.Y).LandData;
-            int simulatorCapacity = (int)(((float)landData.SimwideArea / 65536.0f) *
-               (float)scene.RegionInfo.ObjectCapacity * (float)scene.RegionInfo.RegionSettings.ObjectBonus);
+            ILandObject lo = scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
+            int usedPrims = lo.PrimCounts.Total;
+            int simulatorCapacity = lo.GetSimulatorMaxPrimCount();
 
-            if(objectCount + usedPrims > simulatorCapacity)
+            if (objectCount + usedPrims > simulatorCapacity)
             {
                 m_dialogModule.SendAlertToUser(owner, "Unable to rez object because the parcel is too full");
                 return false;
@@ -118,7 +118,7 @@ namespace OpenSim.Region.OptionalModules
 
             return true;
         }
-        //OnMoveObject
+
         private bool CanObjectEnter(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene)
         {
             SceneObjectPart obj = scene.GetSceneObjectPart(objectID);
@@ -126,11 +126,9 @@ namespace OpenSim.Region.OptionalModules
             int objectCount = obj.ParentGroup.PrimCount;
             ILandObject oldParcel = scene.LandChannel.GetLandObject(oldPoint.X, oldPoint.Y);
             ILandObject newParcel = scene.LandChannel.GetLandObject(newPoint.X, newPoint.Y);
-            
-            int usedPrims=newParcel.PrimCounts.Total;
-            LandData landData = newParcel.LandData;
-            int simulatorCapacity = (int)(((float)landData.SimwideArea / 65536.0f) *
-               (float)scene.RegionInfo.ObjectCapacity * (float)scene.RegionInfo.RegionSettings.ObjectBonus);
+
+            int usedPrims = newParcel.PrimCounts.Total;
+            int simulatorCapacity = newParcel.GetSimulatorMaxPrimCount();
             
             // The prim hasn't crossed a region boundry so we don't need to worry
             // about prim counts here
@@ -138,35 +136,38 @@ namespace OpenSim.Region.OptionalModules
             {
                 return true;
             }
+
             // Prim counts are determined by the location of the root prim.  if we're
             // moving a child prim, just let it pass
             if(!obj.IsRoot)
             {
                 return true;
             }
-            // Add Special Case here for temporary prims
+
+            // TODO: Add Special Case here for temporary prims
             
             if(objectCount + usedPrims > simulatorCapacity)
             {
                 m_dialogModule.SendAlertToUser(obj.OwnerID, "Unable to move object because the destination parcel  is too full");
                 return false;
             }
+
             return true;
         }
+
         //OnDuplicateObject
         private bool CanDuplicateObject(int objectCount, UUID objectID, UUID owner, Scene scene, Vector3 objectPosition)
         {
-            // This may be a little long winded and can probably be optomized
-            int usedPrims = scene.LandChannel.GetLandObject(objectPosition.X,objectPosition.Y).PrimCounts.Total;
-            LandData landData = scene.LandChannel.GetLandObject(objectPosition.X,objectPosition.Y).LandData;
-            int simulatorCapacity = (int)(((float)landData.SimwideArea / 65536.0f) *
-               (float)scene.RegionInfo.ObjectCapacity * (float)scene.RegionInfo.RegionSettings.ObjectBonus);
+            ILandObject lo = scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
+            int usedPrims = lo.PrimCounts.Total;
+            int simulatorCapacity = lo.GetSimulatorMaxPrimCount();
 
             if(objectCount + usedPrims > simulatorCapacity)
             {
                 m_dialogModule.SendAlertToUser(owner, "Unable to duplicate object because the parcel is too full");
                 return false;
             }
+
             return true;
         }
     }

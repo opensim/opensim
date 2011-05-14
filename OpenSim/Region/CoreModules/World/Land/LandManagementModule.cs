@@ -437,8 +437,12 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
+        /// <summary>
+        /// Like handleEventManagerOnSignificantClientMovement, but called with an AgentUpdate regardless of distance.
+        /// </summary>
+        /// <param name="avatar"></param>
         public void EventManagerOnClientMovement(ScenePresence avatar)
-        //Like handleEventManagerOnSignificantClientMovement, but called with an AgentUpdate regardless of distance.
+        //
         {
             ILandObject over = GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
             if (over != null)
@@ -450,7 +454,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
             }
         }
-
 
         public void ClientOnParcelAccessListRequest(UUID agentID, UUID sessionID, uint flags, int sequenceID,
                                                     int landLocalID, IClientAPI remote_client)
@@ -585,14 +588,14 @@ namespace OpenSim.Region.CoreModules.World.Land
                     //m_scene.SimulationDataService.RemoveLandObject(lo.LandData.GlobalID);
                     m_scene.EventManager.TriggerLandObjectRemoved(lo.LandData.GlobalID);
                 }
-                
+
                 m_landList.Clear();
+
+                ResetSimLandObjects();
+
+                if (setupDefaultParcel)
+                    CreateDefaultParcel();
             }
-            
-            ResetSimLandObjects();
-            
-            if (setupDefaultParcel)
-                CreateDefaultParcel();
         }
 
         private void performFinalLandJoin(ILandObject master, ILandObject slave)
@@ -1324,8 +1327,11 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void EventManagerOnNoLandDataFromStorage()
         {
-            ResetSimLandObjects();
-            CreateDefaultParcel();
+            lock (m_landList)
+            {
+                ResetSimLandObjects();
+                CreateDefaultParcel();
+            }
         }
 
         #endregion

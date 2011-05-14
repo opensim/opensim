@@ -251,11 +251,11 @@ namespace OpenSim.Framework
                 // This just dumps a warning for any operation that takes more than 100 ms
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
                 if (tickdiff > LongCallTime)
-                    m_log.InfoFormat("[WEB UTIL]: osd request <{0}> (URI:{1}, METHOD:{2}) took {3}ms overall, {4}ms writing",
+                    m_log.DebugFormat("[WEB UTIL]: osd request <{0}> (URI:{1}, METHOD:{2}) took {3}ms overall, {4}ms writing",
                                      reqnum,url,method,tickdiff,tickdata);
             }
            
-	    m_log.WarnFormat("[WEB UTIL]: <{0}> osd request for {1}, method {2} FAILED: {3}", reqnum, url, method, errorMessage); 
+	        m_log.DebugFormat("[WEB UTIL]: <{0}> osd request for {1}, method {2} FAILED: {3}", reqnum, url, method, errorMessage); 
             return ErrorResponseMap(errorMessage);
         }
 
@@ -986,8 +986,11 @@ namespace OpenSim.Framework
 
             try
             {
-                using (WebResponse resp = request.GetResponse())
+                using (HttpWebResponse resp = (HttpWebResponse)request.GetResponse())
                 {
+                    if (resp.StatusCode == HttpStatusCode.NotFound)
+                        return deserial;
+
                     if (resp.ContentLength != 0)
                     {
                         Stream respStream = resp.GetResponseStream();
