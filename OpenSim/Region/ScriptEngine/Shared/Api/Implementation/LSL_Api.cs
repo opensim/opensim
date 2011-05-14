@@ -9909,29 +9909,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            LandData land = World.GetLandData((float)pos.x, (float)pos.y);
+            ILandObject lo = World.LandChannel.GetLandObject((float)pos.x, (float)pos.y);
 
-            float bonusfactor = (float)World.RegionInfo.RegionSettings.ObjectBonus;
-
-            if (land == null)
-            {
+            if (lo == null)
                 return 0;
-            }
 
             if (sim_wide != 0)
-            {
-                int v = (int)((land.SimwideArea / 65536.0f) * (float)World.RegionInfo.ObjectCapacity * bonusfactor);
-
-                return v;
-            }
-
+                return lo.GetSimulatorMaxPrimCount(lo);
             else
-            {
-                int v = (int)((land.Area / 65536.0f) * (float)World.RegionInfo.ObjectCapacity * bonusfactor);
-
-                return v;
-            }
-
+                return lo.GetParcelMaxPrimCount(lo);
         }
 
         public LSL_List llGetParcelDetails(LSL_Vector pos, LSL_List param)
