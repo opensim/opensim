@@ -58,12 +58,9 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
     /// </summary>
     /// <remarks>
     /// Config Settings Documentation.
-    /// At the TOP LEVEL, e.g. in OpenSim.ini, we have the following options:
-    /// EACH REGION, in OpenSim.ini, can have the following settings under the [AutoBackupModule] section.
-    /// IMPORTANT: You may optionally specify the key name as follows for a per-region key: [Region Name].[Key Name]
-    /// Example: My region is named Foo.
-    /// If I wanted to specify the "AutoBackupInterval" key just for this region, I would name my key "Foo.AutoBackupInterval", under the [AutoBackupModule] section of OpenSim.ini.
-    /// Instead of specifying them on a per-region basis, you can also omit the region name to specify the default setting for all regions.
+    /// Each configuration setting can be specified in two places: OpenSim.ini or Regions.ini.
+	/// If specified in Regions.ini, the settings should be within the region's section name.
+	/// If specified in OpenSim.ini, the settings should be within the [AutoBackupModule] section.
     /// Region-specific settings take precedence.
     /// 
     /// AutoBackupModuleEnabled: True/False. Default: False. If True, use the auto backup module. This setting does not support per-region basis.
@@ -71,7 +68,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
     /// AutoBackup: True/False. Default: False. If True, activate auto backup functionality. 
     /// 	This is the only required option for enabling auto-backup; the other options have sane defaults. 
     /// 	If False for a particular region, the auto-backup module becomes a no-op for the region, and all other AutoBackup* settings are ignored.
-    /// 	If False globally (the default), only regions that specifically override this with "FooRegion.AutoBackup = true" will get AutoBackup functionality.
+    /// 	If False globally (the default), only regions that specifically override it in Regions.ini will get AutoBackup functionality.
     /// AutoBackupInterval: Double, non-negative value. Default: 720 (12 hours). 
     /// 	The number of minutes between each backup attempt. 
     /// 	If a negative or zero value is given, it is equivalent to setting AutoBackup = False.
