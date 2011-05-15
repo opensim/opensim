@@ -62,8 +62,15 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         #region Packet Data Responders
 
+        private void clientSendDetailedEstateData(IClientAPI remote_client, UUID invoice)
+        {
+            sendDetailedEstateData(remote_client, invoice);
+            sendEstateLists(remote_client, invoice);
+        }
+
         private void sendDetailedEstateData(IClientAPI remote_client, UUID invoice)
         {
+            m_log.DebugFormat("[ESTATE]: Invoice is {0}", invoice.ToString());
             uint sun = 0;
 
             if (!Scene.RegionInfo.EstateSettings.UseGlobalTime)
@@ -83,7 +90,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     Scene.RegionInfo.RegionSettings.Covenant,
                     Scene.RegionInfo.EstateSettings.AbuseEmail,
                     estateOwner);
+        }
 
+        private void sendEstateLists(IClientAPI remote_client, UUID invoice)
+        {
             remote_client.SendEstateList(invoice,
                     (int)Constants.EstateAccessCodex.EstateManagers,
                     Scene.RegionInfo.EstateSettings.EstateManagers,
@@ -1121,7 +1131,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void EventManager_OnNewClient(IClientAPI client)
         {
-            client.OnDetailedEstateDataRequest += sendDetailedEstateData;
+            client.OnDetailedEstateDataRequest += clientSendDetailedEstateData;
             client.OnSetEstateFlagsRequest += estateSetRegionInfoHandler;
 //            client.OnSetEstateTerrainBaseTexture += setEstateTerrainBaseTexture;
             client.OnSetEstateTerrainDetailTexture += setEstateTerrainBaseTexture;

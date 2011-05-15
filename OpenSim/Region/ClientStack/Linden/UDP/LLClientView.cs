@@ -4372,37 +4372,44 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (bl[i].BannedUserID == UUID.Zero)
                     continue;
                 BannedUsers.Add(bl[i].BannedUserID);
+
+                if (BannedUsers.Count >= 50 || (i == (bl.Length - 1) && BannedUsers.Count > 0))
+                {
+                    EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
+                    packet.AgentData.TransactionID = UUID.Random();
+                    packet.AgentData.AgentID = AgentId;
+                    packet.AgentData.SessionID = SessionId;
+                    packet.MethodData.Invoice = invoice;
+                    packet.MethodData.Method = Utils.StringToBytes("setaccess");
+
+                    EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[6 + BannedUsers.Count];
+
+                    int j;
+                    for (j = 0; j < (6 + BannedUsers.Count); j++)
+                    {
+                        returnblock[j] = new EstateOwnerMessagePacket.ParamListBlock();
+                    }
+                    j = 0;
+
+                    returnblock[j].Parameter = Utils.StringToBytes(estateID.ToString()); j++;
+                    returnblock[j].Parameter = Utils.StringToBytes(((int)Constants.EstateAccessCodex.EstateBans).ToString()); j++;
+                    returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
+                    returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
+                    returnblock[j].Parameter = Utils.StringToBytes(BannedUsers.Count.ToString()); j++;
+                    returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
+
+                    foreach (UUID banned in BannedUsers)
+                    {
+                        returnblock[j].Parameter = banned.GetBytes(); j++;
+                    }
+                    packet.ParamList = returnblock;
+                    packet.Header.Reliable = true;
+                    OutPacket(packet, ThrottleOutPacketType.Task);
+
+                    BannedUsers.Clear();
+                }
             }
 
-            EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
-            packet.AgentData.TransactionID = UUID.Random();
-            packet.AgentData.AgentID = AgentId;
-            packet.AgentData.SessionID = SessionId;
-            packet.MethodData.Invoice = invoice;
-            packet.MethodData.Method = Utils.StringToBytes("setaccess");
-
-            EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[6 + BannedUsers.Count];
-
-            for (int i = 0; i < (6 + BannedUsers.Count); i++)
-            {
-                returnblock[i] = new EstateOwnerMessagePacket.ParamListBlock();
-            }
-            int j = 0;
-
-            returnblock[j].Parameter = Utils.StringToBytes(estateID.ToString()); j++;
-            returnblock[j].Parameter = Utils.StringToBytes(((int)Constants.EstateAccessCodex.EstateBans).ToString()); j++;
-            returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
-            returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
-            returnblock[j].Parameter = Utils.StringToBytes(BannedUsers.Count.ToString()); j++;
-            returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
-
-            foreach (UUID banned in BannedUsers)
-            {
-                returnblock[j].Parameter = banned.GetBytes(); j++;
-            }
-            packet.ParamList = returnblock;
-            packet.Header.Reliable = false;
-            OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
         public void SendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
