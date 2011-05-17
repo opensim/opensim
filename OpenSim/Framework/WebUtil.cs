@@ -251,11 +251,11 @@ namespace OpenSim.Framework
                 // This just dumps a warning for any operation that takes more than 100 ms
                 int tickdiff = Util.EnvironmentTickCountSubtract(tickstart);
                 if (tickdiff > LongCallTime)
-                    m_log.InfoFormat("[WEB UTIL]: osd request <{0}> (URI:{1}, METHOD:{2}) took {3}ms overall, {4}ms writing",
+                    m_log.DebugFormat("[WEB UTIL]: osd request <{0}> (URI:{1}, METHOD:{2}) took {3}ms overall, {4}ms writing",
                                      reqnum,url,method,tickdiff,tickdata);
             }
            
-	    m_log.WarnFormat("[WEB UTIL]: <{0}> osd request for {1}, method {2} FAILED: {3}", reqnum, url, method, errorMessage); 
+	        m_log.DebugFormat("[WEB UTIL]: <{0}> osd request for {1}, method {2} FAILED: {3}", reqnum, url, method, errorMessage); 
             return ErrorResponseMap(errorMessage);
         }
 
@@ -967,7 +967,7 @@ namespace OpenSim.Framework
                 }
                 catch (Exception e)
                 {
-                    m_log.WarnFormat("[SynchronousRestObjectRequester]: exception in sending data to {0}: {1}", requestUrl, e); 
+                    m_log.DebugFormat("[SynchronousRestObjectRequester]: exception in sending data to {0}: {1}", requestUrl, e); 
                     return deserial;
                 }
                 finally
@@ -979,8 +979,11 @@ namespace OpenSim.Framework
 
             try
             {
-                using (WebResponse resp = request.GetResponse())
+                using (HttpWebResponse resp = (HttpWebResponse)request.GetResponse())
                 {
+                    if (resp.StatusCode == HttpStatusCode.NotFound)
+                        return deserial;
+
                     if (resp.ContentLength != 0)
                     {
                         Stream respStream = resp.GetResponseStream();
@@ -989,18 +992,18 @@ namespace OpenSim.Framework
                         respStream.Close();
                     }
                     else
-                        m_log.WarnFormat("[SynchronousRestObjectRequester]: Oops! no content found in response stream from {0} {1}", requestUrl, verb);
+                        m_log.DebugFormat("[SynchronousRestObjectRequester]: Oops! no content found in response stream from {0} {1}", requestUrl, verb);
 
                 }
             }
             catch (System.InvalidOperationException)
             {
                 // This is what happens when there is invalid XML
-                m_log.WarnFormat("[SynchronousRestObjectRequester]: Invalid XML {0} {1}", requestUrl, typeof(TResponse).ToString());
+                m_log.DebugFormat("[SynchronousRestObjectRequester]: Invalid XML {0} {1}", requestUrl, typeof(TResponse).ToString());
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[SynchronousRestObjectRequester]: Exception on response from {0} {1}", requestUrl, e);
+                m_log.DebugFormat("[SynchronousRestObjectRequester]: Exception on response from {0} {1}", requestUrl, e);
             }
 
             return deserial;
