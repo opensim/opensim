@@ -411,12 +411,30 @@ namespace OpenSim.Services.InventoryService
         public virtual bool DeleteItems(UUID principalID, List<UUID> itemIDs)
         {
             if (!m_AllowDelete)
-                return false;
-
-            // Just use the ID... *facepalms*
-            //
-            foreach (UUID id in itemIDs)
-                m_Database.DeleteItems("inventoryID", id.ToString());
+            {
+                // We must still allow links and links to folders to be deleted, otherwise they will build up
+                // in the player's inventory until they can no longer log in.  Deletions of links due to code bugs or
+                // similar is inconvenient but on a par with accidental movement of items.  The original item is never
+                // touched.
+                foreach (UUID id in itemIDs)
+                {
+                    if (!m_Database.DeleteItems(
+                        new string[] { "inventoryID", "assetType" },
+                        new string[] { id.ToString(), ((sbyte)AssetType.Link).ToString() }));
+                    {
+                        m_Database.DeleteItems(
+                            new string[] { "inventoryID", "assetType" },
+                            new string[] { id.ToString(), ((sbyte)AssetType.LinkFolder).ToString() });
+                    }
+                }
+            }
+            else
+            {
+                // Just use the ID... *facepalms*
+                //
+                foreach (UUID id in itemIDs)
+                    m_Database.DeleteItems("inventoryID", id.ToString());
+            }
 
             return true;
         }
