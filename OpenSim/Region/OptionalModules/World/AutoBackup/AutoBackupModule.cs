@@ -59,8 +59,8 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
     /// <remarks>
     /// Config Settings Documentation.
     /// Each configuration setting can be specified in two places: OpenSim.ini or Regions.ini.
-	/// If specified in Regions.ini, the settings should be within the region's section name.
-	/// If specified in OpenSim.ini, the settings should be within the [AutoBackupModule] section.
+    /// If specified in Regions.ini, the settings should be within the region's section name.
+    /// If specified in OpenSim.ini, the settings should be within the [AutoBackupModule] section.
     /// Region-specific settings take precedence.
     /// 
     /// AutoBackupModuleEnabled: True/False. Default: False. If True, use the auto backup module. This setting does not support per-region basis.
