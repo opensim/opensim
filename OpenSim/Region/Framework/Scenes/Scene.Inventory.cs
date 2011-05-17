@@ -1404,7 +1404,10 @@ namespace OpenSim.Region.Framework.Scenes
                     if (item.AssetType == (int)AssetType.Link)
                     {
                         InventoryItemBase linkedItem = InventoryService.GetItem(new InventoryItemBase(item.AssetID));
-                        linkedItemFolderIdsToSend.Add(linkedItem.Folder);
+
+                        // Take care of genuinely broken links where the target doesn't exist
+                        if (linkedItem != null)
+                            linkedItemFolderIdsToSend.Add(linkedItem.Folder);
                     }
                 }
 
