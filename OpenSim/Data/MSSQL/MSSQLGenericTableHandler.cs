@@ -335,35 +335,24 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
-        public virtual bool Delete(string field, string key)
+        public virtual bool Delete(string field, string val)
         {
-            return Delete(new string[] { field }, new string[] { key });
-        }
-
-        public virtual bool Delete(string[] fields, string[] keys)
-        {
-            if (fields.Length != keys.Length)
-                return false;
-
-            List<string> terms = new List<string>();
-
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand())
             {
-                for (int i = 0; i < fields.Length; i++)
-                {
-                    cmd.Parameters.Add(m_database.CreateParameter(fields[i], keys[i]));
-                    terms.Add("[" + fields[i] + "] = @" + fields[i]);
-                }
-
-                string where = String.Join(" AND ", terms.ToArray());
-
-                string query = String.Format("DELETE * FROM {0} WHERE {1}", m_Realm, where);
-
+                string deleteCommand = String.Format("DELETE FROM {0} WHERE [{1}] = @{1}", m_Realm, field);
+                cmd.CommandText = deleteCommand;
+                
+                cmd.Parameters.Add(m_database.CreateParameter(field, val));
                 cmd.Connection = conn;
-                cmd.CommandText = query;
                 conn.Open();
-                return cmd.ExecuteNonQuery() > 0;
+
+                if (cmd.ExecuteNonQuery() > 0)
+                {
+                    //m_log.Warn("[MSSQLGenericTable]: " + deleteCommand);
+                    return true;
+                }
+                return false;
             }
         }
     }

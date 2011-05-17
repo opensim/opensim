@@ -264,33 +264,18 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public virtual bool Delete(string field, string key)
+        public virtual bool Delete(string field, string val)
         {
-            return Delete(new string[] { field }, new string[] { key });
-        }
-
-        public virtual bool Delete(string[] fields, string[] keys)
-        {
-            if (fields.Length != keys.Length)
-                return false;
-
-            List<string> terms = new List<string>();
-
             using (MySqlCommand cmd = new MySqlCommand())
             {
-                for (int i = 0 ; i < fields.Length ; i++)
-                {
-                    cmd.Parameters.AddWithValue(fields[i], keys[i]);
-                    terms.Add("`" + fields[i] + "` = ?" + fields[i]);
-                }
 
-                string where = String.Join(" and ", terms.ToArray());
+                cmd.CommandText = String.Format("delete from {0} where `{1}` = ?{1}", m_Realm, field);
+                cmd.Parameters.AddWithValue(field, val);
 
-                string query = String.Format("delete from {0} where {1}", m_Realm, where);
+                if (ExecuteNonQuery(cmd) > 0)
+                    return true;
 
-                cmd.CommandText = query;
-
-                return ExecuteNonQuery(cmd) > 0;
+                return false;
             }
         }
     }
