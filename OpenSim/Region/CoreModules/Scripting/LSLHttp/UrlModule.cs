@@ -351,14 +351,16 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         {
             Hashtable response = new Hashtable();
             UrlData url;
+            int startTime = 0;
             lock (m_RequestMap)
             {
                 if (!m_RequestMap.ContainsKey(requestID))
                     return response;
                 url = m_RequestMap[requestID];
+                startTime = url.requests[requestID].startTime;
             }
 
-            if (System.Environment.TickCount - url.requests[requestID].startTime > 25000)
+            if (System.Environment.TickCount - startTime > 25000)
             {
                 response["int_response_code"] = 500;
                 response["str_response_string"] = "Script timeout";
@@ -367,13 +369,13 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 response["reusecontext"] = false;
 
                 //remove from map
-                lock (url)
+                lock (url.requests)
                 {
                     url.requests.Remove(requestID);
-                    lock (m_RequestMap)
-                    {
-                        m_RequestMap.Remove(requestID);
-                    }
+                }
+                lock (m_RequestMap)
+                {
+                    m_RequestMap.Remove(requestID);
                 }
 
                 return response;
@@ -394,22 +396,25 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     return false;
                 }
                 url = m_RequestMap[requestID];
+            }
+            lock (url.requests)
+            {
                 if (!url.requests.ContainsKey(requestID))
                 {
                     return false;
                 }
+                else
+                {
+                    if (System.Environment.TickCount - url.requests[requestID].startTime > 25000)
+                    {
+                        return true;
+                    }
+                    if (url.requests[requestID].requestDone)
+                        return true;
+                    else
+                        return false;
+                }
             }
-
-            if (System.Environment.TickCount-url.requests[requestID].startTime>25000)
-            {
-                return true;
-            }
-
-            if (url.requests[requestID].requestDone)
-                return true;
-            else
-                return false;
-
         }
         private Hashtable GetEvents(UUID requestID, UUID sessionID, string request)
         {
@@ -421,9 +426,12 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 if (!m_RequestMap.ContainsKey(requestID))
                     return NoEvents(requestID,sessionID);
                 url = m_RequestMap[requestID];
+            }
+            lock (url.requests)
+            {
                 requestData = url.requests[requestID];
             }
-
+            
             if (!requestData.requestDone)
                 return NoEvents(requestID,sessionID);
             
@@ -446,13 +454,13 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             response["reusecontext"] = false;
             
             //remove from map
-            lock (url)
+            lock (url.requests)
             {
                 url.requests.Remove(requestID);
-                lock (m_RequestMap)
-                {
-                    m_RequestMap.Remove(requestID);
-                }
+            }
+            lock (m_RequestMap)
+            {
+                m_RequestMap.Remove(requestID);
             }
 
             return response;
