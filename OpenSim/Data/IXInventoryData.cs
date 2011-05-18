@@ -74,8 +74,37 @@ namespace OpenSim.Data
         bool StoreFolder(XInventoryFolder folder);
         bool StoreItem(XInventoryItem item);
 
+        /// <summary>
+        /// Delete folders where field == val
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="val"></param>
+        /// <returns>true if the delete was successful, false if it was not</returns>
         bool DeleteFolders(string field, string val);
+
+        /// <summary>
+        /// Delete folders where field1 == val1, field2 == val2...
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <param name="vals"></param>
+        /// <returns>true if the delete was successful, false if it was not</returns>
+        bool DeleteFolders(string[] fields, string[] vals);
+
+        /// <summary>
+        /// Delete items where field == val
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="val"></param>
+        /// <returns>true if the delete was successful, false if it was not</returns>
         bool DeleteItems(string field, string val);
+
+        /// <summary>
+        /// Delete items where field1 == val1, field2 == val2...
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <param name="vals"></param>
+        /// <returns>true if the delete was successful, false if it was not</returns>
+        bool DeleteItems(string[] fields, string[] vals);
 
         bool MoveItem(string id, string newParent);
         XInventoryItem[] GetActiveGestures(UUID principalID);
