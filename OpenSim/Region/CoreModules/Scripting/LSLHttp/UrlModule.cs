@@ -233,9 +233,12 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     return;
                 }
 
-                foreach (UUID req in data.requests.Keys)
-                    m_RequestMap.Remove(req);
-
+                lock (m_RequestMap)
+                {
+                    foreach (UUID req in data.requests.Keys)
+                        m_RequestMap.Remove(req);
+                }
+                        
                 RemoveUrl(data);
                 m_UrlMap.Remove(url);
             }
@@ -243,36 +246,42 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         
         public void HttpResponse(UUID request, int status, string body)
         {
-            if (m_RequestMap.ContainsKey(request))
+            lock (m_RequestMap)
             {
-                UrlData urlData = m_RequestMap[request];
-                if (!urlData.requests[request].responseSent)
+                if (m_RequestMap.ContainsKey(request))
                 {
-                    urlData.requests[request].responseCode = status;
-                    urlData.requests[request].responseBody = body;
-                    //urlData.requests[request].ev.Set();
-                    urlData.requests[request].requestDone = true;
-                    urlData.requests[request].responseSent = true;
+                    UrlData urlData = m_RequestMap[request];
+                    if (!urlData.requests[request].responseSent)
+                    {
+                        urlData.requests[request].responseCode = status;
+                        urlData.requests[request].responseBody = body;
+                        //urlData.requests[request].ev.Set();
+                        urlData.requests[request].requestDone = true;
+                        urlData.requests[request].responseSent = true;
+                    }
                 }
-            }
-            else
-            {
-                m_log.Info("[HttpRequestHandler] There is no http-in request with id " + request.ToString());
+                else
+                {
+                    m_log.Info("[HttpRequestHandler] There is no http-in request with id " + request.ToString());
+                }
             }
         }
 
         public string GetHttpHeader(UUID requestId, string header)
         {
-            if (m_RequestMap.ContainsKey(requestId))
+            lock (m_RequestMap)
             {
-                UrlData urlData=m_RequestMap[requestId];
-                string value;
-                if (urlData.requests[requestId].headers.TryGetValue(header,out value))
-                    return value;
-            }
-            else
-            {
-                m_log.Warn("[HttpRequestHandler] There was no http-in request with id " + requestId);
+                if (m_RequestMap.ContainsKey(requestId))
+                {
+                    UrlData urlData = m_RequestMap[requestId];
+                    string value;
+                    if (urlData.requests[requestId].headers.TryGetValue(header, out value))
+                        return value;
+                }
+                else
+                {
+                    m_log.Warn("[HttpRequestHandler] There was no http-in request with id " + requestId);
+                }
             }
             return String.Empty;
         }
@@ -294,8 +303,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     {
                         RemoveUrl(url.Value);
                         removeURLs.Add(url.Key);
-                        foreach (UUID req in url.Value.requests.Keys)
-                            m_RequestMap.Remove(req);
+                        lock (m_RequestMap)
+                        {
+                            foreach (UUID req in url.Value.requests.Keys)
+                                m_RequestMap.Remove(req);
+                        }
                     }
                 }
 
@@ -316,8 +328,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     {
                         RemoveUrl(url.Value);
                         removeURLs.Add(url.Key);
-                        foreach (UUID req in url.Value.requests.Keys)
-                            m_RequestMap.Remove(req);
+                        lock (m_RequestMap)
+                        {
+                            foreach (UUID req in url.Value.requests.Keys)
+                                m_RequestMap.Remove(req);
+                        }
                     }
                 }
 
@@ -355,7 +370,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 lock (url)
                 {
                     url.requests.Remove(requestID);
-                    m_RequestMap.Remove(requestID);
+                    lock (m_RequestMap)
+                    {
+                        m_RequestMap.Remove(requestID);
+                    }
                 }
 
                 return response;
@@ -431,7 +449,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             lock (url)
             {
                 url.requests.Remove(requestID);
-                m_RequestMap.Remove(requestID);
+                lock (m_RequestMap)
+                {
+                    m_RequestMap.Remove(requestID);
+                }
             }
 
             return response;
