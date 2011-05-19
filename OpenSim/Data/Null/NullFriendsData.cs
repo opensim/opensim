@@ -53,7 +53,7 @@ namespace OpenSim.Data.Null
         {
             List<FriendsData> lst = m_Data.FindAll(delegate (FriendsData fdata)
             {
-                return fdata.PrincipalID == userID;
+                return fdata.PrincipalID == userID.ToString();
             });
 
             if (lst != null)
@@ -74,7 +74,7 @@ namespace OpenSim.Data.Null
 
         public bool Delete(UUID userID, string friendID)
         {
-            List<FriendsData> lst = m_Data.FindAll(delegate(FriendsData fdata) { return fdata.PrincipalID == userID; });
+            List<FriendsData> lst = m_Data.FindAll(delegate(FriendsData fdata) { return fdata.PrincipalID == userID.ToString(); });
             if (lst != null)
             {
                 FriendsData friend = lst.Find(delegate(FriendsData fdata) { return fdata.Friend == friendID; });

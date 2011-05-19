@@ -141,6 +141,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         void HandleUUIDNameRequest(UUID uuid, IClientAPI remote_client)
         {
+            m_log.DebugFormat("[XXX] HandleUUIDNameRequest {0}", uuid);
             if (m_Scenes[0].LibraryService != null && (m_Scenes[0].LibraryService.LibraryRootFolder.Owner == uuid))
             {
                 remote_client.SendNameReply(uuid, "Mr", "OpenSim");
@@ -210,6 +211,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public string GetUserName(UUID uuid)
         {
+            m_log.DebugFormat("[XXX] GetUserName {0}", uuid);
             string[] names = GetUserNames(uuid);
             if (names.Length == 2)
             {

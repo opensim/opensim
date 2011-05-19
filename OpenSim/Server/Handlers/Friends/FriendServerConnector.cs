@@ -46,14 +46,14 @@ namespace OpenSim.Server.Handlers.Friends
             if (serverConfig == null)
                 throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
 
-            string gridService = serverConfig.GetString("LocalServiceModule",
+            string theService = serverConfig.GetString("LocalServiceModule",
                     String.Empty);
 
-            if (gridService == String.Empty)
+            if (theService == String.Empty)
                 throw new Exception("No LocalServiceModule in config file");
 
             Object[] args = new Object[] { config };
-            m_FriendsService = ServerUtils.LoadPlugin<IFriendsService>(gridService, args);
+            m_FriendsService = ServerUtils.LoadPlugin<IFriendsService>(theService, args);
 
             server.AddStreamHandler(new FriendsServerPostHandler(m_FriendsService));
         }

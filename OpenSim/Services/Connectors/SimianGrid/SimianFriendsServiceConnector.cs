@@ -127,7 +127,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             return array;
         }
 
-        public bool StoreFriend(UUID principalID, string friend, int flags)
+        public bool StoreFriend(string principalID, string friend, int flags)
         {
             if (String.IsNullOrEmpty(m_serverUrl))
                 return true;

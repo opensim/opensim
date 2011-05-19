@@ -25,60 +25,47 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenMetaverse;
-using OpenSim.Framework;
 using System;
-using System.Collections.Generic;
-using OpenSim.Services.Interfaces;
-using OpenSim.Data;
 using Nini.Config;
-using log4net;
-using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
+using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Server.Handlers.Base;
 
-namespace OpenSim.Services.Friends
+namespace OpenSim.Server.Handlers.Hypergrid
 {
-    public class FriendsService : FriendsServiceBase, IFriendsService
+    public class HGFriendsServerConnector : ServiceConnector
     {
-        public FriendsService(IConfigSource config) : base(config)
+        private IFriendsService m_FriendsService;
+        private IUserAgentService m_UserAgentService;
+        private string m_ConfigName = "HGFriendsService";
+
+        public HGFriendsServerConnector(IConfigSource config, IHttpServer server, string configName) :
+                base(config, server, configName)
         {
+            if (configName != string.Empty) 
+                m_ConfigName = configName;
+
+            IConfig serverConfig = config.Configs[m_ConfigName];
+            if (serverConfig == null)
+                throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
+
+            string theService = serverConfig.GetString("LocalServiceModule",
+                    String.Empty);
+
+            if (theService == String.Empty)
+                throw new Exception("No LocalServiceModule in config file");
+
+            Object[] args = new Object[] { config };
+            m_FriendsService = ServerUtils.LoadPlugin<IFriendsService>(theService, args);
+
+            theService = serverConfig.GetString("UserAgentService", string.Empty);
+            if (theService == String.Empty)
+                throw new Exception("No UserAgentService in " + m_ConfigName);
+
+            m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(theService, args);
+
+            server.AddStreamHandler(new HGFriendsServerPostHandler(m_FriendsService, m_UserAgentService));
         }
-
-        public virtual FriendInfo[] GetFriends(UUID PrincipalID)
-        {
-            FriendsData[] data = m_Database.GetFriends(PrincipalID);
-            List<FriendInfo> info = new List<FriendInfo>();
-
-            foreach (FriendsData d in data)
-            {
-                FriendInfo i = new FriendInfo();
-
-                i.PrincipalID = new UUID(d.PrincipalID);
-                i.Friend = d.Friend;
-                i.MyFlags = Convert.ToInt32(d.Data["Flags"]);
-                i.TheirFlags = Convert.ToInt32(d.Data["TheirFlags"]);
-
-                info.Add(i);
-            }
-
-            return info.ToArray();
-        }
-
-        public virtual bool StoreFriend(string PrincipalID, string Friend, int flags)
-        {
-            FriendsData d = new FriendsData();
-
-            d.PrincipalID = PrincipalID;
-            d.Friend = Friend;
-            d.Data = new Dictionary<string, string>();
-            d.Data["Flags"] = flags.ToString();
-
-            return m_Database.Store(d);
-        }
-
-        public virtual bool Delete(UUID PrincipalID, string Friend)
-        {
-            return m_Database.Delete(PrincipalID, Friend);
-        }
-
     }
 }

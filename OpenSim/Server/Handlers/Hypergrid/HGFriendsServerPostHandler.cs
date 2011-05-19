@@ -43,18 +43,21 @@ using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenMetaverse;
 
-namespace OpenSim.Server.Handlers.Friends
+namespace OpenSim.Server.Handlers.Hypergrid
 {
-    public class FriendsServerPostHandler : BaseStreamHandler
+    public class HGFriendsServerPostHandler : BaseStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IFriendsService m_FriendsService;
+        private IUserAgentService m_UserAgentService;
 
-        public FriendsServerPostHandler(IFriendsService service) :
-                base("POST", "/friends")
+        public HGFriendsServerPostHandler(IFriendsService service, IUserAgentService uservice) :
+                base("POST", "/hgfriends")
         {
             m_FriendsService = service;
+            m_UserAgentService = uservice;
+            m_log.DebugFormat("[HGFRIENDS HANDLER]: HGFriendsServerPostHandler is On");
         }
 
         public override byte[] Handle(string path, Stream requestData,
@@ -82,18 +85,15 @@ namespace OpenSim.Server.Handlers.Friends
                     case "getfriends":
                         return GetFriends(request);
 
-                    case "storefriend":
-                        return StoreFriend(request);
-
-                    case "deletefriend":
-                        return DeleteFriend(request);
+                    case "newfriendship":
+                        return NewFriendship(request);
 
                 }
-                m_log.DebugFormat("[FRIENDS HANDLER]: unknown method {0} request {1}", method.Length, method);
+                m_log.DebugFormat("[HGFRIENDS HANDLER]: unknown method {0} request {1}", method.Length, method);
             }
             catch (Exception e)
             {
-                m_log.DebugFormat("[FRIENDS HANDLER]: Exception {0}", e);
+                m_log.DebugFormat("[HGFRIENDS HANDLER]: Exception {0}", e);
             }
 
             return FailureResult();
@@ -108,7 +108,7 @@ namespace OpenSim.Server.Handlers.Friends
             if (request.ContainsKey("PRINCIPALID"))
                 UUID.TryParse(request["PRINCIPALID"].ToString(), out principalID);
             else
-                m_log.WarnFormat("[FRIENDS HANDLER]: no principalID in request to get friends");
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: no principalID in request to get friends");
 
             FriendInfo[] finfos = m_FriendsService.GetFriends(principalID);
             //m_log.DebugFormat("[FRIENDS HANDLER]: neighbours for region {0}: {1}", regionID, rinfos.Count);
@@ -134,11 +134,33 @@ namespace OpenSim.Server.Handlers.Friends
 
         }
 
-        byte[] StoreFriend(Dictionary<string, object> request)
+        byte[] NewFriendship(Dictionary<string, object> request)
         {
+            if (!request.ContainsKey("KEY") || !request.ContainsKey("SESSIONID"))
+            {
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: ignoring request without Key or SessionID");
+                return FailureResult();
+            }
+
+            string serviceKey = request["KEY"].ToString();
+            string sessionStr = request["SESSIONID"].ToString();
+            UUID sessionID;
+            UUID.TryParse(sessionStr, out sessionID);
+
+            if (!m_UserAgentService.VerifyAgent(sessionID, serviceKey))
+            {
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: Key {0} for session {1} did not match existing key. Ignoring request", serviceKey, sessionID);
+                return FailureResult();
+            }
+
+            m_log.DebugFormat("[XXX] Verification ok");
+            // OK, can proceed
             FriendInfo friend = new FriendInfo(request);
 
-            bool success = m_FriendsService.StoreFriend(friend.PrincipalID.ToString(), friend.Friend, friend.MyFlags);
+            // the user needs to confirm when he gets home
+            bool success = m_FriendsService.StoreFriend(friend.PrincipalID.ToString(), friend.Friend, 0);
+            //if (success)
+            //    m_FriendsService.StoreFriend(friend.Friend, friend.PrincipalID.ToString(), 1);
 
             if (success)
                 return SuccessResult();
@@ -146,24 +168,6 @@ namespace OpenSim.Server.Handlers.Friends
                 return FailureResult();
         }
 
-        byte[] DeleteFriend(Dictionary<string, object> request)
-        {
-            UUID principalID = UUID.Zero;
-            if (request.ContainsKey("PRINCIPALID"))
-                UUID.TryParse(request["PRINCIPALID"].ToString(), out principalID);
-            else
-                m_log.WarnFormat("[FRIENDS HANDLER]: no principalID in request to delete friend");
-            string friend = string.Empty;
-            if (request.ContainsKey("FRIEND"))
-                friend = request["FRIEND"].ToString();
-
-            bool success = m_FriendsService.Delete(principalID, friend);
-            if (success)
-                return SuccessResult();
-            else
-                return FailureResult();
-        }
-        
         #endregion
 
         #region Misc

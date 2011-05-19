@@ -34,7 +34,7 @@ namespace OpenSim.Data
 {
     public class FriendsData
     {
-        public UUID PrincipalID;
+        public string PrincipalID;
         public string Friend;
         public Dictionary<string, string> Data;
     }

@@ -30,54 +30,65 @@ using OpenSim.Framework;
 using System;
 using System.Collections.Generic;
 using OpenSim.Services.Interfaces;
+using OpenSim.Services.Friends;
 using OpenSim.Data;
 using Nini.Config;
 using log4net;
 using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
 
-namespace OpenSim.Services.Friends
+namespace OpenSim.Services.HypergridService
 {
-    public class FriendsService : FriendsServiceBase, IFriendsService
+    public class HGFriendsService : FriendsService, IFriendsService
     {
-        public FriendsService(IConfigSource config) : base(config)
+        public HGFriendsService(IConfigSource config) : base(config)
         {
         }
 
-        public virtual FriendInfo[] GetFriends(UUID PrincipalID)
+        /// <summary>
+        /// Overrides base. 
+        /// Storing new friendships from the outside is a tricky, sensitive operation, and it 
+        /// needs to be done under certain restrictions.
+        /// First of all, if the friendship already exists, this is a no-op. In other words, 
+        /// we cannot change just the flags, it needs to be a new friendship.
+        /// Second, we store it as flags=0 always, independent of what the caller sends. The
+        /// owner of the friendship needs to confirm when it gets back home.
+        /// </summary>
+        /// <param name="PrincipalID"></param>
+        /// <param name="Friend"></param>
+        /// <param name="flags"></param>
+        /// <returns></returns>
+        public override bool StoreFriend(string PrincipalID, string Friend, int flags)
         {
-            FriendsData[] data = m_Database.GetFriends(PrincipalID);
-            List<FriendInfo> info = new List<FriendInfo>();
-
-            foreach (FriendsData d in data)
+            UUID userID;
+            if (UUID.TryParse(PrincipalID, out userID))
             {
-                FriendInfo i = new FriendInfo();
-
-                i.PrincipalID = new UUID(d.PrincipalID);
-                i.Friend = d.Friend;
-                i.MyFlags = Convert.ToInt32(d.Data["Flags"]);
-                i.TheirFlags = Convert.ToInt32(d.Data["TheirFlags"]);
-
-                info.Add(i);
+                FriendsData[] friendsData = m_Database.GetFriends(userID);
+                List<FriendsData> fList = new List<FriendsData>(friendsData);
+                if (fList.Find(delegate(FriendsData fdata)
+                    {
+                        return fdata.Friend == Friend;
+                    }) != null)
+                    return false;
             }
 
-            return info.ToArray();
-        }
-
-        public virtual bool StoreFriend(string PrincipalID, string Friend, int flags)
-        {
             FriendsData d = new FriendsData();
-
             d.PrincipalID = PrincipalID;
             d.Friend = Friend;
             d.Data = new Dictionary<string, string>();
-            d.Data["Flags"] = flags.ToString();
+            d.Data["Flags"] = "0";
 
             return m_Database.Store(d);
         }
 
-        public virtual bool Delete(UUID PrincipalID, string Friend)
+        /// <summary>
+        /// Overrides base. Cannot delete friendships while away from home.
+        /// </summary>
+        /// <param name="PrincipalID"></param>
+        /// <param name="Friend"></param>
+        /// <returns></returns>
+        public override bool Delete(UUID PrincipalID, string Friend)
         {
-            return m_Database.Delete(PrincipalID, Friend);
+            return false;
         }
 
     }

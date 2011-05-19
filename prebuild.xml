@@ -1256,6 +1256,7 @@
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenSim.Services.Base"/>
       <Reference name="OpenSim.Services.AssetService"/>
+      <Reference name="OpenSim.Services.FriendsService"/>
       <Reference name="OpenSim.Services.InventoryService"/>
       <Reference name="OpenSim.Services.Connectors"/>
       <Reference name="OpenSim.Data"/>
