@@ -91,10 +91,20 @@ namespace OpenSim.Data.SQLite
             return m_Folders.Delete(field, val);
         }
 
+        public bool DeleteFolders(string[] fields, string[] vals)
+        {
+            return m_Folders.Delete(fields, vals);
+        }
+
         public bool DeleteItems(string field, string val)
         {
             return m_Items.Delete(field, val);
         }
+
+        public bool DeleteItems(string[] fields, string[] vals)
+        {
+            return m_Items.Delete(fields, vals);
+        }        
 
         public bool MoveItem(string id, string newParent)
         {
