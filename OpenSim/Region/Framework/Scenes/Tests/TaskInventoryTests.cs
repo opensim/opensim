@@ -53,16 +53,6 @@ namespace OpenSim.Region.Framework.Tests
     [TestFixture]
     public class TaskInventoryTests
     {
-        protected SceneObjectGroup CreateSO1(Scene scene, UUID ownerId)
-        {
-            string part1Name = "part1";
-            UUID part1Id = UUID.Parse("10000000-0000-0000-0000-000000000000");
-            SceneObjectPart part1
-                = new SceneObjectPart(ownerId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
-                    { Name = part1Name, UUID = part1Id };
-            return new SceneObjectGroup(part1);
-        }
-        
         protected TaskInventoryItem CreateSOItem1(Scene scene, SceneObjectPart part)
         {
             AssetNotecard nc = new AssetNotecard();
@@ -90,7 +80,7 @@ namespace OpenSim.Region.Framework.Tests
             
             Scene scene = SceneSetupHelpers.SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
-            SceneObjectGroup sog1 = CreateSO1(scene, user1.PrincipalID);
+            SceneObjectGroup sog1 = SceneSetupHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
 
             // Create an object embedded inside the first
@@ -140,7 +130,7 @@ namespace OpenSim.Region.Framework.Tests
             
             Scene scene = SceneSetupHelpers.SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
-            SceneObjectGroup sog1 = CreateSO1(scene, user1.PrincipalID);
+            SceneObjectGroup sog1 = SceneSetupHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
             TaskInventoryItem sopItem1 = CreateSOItem1(scene, sop1);
             InventoryFolderBase folder 
@@ -166,7 +156,7 @@ namespace OpenSim.Region.Framework.Tests
             
             Scene scene = SceneSetupHelpers.SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
-            SceneObjectGroup sog1 = CreateSO1(scene, user1.PrincipalID);
+            SceneObjectGroup sog1 = SceneSetupHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
             TaskInventoryItem sopItem1 = CreateSOItem1(scene, sop1);
             
