@@ -53,15 +53,6 @@ namespace OpenSim.Region.Framework.Tests
     [TestFixture]
     public class TaskInventoryTests
     {
-        protected UserAccount CreateUser(Scene scene)
-        {
-            string userFirstName = "Jock";
-            string userLastName = "Stirrup";
-            string userPassword = "troll";
-            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
-            return UserProfileTestUtils.CreateUserWithInventory(scene, userFirstName, userLastName, userId, userPassword);
-        }
-        
         protected SceneObjectGroup CreateSO1(Scene scene, UUID ownerId)
         {
             string part1Name = "part1";
@@ -98,7 +89,7 @@ namespace OpenSim.Region.Framework.Tests
 //            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneSetupHelpers.SetupScene();
-            UserAccount user1 = CreateUser(scene);
+            UserAccount user1 = UserProfileTestUtils.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = CreateSO1(scene, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
 
@@ -148,7 +139,7 @@ namespace OpenSim.Region.Framework.Tests
 //            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneSetupHelpers.SetupScene();
-            UserAccount user1 = CreateUser(scene);
+            UserAccount user1 = UserProfileTestUtils.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = CreateSO1(scene, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
             TaskInventoryItem sopItem1 = CreateSOItem1(scene, sop1);
@@ -174,7 +165,7 @@ namespace OpenSim.Region.Framework.Tests
 //            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneSetupHelpers.SetupScene();
-            UserAccount user1 = CreateUser(scene);
+            UserAccount user1 = UserProfileTestUtils.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = CreateSO1(scene, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
             TaskInventoryItem sopItem1 = CreateSOItem1(scene, sop1);
