@@ -4458,10 +4458,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return result;
         }
 
-        public void llGetLinkNumberOfSides(int link)
+        public LSL_Integer llGetLinkNumberOfSides(int link)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetLinkNumberOfSides");
+
+            SceneObjectPart linkedPart;
+
+            if (link == ScriptBaseClass.LINK_ROOT)
+                linkedPart = m_host.ParentGroup.RootPart;
+            else if (link == ScriptBaseClass.LINK_THIS)
+                linkedPart = m_host;
+            else
+                linkedPart = m_host.ParentGroup.GetLinkNumPart(link);
+
+            return GetNumberOfSides(linkedPart);
         }
 
         public LSL_Integer llGetNumberOfSides()
