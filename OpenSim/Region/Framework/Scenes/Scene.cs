@@ -620,7 +620,7 @@ namespace OpenSim.Region.Framework.Scenes
                                           "delete object uuid <UUID>",
                                           "Delete object by uuid", HandleDeleteObject);
             MainConsole.Instance.Commands.AddCommand("region", false, "delete object name",
-                                          "delete object name <UUID>",
+                                          "delete object name <name>",
                                           "Delete object by name", HandleDeleteObject);
 
             //Bind Storage Manager functions to some land manager functions for this scene
