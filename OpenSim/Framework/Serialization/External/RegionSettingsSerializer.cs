@@ -182,6 +182,9 @@ namespace OpenSim.Framework.Serialization.External
                     case "FixedSun":
                         settings.FixedSun = bool.Parse(xtr.ReadElementContentAsString());
                         break;
+                    case "SunPosition":
+                        settings.SunPosition = double.Parse(xtr.ReadElementContentAsString());
+                        break;
                 }
             }
             
@@ -237,8 +240,9 @@ namespace OpenSim.Framework.Serialization.External
             xtw.WriteElementString("TerrainLowerLimit", settings.TerrainLowerLimit.ToString());
             xtw.WriteElementString("UseEstateSun", settings.UseEstateSun.ToString());
             xtw.WriteElementString("FixedSun", settings.FixedSun.ToString());
-            // XXX: Need to expose interface to get sun phase information from sun module
-            // xtw.WriteStartElement("SunPhase", 
+            xtw.WriteElementString("SunPosition", settings.SunPosition.ToString());
+            // Note: 'SunVector' isn't saved because this value is owned by the Sun Module, which
+            // calculates it automatically according to the date and other factors.
             xtw.WriteEndElement(); 
             
             xtw.WriteEndElement();
