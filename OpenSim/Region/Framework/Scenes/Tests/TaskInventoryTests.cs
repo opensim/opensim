@@ -122,14 +122,14 @@ namespace OpenSim.Region.Framework.Tests
 
             scene.RezObject(sop1, taskSceneObjectItem, rezPos, rezRot, rezVel, 0);
 
-            SceneObjectPart rezzedObjectPart = scene.GetSceneObjectPart("tso");
+            SceneObjectGroup rezzedObject = scene.GetSceneObjectGroup("tso");
 
-            Assert.That(rezzedObjectPart, Is.Not.Null);
-            Assert.That(rezzedObjectPart.AbsolutePosition, Is.EqualTo(rezPos));
-            Assert.That(rezzedObjectPart.RotationOffset, Is.EqualTo(rezRot));
+            Assert.That(rezzedObject, Is.Not.Null);
+            Assert.That(rezzedObject.AbsolutePosition, Is.EqualTo(rezPos));
+            Assert.That(rezzedObject.Velocity, Is.EqualTo(rezVel));
 
-            // Velocity isn't being set, possibly because we have no physics
-            //Assert.That(rezzedObjectPart.Velocity, Is.EqualTo(rezVel));
+            // Confusingly, this isn't the rezzedObject.Rotation
+            Assert.That(rezzedObject.RootPart.RotationOffset, Is.EqualTo(rezRot));
         }
 
         /// <summary>
