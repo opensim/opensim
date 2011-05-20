@@ -67,7 +67,7 @@ namespace OpenSim.Region.Framework.Tests
             // Create an object embedded inside the first
             UUID taskSceneObjectItemId = UUID.Parse("00000000-0000-0000-0000-100000000000");
             TaskInventoryItem taskSceneObjectItem
-                = TaskInventoryHelpers.AddSceneObjectItem(scene, sop1, "tso", taskSceneObjectItemId);
+                = TaskInventoryHelpers.AddSceneObject(scene, sop1, "tso", taskSceneObjectItemId);
 
             scene.AddSceneObject(sog1);
 
