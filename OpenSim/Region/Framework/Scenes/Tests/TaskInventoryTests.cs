@@ -53,25 +53,6 @@ namespace OpenSim.Region.Framework.Tests
     [TestFixture]
     public class TaskInventoryTests
     {
-        protected TaskInventoryItem CreateSOItem1(Scene scene, SceneObjectPart part)
-        {
-            AssetNotecard nc = new AssetNotecard();
-            nc.BodyText = "Hello World!";
-            nc.Encode();
-            UUID ncAssetUuid = new UUID("00000000-0000-0000-1000-000000000000");
-            UUID ncItemUuid = new UUID("00000000-0000-0000-1100-000000000000");
-            AssetBase ncAsset 
-                = AssetHelpers.CreateAsset(ncAssetUuid, AssetType.Notecard, nc.AssetData, UUID.Zero);
-            scene.AssetService.Store(ncAsset);
-            TaskInventoryItem ncItem 
-                = new TaskInventoryItem 
-                    { Name = "ncItem", AssetID = ncAssetUuid, ItemID = ncItemUuid, 
-                      Type = (int)AssetType.Notecard, InvType = (int)InventoryType.Notecard };
-            part.Inventory.AddInventoryItem(ncItem, true); 
-            
-            return ncItem;
-        }
-
         [Test]
         public void TestRezObjectFromInventoryItem()
         {
@@ -132,7 +113,7 @@ namespace OpenSim.Region.Framework.Tests
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = SceneSetupHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
-            TaskInventoryItem sopItem1 = CreateSOItem1(scene, sop1);
+            TaskInventoryItem sopItem1 = TaskInventoryHelpers.AddNotecard(scene, sop1);
             InventoryFolderBase folder 
                 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, user1.PrincipalID, "Objects")[0];
             
@@ -158,7 +139,7 @@ namespace OpenSim.Region.Framework.Tests
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             SceneObjectGroup sog1 = SceneSetupHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
-            TaskInventoryItem sopItem1 = CreateSOItem1(scene, sop1);
+            TaskInventoryItem sopItem1 = TaskInventoryHelpers.AddNotecard(scene, sop1);
             
             // Perform test
             scene.MoveTaskInventoryItem(user1.PrincipalID, UUID.Zero, sop1, sopItem1.ItemID);
