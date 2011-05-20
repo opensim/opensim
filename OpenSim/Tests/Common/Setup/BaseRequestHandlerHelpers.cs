@@ -36,7 +36,7 @@ using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Tests.Common.Setup
 {
-    public class BaseRequestHandlerTestHelper
+    public class BaseRequestHandlerHelpers
     {
         private static string[] m_emptyStringArray = new string[] { };
 
