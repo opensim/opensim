@@ -976,6 +976,22 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Get a group in the scene
+        /// </summary>
+        /// <param name="fullID">UUID of the group</param>
+        /// <returns>null if no such group was found</returns>
+        protected internal SceneObjectGroup GetSceneObjectGroup(UUID fullID)
+        {
+            lock (SceneObjectGroupsByFullID)
+            {
+                if (SceneObjectGroupsByFullID.ContainsKey(fullID))
+                    return SceneObjectGroupsByFullID[fullID];
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Get a part contained in this scene.
         /// </summary>
         /// <param name="localID"></param>

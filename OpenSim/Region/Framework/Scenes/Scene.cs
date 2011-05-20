@@ -4279,6 +4279,16 @@ namespace OpenSim.Region.Framework.Scenes
         //        }
 
         /// <summary>
+        /// Get a group via its UUID
+        /// </summary>
+        /// <param name="fullID"></param>
+        /// <returns></returns>
+        public SceneObjectGroup GetSceneObjectGroup(UUID fullID)
+        {
+            return m_sceneGraph.GetSceneObjectGroup(fullID);
+        }
+
+        /// <summary>
         /// Get a named prim contained in this scene (will return the first
         /// found, if there are more than one prim with the same name)
         /// </summary>
