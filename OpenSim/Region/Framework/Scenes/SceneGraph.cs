@@ -992,6 +992,35 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Get a group by name from the scene (will return the first
+        /// found, if there are more than one prim with the same name)
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>null if the part was not found</returns>
+        protected internal SceneObjectGroup GetSceneObjectGroup(string name)
+        {
+            SceneObjectGroup so = null;
+
+            Entities.Find(
+                delegate(EntityBase entity)
+                {
+                    if (entity is SceneObjectGroup)
+                    {
+                        if (entity.Name == name)
+                        {
+                            so = (SceneObjectGroup)entity;
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+            );
+
+            return so;
+        }
+
+        /// <summary>
         /// Get a part contained in this scene.
         /// </summary>
         /// <param name="localID"></param>
@@ -1005,7 +1034,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
         
         /// <summary>
-        /// Get a named prim contained in this scene (will return the first 
+        /// Get a prim by name from the scene (will return the first
         /// found, if there are more than one prim with the same name)
         /// </summary>
         /// <param name="name"></param>
