@@ -90,11 +90,54 @@ namespace OpenSim.Region.Framework.Tests
             
             return ncItem;
         }
-        
+
+        [Test]
+        public void TestRezObjectFromInventoryItem()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+            
+            Scene scene = SceneSetupHelpers.SetupScene();
+            UserAccount user1 = CreateUser(scene);
+            SceneObjectGroup sog1 = CreateSO1(scene, user1.PrincipalID);
+            SceneObjectPart sop1 = sog1.RootPart;
+
+            // Create an object embedded inside the first
+            UUID taskSceneObjectItemId = UUID.Parse("00000000-0000-0000-0000-100000000000");
+
+            SceneObjectGroup taskSceneObject = SceneSetupHelpers.CreateSceneObject(1, UUID.Zero);
+            AssetBase taskSceneObjectAsset = AssetHelpers.CreateAsset(0x10, taskSceneObject);
+            scene.AssetService.Store(taskSceneObjectAsset);
+            TaskInventoryItem taskSceneObjectItem
+                = new TaskInventoryItem
+                    { Name = "tso", AssetID = taskSceneObjectAsset.FullID, ItemID = taskSceneObjectItemId,
+                      Type = (int)AssetType.Object, InvType = (int)InventoryType.Object };
+            sop1.Inventory.AddInventoryItem(taskSceneObjectItem, true);
+
+            scene.AddSceneObject(sog1);
+
+            Vector3 rezPos = new Vector3(10, 10, 10);
+            Quaternion rezRot = new Quaternion(0.5f, 0.5f, 0.5f, 0.5f);
+            Vector3 rezVel = new Vector3(2, 2, 2);
+
+            scene.RezObject(sop1, taskSceneObjectItem, rezPos, rezRot, rezVel, 0);
+
+            SceneObjectPart rezzedObjectPart = scene.GetSceneObjectPart("tso");
+
+            Assert.That(rezzedObjectPart, Is.Not.Null);
+            Assert.That(rezzedObjectPart.AbsolutePosition, Is.EqualTo(rezPos));
+            Assert.That(rezzedObjectPart.RotationOffset, Is.EqualTo(rezRot));
+
+            // Velocity isn't being set, possibly because we have no physics
+            //Assert.That(rezzedObjectPart.Velocity, Is.EqualTo(rezVel));
+        }
+
         /// <summary>
         /// Test MoveTaskInventoryItem where the item has no parent folder assigned.
         /// </summary>
+        /// <remarks>
         /// This should place it in the most suitable user folder.
+        /// </remarks>
         [Test]
         public void TestMoveTaskInventoryItem()
         {

@@ -1971,8 +1971,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Add a newly created object to the scene.
         /// </summary>
-        /// 
+        /// <remarks>
         /// This method does not send updates to the client - callers need to handle this themselves.
+        /// </remarks>
         /// <param name="sceneObject"></param>
         /// <param name="attachToBackup"></param>
         /// <param name="pos">Position of the object</param>

@@ -344,6 +344,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// Add an object to the scene.  This will both update the scene, and send information about the
         /// new object to all clients interested in the scene.
         /// </summary>
+        /// <remarks>
+        /// The object's stored position, rotation and velocity are used.
+        /// </remarks>
         /// <param name="sceneObject"></param>
         /// <param name="attachToBackup">
         /// If true, the object is made persistent into the scene.
