@@ -1976,12 +1976,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         /// <param name="sceneObject"></param>
         /// <param name="attachToBackup"></param>
-        /// <param name="pos">Position of the object</param>
-        /// <param name="rot">Rotation of the object</param>
+        /// <param name="pos">Position of the object.  If null then the position stored in the object is used.</param>
+        /// <param name="rot">Rotation of the object.  If null then the rotation stored in the object is used.</param>
         /// <param name="vel">Velocity of the object.  This parameter only has an effect if the object is physical</param>
         /// <returns></returns>
         public bool AddNewSceneObject(
-            SceneObjectGroup sceneObject, bool attachToBackup, Vector3 pos, Quaternion rot, Vector3 vel)
+            SceneObjectGroup sceneObject, bool attachToBackup, Vector3? pos, Quaternion? rot, Vector3 vel)
         {
             if (m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, pos, rot, vel))
             {            

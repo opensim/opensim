@@ -311,25 +311,26 @@ namespace OpenSim.Region.Framework.Scenes
         /// This method does not send updates to the client - callers need to handle this themselves.
         /// <param name="sceneObject"></param>
         /// <param name="attachToBackup"></param>
-        /// <param name="pos">Position of the object</param>
-        /// <param name="rot">Rotation of the object</param>
+        /// <param name="pos">Position of the object.  If null then the position stored in the object is used.</param>
+        /// <param name="rot">Rotation of the object.  If null then the rotation stored in the object is used.</param>
         /// <param name="vel">Velocity of the object.  This parameter only has an effect if the object is physical</param>
         /// <returns></returns>
         public bool AddNewSceneObject(
-            SceneObjectGroup sceneObject, bool attachToBackup, Vector3 pos, Quaternion rot, Vector3 vel)
+            SceneObjectGroup sceneObject, bool attachToBackup, Vector3? pos, Quaternion? rot, Vector3 vel)
         {
             AddNewSceneObject(sceneObject, true, false);
 
-            // we set it's position in world.
-            sceneObject.AbsolutePosition = pos;
+            if (pos != null)
+                sceneObject.AbsolutePosition = (Vector3)pos;
 
             if (sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim)
             {
                 sceneObject.ClearPartAttachmentData();
             }
-            
-            sceneObject.UpdateGroupRotationR(rot);
-            
+
+            if (rot != null)
+                sceneObject.UpdateGroupRotationR((Quaternion)rot);
+
             //group.ApplyPhysics(m_physicalPrim);
             if (sceneObject.RootPart.PhysActor != null && sceneObject.RootPart.PhysActor.IsPhysical && vel != Vector3.Zero)
             {
