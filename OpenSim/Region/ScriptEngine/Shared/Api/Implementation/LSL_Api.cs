@@ -4458,6 +4458,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return result;
         }
 
+        public void llGetLinkNumberOfSides(int link)
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llGetLinkNumberOfSides");
+        }
+
         public LSL_Integer llGetNumberOfSides()
         {
             m_host.AddScriptLPS(1);
