@@ -66,7 +66,7 @@ namespace OpenSim.Data.MySQL
             Initialise(connectionString);
         }
 
-        public void Initialise(string connectionString)
+        public virtual void Initialise(string connectionString)
         {
             m_connectionString = connectionString;
 
