@@ -194,7 +194,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");            
 
             // Now try loading to a root child folder
-            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, m_uaMT.PrincipalID, "xA");
+            UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, m_uaMT.PrincipalID, "xA");
             MemoryStream archiveReadStream = new MemoryStream(m_iarStream.ToArray());
             archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "xA", "meowfood", archiveReadStream);
 
@@ -203,7 +203,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Assert.That(foundItem2, Is.Not.Null, "Didn't find loaded item 2");
 
             // Now try loading to a more deeply nested folder
-            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, m_uaMT.PrincipalID, "xB/xC");
+            UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, m_uaMT.PrincipalID, "xB/xC");
             archiveReadStream = new MemoryStream(archiveReadStream.ToArray());
             archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "xB/xC", "meowfood", archiveReadStream);
 
@@ -401,7 +401,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string folder2Name = "b";
             
             InventoryFolderBase folder1 
-                = UserInventoryTestUtils.CreateInventoryFolder(
+                = UserInventoryHelpers.CreateInventoryFolder(
                     scene.InventoryService, ua1.PrincipalID, folder1ExistingName);
             
             string folder1ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder1ExistingName, UUID.Random());
@@ -452,7 +452,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string folder2Name = "b";
             
             InventoryFolderBase folder1 
-                = UserInventoryTestUtils.CreateInventoryFolder(
+                = UserInventoryHelpers.CreateInventoryFolder(
                     scene.InventoryService, ua1.PrincipalID, folder1ExistingName);
             
             string folder1ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder1ExistingName, UUID.Random());

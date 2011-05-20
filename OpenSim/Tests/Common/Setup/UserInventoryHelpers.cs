@@ -34,9 +34,9 @@ using OpenSim.Services.Interfaces;
 namespace OpenSim.Tests.Common
 {
     /// <summary>
-    /// Utility functions for carrying out user inventory related tests.
+    /// Utility functions for carrying out user inventory tests.
     /// </summary>
-    public static class UserInventoryTestUtils
+    public static class UserInventoryHelpers
     {
         public static readonly string PATH_DELIMITER = "/";
 
