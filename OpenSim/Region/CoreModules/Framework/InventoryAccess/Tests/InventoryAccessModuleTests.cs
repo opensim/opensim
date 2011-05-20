@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             string userFirstName = "Jock";
             string userLastName = "Stirrup";
             string userPassword = "troll";
-            UserProfileTestUtils.CreateUserWithInventory(m_scene, userFirstName, userLastName, m_userId, userPassword);                        
+            UserAccountHelpers.CreateUserWithInventory(m_scene, userFirstName, userLastName, m_userId, userPassword);                        
             
             AgentCircuitData acd = new AgentCircuitData();
             acd.AgentID = m_userId;

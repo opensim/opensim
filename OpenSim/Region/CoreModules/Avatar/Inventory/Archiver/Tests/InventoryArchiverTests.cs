@@ -72,7 +72,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_uaLL1, "password");
+            UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaLL1, "password");
             m_archiverModule.DearchiveInventory(m_uaLL1.FirstName, m_uaLL1.LastName, "/", "password", m_iarStream);            
             
             InventoryItemBase coaItem
@@ -138,7 +138,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string userLastName = "Stirrup";
             string userPassword = "troll";
             UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
-            UserProfileTestUtils.CreateUserWithInventory(m_scene, userFirstName, userLastName, userId, userPassword);
+            UserAccountHelpers.CreateUserWithInventory(m_scene, userFirstName, userLastName, userId, userPassword);
             
             // Create asset
             UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
@@ -229,7 +229,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_uaLL1, "meowfood");
+            UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaLL1, "meowfood");
             
             m_archiverModule.DearchiveInventory(m_uaLL1.FirstName, m_uaLL1.LastName, "/", "meowfood", m_iarStream);            
             InventoryItemBase foundItem1
@@ -261,8 +261,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_uaMT, "meowfood");
-            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_uaLL2, "hampshire");
+            UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaMT, "meowfood");
+            UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaLL2, "hampshire");
             
             m_archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "/", "meowfood", m_iarStream);            
             InventoryItemBase foundItem1
@@ -294,7 +294,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            UserProfileTestUtils.CreateUserWithInventory(m_scene, m_uaMT, "password");
+            UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaMT, "password");
             m_archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "/", "password", m_iarStream);
 
             InventoryItemBase foundItem1

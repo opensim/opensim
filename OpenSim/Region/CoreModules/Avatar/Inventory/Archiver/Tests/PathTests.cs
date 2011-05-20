@@ -71,7 +71,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string userLastName = "Stirrup";
             string userPassword = "troll";
             UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
-            UserProfileTestUtils.CreateUserWithInventory(scene, userFirstName, userLastName, userId, userPassword);
+            UserAccountHelpers.CreateUserWithInventory(scene, userFirstName, userLastName, userId, userPassword);
             
             // Create asset
             SceneObjectGroup object1;
@@ -184,8 +184,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
 
-            UserProfileTestUtils.CreateUserWithInventory(scene, m_uaMT, "meowfood");
-            UserProfileTestUtils.CreateUserWithInventory(scene, m_uaLL1, "hampshire");
+            UserAccountHelpers.CreateUserWithInventory(scene, m_uaMT, "meowfood");
+            UserAccountHelpers.CreateUserWithInventory(scene, m_uaLL1, "hampshire");
             
             archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "/", "meowfood", m_iarStream);            
             InventoryItemBase foundItem1
@@ -226,7 +226,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Scene scene = SceneSetupHelpers.SetupScene();
             SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
             
-            UserProfileTestUtils.CreateUserWithInventory(scene, m_uaMT, "password");
+            UserAccountHelpers.CreateUserWithInventory(scene, m_uaMT, "password");
             archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "/Objects", "password", m_iarStream);
 
             InventoryItemBase foundItem1
@@ -255,7 +255,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string userFirstName = "Jock";
             string userLastName = "Stirrup";
             UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
-            UserProfileTestUtils.CreateUserWithInventory(scene, userFirstName, userLastName, userId, "meowfood");
+            UserAccountHelpers.CreateUserWithInventory(scene, userFirstName, userLastName, userId, "meowfood");
             
             // Create asset
             SceneObjectGroup object1;
@@ -328,7 +328,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneSetupHelpers.SetupScene();
-            UserAccount ua1 = UserProfileTestUtils.CreateUserWithInventory(scene);
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene);
             
             Dictionary <string, InventoryFolderBase> foldersCreated = new Dictionary<string, InventoryFolderBase>();
             HashSet<InventoryNodeBase> nodesLoaded = new HashSet<InventoryNodeBase>();
@@ -395,7 +395,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             //log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneSetupHelpers.SetupScene();
-            UserAccount ua1 = UserProfileTestUtils.CreateUserWithInventory(scene);
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene);
             
             string folder1ExistingName = "a";
             string folder2Name = "b";
@@ -446,7 +446,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneSetupHelpers.SetupScene();
-            UserAccount ua1 = UserProfileTestUtils.CreateUserWithInventory(scene);
+            UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene);
             
             string folder1ExistingName = "a";
             string folder2Name = "b";

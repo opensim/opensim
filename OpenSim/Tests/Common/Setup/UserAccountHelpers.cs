@@ -36,7 +36,7 @@ namespace OpenSim.Tests.Common.Setup
     /// <summary>
     /// Utility functions for carrying out user profile related tests.
     /// </summary>
-    public static class UserProfileTestUtils
+    public static class UserAccountHelpers
     {
 //        /// <summary>
 //        /// Create a test user with a standard inventory
