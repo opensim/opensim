@@ -66,15 +66,8 @@ namespace OpenSim.Region.Framework.Tests
 
             // Create an object embedded inside the first
             UUID taskSceneObjectItemId = UUID.Parse("00000000-0000-0000-0000-100000000000");
-
-            SceneObjectGroup taskSceneObject = SceneSetupHelpers.CreateSceneObject(1, UUID.Zero);
-            AssetBase taskSceneObjectAsset = AssetHelpers.CreateAsset(0x10, taskSceneObject);
-            scene.AssetService.Store(taskSceneObjectAsset);
             TaskInventoryItem taskSceneObjectItem
-                = new TaskInventoryItem
-                    { Name = "tso", AssetID = taskSceneObjectAsset.FullID, ItemID = taskSceneObjectItemId,
-                      Type = (int)AssetType.Object, InvType = (int)InventoryType.Object };
-            sop1.Inventory.AddInventoryItem(taskSceneObjectItem, true);
+                = TaskInventoryHelpers.AddSceneObjectItem(scene, sop1, "tso", taskSceneObjectItemId);
 
             scene.AddSceneObject(sog1);
 
@@ -114,6 +107,7 @@ namespace OpenSim.Region.Framework.Tests
             SceneObjectGroup sog1 = SceneSetupHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
             TaskInventoryItem sopItem1 = TaskInventoryHelpers.AddNotecard(scene, sop1);
+
             InventoryFolderBase folder 
                 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, user1.PrincipalID, "Objects")[0];
             

@@ -32,7 +32,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
-namespace OpenSim.Tests.Common
+namespace OpenSim.Tests.Common.Setup
 {
     /// <summary>
     /// Utility functions for carrying out task inventory tests.
@@ -63,6 +63,27 @@ namespace OpenSim.Tests.Common
             part.Inventory.AddInventoryItem(ncItem, true); 
             
             return ncItem;
+        }
+
+        /// <summary>
+        /// Add a scene object item to the given part.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="sop"></param>
+        /// <param name="itemName"></param>
+        /// <param name="id"></param>
+        public static TaskInventoryItem AddSceneObjectItem(Scene scene, SceneObjectPart sop, string itemName, UUID id)
+        {
+            SceneObjectGroup taskSceneObject = SceneSetupHelpers.CreateSceneObject(1, UUID.Zero);
+            AssetBase taskSceneObjectAsset = AssetHelpers.CreateAsset(0x10, taskSceneObject);
+            scene.AssetService.Store(taskSceneObjectAsset);
+            TaskInventoryItem taskSceneObjectItem
+                = new TaskInventoryItem
+                    { Name = itemName, AssetID = taskSceneObjectAsset.FullID, ItemID = id,
+                      Type = (int)AssetType.Object, InvType = (int)InventoryType.Object };
+            sop.Inventory.AddInventoryItem(taskSceneObjectItem, true);
+
+            return taskSceneObjectItem;
         }
     }
 }
