@@ -258,17 +258,33 @@ namespace OpenSim.Data.SQLite
             return false;
         }
 
-        public bool Delete(string field, string val)
+        public virtual bool Delete(string field, string key)
         {
+            return Delete(new string[] { field }, new string[] { key });
+        }        
+
+        public bool Delete(string[] fields, string[] keys)
+        {
+            if (fields.Length != keys.Length)
+                return false;
+
+            List<string> terms = new List<string>();
+
             SqliteCommand cmd = new SqliteCommand();
 
-            cmd.CommandText = String.Format("delete from {0} where `{1}` = :{1}", m_Realm, field);
-            cmd.Parameters.Add(new SqliteParameter(field, val));
+            for (int i = 0 ; i < fields.Length ; i++)
+            {
+                cmd.Parameters.Add(new SqliteParameter(":" + fields[i], keys[i]));
+                terms.Add("`" + fields[i] + "` = :" + fields[i]);
+            }
 
-            if (ExecuteNonQuery(cmd, m_Connection) > 0)
-                return true;
+            string where = String.Join(" and ", terms.ToArray());
 
-            return false;
+            string query = String.Format("delete * from {0} where {1}", m_Realm, where);
+
+            cmd.CommandText = query;
+
+            return ExecuteNonQuery(cmd, m_Connection) > 0;
         }
     }
 }
