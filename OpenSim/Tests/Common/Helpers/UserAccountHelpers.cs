@@ -31,7 +31,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
-namespace OpenSim.Tests.Common.Setup
+namespace OpenSim.Tests.Common
 {
     /// <summary>
     /// Utility functions for carrying out user profile related tests.
