@@ -82,8 +82,8 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
                 switch (method)
                 {
-                    case "getfriends":
-                        return GetFriends(request);
+                    case "getfriendperms":
+                        return GetFriendPerms(request);
 
                     case "newfriendship":
                         return NewFriendship(request);
@@ -102,58 +102,45 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         #region Method-specific handlers
 
-        byte[] GetFriends(Dictionary<string, object> request)
+        byte[] GetFriendPerms(Dictionary<string, object> request)
         {
+            if (!VerifyServiceKey(request))
+                return FailureResult();
+
             UUID principalID = UUID.Zero;
             if (request.ContainsKey("PRINCIPALID"))
                 UUID.TryParse(request["PRINCIPALID"].ToString(), out principalID);
             else
-                m_log.WarnFormat("[HGFRIENDS HANDLER]: no principalID in request to get friends");
-
-            FriendInfo[] finfos = m_FriendsService.GetFriends(principalID);
-            //m_log.DebugFormat("[FRIENDS HANDLER]: neighbours for region {0}: {1}", regionID, rinfos.Count);
-
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            if ((finfos == null) || ((finfos != null) && (finfos.Length == 0)))
-                result["result"] = "null";
-            else
             {
-                int i = 0;
-                foreach (FriendInfo finfo in finfos)
-                {
-                    Dictionary<string, object> rinfoDict = finfo.ToKeyValuePairs();
-                    result["friend" + i] = rinfoDict;
-                    i++;
-                }
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: no principalID in request to get friend perms");
+                return FailureResult();
             }
 
-            string xmlString = ServerUtils.BuildXmlResponse(result);
-            //m_log.DebugFormat("[FRIENDS HANDLER]: resp string: {0}", xmlString);
-            UTF8Encoding encoding = new UTF8Encoding();
-            return encoding.GetBytes(xmlString);
+            UUID friendID = UUID.Zero;
+            if (request.ContainsKey("FRIENDID"))
+                UUID.TryParse(request["FRIENDID"].ToString(), out friendID);
+            else
+            {
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: no friendID in request to get friend perms");
+                return FailureResult();
+            }
 
+            string perms = "0";
+            FriendInfo[] friendsInfo = m_FriendsService.GetFriends(principalID);
+            foreach (FriendInfo finfo in friendsInfo)
+            {
+                if (finfo.Friend.StartsWith(friendID.ToString()))
+                    return SuccessResult(finfo.TheirFlags.ToString());
+            }
+
+            return FailureResult("Friend not found");
         }
 
         byte[] NewFriendship(Dictionary<string, object> request)
         {
-            if (!request.ContainsKey("KEY") || !request.ContainsKey("SESSIONID"))
-            {
-                m_log.WarnFormat("[HGFRIENDS HANDLER]: ignoring request without Key or SessionID");
+            if (!VerifyServiceKey(request))
                 return FailureResult();
-            }
 
-            string serviceKey = request["KEY"].ToString();
-            string sessionStr = request["SESSIONID"].ToString();
-            UUID sessionID;
-            UUID.TryParse(sessionStr, out sessionID);
-
-            if (!m_UserAgentService.VerifyAgent(sessionID, serviceKey))
-            {
-                m_log.WarnFormat("[HGFRIENDS HANDLER]: Key {0} for session {1} did not match existing key. Ignoring request", serviceKey, sessionID);
-                return FailureResult();
-            }
-
-            m_log.DebugFormat("[XXX] Verification ok");
             // OK, can proceed
             FriendInfo friend = new FriendInfo(request);
 
@@ -171,6 +158,29 @@ namespace OpenSim.Server.Handlers.Hypergrid
         #endregion
 
         #region Misc
+
+        private bool VerifyServiceKey(Dictionary<string, object> request)
+        {
+            if (!request.ContainsKey("KEY") || !request.ContainsKey("SESSIONID"))
+            {
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: ignoring request without Key or SessionID");
+                return false;
+            }
+
+            string serviceKey = request["KEY"].ToString();
+            string sessionStr = request["SESSIONID"].ToString();
+            UUID sessionID;
+            UUID.TryParse(sessionStr, out sessionID);
+
+            if (!m_UserAgentService.VerifyAgent(sessionID, serviceKey))
+            {
+                m_log.WarnFormat("[HGFRIENDS HANDLER]: Key {0} for session {1} did not match existing key. Ignoring request", serviceKey, sessionID);
+                return false;
+            }
+
+            m_log.DebugFormat("[XXX] Verification ok");
+            return true;
+        }
 
         private byte[] SuccessResult()
         {
@@ -193,6 +203,34 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             return DocToBytes(doc);
         }
+
+        private byte[] SuccessResult(string value)
+        {
+            XmlDocument doc = new XmlDocument();
+
+            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
+                    "", "");
+
+            doc.AppendChild(xmlnode);
+
+            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
+                    "");
+
+            doc.AppendChild(rootElement);
+
+            XmlElement result = doc.CreateElement("", "Result", "");
+            result.AppendChild(doc.CreateTextNode("Success"));
+
+            rootElement.AppendChild(result);
+
+            XmlElement message = doc.CreateElement("", "Value", "");
+            message.AppendChild(doc.CreateTextNode(value));
+
+            rootElement.AppendChild(message);
+
+            return DocToBytes(doc);
+        }
+
 
         private byte[] FailureResult()
         {

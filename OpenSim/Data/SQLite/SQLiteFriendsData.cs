@@ -46,7 +46,12 @@ namespace OpenSim.Data.SQLite
         {
         }
 
-        public FriendsData[] GetFriends(UUID userID)
+        public FriendsData[] GetFriends(UUID principalID)
+        {
+            return GetFriends(principalID.ToString());
+        }
+
+        public FriendsData[] GetFriends(string userID)
         {
             SqliteCommand cmd = new SqliteCommand();
 

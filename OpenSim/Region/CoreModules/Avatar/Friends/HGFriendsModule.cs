@@ -58,129 +58,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         #endregion
 
-        //public void SendFriendsOnlineIfNeeded(IClientAPI client)
-        //{
-        //    UUID agentID = client.AgentId;
-
-        //    // Check if the online friends list is needed
-        //    lock (m_NeedsListOfFriends)
-        //    {
-        //        if (!m_NeedsListOfFriends.Remove(agentID))
-        //            return;
-        //    }
-
-        //    // Send the friends online
-        //    List<UUID> online = GetOnlineFriends(agentID);
-        //    if (online.Count > 0)
-        //    {
-        //        m_log.DebugFormat("[FRIENDS MODULE]: User {0} in region {1} has {2} friends online", client.AgentId, client.Scene.RegionInfo.RegionName, online.Count);
-        //        client.SendAgentOnline(online.ToArray());
-        //    }
-
-        //    // Send outstanding friendship offers
-        //    List<string> outstanding = new List<string>();
-        //    FriendInfo[] friends = GetFriends(agentID);
-        //    foreach (FriendInfo fi in friends)
-        //    {
-        //        if (fi.TheirFlags == -1)
-        //            outstanding.Add(fi.Friend);
-        //    }
-
-        //    GridInstantMessage im = new GridInstantMessage(client.Scene, UUID.Zero, String.Empty, agentID, (byte)InstantMessageDialog.FriendshipOffered,
-        //        "Will you be my friend?", true, Vector3.Zero);
-
-        //    foreach (string fid in outstanding)
-        //    {
-        //        UUID fromAgentID;
-        //        if (!UUID.TryParse(fid, out fromAgentID))
-        //            continue;
-
-        //        UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(client.Scene.RegionInfo.ScopeID, fromAgentID);
-
-        //        PresenceInfo presence = null;
-        //        PresenceInfo[] presences = PresenceService.GetAgents(new string[] { fid });
-        //        if (presences != null && presences.Length > 0)
-        //            presence = presences[0];
-        //        if (presence != null)
-        //            im.offline = 0;
-
-        //        im.fromAgentID = fromAgentID.Guid;
-        //        im.fromAgentName = account.FirstName + " " + account.LastName;
-        //        im.offline = (byte)((presence == null) ? 1 : 0);
-        //        im.imSessionID = im.fromAgentID;
-
-        //        // Finally
-        //        LocalFriendshipOffered(agentID, im);
-        //    }
-        //}
-
-        //List<UUID> GetOnlineFriends(UUID userID)
-        //{
-        //    List<string> friendList = new List<string>();
-        //    List<UUID> online = new List<UUID>();
-
-        //    FriendInfo[] friends = GetFriends(userID);
-        //    foreach (FriendInfo fi in friends)
-        //    {
-        //        if (((fi.TheirFlags & 1) != 0) && (fi.TheirFlags != -1))
-        //            friendList.Add(fi.Friend);
-        //    }
-
-        //    if (friendList.Count > 0)
-        //    {
-        //        PresenceInfo[] presence = PresenceService.GetAgents(friendList.ToArray());
-        //        foreach (PresenceInfo pi in presence)
-        //        {
-        //            UUID presenceID;
-        //            if (UUID.TryParse(pi.UserID, out presenceID))
-        //                online.Add(presenceID);
-        //        }
-        //    }
-
-        //    return online;
-        //}
-
-        //private void StatusNotify(FriendInfo friend, UUID userID, bool online)
-        //{
-        //    UUID friendID;
-        //    if (UUID.TryParse(friend.Friend, out friendID))
-        //    {
-        //        // Try local
-        //        if (LocalStatusNotification(userID, friendID, online))
-        //            return;
-
-        //        // The friend is not here [as root]. Let's forward.
-        //        PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
-        //        if (friendSessions != null && friendSessions.Length > 0)
-        //        {
-        //            PresenceInfo friendSession = null; 
-        //            foreach (PresenceInfo pinfo in friendSessions)
-        //                if (pinfo.RegionID != UUID.Zero) // let's guard against sessions-gone-bad
-        //                {
-        //                    friendSession = pinfo;
-        //                    break;
-        //                }
-
-        //            if (friendSession != null)
-        //            {
-        //                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-        //                //m_log.DebugFormat("[FRIENDS]: Remote Notify to region {0}", region.RegionName);
-        //                m_FriendsSimConnector.StatusNotify(region, userID, friendID, online);
-        //            }
-        //        }
-
-        //        // Friend is not online. Ignore.
-        //    }
-        //    else
-        //    {
-        //        m_log.WarnFormat("[FRIENDS]: Error parsing friend ID {0}", friend.Friend);
-        //    }
-        //}
-
-        protected override bool FetchFriendslist(UUID agentID)
+        protected override bool FetchFriendslist(IClientAPI client)
         {
-            if (base.FetchFriendslist(agentID))
+            if (base.FetchFriendslist(client))
             {
+                UUID agentID = client.AgentId;
                 // We need to preload the user management cache with the names
                 // of foreign friends, just like we do with SOPs' creators
                 foreach (FriendInfo finfo in m_Friends[agentID].Friends)
@@ -203,6 +85,39 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
             return false;
         }
+
+        public override bool SendFriendsOnlineIfNeeded(IClientAPI client)
+        {
+            if (base.SendFriendsOnlineIfNeeded(client))
+            {
+                UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(client.Scene.RegionInfo.ScopeID, client.AgentId);
+                if (account == null) // foreign
+                {
+                    FriendInfo[] friends = GetFriends(client.AgentId);
+                    foreach (FriendInfo f in friends)
+                    {
+                        client.SendChangeUserRights(new UUID(f.Friend), client.AgentId, f.TheirFlags);
+                    }
+                }
+            }
+            return false;
+        }
+
+        protected override FriendInfo[] GetFriendsFromService(IClientAPI client)
+        {
+            UserAccount account1 = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, client.AgentId);
+            if (account1 != null)
+                return base.GetFriendsFromService(client);
+
+            // Foreigner
+            AgentCircuitData agentClientCircuit = ((Scene)(client.Scene)).AuthenticateHandler.GetAgentCircuitData(client.CircuitCode);
+            string agentUUI = Util.ProduceUserUniversalIdentifier(agentClientCircuit);
+
+            FriendInfo[] finfos = FriendsService.GetFriends(agentUUI);
+            m_log.DebugFormat("[HGFRIENDS MODULE]: Fetched {0} local friends for visitor {1}", finfos.Length, agentUUI);
+            return finfos;
+        }
+
 
         protected override bool GetAgentInfo(UUID scopeID, string fid, out UUID agentID, out string first, out string last)
         {
@@ -247,6 +162,45 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 return base.FriendshipMessage(friendID);
 
             return "Please confirm this friendship you made while you were away.";
+        }
+
+        protected override bool SimpleStore(UUID agentID, UUID friendID, int rights)
+        {
+            UserAccount account1 = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, agentID);
+            UserAccount account2 = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, friendID);
+            // Are they both local users?
+            if (account1 != null && account2 != null)
+            {
+                // local grid users
+                return base.SimpleStore(agentID, friendID, rights);
+            }
+
+            if (account1 != null)
+            {
+                FriendInfo[] finfos = GetFriends(agentID);
+                if (finfos.Length > 0)
+                {
+                    FriendInfo finfo = GetFriend(finfos, friendID);
+                    FriendsService.StoreFriend(agentID.ToString(), finfo.Friend, rights);
+                    return true;
+                }
+            }
+            if (account2 != null)
+            {
+                IClientAPI client = LocateClientObject(agentID);
+                if (client != null)
+                {
+                    AgentCircuitData acircuit = m_Scenes[0].AuthenticateHandler.GetAgentCircuitData(client.CircuitCode);
+                    if (acircuit != null)
+                    {
+                        FriendsService.StoreFriend(Util.ProduceUserUniversalIdentifier(acircuit), friendID.ToString(), rights);
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+
         }
 
         protected override void StoreBackwards(UUID friendID, UUID agentID)
@@ -366,6 +320,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             // my brain hurts now
         }
 
+        protected override FriendInfo GetFriend(FriendInfo[] friends, UUID friendID)
+        {
+            foreach (FriendInfo fi in friends)
+            {
+                if (fi.Friend.StartsWith(friendID.ToString()))
+                    return fi;
+            }
+            return null;
+        }
+
         protected override void DeleteFriendship(UUID agentID, UUID exfriendID)
         {
             base.DeleteFriendship(agentID, exfriendID);
@@ -374,7 +338,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             FriendInfo[] friends = GetFriends(agentID);
             foreach (FriendInfo finfo in friends)
             {
-                if (finfo.Friend != exfriendID.ToString() && finfo.Friend.EndsWith(exfriendID.ToString()))
+                if (finfo.Friend != exfriendID.ToString() && finfo.Friend.StartsWith(exfriendID.ToString()))
                 {
                     FriendsService.Delete(agentID, exfriendID.ToString());
                     // TODO: delete the friendship on the other side
@@ -382,57 +346,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 }
             }
         }
-
-        //private void OnGrantUserRights(IClientAPI remoteClient, UUID requester, UUID target, int rights)
-        //{
-        //    FriendInfo[] friends = GetFriends(remoteClient.AgentId);
-        //    if (friends.Length == 0)
-        //        return;
-
-        //    m_log.DebugFormat("[FRIENDS MODULE]: User {0} changing rights to {1} for friend {2}", requester, rights, target);
-        //    // Let's find the friend in this user's friend list
-        //    FriendInfo friend = null;
-        //    foreach (FriendInfo fi in friends)
-        //    {
-        //        if (fi.Friend == target.ToString())
-        //            friend = fi;
-        //    }
-
-        //    if (friend != null) // Found it
-        //    {
-        //        // Store it on the DB
-        //        FriendsService.StoreFriend(requester, target.ToString(), rights);
-
-        //        // Store it in the local cache
-        //        int myFlags = friend.MyFlags;
-        //        friend.MyFlags = rights;
-
-        //        // Always send this back to the original client
-        //        remoteClient.SendChangeUserRights(requester, target, rights);
-
-        //        //
-        //        // Notify the friend
-        //        //
-
-        //        // Try local
-        //        if (LocalGrantRights(requester, target, myFlags, rights))
-        //            return;
-
-        //        PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { target.ToString() });
-        //        if (friendSessions != null && friendSessions.Length > 0)
-        //        {
-        //            PresenceInfo friendSession = friendSessions[0];
-        //            if (friendSession != null)
-        //            {
-        //                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-        //                // TODO: You might want to send the delta to save the lookup
-        //                // on the other end!!
-        //                m_FriendsSimConnector.GrantRights(region, requester, target, myFlags, rights);
-        //            }
-        //        }
-        //    }
-        //}
-
 
     }
 }

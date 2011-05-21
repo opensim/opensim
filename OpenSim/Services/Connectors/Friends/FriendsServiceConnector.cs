@@ -84,7 +84,7 @@ namespace OpenSim.Services.Connectors.Friends
 
 
         #region IFriendsService
-
+        
         public FriendInfo[] GetFriends(UUID PrincipalID)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
@@ -92,6 +92,21 @@ namespace OpenSim.Services.Connectors.Friends
             sendData["PRINCIPALID"] = PrincipalID.ToString();
             sendData["METHOD"] = "getfriends";
 
+            return GetFriends(sendData, PrincipalID.ToString());
+        }
+
+        public FriendInfo[] GetFriends(string PrincipalID)
+        {
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+
+            sendData["PRINCIPALID"] = PrincipalID;
+            sendData["METHOD"] = "getfriends_string";
+
+            return GetFriends(sendData, PrincipalID);
+        }
+
+        protected FriendInfo[] GetFriends(Dictionary<string, object> sendData, string PrincipalID)
+        {
             string reqString = ServerUtils.BuildQueryString(sendData);
 
             try

@@ -57,6 +57,11 @@ namespace OpenSim.Data.MySQL
 
         public FriendsData[] GetFriends(UUID principalID)
         {
+            return GetFriends(principalID.ToString());
+        }
+
+        public FriendsData[] GetFriends(string principalID)
+        {
             MySqlCommand cmd = new MySqlCommand();
 
             cmd.CommandText = String.Format("select a.*,case when b.Flags is null then -1 else b.Flags end as TheirFlags from {0} as a left join {0} as b on a.PrincipalID = b.Friend and a.Friend = b.PrincipalID where a.PrincipalID = ?PrincipalID", m_Realm);

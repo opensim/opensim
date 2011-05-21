@@ -63,12 +63,13 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         #region IFriendsService
 
-        public FriendInfo[] GetFriends(UUID PrincipalID)
+        public uint GetFriendPerms(UUID PrincipalID, UUID friendID)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
 
             sendData["PRINCIPALID"] = PrincipalID.ToString();
-            sendData["METHOD"] = "getfriends";
+            sendData["FRIENDID"] = friendID.ToString();
+            sendData["METHOD"] = "getfriendperms";
             sendData["KEY"] = m_ServiceKey;
             sendData["SESSIONID"] = m_SessionID.ToString();
 
@@ -83,34 +84,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
-                    if (replyData != null)
+                    if ((replyData != null) && replyData.ContainsKey("Value") && (replyData["Value"] != null))
                     {
-                        if (replyData.ContainsKey("result") && (replyData["result"].ToString().ToLower() == "null"))
-                        {
-                        return new FriendInfo[0];
-                        }
-
-                        List<FriendInfo> finfos = new List<FriendInfo>();
-                        Dictionary<string, object>.ValueCollection finfosList = replyData.Values;
-                        //m_log.DebugFormat("[FRIENDS CONNECTOR]: get neighbours returned {0} elements", rinfosList.Count);
-                        foreach (object f in finfosList)
-                        {
-                            if (f is Dictionary<string, object>)
-                            {
-                                FriendInfo finfo = new FriendInfo((Dictionary<string, object>)f);
-                                finfos.Add(finfo);
-                            }
-                            else
-                                m_log.DebugFormat("[HGFRIENDS CONNECTOR]: GetFriends {0} received invalid response type {1}",
-                                    PrincipalID, f.GetType());
-                        }
-
-                        // Success
-                        return finfos.ToArray();
+                        uint perms = 0;
+                        uint.TryParse(replyData["Value"].ToString(), out perms);
+                        return perms;
                     }
-                
                     else
-                        m_log.DebugFormat("[HGFRIENDS CONNECTOR]: GetFriends {0} received null response",
+                        m_log.DebugFormat("[HGFRIENDS CONNECTOR]: GetFriendPerms {0} received null response",
                             PrincipalID);
 
                 }
@@ -120,7 +101,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 m_log.DebugFormat("[HGFRIENDS CONNECTOR]: Exception when contacting friends server: {0}", e.Message);
             }
 
-            return new FriendInfo[0];
+            return 0;
 
         }
 

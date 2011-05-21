@@ -78,6 +78,11 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public FriendInfo[] GetFriends(UUID principalID)
         {
+            return GetFriends(principalID.ToString());
+        }
+
+        public FriendInfo[] GetFriends(string principalID)
+        {
             if (String.IsNullOrEmpty(m_serverUrl))
                 return new FriendInfo[0];
 
@@ -95,7 +100,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     UUID friendID = friendEntry["Key"].AsUUID();
 
                     FriendInfo friend = new FriendInfo();
-                    friend.PrincipalID = principalID;
+                    if (!UUID.TryParse(principalID, out friend.PrincipalID))
+                    {
+                        string tmp = string.Empty;
+                        if (!Util.ParseUniversalUserIdentifier(principalID, out friend.PrincipalID, out tmp, out tmp, out tmp))
+                            // bad record. ignore this entry
+                            continue;
+                    }
+
                     friend.Friend = friendID.ToString();
                     friend.MyFlags = friendEntry["Value"].AsInteger();
                     friend.TheirFlags = -1;
@@ -174,7 +186,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         #endregion IFriendsService
 
-        private OSDArray GetFriended(UUID ownerID)
+        private OSDArray GetFriended(string ownerID)
         {
             NameValueCollection requestArgs = new NameValueCollection
             {
@@ -195,7 +207,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
             }
         }
 
-        private OSDArray GetFriendedBy(UUID ownerID)
+        private OSDArray GetFriendedBy(string ownerID)
         {
             NameValueCollection requestArgs = new NameValueCollection
             {

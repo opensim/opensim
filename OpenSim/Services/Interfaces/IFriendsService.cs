@@ -74,6 +74,7 @@ namespace OpenSim.Services.Interfaces
     public interface IFriendsService
     {
         FriendInfo[] GetFriends(UUID PrincipalID);
+        FriendInfo[] GetFriends(string PrincipalID);
         bool StoreFriend(string PrincipalID, string Friend, int flags);
         bool Delete(UUID PrincipalID, string Friend);
     }

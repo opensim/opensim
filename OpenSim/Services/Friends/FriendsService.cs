@@ -63,6 +63,32 @@ namespace OpenSim.Services.Friends
             return info.ToArray();
         }
 
+        public virtual FriendInfo[] GetFriends(string PrincipalID)
+        {
+            FriendsData[] data = m_Database.GetFriends(PrincipalID);
+            List<FriendInfo> info = new List<FriendInfo>();
+
+            foreach (FriendsData d in data)
+            {
+                FriendInfo i = new FriendInfo();
+
+                if (!UUID.TryParse(d.PrincipalID, out i.PrincipalID))
+                {
+                    string tmp = string.Empty;
+                    if (!Util.ParseUniversalUserIdentifier(d.PrincipalID, out i.PrincipalID, out tmp, out tmp, out tmp))
+                        // bad record. ignore this entry
+                        continue;
+                }
+                i.Friend = d.Friend;
+                i.MyFlags = Convert.ToInt32(d.Data["Flags"]);
+                i.TheirFlags = Convert.ToInt32(d.Data["TheirFlags"]);
+
+                info.Add(i);
+            }
+
+            return info.ToArray();
+        }
+
         public virtual bool StoreFriend(string PrincipalID, string Friend, int flags)
         {
             FriendsData d = new FriendsData();

@@ -62,7 +62,7 @@ namespace OpenSim.Services.HypergridService
             UUID userID;
             if (UUID.TryParse(PrincipalID, out userID))
             {
-                FriendsData[] friendsData = m_Database.GetFriends(userID);
+                FriendsData[] friendsData = m_Database.GetFriends(userID.ToString());
                 List<FriendsData> fList = new List<FriendsData>(friendsData);
                 if (fList.Find(delegate(FriendsData fdata)
                     {
@@ -70,6 +70,8 @@ namespace OpenSim.Services.HypergridService
                     }) != null)
                     return false;
             }
+            else
+                return false;
 
             FriendsData d = new FriendsData();
             d.PrincipalID = PrincipalID;

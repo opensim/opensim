@@ -82,6 +82,9 @@ namespace OpenSim.Server.Handlers.Friends
                     case "getfriends":
                         return GetFriends(request);
 
+                    case "getfriends_string":
+                        return GetFriendsString(request);
+
                     case "storefriend":
                         return StoreFriend(request);
 
@@ -111,7 +114,25 @@ namespace OpenSim.Server.Handlers.Friends
                 m_log.WarnFormat("[FRIENDS HANDLER]: no principalID in request to get friends");
 
             FriendInfo[] finfos = m_FriendsService.GetFriends(principalID);
-            //m_log.DebugFormat("[FRIENDS HANDLER]: neighbours for region {0}: {1}", regionID, rinfos.Count);
+
+            return PackageFriends(finfos);
+        }
+
+        byte[] GetFriendsString(Dictionary<string, object> request)
+        {
+            string principalID = string.Empty;
+            if (request.ContainsKey("PRINCIPALID"))
+                principalID = request["PRINCIPALID"].ToString();
+            else
+                m_log.WarnFormat("[FRIENDS HANDLER]: no principalID in request to get friends");
+
+            FriendInfo[] finfos = m_FriendsService.GetFriends(principalID);
+
+            return PackageFriends(finfos);
+        }
+
+        private byte[] PackageFriends(FriendInfo[] finfos)
+        {
 
             Dictionary<string, object> result = new Dictionary<string, object>();
             if ((finfos == null) || ((finfos != null) && (finfos.Length == 0)))
