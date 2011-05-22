@@ -46,6 +46,7 @@ using OpenSim.Region.CoreModules.World.Land;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.Framework.Scenes.Animation;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.ScriptEngine.Shared;
@@ -11010,11 +11011,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         }
 
-        public virtual void llGetUsedMemory()
+        public virtual LSL_Integer llGetUsedMemory()
         {
             m_host.AddScriptLPS(1);
             NotImplemented("llGetUsedMemory");
-
+            return 0;
         }
 
         public void  llRegionSayTo( LSL_Key target, LSL_Integer channel, LSL_String msg )
@@ -11045,7 +11046,56 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llGodLikeRezObject(string inventory, LSL_Vector pos)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGodLikeRezObject");
+
+            if (!World.Permissions.IsGod(m_host.OwnerID))
+                NotImplemented("llGodLikeRezObject");
+
+            AssetBase rezAsset = World.AssetService.Get(inventory);
+            if (rezAsset == null)
+            {
+                llSay(0, "Asset not found");
+                return;
+            }
+
+            SceneObjectGroup group = null;
+
+            try
+            {
+                string xmlData = Utils.BytesToString(rezAsset.Data);
+                group = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
+            }
+            catch
+            {
+                llSay(0, "Asset not found");
+                return;
+            }
+
+            if (group == null)
+            {
+                llSay(0, "Asset not found");
+                return;
+            }
+
+            group.RootPart.AttachPoint = group.RootPart.Shape.State;
+            group.RootPart.AttachOffset = group.AbsolutePosition;
+
+            group.ResetIDs();
+
+            Vector3 llpos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
+            World.AddNewSceneObject(group, true, llpos, Quaternion.Identity, Vector3.Zero);
+            group.CreateScriptInstances(0, true, World.DefaultScriptEngine, 3);
+            group.ScheduleGroupForFullUpdate();
+
+            // objects rezzed with this method are die_at_edge by default.
+            group.RootPart.SetDieAtEdge(true);
+
+            group.ResumeScripts();
+
+            m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
+                    "object_rez", new Object[] {
+                    new LSL_String(
+                    group.RootPart.UUID.ToString()) },
+                    new DetectParams[0]));
         }
 
         #endregion
