@@ -45,7 +45,6 @@ using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
-using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
 {
@@ -73,7 +72,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
             string userFirstName = "Jock";
             string userLastName = "Stirrup";
             string userPassword = "troll";
-            UserProfileTestUtils.CreateUserWithInventory(m_scene, userFirstName, userLastName, m_userId, userPassword);                        
+            UserAccountHelpers.CreateUserWithInventory(m_scene, userFirstName, userLastName, m_userId, userPassword);                        
             
             AgentCircuitData acd = new AgentCircuitData();
             acd.AgentID = m_userId;

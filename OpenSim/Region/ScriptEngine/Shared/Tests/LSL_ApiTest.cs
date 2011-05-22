@@ -29,7 +29,6 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using OpenSim.Tests.Common;
 using OpenSim.Region.ScriptEngine.Shared;
-using OpenSim.Tests.Common.Setup;
 using OpenSim.Region.Framework.Scenes;
 using Nini.Config;
 using OpenSim.Region.ScriptEngine.Shared.Api;

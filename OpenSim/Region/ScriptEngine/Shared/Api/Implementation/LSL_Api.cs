@@ -3635,12 +3635,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return m_ScriptEngine.GetStartParameter(m_itemID);
         }
 
-        public void llGodLikeRezObject(string inventory, LSL_Vector pos)
-        {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llGodLikeRezObject");
-        }
-
         public void llRequestPermissions(string agent, int perm)
         {
             UUID agentID = new UUID();
@@ -4616,12 +4610,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             m_host.CollisionSound = soundId;
             m_host.CollisionSoundVolume = (float)impact_volume;
-        }
-
-        public void llCollisionSprite(string impact_sprite)
-        {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llCollisionSprite");
         }
 
         public LSL_String llGetAnimation(string id)
@@ -5961,11 +5949,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             m_host.AdjustSoundGain(volume);
             ScriptSleep(100);
-        }
-
-        public void llSetSoundQueueing(int queue)
-        {
-            m_host.AddScriptLPS(1);
         }
 
         public void llSetSoundRadius(double radius)
@@ -11000,6 +10983,72 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_SayShoutCount = 0;
         }
+
+        #region Not Implemented
+        //
+        // Listing the unimplemented lsl functions here, please move
+        // them from this region as they are completed
+        //
+        public void llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llCastRay");
+
+        }
+
+        public void llGetEnv(LSL_String name)
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llGetEnv");
+
+        }
+
+        public void llGetSPMaxMemory()
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llGetSPMaxMemory");
+
+        }
+
+        public virtual void llGetUsedMemory()
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llGetUsedMemory");
+
+        }
+
+        public void  llRegionSayTo( LSL_Key target, LSL_Integer channel, LSL_String msg )
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llRegionSayTo");
+
+        }
+
+        public void llScriptProfiler( LSL_Integer flags )
+        {
+            m_host.AddScriptLPS(1);
+            //NotImplemented("llScriptProfiler");
+
+        }
+
+        public void llSetSoundQueueing(int queue)
+        {
+            m_host.AddScriptLPS(1);
+        }
+
+        public void llCollisionSprite(string impact_sprite)
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llCollisionSprite");
+        }
+
+        public void llGodLikeRezObject(string inventory, LSL_Vector pos)
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llGodLikeRezObject");
+        }
+
+        #endregion
     }
 
     public class NotecardCache
