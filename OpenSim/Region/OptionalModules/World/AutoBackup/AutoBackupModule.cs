@@ -278,21 +278,21 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         {
             string sRegionName;
             string sRegionLabel;
-            string prepend;
+//            string prepend;
             AutoBackupModuleState state;
 
             if (parseDefault)
             {
                 sRegionName = null;
                 sRegionLabel = "DEFAULT";
-                prepend = "";
+//                prepend = "";
                 state = this.m_defaultState;
             }
             else
             {
                 sRegionName = scene.RegionInfo.RegionName;
                 sRegionLabel = sRegionName;
-                prepend = sRegionName + ".";
+//                prepend = sRegionName + ".";
                 state = null;
             }
 

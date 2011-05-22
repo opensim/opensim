@@ -49,7 +49,7 @@ using OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Tests.Common.Setup
+namespace OpenSim.Tests.Common
 {
     /// <summary>
     /// Helpers for setting up scenes.

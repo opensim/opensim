@@ -46,55 +46,55 @@ using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
-using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.Framework.Tests
 {
     [TestFixture]
     public class TaskInventoryTests
     {
-        protected UserAccount CreateUser(Scene scene)
+        [Test]
+        public void TestRezObjectFromInventoryItem()
         {
-            string userFirstName = "Jock";
-            string userLastName = "Stirrup";
-            string userPassword = "troll";
-            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
-            return UserProfileTestUtils.CreateUserWithInventory(scene, userFirstName, userLastName, userId, userPassword);
-        }
-        
-        protected SceneObjectGroup CreateSO1(Scene scene, UUID ownerId)
-        {
-            string part1Name = "part1";
-            UUID part1Id = UUID.Parse("10000000-0000-0000-0000-000000000000");
-            SceneObjectPart part1
-                = new SceneObjectPart(ownerId, PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero) 
-                    { Name = part1Name, UUID = part1Id };
-            return new SceneObjectGroup(part1);
-        }
-        
-        protected TaskInventoryItem CreateSOItem1(Scene scene, SceneObjectPart part)
-        {
-            AssetNotecard nc = new AssetNotecard();
-            nc.BodyText = "Hello World!";
-            nc.Encode();
-            UUID ncAssetUuid = new UUID("00000000-0000-0000-1000-000000000000");
-            UUID ncItemUuid = new UUID("00000000-0000-0000-1100-000000000000");
-            AssetBase ncAsset 
-                = AssetHelpers.CreateAsset(ncAssetUuid, AssetType.Notecard, nc.AssetData, UUID.Zero);
-            scene.AssetService.Store(ncAsset);
-            TaskInventoryItem ncItem 
-                = new TaskInventoryItem 
-                    { Name = "ncItem", AssetID = ncAssetUuid, ItemID = ncItemUuid, 
-                      Type = (int)AssetType.Notecard, InvType = (int)InventoryType.Notecard };
-            part.Inventory.AddInventoryItem(ncItem, true); 
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
             
-            return ncItem;
+            Scene scene = SceneSetupHelpers.SetupScene();
+            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
+            SceneObjectGroup sog1 = SceneSetupHelpers.CreateSceneObject(1, user1.PrincipalID);
+            SceneObjectPart sop1 = sog1.RootPart;
+
+            // Create an object embedded inside the first
+            UUID taskSceneObjectItemId = UUID.Parse("00000000-0000-0000-0000-100000000000");
+            TaskInventoryItem taskSceneObjectItem
+                = TaskInventoryHelpers.AddSceneObject(scene, sop1, "tso", taskSceneObjectItemId);
+
+            scene.AddSceneObject(sog1);
+
+            Vector3 rezPos = new Vector3(10, 10, 10);
+            Quaternion rezRot = new Quaternion(0.5f, 0.5f, 0.5f, 0.5f);
+            Vector3 rezVel = new Vector3(2, 2, 2);
+
+            scene.RezObject(sop1, taskSceneObjectItem, rezPos, rezRot, rezVel, 0);
+
+            SceneObjectGroup rezzedObject = scene.GetSceneObjectGroup("tso");
+
+            Assert.That(rezzedObject, Is.Not.Null);
+            Assert.That(rezzedObject.AbsolutePosition, Is.EqualTo(rezPos));
+
+            // Velocity doesn't get applied, probably because there is no physics in tests (yet)
+//            Assert.That(rezzedObject.Velocity, Is.EqualTo(rezVel));
+            Assert.That(rezzedObject.Velocity, Is.EqualTo(Vector3.Zero));
+
+            // Confusingly, this isn't the rezzedObject.Rotation
+            Assert.That(rezzedObject.RootPart.RotationOffset, Is.EqualTo(rezRot));
         }
-        
+
         /// <summary>
         /// Test MoveTaskInventoryItem where the item has no parent folder assigned.
         /// </summary>
+        /// <remarks>
         /// This should place it in the most suitable user folder.
+        /// </remarks>
         [Test]
         public void TestMoveTaskInventoryItem()
         {
@@ -102,10 +102,11 @@ namespace OpenSim.Region.Framework.Tests
 //            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneSetupHelpers.SetupScene();
-            UserAccount user1 = CreateUser(scene);
-            SceneObjectGroup sog1 = CreateSO1(scene, user1.PrincipalID);
+            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
+            SceneObjectGroup sog1 = SceneSetupHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
-            TaskInventoryItem sopItem1 = CreateSOItem1(scene, sop1);
+            TaskInventoryItem sopItem1 = TaskInventoryHelpers.AddNotecard(scene, sop1);
+
             InventoryFolderBase folder 
                 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, user1.PrincipalID, "Objects")[0];
             
@@ -128,10 +129,10 @@ namespace OpenSim.Region.Framework.Tests
 //            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneSetupHelpers.SetupScene();
-            UserAccount user1 = CreateUser(scene);
-            SceneObjectGroup sog1 = CreateSO1(scene, user1.PrincipalID);
+            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
+            SceneObjectGroup sog1 = SceneSetupHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
-            TaskInventoryItem sopItem1 = CreateSOItem1(scene, sop1);
+            TaskInventoryItem sopItem1 = TaskInventoryHelpers.AddNotecard(scene, sop1);
             
             // Perform test
             scene.MoveTaskInventoryItem(user1.PrincipalID, UUID.Zero, sop1, sopItem1.ItemID);

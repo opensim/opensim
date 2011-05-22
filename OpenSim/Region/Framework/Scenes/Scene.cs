@@ -2014,16 +2014,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Add a newly created object to the scene.
         /// </summary>
-        /// 
+        /// <remarks>
         /// This method does not send updates to the client - callers need to handle this themselves.
+        /// </remarks>
         /// <param name="sceneObject"></param>
         /// <param name="attachToBackup"></param>
-        /// <param name="pos">Position of the object</param>
-        /// <param name="rot">Rotation of the object</param>
+        /// <param name="pos">Position of the object.  If null then the position stored in the object is used.</param>
+        /// <param name="rot">Rotation of the object.  If null then the rotation stored in the object is used.</param>
         /// <param name="vel">Velocity of the object.  This parameter only has an effect if the object is physical</param>
         /// <returns></returns>
         public bool AddNewSceneObject(
-            SceneObjectGroup sceneObject, bool attachToBackup, Vector3 pos, Quaternion rot, Vector3 vel)
+            SceneObjectGroup sceneObject, bool attachToBackup, Vector3? pos, Quaternion? rot, Vector3 vel)
         {
             if (m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, pos, rot, vel))
             {            
@@ -4436,7 +4437,28 @@ namespace OpenSim.Region.Framework.Scenes
         //        }
 
         /// <summary>
-        /// Get a named prim contained in this scene (will return the first
+        /// Get a group via its UUID
+        /// </summary>
+        /// <param name="fullID"></param>
+        /// <returns>null if no group with that name exists</returns>
+        public SceneObjectGroup GetSceneObjectGroup(UUID fullID)
+        {
+            return m_sceneGraph.GetSceneObjectGroup(fullID);
+        }
+
+        /// <summary>
+        /// Get a group by name from the scene (will return the first
+        /// found, if there are more than one prim with the same name)
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>null if no group with that name exists</returns>
+        public SceneObjectGroup GetSceneObjectGroup(string name)
+        {
+            return m_sceneGraph.GetSceneObjectGroup(name);
+        }
+
+        /// <summary>
+        /// Get a prim by name from the scene (will return the first
         /// found, if there are more than one prim with the same name)
         /// </summary>
         /// <param name="name"></param>

@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using Nini.Config;
 using NUnit.Framework;
-using OpenSim.Tests.Common.Setup;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Region.Framework.Scenes;
 using OpenMetaverse;
