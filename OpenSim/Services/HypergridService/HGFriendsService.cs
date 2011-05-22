@@ -82,16 +82,5 @@ namespace OpenSim.Services.HypergridService
             return m_Database.Store(d);
         }
 
-        /// <summary>
-        /// Overrides base. Cannot delete friendships while away from home.
-        /// </summary>
-        /// <param name="PrincipalID"></param>
-        /// <param name="Friend"></param>
-        /// <returns></returns>
-        public override bool Delete(UUID PrincipalID, string Friend)
-        {
-            return false;
-        }
-
     }
 }
