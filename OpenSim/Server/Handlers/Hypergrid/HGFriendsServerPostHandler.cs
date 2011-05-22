@@ -88,6 +88,8 @@ namespace OpenSim.Server.Handlers.Hypergrid
                     case "newfriendship":
                         return NewFriendship(request);
 
+                    case "deletefriendship":
+                        return DeleteFriendship(request);
                 }
                 m_log.DebugFormat("[HGFRIENDS HANDLER]: unknown method {0} request {1}", method.Length, method);
             }
@@ -143,16 +145,53 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             // OK, can proceed
             FriendInfo friend = new FriendInfo(request);
+            UUID friendID;
+            string tmp = string.Empty;
+            if (!Util.ParseUniversalUserIdentifier(friend.Friend, out friendID, out tmp, out tmp, out tmp, out tmp))
+                return FailureResult();
+
+            m_log.DebugFormat("[HGFRIENDS HANDLER]: New friendship {0} {1}", friend.PrincipalID, friend.Friend);
+
+            // If the friendship already exists, return fail
+            FriendInfo[] finfos = m_FriendsService.GetFriends(friend.PrincipalID);
+            foreach (FriendInfo finfo in finfos)
+                if (finfo.Friend.StartsWith(friendID.ToString()))
+                    return FailureResult();
 
             // the user needs to confirm when he gets home
             bool success = m_FriendsService.StoreFriend(friend.PrincipalID.ToString(), friend.Friend, 0);
-            //if (success)
-            //    m_FriendsService.StoreFriend(friend.Friend, friend.PrincipalID.ToString(), 1);
 
             if (success)
                 return SuccessResult();
             else
                 return FailureResult();
+        }
+
+        byte[] DeleteFriendship(Dictionary<string, object> request)
+        {
+            FriendInfo friend = new FriendInfo(request);
+            string secret = string.Empty;
+            if (request.ContainsKey("SECRET"))
+                secret = request["SECRET"].ToString();
+
+            if (secret == string.Empty)
+                return FailureResult();
+
+            FriendInfo[] finfos = m_FriendsService.GetFriends(friend.PrincipalID);
+            foreach (FriendInfo finfo in finfos)
+            {
+                // We check the secret here
+                if (finfo.Friend.StartsWith(friend.Friend) && finfo.Friend.EndsWith(secret))
+                {
+                    m_log.DebugFormat("[HGFRIENDS HANDLER]: Delete friendship {0} {1}", friend.PrincipalID, friend.Friend);
+                    m_FriendsService.Delete(friend.PrincipalID, finfo.Friend);
+                    m_FriendsService.Delete(finfo.Friend, friend.PrincipalID.ToString());
+
+                    return SuccessResult();
+                }
+            }
+
+            return FailureResult();
         }
 
         #endregion

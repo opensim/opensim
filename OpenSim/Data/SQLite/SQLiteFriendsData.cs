@@ -64,6 +64,11 @@ namespace OpenSim.Data.SQLite
 
         public bool Delete(UUID principalID, string friend)
         {
+            return Delete(principalID.ToString(), friend);
+        }
+
+        public bool Delete(string principalID, string friend)
+        {
             SqliteCommand cmd = new SqliteCommand();
 
             cmd.CommandText = String.Format("delete from {0} where PrincipalID = :PrincipalID and Friend = :Friend", m_Realm);

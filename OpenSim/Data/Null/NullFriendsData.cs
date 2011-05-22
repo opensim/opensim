@@ -77,7 +77,12 @@ namespace OpenSim.Data.Null
             return true;
         }
 
-        public bool Delete(UUID userID, string friendID)
+        public bool Delete(UUID principalID, string friend)
+        {
+            return Delete(principalID.ToString(), friend);
+        }
+
+        public bool Delete(string userID, string friendID)
         {
             List<FriendsData> lst = m_Data.FindAll(delegate(FriendsData fdata) { return fdata.PrincipalID == userID.ToString(); });
             if (lst != null)

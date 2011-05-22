@@ -44,6 +44,11 @@ namespace OpenSim.Data.MySQL
 
         public bool Delete(UUID principalID, string friend)
         {
+            return Delete(principalID.ToString(), friend);
+        }
+
+        public bool Delete(string principalID, string friend)
+        {
             MySqlCommand cmd = new MySqlCommand();
 
             cmd.CommandText = String.Format("delete from {0} where PrincipalID = ?PrincipalID and Friend = ?Friend", m_Realm);
@@ -57,16 +62,20 @@ namespace OpenSim.Data.MySQL
 
         public FriendsData[] GetFriends(UUID principalID)
         {
-            return GetFriends(principalID.ToString());
+            MySqlCommand cmd = new MySqlCommand();
+
+            cmd.CommandText = String.Format("select a.*,case when b.Flags is null then -1 else b.Flags end as TheirFlags from {0} as a left join {0} as b on a.PrincipalID = b.Friend and a.Friend = b.PrincipalID where a.PrincipalID = ?PrincipalID", m_Realm);
+            cmd.Parameters.AddWithValue("?PrincipalID", principalID.ToString());
+
+            return DoQuery(cmd);
         }
 
         public FriendsData[] GetFriends(string principalID)
         {
             MySqlCommand cmd = new MySqlCommand();
 
-            cmd.CommandText = String.Format("select a.*,case when b.Flags is null then -1 else b.Flags end as TheirFlags from {0} as a left join {0} as b on a.PrincipalID = b.Friend and a.Friend = b.PrincipalID where a.PrincipalID = ?PrincipalID", m_Realm);
-            cmd.Parameters.AddWithValue("?PrincipalID", principalID.ToString());
-
+            cmd.CommandText = String.Format("select a.*,case when b.Flags is null then -1 else b.Flags end as TheirFlags from {0} as a left join {0} as b on a.PrincipalID = b.Friend and a.Friend = b.PrincipalID where a.PrincipalID LIKE ?PrincipalID", m_Realm);
+            cmd.Parameters.AddWithValue("?PrincipalID", principalID.ToString() + '%');
             return DoQuery(cmd);
         }
     }

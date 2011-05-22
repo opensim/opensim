@@ -628,7 +628,7 @@ namespace OpenSim.Services.LLLoginService
                 else
                 {
                     string tmp;
-                    if (Util.ParseUniversalUserIdentifier(finfo.Friend, out friendID, out tmp, out tmp, out tmp))
+                    if (Util.ParseUniversalUserIdentifier(finfo.Friend, out friendID, out tmp, out tmp, out tmp, out tmp))
                         buddyitem.BuddyID = friendID.ToString();
                     else
                         // junk entry

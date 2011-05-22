@@ -103,7 +103,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     if (!UUID.TryParse(principalID, out friend.PrincipalID))
                     {
                         string tmp = string.Empty;
-                        if (!Util.ParseUniversalUserIdentifier(principalID, out friend.PrincipalID, out tmp, out tmp, out tmp))
+                        if (!Util.ParseUniversalUserIdentifier(principalID, out friend.PrincipalID, out tmp, out tmp, out tmp, out tmp))
                             // bad record. ignore this entry
                             continue;
                     }
@@ -163,6 +163,11 @@ namespace OpenSim.Services.Connectors.SimianGrid
         }
 
         public bool Delete(UUID principalID, string friend)
+        {
+            return Delete(principalID.ToString(), friend);
+        }
+
+        public bool Delete(string principalID, string friend)
         {
             if (String.IsNullOrEmpty(m_serverUrl))
                 return true;

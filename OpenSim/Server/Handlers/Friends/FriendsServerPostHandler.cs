@@ -91,6 +91,9 @@ namespace OpenSim.Server.Handlers.Friends
                     case "deletefriend":
                         return DeleteFriend(request);
 
+                    case "deletefriend_string":
+                        return DeleteFriendString(request);
+
                 }
                 m_log.DebugFormat("[FRIENDS HANDLER]: unknown method {0} request {1}", method.Length, method);
             }
@@ -184,7 +187,25 @@ namespace OpenSim.Server.Handlers.Friends
             else
                 return FailureResult();
         }
-        
+
+        byte[] DeleteFriendString(Dictionary<string, object> request)
+        {
+            string principalID = string.Empty;
+            if (request.ContainsKey("PRINCIPALID"))
+                principalID = request["PRINCIPALID"].ToString();
+            else
+                m_log.WarnFormat("[FRIENDS HANDLER]: no principalID in request to delete friend");
+            string friend = string.Empty;
+            if (request.ContainsKey("FRIEND"))
+                friend = request["FRIEND"].ToString();
+
+            bool success = m_FriendsService.Delete(principalID, friend);
+            if (success)
+                return SuccessResult();
+            else
+                return FailureResult();
+        }
+
         #endregion
 
         #region Misc

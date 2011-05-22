@@ -72,8 +72,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                         UUID id;
                         if (!UUID.TryParse(finfo.Friend, out id))
                         {
-                            string url = string.Empty, first = string.Empty, last = string.Empty;
-                            if (Util.ParseUniversalUserIdentifier(finfo.Friend, out id, out url, out first, out last))
+                            string url = string.Empty, first = string.Empty, last = string.Empty, tmp = string.Empty;
+                            if (Util.ParseUniversalUserIdentifier(finfo.Friend, out id, out url, out first, out last, out tmp))
                             {
                                 IUserManagement uMan = m_Scenes[0].RequestModuleInterface<IUserManagement>();
                                 uMan.AddUser(id, url + ";" + first + " " + last);
@@ -103,22 +103,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return false;
         }
 
-        protected override FriendInfo[] GetFriendsFromService(IClientAPI client)
-        {
-            UserAccount account1 = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, client.AgentId);
-            if (account1 != null)
-                return base.GetFriendsFromService(client);
-
-            // Foreigner
-            AgentCircuitData agentClientCircuit = ((Scene)(client.Scene)).AuthenticateHandler.GetAgentCircuitData(client.CircuitCode);
-            string agentUUI = Util.ProduceUserUniversalIdentifier(agentClientCircuit);
-
-            FriendInfo[] finfos = FriendsService.GetFriends(agentUUI);
-            m_log.DebugFormat("[HGFRIENDS MODULE]: Fetched {0} local friends for visitor {1}", finfos.Length, agentUUI);
-            return finfos;
-        }
-
-
         protected override bool GetAgentInfo(UUID scopeID, string fid, out UUID agentID, out string first, out string last)
         {
             first = "Unknown"; last = "User";
@@ -126,8 +110,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 return true;
 
             // fid is not a UUID...
-            string url = string.Empty;
-            if (Util.ParseUniversalUserIdentifier(fid, out agentID, out url, out first, out last))
+            string url = string.Empty, tmp = string.Empty;
+            if (Util.ParseUniversalUserIdentifier(fid, out agentID, out url, out first, out last, out tmp))
             {
                 IUserManagement userMan = m_Scenes[0].RequestModuleInterface<IUserManagement>();
                 userMan.AddUser(agentID, url + ";" + first + " " + last);
@@ -164,7 +148,38 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return "Please confirm this friendship you made while you were away.";
         }
 
-        protected override bool SimpleStore(UUID agentID, UUID friendID, int rights)
+        protected override FriendInfo GetFriend(FriendInfo[] friends, UUID friendID)
+        {
+            foreach (FriendInfo fi in friends)
+            {
+                if (fi.Friend.StartsWith(friendID.ToString()))
+                    return fi;
+            }
+            return null;
+        }
+
+
+        protected override FriendInfo[] GetFriendsFromService(IClientAPI client)
+        {
+            UserAccount account1 = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, client.AgentId);
+            if (account1 != null)
+                return base.GetFriendsFromService(client);
+
+            FriendInfo[] finfos = new FriendInfo[0];
+            // Foreigner
+            AgentCircuitData agentClientCircuit = ((Scene)(client.Scene)).AuthenticateHandler.GetAgentCircuitData(client.CircuitCode);
+            if (agentClientCircuit != null)
+            {
+                string agentUUI = Util.ProduceUserUniversalIdentifier(agentClientCircuit);
+
+                m_log.DebugFormat("[XXX] GetFriendsFromService to {0}", agentUUI);
+                finfos = FriendsService.GetFriends(agentUUI);
+                m_log.DebugFormat("[HGFRIENDS MODULE]: Fetched {0} local friends for visitor {1}", finfos.Length, agentUUI);
+            }
+            return finfos;
+        }
+
+        protected override bool StoreRights(UUID agentID, UUID friendID, int rights)
         {
             UserAccount account1 = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, agentID);
             UserAccount account2 = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, friendID);
@@ -172,30 +187,27 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (account1 != null && account2 != null)
             {
                 // local grid users
-                return base.SimpleStore(agentID, friendID, rights);
+                return base.StoreRights(agentID, friendID, rights);
             }
 
-            if (account1 != null)
+            if (account1 != null) // agent is local, friend is foreigner
             {
                 FriendInfo[] finfos = GetFriends(agentID);
-                if (finfos.Length > 0)
+                FriendInfo finfo = GetFriend(finfos, friendID);
+                if (finfo != null)
                 {
-                    FriendInfo finfo = GetFriend(finfos, friendID);
                     FriendsService.StoreFriend(agentID.ToString(), finfo.Friend, rights);
                     return true;
                 }
             }
-            if (account2 != null)
+
+            if (account2 != null) // agent is foreigner, friend is local
             {
-                IClientAPI client = LocateClientObject(agentID);
-                if (client != null)
+                string agentUUI = GetUUI(friendID, agentID);
+                if (agentUUI != string.Empty)
                 {
-                    AgentCircuitData acircuit = m_Scenes[0].AuthenticateHandler.GetAgentCircuitData(client.CircuitCode);
-                    if (acircuit != null)
-                    {
-                        FriendsService.StoreFriend(Util.ProduceUserUniversalIdentifier(acircuit), friendID.ToString(), rights);
-                        return true;
-                    }
+                    FriendsService.StoreFriend(agentUUI, friendID.ToString(), rights);
+                    return true;
                 }
             }
 
@@ -233,7 +245,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 return;
             }
 
-
             // ok, at least one of them is foreigner, let's get their data
             IClientAPI agentClient = LocateClientObject(agentID);
             IClientAPI friendClient = LocateClientObject(friendID);
@@ -257,13 +268,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 friendFriendService = friendClientCircuit.ServiceURLs["FriendsServerURI"].ToString();
             }
 
-            m_log.DebugFormat("[XXX] HG Friendship! thisUUI={0}; friendUUI={1}; foreignThisFriendService={2}; foreignFriendFriendService={3}",
+            m_log.DebugFormat("[HGFRIENDS MODULE] HG Friendship! thisUUI={0}; friendUUI={1}; foreignThisFriendService={2}; foreignFriendFriendService={3}",
                     agentUUI, friendUUI, agentFriendService, friendFriendService);
+
+            // Generate a random 8-character hex number that will sign this friendship
+            string secret = UUID.Random().ToString().Substring(0, 8);
 
             if (agentAccount != null) // agent is local, 'friend' is foreigner
             {
                 // This may happen when the agent returned home, in which case the friend is not there
-                // We need to llok for its information in the friends list itself
+                // We need to look for its information in the friends list itself
+                bool confirming = false;
                 if (friendUUI == string.Empty)
                 {
                     FriendInfo[] finfos = GetFriends(agentID);
@@ -272,35 +287,41 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                         if (finfo.TheirFlags == -1)
                         {
                             if (finfo.Friend.StartsWith(friendID.ToString()))
+                            {
                                 friendUUI = finfo.Friend;
+                                confirming = true;
+                            }
                         }
                     }
                 }
 
-                // store in the local friends service a reference to the foreign friend
-                FriendsService.StoreFriend(agentID.ToString(), friendUUI, 1);
-                // and also the converse
-                FriendsService.StoreFriend(friendUUI, agentID.ToString(), 1);
+                // If it's confirming the friendship, we already have the full friendUUI with the secret
+                string theFriendUUID = confirming ? friendUUI : friendUUI + ";" + secret;
 
-                if (friendClientCircuit != null)
+                // store in the local friends service a reference to the foreign friend
+                FriendsService.StoreFriend(agentID.ToString(), theFriendUUID, 1);
+                // and also the converse
+                FriendsService.StoreFriend(theFriendUUID, agentID.ToString(), 1);
+
+                if (!confirming && friendClientCircuit != null)
                 {
                     // store in the foreign friends service a reference to the local agent
                     HGFriendsServicesConnector friendsConn = new HGFriendsServicesConnector(friendFriendService, friendClientCircuit.SessionID, friendClientCircuit.ServiceSessionID);
-                    friendsConn.NewFriendship(friendID, agentUUI);
+                    friendsConn.NewFriendship(friendID, agentUUI + ";" + secret);
                 }
             }
             else if (friendAccount != null) // 'friend' is local,  agent is foreigner
             {
                 // store in the local friends service a reference to the foreign agent
-                FriendsService.StoreFriend(friendID.ToString(), agentUUI, 1);
+                FriendsService.StoreFriend(friendID.ToString(), agentUUI + ";" + secret, 1);
                 // and also the converse
-                FriendsService.StoreFriend(agentUUI, friendID.ToString(), 1);
+                FriendsService.StoreFriend(agentUUI + ";" + secret, friendID.ToString(), 1);
 
                 if (agentClientCircuit != null)
                 {
                     // store in the foreign friends service a reference to the local agent
                     HGFriendsServicesConnector friendsConn = new HGFriendsServicesConnector(agentFriendService, agentClientCircuit.SessionID, agentClientCircuit.ServiceSessionID);
-                    friendsConn.NewFriendship(agentID, friendUUI);
+                    friendsConn.NewFriendship(agentID, friendUUI + ";" + secret);
                 }
             }
             else // They're both foreigners!
@@ -309,43 +330,112 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 if (agentClientCircuit != null)
                 {
                     friendsConn = new HGFriendsServicesConnector(agentFriendService, agentClientCircuit.SessionID, agentClientCircuit.ServiceSessionID);
-                    friendsConn.NewFriendship(agentID, friendUUI);
+                    friendsConn.NewFriendship(agentID, friendUUI + ";" + secret);
                 }
                 if (friendClientCircuit != null)
                 {
                     friendsConn = new HGFriendsServicesConnector(friendFriendService, friendClientCircuit.SessionID, friendClientCircuit.ServiceSessionID);
-                    friendsConn.NewFriendship(friendID, agentUUI);
+                    friendsConn.NewFriendship(friendID, agentUUI + ";" + secret);
                 }
             }
             // my brain hurts now
         }
 
-        protected override FriendInfo GetFriend(FriendInfo[] friends, UUID friendID)
+        protected override bool DeleteFriendship(UUID agentID, UUID exfriendID)
         {
-            foreach (FriendInfo fi in friends)
+            UserAccount agentAccount = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, agentID);
+            UserAccount friendAccount = UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, exfriendID);
+            // Are they both local users?
+            if (agentAccount != null && friendAccount != null)
             {
-                if (fi.Friend.StartsWith(friendID.ToString()))
-                    return fi;
+                // local grid users
+                return base.DeleteFriendship(agentID, exfriendID);
             }
-            return null;
-        }
 
-        protected override void DeleteFriendship(UUID agentID, UUID exfriendID)
-        {
-            base.DeleteFriendship(agentID, exfriendID);
-            // Maybe some of the base deletes will fail.
-            // Let's delete the local friendship with foreign friend
-            FriendInfo[] friends = GetFriends(agentID);
-            foreach (FriendInfo finfo in friends)
+            // ok, at least one of them is foreigner, let's get their data
+            string agentUUI = string.Empty;
+            string friendUUI = string.Empty;
+
+            if (agentAccount != null) // agent is local, 'friend' is foreigner
             {
-                if (finfo.Friend != exfriendID.ToString() && finfo.Friend.StartsWith(exfriendID.ToString()))
+                // We need to look for its information in the friends list itself
+                FriendInfo[] finfos = GetFriends(agentID);
+                FriendInfo finfo = GetFriend(finfos, exfriendID);
+                if (finfo != null)
                 {
-                    FriendsService.Delete(agentID, exfriendID.ToString());
-                    // TODO: delete the friendship on the other side
-                    // Should use the homeurl given in finfo.Friend
+                    friendUUI = finfo.Friend;
+
+                    // delete in the local friends service the reference to the foreign friend
+                    FriendsService.Delete(agentID, friendUUI);
+                    // and also the converse
+                    FriendsService.Delete(friendUUI, agentID.ToString());
+
+                    // notify the exfriend's service
+                    Util.FireAndForget(delegate { Delete(exfriendID, agentID, friendUUI); });
+
+                    m_log.DebugFormat("[HGFRIENDS MODULE]: {0} terminated {1}", agentID, friendUUI);
+                    return true;
                 }
             }
+            else if (friendAccount != null) // agent is foreigner, 'friend' is local
+            {
+                agentUUI = GetUUI(exfriendID, agentID);
+
+                if (agentUUI != string.Empty)
+                {
+                    // delete in the local friends service the reference to the foreign agent
+                    FriendsService.Delete(exfriendID, agentUUI);
+                    // and also the converse
+                    FriendsService.Delete(agentUUI, exfriendID.ToString());
+
+                    // notify the agent's service?
+                    Util.FireAndForget(delegate { Delete(agentID, exfriendID, agentUUI); });
+
+                    m_log.DebugFormat("[HGFRIENDS MODULE]: {0} terminated {1}", agentUUI, exfriendID);
+                    return true;
+                }
+            }
+            //else They're both foreigners! Can't handle this
+
+            return false;
         }
 
+        private string GetUUI(UUID localUser, UUID foreignUser)
+        {
+            // Let's see if the user is here by any chance
+            FriendInfo[] finfos = GetFriends(localUser);
+            if (finfos != EMPTY_FRIENDS) // friend is here, cool
+            {
+                FriendInfo finfo = GetFriend(finfos, foreignUser);
+                if (finfo != null)
+                {
+                    return finfo.Friend;
+                }
+            }
+            else // user is not currently on this sim, need to get from the service
+            {
+                finfos = FriendsService.GetFriends(localUser);
+                foreach (FriendInfo finfo in finfos)
+                {
+                    if (finfo.Friend.StartsWith(foreignUser.ToString())) // found it!
+                    {
+                        return finfo.Friend;
+                    }
+                }
+            }
+            return string.Empty;
+        }
+
+        private void Delete(UUID foreignUser, UUID localUser, string uui)
+        {
+            UUID id;
+            string url = string.Empty, secret = string.Empty, tmp = string.Empty;
+            if (Util.ParseUniversalUserIdentifier(uui, out id, out url, out tmp, out tmp, out secret))
+            {
+                m_log.DebugFormat("[HGFRIENDS MODULE]: Deleting friendship from {0}", url);
+                HGFriendsServicesConnector friendConn = new HGFriendsServicesConnector(url);
+                friendConn.DeleteFriendship(foreignUser, localUser, secret);
+            }
+        }
     }
 }

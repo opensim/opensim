@@ -54,6 +54,11 @@ namespace OpenSim.Services.Connectors.Hypergrid
         {
         }
 
+        public HGFriendsServicesConnector(string serverURI)
+        {
+            m_ServerURI = serverURI.TrimEnd('/');
+        }
+
         public HGFriendsServicesConnector(string serverURI, UUID sessionID, string serviceKey)
         {
             m_ServerURI = serverURI.TrimEnd('/');
@@ -146,6 +151,51 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             else
                 m_log.DebugFormat("[HGFRIENDS CONNECTOR]: StoreFriend received null reply");
+
+            return false;
+
+        }
+
+        public bool DeleteFriendship(UUID PrincipalID, UUID Friend, string secret)
+        {
+            FriendInfo finfo = new FriendInfo();
+            finfo.PrincipalID = PrincipalID;
+            finfo.Friend = Friend.ToString();
+
+            Dictionary<string, object> sendData = finfo.ToKeyValuePairs();
+
+            sendData["METHOD"] = "deletefriendship";
+            sendData["SECRET"] = secret;
+
+            string reply = string.Empty;
+            try
+            {
+                reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                        m_ServerURI + "/hgfriends",
+                        ServerUtils.BuildQueryString(sendData));
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[HGFRIENDS CONNECTOR]: Exception when contacting friends server: {0}", e.Message);
+                return false;
+            }
+
+            if (reply != string.Empty)
+            {
+                Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
+
+                if ((replyData != null) && replyData.ContainsKey("Result") && (replyData["Result"] != null))
+                {
+                    bool success = false;
+                    Boolean.TryParse(replyData["Result"].ToString(), out success);
+                    return success;
+                }
+                else
+                    m_log.DebugFormat("[HGFRIENDS CONNECTOR]: Delete {0} {1} received null response",
+                        PrincipalID, Friend);
+            }
+            else
+                m_log.DebugFormat("[HGFRIENDS CONNECTOR]: DeleteFriend received null reply");
 
             return false;
 

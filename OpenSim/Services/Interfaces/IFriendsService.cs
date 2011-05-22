@@ -77,5 +77,6 @@ namespace OpenSim.Services.Interfaces
         FriendInfo[] GetFriends(string PrincipalID);
         bool StoreFriend(string PrincipalID, string Friend, int flags);
         bool Delete(UUID PrincipalID, string Friend);
+        bool Delete(string PrincipalID, string Friend);
     }
 }

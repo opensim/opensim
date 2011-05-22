@@ -211,6 +211,16 @@ namespace OpenSim.Services.Connectors.Friends
 
         }
 
+        public bool Delete(string PrincipalID, string Friend)
+        {
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            sendData["PRINCIPALID"] = PrincipalID.ToString();
+            sendData["FRIEND"] = Friend;
+            sendData["METHOD"] = "deletefriend_string";
+
+            return Delete(sendData, PrincipalID, Friend);
+        }
+
         public bool Delete(UUID PrincipalID, string Friend)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
@@ -218,6 +228,11 @@ namespace OpenSim.Services.Connectors.Friends
             sendData["FRIEND"] = Friend;
             sendData["METHOD"] = "deletefriend";
 
+            return Delete(sendData, PrincipalID.ToString(), Friend);
+        }
+
+        public bool Delete(Dictionary<string, object> sendData, string PrincipalID, string Friend)
+        {
             string reply = string.Empty;
             try
             {

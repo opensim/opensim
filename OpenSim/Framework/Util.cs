@@ -1703,9 +1703,9 @@ namespace OpenSim.Framework
         /// <param name="url"></param>
         /// <param name="firstname"></param>
         /// <param name="lastname"></param>
-        public static bool ParseUniversalUserIdentifier(string value, out UUID uuid, out string url, out string firstname, out string lastname)
+        public static bool ParseUniversalUserIdentifier(string value, out UUID uuid, out string url, out string firstname, out string lastname, out string secret)
         {
-            uuid = UUID.Zero; url = string.Empty; firstname = "Unknown"; lastname = "User";
+            uuid = UUID.Zero; url = string.Empty; firstname = "Unknown"; lastname = "User"; secret = string.Empty;
 
             string[] parts = value.Split(';');
             if (parts.Length >= 1)
@@ -1724,6 +1724,8 @@ namespace OpenSim.Framework
                     lastname = name[1];
                 }
             }
+            if (parts.Length >= 4)
+                secret = parts[3];
 
             return true;
         }

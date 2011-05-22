@@ -75,7 +75,7 @@ namespace OpenSim.Services.Friends
                 if (!UUID.TryParse(d.PrincipalID, out i.PrincipalID))
                 {
                     string tmp = string.Empty;
-                    if (!Util.ParseUniversalUserIdentifier(d.PrincipalID, out i.PrincipalID, out tmp, out tmp, out tmp))
+                    if (!Util.ParseUniversalUserIdentifier(d.PrincipalID, out i.PrincipalID, out tmp, out tmp, out tmp, out tmp))
                         // bad record. ignore this entry
                         continue;
                 }
@@ -99,6 +99,11 @@ namespace OpenSim.Services.Friends
             d.Data["Flags"] = flags.ToString();
 
             return m_Database.Store(d);
+        }
+
+        public bool Delete(string principalID, string friend)
+        {
+            return m_Database.Delete(principalID, friend);
         }
 
         public virtual bool Delete(UUID PrincipalID, string Friend)
