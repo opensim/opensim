@@ -3864,9 +3864,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 throw new Exception(String.Format("The inventory object '{0}' could not be found", inventory));
             }
 
-            // check if destination is an avatar
-            if (World.GetScenePresence(destId) != null)
+            // check if destination is an object
+            if (World.GetSceneObjectPart(destId) != null)
             {
+                // destination is an object
+                World.MoveTaskInventoryItem(destId, m_host, objId);
+            }
+            else
+            {
+                ScenePresence presence = World.GetScenePresence(destId);
+
+                if (presence == null)
+                {
+                    UserAccount account =
+                            World.UserAccountService.GetUserAccount(
+                            World.RegionInfo.ScopeID,
+                            destId);
+
+                    if (account == null)
+                    {
+                        llSay(0, "Can't find destination "+destId.ToString());
+                        return;
+                    }
+                }
                 // destination is an avatar
                 InventoryItemBase agentItem = World.MoveTaskInventoryItem(destId, UUID.Zero, m_host, objId);
 
@@ -3887,16 +3907,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         m_host.AbsolutePosition.ToString(),
                         agentItem.ID, true, m_host.AbsolutePosition,
                         bucket);
-
                 if (m_TransferModule != null)
                     m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
+                ScriptSleep(3000);
             }
-            else
-            {
-                // destination is an object
-                World.MoveTaskInventoryItem(destId, m_host, objId);
-            }
-            ScriptSleep(3000);
         }
 
         public void llRemoveInventory(string name)
