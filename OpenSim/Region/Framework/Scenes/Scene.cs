@@ -1091,6 +1091,8 @@ namespace OpenSim.Region.Framework.Scenes
             shuttingdown = true;
 
             m_log.Debug("[SCENE]: Persisting changed objects");
+            EventManager.TriggerSceneShuttingDown(this);
+
             EntityBase[] entities = GetEntities();
             foreach (EntityBase entity in entities)
             {
