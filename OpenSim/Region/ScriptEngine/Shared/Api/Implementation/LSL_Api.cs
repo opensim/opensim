@@ -4300,7 +4300,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         m_host.AbsolutePosition.ToString(),
                         agentItem.ID, true, m_host.AbsolutePosition,
                         bucket);
-
                 if (m_TransferModule != null)
                     m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
                 
