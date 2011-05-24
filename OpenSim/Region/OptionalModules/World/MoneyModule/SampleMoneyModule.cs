@@ -177,35 +177,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                 scene.EventManager.OnClientClosed += ClientLoggedOut;
                 scene.EventManager.OnValidateLandBuy += ValidateLandBuy;
                 scene.EventManager.OnLandBuy += processLandBuy;
-                scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
             }
-        }
-
-        void OnMakeRootAgent(ScenePresence presence)
-        {
-            // Do this only for root agents
-            // Some implementations register $$ for
-            // child agents, then that never goes away
-            // We will send a zero balance when they are
-            // made root.
-            //
-            // Modules overriding this should only deal with
-            // root agents as well.
-            //
-            IClientAPI client = presence.ControllingClient;
-
-            client.OnEconomyDataRequest += EconomyDataRequestHandler;
-            client.OnMoneyBalanceRequest += SendMoneyBalance;
-            client.OnRequestPayPrice += requestPayPrice;
-            client.OnObjectBuy += ObjectBuy;
-            client.OnLogout += ClientClosed;
-
-            client.SendMoneyBalance (UUID.Random(), true, new byte[0], 0);
-        }
-
-        void HandleSceneEventManagerOnMakeRootAgent (ScenePresence presence)
-        {
-
         }
 
         public void RemoveRegion(Scene scene)
@@ -305,9 +277,13 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         private void OnNewClient(IClientAPI client)
         {
             GetClientFunds(client);
-            // Moved the event registrations to fire them when
-            // the agent becomes root
 
+            // Subscribe to Money messages
+            client.OnEconomyDataRequest += EconomyDataRequestHandler;
+            client.OnMoneyBalanceRequest += SendMoneyBalance;
+            client.OnRequestPayPrice += requestPayPrice;
+            client.OnObjectBuy += ObjectBuy;
+            client.OnLogout += ClientClosed;
         }
 
         /// <summary>
