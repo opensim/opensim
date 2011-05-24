@@ -54,13 +54,19 @@ namespace OpenSim.Server.Handlers.Hypergrid
         private IUserAgentService m_HomeUsersService;
 
         public UserAgentServerConnector(IConfigSource config, IHttpServer server) :
+                this(config, server, null)
+        {            
+        }
+
+        public UserAgentServerConnector(IConfigSource config, IHttpServer server, IFriendsSimConnector friendsConnector) :
                 base(config, server, String.Empty)
         {
             IConfig gridConfig = config.Configs["UserAgentService"];
             if (gridConfig != null)
             {
                 string serviceDll = gridConfig.GetString("LocalServiceModule", string.Empty);
-                Object[] args = new Object[] { config };
+
+                Object[] args = new Object[] { config, friendsConnector };
                 m_HomeUsersService = ServerUtils.LoadPlugin<IUserAgentService>(serviceDll, args);
             }
             if (m_HomeUsersService == null)
@@ -74,6 +80,9 @@ namespace OpenSim.Server.Handlers.Hypergrid
             server.AddXmlRPCHandler("verify_agent", VerifyAgent, false);
             server.AddXmlRPCHandler("verify_client", VerifyClient, false);
             server.AddXmlRPCHandler("logout_agent", LogoutAgent, false);
+
+            server.AddXmlRPCHandler("status_notification", StatusNotification, false);
+            server.AddXmlRPCHandler("get_online_friends", GetOnlineFriends, false);
 
             server.AddHTTPHandler("/homeagent/", new HomeAgentHandler(m_HomeUsersService, loginServerIP, proxy).Handler);
         }
@@ -188,6 +197,79 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             Hashtable hash = new Hashtable();
             hash["result"] = "true";
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = hash;
+            return response;
+
+        }
+
+        public XmlRpcResponse StatusNotification(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            Hashtable hash = new Hashtable();
+            hash["result"] = "false";
+
+            Hashtable requestData = (Hashtable)request.Params[0];
+            //string host = (string)requestData["host"];
+            //string portstr = (string)requestData["port"];
+            if (requestData.ContainsKey("userID") && requestData.ContainsKey("online"))
+            {
+                string userID_str = (string)requestData["userID"];
+                UUID userID = UUID.Zero;
+                UUID.TryParse(userID_str, out userID);
+                List<string> ids = new List<string>();
+                foreach (object key in requestData.Keys)
+                {
+                    if (key is string && ((string)key).StartsWith("friend_") && requestData[key] != null)
+                        ids.Add(requestData[key].ToString());
+                }
+                bool online = false;
+                bool.TryParse(requestData["online"].ToString(), out online);
+
+                hash["result"] = "true";
+
+                // let's spawn a thread for this, because it may take a long time...
+                Util.FireAndForget(delegate { m_HomeUsersService.StatusNotification(ids, userID, online); });
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = hash;
+            return response;
+
+        }
+
+        public XmlRpcResponse GetOnlineFriends(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            Hashtable hash = new Hashtable();
+
+            Hashtable requestData = (Hashtable)request.Params[0];
+            //string host = (string)requestData["host"];
+            //string portstr = (string)requestData["port"];
+            if (requestData.ContainsKey("userID"))
+            {
+                string userID_str = (string)requestData["userID"];
+                UUID userID = UUID.Zero;
+                UUID.TryParse(userID_str, out userID);
+                List<string> ids = new List<string>();
+                foreach (object key in requestData.Keys)
+                {
+                    if (key is string && ((string)key).StartsWith("friend_") && requestData[key] != null)
+                        ids.Add(requestData[key].ToString());
+                }
+
+                // let's spawn a thread for this, because it may take a long time...
+                List<UUID> online = m_HomeUsersService.GetOnlineFriends(userID, ids);
+                if (online.Count > 0)
+                {
+                    int i = 0;
+                    foreach (UUID id in online)
+                    {
+                        hash["friend_" + i.ToString()] = id.ToString();
+                        i++;
+                    }
+
+                }
+            }
+
             XmlRpcResponse response = new XmlRpcResponse();
             response.Value = hash;
             return response;

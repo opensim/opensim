@@ -139,7 +139,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (moduleConfig != null)
             {
                 string name = moduleConfig.GetString("FriendsModule", "FriendsModule");
-                m_log.DebugFormat("[XXX] {0} compared to {1}", name, Name);
                 if (name == Name)
                 {
                     InitModule(config);
@@ -183,7 +182,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
         }
 
-        public void AddRegion(Scene scene)
+        public virtual void AddRegion(Scene scene)
         {
             if (!m_Enabled)
                 return;
@@ -302,6 +301,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
             UUID agentID = client.AgentId;
 
+            //m_log.DebugFormat("[XXX]: OnClientLogin!");
             // Inform the friends that this user is online
             StatusChange(agentID, true);
             
@@ -405,17 +405,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
 
             if (friendList.Count > 0)
-            {
-                PresenceInfo[] presence = PresenceService.GetAgents(friendList.ToArray());
-                foreach (PresenceInfo pi in presence)
-                {
-                    UUID presenceID;
-                    if (UUID.TryParse(pi.UserID, out presenceID))
-                        online.Add(presenceID);
-                }
-            }
+                GetOnlineFriends(userID, friendList, online);
 
             return online;
+        }
+
+        protected virtual void GetOnlineFriends(UUID userID, List<string> friendList, /*collector*/ List<UUID> online)
+        {
+            PresenceInfo[] presence = PresenceService.GetAgents(friendList.ToArray());
+            foreach (PresenceInfo pi in presence)
+            {
+                UUID presenceID;
+                if (UUID.TryParse(pi.UserID, out presenceID))
+                    online.Add(presenceID);
+            }
         }
 
         /// <summary>
@@ -472,51 +475,51 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 Util.FireAndForget(
                     delegate
                     {
-                        foreach (FriendInfo fi in friendList)
-                        {
-                            //m_log.DebugFormat("[FRIENDS]: Notifying {0}", fi.PrincipalID);
-                            // Notify about this user status
-                            StatusNotify(fi, agentID, online);
-                        }
+                        m_log.DebugFormat("[FRIENDS MODULE]: Notifying {0} friends", friendList.Count);
+                        // Notify about this user status
+                        StatusNotify(friendList, agentID, online);
                     }
                 );
             }
         }
 
-        private void StatusNotify(FriendInfo friend, UUID userID, bool online)
+        protected virtual void StatusNotify(List<FriendInfo> friendList, UUID userID, bool online)
         {
-            UUID friendID;
-            if (UUID.TryParse(friend.Friend, out friendID))
+            foreach (FriendInfo friend in friendList)
             {
-                // Try local
-                if (LocalStatusNotification(userID, friendID, online))
-                    return;
-
-                // The friend is not here [as root]. Let's forward.
-                PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
-                if (friendSessions != null && friendSessions.Length > 0)
+                UUID friendID;
+                if (UUID.TryParse(friend.Friend, out friendID))
                 {
-                    PresenceInfo friendSession = null; 
-                    foreach (PresenceInfo pinfo in friendSessions)
-                        if (pinfo.RegionID != UUID.Zero) // let's guard against sessions-gone-bad
-                        {
-                            friendSession = pinfo;
-                            break;
-                        }
+                    // Try local
+                    if (LocalStatusNotification(userID, friendID, online))
+                        return;
 
-                    if (friendSession != null)
+                    // The friend is not here [as root]. Let's forward.
+                    PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
+                    if (friendSessions != null && friendSessions.Length > 0)
                     {
-                        GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-                        //m_log.DebugFormat("[FRIENDS]: Remote Notify to region {0}", region.RegionName);
-                        m_FriendsSimConnector.StatusNotify(region, userID, friendID, online);
-                    }
-                }
+                        PresenceInfo friendSession = null;
+                        foreach (PresenceInfo pinfo in friendSessions)
+                            if (pinfo.RegionID != UUID.Zero) // let's guard against sessions-gone-bad
+                            {
+                                friendSession = pinfo;
+                                break;
+                            }
 
-                // Friend is not online. Ignore.
-            }
-            else
-            {
-                m_log.WarnFormat("[FRIENDS]: Error parsing friend ID {0}", friend.Friend);
+                        if (friendSession != null)
+                        {
+                            GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                            //m_log.DebugFormat("[FRIENDS]: Remote Notify to region {0}", region.RegionName);
+                            m_FriendsSimConnector.StatusNotify(region, userID, friendID, online);
+                        }
+                    }
+
+                    // Friend is not online. Ignore.
+                }
+                else
+                {
+                    m_log.WarnFormat("[FRIENDS]: Error parsing friend ID {0}", friend.Friend);
+                }
             }
         }
 
@@ -670,7 +673,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             FriendInfo[] friends = GetFriends(remoteClient.AgentId);
             if (friends.Length == 0)
             {
-                m_log.DebugFormat("[XXX]: agent {0} has no friends", requester);
                 return;
             }
 

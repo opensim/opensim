@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -26,40 +26,15 @@
  */
 
 using System;
-using System.Net;
-using System.Collections.Generic;
-
 using OpenSim.Framework;
 using OpenMetaverse;
 
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+
 namespace OpenSim.Services.Interfaces
 {
-    public interface IGatekeeperService
+    public interface IFriendsSimConnector
     {
-        bool LinkRegion(string regionDescriptor, out UUID regionID, out ulong regionHandle, out string externalName, out string imageURL, out string reason);
-        GridRegion GetHyperlinkRegion(UUID regionID);
-
-        bool LoginAgent(AgentCircuitData aCircuit, GridRegion destination, out string reason);
-
-    }
-
-    /// <summary>
-    /// HG1.5 only
-    /// </summary>
-    public interface IUserAgentService
-    {
-        // called by login service only
-        bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, IPEndPoint clientIP, out string reason);
-        // called by simulators
-        bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, out string reason);
-        void LogoutAgent(UUID userID, UUID sessionID);
-        GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt);
-
-        void StatusNotification(List<string> friends, UUID userID, bool online);
-        List<UUID> GetOnlineFriends(UUID userID, List<string> friends);
-
-        bool AgentIsComingHome(UUID sessionID, string thisGridExternalName);
-        bool VerifyAgent(UUID sessionID, string token);
-        bool VerifyClient(UUID sessionID, string reportedIP);
+        bool StatusNotify(UUID userID, UUID friendID, bool online);
     }
 }

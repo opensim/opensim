@@ -140,15 +140,19 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         byte[] NewFriendship(Dictionary<string, object> request)
         {
+            m_log.DebugFormat("[XXX] 1");
             if (!VerifyServiceKey(request))
                 return FailureResult();
 
+            m_log.DebugFormat("[XXX] 2");
             // OK, can proceed
             FriendInfo friend = new FriendInfo(request);
             UUID friendID;
             string tmp = string.Empty;
+            m_log.DebugFormat("[XXX] 3");
             if (!Util.ParseUniversalUserIdentifier(friend.Friend, out friendID, out tmp, out tmp, out tmp, out tmp))
                 return FailureResult();
+
 
             m_log.DebugFormat("[HGFRIENDS HANDLER]: New friendship {0} {1}", friend.PrincipalID, friend.Friend);
 

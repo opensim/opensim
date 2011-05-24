@@ -46,7 +46,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 namespace OpenSim.Region.CoreModules.Avatar.Friends
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class HGFriendsModule : FriendsModule, ISharedRegionModule, IFriendsModule
+    public class HGFriendsModule : FriendsModule, ISharedRegionModule, IFriendsModule, IFriendsSimConnector
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -54,6 +54,31 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         public override string Name
         {
             get { return "HGFriendsModule"; }
+        }
+
+        public override void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            base.AddRegion(scene);
+            scene.RegisterModuleInterface<IFriendsSimConnector>(this);
+        }
+
+        #endregion
+
+        #region IFriendsSimConnector
+
+        /// <summary>
+        /// Notify the user that the friend's status changed
+        /// </summary>
+        /// <param name="userID">user to be notified</param>
+        /// <param name="friendID">friend whose status changed</param>
+        /// <param name="online">status</param>
+        /// <returns></returns>
+        public bool StatusNotify(UUID userID, UUID friendID, bool online)
+        {
+            return LocalStatusNotification(friendID, userID, online);
         }
 
         #endregion
@@ -101,6 +126,140 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 }
             }
             return false;
+        }
+
+        protected override void GetOnlineFriends(UUID userID, List<string> friendList, /*collector*/ List<UUID> online)
+        {
+            // Let's single out the UUIs
+            List<string> localFriends = new List<string>();
+            List<string> foreignFriends = new List<string>();
+            string tmp = string.Empty;
+
+            foreach (string s in friendList)
+            {
+                UUID id;
+                if (UUID.TryParse(s, out id))
+                    localFriends.Add(s);
+                else if (Util.ParseUniversalUserIdentifier(s, out id, out tmp, out tmp, out tmp, out tmp))
+                {
+                    foreignFriends.Add(s);
+                    // add it here too, who knows maybe the foreign friends happens to be on this grid
+                    localFriends.Add(id.ToString());
+                }
+            }
+
+            // OK, see who's present on this grid
+            List<string> toBeRemoved = new List<string>();
+            PresenceInfo[] presence = PresenceService.GetAgents(localFriends.ToArray());
+            foreach (PresenceInfo pi in presence)
+            {
+                UUID presenceID;
+                if (UUID.TryParse(pi.UserID, out presenceID))
+                {
+                    online.Add(presenceID);
+                    foreach (string s in foreignFriends)
+                        if (s.StartsWith(pi.UserID))
+                            toBeRemoved.Add(s);
+                }
+            }
+
+            foreach (string s in toBeRemoved)
+                foreignFriends.Remove(s);
+
+            // OK, let's send this up the stack, and leave a closure here
+            // collecting online friends in other grids
+            Util.FireAndForget(delegate { CollectOnlineFriendsElsewhere(userID, foreignFriends); });
+
+        }
+
+        private void CollectOnlineFriendsElsewhere(UUID userID, List<string> foreignFriends)
+        {
+            // let's divide the friends on a per-domain basis
+            Dictionary<string, List<string>> friendsPerDomain = new Dictionary<string, List<string>>();
+            foreach (string friend in foreignFriends)
+            {
+                UUID friendID;
+                if (!UUID.TryParse(friend, out friendID))
+                {
+                    // it's a foreign friend
+                    string url = string.Empty, tmp = string.Empty;
+                    if (Util.ParseUniversalUserIdentifier(friend, out friendID, out url, out tmp, out tmp, out tmp))
+                    {
+                        if (!friendsPerDomain.ContainsKey(url))
+                            friendsPerDomain[url] = new List<string>();
+                        friendsPerDomain[url].Add(friend);
+                    }
+                }
+            }
+
+            // Now, call those worlds
+            
+            foreach (KeyValuePair<string, List<string>> kvp in friendsPerDomain)
+            {
+                List<string> ids = new List<string>();
+                foreach (string f in kvp.Value)
+                    ids.Add(f);
+                UserAgentServiceConnector uConn = new UserAgentServiceConnector(kvp.Key);
+                List<UUID> online = uConn.GetOnlineFriends(userID, ids);
+                // Finally send the notifications to the user
+                // this whole process may take a while, so let's check at every
+                // iteration that the user is still here
+                IClientAPI client = LocateClientObject(userID);
+                if (client != null)
+                    client.SendAgentOnline(online.ToArray());
+                else
+                    break;
+            }
+
+        }
+
+        protected override void StatusNotify(List<FriendInfo> friendList, UUID userID, bool online)
+        {
+            // First, let's divide the friends on a per-domain basis
+            Dictionary<string, List<FriendInfo>> friendsPerDomain = new Dictionary<string, List<FriendInfo>>();
+            foreach (FriendInfo friend in friendList)
+            {
+                UUID friendID;
+                if (UUID.TryParse(friend.Friend, out friendID))
+                {
+                    if (!friendsPerDomain.ContainsKey("local"))
+                        friendsPerDomain["local"] = new List<FriendInfo>();
+                    friendsPerDomain["local"].Add(friend);
+                }
+                else
+                {
+                    // it's a foreign friend
+                    string url = string.Empty, tmp = string.Empty;
+                    if (Util.ParseUniversalUserIdentifier(friend.Friend, out friendID, out url, out tmp, out tmp, out tmp))
+                    {
+                        // Let's try our luck in the local sim. Who knows, maybe it's here
+                        if (LocalStatusNotification(userID, friendID, online))
+                            continue;
+
+                        if (!friendsPerDomain.ContainsKey(url))
+                            friendsPerDomain[url] = new List<FriendInfo>();
+                        friendsPerDomain[url].Add(friend);
+                    }
+                }
+            }
+
+            // For the local friends, just call the base method
+            // Let's do this first of all
+            if (friendsPerDomain.ContainsKey("local"))
+                base.StatusNotify(friendsPerDomain["local"], userID, online);
+
+            foreach (KeyValuePair<string, List<FriendInfo>> kvp in friendsPerDomain)
+            {
+                if (kvp.Key != "local")
+                {
+                    // For the others, call the user agent service 
+                    List<string> ids = new List<string>();
+                    foreach (FriendInfo f in kvp.Value)
+                        ids.Add(f.Friend);
+                    UserAgentServiceConnector uConn = new UserAgentServiceConnector(kvp.Key);
+                    uConn.StatusNotification(ids, userID, online);
+                }
+            }
         }
 
         protected override bool GetAgentInfo(UUID scopeID, string fid, out UUID agentID, out string first, out string last)
@@ -172,7 +331,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             {
                 string agentUUI = Util.ProduceUserUniversalIdentifier(agentClientCircuit);
 
-                m_log.DebugFormat("[XXX] GetFriendsFromService to {0}", agentUUI);
                 finfos = FriendsService.GetFriends(agentUUI);
                 m_log.DebugFormat("[HGFRIENDS MODULE]: Fetched {0} local friends for visitor {1}", finfos.Length, agentUUI);
             }
