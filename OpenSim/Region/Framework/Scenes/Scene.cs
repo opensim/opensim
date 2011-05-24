@@ -209,6 +209,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Timer m_mapGenerationTimer = new Timer();
         private bool m_generateMaptiles;
+        private bool m_useBackup = true;
 
 //        private Dictionary<UUID, string[]> m_UserNamesCache = new Dictionary<UUID, string[]>();
 
@@ -477,6 +478,11 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_sceneGraph; }
         }
 
+        public bool UseBackup
+        {
+            get { return m_useBackup; }
+        }
+
         // an instance to the physics plugin's Scene object.
         public PhysicsScene PhysicsScene
         {
@@ -670,6 +676,9 @@ namespace OpenSim.Region.Framework.Scenes
                 IConfig startupConfig = m_config.Configs["Startup"];
 
                 m_defaultDrawDistance = startupConfig.GetFloat("DefaultDrawDistance",m_defaultDrawDistance);
+                m_useBackup = startupConfig.GetBoolean("UseSceneBackup", m_useBackup);
+                if (!m_useBackup)
+                    m_log.InfoFormat("[SCENE]: Backup has been disabled for {0}", RegionInfo.RegionName);
                 
                 //Animation states
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
