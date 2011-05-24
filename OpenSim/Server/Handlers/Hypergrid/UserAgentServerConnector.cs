@@ -83,6 +83,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             server.AddXmlRPCHandler("status_notification", StatusNotification, false);
             server.AddXmlRPCHandler("get_online_friends", GetOnlineFriends, false);
+            server.AddXmlRPCHandler("get_server_urls", GetServerURLs, false);
 
             server.AddHTTPHandler("/homeagent/", new HomeAgentHandler(m_HomeUsersService, loginServerIP, proxy).Handler);
         }
@@ -256,7 +257,6 @@ namespace OpenSim.Server.Handlers.Hypergrid
                         ids.Add(requestData[key].ToString());
                 }
 
-                // let's spawn a thread for this, because it may take a long time...
                 List<UUID> online = m_HomeUsersService.GetOnlineFriends(userID, ids);
                 if (online.Count > 0)
                 {
@@ -266,8 +266,38 @@ namespace OpenSim.Server.Handlers.Hypergrid
                         hash["friend_" + i.ToString()] = id.ToString();
                         i++;
                     }
-
                 }
+                else
+                    hash["result"] = "No Friends Online";
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = hash;
+            return response;
+
+        }
+
+        public XmlRpcResponse GetServerURLs(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            Hashtable hash = new Hashtable();
+
+            Hashtable requestData = (Hashtable)request.Params[0];
+            //string host = (string)requestData["host"];
+            //string portstr = (string)requestData["port"];
+            if (requestData.ContainsKey("userID"))
+            {
+                string userID_str = (string)requestData["userID"];
+                UUID userID = UUID.Zero;
+                UUID.TryParse(userID_str, out userID);
+
+                Dictionary<string, object> serverURLs = m_HomeUsersService.GetServerURLs(userID);
+                if (serverURLs.Count > 0)
+                {
+                    foreach (KeyValuePair<string, object> kvp in serverURLs)
+                        hash["SRV_" + kvp.Key] = kvp.Value.ToString();
+                }
+                else
+                    hash["result"] = "No Service URLs";
             }
 
             XmlRpcResponse response = new XmlRpcResponse();

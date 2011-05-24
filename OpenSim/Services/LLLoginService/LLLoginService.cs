@@ -804,16 +804,13 @@ namespace OpenSim.Services.LLLoginService
             // Old style: get the service keys from the DB 
             foreach (KeyValuePair<string, object> kvp in account.ServiceURLs)
             {
-                if (kvp.Value == null || (kvp.Value != null && kvp.Value.ToString() == string.Empty))
-                {
-                    aCircuit.ServiceURLs[kvp.Key] = m_LoginServerConfig.GetString(kvp.Key, string.Empty);
-                }
-                else
+                if (kvp.Value != null)
                 {
                     aCircuit.ServiceURLs[kvp.Key] = kvp.Value;
+
+                    if (!aCircuit.ServiceURLs[kvp.Key].ToString().EndsWith("/"))
+                        aCircuit.ServiceURLs[kvp.Key] = aCircuit.ServiceURLs[kvp.Key] + "/";
                 }
-                if (!aCircuit.ServiceURLs[kvp.Key].ToString().EndsWith("/"))
-                    aCircuit.ServiceURLs[kvp.Key] = aCircuit.ServiceURLs[kvp.Key] + "/";
             }
 
             // New style: service keys  start with SRV_; override the previous
@@ -821,16 +818,29 @@ namespace OpenSim.Services.LLLoginService
 
             if (keys.Length > 0)
             {
+                bool newUrls = false;
                 IEnumerable<string> serviceKeys = keys.Where(value => value.StartsWith("SRV_"));
                 foreach (string serviceKey in serviceKeys)
                 {
                     string keyName = serviceKey.Replace("SRV_", "");
-                    aCircuit.ServiceURLs[keyName] = m_LoginServerConfig.GetString(serviceKey, string.Empty);
-                    if (!aCircuit.ServiceURLs[keyName].ToString().EndsWith("/"))
-                        aCircuit.ServiceURLs[keyName] = aCircuit.ServiceURLs[keyName] + "/";
+                    string keyValue = m_LoginServerConfig.GetString(serviceKey, string.Empty);
+                    if (!keyValue.EndsWith("/"))
+                        keyValue = keyValue + "/";
+
+                    if (!account.ServiceURLs.ContainsKey(keyName) || (account.ServiceURLs.ContainsKey(keyName) && account.ServiceURLs[keyName] != keyValue))
+                    {
+                        account.ServiceURLs[keyName] = keyValue;
+                        newUrls = true;
+                    }
+                    aCircuit.ServiceURLs[keyName] = keyValue;
 
                     m_log.DebugFormat("[LLLOGIN SERVICE]: found new key {0} {1}", keyName, aCircuit.ServiceURLs[keyName]);
                 }
+
+                // The grid operator decided to override the defaults in the
+                // [LoginService] configuration. Let's store the correct ones.
+                if (newUrls)
+                    m_UserAccountService.StoreUserAccount(account);
             }
 
         }

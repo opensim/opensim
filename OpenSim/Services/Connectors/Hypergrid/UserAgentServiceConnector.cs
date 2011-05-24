@@ -470,7 +470,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             {
                 if (hash == null)
                 {
-                    m_log.ErrorFormat("[USER AGENT CONNECTOR]: Got null response from {0}! THIS IS BAAAAD", m_ServerURL);
+                    m_log.ErrorFormat("[USER AGENT CONNECTOR]: GetOnlineFriends Got null response from {0}! THIS IS BAAAAD", m_ServerURL);
                     reason = "Internal error 1";
                     return online;
                 }
@@ -494,6 +494,70 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
 
             return online;
+        }
+
+        public Dictionary<string, object> GetServerURLs(UUID userID)
+        {
+            Hashtable hash = new Hashtable();
+            hash["userID"] = userID.ToString();
+
+            IList paramList = new ArrayList();
+            paramList.Add(hash);
+
+            XmlRpcRequest request = new XmlRpcRequest("get_server_urls", paramList);
+            string reason = string.Empty;
+
+            // Send and get reply
+            Dictionary<string, object> serverURLs = new Dictionary<string,object>();
+            XmlRpcResponse response = null;
+            try
+            {
+                response = request.Send(m_ServerURL, 10000);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0}", m_ServerURL);
+                reason = "Exception: " + e.Message;
+                return serverURLs;
+            }
+
+            if (response.IsFault)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
+                reason = "XMLRPC Fault";
+                return serverURLs;
+            }
+
+            hash = (Hashtable)response.Value;
+            //foreach (Object o in hash)
+            //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
+            try
+            {
+                if (hash == null)
+                {
+                    m_log.ErrorFormat("[USER AGENT CONNECTOR]: GetServerURLs Got null response from {0}! THIS IS BAAAAD", m_ServerURL);
+                    reason = "Internal error 1";
+                    return serverURLs;
+                }
+
+                // Here is the actual response
+                foreach (object key in hash.Keys)
+                {
+                    if (key is string && ((string)key).StartsWith("SRV_") && hash[key] != null)
+                    {
+                        string serverType = key.ToString().Substring(4); // remove "SRV_"
+                        serverURLs.Add(serverType, hash[key].ToString());
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: Got exception on GetOnlineFriends response.");
+                reason = "Exception: " + e.Message;
+            }
+
+            return serverURLs;
         }
 
         private bool GetBoolResponse(XmlRpcRequest request, out string reason)

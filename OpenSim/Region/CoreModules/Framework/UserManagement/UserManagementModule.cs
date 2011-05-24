@@ -35,6 +35,7 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using OpenSim.Services.Connectors.Hypergrid;
 
 using OpenMetaverse;
 using log4net;
@@ -47,7 +48,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         public UUID Id;
         public string FirstName;
         public string LastName;
-        public string ProfileURL;
+        public string HomeURL;
+        public Dictionary<string, object> ServerURLs;
     }
 
     public class UserManagementModule : ISharedRegionModule, IUserManagement
@@ -224,6 +226,34 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             return "(hippos)";
         }
 
+        public string GetUserHomeURL(UUID userID)
+        {
+            if (m_UserCache.ContainsKey(userID))
+                return m_UserCache[userID].HomeURL;
+
+            return string.Empty;
+        }
+
+        public string GetUserServerURL(UUID userID, string serverType)
+        {
+            if (m_UserCache.ContainsKey(userID))
+            {
+                UserData userdata = m_UserCache[userID];
+                if (userdata.ServerURLs != null && userdata.ServerURLs.ContainsKey(serverType) && userdata.ServerURLs[serverType] != null)
+                    return userdata.ServerURLs[serverType].ToString();
+
+                if (userdata.HomeURL != string.Empty)
+                {
+                    UserAgentServiceConnector uConn = new UserAgentServiceConnector(userdata.HomeURL);
+                    userdata.ServerURLs = uConn.GetServerURLs(userID);
+                    if (userdata.ServerURLs != null && userdata.ServerURLs.ContainsKey(serverType) && userdata.ServerURLs[serverType] != null)
+                        return userdata.ServerURLs[serverType].ToString();
+                }
+            }
+
+            return string.Empty;
+        }
+
         public void AddUser(UUID id, string creatorData)
         {
             if (m_UserCache.ContainsKey(id))
@@ -249,7 +279,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     string[] parts = creatorData.Split(';');
                     if (parts.Length >= 1)
                     {
-                        user.ProfileURL = parts[0];
+                        user.HomeURL = parts[0];
                         try
                         {
                             Uri uri = new Uri(parts[0]);
@@ -274,7 +304,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             lock (m_UserCache)
                 m_UserCache[id] = user;
 
-            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}", user.Id, user.FirstName, user.LastName, user.ProfileURL);
+            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}", user.Id, user.FirstName, user.LastName, user.HomeURL);
         }
 
         public void AddUser(UUID uuid, string first, string last, string profileURL)

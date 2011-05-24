@@ -54,6 +54,7 @@ namespace OpenSim.Services.Interfaces
         bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, out string reason);
         void LogoutAgent(UUID userID, UUID sessionID);
         GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt);
+        Dictionary<string, object> GetServerURLs(UUID userID);
 
         void StatusNotification(List<string> friends, UUID userID, bool online);
         List<UUID> GetOnlineFriends(UUID userID, List<string> friends);

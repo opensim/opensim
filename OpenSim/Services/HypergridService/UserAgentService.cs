@@ -67,6 +67,7 @@ namespace OpenSim.Services.HypergridService
         protected static IGatekeeperService m_GatekeeperService;
         protected static IFriendsService m_FriendsService;
         protected static IPresenceService m_PresenceService;
+        protected static IUserAccountService m_UserAccountService;
         protected static IFriendsSimConnector m_FriendsLocalSimConnector; // standalone, points to HGFriendsModule
         protected static FriendsSimConnector m_FriendsSimConnector; // grid
 
@@ -102,6 +103,7 @@ namespace OpenSim.Services.HypergridService
                 string gatekeeperService = serverConfig.GetString("GatekeeperService", String.Empty);
                 string friendsService = serverConfig.GetString("FriendsService", String.Empty);
                 string presenceService = serverConfig.GetString("PresenceService", String.Empty);
+                string userAccountService = serverConfig.GetString("UserAccountService", String.Empty);
 
                 m_BypassClientVerification = serverConfig.GetBoolean("BypassClientVerification", false);
 
@@ -115,6 +117,7 @@ namespace OpenSim.Services.HypergridService
                 m_GatekeeperService = ServerUtils.LoadPlugin<IGatekeeperService>(gatekeeperService, args);
                 m_FriendsService = ServerUtils.LoadPlugin<IFriendsService>(friendsService, args);
                 m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
+                m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(userAccountService, args);
 
                 m_GridName = serverConfig.GetString("ExternalName", string.Empty);
                 if (m_GridName == string.Empty)
@@ -456,6 +459,20 @@ namespace OpenSim.Services.HypergridService
             }
 
             return online;
+        }
+
+        public Dictionary<string, object> GetServerURLs(UUID userID)
+        {
+            if (m_UserAccountService == null)
+            {
+                m_log.WarnFormat("[USER AGENT SERVICE]: Unable to get server URLs because user account service is missing");
+                return new Dictionary<string, object>();
+            }
+            UserAccount account = m_UserAccountService.GetUserAccount(UUID.Zero /*!!!*/, userID);
+            if (account != null)
+                return account.ServiceURLs;
+
+            return new Dictionary<string, object>();
         }
     }
 

@@ -58,6 +58,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         private List<Scene> m_Scenes = new List<Scene>();
 
+        protected IUserManagement m_UserManagement;
+        protected IUserManagement UserManagementModule
+        {
+            get
+            {
+                if (m_UserManagement == null)
+                    m_UserManagement = m_Scenes[0].RequestModuleInterface<IUserManagement>();
+                return m_UserManagement;
+            }
+        }
+
         public Type ReplaceableInterface 
         {
             get { return null; }
@@ -205,6 +216,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                             m_log.DebugFormat("[HG INVENTORY CONNECTOR]: User {0} does not have InventoryServerURI. OH NOES!", userID);
                             return;
                         }
+                    }
+                    else
+                    {
+                        inventoryURL = UserManagementModule.GetUserServerURL(userID, "InventoryServerURI");
+                        inventoryURL = inventoryURL.Trim(new char[] { '/' });
                     }
                 }
             }
