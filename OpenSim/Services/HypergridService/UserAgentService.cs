@@ -474,6 +474,17 @@ namespace OpenSim.Services.HypergridService
 
             return new Dictionary<string, object>();
         }
+
+        public string LocateUser(UUID userID)
+        {
+            foreach (TravelingAgentInfo t in m_TravelingAgents.Values)
+            {
+                if (t.UserID == userID)
+                    return t.GridExternalName;
+            }
+
+            return string.Empty;
+        }
     }
 
     class TravelingAgentInfo

@@ -37,4 +37,9 @@ namespace OpenSim.Services.Interfaces
     {
         bool StatusNotify(UUID userID, UUID friendID, bool online);
     }
+
+    public interface IInstantMessageSimConnector
+    {
+        bool SendInstantMessage(GridInstantMessage im);
+    }
 }
