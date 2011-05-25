@@ -128,6 +128,13 @@ namespace OpenSim.Server.Base
 
                 return null;
             }
+            catch (ReflectionTypeLoadException rtle)
+            {
+                m_log.Error(string.Format("Error loading plugin from {0}:\n{1}", dllName,
+                    String.Join("\n", Array.ConvertAll(rtle.LoaderExceptions, e => e.ToString()))),
+                    rtle);
+                return null;
+            }
             catch (Exception e)
             {
                 m_log.Error(string.Format("Error loading plugin from {0}", dllName), e);
