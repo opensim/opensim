@@ -40,9 +40,9 @@ namespace OpenSim.Services.InventoryService
 {
     public class XInventoryService : ServiceBase, IInventoryService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//                LogManager.GetLogger(
+//                MethodBase.GetCurrentMethod().DeclaringType);
 
         protected IXInventoryData m_Database;
         protected bool m_AllowDelete = true;
@@ -420,7 +420,7 @@ namespace OpenSim.Services.InventoryService
                 {
                     if (!m_Database.DeleteItems(
                         new string[] { "inventoryID", "assetType" },
-                        new string[] { id.ToString(), ((sbyte)AssetType.Link).ToString() }));
+                        new string[] { id.ToString(), ((sbyte)AssetType.Link).ToString() }))
                     {
                         m_Database.DeleteItems(
                             new string[] { "inventoryID", "assetType" },
