@@ -57,6 +57,9 @@ namespace OpenSim.Services.Interfaces
         Dictionary<string, object> GetServerURLs(UUID userID);
 
         string LocateUser(UUID userID);
+        // Tries to get the universal user identifier for the targetUserId
+        // on behalf of the userID
+        string GetUUI(UUID userID, UUID targetUserID);
 
         void StatusNotification(List<string> friends, UUID userID, bool online);
         List<UUID> GetOnlineFriends(UUID userID, List<string> friends);

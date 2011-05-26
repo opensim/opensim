@@ -21,7 +21,7 @@
 ; * [[<ConfigName>@]<port>/]<dll name>[:<class name>]
 ; *
 [Startup]
-ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector,8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector,HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector,HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector,8002/OpenSim.Server.Handlers.dll:HeloServiceInConnector"
+ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:XInventoryInConnector,8004/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:GridUserServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector,8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector,HGInventoryService@8002/OpenSim.Server.Handlers.dll:XInventoryInConnector,HGAssetService@8002/OpenSim.Server.Handlers.dll:AssetServiceConnector,8002/OpenSim.Server.Handlers.dll:HeloServiceInConnector,8002/OpenSim.Server.Handlers.dll:HGFriendsServerConnector,8002/OpenSim.Server.Handlers.dll:InstantMessageServerConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none is specified above
@@ -316,7 +316,10 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     GridUserService = "OpenSim.Services.UserAccountService.dll:GridUserService"
     GridService = "OpenSim.Services.GridService.dll:GridService"
     GatekeeperService = "OpenSim.Services.HypergridService.dll:GatekeeperService"
-    
+    PresenceService	= "OpenSim.Services.PresenceService.dll:PresenceService"
+    FriendsService	= "OpenSim.Services.FriendsService.dll:FriendsService"
+    UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+
     ; If you run this user agent server behind a proxy, set this to true
     ; HasProxy = false
 
@@ -344,3 +347,14 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGAssetService"
     UserAccountsService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
     ProfileServerURI = "http://127.0.0.1:8002/user"
+
+[HGFriendsService]
+    LocalServiceModule = "OpenSim.Services.FriendsService.dll:FriendsService"
+    UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
+
+[HGInstantMessageService]
+	LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGInstantMessageService"
+	GridService = "OpenSim.Services.GridService.dll:GridService"
+	PresenceService	= "OpenSim.Services.PresenceService.dll:PresenceService"
+	UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
+

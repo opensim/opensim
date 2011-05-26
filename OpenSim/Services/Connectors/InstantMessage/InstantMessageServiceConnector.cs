@@ -80,6 +80,7 @@ namespace OpenSim.Services.Connectors.InstantMessage
                 }
                 else
                 {
+                    m_log.DebugFormat("[GRID INSTANT MESSAGE]: No response from {0}", url);
                     return false;
                 }
             }

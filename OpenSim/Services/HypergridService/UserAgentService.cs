@@ -485,6 +485,30 @@ namespace OpenSim.Services.HypergridService
 
             return string.Empty;
         }
+
+        public string GetUUI(UUID userID, UUID targetUserID)
+        {
+            // Let's see if it's a local user
+            UserAccount account = m_UserAccountService.GetUserAccount(UUID.Zero, targetUserID);
+            if (account != null)
+                return targetUserID.ToString() + ";" + m_GridName + ";" + account.FirstName + " " + account.LastName ;
+
+            // Let's try the list of friends
+            FriendInfo[] friends = m_FriendsService.GetFriends(userID);
+            if (friends != null && friends.Length > 0)
+            {
+                foreach (FriendInfo f in friends)
+                    if (f.Friend.StartsWith(targetUserID.ToString()))
+                    {
+                        // Let's remove the secret 
+                        UUID id; string tmp = string.Empty, secret = string.Empty;
+                        if (Util.ParseUniversalUserIdentifier(f.Friend, out id, out tmp, out tmp, out tmp, out secret))
+                            return f.Friend.Replace(secret, "0");
+                    }
+            }
+
+            return string.Empty;
+        }
     }
 
     class TravelingAgentInfo

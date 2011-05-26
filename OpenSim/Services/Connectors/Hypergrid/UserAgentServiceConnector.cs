@@ -576,6 +576,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
+                m_log.DebugFormat("[XXX]: Calling locate_user on {0}", m_ServerURL);
                 response = request.Send(m_ServerURL, 10000);
             }
             catch (Exception e)
@@ -616,6 +617,66 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
 
             return url;
+        }
+
+        public string GetUUI(UUID userID, UUID targetUserID)
+        {
+            Hashtable hash = new Hashtable();
+            hash["userID"] = userID.ToString();
+            hash["targetUserID"] = targetUserID.ToString();
+
+            IList paramList = new ArrayList();
+            paramList.Add(hash);
+
+            XmlRpcRequest request = new XmlRpcRequest("get_uui", paramList);
+            string reason = string.Empty;
+
+            // Send and get reply
+            string uui = string.Empty;
+            XmlRpcResponse response = null;
+            try
+            {
+                m_log.DebugFormat("[XXX]: Calling get_uuid on {0}", m_ServerURL);
+                response = request.Send(m_ServerURL, 10000);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0}", m_ServerURL);
+                reason = "Exception: " + e.Message;
+                return uui;
+            }
+
+            if (response.IsFault)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
+                reason = "XMLRPC Fault";
+                return uui;
+            }
+
+            hash = (Hashtable)response.Value;
+            //foreach (Object o in hash)
+            //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
+            try
+            {
+                if (hash == null)
+                {
+                    m_log.ErrorFormat("[USER AGENT CONNECTOR]: GetUUI Got null response from {0}! THIS IS BAAAAD", m_ServerURL);
+                    reason = "Internal error 1";
+                    return uui;
+                }
+
+                // Here's the actual response
+                if (hash.ContainsKey("UUI"))
+                    uui = hash["UUI"].ToString();
+
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: Got exception on LocateUser response.");
+                reason = "Exception: " + e.Message;
+            }
+
+            return uui;
         }
 
         private bool GetBoolResponse(XmlRpcRequest request, out string reason)

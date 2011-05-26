@@ -194,6 +194,22 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             Util.FireAndForget(delegate
             {
                 bool success = m_IMService.OutgoingInstantMessage(im, url);
+                if (!success && account == null)
+                {
+                    // One last chance
+                    string recipientUUI = TryGetRecipientUUI(new UUID(im.fromAgentID), toAgentID);
+                    m_log.DebugFormat("[HG MESSAGE TRANSFER]: Got UUI {0}", recipientUUI);
+                    if (recipientUUI != string.Empty)
+                    {
+                        UUID id; string u = string.Empty, first = string.Empty, last = string.Empty, secret = string.Empty;
+                        if (Util.ParseUniversalUserIdentifier(recipientUUI, out id, out u, out first, out last, out secret))
+                        {
+                            success = m_IMService.OutgoingInstantMessage(im, u);
+                            if (success)
+                                UserManagementModule.AddUser(toAgentID, u + ";" + first + " " + last);
+                        }
+                    }
+                }
                 result(success);
             });
 
@@ -252,6 +268,64 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             //m_log.DebugFormat("[INSTANT MESSAGE]: Undeliverable");
             result(false);
+        }
+
+        private string TryGetRecipientUUI(UUID fromAgent, UUID toAgent)
+        {
+            // Let's call back the fromAgent's user agent service
+            // Maybe that service knows about the toAgent
+            IClientAPI client = LocateClientObject(fromAgent);
+            if (client != null)
+            {
+                AgentCircuitData circuit = m_Scenes[0].AuthenticateHandler.GetAgentCircuitData(client.AgentId);
+                if (circuit != null)
+                {
+                    if (circuit.ServiceURLs.ContainsKey("HomeURI"))
+                    {
+                        string uasURL = circuit.ServiceURLs["HomeURI"].ToString();
+                        m_log.DebugFormat("[HG MESSAGE TRANSFER]: getting UUI of user {0} from {1}", toAgent, uasURL);
+                        UserAgentServiceConnector uasConn = new UserAgentServiceConnector(uasURL);
+                        return uasConn.GetUUI(fromAgent, toAgent);
+                    }
+                }
+            }
+
+            return string.Empty;
+        }
+
+
+        /// <summary>
+        /// Find the scene for an agent
+        /// </summary>
+        private Scene GetClientScene(UUID agentId)
+        {
+            lock (m_Scenes)
+            {
+                foreach (Scene scene in m_Scenes)
+                {
+                    ScenePresence presence = scene.GetScenePresence(agentId);
+                    if (presence != null && !presence.IsChildAgent)
+                        return scene;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Find the client for a ID
+        /// </summary>
+        public IClientAPI LocateClientObject(UUID agentID)
+        {
+            Scene scene = GetClientScene(agentID);
+            if (scene != null)
+            {
+                ScenePresence presence = scene.GetScenePresence(agentID);
+                if (presence != null)
+                    return presence.ControllingClient;
+            }
+
+            return null;
         }
 
         #region IInstantMessageSimConnector

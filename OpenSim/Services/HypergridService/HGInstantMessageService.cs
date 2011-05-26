@@ -64,8 +64,8 @@ namespace OpenSim.Services.HypergridService
 
         protected static IInstantMessageSimConnector m_IMSimConnector;
 
-        protected Dictionary<UUID, object> m_UserLocationMap = new Dictionary<UUID, object>();
-        private ExpiringCache<UUID, GridRegion> m_RegionCache;
+        protected static Dictionary<UUID, object> m_UserLocationMap = new Dictionary<UUID, object>();
+        private static ExpiringCache<UUID, GridRegion> m_RegionCache;
 
         public HGInstantMessageService(IConfigSource config)
             : this(config, null)
@@ -155,6 +155,8 @@ namespace OpenSim.Services.HypergridService
                     if (!firstTime)
                     {
                         lookupAgent = true;
+                        upd = null;
+                        url = string.Empty;
                     }
                 }
                 else
@@ -168,7 +170,6 @@ namespace OpenSim.Services.HypergridService
             // Are we needing to look-up an agent?
             if (lookupAgent)
             {
-                bool isPresent = false;
                 // Non-cached user agent lookup.
                 PresenceInfo[] presences = m_PresenceService.GetAgents(new string[] { toAgentID.ToString() });
                 if (presences != null && presences.Length > 0)
@@ -177,17 +178,17 @@ namespace OpenSim.Services.HypergridService
                     {
                         if (p.RegionID != UUID.Zero)
                         {
+                            m_log.DebugFormat("[XXX]: Found presence in {0}", p.RegionID);
                             upd = p;
                             break;
                         }
-                        else
-                            isPresent = true;
                     }
                 }
 
-                if (upd == null && isPresent)
+                if (upd == null)
                 {
                     // Let's check with the UAS if the user is elsewhere
+                    m_log.DebugFormat("[HG IM SERVICE]: User is not present. Checking location with User Agent service");
                     url = m_UserAgentService.LocateUser(toAgentID);
                 }
 
@@ -197,10 +198,10 @@ namespace OpenSim.Services.HypergridService
                     // This is one way to end the recursive loop
                     //
                     if (!firstTime && ((previousLocation is PresenceInfo && upd != null && upd.RegionID == ((PresenceInfo)previousLocation).RegionID) ||
-                                       (previousLocation is string && previousLocation.Equals(url))))
+                                        (previousLocation is string && upd == null && previousLocation.Equals(url))))
                     {
                         // m_log.Error("[GRID INSTANT MESSAGE]: Unable to deliver an instant message");
-                        m_log.DebugFormat("[XXX] Fail 1 {0} {1}", previousLocation, url);
+                        m_log.DebugFormat("[HG IM SERVICE]: Fail 2 {0} {1}", previousLocation, url);
 
                         return false;
                     }
@@ -242,9 +243,14 @@ namespace OpenSim.Services.HypergridService
             }
 
             if (reginfo != null)
+            {
                 imresult = InstantMessageServiceConnector.SendInstantMessage(reginfo.ServerURI, im);
+            }
             else
+            {
+                m_log.DebugFormat("[HG IM SERVICE]: Failed to deliver message to {0}", reginfo.ServerURI);
                 return false;
+            }
 
             if (imresult)
             {

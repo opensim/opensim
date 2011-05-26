@@ -54,6 +54,8 @@ namespace OpenSim.Server.Handlers.Hypergrid
         private IUserAgentService m_HomeUsersService;
         private string[] m_AuthorizedCallers;
 
+        private bool m_VerifyCallers = false;
+
         public UserAgentServerConnector(IConfigSource config, IHttpServer server) :
                 this(config, server, null)
         {            
@@ -76,6 +78,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             string loginServerIP = gridConfig.GetString("LoginServerIP", "127.0.0.1");
             bool proxy = gridConfig.GetBoolean("HasProxy", false);
 
+            m_VerifyCallers = gridConfig.GetBoolean("VerifyCallers", false);
             string csv = gridConfig.GetString("AuthorizedCallers", "127.0.0.1");
             csv = csv.Replace(" ", "");
             m_AuthorizedCallers = csv.Split(',');
@@ -91,6 +94,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             server.AddXmlRPCHandler("get_server_urls", GetServerURLs, false);
 
             server.AddXmlRPCHandler("locate_user", LocateUser, false);
+            server.AddXmlRPCHandler("get_uui", GetUUI, false);
 
             server.AddHTTPHandler("/homeagent/", new HomeAgentHandler(m_HomeUsersService, loginServerIP, proxy).Handler);
         }
@@ -324,13 +328,17 @@ namespace OpenSim.Server.Handlers.Hypergrid
         {
             Hashtable hash = new Hashtable();
 
-            bool authorized = false;
-            foreach (string s in m_AuthorizedCallers)
-                if (s == remoteClient.Address.ToString())
-                {
-                    authorized = true;
-                    break;
-                }
+            bool authorized = true;
+            if (m_VerifyCallers)
+            {
+                authorized = false;
+                foreach (string s in m_AuthorizedCallers)
+                    if (s == remoteClient.Address.ToString())
+                    {
+                        authorized = true;
+                        break;
+                    }
+            }
 
             if (authorized)
             {
@@ -354,5 +362,40 @@ namespace OpenSim.Server.Handlers.Hypergrid
             return response;
 
         }
+
+        /// <summary>
+        /// Locates the user.
+        /// This is a sensitive operation, only authorized IP addresses can perform it.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="remoteClient"></param>
+        /// <returns></returns>
+        public XmlRpcResponse GetUUI(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            Hashtable hash = new Hashtable();
+
+            Hashtable requestData = (Hashtable)request.Params[0];
+            //string host = (string)requestData["host"];
+            //string portstr = (string)requestData["port"];
+            if (requestData.ContainsKey("userID") && requestData.ContainsKey("targetUserID"))
+            {
+                string userID_str = (string)requestData["userID"];
+                UUID userID = UUID.Zero;
+                UUID.TryParse(userID_str, out userID);
+
+                string tuserID_str = (string)requestData["targetUserID"];
+                UUID targetUserID = UUID.Zero;
+                UUID.TryParse(tuserID_str, out targetUserID);
+                string uui = m_HomeUsersService.GetUUI(userID, targetUserID);
+                if (uui != string.Empty)
+                    hash["UUI"] = uui;
+            }
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = hash;
+            return response;
+
+        }
+
     }
 }
