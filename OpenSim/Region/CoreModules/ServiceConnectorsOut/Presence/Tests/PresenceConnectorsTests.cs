@@ -40,7 +40,6 @@ using OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence;
 using OpenSim.Region.Framework.Scenes;
 using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.Tests
 {

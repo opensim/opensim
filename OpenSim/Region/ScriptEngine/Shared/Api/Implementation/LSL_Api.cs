@@ -46,6 +46,7 @@ using OpenSim.Region.CoreModules.World.Land;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.Framework.Scenes.Animation;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.ScriptEngine.Shared;
@@ -3635,12 +3636,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return m_ScriptEngine.GetStartParameter(m_itemID);
         }
 
-        public void llGodLikeRezObject(string inventory, LSL_Vector pos)
-        {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llGodLikeRezObject");
-        }
-
         public void llRequestPermissions(string agent, int perm)
         {
             UUID agentID = new UUID();
@@ -4305,7 +4300,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         m_host.AbsolutePosition.ToString(),
                         agentItem.ID, true, m_host.AbsolutePosition,
                         bucket);
-
                 if (m_TransferModule != null)
                     m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
                 
@@ -4618,12 +4612,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.CollisionSoundVolume = (float)impact_volume;
         }
 
-        public void llCollisionSprite(string impact_sprite)
-        {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llCollisionSprite");
-        }
-
         public LSL_String llGetAnimation(string id)
         {
             // This should only return a value if the avatar is in the same region
@@ -4885,6 +4873,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.TaskInventory.LockItemsForRead(false);
 
             return result;
+        }
+
+        public LSL_Integer llGetLinkNumberOfSides(int link)
+        {
+            m_host.AddScriptLPS(1);
+
+            SceneObjectPart linkedPart;
+
+            if (link == ScriptBaseClass.LINK_ROOT)
+                linkedPart = m_host.ParentGroup.RootPart;
+            else if (link == ScriptBaseClass.LINK_THIS)
+                linkedPart = m_host;
+            else
+                linkedPart = m_host.ParentGroup.GetLinkNumPart(link);
+
+            return GetNumberOfSides(linkedPart);
         }
 
         public LSL_Integer llGetNumberOfSides()
@@ -5945,11 +5949,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             m_host.AdjustSoundGain(volume);
             ScriptSleep(100);
-        }
-
-        public void llSetSoundQueueing(int queue)
-        {
-            m_host.AddScriptLPS(1);
         }
 
         public void llSetSoundRadius(double radius)
@@ -10984,6 +10983,121 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_SayShoutCount = 0;
         }
+
+        #region Not Implemented
+        //
+        // Listing the unimplemented lsl functions here, please move
+        // them from this region as they are completed
+        //
+        public void llCastRay(LSL_Vector start, LSL_Vector end, LSL_List options)
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llCastRay");
+
+        }
+
+        public void llGetEnv(LSL_String name)
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llGetEnv");
+
+        }
+
+        public void llGetSPMaxMemory()
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llGetSPMaxMemory");
+
+        }
+
+        public virtual LSL_Integer llGetUsedMemory()
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llGetUsedMemory");
+            return 0;
+        }
+
+        public void  llRegionSayTo( LSL_Key target, LSL_Integer channel, LSL_String msg )
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llRegionSayTo");
+
+        }
+
+        public void llScriptProfiler( LSL_Integer flags )
+        {
+            m_host.AddScriptLPS(1);
+            //NotImplemented("llScriptProfiler");
+
+        }
+
+        public void llSetSoundQueueing(int queue)
+        {
+            m_host.AddScriptLPS(1);
+        }
+
+        public void llCollisionSprite(string impact_sprite)
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llCollisionSprite");
+        }
+
+        public void llGodLikeRezObject(string inventory, LSL_Vector pos)
+        {
+            m_host.AddScriptLPS(1);
+
+            if (!World.Permissions.IsGod(m_host.OwnerID))
+                NotImplemented("llGodLikeRezObject");
+
+            AssetBase rezAsset = World.AssetService.Get(inventory);
+            if (rezAsset == null)
+            {
+                llSay(0, "Asset not found");
+                return;
+            }
+
+            SceneObjectGroup group = null;
+
+            try
+            {
+                string xmlData = Utils.BytesToString(rezAsset.Data);
+                group = SceneObjectSerializer.FromOriginalXmlFormat(xmlData);
+            }
+            catch
+            {
+                llSay(0, "Asset not found");
+                return;
+            }
+
+            if (group == null)
+            {
+                llSay(0, "Asset not found");
+                return;
+            }
+
+            group.RootPart.AttachPoint = group.RootPart.Shape.State;
+            group.RootPart.AttachOffset = group.AbsolutePosition;
+
+            group.ResetIDs();
+
+            Vector3 llpos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
+            World.AddNewSceneObject(group, true, llpos, Quaternion.Identity, Vector3.Zero);
+            group.CreateScriptInstances(0, true, World.DefaultScriptEngine, 3);
+            group.ScheduleGroupForFullUpdate();
+
+            // objects rezzed with this method are die_at_edge by default.
+            group.RootPart.SetDieAtEdge(true);
+
+            group.ResumeScripts();
+
+            m_ScriptEngine.PostObjectEvent(m_host.LocalId, new EventParams(
+                    "object_rez", new Object[] {
+                    new LSL_String(
+                    group.RootPart.UUID.ToString()) },
+                    new DetectParams[0]));
+        }
+
+        #endregion
     }
 
     public class NotecardCache

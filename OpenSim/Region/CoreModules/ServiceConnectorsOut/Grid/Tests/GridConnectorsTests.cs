@@ -40,7 +40,6 @@ using OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid;
 using OpenSim.Region.Framework.Scenes;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Tests.Common;
-using OpenSim.Tests.Common.Setup;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
 {

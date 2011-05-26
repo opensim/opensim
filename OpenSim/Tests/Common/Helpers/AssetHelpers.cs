@@ -56,10 +56,24 @@ namespace OpenSim.Tests.Common
             AssetBase asset = CreateAsset(UUID.Random(), AssetType.Notecard, "hello", creatorId);
             scene.AssetService.Store(asset);
             return asset;
-        }                
+        }
+
+        /// <summary>
+        /// Create an asset from the given object.
+        /// </summary>
+        /// <param name="assetUuidTail">
+        /// The hexadecimal last part of the UUID for the asset created.  A UUID of the form "00000000-0000-0000-0000-{0:XD12}"
+        /// will be used.
+        /// </param>
+        /// <param name="sog"></param>
+        /// <returns></returns>
+        public static AssetBase CreateAsset(int assetUuidTail, SceneObjectGroup sog)
+        {
+            return CreateAsset(new UUID(string.Format("00000000-0000-0000-0000-{0:X12}", assetUuidTail)), sog);
+        }
                 
         /// <summary>
-        /// Create an asset from the given scene object.
+        /// Create an asset from the given object.
         /// </summary>
         /// <param name="assetUuid"></param>
         /// <param name="sog"></param>
@@ -76,7 +90,7 @@ namespace OpenSim.Tests.Common
         /// <summary>
         /// Create an asset from the given scene object.
         /// </summary>
-        /// <param name="assetUuidTailZ">
+        /// <param name="assetUuidTail">
         /// The hexadecimal last part of the UUID for the asset created.  A UUID of the form "00000000-0000-0000-0000-{0:XD12}"
         /// will be used.
         /// </param>

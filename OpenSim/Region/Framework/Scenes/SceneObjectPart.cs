@@ -145,7 +145,6 @@ namespace OpenSim.Region.Framework.Scenes
         
         public Vector3 StatusSandboxPos;
 
-        // TODO: This needs to be persisted in next XML version update!
         [XmlIgnore]
         public int[] PayPrice = {-2,-2,-2,-2,-2};
 

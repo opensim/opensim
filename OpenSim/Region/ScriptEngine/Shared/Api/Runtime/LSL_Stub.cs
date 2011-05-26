@@ -461,6 +461,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llGetFreeMemory();
         }
 
+        public LSL_Integer llGetUsedMemory()
+        {
+            return m_LSL_Functions.llGetUsedMemory();
+        }
+
         public LSL_Integer llGetFreeURLs()
         {
             return m_LSL_Functions.llGetFreeURLs();

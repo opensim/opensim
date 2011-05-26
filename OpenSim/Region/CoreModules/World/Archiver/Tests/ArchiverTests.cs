@@ -43,7 +43,6 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
-using OpenSim.Tests.Common.Setup;
 using ArchiveConstants = OpenSim.Framework.Serialization.ArchiveConstants;
 using TarArchiveReader = OpenSim.Framework.Serialization.TarArchiveReader;
 using TarArchiveWriter = OpenSim.Framework.Serialization.TarArchiveWriter;

@@ -1530,6 +1530,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
         public struct LSLInteger
         {
             public int value;
+            private static readonly Regex castRegex = new Regex(@"(^[ ]*0[xX][0-9A-Fa-f][0-9A-Fa-f]*)|(^[ ]*(-?|\+?)[0-9][0-9]*)");
 
             #region Constructors
             public LSLInteger(int i)
@@ -1549,9 +1550,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSLInteger(string s)
             {
-                Regex r = new Regex("(^[ ]*0[xX][0-9A-Fa-f][0-9A-Fa-f]*)|(^[ ]*-?[0-9][0-9]*)");
-                Match m = r.Match(s);
+                Match m = castRegex.Match(s);
                 string v = m.Groups[0].Value;
+                // Leading plus sign is allowed, but ignored
+                v = v.Replace("+", "");
 
                 if (v == String.Empty)
                 {

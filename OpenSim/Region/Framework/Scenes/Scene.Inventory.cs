@@ -1423,7 +1423,10 @@ namespace OpenSim.Region.Framework.Scenes
                     if (item.AssetType == (int)AssetType.Link)
                     {
                         InventoryItemBase linkedItem = InventoryService.GetItem(new InventoryItemBase(item.AssetID));
-                        linkedItemFolderIdsToSend.Add(linkedItem.Folder);
+
+                        // Take care of genuinely broken links where the target doesn't exist
+                        if (linkedItem != null)
+                            linkedItemFolderIdsToSend.Add(linkedItem.Folder);
                     }
                 }
 
@@ -2142,19 +2145,7 @@ namespace OpenSim.Region.Framework.Scenes
                     sourcePart.Inventory.RemoveInventoryItem(item.ItemID);
             }
                                     
-            AddNewSceneObject(group, true);
-            
-            group.AbsolutePosition = pos;
-            group.Velocity = vel;            
-            
-            if (rot != null)
-                group.UpdateGroupRotationR((Quaternion)rot);
-            
-            // TODO: This needs to be refactored with the similar code in 
-            // SceneGraph.AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, Vector3 pos, Quaternion rot, Vector3 vel)
-            // possibly by allowing this method to take a null rotation.
-            if (group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical && vel != Vector3.Zero)
-                group.RootPart.ApplyImpulse((vel * group.GetMass()), false);
+            AddNewSceneObject(group, true, pos, rot, vel);
             
             // We can only call this after adding the scene object, since the scene object references the scene
             // to find out if scripts should be activated at all.

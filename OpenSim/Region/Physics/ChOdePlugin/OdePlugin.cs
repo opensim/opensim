@@ -1553,7 +1553,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                         removeprims = new List<OdePrim>();
                                     }
                                     removeprims.Add(chr);
-                                    m_log.Debug("[PHYSICS]: unable to collide test active prim against space.  The space was zero, the geom was zero or it was in the process of being removed.  Removed it from the active prim list.  This needs to be fixed!");
+                                    /// Commented this because it triggers on every bullet
+                                    //m_log.Debug("[PHYSICS]: unable to collide test active prim against space.  The space was zero, the geom was zero or it was in the process of being removed.  Removed it from the active prim list.  This needs to be fixed!");
                                 }
                             }
                         }
