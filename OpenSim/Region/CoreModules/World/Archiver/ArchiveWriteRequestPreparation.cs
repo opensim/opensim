@@ -49,7 +49,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     public class ArchiveWriteRequestPreparation
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-                
+
         /// <summary>
         /// The minimum major version of OAR that we can write.
         /// </summary>
@@ -216,7 +216,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <returns></returns>
         public string CreateControlFile(Dictionary<string, object> options)
         {
-            int majorVersion = MAX_MAJOR_VERSION, minorVersion = 6;
+            int majorVersion = MAX_MAJOR_VERSION, minorVersion = 7;
 //
 //            if (options.ContainsKey("version"))
 //            {
