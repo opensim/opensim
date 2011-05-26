@@ -61,7 +61,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public static int MAX_MAJOR_VERSION = 0;
 
         /// <summary>
-        /// Determine whether this oar will save assets.  Default is true.
+        /// Determine whether this archive will save assets.  Default is true.
         /// </summary>
         public bool SaveAssets { get; set; }
         
