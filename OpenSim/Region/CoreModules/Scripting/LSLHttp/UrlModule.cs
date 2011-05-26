@@ -491,10 +491,21 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     pathInfo = uri.Substring(pos3);
 
                     UrlData url = null;
+                    string urlkey;
                     if (!is_ssl)
-                        url = m_UrlMap["http://" + m_ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + uri_tmp];
+                        urlkey = "http://" + m_ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + uri_tmp;
+                    //m_UrlMap[];
                     else
-                        url = m_UrlMap["https://" + m_ExternalHostNameForLSL + ":" + m_HttpsServer.Port.ToString() + uri_tmp];
+                        urlkey = "https://" + m_ExternalHostNameForLSL + ":" + m_HttpsServer.Port.ToString() + uri_tmp;
+
+                    if (m_UrlMap.ContainsKey(urlkey))
+                    {
+                        url = m_UrlMap[urlkey];
+                    }
+                    else
+                    {
+                        m_log.Warn("[HttpRequestHandler]: http-in request failed; no such url: "+urlkey.ToString());
+                    }
 
                     //for llGetHttpHeader support we need to store original URI here
                     //to make x-path-info / x-query-string / x-script-url / x-remote-ip headers 
