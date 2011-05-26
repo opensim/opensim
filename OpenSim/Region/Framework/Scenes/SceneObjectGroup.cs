@@ -183,7 +183,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Has the group changed due to an unlink operation?  We record this in order to optimize deletion, since
         /// an unlinked group currently has to be persisted to the database before we can perform an unlink operation.
         /// </summary>
-        public bool HasGroupChangedDueToDelink { get; private set; }
+        public bool HasGroupChangedDueToDelink { get; set; }
 
         private bool isTimeToPersist()
         {
