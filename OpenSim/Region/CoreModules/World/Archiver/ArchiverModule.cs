@@ -127,6 +127,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             OptionSet ops = new OptionSet();
 //            ops.Add("v|version=", delegate(string v) { options["version"] = v; });
             ops.Add("p|profile=", delegate(string v) { options["profile"] = v; });
+            ops.Add("noassets", delegate(string v) { options["noassets"] = v != null; });
 
             List<string> mainParams = ops.Parse(cmdparams);
 
@@ -160,7 +161,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void ArchiveRegion(Stream saveStream, Guid requestId)
         {
-            new ArchiveWriteRequestPreparation(m_scene, saveStream, requestId).ArchiveRegion(new Dictionary<string, object>());
+            ArchiveRegion(saveStream, requestId, new Dictionary<string, object>());
+        }
+
+        public void ArchiveRegion(Stream saveStream, Guid requestId, Dictionary<string, object> options)
+        {
+            new ArchiveWriteRequestPreparation(m_scene, saveStream, requestId).ArchiveRegion(options);
         }
 
         public void DearchiveRegion(string loadPath)

@@ -49,7 +49,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     public class ArchiveWriteRequestPreparation
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-                
+
         /// <summary>
         /// The minimum major version of OAR that we can write.
         /// </summary>
@@ -58,7 +58,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// The maximum major version of OAR that we can write.
         /// </summary>
-        public static int MAX_MAJOR_VERSION = 0;        
+        public static int MAX_MAJOR_VERSION = 0;
+
+        /// <summary>
+        /// Determine whether this archive will save assets.  Default is true.
+        /// </summary>
+        public bool SaveAssets { get; set; }
         
         protected Scene m_scene;
         protected Stream m_saveStream;
@@ -73,10 +78,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <exception cref="System.IO.IOException">
         /// If there was a problem opening a stream for the file specified by the savePath
         /// </exception>
-        public ArchiveWriteRequestPreparation(Scene scene, string savePath, Guid requestId)
+        public ArchiveWriteRequestPreparation(Scene scene, string savePath, Guid requestId) : this(scene, requestId)
         {
-            m_scene = scene;
-
             try
             {
                 m_saveStream = new GZipStream(new FileStream(savePath, FileMode.Create), CompressionMode.Compress);
@@ -86,10 +89,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_log.ErrorFormat(
                     "[ARCHIVER]: Mismatch between Mono and zlib1g library version when trying to create compression stream."
                         + "If you've manually installed Mono, have you appropriately updated zlib1g as well?");
-                m_log.Error(e);
+                m_log.ErrorFormat("{0} {1}", e.Message, e.StackTrace);
             }
-            
-            m_requestId = requestId;
         }
         
         /// <summary>
@@ -98,11 +99,17 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <param name="scene"></param>
         /// <param name="saveStream">The stream to which to save data.</param>
         /// <param name="requestId">The id associated with this request</param>
-        public ArchiveWriteRequestPreparation(Scene scene, Stream saveStream, Guid requestId)
+        public ArchiveWriteRequestPreparation(Scene scene, Stream saveStream, Guid requestId) : this(scene, requestId)
+        {
+            m_saveStream = saveStream;
+        }
+
+        protected ArchiveWriteRequestPreparation(Scene scene, Guid requestId)
         {
             m_scene = scene;
-            m_saveStream = saveStream;
             m_requestId = requestId;
+
+            SaveAssets = true;
         }
 
         /// <summary>
@@ -111,22 +118,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <exception cref="System.IO.IOException">if there was an io problem with creating the file</exception>
         public void ArchiveRegion(Dictionary<string, object> options)
         {
+            if (options.ContainsKey("noassets") && (bool)options["noassets"])
+                SaveAssets = false;
+
             try
             {
                 Dictionary<UUID, AssetType> assetUuids = new Dictionary<UUID, AssetType>();
     
                 EntityBase[] entities = m_scene.GetEntities();
                 List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
-    
-                /*
-                    foreach (ILandObject lo in m_scene.LandChannel.AllParcels())
-                    {
-                        if (name == lo.LandData.Name)
-                        {
-                            // This is the parcel we want
-                        }
-                    }
-                    */
          
                 // Filter entities so that we only have scene objects.
                 // FIXME: Would be nicer to have this as a proper list in SceneGraph, since lots of methods
@@ -141,17 +141,24 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                             sceneObjects.Add((SceneObjectGroup)entity);
                     }
                 }
-                
-                UuidGatherer assetGatherer = new UuidGatherer(m_scene.AssetService);
-    
-                foreach (SceneObjectGroup sceneObject in sceneObjects)
+
+                if (SaveAssets)
                 {
-                    assetGatherer.GatherAssetUuids(sceneObject, assetUuids);
+                    UuidGatherer assetGatherer = new UuidGatherer(m_scene.AssetService);
+
+                    foreach (SceneObjectGroup sceneObject in sceneObjects)
+                    {
+                        assetGatherer.GatherAssetUuids(sceneObject, assetUuids);
+                    }
+
+                    m_log.DebugFormat(
+                        "[ARCHIVER]: {0} scene objects to serialize requiring save of {1} assets",
+                        sceneObjects.Count, assetUuids.Count);
                 }
-    
-                m_log.DebugFormat(
-                    "[ARCHIVER]: {0} scene objects to serialize requiring save of {1} assets",
-                    sceneObjects.Count, assetUuids.Count);
+                else
+                {
+                    m_log.DebugFormat("[ARCHIVER]: Not saving assets since --noassets was specified");
+                }
                 
                 // Make sure that we also request terrain texture assets
                 RegionSettings regionSettings = m_scene.RegionInfo.RegionSettings;
@@ -187,11 +194,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // XXX: I know this is a weak way of doing it since external non-OAR aware tar executables will not do this
                 archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, CreateControlFile(options));
                 m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
-                
-                new AssetsRequest(
-                    new AssetsArchiver(archiveWriter), assetUuids, 
-                    m_scene.AssetService, m_scene.UserAccountService, 
-                    m_scene.RegionInfo.ScopeID, options, awre.ReceivedAllAssets).Execute();
+
+                if (SaveAssets)
+                    new AssetsRequest(
+                        new AssetsArchiver(archiveWriter), assetUuids,
+                        m_scene.AssetService, m_scene.UserAccountService, 
+                        m_scene.RegionInfo.ScopeID, options, awre.ReceivedAllAssets).Execute();
+                else
+                    awre.ReceivedAllAssets(new List<UUID>(), new List<UUID>());
             }
             catch (Exception) 
             {
@@ -204,9 +214,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// Create the control file for the most up to date archive
         /// </summary>
         /// <returns></returns>
-        public static string CreateControlFile(Dictionary<string, object> options)
+        public string CreateControlFile(Dictionary<string, object> options)
         {
-            int majorVersion = MAX_MAJOR_VERSION, minorVersion = 6;
+            int majorVersion = MAX_MAJOR_VERSION, minorVersion = 7;
 //
 //            if (options.ContainsKey("version"))
 //            {
@@ -258,6 +268,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             xtw.WriteElementString("datetime", ((int)t.TotalSeconds).ToString());
             xtw.WriteElementString("id", UUID.Random().ToString());
             xtw.WriteEndElement();
+
+            xtw.WriteElementString("assets_included", SaveAssets.ToString());
+
             xtw.WriteEndElement();
 
             xtw.Flush();

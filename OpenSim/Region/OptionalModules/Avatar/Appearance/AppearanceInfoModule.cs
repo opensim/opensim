@@ -95,8 +95,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
             scene.AddCommand(
                 this, "appearance show",
                 "appearance show",
-                "Show appearance information for each avatar in the simulator.  At the moment, ",
-                ShowAppearanceInfo);             
+                "Show appearance information for each avatar in the simulator.",
+                "At the moment this actually just checks that we have all the required baked textures.  If not, then appearance is 'corrupt' and other avatars will continue to see a cloud.",
+                ShowAppearanceInfo);
         }                 
 
         protected void ShowAppearanceInfo(string module, string[] cmd)

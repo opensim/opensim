@@ -1335,7 +1335,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                if (HasGroupChanged)
+                if (m_scene.UseBackup && HasGroupChanged)
                 {
                     // don't backup while it's selected or you're asking for changes mid stream.
                     if (isTimeToPersist() || forcedBackup)

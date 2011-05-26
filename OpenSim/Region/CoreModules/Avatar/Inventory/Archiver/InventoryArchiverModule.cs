@@ -122,7 +122,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 
                 scene.AddCommand(
                     this, "save iar",
-                    "save iar [--p|-profile=<url>] <first> <last> <inventory path> <password> [<IAR path>] [--v|-verbose]",
+                    "save iar [--p|-profile=<url>] [--noassets] <first> <last> <inventory path> <password> [<IAR path>] [--v|-verbose]",
                     "Save user inventory archive (IAR).", 
                     "<first> is the user's first name." + Environment.NewLine
                     + "<last> is the user's last name." + Environment.NewLine
@@ -130,6 +130,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     + "-p|--profile=<url> adds the url of the profile service to the saved user information." + Environment.NewLine
                     + "-c|--creators preserves information about foreign creators." + Environment.NewLine
                     + "-v|--verbose extra debug messages." + Environment.NewLine
+                    + "--noassets stops assets being saved to the IAR."
                     + "<IAR path> is the filesystem path at which to save the IAR."
                     + string.Format("  If this is not given then the filename {0} in the current directory is used", DEFAULT_INV_BACKUP_FILENAME),
                     HandleSaveInvConsoleCommand);
@@ -398,6 +399,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             ops.Add("p|profile=", delegate(string v) { options["profile"] = v; });
             ops.Add("v|verbose", delegate(string v) { options["verbose"] = v; });
             ops.Add("c|creators", delegate(string v) { options["creators"] = v; });
+            ops.Add("noassets", delegate(string v) { options["noassets"] = v != null; });
 
             List<string> mainParams = ops.Parse(cmdparams);
 
@@ -406,7 +408,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 if (mainParams.Count < 6)
                 {
                     m_log.Error(
-                        "[INVENTORY ARCHIVER]: usage is save iar [--p|-profile=<url>] <first name> <last name> <inventory path> <user password> [<save file path>]");
+                        "[INVENTORY ARCHIVER]: usage is save iar [--p|-profile=<url>] [--noassets] <first name> <last name> <inventory path> <user password> [<save file path>]");
                     return;
                 }
     
@@ -423,16 +425,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 m_log.InfoFormat(
                     "[INVENTORY ARCHIVER]: Saving archive {0} using inventory path {1} for {2} {3}",
                     savePath, invPath, firstName, lastName);
-                    
+
+                lock (m_pendingConsoleSaves)
+                    m_pendingConsoleSaves.Add(id);
+
                 ArchiveInventory(id, firstName, lastName, invPath, pass, savePath, options);
             }
             catch (InventoryArchiverException e)
             {
                 m_log.ErrorFormat("[INVENTORY ARCHIVER]: {0}", e.Message);
             }
-                
-            lock (m_pendingConsoleSaves)
-                m_pendingConsoleSaves.Add(id);
         }
         
         private void SaveInvConsoleCommandCompleted(

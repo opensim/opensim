@@ -52,31 +52,44 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Archive the region to the given path
         /// </summary>
-        /// 
+        /// <remarks>
         /// This method occurs asynchronously.  If you want notification of when it has completed then subscribe to
         /// the EventManager.OnOarFileSaved event.
-        /// 
+        /// </remarks>
         /// <param name="savePath"></param>
         /// <param name="requestId">If supplied, this request Id is later returned in the saved event</param>
+        /// <param name="options">Options for the save</param>
         void ArchiveRegion(string savePath, Guid requestId, Dictionary<string, object> options);
 
         /// <summary>
         /// Archive the region to a stream.
         /// </summary>
-        /// 
+        /// <remarks>
         /// This method occurs asynchronously.  If you want notification of when it has completed then subscribe to
         /// the EventManager.OnOarFileSaved event.
-        /// 
+        /// </remarks>
         /// <param name="saveStream"></param>
         /// <param name="requestId">If supplied, this request Id is later returned in the saved event</param>
         void ArchiveRegion(Stream saveStream, Guid requestId);
 
         /// <summary>
+        /// Archive the region to a stream.
+        /// </summary>
+        /// <remarks>
+        /// This method occurs asynchronously.  If you want notification of when it has completed then subscribe to
+        /// the EventManager.OnOarFileSaved event.
+        /// </remarks>
+        /// <param name="saveStream"></param>
+        /// <param name="requestId">If supplied, this request Id is later returned in the saved event</param>
+        /// <param name="options">Options for the save</param>
+        void ArchiveRegion(Stream saveStream, Guid requestId, Dictionary<string, object> options);
+
+        /// <summary>
         /// Dearchive the given region archive.  This replaces the existing scene.
         /// </summary>
-        /// 
+        /// <remarks>
         /// If you want notification of when it has completed then subscribe to the EventManager.OnOarFileLoaded event.
-        /// 
+        /// </remarks>
         /// <param name="loadPath"></param>
         void DearchiveRegion(string loadPath);
         

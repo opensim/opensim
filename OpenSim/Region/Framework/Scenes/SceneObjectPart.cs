@@ -144,11 +144,10 @@ namespace OpenSim.Region.Framework.Scenes
         
         public Vector3 StatusSandboxPos;
 
-        // TODO: This needs to be persisted in next XML version update!
-        
-        public readonly int[] PayPrice = {-2,-2,-2,-2,-2};
-        
-        
+        [XmlIgnore]
+        public int[] PayPrice = {-2,-2,-2,-2,-2};
+
+        [XmlIgnore]
         public PhysicsActor PhysActor
         {
             get { return m_physActor; }

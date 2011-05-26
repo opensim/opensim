@@ -111,6 +111,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
 
+        public delegate void SceneShuttingDownDelegate(Scene scene);
+
+        public event SceneShuttingDownDelegate OnSceneShuttingDown;
+
         /// <summary>
         /// Fired when an object is touched/grabbed.
         /// </summary>
@@ -2188,6 +2192,27 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.ErrorFormat(
                             "[EVENT MANAGER]: Delegate for TriggerOnSceneObjectPartCopy failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerSceneShuttingDown(Scene s)
+        {
+            SceneShuttingDownDelegate handler = OnSceneShuttingDown;
+            if (handler != null)
+            {
+                foreach (SceneShuttingDownDelegate d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(s);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerSceneShuttingDown failed - continuing.  {0} {1}", 
                             e.Message, e.StackTrace);
                     }
                 }
