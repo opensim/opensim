@@ -212,6 +212,89 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         }
 
         /// <summary>
+        /// Test saving an OpenSim Region Archive with the no assets option
+        /// </summary>
+        [Test]
+        public void TestSaveOarNoAssets()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            SceneObjectPart part1 = CreateSceneObjectPart1();
+            SceneObjectGroup sog1 = new SceneObjectGroup(part1);
+            m_scene.AddNewSceneObject(sog1, false);
+
+            SceneObjectPart part2 = CreateSceneObjectPart2();
+            
+            AssetNotecard nc = new AssetNotecard();
+            nc.BodyText = "Hello World!";
+            nc.Encode();
+            UUID ncAssetUuid = new UUID("00000000-0000-0000-1000-000000000000");
+            UUID ncItemUuid = new UUID("00000000-0000-0000-1100-000000000000");
+            AssetBase ncAsset
+                = AssetHelpers.CreateAsset(ncAssetUuid, AssetType.Notecard, nc.AssetData, UUID.Zero);
+            m_scene.AssetService.Store(ncAsset);
+            SceneObjectGroup sog2 = new SceneObjectGroup(part2);
+            TaskInventoryItem ncItem 
+                = new TaskInventoryItem { Name = "ncItem", AssetID = ncAssetUuid, ItemID = ncItemUuid };
+            part2.Inventory.AddInventoryItem(ncItem, true);
+            
+            m_scene.AddNewSceneObject(sog2, false);
+
+            MemoryStream archiveWriteStream = new MemoryStream();
+
+            Guid requestId = new Guid("00000000-0000-0000-0000-808080808080");
+
+            Dictionary<string, Object> options = new Dictionary<string, Object>();
+            options.Add("noassets", true);
+            m_archiverModule.ArchiveRegion(archiveWriteStream, requestId, options);
+            //AssetServerBase assetServer = (AssetServerBase)scene.CommsManager.AssetCache.AssetServer;
+            //while (assetServer.HasWaitingRequests())
+            //    assetServer.ProcessNextRequest();
+
+            // Don't wait for completion - with --noassets save oar happens synchronously
+//                Monitor.Wait(this, 60000);
+
+            Assert.That(m_lastRequestId, Is.EqualTo(requestId));
+
+            byte[] archive = archiveWriteStream.ToArray();
+            MemoryStream archiveReadStream = new MemoryStream(archive);
+            TarArchiveReader tar = new TarArchiveReader(archiveReadStream);
+
+            List<string> foundPaths = new List<string>();
+            List<string> expectedPaths = new List<string>();
+            expectedPaths.Add(ArchiveHelpers.CreateObjectPath(sog1));
+            expectedPaths.Add(ArchiveHelpers.CreateObjectPath(sog2));
+
+            string filePath;
+            TarArchiveReader.TarEntryType tarEntryType;         
+
+            byte[] data = tar.ReadEntry(out filePath, out tarEntryType);
+            Assert.That(filePath, Is.EqualTo(ArchiveConstants.CONTROL_FILE_PATH));
+            
+            ArchiveReadRequest arr = new ArchiveReadRequest(m_scene, (Stream)null, false, false, Guid.Empty);
+            arr.LoadControlFile(filePath, data);
+            
+            Assert.That(arr.ControlFileLoaded, Is.True);        
+            
+            while (tar.ReadEntry(out filePath, out tarEntryType) != null)
+            {
+                if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
+                {
+                    Assert.Fail("Asset was found in saved oar of TestSaveOarNoAssets()");
+                }
+                else if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
+                {
+                    foundPaths.Add(filePath);
+                }
+            }
+
+            Assert.That(foundPaths, Is.EquivalentTo(expectedPaths));
+
+            // TODO: Test presence of more files and contents of files.
+        }
+
+        /// <summary>
         /// Test loading an OpenSim Region Archive.
         /// </summary>
         [Test]
@@ -230,7 +313,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             // upset load
             tar.WriteDir(ArchiveConstants.TERRAINS_PATH);
             
-            tar.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestPreparation.CreateControlFile(new Dictionary<string, Object>()));
+            tar.WriteFile(
+                ArchiveConstants.CONTROL_FILE_PATH,
+                new ArchiveWriteRequestPreparation(null, (Stream)null, Guid.Empty).CreateControlFile(new Dictionary<string, Object>()));
 
             SceneObjectPart part1 = CreateSceneObjectPart1();
             SceneObjectGroup object1 = new SceneObjectGroup(part1);
@@ -331,7 +416,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
             
             tar.WriteDir(ArchiveConstants.TERRAINS_PATH);
-            tar.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestPreparation.CreateControlFile(new Dictionary<string, Object>()));
+            tar.WriteFile(
+                ArchiveConstants.CONTROL_FILE_PATH,
+                new ArchiveWriteRequestPreparation(null, (Stream)null, Guid.Empty).CreateControlFile(new Dictionary<string, Object>()));
 
             RegionSettings rs = new RegionSettings();
             rs.AgentLimit = 17;
