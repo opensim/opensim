@@ -1523,11 +1523,20 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             else
             {
-
-                //m_log.Info("[BASE HTTP SERVER]: Doing HTTP Grunt work with response");
-                responsecode = (int)responsedata["int_response_code"];
-                responseString = (string)responsedata["str_response_string"];
-                contentType = (string)responsedata["content_type"];
+                try
+                {
+                    //m_log.Info("[BASE HTTP SERVER]: Doing HTTP Grunt work with response");
+                    responsecode = (int)responsedata["int_response_code"];
+                    responseString = (string)responsedata["str_response_string"];
+                    contentType = (string)responsedata["content_type"];
+                }
+                catch
+                {
+                    responsecode = 500;
+                    responseString = "No response could be obtained";
+                    contentType = "text/plain";
+                    responsedata = new Hashtable();
+                }
             }
 
             if (responsedata.ContainsKey("error_status_text"))
