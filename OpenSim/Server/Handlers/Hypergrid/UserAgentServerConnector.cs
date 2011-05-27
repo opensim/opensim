@@ -354,6 +354,8 @@ namespace OpenSim.Server.Handlers.Hypergrid
                     string url = m_HomeUsersService.LocateUser(userID);
                     if (url != string.Empty)
                         hash["URL"] = url;
+                    else
+                        hash["result"] = "Unable to locate user";
                 }
             }
 
@@ -389,6 +391,8 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 string uui = m_HomeUsersService.GetUUI(userID, targetUserID);
                 if (uui != string.Empty)
                     hash["UUI"] = uui;
+                else
+                    hash["result"] = "User unknown";
             }
 
             XmlRpcResponse response = new XmlRpcResponse();
