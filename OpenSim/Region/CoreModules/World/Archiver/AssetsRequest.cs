@@ -230,6 +230,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <param name="asset"></param>
         public void AssetRequestCallback(string id, object sender, AssetBase asset)
         {
+            Culture.SetCurrentCulture();
+            
             try
             {
                 lock (this)
@@ -293,6 +295,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         protected void PerformAssetsRequestCallback(object o)
         {
+            Culture.SetCurrentCulture();
+
             try
             {
                 m_assetsRequestCallback(m_foundAssetUuids, m_notFoundAssetUuids);

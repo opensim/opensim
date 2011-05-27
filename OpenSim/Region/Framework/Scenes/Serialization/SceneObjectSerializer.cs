@@ -121,7 +121,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             }
         }
 
-
         /// <summary>
         /// Serialize a scene object to the original xml format
         /// </summary>
