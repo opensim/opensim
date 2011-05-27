@@ -28,10 +28,13 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Net;
+using System.IO;
 
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -50,6 +53,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
         private bool m_lastOarLoadedOk;
         private int m_channelNotify = -1000;
         private bool m_enabled = false;
+        private bool m_disable_logins = false;
         
         Scene m_scene = null;
         
@@ -68,10 +72,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             if (m_config != null) 
             {
                 m_enabled = m_config.GetBoolean("enabled", false);
+                
                 if (m_enabled) 
                 {
                     m_channelNotify = m_config.GetInt("channel_notify", m_channelNotify);
-                } 
+                    m_disable_logins = m_config.GetBoolean("login_disable", false);
+                }
             }
 
 //            if (!m_enabled)
@@ -93,6 +99,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             m_scene.EventManager.OnOarFileLoaded += OnOarFileLoaded;
 
             m_log.DebugFormat("[RegionReady]: Enabled for region {0}", scene.RegionInfo.RegionName);
+
+            if(m_disable_logins == true)
+            {
+                scene.LoginLock = true;
+                scene.LoginsDisabled = true;
+                m_log.InfoFormat("[RegionReady]: Logins disabled for {0}",m_scene.RegionInfo.RegionName);
+            }
         }
 
         public void RemoveRegion(Scene scene)
@@ -147,6 +160,16 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 c.Sender = null;
                 c.SenderUUID = UUID.Zero;
                 c.Scene = m_scene;
+
+                if(m_disable_logins == true)
+                {
+                    if(m_scene.StartDisabled == false)
+                    {
+                        m_scene.LoginsDisabled = false;
+                        m_scene.LoginLock = false;
+                        m_log.InfoFormat("[RegionReady]: Logins enabled for {0}", m_scene.RegionInfo.RegionName);
+                    }
+                }
 
                 m_log.InfoFormat("[RegionReady]: Region \"{0}\" is ready: \"{1}\" on channel {2}",
                                  m_scene.RegionInfo.RegionName, c.Message, m_channelNotify);
