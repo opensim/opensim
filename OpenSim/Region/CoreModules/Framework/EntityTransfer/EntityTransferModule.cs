@@ -248,7 +248,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
         }
 
-        protected void DoTeleport(ScenePresence sp, GridRegion reg, GridRegion finalDestination, Vector3 position, Vector3 lookAt, uint teleportFlags, IEventQueue eq)
+        public void DoTeleport(ScenePresence sp, GridRegion reg, GridRegion finalDestination, Vector3 position, Vector3 lookAt, uint teleportFlags, IEventQueue eq)
         {
             if (reg == null || finalDestination == null)
             {

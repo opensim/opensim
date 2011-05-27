@@ -125,7 +125,6 @@ namespace OpenSim.Server.Handlers.Hypergrid
                     UUID.TryParse((string)requestData["to_agent_id"], out toAgentID);
                     UUID.TryParse((string)requestData["im_session_id"], out imSessionID);
                     UUID.TryParse((string)requestData["region_id"], out RegionID);
-
                     try
                     {
                         timestamp = (uint)Convert.ToInt32((string)requestData["timestamp"]);
@@ -185,45 +184,9 @@ namespace OpenSim.Server.Handlers.Hypergrid
                     {
                     }
 
-                    try
-                    {
-                        pos_x = (uint)Convert.ToInt32((string)requestData["position_x"]);
-                    }
-                    catch (ArgumentException)
-                    {
-                    }
-                    catch (FormatException)
-                    {
-                    }
-                    catch (OverflowException)
-                    {
-                    }
-                    try
-                    {
-                        pos_y = (uint)Convert.ToInt32((string)requestData["position_y"]);
-                    }
-                    catch (ArgumentException)
-                    {
-                    }
-                    catch (FormatException)
-                    {
-                    }
-                    catch (OverflowException)
-                    {
-                    }
-                    try
-                    {
-                        pos_z = (uint)Convert.ToInt32((string)requestData["position_z"]);
-                    }
-                    catch (ArgumentException)
-                    {
-                    }
-                    catch (FormatException)
-                    {
-                    }
-                    catch (OverflowException)
-                    {
-                    }
+                    float.TryParse((string)requestData["position_x"], out pos_x);
+                    float.TryParse((string)requestData["position_y"], out pos_y);
+                    float.TryParse((string)requestData["position_z"], out pos_z);
 
                     Position = new Vector3(pos_x, pos_y, pos_z);
 
@@ -243,7 +206,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
                     gim.fromAgentName = fromAgentName;
                     gim.fromGroup = fromGroup;
                     gim.imSessionID = imSessionID.Guid;
-                    gim.RegionID = UUID.Zero.Guid; // RegionID.Guid;
+                    gim.RegionID = RegionID.Guid;
                     gim.timestamp = timestamp;
                     gim.toAgentID = toAgentID.Guid;
                     gim.message = message;

@@ -187,7 +187,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             // Is the user a local user?
             UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, toAgentID);
             string url = string.Empty;
-            PresenceInfo upd;
             if (account == null) // foreign user
                 url = UserManagementModule.GetUserServerURL(toAgentID, "IMServerURI");
 

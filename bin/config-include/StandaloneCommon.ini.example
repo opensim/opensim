@@ -70,6 +70,11 @@
     ;; change this to the address of your simulator
     Gatekeeper="http://127.0.0.1:9000"
 
+[Messaging]
+    ; === HG ONLY ===
+    ;; change this to the address of your simulator
+    Gatekeeper = "http://127.0.0.1:9000"
+
 [LibraryModule]
     ; Set this if you want to change the name of the OpenSim Library
     ;LibraryName = "My World's Library"

@@ -46,6 +46,12 @@
 	;; Robust server in port 8002, but not always)
 	Gatekeeper="http://mygridserver.com:8002"
 
+[Messaging]
+    ;; change this to the address of your Gatekeeper service
+    ;; (usually bundled with the rest of the services in one 
+    ;; Robust server in port 8002, but not always)
+    Gatekeeper = "http://mygridserver.com:8002"
+
 [AvatarService]
     ;
     ; change this to your grid-wide grid server
