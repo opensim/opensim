@@ -157,7 +157,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             string serialization = UserInventoryItemSerializer.Serialize(inventoryItem, options, userAccountService);
             m_archiveWriter.WriteFile(filename, serialization);
 
-            if (SaveAssets)
+            AssetType itemAssetType = (AssetType)inventoryItem.AssetType;
+
+            // Don't chase down link asset items as they actually point to their target item IDs rather than an asset
+            if (SaveAssets && itemAssetType != AssetType.Link && itemAssetType != AssetType.LinkFolder)
                 m_assetGatherer.GatherAssetUuids(inventoryItem.AssetID, (AssetType)inventoryItem.AssetType, m_assetUuids);
         }
 
