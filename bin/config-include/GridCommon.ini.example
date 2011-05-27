@@ -47,6 +47,7 @@
 	Gatekeeper="http://mygridserver.com:8002"
 
 [Messaging]
+    ; === HG ONLY ===
     ;; change this to the address of your Gatekeeper service
     ;; (usually bundled with the rest of the services in one 
     ;; Robust server in port 8002, but not always)
