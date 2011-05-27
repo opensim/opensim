@@ -40,6 +40,9 @@ namespace OpenSim.Region.Framework.Interfaces
         void Teleport(ScenePresence agent, ulong regionHandle, Vector3 position,
                                                       Vector3 lookAt, uint teleportFlags);
 
+        void DoTeleport(ScenePresence sp, GridRegion reg, GridRegion finalDestination,
+            Vector3 position, Vector3 lookAt, uint teleportFlags, IEventQueue eq);
+
         void TeleportHome(UUID id, IClientAPI client);
 
         bool Cross(ScenePresence agent, bool isFlying);

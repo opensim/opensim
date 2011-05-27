@@ -31,13 +31,19 @@ using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using Mono.Addins;
+
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Connectors.Hypergrid;
+
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.Avatar.Lure
 {
-    public class LureModule : ISharedRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class HGLureModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
@@ -47,15 +53,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
         private IMessageTransferModule m_TransferModule = null;
         private bool m_Enabled = false;
 
+        private string m_ThisGridURL;
+
+        private ExpiringCache<UUID, GridInstantMessage> m_PendingLures = new ExpiringCache<UUID, GridInstantMessage>();
+
         public void Initialise(IConfigSource config)
         {
             if (config.Configs["Messaging"] != null)
             {
-                if (config.Configs["Messaging"].GetString(
-                        "LureModule", "LureModule") ==
-                        "LureModule")
+                if (config.Configs["Messaging"].GetString("LureModule", string.Empty) == "HGLureModule")
                 {
                     m_Enabled = true;
+
+                    m_ThisGridURL = config.Configs["Messaging"].GetString("Gatekeeper", string.Empty);
                     m_log.DebugFormat("[LURE MODULE]: {0} enabled", Name);
                 }
             }
@@ -69,9 +79,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
             lock (m_scenes)
             {
                 m_scenes.Add(scene);
+                scene.EventManager.OnIncomingInstantMessage += OnIncomingInstantMessage;
                 scene.EventManager.OnNewClient += OnNewClient;
-                scene.EventManager.OnIncomingInstantMessage +=
-                        OnGridInstantMessage;
             }
         }
 
@@ -87,14 +96,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
                 if (m_TransferModule == null)
                 {
-                    m_log.Error("[INSTANT MESSAGE]: No message transfer module, "+
-                    "lures will not work!");
+                    m_log.Error("[LURE MODULE]: No message transfer module, lures will not work!");
 
                     m_Enabled = false;
                     m_scenes.Clear();
                     scene.EventManager.OnNewClient -= OnNewClient;
-                    scene.EventManager.OnIncomingInstantMessage -=
-                            OnGridInstantMessage;
+                    scene.EventManager.OnIncomingInstantMessage -= OnIncomingInstantMessage;
                 }
             }
 
@@ -109,8 +116,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
             {
                 m_scenes.Remove(scene);
                 scene.EventManager.OnNewClient -= OnNewClient;
-                scene.EventManager.OnIncomingInstantMessage -=
-                        OnGridInstantMessage;
+                scene.EventManager.OnIncomingInstantMessage -= OnIncomingInstantMessage;
             }
         }
 
@@ -131,7 +137,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
         public string Name
         {
-            get { return "LureModule"; }
+            get { return "HGLureModule"; }
         }
 
         public Type ReplaceableInterface
@@ -139,8 +145,24 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
             get { return null; }
         }
 
-        public void OnInstantMessage(IClientAPI client, GridInstantMessage im)
+        void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
+        }
+
+        void OnIncomingInstantMessage(GridInstantMessage im)
+        {
+            if (im.dialog == (byte)InstantMessageDialog.RequestTeleport)
+            {
+                UUID sessionID = new UUID(im.imSessionID);
+                m_log.DebugFormat("[HG LURE MODULE]: RequestTeleport sessionID={0}, regionID={1}, message={2}", im.imSessionID, im.RegionID, im.message);
+                m_PendingLures.Add(sessionID, im, 7200); // 2 hours
+
+                // Forward. We do this, because the IM module explicitly rejects
+                // IMs of this type
+                if (m_TransferModule != null)
+                    m_TransferModule.SendInstantMessage(im, delegate(bool success) { });
+
+            }
         }
 
         public void OnStartLure(byte lureType, string message, UUID targetid, IClientAPI client)
@@ -151,19 +173,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
             Scene scene = (Scene)(client.Scene);
             ScenePresence presence = scene.GetScenePresence(client.AgentId);
 
-            UUID dest = Util.BuildFakeParcelID(
-                    scene.RegionInfo.RegionHandle,
-                    (uint)presence.AbsolutePosition.X,
-                    (uint)presence.AbsolutePosition.Y,
-                    (uint)presence.AbsolutePosition.Z);
+            message += "@" + m_ThisGridURL;
 
-            m_log.DebugFormat("TP invite with message {0}", message);
+            m_log.DebugFormat("[HG LURE MODULE]: TP invite with message {0}", message);
 
             GridInstantMessage m = new GridInstantMessage(scene, client.AgentId,
                     client.FirstName+" "+client.LastName, targetid,
                     (byte)InstantMessageDialog.RequestTeleport, false,
-                    message, dest, false, presence.AbsolutePosition,
+                    message, UUID.Random(), false, presence.AbsolutePosition,
                     new Byte[0]);
+            m.RegionID = client.Scene.RegionInfo.RegionID.Guid;
                     
             if (m_TransferModule != null)
             {
@@ -179,33 +198,46 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
             Scene scene = (Scene)(client.Scene);
 
-            ulong handle = 0;
-            uint x = 128;
-            uint y = 128;
-            uint z = 70;
+            GridInstantMessage im = null;
+            if (m_PendingLures.TryGetValue(lureID, out im))
+            {
+                m_PendingLures.Remove(lureID);
+                Lure(client, teleportFlags, im);
+            }
+            else
+                m_log.DebugFormat("[HG LURE MODULE]: pending lure {0} not found", lureID);
 
-            Util.ParseFakeParcelID(lureID, out handle, out x, out y, out z);
-
-            Vector3 position = new Vector3();
-            position.X = (float)x;
-            position.Y = (float)y;
-            position.Z = (float)z;
-
-            scene.RequestTeleportLocation(client, handle, position,
-                    Vector3.Zero, teleportFlags);
         }
 
-        private void OnGridInstantMessage(GridInstantMessage msg)
+        private void Lure(IClientAPI client, uint teleportflags, GridInstantMessage im)
         {
-            // Forward remote teleport requests
-            //
-            if (msg.dialog != 22)
-                return;
-
-            if (m_TransferModule != null)
+            Scene scene = (Scene)(client.Scene);
+            GridRegion region = scene.GridService.GetRegionByUUID(scene.RegionInfo.ScopeID, new UUID(im.RegionID));
+            if (region != null)
+                scene.RequestTeleportLocation(client, region.RegionHandle, im.Position + new Vector3(0.5f, 0.5f, 0f), Vector3.UnitX, teleportflags);
+            else // we don't have that region here. Check if it's HG
             {
-                m_TransferModule.SendInstantMessage(msg,
-                    delegate(bool success) { });
+                string[] parts = im.message.Split(new char[] { '@' });
+                if (parts.Length > 1)
+                {
+                    string url = parts[parts.Length - 1]; // the last part
+                    if (url.Trim(new char[] {'/'}) != m_ThisGridURL.Trim(new char[] {'/'}))
+                    {
+                        m_log.DebugFormat("[HG LURE MODULE]: Luring agent to grid {0} region {1} position {2}", url, im.RegionID, im.Position);
+                        GatekeeperServiceConnector gConn = new GatekeeperServiceConnector();
+                        GridRegion gatekeeper = new GridRegion();
+                        gatekeeper.ServerURI = url;
+                        GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, new UUID(im.RegionID));
+                        if (finalDestination != null)
+                        {
+                            ScenePresence sp = scene.GetScenePresence(client.AgentId);
+                            IEntityTransferModule transferMod = scene.RequestModuleInterface<IEntityTransferModule>();
+                            IEventQueue eq = sp.Scene.RequestModuleInterface<IEventQueue>();
+                            if (transferMod != null && sp != null && eq != null)
+                                transferMod.DoTeleport(sp, gatekeeper, finalDestination, im.Position + new Vector3(0.5f, 0.5f, 0f), Vector3.UnitX, teleportflags, eq);
+                        }
+                    }
+                }
             }
         }
     }
