@@ -96,7 +96,7 @@
 [UserAgentService]
     ;
     ; === HG ONLY ===
-    ; Change this to your user agent server 
+    ; Change this to your user agent server (HG robust)
     ;
     UserAgentServerURI = "http://mygridserver.com:8002"
 
