@@ -106,12 +106,12 @@ namespace OpenSim.Services.HypergridService
 
         public bool IncomingInstantMessage(GridInstantMessage im)
         {
-            m_log.DebugFormat("[HG IM SERVICE]: Received message {0} from {1} to {2}", im.message, im.fromAgentID, im.toAgentID);
+            m_log.DebugFormat("[HG IM SERVICE]: Received message from {0} to {1}", im.fromAgentID, im.toAgentID);
             UUID toAgentID = new UUID(im.toAgentID);
 
             if (m_IMSimConnector != null)
             {
-                m_log.DebugFormat("[XXX] SendIMToRegion local im connector");
+                //m_log.DebugFormat("[XXX] SendIMToRegion local im connector");
                 return m_IMSimConnector.SendInstantMessage(im);
             }
             else
@@ -120,7 +120,7 @@ namespace OpenSim.Services.HypergridService
 
         public bool OutgoingInstantMessage(GridInstantMessage im, string url)
         {
-            m_log.DebugFormat("[HG IM SERVICE]: Sending message {0} from {1} to {2}@{3}", im.message, im.fromAgentID, im.toAgentID, url);
+            m_log.DebugFormat("[HG IM SERVICE]: Sending message from {0} to {1}@{2}", im.fromAgentID, im.toAgentID, url);
             if (url != string.Empty)
                 return TrySendInstantMessage(im, url, true);
             else
@@ -165,7 +165,7 @@ namespace OpenSim.Services.HypergridService
                 }
             }
 
-            m_log.DebugFormat("[XXX] Neeed lookup ? {0}", (lookupAgent ? "yes" : "no"));
+            //m_log.DebugFormat("[XXX] Neeed lookup ? {0}", (lookupAgent ? "yes" : "no"));
 
             // Are we needing to look-up an agent?
             if (lookupAgent)
@@ -178,7 +178,7 @@ namespace OpenSim.Services.HypergridService
                     {
                         if (p.RegionID != UUID.Zero)
                         {
-                            m_log.DebugFormat("[XXX]: Found presence in {0}", p.RegionID);
+                            //m_log.DebugFormat("[XXX]: Found presence in {0}", p.RegionID);
                             upd = p;
                             break;
                         }

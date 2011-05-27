@@ -576,7 +576,6 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                m_log.DebugFormat("[XXX]: Calling locate_user on {0}", m_ServerURL);
                 response = request.Send(m_ServerURL, 10000);
             }
             catch (Exception e)
@@ -636,7 +635,6 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                m_log.DebugFormat("[XXX]: Calling get_uuid on {0}", m_ServerURL);
                 response = request.Send(m_ServerURL, 10000);
             }
             catch (Exception e)

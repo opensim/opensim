@@ -69,12 +69,12 @@ namespace OpenSim.Services.Connectors.InstantMessage
                 {
                     if ((string)responseData["success"] == "TRUE")
                     {
-                        m_log.DebugFormat("[XXX] Success");
+                        //m_log.DebugFormat("[XXX] Success");
                         return true;
                     }
                     else
                     {
-                        m_log.DebugFormat("[XXX] Fail");
+                        //m_log.DebugFormat("[XXX] Fail");
                         return false;
                     }
                 }
