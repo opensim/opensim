@@ -570,7 +570,13 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShape(SceneObjectPart obj, XmlTextReader reader)
         {
-            obj.Shape = ReadShape(reader, "Shape");
+            bool errors = false;
+            obj.Shape = ReadShape(reader, "Shape", out errors);
+
+            if (errors)
+                m_log.DebugFormat(
+                    "[SceneObjectSerializer]: Parsing PrimitiveBaseShape for object part {0} {1} encountered errors.  Please see earlier log entries.",
+                    obj.Name, obj.UUID);
         }
 
         private static void ProcessScale(SceneObjectPart obj, XmlTextReader reader)
@@ -1470,7 +1476,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     }
                     catch (Exception e)
                     {
-                        m_log.DebugFormat("[SceneObjectSerializer]: exception while parsing {0}: {1}", nodeName, e);
+                        m_log.DebugFormat(
+                            "[SceneObjectSerializer]: exception while parsing {0} in object {1} {2}: {3}{4}",
+                            obj.Name, obj.UUID, nodeName, e.Message, e.StackTrace);
                         if (reader.NodeType == XmlNodeType.EndElement)
                             reader.Read();
                     }
@@ -1528,8 +1536,17 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             return tinv;
         }
 
-        static PrimitiveBaseShape ReadShape(XmlTextReader reader, string name)
+        /// <summary>
+        /// Read a shape from xml input
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="name">The name of the xml element containing the shape</param>
+        /// <param name="errors">true if any errors were encountered during parsing, false otherwise</param>
+        /// <returns>The shape parsed</returns>
+        static PrimitiveBaseShape ReadShape(XmlTextReader reader, string name, out bool errors)
         {
+            errors = false;
+
             PrimitiveBaseShape shape = new PrimitiveBaseShape();
 
             if (reader.IsEmptyElement)
@@ -1554,7 +1571,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     }
                     catch (Exception e)
                     {
-                        m_log.DebugFormat("[SceneObjectSerializer]: exception while parsing Shape {0}: {1}", nodeName, e);
+                        errors = true;
+                        m_log.DebugFormat(
+                            "[SceneObjectSerializer]: exception while parsing Shape property {0}: {1}{2}",
+                            nodeName, e.Message, e.StackTrace);
+
                         if (reader.NodeType == XmlNodeType.EndElement)
                             reader.Read();
                     }
