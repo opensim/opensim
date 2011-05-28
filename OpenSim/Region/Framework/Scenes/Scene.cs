@@ -1376,9 +1376,12 @@ namespace OpenSim.Region.Framework.Scenes
                     IConfig startupConfig = m_config.Configs["Startup"];
                     if (startupConfig == null || !startupConfig.GetBoolean("StartDisabled", false))
                     {
+                        // This handles a case of a region having no scripts for the RegionReady module
                         if (m_sceneGraph.GetActiveScriptsCount() == 0)
                         {
+                            // need to be able to tell these have changed in RegionReady
                             LoginLock = false;
+                            EventManager.TriggerLoginsEnabled(RegionInfo.RegionName);
                         }
                         m_log.DebugFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
                         // For RegionReady lockouts
