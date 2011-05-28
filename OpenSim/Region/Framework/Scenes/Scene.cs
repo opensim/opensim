@@ -94,7 +94,10 @@ namespace OpenSim.Region.Framework.Scenes
         // root agents when ACL denies access to root agent
         public bool m_strictAccessControl = true;
         public int MaxUndoCount = 5;
+        // Using this for RegionReady module to prevent LoginsDisabled from changing under our feet;
+        public bool LoginLock = false;
         public bool LoginsDisabled = true;
+        public bool StartDisabled = false;
         public bool LoadingPrims;
         public IXfer XferManager;
 
@@ -1373,9 +1376,22 @@ namespace OpenSim.Region.Framework.Scenes
                     IConfig startupConfig = m_config.Configs["Startup"];
                     if (startupConfig == null || !startupConfig.GetBoolean("StartDisabled", false))
                     {
+                        if (m_sceneGraph.GetActiveScriptsCount() == 0)
+                        {
+                            LoginLock = false;
+                        }
                         m_log.DebugFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
-                        LoginsDisabled = false;
+                        // For RegionReady lockouts
+                        if( LoginLock == false)
+                        {
+                            LoginsDisabled = false;
+                        }
                         m_sceneGridService.InformNeighborsThatRegionisUp(RequestModuleInterface<INeighbourService>(), RegionInfo);
+                    }
+                    else
+                    {
+                        StartDisabled = true;
+                        LoginsDisabled = true;
                     }
                 }
             }
