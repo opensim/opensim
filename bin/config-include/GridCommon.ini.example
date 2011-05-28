@@ -14,6 +14,14 @@
     ; Uncomment this line if you are using MySQL and want to use a different database for estates
     ;EstateConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;"
 
+    ; MSSQL
+    ; Uncomment these lines if you want to use MSSQL storage
+    ; Change the connection string to your db details
+    ; The value for server property is shown in your SQL Server Management Studio login dialog.
+    ; (This sample is the default of express edition)
+    ;StorageProvider = "OpenSim.Data.MSSQL.dll"
+    ;ConnectionString = "Server=localhost\SQLEXPRESS;Database=opensim;User Id=opensim; password=***;"
+
 [AssetService]
 
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
