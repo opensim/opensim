@@ -103,16 +103,31 @@ namespace OpenSim.Services.Connectors.Simulation
                 args["teleport_flags"] = OSD.FromString(flags.ToString());
 
                 OSDMap result = WebUtil.PostToServiceCompressed(uri, args, 30000);
-                if (result["Success"].AsBoolean())
-                    return true;
-                
+                bool success = result["success"].AsBoolean();
+                if (success && result.ContainsKey("_Result"))
+                {
+                    OSDMap data = (OSDMap)result["_Result"];
+
+                    reason = data["reason"].AsString();
+                    success = data["success"].AsBoolean();
+                    return success;
+                }
+              
+                // Try the old version, uncompressed
                 result = WebUtil.PostToService(uri, args, 30000);
 
                 if (result["Success"].AsBoolean())
                 {
-                    m_log.WarnFormat(
-                    "[REMOTE SIMULATION CONNECTOR]: Remote simulator {0} did not accept compressed transfer, suggest updating it.", destination.RegionName);
-                    return true;
+                    if (result.ContainsKey("_Result"))
+                    {
+                        OSDMap data = (OSDMap)result["_Result"];
+
+                        reason = data["reason"].AsString();
+                        success = data["success"].AsBoolean();
+                        m_log.WarnFormat(
+                            "[REMOTE SIMULATION CONNECTOR]: Remote simulator {0} did not accept compressed transfer, suggest updating it.", destination.RegionName);
+                        return success;
+                    }
                 }
                 
                 m_log.WarnFormat(
