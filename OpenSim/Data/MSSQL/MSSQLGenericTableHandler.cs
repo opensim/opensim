@@ -358,7 +358,7 @@ namespace OpenSim.Data.MSSQL
 
                 string where = String.Join(" AND ", terms.ToArray());
 
-                string query = String.Format("DELETE * FROM {0} WHERE {1}", m_Realm, where);
+                string query = String.Format("DELETE FROM {0} WHERE {1}", m_Realm, where);
 
                 cmd.Connection = conn;
                 cmd.CommandText = query;
