@@ -1231,36 +1231,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             List<GroupMembershipData> membershipData = m_groupData.GetAgentGroupMemberships(requestingClient.AgentId, dataForAgentID);
             GroupMembershipData[] membershipArray;
 
-            //  c_scene and property accessor 'is_god' are in support of the opertions to bypass 'hidden' group attributes for
-            // those with a GodLike aspect.
-            Scene c_scene = (Scene) requestingClient.Scene;
-            bool is_god = c_scene.Permissions.IsGod(requestingClient.AgentId);
-
-            if(is_god) {
+            if (requestingClient.AgentId != dataForAgentID)
+            {
                 Predicate<GroupMembershipData> showInProfile = delegate(GroupMembershipData membership)
                 {
                     return membership.ListInProfile;
                 };
 
-                membershipArray = membershipData.ToArray();
+                membershipArray = membershipData.FindAll(showInProfile).ToArray();
             }
             else
             {
-
-                if (requestingClient.AgentId != dataForAgentID)
-                {
-                    Predicate<GroupMembershipData> showInProfile = delegate(GroupMembershipData membership)
-                    {
-                        return membership.ListInProfile;
-                    };
-
-                    membershipArray = membershipData.FindAll(showInProfile).ToArray();
-                }
-                else
-                {
-                    membershipArray = membershipData.ToArray();
-                }
+                membershipArray = membershipData.ToArray();
             }
+
             if (m_debugEnabled)
             {
                 m_log.InfoFormat("[GROUPS]: Get group membership information for {0} requested by {1}", dataForAgentID, requestingClient.AgentId);
@@ -1273,7 +1257,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return membershipArray;
         }
 
- 
         private void SendAgentDataUpdate(IClientAPI remoteClient, UUID dataForAgentID, UUID activeGroupID, string activeGroupName, ulong activeGroupPowers, string activeGroupTitle)
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
