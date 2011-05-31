@@ -61,10 +61,6 @@ namespace OpenSim.Services.GridService
         protected GridService m_GridService;
         protected IAssetService m_AssetService;
         protected GatekeeperServiceConnector m_GatekeeperConnector;
-        public GatekeeperServiceConnector GatekeeperConnector
-        {
-            get { return m_GatekeeperConnector; }
-        }
 
         protected UUID m_ScopeID = UUID.Zero;
         protected bool m_Check4096 = true;
@@ -370,7 +366,7 @@ namespace OpenSim.Services.GridService
             m_log.DebugFormat("[HYPERGRID LINKER]: naming linked region {0}, handle {1}", regInfo.RegionName, handle.ToString());
                 
             // Get the map image
-            regInfo.TerrainImage = m_GatekeeperConnector.GetMapImage(regionID, imageURL, m_MapTileDirectory);
+            regInfo.TerrainImage = GetMapImage(regionID, imageURL);
 
             // Store the origin's coordinates somewhere
             regInfo.RegionSecret = handle.ToString();
@@ -470,6 +466,10 @@ namespace OpenSim.Services.GridService
             m_Database.Delete(regionID);
         }
 
+        public UUID GetMapImage(UUID regionID, string imageURL)
+        {
+            return m_GatekeeperConnector.GetMapImage(regionID, imageURL, m_MapTileDirectory);
+        }
         #endregion
 
 
