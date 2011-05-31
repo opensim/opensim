@@ -231,6 +231,8 @@ namespace OpenSim
             configSource.Alias.AddAlias("Off", false);
             configSource.Alias.AddAlias("True", true);
             configSource.Alias.AddAlias("False", false);
+            configSource.Alias.AddAlias("Yes", true);
+            configSource.Alias.AddAlias("No", false);
 
             configSource.AddSwitch("Startup", "background");
             configSource.AddSwitch("Startup", "inifile");
