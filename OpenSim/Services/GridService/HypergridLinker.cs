@@ -61,6 +61,10 @@ namespace OpenSim.Services.GridService
         protected GridService m_GridService;
         protected IAssetService m_AssetService;
         protected GatekeeperServiceConnector m_GatekeeperConnector;
+        public GatekeeperServiceConnector GatekeeperConnector
+        {
+            get { return m_GatekeeperConnector; }
+        }
 
         protected UUID m_ScopeID = UUID.Zero;
         protected bool m_Check4096 = true;
