@@ -2213,7 +2213,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(loadURL, ThrottleOutPacketType.Task);
         }
 
-        public void SendDialog(string objectname, UUID objectID, string ownerFirstName, string ownerLastName, string msg, UUID textureID, int ch, string[] buttonlabels)
+        public void SendDialog(
+            string objectname, UUID objectID, UUID ownerID, string ownerFirstName, string ownerLastName, string msg,
+            UUID textureID, int ch, string[] buttonlabels)
         {
             ScriptDialogPacket dialog = (ScriptDialogPacket)PacketPool.Instance.GetPacket(PacketType.ScriptDialog);
             dialog.Data.ObjectID = objectID;
@@ -2231,6 +2233,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 buttons[i].ButtonLabel = Util.StringToBytes256(buttonlabels[i]);
             }
             dialog.Buttons = buttons;
+
+            dialog.OwnerData = new ScriptDialogPacket.OwnerDataBlock[1];
+            dialog.OwnerData[0] = new ScriptDialogPacket.OwnerDataBlock();
+            dialog.OwnerData[0].OwnerID = ownerID;
+
             OutPacket(dialog, ThrottleOutPacketType.Task);
         }
 
@@ -2292,8 +2299,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 OrbitalPosition = (OrbitalPosition - m_sunPainDaHalfOrbitalCutoff) * 0.6666666667f + m_sunPainDaHalfOrbitalCutoff;
             }
-
-
 
             SimulatorViewerTimeMessagePacket viewertime = (SimulatorViewerTimeMessagePacket)PacketPool.Instance.GetPacket(PacketType.SimulatorViewerTimeMessage);
             viewertime.TimeInfo.SunDirection = Position;
