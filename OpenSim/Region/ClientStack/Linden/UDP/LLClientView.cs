@@ -1469,6 +1469,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             money.MoneyData.TransactionSuccess = success;
             money.MoneyData.Description = description;
             money.MoneyData.MoneyBalance = balance;
+            money.TransactionInfo.ItemDescription = Util.StringToBytes256("NONE");
             OutPacket(money, ThrottleOutPacketType.Task);
         }
 
