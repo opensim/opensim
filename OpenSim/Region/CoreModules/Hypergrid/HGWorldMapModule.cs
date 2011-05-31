@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
@@ -58,7 +59,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         #endregion
 
-        protected override void GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
+        protected override List<MapBlockData> GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
             List<MapBlockData> mapBlocks = new List<MapBlockData>();
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
@@ -67,9 +68,26 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
             foreach (GridRegion r in regions)
             {
-                MapBlockData block = new MapBlockData();
-                MapBlockFromGridRegion(block, r);
-                mapBlocks.Add(block);
+                uint x = 0, y = 0;
+                long handle = 0;
+                if (r.RegionSecret != null && r.RegionSecret != string.Empty)
+                {
+                    if (long.TryParse(r.RegionSecret, out handle))
+                    {
+                        Utils.LongToUInts((ulong)handle, out x, out y);
+                        x = x / Constants.RegionSize;
+                        y = y / Constants.RegionSize;
+                    }
+                }
+
+                if (handle == 0 || 
+                    // Check the distance from the current region
+                    (handle != 0 && Math.Abs((int)(x - m_scene.RegionInfo.RegionLocX)) < 4096 && Math.Abs((int)(y - m_scene.RegionInfo.RegionLocY)) < 4096))
+                {
+                    MapBlockData block = new MapBlockData();
+                    MapBlockFromGridRegion(block, r);
+                    mapBlocks.Add(block);
+                }
             }
 
             // Different from super
@@ -77,6 +95,8 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             //
 
             remoteClient.SendMapBlock(mapBlocks, 0);
+
+            return mapBlocks;
         }
 
 

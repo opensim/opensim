@@ -363,10 +363,13 @@ namespace OpenSim.Services.GridService
              else
                 regInfo.RegionName = externalName;
 
-            m_log.Debug("[HYPERGRID LINKER]: naming linked region " + regInfo.RegionName);
+            m_log.DebugFormat("[HYPERGRID LINKER]: naming linked region {0}, handle {1}", regInfo.RegionName, handle.ToString());
                 
             // Get the map image
             regInfo.TerrainImage = m_GatekeeperConnector.GetMapImage(regionID, imageURL, m_MapTileDirectory);
+
+            // Store the origin's coordinates somewhere
+            regInfo.RegionSecret = handle.ToString();
 
             AddHyperlinkRegion(regInfo, handle);
             m_log.InfoFormat("[HYPERGRID LINKER]: Successfully linked to region {0} with image {1}", regInfo.RegionName, regInfo.TerrainImage);
