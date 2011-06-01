@@ -516,6 +516,7 @@ namespace OpenSim.Services.LLLoginService
                 // free uri form
                 // e.g. New Moon&135&46  New Moon@osgrid.org:8002&153&34
                 where = "url";
+                GridRegion region = null;
                 Regex reURI = new Regex(@"^uri:(?<region>[^&]+)&(?<x>\d+)&(?<y>\d+)&(?<z>\d+)$");
                 Match uriMatch = reURI.Match(startLocation);
                 if (uriMatch == null)
@@ -546,8 +547,18 @@ namespace OpenSim.Services.LLLoginService
                                 }
                                 else
                                 {
-                                    m_log.InfoFormat("[LLLOGIN SERVICE]: Got Custom Login URI {0}, Grid does not provide default regions.", startLocation);
-                                    return null;
+                                    m_log.Info("[LLOGIN SERVICE]: Last Region Not Found Attempting to find random region");
+                                    region = FindAlternativeRegion(scopeID);
+                                    if (region != null)
+                                    {
+                                        where = "safe";
+                                        return region;
+                                    }
+                                    else
+                                    {
+                                        m_log.InfoFormat("[LLLOGIN SERVICE]: Got Custom Login URI {0}, Grid does not provide default regions and no alternative found.", startLocation);
+                                        return null;
+                                    }
                                 }
                             }
                             return regions[0];
@@ -575,7 +586,8 @@ namespace OpenSim.Services.LLLoginService
                             if (parts.Length > 1)
                                 UInt32.TryParse(parts[1], out port);
 
-                            GridRegion region = FindForeignRegion(domainName, port, regionName, out gatekeeper);
+//                            GridRegion region = FindForeignRegion(domainName, port, regionName, out gatekeeper);
+                            region = FindForeignRegion(domainName, port, regionName, out gatekeeper);
                             return region;
                         }
                     }
