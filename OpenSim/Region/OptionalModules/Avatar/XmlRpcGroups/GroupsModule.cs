@@ -1234,15 +1234,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             //  cScene and property accessor 'isGod' are in support of the opertions to bypass 'hidden' group attributes for
             // those with a GodLike aspect.
-            Scene cScene = (Scene) requestingClient.Scene;
+            Scene cScene = (Scene)requestingClient.Scene;
             bool isGod = cScene.Permissions.IsGod(requestingClient.AgentId);
 
-            if (isGod) {
+            if (isGod)
+            {
                 membershipArray = membershipData.ToArray();
             }
             else
             {
-
                 if (requestingClient.AgentId != dataForAgentID)
                 {
                     Predicate<GroupMembershipData> showInProfile = delegate(GroupMembershipData membership)
@@ -1257,6 +1257,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     membershipArray = membershipData.ToArray();
                 }
             }
+            
             if (m_debugEnabled)
             {
                 m_log.InfoFormat("[GROUPS]: Get group membership information for {0} requested by {1}", dataForAgentID, requestingClient.AgentId);
