@@ -231,6 +231,8 @@ namespace OpenSim
             configSource.Alias.AddAlias("Off", false);
             configSource.Alias.AddAlias("True", true);
             configSource.Alias.AddAlias("False", false);
+            configSource.Alias.AddAlias("Yes", true);
+            configSource.Alias.AddAlias("No", false);
 
             configSource.AddSwitch("Startup", "background");
             configSource.AddSwitch("Startup", "inifile");
@@ -239,6 +241,8 @@ namespace OpenSim
             configSource.AddSwitch("Startup", "physics");
             configSource.AddSwitch("Startup", "gui");
             configSource.AddSwitch("Startup", "console");
+            configSource.AddSwitch("Startup", "save_crashes");
+            configSource.AddSwitch("Startup", "crash_dir");
 
             configSource.AddConfig("StandAlone");
             configSource.AddConfig("Network");

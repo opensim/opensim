@@ -89,6 +89,5 @@ namespace OpenSim.Data.MSSQL
                 return DoQuery(cmd);
             }
         }
-
     }
 }

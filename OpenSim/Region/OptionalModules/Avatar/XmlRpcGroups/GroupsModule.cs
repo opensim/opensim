@@ -1223,6 +1223,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         /// <summary>
         /// Get a list of groups memberships for the agent that are marked "ListInProfile"
+        /// (unless that agent has a godLike aspect, in which case get all groups)
         /// </summary>
         /// <param name="dataForAgentID"></param>
         /// <returns></returns>
@@ -1231,22 +1232,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             List<GroupMembershipData> membershipData = m_groupData.GetAgentGroupMemberships(requestingClient.AgentId, dataForAgentID);
             GroupMembershipData[] membershipArray;
 
-            //  c_scene and property accessor 'is_god' are in support of the opertions to bypass 'hidden' group attributes for
+            //  cScene and property accessor 'isGod' are in support of the opertions to bypass 'hidden' group attributes for
             // those with a GodLike aspect.
-            Scene c_scene = (Scene) requestingClient.Scene;
-            bool is_god = c_scene.Permissions.IsGod(requestingClient.AgentId);
+            Scene cScene = (Scene)requestingClient.Scene;
+            bool isGod = cScene.Permissions.IsGod(requestingClient.AgentId);
 
-            if(is_god) {
-                Predicate<GroupMembershipData> showInProfile = delegate(GroupMembershipData membership)
-                {
-                    return membership.ListInProfile;
-                };
-
+            if (isGod)
+            {
                 membershipArray = membershipData.ToArray();
             }
             else
             {
-
                 if (requestingClient.AgentId != dataForAgentID)
                 {
                     Predicate<GroupMembershipData> showInProfile = delegate(GroupMembershipData membership)
@@ -1261,6 +1257,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     membershipArray = membershipData.ToArray();
                 }
             }
+            
             if (m_debugEnabled)
             {
                 m_log.InfoFormat("[GROUPS]: Get group membership information for {0} requested by {1}", dataForAgentID, requestingClient.AgentId);
