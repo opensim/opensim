@@ -197,8 +197,11 @@ namespace OpenSim.Services.HypergridService
                     agentCircuit.firstname, agentCircuit.lastname, region.ServerURI, reason);
 
                 // restore the old travel info
-                lock (m_TravelingAgents)
-                    m_TravelingAgents[agentCircuit.SessionID] = old;
+                if(reason != "Logins Disabled")
+                {
+                    lock (m_TravelingAgents)
+                        m_TravelingAgents[agentCircuit.SessionID] = old;
+                }
 
                 return false;
             }
