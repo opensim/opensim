@@ -168,14 +168,13 @@ namespace OpenSim.Data.MSSQL
 
         protected T[] DoQuery(SqlCommand cmd)
         {
+            List<T> result = new List<T>();
             using (SqlDataReader reader = cmd.ExecuteReader())
             {
                 if (reader == null)
                     return new T[0];
 
-                CheckColumnNames(reader);
-
-                List<T> result = new List<T>();
+                CheckColumnNames(reader);                
 
                 while (reader.Read())
                 {
@@ -262,6 +261,15 @@ namespace OpenSim.Data.MSSQL
                 {
                     names.Add(fi.Name);
                     values.Add("@" + fi.Name);
+                    // Temporarily return more information about what field is unexpectedly null for
+                    // http://opensimulator.org/mantis/view.php?id=5403.  This might be due to a bug in the 
+                    // InventoryTransferModule or we may be required to substitute a DBNull here.
+                    if (fi.GetValue(row) == null)
+                        throw new NullReferenceException(
+                            string.Format(
+                                "[MSSQL GENERIC TABLE HANDLER]: Trying to store field {0} for {1} which is unexpectedly null",
+                                fi.Name, row));
+
                     if (constraintFields.Count > 0 && constraintFields.Contains(fi.Name))
                     {
                         constraints.Add(new KeyValuePair<string, string>(fi.Name, fi.GetValue(row).ToString()));
@@ -363,7 +371,13 @@ namespace OpenSim.Data.MSSQL
                 cmd.Connection = conn;
                 cmd.CommandText = query;
                 conn.Open();
-                return cmd.ExecuteNonQuery() > 0;
+
+                if (cmd.ExecuteNonQuery() > 0)
+                {
+                    //m_log.Warn("[MSSQLGenericTable]: " + deleteCommand);
+                    return true;
+                }
+                return false;
             }
         }
     }

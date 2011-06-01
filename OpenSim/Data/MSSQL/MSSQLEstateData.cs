@@ -41,7 +41,7 @@ namespace OpenSim.Data.MSSQL
     {
         private const string _migrationStore = "EstateStore";
 
-        private static readonly ILog _Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private MSSQLManager _Database;
         private string m_connectionString;
@@ -72,7 +72,12 @@ namespace OpenSim.Data.MSSQL
             }
 
             //Migration settings
-            _Database.CheckMigration(_migrationStore);
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            {
+                conn.Open();
+                Migration m = new Migration(conn, GetType().Assembly, "EstateStore");
+                m.Update();
+            }
 
             //Interesting way to get parameters! Maybe implement that also with other types
             Type t = typeof(EstateSettings);
@@ -112,19 +117,19 @@ namespace OpenSim.Data.MSSQL
                         {
                             FieldInfo f = _FieldMap[name];
                             object v = reader[name];
-                            if (f.FieldType == typeof(bool) )
+                            if (f.FieldType == typeof(bool))
                             {
                                 f.SetValue(es, Convert.ToInt32(v) != 0);
                             }
-                            else if (f.FieldType == typeof(UUID) )
+                            else if (f.FieldType == typeof(UUID))
                             {
                                 f.SetValue(es, new UUID((Guid)v)); // uuid);
                             }
-                            else if (f.FieldType == typeof(string)) 
+                            else if (f.FieldType == typeof(string))
                             {
                                 f.SetValue(es, v.ToString());
                             }
-                            else if (f.FieldType == typeof(UInt32))  
+                            else if (f.FieldType == typeof(UInt32))
                             {
                                 f.SetValue(es, Convert.ToUInt32(v));
                             }
@@ -186,7 +191,7 @@ namespace OpenSim.Data.MSSQL
                     }
                     catch (Exception e)
                     {
-                        _Log.DebugFormat("[ESTATE DB]: Error inserting regionID and EstateID in estate_map: {0}", e);
+                        m_log.DebugFormat("[ESTATE DB]: Error inserting regionID and EstateID in estate_map: {0}", e);
                     }
                 }
 
@@ -310,12 +315,12 @@ namespace OpenSim.Data.MSSQL
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText  = "delete from estateban where EstateID = @EstateID";
+                    cmd.CommandText = "delete from estateban where EstateID = @EstateID";
                     cmd.Parameters.AddWithValue("@EstateID", (int)es.EstateID);
                     cmd.ExecuteNonQuery();
 
                     //Insert after
-                    cmd.CommandText = "insert into estateban (EstateID, bannedUUID) values ( @EstateID, @bannedUUID )";
+                    cmd.CommandText = "insert into estateban (EstateID, bannedUUID,bannedIp, bannedIpHostMask, bannedNameMask) values ( @EstateID, @bannedUUID, '','','' )";
                     cmd.Parameters.AddWithValue("@bannedUUID", Guid.Empty);
                     foreach (EstateBan b in es.EstateBans)
                     {
@@ -350,43 +355,195 @@ namespace OpenSim.Data.MSSQL
 
         public EstateSettings LoadEstateSettings(int estateID)
         {
-            // TODO: Implementation!
-            return new EstateSettings();
+            EstateSettings es = new EstateSettings();
+            string sql = "select estate_settings." + String.Join(",estate_settings.", FieldList) + " from estate_settings where EstateID = @EstateID";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@EstateID", (int)estateID);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            foreach (string name in FieldList)
+                            {
+                                FieldInfo f = _FieldMap[name];
+                                object v = reader[name];
+                                if (f.FieldType == typeof(bool))
+                                {
+                                    f.SetValue(es, Convert.ToInt32(v) != 0);
+                                }
+                                else if (f.FieldType == typeof(UUID))
+                                {
+                                    f.SetValue(es, new UUID((Guid)v)); // uuid);
+                                }
+                                else if (f.FieldType == typeof(string))
+                                {
+                                    f.SetValue(es, v.ToString());
+                                }
+                                else if (f.FieldType == typeof(UInt32))
+                                {
+                                    f.SetValue(es, Convert.ToUInt32(v));
+                                }
+                                else if (f.FieldType == typeof(Single))
+                                {
+                                    f.SetValue(es, Convert.ToSingle(v));
+                                }
+                                else
+                                    f.SetValue(es, v);
+                            }
+                        }
+
+                    }
+                }
+            }
+            LoadBanList(es);
+
+            es.EstateManagers = LoadUUIDList(es.EstateID, "estate_managers");
+            es.EstateAccess = LoadUUIDList(es.EstateID, "estate_users");
+            es.EstateGroups = LoadUUIDList(es.EstateID, "estate_groups");
+
+            //Set event
+            es.OnSave += StoreEstateSettings;
+            return es;
+
         }
-        
+
         public List<EstateSettings> LoadEstateSettingsAll()
         {
-            // TODO: Implementation!
-            return new List<EstateSettings>();            
+            List<EstateSettings> allEstateSettings = new List<EstateSettings>();
+
+            List<int> allEstateIds = GetEstatesAll();
+
+            foreach (int estateId in allEstateIds)
+                allEstateSettings.Add(LoadEstateSettings(estateId));
+
+            return allEstateSettings;
         }
 
         public List<int> GetEstates(string search)
         {
-            // TODO: Implementation!            
-            return new List<int>();
+            List<int> result = new List<int>();
+            string sql = "select estateID from estate_settings where EstateName = @EstateName";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@EstateName", search);
+
+                    using (IDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            result.Add(Convert.ToInt32(reader["EstateID"]));
+                        }
+                        reader.Close();
+                    }
+                }
+            }
+
+            return result;
         }
-        
+
         public List<int> GetEstatesAll()
         {
-            // TODO: Implementation!            
-            return new List<int>();
+            List<int> result = new List<int>();
+            string sql = "select estateID from estate_settings";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    using (IDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            result.Add(Convert.ToInt32(reader["EstateID"]));
+                        }
+                        reader.Close();
+                    }
+                }
+            }
+
+            return result;
         }
 
         public List<int> GetEstatesByOwner(UUID ownerID)
         {
-            return new List<int>();
+            List<int> result = new List<int>();
+            string sql = "select estateID from estate_settings where EstateOwner = @EstateOwner";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@EstateOwner", ownerID);
+
+                    using (IDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            result.Add(Convert.ToInt32(reader["EstateID"]));
+                        }
+                        reader.Close();
+                    }
+                }
+            }
+
+            return result;
         }
 
         public bool LinkRegion(UUID regionID, int estateID)
         {
-            // TODO: Implementation!            
+            string sql = "insert into estate_map values (@RegionID, @EstateID)";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            {
+                conn.Open();
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@RegionID", regionID);
+                        cmd.Parameters.AddWithValue("@EstateID", estateID);
+
+                        int ret = cmd.ExecuteNonQuery();
+                        return (ret != 0);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("[REGION DB]: LinkRegion failed: " + ex.Message);
+                }
+            }
             return false;
         }
 
         public List<UUID> GetRegions(int estateID)
         {
-            // TODO: Implementation!            
-            return new List<UUID>();
+            List<UUID> result = new List<UUID>();
+            string sql = "select RegionID from estate_map where EstateID = @EstateID";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@EstateID", estateID);
+
+                    using (IDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            result.Add(DBGuid.FromDB(reader["RegionID"]));
+                        }
+                        reader.Close();
+                    }
+                }
+            }
+
+            return result;
         }
 
         public bool DeleteEstate(int estateID)

@@ -29,16 +29,19 @@ using System;
 using System.Data;
 using System.Data.Common;
 using System.Reflection;
+using System.Data.SqlClient;
 
 namespace OpenSim.Data.MSSQL
 {
     public class MSSQLMigration : Migration
     {
-        public MSSQLMigration(DbConnection conn, Assembly assem, string type) : base(conn, assem, type)
+        public MSSQLMigration(DbConnection conn, Assembly assem, string type)
+            : base(conn, assem, type)
         {
         }
 
-        public MSSQLMigration(DbConnection conn, Assembly assem, string subtype, string type) : base(conn, assem, subtype, type)
+        public MSSQLMigration(DbConnection conn, Assembly assem, string subtype, string type)
+            : base(conn, assem, subtype, type)
         {
         }
 
@@ -66,6 +69,31 @@ namespace OpenSim.Data.MSSQL
                 }
             }
             return version;
+        }
+
+        protected override void ExecuteScript(DbConnection conn, string[] script)
+        {
+            if (!(conn is SqlConnection))
+            {
+                base.ExecuteScript(conn, script);
+                return;
+            }
+
+            foreach (string sql in script)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand(sql, (SqlConnection)conn))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(sql);
+
+                }
+            }
         }
     }
 }
