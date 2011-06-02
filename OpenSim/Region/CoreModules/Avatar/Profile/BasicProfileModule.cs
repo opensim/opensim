@@ -57,9 +57,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Profile
 
         public void Initialise(IConfigSource config)
         {
-            if (config.Configs["Profiles"] != null)
+            if (config.Configs["Profile"] != null)
             {
-                if (config.Configs["Profiles"].GetString("Module", string.Empty) != "BasicProfileModule")
+                if (config.Configs["Profile"].GetString("Module", string.Empty) != "BasicProfileModule")
                     return;
             }
 
