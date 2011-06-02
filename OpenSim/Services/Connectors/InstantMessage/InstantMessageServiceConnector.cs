@@ -61,7 +61,7 @@ namespace OpenSim.Services.Connectors.InstantMessage
             try
             {
 
-                XmlRpcResponse GridResp = GridReq.Send(url, 3000);
+                XmlRpcResponse GridResp = GridReq.Send(url, 10000);
 
                 Hashtable responseData = (Hashtable)GridResp.Value;
 
