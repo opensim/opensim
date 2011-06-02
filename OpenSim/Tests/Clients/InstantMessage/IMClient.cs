@@ -54,7 +54,7 @@ namespace OpenSim.Tests.Clients.InstantMessage
                 new PatternLayout("%date [%thread] %-5level %logger [%property{NDC}] - %message%newline");
             log4net.Config.BasicConfigurator.Configure(consoleAppender);
 
-            string serverURI = "http://grid.nebadon2025.homeftp.net:8002/";
+            string serverURI = "http://127.0.0.1:8002"; 
             GridInstantMessage im = new GridInstantMessage();
             im.fromAgentID = new Guid();
             im.toAgentID = new Guid();
