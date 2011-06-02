@@ -346,6 +346,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             m_SOPXmlProcessors.Add("PayPrice2", ProcessPayPrice2);
             m_SOPXmlProcessors.Add("PayPrice3", ProcessPayPrice3);
             m_SOPXmlProcessors.Add("PayPrice4", ProcessPayPrice4);
+
+            m_SOPXmlProcessors.Add("Buoyancy", ProcessBuoyancy);
             #endregion
 
             #region TaskInventoryXmlProcessors initialization
@@ -727,6 +729,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         private static void ProcessPayPrice4(SceneObjectPart obj, XmlTextReader reader)
         {
             obj.PayPrice[4] = (int)reader.ReadElementContentAsInt("PayPrice4", String.Empty);
+        }
+
+        private static void ProcessBuoyancy(SceneObjectPart obj, XmlTextReader reader)
+        {
+            obj.Buoyancy = (int)reader.ReadElementContentAsFloat("Buoyancy", String.Empty);
         }
 
         #endregion
@@ -1210,6 +1217,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("PayPrice2", sop.PayPrice[2].ToString());
             writer.WriteElementString("PayPrice3", sop.PayPrice[3].ToString());
             writer.WriteElementString("PayPrice4", sop.PayPrice[4].ToString());
+
+            writer.WriteElementString("Buoyancy", sop.Buoyancy.ToString());
 
             writer.WriteEndElement();
         }
