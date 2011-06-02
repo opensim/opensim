@@ -161,19 +161,8 @@ namespace OpenSim.Services.Connectors.Friends
 
         public bool StoreFriend(string PrincipalID, string Friend, int flags)
         {
-            FriendInfo finfo = new FriendInfo();
-            try
-            {
-                finfo.PrincipalID = new UUID(PrincipalID);
-            }
-            catch
-            {
-                return false;
-            }
-            finfo.Friend = Friend;
-            finfo.MyFlags = flags;
 
-            Dictionary<string, object> sendData = finfo.ToKeyValuePairs();
+            Dictionary<string, object> sendData = ToKeyValuePairs(PrincipalID, Friend, flags);
 
             sendData["METHOD"] = "storefriend";
 
@@ -267,5 +256,16 @@ namespace OpenSim.Services.Connectors.Friends
         }
 
         #endregion
+
+        public Dictionary<string, object> ToKeyValuePairs(string principalID, string friend, int flags)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            result["PrincipalID"] = principalID;
+            result["Friend"] = friend;
+            result["MyFlags"] = flags;
+
+            return result;
+        }
+
     }
 }
