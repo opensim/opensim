@@ -649,6 +649,7 @@
     ;; !!!!!!!!!!!!!!!!!!!!!!!!!!!
     ;; The IP address of your FreeSWITCH server.  The common case is for this to be the same as the server running the OpenSim standalone
     ;; This has to be set for the FreeSWITCH service to work
+    ;; This address must be reachable by viewers.
     ;ServerAddress = 127.0.0.1
 
     ;; The following configuration parameters are optional

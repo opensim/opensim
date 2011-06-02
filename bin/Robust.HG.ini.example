@@ -107,6 +107,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"
 
     ;; The IP address of your FreeSWITCH server.
+    ;; This address must be reachable by viewers.
     ; ServerAddress = 127.0.0.1
 
     ;; The following configuration parameters are optional
