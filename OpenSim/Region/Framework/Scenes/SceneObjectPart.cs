@@ -338,6 +338,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected Vector3 m_lastAcceleration;
         protected Vector3 m_lastAngularVelocity;
         protected int m_lastTerseSent;
+        protected float m_buoyancy = 0.0f;
         
         /// <summary>
         /// Stores media texture data
@@ -1333,6 +1334,19 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_collisionSoundVolume; }
             set { m_collisionSoundVolume = value; }
+        }
+
+        public float Buoyancy
+        {
+            get { return m_buoyancy; }
+            set
+            {
+                m_buoyancy = value;
+                if (PhysActor != null)
+                {
+                    PhysActor.Buoyancy = value;
+                }
+            }
         }
 
         #endregion Public Properties with only Get
@@ -3273,14 +3287,6 @@ namespace OpenSim.Region.Framework.Scenes
                 STATUS_ROTATE_Y = rotate;
             if (axis == 8)//STATUS_ROTATE_Z
                 STATUS_ROTATE_Z = rotate;
-        }
-
-        public void SetBuoyancy(float fvalue)
-        {
-            if (PhysActor != null)
-            {
-                PhysActor.Buoyancy = fvalue;
-            }
         }
 
         public void SetDieAtEdge(bool p)

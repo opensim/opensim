@@ -3453,7 +3453,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (!m_host.ParentGroup.IsDeleted)
                 {
-                    m_host.ParentGroup.RootPart.SetBuoyancy((float)buoyancy);
+                    m_host.ParentGroup.RootPart.Buoyancy = (float)buoyancy;
                 }
             }
         }
@@ -3707,27 +3707,44 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
             }
-            else if (m_host.SitTargetAvatar == agentID) // Sitting avatar
+            else
             {
-                // When agent is sitting, certain permissions are implicit if requested from sitting agent
-                int implicitPerms = ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION |
-                    ScriptBaseClass.PERMISSION_CONTROL_CAMERA |
-                    ScriptBaseClass.PERMISSION_TRACK_CAMERA |
-                    ScriptBaseClass.PERMISSION_TAKE_CONTROLS;
-
-                if ((perm & (~implicitPerms)) == 0) // Requested only implicit perms
+                bool sitting = false;
+                if (m_host.SitTargetAvatar == agentID)
                 {
-                    m_host.TaskInventory.LockItemsForWrite(true);
-                    m_host.TaskInventory[invItemID].PermsGranter = agentID;
-                    m_host.TaskInventory[invItemID].PermsMask = perm;
-                    m_host.TaskInventory.LockItemsForWrite(false);
+                    sitting = true;
+                }
+                else
+                {
+                    foreach (SceneObjectPart p in m_host.ParentGroup.Parts)
+                    {
+                        if (p.SitTargetAvatar == agentID)
+                            sitting = true;
+                    }
+                }
 
-                    m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
-                            "run_time_permissions", new Object[] {
-                            new LSL_Integer(perm) },
-                            new DetectParams[0]));
+                if (sitting)
+                {
+                    // When agent is sitting, certain permissions are implicit if requested from sitting agent
+                    int implicitPerms = ScriptBaseClass.PERMISSION_TRIGGER_ANIMATION |
+                        ScriptBaseClass.PERMISSION_CONTROL_CAMERA |
+                        ScriptBaseClass.PERMISSION_TRACK_CAMERA |
+                        ScriptBaseClass.PERMISSION_TAKE_CONTROLS;
 
-                    return;
+                    if ((perm & (~implicitPerms)) == 0) // Requested only implicit perms
+                    {
+                        m_host.TaskInventory.LockItemsForWrite(true);
+                        m_host.TaskInventory[invItemID].PermsGranter = agentID;
+                        m_host.TaskInventory[invItemID].PermsMask = perm;
+                        m_host.TaskInventory.LockItemsForWrite(false);
+
+                        m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
+                                "run_time_permissions", new Object[] {
+                                new LSL_Integer(perm) },
+                                new DetectParams[0]));
+
+                        return;
+                    }
                 }
             }
 
