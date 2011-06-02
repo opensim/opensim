@@ -187,12 +187,16 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             // Is the user a local user?
             UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, toAgentID);
             string url = string.Empty;
+            bool foreigner = false;
             if (account == null) // foreign user
+            {
                 url = UserManagementModule.GetUserServerURL(toAgentID, "IMServerURI");
+                foreigner = true;
+            }
 
             Util.FireAndForget(delegate
             {
-                bool success = m_IMService.OutgoingInstantMessage(im, url);
+                bool success = m_IMService.OutgoingInstantMessage(im, url, foreigner);
                 if (!success && account == null)
                 {
                     // One last chance
@@ -203,7 +207,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                         UUID id; string u = string.Empty, first = string.Empty, last = string.Empty, secret = string.Empty;
                         if (Util.ParseUniversalUserIdentifier(recipientUUI, out id, out u, out first, out last, out secret))
                         {
-                            success = m_IMService.OutgoingInstantMessage(im, u);
+                            success = m_IMService.OutgoingInstantMessage(im, u, true);
                             if (success)
                                 UserManagementModule.AddUser(toAgentID, u + ";" + first + " " + last);
                         }

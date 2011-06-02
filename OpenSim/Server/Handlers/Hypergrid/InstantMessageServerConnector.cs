@@ -72,7 +72,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             if (m_IMService == null)
                 throw new Exception("InstantMessage server connector cannot proceed because of missing service");
 
-            MainServer.Instance.AddXmlRPCHandler("grid_instant_message", ProcessInstantMessage, false);
+            server.AddXmlRPCHandler("grid_instant_message", ProcessInstantMessage, false);
 
         }
 

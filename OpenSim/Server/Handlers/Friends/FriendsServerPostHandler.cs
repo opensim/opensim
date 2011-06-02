@@ -160,9 +160,9 @@ namespace OpenSim.Server.Handlers.Friends
 
         byte[] StoreFriend(Dictionary<string, object> request)
         {
-            FriendInfo friend = new FriendInfo(request);
-
-            bool success = m_FriendsService.StoreFriend(friend.PrincipalID.ToString(), friend.Friend, friend.MyFlags);
+            string principalID = string.Empty, friend = string.Empty; int flags = 0;
+            FromKeyValuePairs(request, out principalID, out friend, out flags);
+            bool success = m_FriendsService.StoreFriend(principalID, friend, flags);
 
             if (success)
                 return SuccessResult();
@@ -273,6 +273,19 @@ namespace OpenSim.Server.Handlers.Friends
             xw.Flush();
 
             return ms.ToArray();
+        }
+
+        void FromKeyValuePairs(Dictionary<string, object> kvp, out string principalID, out string friend, out int flags)
+        {
+            principalID = string.Empty;
+            if (kvp.ContainsKey("PrincipalID") && kvp["PrincipalID"] != null)
+                principalID = kvp["PrincipalID"].ToString();
+            friend = string.Empty;
+            if (kvp.ContainsKey("Friend") && kvp["Friend"] != null)
+                friend = kvp["Friend"].ToString();
+            flags = 0;
+            if (kvp.ContainsKey("MyFlags") && kvp["MyFlags"] != null)
+                Int32.TryParse(kvp["MyFlags"].ToString(), out flags);
         }
 
         #endregion

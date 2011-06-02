@@ -72,7 +72,7 @@ namespace OpenSim.Services.Interfaces
     public interface IInstantMessage
     {
         bool IncomingInstantMessage(GridInstantMessage im);
-        bool OutgoingInstantMessage(GridInstantMessage im, string url);
+        bool OutgoingInstantMessage(GridInstantMessage im, string url, bool foreigner);
     }
     public interface IFriendsSimConnector
     {

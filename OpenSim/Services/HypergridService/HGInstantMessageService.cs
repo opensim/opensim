@@ -115,23 +115,23 @@ namespace OpenSim.Services.HypergridService
                 return m_IMSimConnector.SendInstantMessage(im);
             }
             else
-                return TrySendInstantMessage(im, "", true); 
+                return TrySendInstantMessage(im, "", true, false); 
         }
 
-        public bool OutgoingInstantMessage(GridInstantMessage im, string url)
+        public bool OutgoingInstantMessage(GridInstantMessage im, string url, bool foreigner)
         {
             m_log.DebugFormat("[HG IM SERVICE]: Sending message from {0} to {1}@{2}", im.fromAgentID, im.toAgentID, url);
             if (url != string.Empty)
-                return TrySendInstantMessage(im, url, true);
+                return TrySendInstantMessage(im, url, true, foreigner);
             else
             {
                 PresenceInfo upd = new PresenceInfo();
                 upd.RegionID = UUID.Zero;
-                return TrySendInstantMessage(im, upd, true);
+                return TrySendInstantMessage(im, upd, true, foreigner);
             }
         }
 
-        protected bool TrySendInstantMessage(GridInstantMessage im, object previousLocation, bool firstTime)
+        protected bool TrySendInstantMessage(GridInstantMessage im, object previousLocation, bool firstTime, bool foreigner)
         {
             UUID toAgentID = new UUID(im.toAgentID);
 
@@ -185,7 +185,7 @@ namespace OpenSim.Services.HypergridService
                     }
                 }
 
-                if (upd == null)
+                if (upd == null && !foreigner)
                 {
                     // Let's check with the UAS if the user is elsewhere
                     m_log.DebugFormat("[HG IM SERVICE]: User is not present. Checking location with User Agent service");
@@ -213,25 +213,25 @@ namespace OpenSim.Services.HypergridService
                 // ok, the user is around somewhere. Let's send back the reply with "success"
                 // even though the IM may still fail. Just don't keep the caller waiting for
                 // the entire time we're trying to deliver the IM
-                return SendIMToRegion(upd, im, toAgentID);
+                return SendIMToRegion(upd, im, toAgentID, foreigner);
             }
             else if (url != string.Empty)
             {
                 // ok, the user is around somewhere. Let's send back the reply with "success"
                 // even though the IM may still fail. Just don't keep the caller waiting for
                 // the entire time we're trying to deliver the IM
-                return ForwardIMToGrid(url, im, toAgentID);
+                return ForwardIMToGrid(url, im, toAgentID, foreigner);
             }
             else if (firstTime && previousLocation is string && (string)previousLocation != string.Empty)
             {
-                return ForwardIMToGrid((string)previousLocation, im, toAgentID);
+                return ForwardIMToGrid((string)previousLocation, im, toAgentID, foreigner);
             }
             else
                 m_log.DebugFormat("[HG IM SERVICE]: Unable to locate user {0}", toAgentID);
             return false;
         }
 
-        bool SendIMToRegion(PresenceInfo upd, GridInstantMessage im, UUID toAgentID)
+        bool SendIMToRegion(PresenceInfo upd, GridInstantMessage im, UUID toAgentID, bool foreigner)
         {
             bool imresult = false;
             GridRegion reginfo = null;
@@ -277,11 +277,11 @@ namespace OpenSim.Services.HypergridService
                 // The version that spawns the thread is SendGridInstantMessageViaXMLRPC
 
                 // This is recursive!!!!!
-                return TrySendInstantMessage(im, upd, false);
+                return TrySendInstantMessage(im, upd, false, foreigner);
             }
         }
 
-        bool ForwardIMToGrid(string url, GridInstantMessage im, UUID toAgentID)
+        bool ForwardIMToGrid(string url, GridInstantMessage im, UUID toAgentID, bool foreigner)
         {
             if (InstantMessageServiceConnector.SendInstantMessage(url, im))
             {
@@ -309,7 +309,7 @@ namespace OpenSim.Services.HypergridService
                 // The version that spawns the thread is SendGridInstantMessageViaXMLRPC
 
                 // This is recursive!!!!!
-                return TrySendInstantMessage(im, url, false);
+                return TrySendInstantMessage(im, url, false, foreigner);
             }
 
         }
