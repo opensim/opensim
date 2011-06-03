@@ -55,6 +55,9 @@ namespace OpenSim.Region.Framework.Tests
         [Test]
         public void TestGiveInventoryFolder()
         {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+            
             Scene scene = SceneSetupHelpers.SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
             UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene);
