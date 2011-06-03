@@ -26,8 +26,10 @@
  */
 
 using System;
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
@@ -117,6 +119,25 @@ namespace OpenSim.Tests.Common
                 return CreateInventoryFolder(inventoryService, newFolder, components[1]);
             else
                 return newFolder;
+        }
+
+        /// <summary>
+        /// Get the inventory folder that matches the path name.  If there are multiple folders then only the first
+        /// is returned.
+        /// </summary>
+        /// <param name="inventoryService"></param>
+        /// <param name="userId"></param>
+        /// <param name="path"></param>
+        /// <returns>null if no folder matching the path was found</returns>
+        public static InventoryFolderBase GetInventoryFolder(IInventoryService inventoryService, UUID userId, string path)
+        {
+            List<InventoryFolderBase> folders
+                = InventoryArchiveUtils.FindFolderByPath(inventoryService, userId, path);
+
+            if (folders.Count != 0)
+                return folders[0];
+            else
+                return null;
         }
     }
 }

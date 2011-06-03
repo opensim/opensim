@@ -66,8 +66,10 @@ namespace OpenSim.Region.Framework.Tests
 
             scene.GiveInventoryFolder(user2.PrincipalID, user1.PrincipalID, folder1.ID, UUID.Zero);
 
-//            InventoryFolderBase receivedFolder1Template = new InventoryFolderBase(
-//            InventoryFolderBase receivedFolder1 = scene.InventoryService.GetFolder
+            InventoryFolderBase retrievedFolder1
+                = UserInventoryHelpers.GetInventoryFolder(scene.InventoryService, user2.PrincipalID, "folder1");
+
+            Assert.That(retrievedFolder1, Is.Not.Null);
         }
     }
 }
