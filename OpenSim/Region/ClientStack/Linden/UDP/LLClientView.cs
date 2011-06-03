@@ -8308,10 +8308,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (lma == null)
                 {
                     // Failed to find landmark
-                    TeleportCancelPacket tpCancel = (TeleportCancelPacket)PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
-                    tpCancel.Info.SessionID = tpReq.Info.SessionID;
-                    tpCancel.Info.AgentID = tpReq.Info.AgentID;
-                    OutPacket(tpCancel, ThrottleOutPacketType.Task);
+
+                    // Let's try to search in the user's home asset server
+                    lma = FindAssetInUserAssetServer(lmid.ToString());
+
+                    if (lma == null)
+                    {
+                        // Really doesn't exist
+                        TeleportCancelPacket tpCancel = (TeleportCancelPacket)PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
+                        tpCancel.Info.SessionID = tpReq.Info.SessionID;
+                        tpCancel.Info.AgentID = tpReq.Info.AgentID;
+                        OutPacket(tpCancel, ThrottleOutPacketType.Task);
+                    }
                 }
 
                 try
@@ -8354,6 +8362,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             }
             return true;
+        }
+
+        private AssetBase FindAssetInUserAssetServer(string id)
+        {
+            AgentCircuitData aCircuit = ((Scene)Scene).AuthenticateHandler.GetAgentCircuitData(CircuitCode);
+            if (aCircuit != null && aCircuit.ServiceURLs != null && aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
+            {
+                string assetServer = aCircuit.ServiceURLs["AssetServerURI"].ToString();
+                return ((Scene)Scene).AssetService.Get(assetServer + "/" + id);
+            }
+
+            return null;
         }
 
         private bool HandleTeleportLocationRequest(IClientAPI sender, Packet Pack)
