@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Xml;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 
 using OpenSim.Framework;
@@ -128,7 +129,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         protected virtual void OnNewClient(IClientAPI client)
         {
-            
+            client.OnCreateNewInventoryItem += CreateNewInventoryItem;
         }
 
         public virtual void Close()
@@ -155,6 +156,82 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         #endregion
 
         #region Inventory Access
+
+        /// <summary>
+        /// Create a new inventory item.  Called when the client creates a new item directly within their
+        /// inventory (e.g. by selecting a context inventory menu option).
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="transactionID"></param>
+        /// <param name="folderID"></param>
+        /// <param name="callbackID"></param>
+        /// <param name="description"></param>
+        /// <param name="name"></param>
+        /// <param name="invType"></param>
+        /// <param name="type"></param>
+        /// <param name="wearableType"></param>
+        /// <param name="nextOwnerMask"></param>
+        public void CreateNewInventoryItem(IClientAPI remoteClient, UUID transactionID, UUID folderID,
+                                           uint callbackID, string description, string name, sbyte invType,
+                                           sbyte assetType,
+                                           byte wearableType, uint nextOwnerMask, int creationDate)
+        {
+            m_log.DebugFormat("[AGENT INVENTORY]: Received request to create inventory item {0} in folder {1}", name, folderID);
+
+            if (!m_Scene.Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
+                return;
+
+            InventoryFolderBase f = new InventoryFolderBase(folderID, remoteClient.AgentId);
+            InventoryFolderBase folder = m_Scene.InventoryService.GetFolder(f);
+
+            if (folder == null || folder.Owner != remoteClient.AgentId)
+                return;
+
+            if (transactionID == UUID.Zero)
+            {
+                ScenePresence presence;
+                if (m_Scene.TryGetScenePresence(remoteClient.AgentId, out presence))
+                {
+                    byte[] data = null;
+
+                    if (invType == (sbyte)InventoryType.Landmark && presence != null)
+                    {
+                        string strdata = GenerateLandmark(presence);
+                        data = Encoding.ASCII.GetBytes(strdata);
+                    }
+
+                    AssetBase asset = m_Scene.CreateAsset(name, description, assetType, data, remoteClient.AgentId);
+                    m_Scene.AssetService.Store(asset);
+
+                    m_Scene.CreateNewInventoryItem(remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID, asset.Name, 0, callbackID, asset, invType, nextOwnerMask, creationDate);
+                }
+                else
+                {
+                    m_log.ErrorFormat(
+                        "ScenePresence for agent uuid {0} unexpectedly not found in CreateNewInventoryItem",
+                        remoteClient.AgentId);
+                }
+            }
+            else
+            {
+                IAgentAssetTransactions agentTransactions = m_Scene.RequestModuleInterface<IAgentAssetTransactions>();
+                if (agentTransactions != null)
+                {
+                    agentTransactions.HandleItemCreationFromTransaction(
+                        remoteClient, transactionID, folderID, callbackID, description,
+                        name, invType, assetType, wearableType, nextOwnerMask);
+                }
+            }
+        }
+
+        protected virtual string GenerateLandmark(ScenePresence presence)
+        {
+            Vector3 pos = presence.AbsolutePosition;
+            return String.Format("Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
+                                presence.Scene.RegionInfo.RegionID,
+                                pos.X, pos.Y, pos.Z,
+                                presence.RegionHandle);
+        }
 
         /// <summary>
         /// Capability originating call to update the asset of an item in an agent's inventory

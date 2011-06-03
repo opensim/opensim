@@ -778,7 +778,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="asset"></param>
         /// <param name="invType"></param>
         /// <param name="nextOwnerMask"></param>
-        private void CreateNewInventoryItem(IClientAPI remoteClient, string creatorID, string creatorData, UUID folderID, string name, uint flags, uint callbackID,
+        public void CreateNewInventoryItem(IClientAPI remoteClient, string creatorID, string creatorData, UUID folderID, string name, uint flags, uint callbackID,
                                             AssetBase asset, sbyte invType, uint nextOwnerMask, int creationDate)
         {
             CreateNewInventoryItem(
@@ -829,78 +829,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat(
                     "Failed to add item for {0} in CreateNewInventoryItem!",
                      remoteClient.Name);
-            }
-        }
-
-        /// <summary>
-        /// Create a new inventory item.  Called when the client creates a new item directly within their
-        /// inventory (e.g. by selecting a context inventory menu option).
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="transactionID"></param>
-        /// <param name="folderID"></param>
-        /// <param name="callbackID"></param>
-        /// <param name="description"></param>
-        /// <param name="name"></param>
-        /// <param name="invType"></param>
-        /// <param name="type"></param>
-        /// <param name="wearableType"></param>
-        /// <param name="nextOwnerMask"></param>
-        public void CreateNewInventoryItem(IClientAPI remoteClient, UUID transactionID, UUID folderID,
-                                           uint callbackID, string description, string name, sbyte invType,
-                                           sbyte assetType,
-                                           byte wearableType, uint nextOwnerMask, int creationDate)
-        {
-            m_log.DebugFormat("[AGENT INVENTORY]: Received request to create inventory item {0} in folder {1}", name, folderID);
-
-            if (!Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
-                return;
-
-            InventoryFolderBase f = new InventoryFolderBase(folderID, remoteClient.AgentId);
-            InventoryFolderBase folder = InventoryService.GetFolder(f);
-
-            if (folder == null || folder.Owner != remoteClient.AgentId)
-                return;
-
-            if (transactionID == UUID.Zero)
-            {
-                ScenePresence presence;
-                if (TryGetScenePresence(remoteClient.AgentId, out presence))
-                {
-                    byte[] data = null;
-
-                    if (invType == (sbyte)InventoryType.Landmark && presence != null)
-                    {
-                        Vector3 pos = presence.AbsolutePosition;
-                        string strdata = String.Format(
-                            "Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
-                            presence.Scene.RegionInfo.RegionID,
-                            pos.X, pos.Y, pos.Z,
-                            presence.RegionHandle);
-                        data = Encoding.ASCII.GetBytes(strdata);
-                    }
-
-                    AssetBase asset = CreateAsset(name, description, assetType, data, remoteClient.AgentId);
-                    AssetService.Store(asset);
-
-                    CreateNewInventoryItem(remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID, asset.Name, 0, callbackID, asset, invType, nextOwnerMask, creationDate);
-                }
-                else
-                {
-                    m_log.ErrorFormat(
-                        "ScenePresence for agent uuid {0} unexpectedly not found in CreateNewInventoryItem",
-                        remoteClient.AgentId);
-                }
-            }
-            else
-            {
-                IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
-                if (agentTransactions != null)
-                {
-                    agentTransactions.HandleItemCreationFromTransaction(
-                        remoteClient, transactionID, folderID, callbackID, description,
-                        name, invType, assetType, wearableType, nextOwnerMask);
-                }
             }
         }
 
