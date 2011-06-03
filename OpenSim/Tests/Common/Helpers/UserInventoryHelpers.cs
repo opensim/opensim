@@ -43,7 +43,20 @@ namespace OpenSim.Tests.Common
         public static readonly string PATH_DELIMITER = "/";
 
         /// <summary>
-        /// Creates a notecard in the objects folder.
+        /// Creates a notecard in the objects folder and specify an item id.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="itemName"></param>
+        /// <param name="itemId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public static InventoryItemBase CreateInventoryItem(Scene scene, string itemName, UUID userId)
+        {
+            return CreateInventoryItem(scene, itemName, UUID.Random(), userId);
+        }
+
+        /// <summary>
+        /// Creates a notecard in the objects folder and specify an item id.
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="itemName"></param>
@@ -138,6 +151,19 @@ namespace OpenSim.Tests.Common
                 return folders[0];
             else
                 return null;
+        }
+
+        /// <summary>
+        /// Get the inventory item that matches the path name.  If there are multiple items then only the first
+        /// is returned.
+        /// </summary>
+        /// <param name="inventoryService"></param>
+        /// <param name="userId"></param>
+        /// <param name="path"></param>
+        /// <returns>null if no item matching the path was found</returns>
+        public static InventoryItemBase GetInventoryItem(IInventoryService inventoryService, UUID userId, string path)
+        {
+            return InventoryArchiveUtils.FindItemByPath(inventoryService, userId, path);
         }
     }
 }

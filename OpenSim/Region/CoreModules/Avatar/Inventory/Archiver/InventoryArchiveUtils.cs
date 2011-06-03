@@ -181,25 +181,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         
         /// <summary>
         /// Find an item given a PATH_DELIMITOR delimited path starting from this folder.
-        ///
-        /// This method does not handle paths that contain multiple delimitors
+        /// </summary>
+        /// <remarks>
+        /// This method does not handle paths that contain multiple delimiters
         ///
         /// FIXME: We do not yet handle situations where folders or items have the same name.  We could handle this by some
         /// XPath like expression
         ///
         /// FIXME: Delimitors which occur in names themselves are not currently escapable.
-        /// </summary>
+        /// </remarks>
         /// 
-        /// <param name="inventoryService">
-        /// Inventory service to query
-        /// </param>
-        /// <param name="startFolder">
-        /// The folder from which the path starts
-        /// </param>
-        /// <param name="path">
-        /// <param name="path">
-        /// The path to the required item.
-        /// </param>
+        /// <param name="inventoryService">Inventory service to query</param>
+        /// <param name="startFolder">The folder from which the path starts</param>
+        /// <param name="path">The path to the required item.</param>
         /// <returns>null if the item is not found</returns>
         public static InventoryItemBase FindItemByPath(
             IInventoryService inventoryService, InventoryFolderBase startFolder, string path)

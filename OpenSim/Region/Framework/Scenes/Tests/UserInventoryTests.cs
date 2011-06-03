@@ -53,6 +53,25 @@ namespace OpenSim.Region.Framework.Tests
     public class UserInventoryTests
     {
         [Test]
+        public void TestGiveInventoryItem()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            Scene scene = SceneSetupHelpers.SetupScene();
+            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
+            UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene);
+            InventoryItemBase item1 = UserInventoryHelpers.CreateInventoryItem(scene, "item1", user1.PrincipalID);
+
+            scene.GiveInventoryItem(user2.PrincipalID, user1.PrincipalID, item1.ID);
+
+            InventoryItemBase retrievedItem1
+                = UserInventoryHelpers.GetInventoryItem(scene.InventoryService, user2.PrincipalID, "Objects/item1");
+
+            Assert.That(retrievedItem1, Is.Not.Null);
+        }
+
+        [Test]
         public void TestGiveInventoryFolder()
         {
             TestHelper.InMethod();
