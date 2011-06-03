@@ -52,6 +52,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected bool m_Enabled = false;
         protected Scene m_aScene;
+        protected List<Scene> m_Scenes = new List<Scene>();
         protected List<UUID> m_agentsInTransit;
         private ExpiringCache<UUID, ExpiringCache<ulong, DateTime>> m_bannedRegions =
                 new ExpiringCache<UUID, ExpiringCache<ulong, DateTime>>();
@@ -96,6 +97,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (m_aScene == null)
                 m_aScene = scene;
 
+            m_Scenes.Add(scene);
             scene.RegisterModuleInterface<IEntityTransferModule>(this);
             scene.EventManager.OnNewClient += OnNewClient;
         }
@@ -103,6 +105,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected virtual void OnNewClient(IClientAPI client)
         {
             client.OnTeleportHomeRequest += TeleportHome;
+            client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
         }
 
         public virtual void Close()
@@ -118,6 +121,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
             if (scene == m_aScene)
                 m_aScene = null;
+
+            m_Scenes.Remove(scene);
         }
 
         public virtual void RegionLoaded(Scene scene)
@@ -126,7 +131,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
 
         }
-
 
         #endregion
 
@@ -555,6 +559,29 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
 
         #endregion
+
+        #region Landmark Teleport
+        /// <summary>
+        /// Tries to teleport agent to landmark.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="regionHandle"></param>
+        /// <param name="position"></param>
+        public virtual void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm)
+        {
+            GridRegion info = m_aScene.GridService.GetRegionByUUID(UUID.Zero, lm.RegionID);
+
+            if (info == null)
+            {
+                // can't find the region: Tell viewer and abort
+                remoteClient.SendTeleportFailed("The teleport destination could not be found.");
+                return;
+            }
+            ((Scene)(remoteClient.Scene)).RequestTeleportLocation(remoteClient, info.RegionHandle, lm.Position, 
+                Vector3.Zero, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
+        }
+
+        #endregion 
 
         #region Teleport Home
 

@@ -8301,6 +8301,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AssetLandmark lm;
             if (lmid != UUID.Zero)
             {
+
                 //AssetBase lma = m_assetCache.GetAsset(lmid, false);
                 AssetBase lma = m_assetService.Get(lmid.ToString());
 
@@ -8341,13 +8342,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             TeleportLandmarkRequest handlerTeleportLandmarkRequest = OnTeleportLandmarkRequest;
             if (handlerTeleportLandmarkRequest != null)
             {
-                handlerTeleportLandmarkRequest(this, lm.RegionID, lm.Position);
+                handlerTeleportLandmarkRequest(this, lm);
             }
             else
             {
                 //no event handler so cancel request
-
-
                 TeleportCancelPacket tpCancel = (TeleportCancelPacket)PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
                 tpCancel.Info.AgentID = tpReq.Info.AgentID;
                 tpCancel.Info.SessionID = tpReq.Info.SessionID;

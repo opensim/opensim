@@ -35,6 +35,7 @@ namespace OpenSim.Framework
         public Vector3 Position;
         public ulong RegionHandle;
         public UUID RegionID;
+        public string Gatekeeper = string.Empty;
         public int Version;
 
         public AssetLandmark(AssetBase a)
@@ -51,6 +52,8 @@ namespace OpenSim.Framework
             string[] parts = temp.Split('\n');
             int.TryParse(parts[0].Substring(17, 1), out Version);
             UUID.TryParse(parts[1].Substring(10, 36), out RegionID);
+            if (parts.Length >= 5)
+                Gatekeeper = parts[4].Replace("gatekeeper ", "");
             // The position is a vector with spaces as separators ("10.3 32.5 43").
             // Parse each scalar separately to take into account the system's culture setting.
             string[] scalars = parts[2].Substring(10, parts[2].Length - 10).Split(' ');

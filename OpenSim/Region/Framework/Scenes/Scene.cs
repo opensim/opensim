@@ -2749,7 +2749,6 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void SubscribeToClientTeleportEvents(IClientAPI client)
         {
             client.OnTeleportLocationRequest += RequestTeleportLocation;
-            client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
         }
 
         public virtual void SubscribeToClientScriptEvents(IClientAPI client)
@@ -2875,7 +2874,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void UnSubscribeToClientTeleportEvents(IClientAPI client)
         {
             client.OnTeleportLocationRequest -= RequestTeleportLocation;
-            client.OnTeleportLandmarkRequest -= RequestTeleportLandmark;
+            //client.OnTeleportLandmarkRequest -= RequestTeleportLandmark;
             //client.OnTeleportHomeRequest -= TeleportClientHome;
         }
 
@@ -3923,26 +3922,6 @@ namespace OpenSim.Region.Framework.Scenes
                     sp.ControllingClient.SendTeleportFailed("Unable to perform teleports on this simulator.");
                 }
             }
-        }
-
-        /// <summary>
-        /// Tries to teleport agent to landmark.
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="regionHandle"></param>
-        /// <param name="position"></param>
-        public void RequestTeleportLandmark(IClientAPI remoteClient, UUID regionID, Vector3 position)
-        {
-            GridRegion info = GridService.GetRegionByUUID(UUID.Zero, regionID);
-
-            if (info == null)
-            {
-                // can't find the region: Tell viewer and abort
-                remoteClient.SendTeleportFailed("The teleport destination could not be found.");
-                return;
-            }
-
-            RequestTeleportLocation(remoteClient, info.RegionHandle, position, Vector3.Zero, (uint)(TPFlags.SetLastToTarget | TPFlags.ViaLandmark));
         }
 
         public bool CrossAgentToNewRegion(ScenePresence agent, bool isFlying)
