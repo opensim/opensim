@@ -239,7 +239,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         public override void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm)
         {
             m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Teleporting agent via landmark to {0} region {1} position {2}", 
-                (lm.Gatekeeper == string.Empty ? "local" : lm.Gatekeeper, lm.RegionID, lm.Position);
+                (lm.Gatekeeper == string.Empty) ? "local" : lm.Gatekeeper, lm.RegionID, lm.Position);
             if (lm.Gatekeeper == string.Empty)
             {
                 base.RequestTeleportLandmark(remoteClient, lm);
