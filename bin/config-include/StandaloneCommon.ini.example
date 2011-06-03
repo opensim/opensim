@@ -36,6 +36,7 @@
 
 [HGInventoryAccessModule]
     ProfileServerURI = "http://127.0.0.1:9000/profiles"
+	Gatekeeper = "http://127.0.0.1:9000"
 
     ;; If you want to protect your assets from being copied by foreign visitors
     ;; uncomment the next line. You may want to do this on sims that have licensed content.
