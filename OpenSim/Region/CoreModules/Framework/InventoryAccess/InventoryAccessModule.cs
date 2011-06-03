@@ -196,9 +196,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
                     if (invType == (sbyte)InventoryType.Landmark && presence != null)
                     {
-                        string suffix = string.Empty;
-                        string strdata = GenerateLandmark(presence, out suffix);
+                        string suffix = string.Empty, prefix = string.Empty;
+                        string strdata = GenerateLandmark(presence, out prefix, out suffix);
                         data = Encoding.ASCII.GetBytes(strdata);
+                        name = prefix + name;
                         description += suffix;
                     }
 
@@ -226,8 +227,9 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             }
         }
 
-        protected virtual string GenerateLandmark(ScenePresence presence, out string suffix)
+        protected virtual string GenerateLandmark(ScenePresence presence, out string prefix, out string suffix)
         {
+            prefix = string.Empty;
             suffix = string.Empty;
             Vector3 pos = presence.AbsolutePosition;
             return String.Format("Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
