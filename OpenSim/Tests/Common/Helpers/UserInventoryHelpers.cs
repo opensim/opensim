@@ -40,8 +40,15 @@ namespace OpenSim.Tests.Common
     {
         public static readonly string PATH_DELIMITER = "/";
 
-        public static InventoryItemBase CreateInventoryItem(
-            Scene scene, string itemName, UUID itemId, string folderPath, UUID userId)
+        /// <summary>
+        /// Creates a notecard in the objects folder.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="itemName"></param>
+        /// <param name="itemId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public static InventoryItemBase CreateInventoryItem(Scene scene, string itemName, UUID itemId, UUID userId)
         {
             InventoryItemBase item = new InventoryItemBase();
             item.Name = itemName;
