@@ -140,6 +140,42 @@
     ;AllowedClients = ""
     ;DeniedClients = ""
 
+[FreeswitchService]
+    ;; If FreeSWITCH is not being used then you don't need to set any of these parameters
+    ;;
+    ;; The IP address of your FreeSWITCH server.  The common case is for this to be the same as the server running the OpenSim standalone
+    ;; This has to be set for the FreeSWITCH service to work
+    ;; This address must be reachable by viewers.
+    ;ServerAddress = 127.0.0.1
+
+    ;; The following configuration parameters are optional
+
+    ;; By default, this is the same as the ServerAddress
+    ; Realm = 127.0.0.1
+
+    ;; By default, this is the same as the ServerAddress on port 5060
+    ; SIPProxy = 127.0.0.1:5060
+
+    ;; Default is 5000ms
+    ; DefaultTimeout = 5000
+
+    ;; The dial plan context.  Default is "default"
+    ; Context = default
+
+    ;; Currently unused
+    ; UserName = freeswitch
+
+    ;; Currently unused
+    ; Password = password
+
+    ;; The following parameters are for STUN = Simple Traversal of UDP through NATs
+    ;; See http://wiki.freeswitch.org/wiki/NAT_Traversal
+    ;; stun.freeswitch.org is not guaranteed to be running so use it in
+    ;; production at your own risk    
+    ; EchoServer = 127.0.0.1
+    ; EchoPort = 50505
+    ; AttemptSTUN = false
+
 [GridInfoService]
     ; These settings are used to return information on a get_grid_info call.
     ; Client launcher scripts and third-party clients make use of this to
