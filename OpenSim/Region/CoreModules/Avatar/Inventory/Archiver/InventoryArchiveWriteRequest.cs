@@ -255,10 +255,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
     
                 // The path may point to an item instead
                 if (inventoryFolder == null)
-                {
                     inventoryItem = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, rootFolder, m_invPath);
-                    //inventoryItem = m_userInfo.RootFolder.FindItemByPath(m_invPath);
-                }
     
                 if (null == inventoryFolder && null == inventoryItem)
                 {

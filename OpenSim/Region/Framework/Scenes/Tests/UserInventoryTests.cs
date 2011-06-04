@@ -69,6 +69,9 @@ namespace OpenSim.Region.Framework.Tests
                 = UserInventoryHelpers.GetInventoryItem(scene.InventoryService, user2.PrincipalID, "Objects/item1");
 
             Assert.That(retrievedItem1, Is.Not.Null);
+
+            // Try giving back the freshly received item
+            //scene.GiveInventoryItem(user1.PrincipalID, user2.PrincipalID, retrievedItem1.ID);
         }
 
         [Test]
