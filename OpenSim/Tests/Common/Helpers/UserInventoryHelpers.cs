@@ -147,13 +147,24 @@ namespace OpenSim.Tests.Common
         /// <returns>null if no folder matching the path was found</returns>
         public static InventoryFolderBase GetInventoryFolder(IInventoryService inventoryService, UUID userId, string path)
         {
-            List<InventoryFolderBase> folders
-                = InventoryArchiveUtils.FindFolderByPath(inventoryService, userId, path);
+            List<InventoryFolderBase> folders = GetInventoryFolders(inventoryService, userId, path);
 
             if (folders.Count != 0)
                 return folders[0];
             else
                 return null;
+        }
+
+        /// <summary>
+        /// Get the inventory folders that match the path name.
+        /// </summary>
+        /// <param name="inventoryService"></param>
+        /// <param name="userId"></param>
+        /// <param name="path"></param>
+        /// <returns>An empty list if no matching folders were found</returns>
+        public static List<InventoryFolderBase> GetInventoryFolders(IInventoryService inventoryService, UUID userId, string path)
+        {
+            return InventoryArchiveUtils.FindFolderByPath(inventoryService, userId, path);
         }
 
         /// <summary>

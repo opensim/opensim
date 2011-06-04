@@ -97,6 +97,14 @@ namespace OpenSim.Region.Framework.Tests
                 = UserInventoryHelpers.GetInventoryFolder(scene.InventoryService, user2.PrincipalID, "folder1");
 
             Assert.That(retrievedFolder1, Is.Not.Null);
+
+            // Try giving back the freshly received folder
+            scene.GiveInventoryFolder(user1.PrincipalID, user2.PrincipalID, retrievedFolder1.ID, UUID.Zero);
+
+            List<InventoryFolderBase> reretrievedFolders
+                = UserInventoryHelpers.GetInventoryFolders(scene.InventoryService, user1.PrincipalID, "folder1");
+
+            Assert.That(reretrievedFolders.Count, Is.EqualTo(2));
         }
     }
 }
