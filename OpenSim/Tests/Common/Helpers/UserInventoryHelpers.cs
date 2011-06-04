@@ -65,15 +65,18 @@ namespace OpenSim.Tests.Common
         /// <returns></returns>
         public static InventoryItemBase CreateInventoryItem(Scene scene, string itemName, UUID itemId, UUID userId)
         {
+            AssetBase asset = AssetHelpers.CreateAsset(scene, userId);
             InventoryItemBase item = new InventoryItemBase();
             item.Name = itemName;
-            item.AssetID = AssetHelpers.CreateAsset(scene, userId).FullID;
+            item.AssetID = asset.FullID;
             item.ID = itemId;
+            item.Owner = userId;
+            item.AssetType = asset.Type;
+            item.InvType = (int)InventoryType.Notecard;
+
+            InventoryFolderBase folder = scene.InventoryService.GetFolderForType(userId, AssetType.Notecard);
             
-            // Really quite bad since the objs folder could be moved in the future and confuse the tests
-            InventoryFolderBase objsFolder = scene.InventoryService.GetFolderForType(userId, AssetType.Object);
-            
-            item.Folder = objsFolder.ID;
+            item.Folder = folder.ID;
             scene.AddInventoryItem(item);
             
             return item;
@@ -164,6 +167,18 @@ namespace OpenSim.Tests.Common
         public static InventoryItemBase GetInventoryItem(IInventoryService inventoryService, UUID userId, string path)
         {
             return InventoryArchiveUtils.FindItemByPath(inventoryService, userId, path);
+        }
+
+        /// <summary>
+        /// Get the inventory items that match the path name.
+        /// </summary>
+        /// <param name="inventoryService"></param>
+        /// <param name="userId"></param>
+        /// <param name="path"></param>
+        /// <returns>An empty list if no matching items were found.</returns>
+        public static List<InventoryItemBase> GetInventoryItems(IInventoryService inventoryService, UUID userId, string path)
+        {
+            return InventoryArchiveUtils.FindItemsByPath(inventoryService, userId, path);
         }
     }
 }

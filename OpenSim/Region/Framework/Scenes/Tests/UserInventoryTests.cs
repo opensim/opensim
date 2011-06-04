@@ -59,19 +59,24 @@ namespace OpenSim.Region.Framework.Tests
 //            log4net.Config.XmlConfigurator.Configure();
 
             Scene scene = SceneSetupHelpers.SetupScene();
-            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
-            UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene);
+            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, 1001);
+            UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene, 1002);
             InventoryItemBase item1 = UserInventoryHelpers.CreateInventoryItem(scene, "item1", user1.PrincipalID);
 
             scene.GiveInventoryItem(user2.PrincipalID, user1.PrincipalID, item1.ID);
 
             InventoryItemBase retrievedItem1
-                = UserInventoryHelpers.GetInventoryItem(scene.InventoryService, user2.PrincipalID, "Objects/item1");
+                = UserInventoryHelpers.GetInventoryItem(scene.InventoryService, user2.PrincipalID, "Notecards/item1");
 
             Assert.That(retrievedItem1, Is.Not.Null);
 
             // Try giving back the freshly received item
-            //scene.GiveInventoryItem(user1.PrincipalID, user2.PrincipalID, retrievedItem1.ID);
+            scene.GiveInventoryItem(user1.PrincipalID, user2.PrincipalID, retrievedItem1.ID);
+
+            List<InventoryItemBase> reretrievedItems
+                = UserInventoryHelpers.GetInventoryItems(scene.InventoryService, user1.PrincipalID, "Notecards/item1");
+
+            Assert.That(reretrievedItems.Count, Is.EqualTo(2));
         }
 
         [Test]
@@ -81,8 +86,8 @@ namespace OpenSim.Region.Framework.Tests
 //            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneSetupHelpers.SetupScene();
-            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
-            UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene);
+            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, 1001);
+            UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene, 1002);
             InventoryFolderBase folder1
                 = UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, user1.PrincipalID, "folder1");
 

@@ -206,7 +206,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             else
                 return null;
         }
-        
+
+        public static List<InventoryItemBase> FindItemsByPath(
+            IInventoryService inventoryService, UUID userId, string path)
+        {
+            InventoryFolderBase rootFolder = inventoryService.GetRootFolder(userId);
+
+            if (null == rootFolder)
+                return new List<InventoryItemBase>();
+
+            return FindItemsByPath(inventoryService, rootFolder, path);
+        }
+
         /// <summary>
         /// Find items that match a given PATH_DELIMITOR delimited path starting from this folder.
         /// </summary>
@@ -239,11 +250,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (components.Length == 1)
             {
 //                m_log.DebugFormat(
-//                    "FOUND SINGLE COMPONENT [{0}].  Looking for this in [{1}] {2}", 
+//                    "FOUND SINGLE COMPONENT [{0}].  Looking for this in [{1}] {2}",
 //                    components[0], startFolder.Name, startFolder.ID);
                 
                 List<InventoryItemBase> items = inventoryService.GetFolderItems(startFolder.Owner, startFolder.ID);
-                
+
 //                m_log.DebugFormat("[INVENTORY ARCHIVE UTILS]: Found {0} items in FindItemByPath()", items.Count);
                 
                 foreach (InventoryItemBase item in items)
@@ -257,7 +268,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             else
             {
 //                m_log.DebugFormat("FOUND COMPONENTS [{0}] and [{1}]", components[0], components[1]);
-                
+
                 InventoryCollection contents = inventoryService.GetFolderContent(startFolder.Owner, startFolder.ID);
                 
                 foreach (InventoryFolderBase folder in contents.Folders)
