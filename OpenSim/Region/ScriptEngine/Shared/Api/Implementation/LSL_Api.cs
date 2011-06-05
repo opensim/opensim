@@ -5489,7 +5489,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
 
-            result.Add(src.Substring(start,length).Trim());
+            result.Add(new LSL_String(src.Substring(start,length).Trim()));
 
             return result;
         }
