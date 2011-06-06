@@ -285,7 +285,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                             Uri uri = new Uri(parts[0]);
                             user.LastName = "@" + uri.Authority;
                         }
-                        catch
+                        catch (UriFormatException)
                         {
                             m_log.DebugFormat("[SCENE]: Unable to parse Uri {0}", parts[0]);
                             user.LastName = "@unknown";
