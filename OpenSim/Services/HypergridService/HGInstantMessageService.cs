@@ -113,12 +113,6 @@ namespace OpenSim.Services.HypergridService
                 }
 
                 m_RestURL = cnf.GetString("OfflineMessageURL", string.Empty);
-                if (m_RestURL == string.Empty)
-                {
-                    m_log.Error("[HG IM SERVICE]: Offline IMs enabled, but no URL is given");
-                    return;
-                }
-
                 m_ForwardOfflineGroupMessages = cnf.GetBoolean("ForwardOfflineGroupMessages", false);
 
             }
