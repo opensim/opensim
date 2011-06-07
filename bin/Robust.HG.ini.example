@@ -356,8 +356,23 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
 
 [HGInstantMessageService]
-	LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGInstantMessageService"
-	GridService = "OpenSim.Services.GridService.dll:GridService"
-	PresenceService	= "OpenSim.Services.PresenceService.dll:PresenceService"
-	UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
+    LocalServiceModule = "OpenSim.Services.HypergridService.dll:HGInstantMessageService"
+    GridService = "OpenSim.Services.GridService.dll:GridService"
+    PresenceService	= "OpenSim.Services.PresenceService.dll:PresenceService"
+    UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
+    ; This should always be true in the Robust config
+    InGatekeeper = True
+
+[Messaging]
+    ; If you have an Offline IM server, set the vars in this section, so that
+    ; incomming IMs to local users from foreign grids can be saved
+    ;
+    ;# {OfflineMessageURL} {OfflineMessageModule:OfflineMessageModule} {URL of offline messaging service} {}
+    ;; URL of web service for offline message storage
+    ; OfflineMessageURL = http://yourserver/Offline.php
+
+    ;; Control whether group messages are forwarded to offline users.
+    ;; Default is true.
+    ;; This applies to the core groups module (Flotsam) only.
+    ; ForwardOfflineGroupMessages = true
 

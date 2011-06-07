@@ -67,6 +67,10 @@ namespace OpenSim.Services.HypergridService
         protected static Dictionary<UUID, object> m_UserLocationMap = new Dictionary<UUID, object>();
         private static ExpiringCache<UUID, GridRegion> m_RegionCache;
 
+        private static string m_RestURL;
+        private static bool m_ForwardOfflineGroupMessages;
+        private static bool m_InGatekeeper;
+
         public HGInstantMessageService(IConfigSource config)
             : this(config, null)
         {
@@ -81,8 +85,6 @@ namespace OpenSim.Services.HypergridService
             {
                 m_Initialized = true;
 
-                m_log.DebugFormat("[HG IM SERVICE]: Starting...");
-
                 IConfig serverConfig = config.Configs["HGInstantMessageService"];
                 if (serverConfig == null)
                     throw new Exception(String.Format("No section HGInstantMessageService in config file"));
@@ -90,6 +92,9 @@ namespace OpenSim.Services.HypergridService
                 string gridService = serverConfig.GetString("GridService", String.Empty);
                 string presenceService = serverConfig.GetString("PresenceService", String.Empty);
                 string userAgentService = serverConfig.GetString("UserAgentService", String.Empty);
+                m_InGatekeeper = serverConfig.GetBoolean("InGatekeeper", false);
+                m_log.DebugFormat("[HG IM SERVICE]: Starting... InRobust? {0}", m_InGatekeeper);
+
 
                 if (gridService == string.Empty || presenceService == string.Empty)
                     throw new Exception(String.Format("Incomplete specifications, InstantMessage Service cannot function."));
@@ -101,6 +106,21 @@ namespace OpenSim.Services.HypergridService
 
                 m_RegionCache = new ExpiringCache<UUID, GridRegion>();
 
+                IConfig cnf = config.Configs["Messaging"];
+                if (cnf == null)
+                {
+                    return;
+                }
+
+                m_RestURL = cnf.GetString("OfflineMessageURL", string.Empty);
+                if (m_RestURL == string.Empty)
+                {
+                    m_log.Error("[HG IM SERVICE]: Offline IMs enabled, but no URL is given");
+                    return;
+                }
+
+                m_ForwardOfflineGroupMessages = cnf.GetBoolean("ForwardOfflineGroupMessages", false);
+
             }
         }
 
@@ -109,13 +129,21 @@ namespace OpenSim.Services.HypergridService
             m_log.DebugFormat("[HG IM SERVICE]: Received message from {0} to {1}", im.fromAgentID, im.toAgentID);
             UUID toAgentID = new UUID(im.toAgentID);
 
+            bool success = false;
             if (m_IMSimConnector != null)
             {
                 //m_log.DebugFormat("[XXX] SendIMToRegion local im connector");
-                return m_IMSimConnector.SendInstantMessage(im);
+                success = m_IMSimConnector.SendInstantMessage(im);
             }
             else
-                return TrySendInstantMessage(im, "", true, false); 
+            {
+                success = TrySendInstantMessage(im, "", true, false);
+            }
+
+            if (!success && m_InGatekeeper) // we do this only in the Gatekeeper IM service
+                UndeliveredMessage(im);
+
+            return success;
         }
 
         public bool OutgoingInstantMessage(GridInstantMessage im, string url, bool foreigner)
@@ -129,6 +157,7 @@ namespace OpenSim.Services.HypergridService
                 upd.RegionID = UUID.Zero;
                 return TrySendInstantMessage(im, upd, true, foreigner);
             }
+
         }
 
         protected bool TrySendInstantMessage(GridInstantMessage im, object previousLocation, bool firstTime, bool foreigner)
@@ -312,6 +341,20 @@ namespace OpenSim.Services.HypergridService
                 return TrySendInstantMessage(im, url, false, foreigner);
             }
 
+        }
+
+        private bool UndeliveredMessage(GridInstantMessage im)
+        {
+            if (m_RestURL != string.Empty && (im.offline != 0)
+                && (!im.fromGroup || (im.fromGroup && m_ForwardOfflineGroupMessages)))
+            {
+                return SynchronousRestObjectPoster.BeginPostObject<GridInstantMessage, bool>(
+                         "POST", m_RestURL + "/SaveMessage/", im);
+
+            }
+
+            else
+                return false;
         }
     }
 }

@@ -213,7 +213,10 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                         }
                     }
                 }
-                result(success);
+                if (!success && !foreigner)
+                    HandleUndeliveredMessage(im, result);
+                else
+                    result(success);
             });
 
             return;
