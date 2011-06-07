@@ -2571,9 +2571,35 @@ namespace OpenSim.Region.Framework.Scenes
             if (GetScenePresence(client.AgentId) != null)
             {
                 m_LastLogin = Util.EnvironmentTickCount();
+
+                // Cache the user's name
+                CacheUserName(aCircuit);
+
                 EventManager.TriggerOnNewClient(client);
                 if (vialogin)
                     EventManager.TriggerOnClientLogin(client);
+            }
+        }
+
+        private void CacheUserName(AgentCircuitData aCircuit)
+        {
+            IUserManagement uMan = RequestModuleInterface<IUserManagement>();
+            if (uMan != null)
+            {
+                string homeURL = string.Empty;
+                string first = aCircuit.firstname, last = aCircuit.lastname;
+                if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
+                    homeURL = aCircuit.ServiceURLs["HomeURI"].ToString();
+                if (aCircuit.lastname.StartsWith("@"))
+                {
+                    string[] parts = aCircuit.firstname.Split('.');
+                    if (parts.Length >= 2)
+                    {
+                        first = parts[0];
+                        last = parts[1];
+                    }
+                }
+                uMan.AddUser(aCircuit.AgentID, first, last, homeURL);
             }
         }
 
