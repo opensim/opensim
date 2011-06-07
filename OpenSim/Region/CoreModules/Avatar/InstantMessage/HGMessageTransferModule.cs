@@ -196,10 +196,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             Util.FireAndForget(delegate
             {
-                bool success = m_IMService.OutgoingInstantMessage(im, url, foreigner);
-                if (!success && account == null)
+                bool success = false;
+                if (foreigner && url == string.Empty) // we don't know about this user
                 {
-                    // One last chance
                     string recipientUUI = TryGetRecipientUUI(new UUID(im.fromAgentID), toAgentID);
                     m_log.DebugFormat("[HG MESSAGE TRANSFER]: Got UUI {0}", recipientUUI);
                     if (recipientUUI != string.Empty)
@@ -213,6 +212,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                         }
                     }
                 }
+                else
+                    success = m_IMService.OutgoingInstantMessage(im, url, foreigner);
+
                 if (!success && !foreigner)
                     HandleUndeliveredMessage(im, result);
                 else

@@ -268,18 +268,18 @@ namespace OpenSim.Server.Handlers.Hypergrid
                         ids.Add(requestData[key].ToString());
                 }
 
-                List<UUID> online = m_HomeUsersService.GetOnlineFriends(userID, ids);
-                if (online.Count > 0)
-                {
-                    int i = 0;
-                    foreach (UUID id in online)
-                    {
-                        hash["friend_" + i.ToString()] = id.ToString();
-                        i++;
-                    }
-                }
-                else
-                    hash["result"] = "No Friends Online";
+                //List<UUID> online = m_HomeUsersService.GetOnlineFriends(userID, ids);
+                //if (online.Count > 0)
+                //{
+                //    int i = 0;
+                //    foreach (UUID id in online)
+                //    {
+                //        hash["friend_" + i.ToString()] = id.ToString();
+                //        i++;
+                //    }
+                //}
+                //else
+                //    hash["result"] = "No Friends Online";
             }
 
             XmlRpcResponse response = new XmlRpcResponse();

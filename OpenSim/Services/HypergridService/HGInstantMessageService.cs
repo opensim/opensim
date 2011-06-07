@@ -185,7 +185,6 @@ namespace OpenSim.Services.HypergridService
                     {
                         lookupAgent = true;
                         upd = null;
-                        url = string.Empty;
                     }
                 }
                 else
@@ -221,19 +220,16 @@ namespace OpenSim.Services.HypergridService
                     url = m_UserAgentService.LocateUser(toAgentID);
                 }
 
-                if (upd != null || url != string.Empty)
+                // check if we've tried this before..
+                // This is one way to end the recursive loop
+                //
+                if (!firstTime && ((previousLocation is PresenceInfo && upd != null && upd.RegionID == ((PresenceInfo)previousLocation).RegionID) ||
+                                    (previousLocation is string && upd == null && previousLocation.Equals(url))))
                 {
-                    // check if we've tried this before..
-                    // This is one way to end the recursive loop
-                    //
-                    if (!firstTime && ((previousLocation is PresenceInfo && upd != null && upd.RegionID == ((PresenceInfo)previousLocation).RegionID) ||
-                                        (previousLocation is string && upd == null && previousLocation.Equals(url))))
-                    {
-                        // m_log.Error("[GRID INSTANT MESSAGE]: Unable to deliver an instant message");
-                        m_log.DebugFormat("[HG IM SERVICE]: Fail 2 {0} {1}", previousLocation, url);
+                    // m_log.Error("[GRID INSTANT MESSAGE]: Unable to deliver an instant message");
+                    m_log.DebugFormat("[HG IM SERVICE]: Fail 2 {0} {1}", previousLocation, url);
 
-                        return false;
-                    }
+                    return false;
                 }
             }
 
@@ -332,10 +328,6 @@ namespace OpenSim.Services.HypergridService
             else
             {
                 // try again, but lookup user this time.
-                // Warning, this must call the Async version
-                // of this method or we'll be making thousands of threads
-                // The version within the spawned thread is SendGridInstantMessageViaXMLRPCAsync
-                // The version that spawns the thread is SendGridInstantMessageViaXMLRPC
 
                 // This is recursive!!!!!
                 return TrySendInstantMessage(im, url, false, foreigner);
@@ -348,13 +340,17 @@ namespace OpenSim.Services.HypergridService
             if (m_RestURL != string.Empty && (im.offline != 0)
                 && (!im.fromGroup || (im.fromGroup && m_ForwardOfflineGroupMessages)))
             {
+                m_log.DebugFormat("[HG IM SERVICE]: Message saved");
                 return SynchronousRestObjectPoster.BeginPostObject<GridInstantMessage, bool>(
                          "POST", m_RestURL + "/SaveMessage/", im);
 
             }
 
             else
+            {
+                m_log.DebugFormat("[HG IM SERVICE]: No offline IM service, message not saved");
                 return false;
+            }
         }
     }
 }

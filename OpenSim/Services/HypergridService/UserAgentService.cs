@@ -482,7 +482,7 @@ namespace OpenSim.Services.HypergridService
         {
             foreach (TravelingAgentInfo t in m_TravelingAgents.Values)
             {
-                if (t.UserID == userID)
+                if (t.UserID == userID && !m_GridName.Equals(t.GridExternalName))
                     return t.GridExternalName;
             }
 
