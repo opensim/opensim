@@ -87,25 +87,29 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (base.FetchFriendslist(client))
             {
                 UUID agentID = client.AgentId;
-                // We need to preload the user management cache with the names
-                // of foreign friends, just like we do with SOPs' creators
-                foreach (FriendInfo finfo in m_Friends[agentID].Friends)
+                // we do this only for the root agent
+                if (m_Friends[agentID].Refcount == 1)
                 {
-                    if (finfo.TheirFlags != -1)
+                    // We need to preload the user management cache with the names
+                    // of foreign friends, just like we do with SOPs' creators
+                    foreach (FriendInfo finfo in m_Friends[agentID].Friends)
                     {
-                        UUID id;
-                        if (!UUID.TryParse(finfo.Friend, out id))
+                        if (finfo.TheirFlags != -1)
                         {
-                            string url = string.Empty, first = string.Empty, last = string.Empty, tmp = string.Empty;
-                            if (Util.ParseUniversalUserIdentifier(finfo.Friend, out id, out url, out first, out last, out tmp))
+                            UUID id;
+                            if (!UUID.TryParse(finfo.Friend, out id))
                             {
-                                IUserManagement uMan = m_Scenes[0].RequestModuleInterface<IUserManagement>();
-                                uMan.AddUser(id, url + ";" + first + " " + last);
+                                string url = string.Empty, first = string.Empty, last = string.Empty, tmp = string.Empty;
+                                if (Util.ParseUniversalUserIdentifier(finfo.Friend, out id, out url, out first, out last, out tmp))
+                                {
+                                    IUserManagement uMan = m_Scenes[0].RequestModuleInterface<IUserManagement>();
+                                    uMan.AddUser(id, url + ";" + first + " " + last);
+                                }
                             }
                         }
                     }
+                    return true;
                 }
-                return true;
             }
             return false;
         }
@@ -114,13 +118,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
             if (base.SendFriendsOnlineIfNeeded(client))
             {
-                UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(client.Scene.RegionInfo.ScopeID, client.AgentId);
-                if (account == null) // foreign
+                AgentCircuitData aCircuit = ((Scene)client.Scene).AuthenticateHandler.GetAgentCircuitData(client.AgentId);
+                if (aCircuit != null && (aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaHGLogin) != 0)
                 {
-                    FriendInfo[] friends = GetFriends(client.AgentId);
-                    foreach (FriendInfo f in friends)
+                    UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(client.Scene.RegionInfo.ScopeID, client.AgentId);
+                    if (account == null) // foreign
                     {
-                        client.SendChangeUserRights(new UUID(f.Friend), client.AgentId, f.TheirFlags);
+                        FriendInfo[] friends = GetFriends(client.AgentId);
+                        foreach (FriendInfo f in friends)
+                        {
+                            client.SendChangeUserRights(new UUID(f.Friend), client.AgentId, f.TheirFlags);
+                        }
                     }
                 }
             }
@@ -129,47 +137,62 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected override void GetOnlineFriends(UUID userID, List<string> friendList, /*collector*/ List<UUID> online)
         {
-            // Let's single out the UUIs
-            List<string> localFriends = new List<string>();
-            List<string> foreignFriends = new List<string>();
-            string tmp = string.Empty;
-
+            List<string> fList = new List<string>();
             foreach (string s in friendList)
-            {
-                UUID id;
-                if (UUID.TryParse(s, out id))
-                    localFriends.Add(s);
-                else if (Util.ParseUniversalUserIdentifier(s, out id, out tmp, out tmp, out tmp, out tmp))
-                {
-                    foreignFriends.Add(s);
-                    // add it here too, who knows maybe the foreign friends happens to be on this grid
-                    localFriends.Add(id.ToString());
-                }
-            }
+                fList.Add(s.Substring(0, 36));
 
-            // OK, see who's present on this grid
-            List<string> toBeRemoved = new List<string>();
-            PresenceInfo[] presence = PresenceService.GetAgents(localFriends.ToArray());
+            PresenceInfo[] presence = PresenceService.GetAgents(fList.ToArray());
             foreach (PresenceInfo pi in presence)
             {
                 UUID presenceID;
                 if (UUID.TryParse(pi.UserID, out presenceID))
-                {
                     online.Add(presenceID);
-                    foreach (string s in foreignFriends)
-                        if (s.StartsWith(pi.UserID))
-                            toBeRemoved.Add(s);
-                }
             }
-
-            foreach (string s in toBeRemoved)
-                foreignFriends.Remove(s);
-
-            // OK, let's send this up the stack, and leave a closure here
-            // collecting online friends in other grids
-            Util.FireAndForget(delegate { CollectOnlineFriendsElsewhere(userID, foreignFriends); });
-
         }
+
+        //protected override void GetOnlineFriends(UUID userID, List<string> friendList, /*collector*/ List<UUID> online)
+        //{
+        //    // Let's single out the UUIs
+        //    List<string> localFriends = new List<string>();
+        //    List<string> foreignFriends = new List<string>();
+        //    string tmp = string.Empty;
+
+        //    foreach (string s in friendList)
+        //    {
+        //        UUID id;
+        //        if (UUID.TryParse(s, out id))
+        //            localFriends.Add(s);
+        //        else if (Util.ParseUniversalUserIdentifier(s, out id, out tmp, out tmp, out tmp, out tmp))
+        //        {
+        //            foreignFriends.Add(s);
+        //            // add it here too, who knows maybe the foreign friends happens to be on this grid
+        //            localFriends.Add(id.ToString());
+        //        }
+        //    }
+
+        //    // OK, see who's present on this grid
+        //    List<string> toBeRemoved = new List<string>();
+        //    PresenceInfo[] presence = PresenceService.GetAgents(localFriends.ToArray());
+        //    foreach (PresenceInfo pi in presence)
+        //    {
+        //        UUID presenceID;
+        //        if (UUID.TryParse(pi.UserID, out presenceID))
+        //        {
+        //            online.Add(presenceID);
+        //            foreach (string s in foreignFriends)
+        //                if (s.StartsWith(pi.UserID))
+        //                    toBeRemoved.Add(s);
+        //        }
+        //    }
+
+        //    foreach (string s in toBeRemoved)
+        //        foreignFriends.Remove(s);
+
+        //    // OK, let's send this up the stack, and leave a closure here
+        //    // collecting online friends in other grids
+        //    Util.FireAndForget(delegate { CollectOnlineFriendsElsewhere(userID, foreignFriends); });
+
+        //}
 
         private void CollectOnlineFriendsElsewhere(UUID userID, List<string> foreignFriends)
         {
