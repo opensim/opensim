@@ -1754,6 +1754,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_log.Info("[SCENE]: Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
             LoadingPrims = false;
+            EventManager.TriggerPrimsLoaded(this);
         }
 
 
