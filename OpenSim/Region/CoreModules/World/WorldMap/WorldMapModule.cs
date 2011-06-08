@@ -218,7 +218,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // 6/8/2011 -- I'm adding an explicit 4096 check, so that we never forget that there is
             // a hack here, and so that regions below 4096 don't get spammed with unnecessary map blocks.
 
-            if (m_scene.RegionInfo.RegionLocX >= 4096 || m_scene.RegionInfo.RegionLocY > 4096)
+            if (m_scene.RegionInfo.RegionLocX >= 4096 || m_scene.RegionInfo.RegionLocY >= 4096)
             {
                 ScenePresence avatarPresence = null;
 
