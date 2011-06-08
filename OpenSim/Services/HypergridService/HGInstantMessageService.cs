@@ -342,7 +342,6 @@ namespace OpenSim.Services.HypergridService
 
             else
             {
-                m_log.DebugFormat("[HG IM SERVICE]: No offline IM service, message not saved");
                 return false;
             }
         }
