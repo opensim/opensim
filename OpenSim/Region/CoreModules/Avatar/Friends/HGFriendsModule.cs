@@ -75,7 +75,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         /// <param name="friendID">friend whose status changed</param>
         /// <param name="online">status</param>
         /// <returns></returns>
-        public bool StatusNotify(UUID userID, UUID friendID, bool online)
+        public bool StatusNotify(UUID friendID, UUID userID, bool online)
         {
             return LocalStatusNotification(friendID, userID, online);
         }
@@ -279,7 +279,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     foreach (FriendInfo f in kvp.Value)
                         ids.Add(f.Friend);
                     UserAgentServiceConnector uConn = new UserAgentServiceConnector(kvp.Key);
-                    uConn.StatusNotification(ids, userID, online);
+                    List<UUID> friendsOnline = uConn.StatusNotification(ids, userID, online);
+                    // need to debug this here
+                    if (online)
+                    {
+                        IClientAPI client = LocateClientObject(userID);
+                        if (client != null)
+                            client.SendAgentOnline(friendsOnline.ToArray());
+                    }
                 }
             }
         }

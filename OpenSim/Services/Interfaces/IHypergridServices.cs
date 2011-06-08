@@ -61,7 +61,8 @@ namespace OpenSim.Services.Interfaces
         // on behalf of the userID
         string GetUUI(UUID userID, UUID targetUserID);
 
-        void StatusNotification(List<string> friends, UUID userID, bool online);
+        // Returns the local friends online
+        List<UUID> StatusNotification(List<string> friends, UUID userID, bool online);
         //List<UUID> GetOnlineFriends(UUID userID, List<string> friends);
 
         bool AgentIsComingHome(UUID sessionID, string thisGridExternalName);

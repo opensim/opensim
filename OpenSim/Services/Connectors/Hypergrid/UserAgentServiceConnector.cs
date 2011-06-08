@@ -404,7 +404,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             GetBoolResponse(request, out reason);
         }
 
-        public void StatusNotification(List<string> friends, UUID userID, bool online)
+        public List<UUID> StatusNotification(List<string> friends, UUID userID, bool online)
         {
             Hashtable hash = new Hashtable();
             hash["userID"] = userID.ToString();
@@ -421,8 +421,59 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
             XmlRpcRequest request = new XmlRpcRequest("status_notification", paramList);
             string reason = string.Empty;
-            GetBoolResponse(request, out reason);
 
+            // Send and get reply
+            List<UUID> friendsOnline = new List<UUID>();
+            XmlRpcResponse response = null;
+            try
+            {
+                response = request.Send(m_ServerURL, 10000);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0}", m_ServerURL);
+                reason = "Exception: " + e.Message;
+                return friendsOnline;
+            }
+
+            if (response.IsFault)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
+                reason = "XMLRPC Fault";
+                return friendsOnline;
+            }
+
+            hash = (Hashtable)response.Value;
+            //foreach (Object o in hash)
+            //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
+            try
+            {
+                if (hash == null)
+                {
+                    m_log.ErrorFormat("[USER AGENT CONNECTOR]: GetOnlineFriends Got null response from {0}! THIS IS BAAAAD", m_ServerURL);
+                    reason = "Internal error 1";
+                    return friendsOnline;
+                }
+
+                // Here is the actual response
+                foreach (object key in hash.Keys)
+                {
+                    if (key is string && ((string)key).StartsWith("friend_") && hash[key] != null)
+                    {
+                        UUID uuid;
+                        if (UUID.TryParse(hash[key].ToString(), out uuid))
+                            friendsOnline.Add(uuid);
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: Got exception on GetOnlineFriends response.");
+                reason = "Exception: " + e.Message;
+            }
+
+            return friendsOnline;
         }
 
         public List<UUID> GetOnlineFriends(UUID userID, List<string> friends)

@@ -324,13 +324,15 @@ namespace OpenSim.Services.HypergridService
             return false;
         }
 
-        public void StatusNotification(List<string> friends, UUID foreignUserID, bool online)
+        public List<UUID> StatusNotification(List<string> friends, UUID foreignUserID, bool online)
         {
             if (m_FriendsService == null || m_PresenceService == null)
             {
                 m_log.WarnFormat("[USER AGENT SERVICE]: Unable to perform status notifications because friends or presence services are missing");
-                return;
+                return new List<UUID>();
             }
+
+            List<UUID> localFriendsOnline = new List<UUID>();
 
             m_log.DebugFormat("[USER AGENT SERVICE]: Status notification: foreign user {0} wants to notify {1} local friends", foreignUserID, friends.Count);
 
@@ -372,8 +374,12 @@ namespace OpenSim.Services.HypergridService
 
                 if (friendSession != null)
                 {
-                    ForwardStatusNotificationToSim(friendSession.RegionID, friendSession.UserID, foreignUserID, online);
+                    ForwardStatusNotificationToSim(friendSession.RegionID, foreignUserID, friendSession.UserID, online);
                     usersToBeNotified.Remove(friendSession.UserID.ToString());
+                    UUID id;
+                    if (UUID.TryParse(friendSession.UserID, out id))
+                        localFriendsOnline.Add(id);
+
                 }
             }
 
@@ -388,9 +394,17 @@ namespace OpenSim.Services.HypergridService
                     m_log.WarnFormat("[USER AGENT SERVICE]: User {0} is visiting {1}. HG Status notifications still not implemented.", user, url);
                 }
             }
+
+            // and finally, let's send the online friends
+            if (online)
+            {
+                return localFriendsOnline;
+            }
+            else
+                return new List<UUID>();
         }
 
-        protected void ForwardStatusNotificationToSim(UUID regionID, string user, UUID foreignUserID, bool online)
+        protected void ForwardStatusNotificationToSim(UUID regionID, UUID foreignUserID, string user, bool online)
         {
             UUID userID;
             if (UUID.TryParse(user, out userID))
@@ -398,15 +412,15 @@ namespace OpenSim.Services.HypergridService
                 if (m_FriendsLocalSimConnector != null)
                 {
                     m_log.DebugFormat("[USER AGENT SERVICE]: Local Notify, user {0} is {1}", foreignUserID, (online ? "online" : "offline"));
-                    m_FriendsLocalSimConnector.StatusNotify(userID, foreignUserID, online);
+                    m_FriendsLocalSimConnector.StatusNotify(foreignUserID, userID, online);
                 }
                 else
                 {
                     GridRegion region = m_GridService.GetRegionByUUID(UUID.Zero /* !!! */, regionID);
                     if (region != null)
                     {
-                        m_log.DebugFormat("[USER AGENT SERVICE]: Remote Notify to region {0}, user {1} is {2}", region.RegionName, user, foreignUserID, (online ? "online" : "offline"));
-                        m_FriendsSimConnector.StatusNotify(region, userID, foreignUserID, online);
+                        m_log.DebugFormat("[USER AGENT SERVICE]: Remote Notify to region {0}, user {1} is {2}", region.RegionName, foreignUserID, (online ? "online" : "offline"));
+                        m_FriendsSimConnector.StatusNotify(region, foreignUserID, userID, online);
                     }
                 }
             }
