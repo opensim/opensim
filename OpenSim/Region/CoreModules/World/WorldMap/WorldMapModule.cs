@@ -233,8 +233,20 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 }
                 if (lookup)
                 {
-                    List<MapBlockData> mapBlocks = GetAndSendBlocks(avatarPresence.ControllingClient, (int)(m_scene.RegionInfo.RegionLocX) - 4, (int)(m_scene.RegionInfo.RegionLocY) - 4,
-                            (int)(m_scene.RegionInfo.RegionLocX) + 4, (int)(m_scene.RegionInfo.RegionLocY) + 4, 0);
+                    List<MapBlockData> mapBlocks = new List<MapBlockData>(); ;
+
+                    List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
+                        (int)(m_scene.RegionInfo.RegionLocX - 8) * (int)Constants.RegionSize,
+                        (int)(m_scene.RegionInfo.RegionLocX + 8) * (int)Constants.RegionSize,
+                        (int)(m_scene.RegionInfo.RegionLocY - 8) * (int)Constants.RegionSize,
+                        (int)(m_scene.RegionInfo.RegionLocY + 8) * (int)Constants.RegionSize);
+                    foreach (GridRegion r in regions)
+                    {
+                        MapBlockData block = new MapBlockData();
+                        MapBlockFromGridRegion(block, r);
+                        mapBlocks.Add(block);
+                    }
+                    avatarPresence.ControllingClient.SendMapBlock(mapBlocks, 0);
 
                     lock (cachedMapBlocks)
                         cachedMapBlocks = mapBlocks;
@@ -820,7 +832,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
         }
 
-        protected virtual List<MapBlockData> GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
+        protected virtual void GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
             List<MapBlockData> mapBlocks = new List<MapBlockData>();
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
@@ -835,8 +847,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 mapBlocks.Add(block);
             }
             remoteClient.SendMapBlock(mapBlocks, 0);
-
-            return mapBlocks;
         }
 
         protected void MapBlockFromGridRegion(MapBlockData block, GridRegion r)
