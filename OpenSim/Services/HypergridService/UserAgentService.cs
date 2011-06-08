@@ -496,6 +496,11 @@ namespace OpenSim.Services.HypergridService
         {
             foreach (TravelingAgentInfo t in m_TravelingAgents.Values)
             {
+                if (t == null)
+                {
+                    m_log.ErrorFormat("[USER AGENT SERVICE]: Oops! Null TravelingAgentInfo. Please report this on mantis");
+                    continue;
+                }
                 if (t.UserID == userID && !m_GridName.Equals(t.GridExternalName))
                     return t.GridExternalName;
             }
