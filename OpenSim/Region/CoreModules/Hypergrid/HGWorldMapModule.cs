@@ -59,7 +59,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         #endregion
 
-        protected override List<MapBlockData> GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
+        protected override void GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
             List<MapBlockData> mapBlocks = new List<MapBlockData>();
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
@@ -96,7 +96,6 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
             remoteClient.SendMapBlock(mapBlocks, 0);
 
-            return mapBlocks;
         }
 
 
