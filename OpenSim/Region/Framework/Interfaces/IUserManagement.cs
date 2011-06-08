@@ -9,6 +9,7 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         string GetUserName(UUID uuid);
         string GetUserHomeURL(UUID uuid);
+        string GetUserUUI(UUID uuid);
         string GetUserServerURL(UUID uuid, string serverType);
         void AddUser(UUID uuid, string userData);
         void AddUser(UUID uuid, string firstName, string lastName, string profileURL);

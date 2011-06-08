@@ -1910,6 +1910,10 @@ namespace OpenSim.Region.Framework.Scenes
                 sceneObject.SetGroup(groupID, null);
             }
 
+            IUserManagement uman = RequestModuleInterface<IUserManagement>();
+            if (uman != null)
+                sceneObject.RootPart.CreatorIdentification = uman.GetUserUUI(ownerID);
+
             sceneObject.ScheduleGroupForFullUpdate();
 
             return sceneObject;
