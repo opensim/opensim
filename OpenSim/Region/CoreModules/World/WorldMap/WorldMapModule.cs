@@ -209,16 +209,16 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             //                  path, param, agentID.ToString());
 
             // There is a major hack going on in this method. The viewer doesn't request
-            // map blocks (RequestMapBlocks) above 4096. That means that if we don't hack,
+            // map blocks (RequestMapBlocks) above 2048. That means that if we don't hack,
             // grids above that cell don't have a map at all. So, here's the hack: we wait
             // for this CAP request to come, and we inject the map blocks at this point. 
             // In a normal scenario, this request simply sends back the MapLayer (the blue color).
             // In the hacked scenario, it also sends the map blocks via UDP.
             //
-            // 6/8/2011 -- I'm adding an explicit 4096 check, so that we never forget that there is
+            // 6/8/2011 -- I'm adding an explicit 2048 check, so that we never forget that there is
             // a hack here, and so that regions below 4096 don't get spammed with unnecessary map blocks.
 
-            if (m_scene.RegionInfo.RegionLocX >= 4096 || m_scene.RegionInfo.RegionLocY >= 4096)
+            if (m_scene.RegionInfo.RegionLocX >= 2048 || m_scene.RegionInfo.RegionLocY >= 2048)
             {
                 ScenePresence avatarPresence = null;
 
