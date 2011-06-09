@@ -66,11 +66,18 @@ namespace OpenSim.Data.MSSQL
 
         public bool StoreFolder(XInventoryFolder folder)
         {
+            if (folder.folderName.Length > 64)
+                folder.folderName = folder.folderName.Substring(0, 64);
             return m_Folders.Store(folder);
         }
 
         public bool StoreItem(XInventoryItem item)
         {
+            if (item.inventoryName.Length > 64)
+                item.inventoryName = item.inventoryName.Substring(0, 64);
+            if (item.inventoryDescription.Length > 128)
+                item.inventoryDescription = item.inventoryDescription.Substring(0, 128);
+
             return m_Items.Store(item);
         }
 
@@ -78,7 +85,6 @@ namespace OpenSim.Data.MSSQL
         {
             return m_Folders.Delete(field, val);
         }
-
         public bool DeleteFolders(string[] fields, string[] vals)
         {
             return m_Folders.Delete(fields, vals);
@@ -88,12 +94,10 @@ namespace OpenSim.Data.MSSQL
         {
             return m_Items.Delete(field, val);
         }
-
         public bool DeleteItems(string[] fields, string[] vals)
         {
             return m_Items.Delete(fields, vals);
         }
-
         public bool MoveItem(string id, string newParent)
         {
             return m_Items.MoveItem(id, newParent);
@@ -171,6 +175,28 @@ namespace OpenSim.Data.MSSQL
                 }
 
             }
+        }
+        public override bool Store(XInventoryItem item)
+        {
+            if (!base.Store(item))
+                return false;
+            string sql = "update inventoryfolders set version=version+1 where folderID = @folderID";
+            using (SqlConnection conn = new SqlConnection(m_ConnectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                conn.Open();
+
+                    cmd.Parameters.AddWithValue("@folderID", item.parentFolderID.ToString());
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch (Exception e)
+                    {
+                        return false;
+                    }                
+            }
+            return true;
         }
     }
 }

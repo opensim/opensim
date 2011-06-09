@@ -65,6 +65,10 @@ namespace OpenSim.Server.Base
         /// <returns></returns>
         public static T LoadPlugin<T>(string dllName, Object[] args) where T:class
         {
+            // This is good to debug configuration problems
+            //if (dllName == string.Empty)
+            //    Util.PrintCallStack();
+
             string[] parts = dllName.Split(new char[] {':'});
 
             dllName = parts[0];
@@ -122,6 +126,13 @@ namespace OpenSim.Server.Base
                     }
                 }
 
+                return null;
+            }
+            catch (ReflectionTypeLoadException rtle)
+            {
+                m_log.Error(string.Format("Error loading plugin from {0}:\n{1}", dllName,
+                    String.Join("\n", Array.ConvertAll(rtle.LoaderExceptions, e => e.ToString()))),
+                    rtle);
                 return null;
             }
             catch (Exception e)

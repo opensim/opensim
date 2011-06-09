@@ -113,8 +113,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Hypergrid
                 ISimulationService simService = scene.RequestModuleInterface<ISimulationService>();
                 m_HypergridHandler = new GatekeeperServiceInConnector(m_Config, MainServer.Instance, simService);
 
-                new UserAgentServerConnector(m_Config, MainServer.Instance);
+                IFriendsSimConnector friendsConn = scene.RequestModuleInterface<IFriendsSimConnector>();
+                new UserAgentServerConnector(m_Config, MainServer.Instance, friendsConn);
                 new HeloServiceInConnector(m_Config, MainServer.Instance, "HeloService");
+                new HGFriendsServerConnector(m_Config, MainServer.Instance, "HGFriendsService");
             }
             scene.RegisterModuleInterface<IGatekeeperService>(m_HypergridHandler.GateKeeper);
         }

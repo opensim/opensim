@@ -30,11 +30,13 @@ using System.IO;
 using System.Reflection;
 
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using OpenSim.Services.Connectors.Hypergrid;
 
 using OpenMetaverse;
 using log4net;
@@ -47,7 +49,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         public UUID Id;
         public string FirstName;
         public string LastName;
-        public string ProfileURL;
+        public string HomeURL;
+        public Dictionary<string, object> ServerURLs;
     }
 
     public class UserManagementModule : ISharedRegionModule, IUserManagement
@@ -78,6 +81,14 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             //        }
             //    }
             //}
+            MainConsole.Instance.Commands.AddCommand("grid", true,
+                "show user-names",
+                "show user-names",
+                "Show the bindings between user UUIDs and user names",
+                String.Empty,
+                HandleShowUsers);
+
+
         }
 
         public bool IsSharedModule
@@ -101,6 +112,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             scene.RegisterModuleInterface<IUserManagement>(this);
             scene.EventManager.OnNewClient += new EventManager.OnNewClientDelegate(EventManager_OnNewClient);
+            scene.EventManager.OnPrimsLoaded += new EventManager.PrimsLoaded(EventManager_OnPrimsLoaded);
         }
 
         public void RemoveRegion(Scene scene)
@@ -109,18 +121,12 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             m_Scenes.Remove(scene);
         }
 
-        public void RegionLoaded(Scene scene)
+        public void RegionLoaded(Scene s)
         {
         }
 
         public void PostInitialise()
         {
-            foreach (Scene s in m_Scenes)
-            {
-                // let's sniff all the user names referenced by objects in the scene
-                m_log.DebugFormat("[USER MANAGEMENT MODULE]: Caching creators' data from {0} ({1} objects)...", s.RegionInfo.RegionName, s.GetEntities().Length);
-                s.ForEachSOG(delegate(SceneObjectGroup sog) { CacheCreators(sog); });
-            }
         }
 
         public void Close()
@@ -133,6 +139,14 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
  
         #region Event Handlers
+
+        void EventManager_OnPrimsLoaded(Scene s)
+        {
+            // let's sniff all the user names referenced by objects in the scene
+            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Caching creators' data from {0} ({1} objects)...", s.RegionInfo.RegionName, s.GetEntities().Length);
+            s.ForEachSOG(delegate(SceneObjectGroup sog) { CacheCreators(sog); });
+        }
+
 
         void EventManager_OnNewClient(IClientAPI client)
         {
@@ -150,6 +164,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                 string[] names = GetUserNames(uuid);
                 if (names.Length == 2)
                 {
+                    //m_log.DebugFormat("[XXX] HandleUUIDNameRequest {0} is {1} {2}", uuid, names[0], names[1]);
                     remote_client.SendNameReply(uuid, names[0], names[1]);
                 }
 
@@ -210,6 +225,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
         public string GetUserName(UUID uuid)
         {
+            //m_log.DebugFormat("[XXX] GetUserName {0}", uuid);
             string[] names = GetUserNames(uuid);
             if (names.Length == 2)
             {
@@ -220,6 +236,60 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
             }
             return "(hippos)";
+        }
+
+        public string GetUserHomeURL(UUID userID)
+        {
+            if (m_UserCache.ContainsKey(userID))
+                return m_UserCache[userID].HomeURL;
+
+            return string.Empty;
+        }
+
+        public string GetUserServerURL(UUID userID, string serverType)
+        {
+            if (m_UserCache.ContainsKey(userID))
+            {
+                UserData userdata = m_UserCache[userID];
+                if (userdata.ServerURLs != null && userdata.ServerURLs.ContainsKey(serverType) && userdata.ServerURLs[serverType] != null)
+                    return userdata.ServerURLs[serverType].ToString();
+
+                if (userdata.HomeURL != string.Empty)
+                {
+                    UserAgentServiceConnector uConn = new UserAgentServiceConnector(userdata.HomeURL);
+                    userdata.ServerURLs = uConn.GetServerURLs(userID);
+                    if (userdata.ServerURLs != null && userdata.ServerURLs.ContainsKey(serverType) && userdata.ServerURLs[serverType] != null)
+                        return userdata.ServerURLs[serverType].ToString();
+                }
+            }
+
+            return string.Empty;
+        }
+
+        public string GetUserUUI(UUID userID)
+        {
+            UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, userID);
+            if (account != null)
+                return userID.ToString();
+
+            if (m_UserCache.ContainsKey(userID))
+            {
+                UserData ud = m_UserCache[userID];
+                string homeURL = ud.HomeURL;
+                string first = ud.FirstName, last = ud.LastName;
+                if (ud.LastName.StartsWith("@"))
+                {
+                    string[] parts = ud.FirstName.Split('.');
+                    if (parts.Length >= 2)
+                    {
+                        first = parts[0];
+                        last = parts[1];
+                    }
+                    return userID + ";" + homeURL + ";" + first + " " + last;
+                }
+            }
+
+            return userID.ToString();
         }
 
         public void AddUser(UUID id, string creatorData)
@@ -247,13 +317,13 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     string[] parts = creatorData.Split(';');
                     if (parts.Length >= 1)
                     {
-                        user.ProfileURL = parts[0];
+                        user.HomeURL = parts[0];
                         try
                         {
                             Uri uri = new Uri(parts[0]);
                             user.LastName = "@" + uri.Authority;
                         }
-                        catch
+                        catch (UriFormatException)
                         {
                             m_log.DebugFormat("[SCENE]: Unable to parse Uri {0}", parts[0]);
                             user.LastName = "@unknown";
@@ -272,7 +342,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             lock (m_UserCache)
                 m_UserCache[id] = user;
 
-            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}", user.Id, user.FirstName, user.LastName, user.ProfileURL);
+            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}", user.Id, user.FirstName, user.LastName, user.HomeURL);
         }
 
         public void AddUser(UUID uuid, string first, string last, string profileURL)
@@ -311,5 +381,25 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
         //}
 
         #endregion IUserManagement
+
+        private void HandleShowUsers(string module, string[] cmd)
+        {
+            if (m_UserCache.Count == 0)
+            {
+                MainConsole.Instance.Output("No users not found");
+                return;
+            }
+
+            MainConsole.Instance.Output("UUID                                 User Name");
+            MainConsole.Instance.Output("-----------------------------------------------------------------------------");
+            foreach (KeyValuePair<UUID, UserData> kvp in m_UserCache)
+            {
+                MainConsole.Instance.Output(String.Format("{0} {1} {2}",
+                       kvp.Key, kvp.Value.FirstName, kvp.Value.LastName));
+            }
+            return;
+        }
+
+
     }
 }

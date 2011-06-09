@@ -149,14 +149,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         /// <summary>
         /// Find an item given a PATH_DELIMITOR delimited path starting from the user's root folder.
-        ///
+        /// </summary>
+        /// <remarks>
         /// This method does not handle paths that contain multiple delimitors
         ///
         /// FIXME: We do not yet handle situations where folders or items have the same name.  We could handle this by some
         /// XPath like expression
         ///
         /// FIXME: Delimitors which occur in names themselves are not currently escapable.
-        /// </summary>
+        /// </remarks>
         /// 
         /// <param name="inventoryService">
         /// Inventory service to query
@@ -178,32 +179,66 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             return FindItemByPath(inventoryService, rootFolder, path);
         }
-        
+
         /// <summary>
         /// Find an item given a PATH_DELIMITOR delimited path starting from this folder.
-        ///
-        /// This method does not handle paths that contain multiple delimitors
+        /// </summary>
+        /// <remarks>
+        /// This method does not handle paths that contain multiple delimiters
         ///
         /// FIXME: We do not yet handle situations where folders or items have the same name.  We could handle this by some
         /// XPath like expression
         ///
         /// FIXME: Delimitors which occur in names themselves are not currently escapable.
-        /// </summary>
-        /// 
-        /// <param name="inventoryService">
-        /// Inventory service to query
-        /// </param>
-        /// <param name="startFolder">
-        /// The folder from which the path starts
-        /// </param>
-        /// <param name="path">
-        /// <param name="path">
-        /// The path to the required item.
-        /// </param>
+        /// </remarks>
+        ///
+        /// <param name="inventoryService">Inventory service to query</param>
+        /// <param name="startFolder">The folder from which the path starts</param>
+        /// <param name="path">The path to the required item.</param>
         /// <returns>null if the item is not found</returns>
         public static InventoryItemBase FindItemByPath(
             IInventoryService inventoryService, InventoryFolderBase startFolder, string path)
         {
+            List<InventoryItemBase> foundItems = FindItemsByPath(inventoryService, startFolder, path);
+
+            if (foundItems.Count != 0)
+                return foundItems[0];
+            else
+                return null;
+        }
+
+        public static List<InventoryItemBase> FindItemsByPath(
+            IInventoryService inventoryService, UUID userId, string path)
+        {
+            InventoryFolderBase rootFolder = inventoryService.GetRootFolder(userId);
+
+            if (null == rootFolder)
+                return new List<InventoryItemBase>();
+
+            return FindItemsByPath(inventoryService, rootFolder, path);
+        }
+
+        /// <summary>
+        /// Find items that match a given PATH_DELIMITOR delimited path starting from this folder.
+        /// </summary>
+        /// <remarks>
+        /// This method does not handle paths that contain multiple delimiters
+        ///
+        /// FIXME: We do not yet handle situations where folders or items have the same name.  We could handle this by some
+        /// XPath like expression
+        ///
+        /// FIXME: Delimitors which occur in names themselves are not currently escapable.
+        /// </remarks>
+        /// 
+        /// <param name="inventoryService">Inventory service to query</param>
+        /// <param name="startFolder">The folder from which the path starts</param>
+        /// <param name="path">The path to the required item.</param>
+        /// <returns>The items that were found with this path.  An empty list if no items were found.</returns>
+        public static List<InventoryItemBase> FindItemsByPath(
+            IInventoryService inventoryService, InventoryFolderBase startFolder, string path)
+        {
+            List<InventoryItemBase> foundItems = new List<InventoryItemBase>();
+
             // If the path isn't just / then trim any starting extraneous slashes
             path = path.TrimStart(new char[] { PATH_DELIMITER });
             
@@ -215,11 +250,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (components.Length == 1)
             {
 //                m_log.DebugFormat(
-//                    "FOUND SINGLE COMPONENT [{0}].  Looking for this in [{1}] {2}", 
+//                    "FOUND SINGLE COMPONENT [{0}].  Looking for this in [{1}] {2}",
 //                    components[0], startFolder.Name, startFolder.ID);
                 
                 List<InventoryItemBase> items = inventoryService.GetFolderItems(startFolder.Owner, startFolder.ID);
-                
+
 //                m_log.DebugFormat("[INVENTORY ARCHIVE UTILS]: Found {0} items in FindItemByPath()", items.Count);
                 
                 foreach (InventoryItemBase item in items)
@@ -227,24 +262,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 //                    m_log.DebugFormat("[INVENTORY ARCHIVE UTILS]: Inspecting item {0} {1}", item.Name, item.ID);
                     
                     if (item.Name == components[0])
-                        return item;
+                        foundItems.Add(item);
                 }
             }
             else
             {
 //                m_log.DebugFormat("FOUND COMPONENTS [{0}] and [{1}]", components[0], components[1]);
-                
+
                 InventoryCollection contents = inventoryService.GetFolderContent(startFolder.Owner, startFolder.ID);
                 
                 foreach (InventoryFolderBase folder in contents.Folders)
                 {
                     if (folder.Name == components[0])
-                        return FindItemByPath(inventoryService, folder, components[1]);
+                        foundItems.AddRange(FindItemsByPath(inventoryService, folder, components[1]));
                 }
             }
 
-            // We didn't find an item or intermediate folder with the given name
-            return null;
+            return foundItems;
         }
 
         /// <summary>

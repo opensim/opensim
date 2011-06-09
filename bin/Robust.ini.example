@@ -21,7 +21,6 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [Network]
     port = 8003
 
-
     ; HTTPS for "Out of band" management applications such as the remote admin
     ; module. May specify https_main = True to make the main http server
     ; use https or "False" to make the main server HTTP
@@ -92,6 +91,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"
 
     ;; The IP address of your FreeSWITCH server.
+    ;; This address must be reachable by viewers.
     ; ServerAddress = 127.0.0.1
 
     ;; The following configuration parameters are optional

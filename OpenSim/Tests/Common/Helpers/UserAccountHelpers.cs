@@ -118,16 +118,19 @@ namespace OpenSim.Tests.Common
 
         public static UserAccount CreateUserWithInventory(Scene scene)
         {
+            return CreateUserWithInventory(scene, 99);
+        }
+
+        public static UserAccount CreateUserWithInventory(Scene scene, int uuidTail)
+        {
             return CreateUserWithInventory(
-                scene, "Bill", "Bailey", UUID.Parse("00000000-0000-0000-0000-000000000099"), "troll");
+                scene, "Bill", "Bailey", new UUID(string.Format("00000000-0000-0000-0000-{0:X12}", uuidTail)), "troll");
         }
 
         public static UserAccount CreateUserWithInventory(
             Scene scene, string firstName, string lastName, UUID userId, string pw)
         {
-            UserAccount ua 
-                = new UserAccount(userId) 
-                    { FirstName = firstName, LastName = lastName };
+            UserAccount ua = new UserAccount(userId) { FirstName = firstName, LastName = lastName };
             CreateUserWithInventory(scene, ua, pw);
             return ua;
         }

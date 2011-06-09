@@ -95,7 +95,10 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_strictAccessControl = true;
         public bool m_seeIntoBannedRegion = false;
         public int MaxUndoCount = 5;
+        // Using this for RegionReady module to prevent LoginsDisabled from changing under our feet;
+        public bool LoginLock = false;
         public bool LoginsDisabled = true;
+        public bool StartDisabled = false;
         public bool LoadingPrims;
         public IXfer XferManager;
 
@@ -1399,9 +1402,25 @@ namespace OpenSim.Region.Framework.Scenes
                     IConfig startupConfig = m_config.Configs["Startup"];
                     if (startupConfig == null || !startupConfig.GetBoolean("StartDisabled", false))
                     {
+                        // This handles a case of a region having no scripts for the RegionReady module
+                        if (m_sceneGraph.GetActiveScriptsCount() == 0)
+                        {
+                            // need to be able to tell these have changed in RegionReady
+                            LoginLock = false;
+                            EventManager.TriggerLoginsEnabled(RegionInfo.RegionName);
+                        }
                         m_log.DebugFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
-                        LoginsDisabled = false;
+                        // For RegionReady lockouts
+                        if( LoginLock == false)
+                        {
+                            LoginsDisabled = false;
+                        }
                         m_sceneGridService.InformNeighborsThatRegionisUp(RequestModuleInterface<INeighbourService>(), RegionInfo);
+                    }
+                    else
+                    {
+                        StartDisabled = true;
+                        LoginsDisabled = true;
                     }
                 }
             }
@@ -1765,6 +1784,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_log.Info("[SCENE]: Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
             LoadingPrims = false;
+            EventManager.TriggerPrimsLoaded(this);
         }
 
 
@@ -1929,6 +1949,10 @@ namespace OpenSim.Region.Framework.Scenes
                 AddNewSceneObject(sceneObject, true);
                 sceneObject.SetGroup(groupID, null);
             }
+
+            IUserManagement uman = RequestModuleInterface<IUserManagement>();
+            if (uman != null)
+                sceneObject.RootPart.CreatorIdentification = uman.GetUserUUI(ownerID);
 
             sceneObject.ScheduleGroupForFullUpdate();
 
@@ -2658,6 +2682,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (TryGetScenePresence(client.AgentId, out presence))
             {
                 m_LastLogin = Util.EnvironmentTickCount();
+
+                // Cache the user's name
+                CacheUserName(aCircuit);
+
                 EventManager.TriggerOnNewClient(client);
                 if (vialogin)
                 {
@@ -2668,6 +2696,28 @@ namespace OpenSim.Region.Framework.Scenes
                     ILandObject land = LandChannel.GetLandObject(pos.X, pos.Y);
                     land.SendLandUpdateToClient(presence.ControllingClient);
                 }
+            }
+        }
+
+        private void CacheUserName(AgentCircuitData aCircuit)
+        {
+            IUserManagement uMan = RequestModuleInterface<IUserManagement>();
+            if (uMan != null)
+            {
+                string homeURL = string.Empty;
+                string first = aCircuit.firstname, last = aCircuit.lastname;
+                if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
+                    homeURL = aCircuit.ServiceURLs["HomeURI"].ToString();
+                if (aCircuit.lastname.StartsWith("@"))
+                {
+                    string[] parts = aCircuit.firstname.Split('.');
+                    if (parts.Length >= 2)
+                    {
+                        first = parts[0];
+                        last = parts[1];
+                    }
+                }
+                uMan.AddUser(aCircuit.AgentID, first, last, homeURL);
             }
         }
 
@@ -2813,7 +2863,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void SubscribeToClientInventoryEvents(IClientAPI client)
         {
-            client.OnCreateNewInventoryItem += CreateNewInventoryItem;
+            
             client.OnLinkInventoryItem += HandleLinkInventoryItem;
             client.OnCreateNewInventoryFolder += HandleCreateInventoryFolder;
             client.OnUpdateInventoryFolder += HandleUpdateInventoryFolder;
@@ -2837,7 +2887,6 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void SubscribeToClientTeleportEvents(IClientAPI client)
         {
             client.OnTeleportLocationRequest += RequestTeleportLocation;
-            client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
         }
 
         public virtual void SubscribeToClientScriptEvents(IClientAPI client)
@@ -2941,7 +2990,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void UnSubscribeToClientInventoryEvents(IClientAPI client)
         {
-            client.OnCreateNewInventoryItem -= CreateNewInventoryItem;
+            
             client.OnCreateNewInventoryFolder -= HandleCreateInventoryFolder;
             client.OnUpdateInventoryFolder -= HandleUpdateInventoryFolder;
             client.OnMoveInventoryFolder -= HandleMoveInventoryFolder; // 2; //!!
@@ -2963,7 +3012,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void UnSubscribeToClientTeleportEvents(IClientAPI client)
         {
             client.OnTeleportLocationRequest -= RequestTeleportLocation;
-            client.OnTeleportLandmarkRequest -= RequestTeleportLandmark;
+            //client.OnTeleportLandmarkRequest -= RequestTeleportLandmark;
             //client.OnTeleportHomeRequest -= TeleportClientHome;
         }
 
@@ -4062,26 +4111,6 @@ namespace OpenSim.Region.Framework.Scenes
                     sp.ControllingClient.SendTeleportFailed("Unable to perform teleports on this simulator.");
                 }
             }
-        }
-
-        /// <summary>
-        /// Tries to teleport agent to landmark.
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="regionHandle"></param>
-        /// <param name="position"></param>
-        public void RequestTeleportLandmark(IClientAPI remoteClient, UUID regionID, Vector3 position)
-        {
-            GridRegion info = GridService.GetRegionByUUID(UUID.Zero, regionID);
-
-            if (info == null)
-            {
-                // can't find the region: Tell viewer and abort
-                remoteClient.SendTeleportFailed("The teleport destination could not be found.");
-                return;
-            }
-
-            RequestTeleportLocation(remoteClient, info.RegionHandle, position, Vector3.Zero, (uint)(TPFlags.SetLastToTarget | TPFlags.ViaLandmark));
         }
 
         public bool CrossAgentToNewRegion(ScenePresence agent, bool isFlying)

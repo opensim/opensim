@@ -1223,6 +1223,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         /// <summary>
         /// Get a list of groups memberships for the agent that are marked "ListInProfile"
+        /// (unless that agent has a godLike aspect, in which case get all groups)
         /// </summary>
         /// <param name="dataForAgentID"></param>
         /// <returns></returns>
@@ -1231,20 +1232,32 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             List<GroupMembershipData> membershipData = m_groupData.GetAgentGroupMemberships(requestingClient.AgentId, dataForAgentID);
             GroupMembershipData[] membershipArray;
 
-            if (requestingClient.AgentId != dataForAgentID)
-            {
-                Predicate<GroupMembershipData> showInProfile = delegate(GroupMembershipData membership)
-                {
-                    return membership.ListInProfile;
-                };
+            //  cScene and property accessor 'isGod' are in support of the opertions to bypass 'hidden' group attributes for
+            // those with a GodLike aspect.
+            Scene cScene = (Scene)requestingClient.Scene;
+            bool isGod = cScene.Permissions.IsGod(requestingClient.AgentId);
 
-                membershipArray = membershipData.FindAll(showInProfile).ToArray();
-            }
-            else
+            if (isGod)
             {
                 membershipArray = membershipData.ToArray();
             }
+            else
+            {
+                if (requestingClient.AgentId != dataForAgentID)
+                {
+                    Predicate<GroupMembershipData> showInProfile = delegate(GroupMembershipData membership)
+                    {
+                        return membership.ListInProfile;
+                    };
 
+                    membershipArray = membershipData.FindAll(showInProfile).ToArray();
+                }
+                else
+                {
+                    membershipArray = membershipData.ToArray();
+                }
+            }
+            
             if (m_debugEnabled)
             {
                 m_log.InfoFormat("[GROUPS]: Get group membership information for {0} requested by {1}", dataForAgentID, requestingClient.AgentId);
@@ -1257,6 +1270,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             return membershipArray;
         }
 
+ 
         private void SendAgentDataUpdate(IClientAPI remoteClient, UUID dataForAgentID, UUID activeGroupID, string activeGroupName, ulong activeGroupPowers, string activeGroupTitle)
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);

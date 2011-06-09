@@ -42,6 +42,11 @@ namespace OpenSim.Data.Null
         {
         }
 
+        public FriendsData[] GetFriends(UUID principalID)
+        {
+            return GetFriends(principalID.ToString());
+        }
+
         /// <summary>
         /// Tries to implement the Get [] semantics, but it cuts corners.
         /// Specifically, it gets all friendships even if they weren't accepted yet.
@@ -49,11 +54,11 @@ namespace OpenSim.Data.Null
         /// <param name="fields"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public FriendsData[] GetFriends(UUID userID)
+        public FriendsData[] GetFriends(string userID)
         {
             List<FriendsData> lst = m_Data.FindAll(delegate (FriendsData fdata)
             {
-                return fdata.PrincipalID == userID;
+                return fdata.PrincipalID == userID.ToString();
             });
 
             if (lst != null)
@@ -72,9 +77,14 @@ namespace OpenSim.Data.Null
             return true;
         }
 
-        public bool Delete(UUID userID, string friendID)
+        public bool Delete(UUID principalID, string friend)
         {
-            List<FriendsData> lst = m_Data.FindAll(delegate(FriendsData fdata) { return fdata.PrincipalID == userID; });
+            return Delete(principalID.ToString(), friend);
+        }
+
+        public bool Delete(string userID, string friendID)
+        {
+            List<FriendsData> lst = m_Data.FindAll(delegate(FriendsData fdata) { return fdata.PrincipalID == userID.ToString(); });
             if (lst != null)
             {
                 FriendsData friend = lst.Find(delegate(FriendsData fdata) { return fdata.Friend == friendID; });

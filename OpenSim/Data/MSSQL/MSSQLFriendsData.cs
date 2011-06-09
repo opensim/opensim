@@ -52,6 +52,11 @@ namespace OpenSim.Data.MSSQL
 
         public bool Delete(UUID principalID, string friend)
         {
+            return Delete(principalID.ToString(), friend);
+        }
+
+        public bool Delete(string principalID, string friend)
+        {
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand())
             {
@@ -67,6 +72,11 @@ namespace OpenSim.Data.MSSQL
         }
 
         public FriendsData[] GetFriends(UUID principalID)
+        {
+            return GetFriends(principalID.ToString());
+        }
+
+        public FriendsData[] GetFriends(string principalID)
         {
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand())

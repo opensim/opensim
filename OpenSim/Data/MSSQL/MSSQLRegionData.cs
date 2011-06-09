@@ -70,6 +70,7 @@ namespace OpenSim.Data.MSSQL
             string sql = "select * from ["+m_Realm+"] where regionName like @regionName";
             if (scopeID != UUID.Zero)
                 sql += " and ScopeID = @scopeID";
+            sql += " order by regionName";
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {

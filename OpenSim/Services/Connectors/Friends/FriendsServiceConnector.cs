@@ -38,7 +38,7 @@ using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
 using OpenSim.Server.Base;
 using OpenMetaverse;
 
-namespace OpenSim.Services.Connectors
+namespace OpenSim.Services.Connectors.Friends
 {
     public class FriendsServicesConnector : IFriendsService
     {
@@ -84,7 +84,7 @@ namespace OpenSim.Services.Connectors
 
 
         #region IFriendsService
-
+        
         public FriendInfo[] GetFriends(UUID PrincipalID)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
@@ -92,6 +92,21 @@ namespace OpenSim.Services.Connectors
             sendData["PRINCIPALID"] = PrincipalID.ToString();
             sendData["METHOD"] = "getfriends";
 
+            return GetFriends(sendData, PrincipalID.ToString());
+        }
+
+        public FriendInfo[] GetFriends(string PrincipalID)
+        {
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+
+            sendData["PRINCIPALID"] = PrincipalID;
+            sendData["METHOD"] = "getfriends_string";
+
+            return GetFriends(sendData, PrincipalID);
+        }
+
+        protected FriendInfo[] GetFriends(Dictionary<string, object> sendData, string PrincipalID)
+        {
             string reqString = ServerUtils.BuildQueryString(sendData);
 
             try
@@ -144,14 +159,10 @@ namespace OpenSim.Services.Connectors
 
         }
 
-        public bool StoreFriend(UUID PrincipalID, string Friend, int flags)
+        public bool StoreFriend(string PrincipalID, string Friend, int flags)
         {
-            FriendInfo finfo = new FriendInfo();
-            finfo.PrincipalID = PrincipalID;
-            finfo.Friend = Friend;
-            finfo.MyFlags = flags;
 
-            Dictionary<string, object> sendData = finfo.ToKeyValuePairs();
+            Dictionary<string, object> sendData = ToKeyValuePairs(PrincipalID, Friend, flags);
 
             sendData["METHOD"] = "storefriend";
 
@@ -189,6 +200,16 @@ namespace OpenSim.Services.Connectors
 
         }
 
+        public bool Delete(string PrincipalID, string Friend)
+        {
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            sendData["PRINCIPALID"] = PrincipalID.ToString();
+            sendData["FRIEND"] = Friend;
+            sendData["METHOD"] = "deletefriend_string";
+
+            return Delete(sendData, PrincipalID, Friend);
+        }
+
         public bool Delete(UUID PrincipalID, string Friend)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
@@ -196,6 +217,11 @@ namespace OpenSim.Services.Connectors
             sendData["FRIEND"] = Friend;
             sendData["METHOD"] = "deletefriend";
 
+            return Delete(sendData, PrincipalID.ToString(), Friend);
+        }
+
+        public bool Delete(Dictionary<string, object> sendData, string PrincipalID, string Friend)
+        {
             string reply = string.Empty;
             try
             {
@@ -230,5 +256,16 @@ namespace OpenSim.Services.Connectors
         }
 
         #endregion
+
+        public Dictionary<string, object> ToKeyValuePairs(string principalID, string friend, int flags)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            result["PrincipalID"] = principalID;
+            result["Friend"] = friend;
+            result["MyFlags"] = flags;
+
+            return result;
+        }
+
     }
 }

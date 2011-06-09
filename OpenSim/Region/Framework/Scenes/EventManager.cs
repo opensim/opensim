@@ -393,6 +393,12 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void RegionUp(GridRegion region);
         public event RegionUp OnRegionUp;
 
+        public delegate void LoginsEnabled(string regionName);
+        public event LoginsEnabled OnLoginsEnabled;
+
+        public delegate void PrimsLoaded(Scene s);
+        public event PrimsLoaded OnPrimsLoaded;
+
         public class MoneyTransferArgs : EventArgs
         {
             public UUID sender;
@@ -2237,6 +2243,48 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_log.ErrorFormat(
                             "[EVENT MANAGER]: Delegate for TriggerSceneShuttingDown failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerLoginsEnabled (string regionName)
+        {
+            LoginsEnabled handler = OnLoginsEnabled;
+
+            if ( handler != null)
+            {
+                foreach (LoginsEnabled d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(regionName);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for LoginsEnabled failed - continuing {0} - {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+        }
+
+        public void TriggerPrimsLoaded(Scene s)
+        {
+            PrimsLoaded handler = OnPrimsLoaded;
+
+            if (handler != null)
+            {
+                foreach (PrimsLoaded d in handler.GetInvocationList())
+                {
+                    try
+                    {
+                        d(s);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[EVENT MANAGER]: Delegate for PrimsLoaded failed - continuing {0} - {1}",
                             e.Message, e.StackTrace);
                     }
                 }

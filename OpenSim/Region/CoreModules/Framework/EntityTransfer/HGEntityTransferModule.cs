@@ -86,7 +86,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected override void OnNewClient(IClientAPI client)
         {
-            client.OnTeleportHomeRequest += TeleportHomeFired;
+            client.OnTeleportHomeRequest += TriggerTeleportHome;
+            client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
             client.OnConnectionClosed += new Action<IClientAPI>(OnConnectionClosed);
         }
 
@@ -178,7 +179,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return m_aScene.SimulationService.CreateAgent(reg, agentCircuit, teleportFlags, out reason);
         }
 
-        public void TeleportHomeFired(UUID id, IClientAPI client)
+        public void TriggerTeleportHome(UUID id, IClientAPI client)
         {
             TeleportHome(id, client);
         }
@@ -233,6 +234,58 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             DoTeleport(sp, homeGatekeeper, finalDestination, position, lookAt, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaHome), eq);
             return true;
         }
+
+        /// <summary>
+        /// Tries to teleport agent to landmark.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="regionHandle"></param>
+        /// <param name="position"></param>
+        public override void RequestTeleportLandmark(IClientAPI remoteClient, AssetLandmark lm)
+        {
+            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Teleporting agent via landmark to {0} region {1} position {2}", 
+                (lm.Gatekeeper == string.Empty) ? "local" : lm.Gatekeeper, lm.RegionID, lm.Position);
+            if (lm.Gatekeeper == string.Empty)
+            {
+                base.RequestTeleportLandmark(remoteClient, lm);
+                return;
+            }
+
+            GridRegion info = m_aScene.GridService.GetRegionByUUID(UUID.Zero, lm.RegionID);
+
+            // Local region?
+            if (info != null)
+            {
+                ((Scene)(remoteClient.Scene)).RequestTeleportLocation(remoteClient, info.RegionHandle, lm.Position,
+                    Vector3.Zero, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark));
+                return;
+            }
+            else 
+            {
+                // Foreign region
+                Scene scene = (Scene)(remoteClient.Scene);
+                GatekeeperServiceConnector gConn = new GatekeeperServiceConnector();
+                GridRegion gatekeeper = new GridRegion();
+                gatekeeper.ServerURI = lm.Gatekeeper;
+                GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, new UUID(lm.RegionID));
+                if (finalDestination != null)
+                {
+                    ScenePresence sp = scene.GetScenePresence(remoteClient.AgentId);
+                    IEntityTransferModule transferMod = scene.RequestModuleInterface<IEntityTransferModule>();
+                    IEventQueue eq = sp.Scene.RequestModuleInterface<IEventQueue>();
+                    if (transferMod != null && sp != null && eq != null)
+                        transferMod.DoTeleport(sp, gatekeeper, finalDestination, lm.Position,
+                            Vector3.UnitX, (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaLandmark), eq);
+                }
+
+            }
+
+            // can't find the region: Tell viewer and abort
+            remoteClient.SendTeleportFailed("The teleport destination could not be found.");
+
+        }
+
+
         #endregion
 
         #region IUserAgentVerificationModule
