@@ -29,7 +29,7 @@
 
     ; How long {in hours} to keep assets cached on disk, .5 == 30 minutes
     ; Specify 0 if you do not want your disk cache to expire
-    FileCacheTimeout = 0
+    FileCacheTimeout = 48
 
     ; How often {in hours} should the disk be checked for expired filed
     ; Specify 0 to disable expiration checking
