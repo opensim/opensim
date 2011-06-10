@@ -38,6 +38,7 @@
     ; If WAIT_ON_INPROGRESS_REQUESTS has been defined then this specifies how
     ; long (in miliseconds) to block a request thread while trying to complete
     ; an existing write to disk.
+    ; NOTE: THIS PARAMETER IS NOT CURRENTLY USED BY THE CACHE
     ; WaitOnInprogressTimeout = 3000
 
     ; Number of tiers to use for cache directories (current valid
