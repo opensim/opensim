@@ -59,44 +59,44 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         #endregion
 
-        protected override void GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
-        {
-            List<MapBlockData> mapBlocks = new List<MapBlockData>();
-            List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                minX * (int)Constants.RegionSize, maxX * (int)Constants.RegionSize, 
-                minY * (int)Constants.RegionSize, maxY * (int)Constants.RegionSize);
+        //protected override void GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
+        //{
+        //    List<MapBlockData> mapBlocks = new List<MapBlockData>();
+        //    List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
+        //        minX * (int)Constants.RegionSize, maxX * (int)Constants.RegionSize, 
+        //        minY * (int)Constants.RegionSize, maxY * (int)Constants.RegionSize);
 
-            foreach (GridRegion r in regions)
-            {
-                uint x = 0, y = 0;
-                long handle = 0;
-                if (r.RegionSecret != null && r.RegionSecret != string.Empty)
-                {
-                    if (long.TryParse(r.RegionSecret, out handle))
-                    {
-                        Utils.LongToUInts((ulong)handle, out x, out y);
-                        x = x / Constants.RegionSize;
-                        y = y / Constants.RegionSize;
-                    }
-                }
+        //    foreach (GridRegion r in regions)
+        //    {
+        //        uint x = 0, y = 0;
+        //        long handle = 0;
+        //        if (r.RegionSecret != null && r.RegionSecret != string.Empty)
+        //        {
+        //            if (long.TryParse(r.RegionSecret, out handle))
+        //            {
+        //                Utils.LongToUInts((ulong)handle, out x, out y);
+        //                x = x / Constants.RegionSize;
+        //                y = y / Constants.RegionSize;
+        //            }
+        //        }
 
-                if (handle == 0 || 
-                    // Check the distance from the current region
-                    (handle != 0 && Math.Abs((int)(x - m_scene.RegionInfo.RegionLocX)) < 4096 && Math.Abs((int)(y - m_scene.RegionInfo.RegionLocY)) < 4096))
-                {
-                    MapBlockData block = new MapBlockData();
-                    MapBlockFromGridRegion(block, r);
-                    mapBlocks.Add(block);
-                }
-            }
+        //        if (handle == 0 || 
+        //            // Check the distance from the current region
+        //            (handle != 0 && Math.Abs((int)(x - m_scene.RegionInfo.RegionLocX)) < 4096 && Math.Abs((int)(y - m_scene.RegionInfo.RegionLocY)) < 4096))
+        //        {
+        //            MapBlockData block = new MapBlockData();
+        //            MapBlockFromGridRegion(block, r);
+        //            mapBlocks.Add(block);
+        //        }
+        //    }
 
-            // Different from super
-            FillInMap(mapBlocks, minX, minY, maxX, maxY);
-            //
+        //    // Different from super
+        //    //FillInMap(mapBlocks, minX, minY, maxX, maxY);
+        //    //
 
-            remoteClient.SendMapBlock(mapBlocks, 0);
+        //    remoteClient.SendMapBlock(mapBlocks, 0);
 
-        }
+        //}
 
 
         private void FillInMap(List<MapBlockData> mapBlocks, int minX, int minY, int maxX, int maxY)
