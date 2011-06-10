@@ -201,7 +201,7 @@ namespace Flotsam.RegionModules.AssetCache
                     }
 
                     MainConsole.Instance.Commands.AddCommand(Name, true, "fcache status", "fcache status", "Display cache status", HandleConsoleCommand);
-                    MainConsole.Instance.Commands.AddCommand(Name, true, "fcache clear",  "fcache clear [file] [memory]", "Remove all assets in the file and/or memory cache", HandleConsoleCommand);
+                    MainConsole.Instance.Commands.AddCommand(Name, true, "fcache clear",  "fcache clear [file] [memory]", "Remove all assets in the cache.  If file or memory is specified then only this cache is cleared.", HandleConsoleCommand);
                     MainConsole.Instance.Commands.AddCommand(Name, true, "fcache assets", "fcache assets", "Attempt a deep scan and cache of all assets in all scenes", HandleConsoleCommand);
                     MainConsole.Instance.Commands.AddCommand(Name, true, "fcache expire", "fcache expire <datetime>", "Purge cached assets older then the specified date/time", HandleConsoleCommand);
                 }
@@ -729,24 +729,39 @@ namespace Flotsam.RegionModules.AssetCache
                         break;
 
                     case "clear":
-                        if (cmdparams.Length < 3)
+                        if (cmdparams.Length < 2)
                         {
-                            m_log.Warn("[FLOTSAM ASSET CACHE] Please specify memory and/or file cache.");
+                            m_log.Warn("[FLOTSAM ASSET CACHE] Usage is fcache clear [file] [memory]");
                             break;
+                        }
+
+                        bool clearMemory = false, clearFile = false;
+
+                        if (cmdparams.Length == 2)
+                        {
+                            clearMemory = true;
+                            clearFile = true;
                         }
                         foreach (string s in cmdparams)
                         {
                             if (s.ToLower() == "memory")
-                            {
-                                m_MemoryCache.Clear();
-                                m_log.Info("[FLOTSAM ASSET CACHE] Memory cache cleared.");
-                            }
+                                clearMemory = true;
                             else if (s.ToLower() == "file")
-                            {
-                                ClearFileCache();
-                                m_log.Info("[FLOTSAM ASSET CACHE] File cache cleared.");
-                            }
+                                clearFile = true;
                         }
+
+                        if (clearMemory)
+                        {
+                            m_MemoryCache.Clear();
+                            m_log.Info("[FLOTSAM ASSET CACHE] Memory cache cleared.");
+                        }
+    
+                        if (clearFile)
+                        {
+                            ClearFileCache();
+                            m_log.Info("[FLOTSAM ASSET CACHE] File cache cleared.");
+                        }
+
                         break;
 
 
