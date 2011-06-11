@@ -438,6 +438,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion Properties
 
+//        ~LLClientView()
+//        {
+//            m_log.DebugFormat("[LLCLIENTVIEW]: Destructor called for {0}, circuit code {1}", Name, CircuitCode);
+//        }
+
         /// <summary>
         /// Constructor
         /// </summary>

@@ -357,6 +357,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion Fields
 
+//        ~SceneObjectPart()
+//        {
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT PART]: Destructor called for {0}, local id {1}, parent {2} {3}",
+//                Name, LocalId, ParentGroup.Name, ParentGroup.LocalId);
+//        }
+
         #region Constructors
 
         /// <summary>

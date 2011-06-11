@@ -82,8 +82,8 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             //    }
             //}
             MainConsole.Instance.Commands.AddCommand("grid", true,
-                "show user-names",
-                "show user-names",
+                "show names",
+                "show names",
                 "Show the bindings between user UUIDs and user names",
                 String.Empty,
                 HandleShowUsers);

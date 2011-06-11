@@ -303,7 +303,11 @@ namespace OpenSim.Region.Physics.Meshing
                     if (meshOsd is OSDMap)
                     {
                         OSDMap map = (OSDMap)meshOsd;
-                        OSDMap physicsParms = (OSDMap)map["physics_shape"];
+                        OSDMap physicsParms = (OSDMap)map["physics_shape"]; // old asset format
+
+                        if (physicsParms.Count == 0)
+                            physicsParms = (OSDMap)map["physics_mesh"]; // new asset format
+
                         int physOffset = physicsParms["offset"].AsInteger() + (int)start;
                         int physSize = physicsParms["size"].AsInteger();
 

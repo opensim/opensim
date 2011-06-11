@@ -1178,7 +1178,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             writer.WriteElementString("R", sop.Color.R.ToString(Utils.EnUsCulture));
             writer.WriteElementString("G", sop.Color.G.ToString(Utils.EnUsCulture));
             writer.WriteElementString("B", sop.Color.B.ToString(Utils.EnUsCulture));
-            writer.WriteElementString("A", sop.Color.G.ToString(Utils.EnUsCulture));
+            writer.WriteElementString("A", sop.Color.A.ToString(Utils.EnUsCulture));
             writer.WriteEndElement();
 
             writer.WriteElementString("Text", sop.Text);

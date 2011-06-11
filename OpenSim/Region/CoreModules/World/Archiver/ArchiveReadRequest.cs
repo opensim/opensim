@@ -506,6 +506,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             currentRegionSettings.Elevation2SE = loadedRegionSettings.Elevation2SE;
             currentRegionSettings.Elevation2SW = loadedRegionSettings.Elevation2SW;
             currentRegionSettings.FixedSun = loadedRegionSettings.FixedSun;
+            currentRegionSettings.SunPosition = loadedRegionSettings.SunPosition;
             currentRegionSettings.ObjectBonus = loadedRegionSettings.ObjectBonus;
             currentRegionSettings.RestrictPushing = loadedRegionSettings.RestrictPushing;
             currentRegionSettings.TerrainLowerLimit = loadedRegionSettings.TerrainLowerLimit;
@@ -518,6 +519,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             currentRegionSettings.WaterHeight = loadedRegionSettings.WaterHeight;
 
             currentRegionSettings.Save();
+
+            m_scene.TriggerEstateSunUpdate();
             
             IEstateModule estateModule = m_scene.RequestModuleInterface<IEstateModule>();
 
