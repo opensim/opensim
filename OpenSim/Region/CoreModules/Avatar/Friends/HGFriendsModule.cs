@@ -29,6 +29,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
+
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
@@ -194,46 +196,46 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         //}
 
-        private void CollectOnlineFriendsElsewhere(UUID userID, List<string> foreignFriends)
-        {
-            // let's divide the friends on a per-domain basis
-            Dictionary<string, List<string>> friendsPerDomain = new Dictionary<string, List<string>>();
-            foreach (string friend in foreignFriends)
-            {
-                UUID friendID;
-                if (!UUID.TryParse(friend, out friendID))
-                {
-                    // it's a foreign friend
-                    string url = string.Empty, tmp = string.Empty;
-                    if (Util.ParseUniversalUserIdentifier(friend, out friendID, out url, out tmp, out tmp, out tmp))
-                    {
-                        if (!friendsPerDomain.ContainsKey(url))
-                            friendsPerDomain[url] = new List<string>();
-                        friendsPerDomain[url].Add(friend);
-                    }
-                }
-            }
+        //private void CollectOnlineFriendsElsewhere(UUID userID, List<string> foreignFriends)
+        //{
+        //    // let's divide the friends on a per-domain basis
+        //    Dictionary<string, List<string>> friendsPerDomain = new Dictionary<string, List<string>>();
+        //    foreach (string friend in foreignFriends)
+        //    {
+        //        UUID friendID;
+        //        if (!UUID.TryParse(friend, out friendID))
+        //        {
+        //            // it's a foreign friend
+        //            string url = string.Empty, tmp = string.Empty;
+        //            if (Util.ParseUniversalUserIdentifier(friend, out friendID, out url, out tmp, out tmp, out tmp))
+        //            {
+        //                if (!friendsPerDomain.ContainsKey(url))
+        //                    friendsPerDomain[url] = new List<string>();
+        //                friendsPerDomain[url].Add(friend);
+        //            }
+        //        }
+        //    }
 
-            // Now, call those worlds
+        //    // Now, call those worlds
             
-            foreach (KeyValuePair<string, List<string>> kvp in friendsPerDomain)
-            {
-                List<string> ids = new List<string>();
-                foreach (string f in kvp.Value)
-                    ids.Add(f);
-                UserAgentServiceConnector uConn = new UserAgentServiceConnector(kvp.Key);
-                List<UUID> online = uConn.GetOnlineFriends(userID, ids);
-                // Finally send the notifications to the user
-                // this whole process may take a while, so let's check at every
-                // iteration that the user is still here
-                IClientAPI client = LocateClientObject(userID);
-                if (client != null)
-                    client.SendAgentOnline(online.ToArray());
-                else
-                    break;
-            }
+        //    foreach (KeyValuePair<string, List<string>> kvp in friendsPerDomain)
+        //    {
+        //        List<string> ids = new List<string>();
+        //        foreach (string f in kvp.Value)
+        //            ids.Add(f);
+        //        UserAgentServiceConnector uConn = new UserAgentServiceConnector(kvp.Key);
+        //        List<UUID> online = uConn.GetOnlineFriends(userID, ids);
+        //        // Finally send the notifications to the user
+        //        // this whole process may take a while, so let's check at every
+        //        // iteration that the user is still here
+        //        IClientAPI client = LocateClientObject(userID);
+        //        if (client != null)
+        //            client.SendAgentOnline(online.ToArray());
+        //        else
+        //            break;
+        //    }
 
-        }
+        //}
 
         protected override void StatusNotify(List<FriendInfo> friendList, UUID userID, bool online)
         {
@@ -280,6 +282,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                         ids.Add(f.Friend);
                     UserAgentServiceConnector uConn = new UserAgentServiceConnector(kvp.Key, false);
                     List<UUID> friendsOnline = uConn.StatusNotification(ids, userID, online);
+                    Thread.Sleep(100);
                     // need to debug this here
                     if (online)
                     {
