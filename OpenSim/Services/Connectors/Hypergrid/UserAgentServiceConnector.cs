@@ -51,22 +51,31 @@ namespace OpenSim.Services.Connectors.Hypergrid
             MethodBase.GetCurrentMethod().DeclaringType);
 
         string m_ServerURL;
-        public UserAgentServiceConnector(string url)
+
+        public UserAgentServiceConnector(string url) : this(url, true)
+        {
+        }
+
+        public UserAgentServiceConnector(string url, bool dnsLookup)
         {
             m_ServerURL = url;
-            // Doing this here, because XML-RPC or mono have some strong ideas about
-            // caching DNS translations.
-            try
+
+            if (dnsLookup)
             {
-                Uri m_Uri = new Uri(m_ServerURL);
-                IPAddress ip = Util.GetHostFromDNS(m_Uri.Host);
-                m_ServerURL = m_ServerURL.Replace(m_Uri.Host, ip.ToString());
-                if (!m_ServerURL.EndsWith("/"))
-                    m_ServerURL += "/";
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[USER AGENT CONNECTOR]: Malformed Uri {0}: {1}", m_ServerURL, e.Message);
+                // Doing this here, because XML-RPC or mono have some strong ideas about
+                // caching DNS translations.
+                try
+                {
+                    Uri m_Uri = new Uri(m_ServerURL);
+                    IPAddress ip = Util.GetHostFromDNS(m_Uri.Host);
+                    m_ServerURL = m_ServerURL.Replace(m_Uri.Host, ip.ToString());
+                    if (!m_ServerURL.EndsWith("/"))
+                        m_ServerURL += "/";
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[USER AGENT CONNECTOR]: Malformed Uri {0}: {1}", m_ServerURL, e.Message);
+                }
             }
             m_log.DebugFormat("[USER AGENT CONNECTOR]: new connector to {0} ({1})", url, m_ServerURL);
         }

@@ -278,7 +278,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     List<string> ids = new List<string>();
                     foreach (FriendInfo f in kvp.Value)
                         ids.Add(f.Friend);
-                    UserAgentServiceConnector uConn = new UserAgentServiceConnector(kvp.Key);
+                    UserAgentServiceConnector uConn = new UserAgentServiceConnector(kvp.Key, false);
                     List<UUID> friendsOnline = uConn.StatusNotification(ids, userID, online);
                     // need to debug this here
                     if (online)
