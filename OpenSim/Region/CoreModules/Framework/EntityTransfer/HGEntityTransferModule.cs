@@ -148,9 +148,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             base.AgentHasMovedAway(sp, logout);
             if (logout)
             {
-                // Reset the map
-                ResetMap(sp);
-
                 // Log them out of this grid
                 m_aScene.PresenceService.LogoutAgent(sp.ControllingClient.SessionId);
             }
@@ -282,28 +279,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             // can't find the region: Tell viewer and abort
             remoteClient.SendTeleportFailed("The teleport destination could not be found.");
-
-        }
-
-        protected void ResetMap(ScenePresence sp)
-        {
-            List<GridRegion> regions = m_Scenes[0].GridService.GetRegionRange(m_Scenes[0].RegionInfo.ScopeID, 0, 17000 * (int)Constants.RegionSize, 0, 17000 * (int)Constants.RegionSize);
-            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Resetting {0} tiles on the map", regions.Count);
-            if (regions != null)
-            {
-                List<MapBlockData> mapBlocks = new List<MapBlockData>();
-                foreach (GridRegion r in regions)
-                {
-                    MapBlockData mblock = new MapBlockData();
-                    mblock.X = (ushort)(r.RegionLocX / Constants.RegionSize);
-                    mblock.Y = (ushort)(r.RegionLocY / Constants.RegionSize);
-                    mblock.Name = "";
-                    mblock.Access = 254; // means 'simulator is offline'. We need this because the viewer ignores 255's
-                    mblock.MapImageId = UUID.Zero;
-                    mapBlocks.Add(mblock);
-                }
-                sp.ControllingClient.SendMapBlock(mapBlocks, 0);
-            }
 
         }
 
