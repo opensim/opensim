@@ -427,7 +427,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             XmlRpcResponse response = null;
             try
             {
-                response = request.Send(m_ServerURL, 10000);
+                response = request.Send(m_ServerURL, 4000);
             }
             catch (Exception e)
             {
