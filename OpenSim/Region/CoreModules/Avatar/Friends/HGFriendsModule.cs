@@ -280,10 +280,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     List<string> ids = new List<string>();
                     foreach (FriendInfo f in kvp.Value)
                         ids.Add(f.Friend);
-                    UserAgentServiceConnector uConn = new UserAgentServiceConnector(kvp.Key, false);
+                    UserAgentServiceConnector uConn = new UserAgentServiceConnector(kvp.Key);
                     List<UUID> friendsOnline = uConn.StatusNotification(ids, userID, online);
-                    Thread.Sleep(100);
-                    // need to debug this here
+
                     if (online && friendsOnline.Count > 0)
                     {
                         IClientAPI client = LocateClientObject(userID);
@@ -305,15 +304,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (Util.ParseUniversalUserIdentifier(fid, out agentID, out url, out first, out last, out tmp))
             {
                 IUserManagement userMan = m_Scenes[0].RequestModuleInterface<IUserManagement>();
-                userMan.AddUser(agentID, url + ";" + first + " " + last);
+                userMan.AddUser(agentID, first, last, url);
 
-                try // our best
-                {
-                    string[] parts = userMan.GetUserName(agentID).Split();
-                    first = parts[0];
-                    last = parts[1];
-                }
-                catch { }
                 return true;
             }
             return false;
