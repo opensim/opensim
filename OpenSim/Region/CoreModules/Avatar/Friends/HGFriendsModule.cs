@@ -284,7 +284,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     List<UUID> friendsOnline = uConn.StatusNotification(ids, userID, online);
                     Thread.Sleep(100);
                     // need to debug this here
-                    if (online)
+                    if (online && friendsOnline.Count > 0)
                     {
                         IClientAPI client = LocateClientObject(userID);
                         if (client != null)
