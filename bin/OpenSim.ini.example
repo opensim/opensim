@@ -306,6 +306,11 @@
 	; This is disabled by default. Change if you see fit. Note that
 	; serving this cap from the simulators may lead to poor performace.
 	Cap_WebFetchInventoryDescendents = ""
+	; Experimental new capability for Kokua viewers meant to override
+	; the MapImage server url given at login, and varying switching on 
+	; a sim-basis (as it should).
+	; Viewers that don't understand it, will ignore it
+	Cap_MapImageService = "http://127.0.0.1:9000/
 
 [Chat]
     ;# {whisper_distance} {} {Distance at which a whisper is heard, in meters?} {} 10
