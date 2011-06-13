@@ -52,7 +52,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
     public class Warp3DImageModule : IMapImageGenerator, INonSharedRegionModule
     {
         private static readonly UUID TEXTURE_METADATA_MAGIC = new UUID("802dc0e0-f080-4931-8b57-d1be8611c4f3");
-        private static readonly Color4 WATER_COLOR = new Color4(29, 71, 95, 216);
+        private static readonly Color4 WATER_COLOR = new Color4(29, 72, 96, 216);
 
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -61,7 +61,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         private IRendering m_primMesher;
         private IConfigSource m_config;
         private Dictionary<UUID, Color4> m_colors = new Dictionary<UUID, Color4>();
-        private bool m_useAntiAliasing = true; // TODO: Make this a config option
+        private bool m_useAntiAliasing = false; // TODO: Make this a config option
         private bool m_Enabled = false;
 
         #region IRegionModule Members
@@ -192,8 +192,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             #endregion Camera
 
-            renderer.Scene.addLight("Light1", new warp_Light(new warp_Vector(0.2f, 0.2f, 1f), 0xffffff, 320, 80));
-            renderer.Scene.addLight("Light2", new warp_Light(new warp_Vector(-1f, -1f, 1f), 0xffffff, 100, 40));
+            renderer.Scene.addLight("Light1", new warp_Light(new warp_Vector(1.0f, 0.5f, 1f), 0xffffff, 0, 320, 40));
+            renderer.Scene.addLight("Light2", new warp_Light(new warp_Vector(-1f, -1f, 1f), 0xffffff, 0, 100, 40));
 
             CreateWater(renderer);
             CreateTerrain(renderer, textureTerrain);
@@ -237,6 +237,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             renderer.Scene.sceneobject("Water").setPos(127.5f, waterHeight, 127.5f);
 
             renderer.AddMaterial("WaterColor", ConvertColor(WATER_COLOR));
+			renderer.Scene.material("WaterColor").setReflectivity(0);  // match water color with standard map module thanks lkalif
             renderer.Scene.material("WaterColor").setTransparency((byte)((1f - WATER_COLOR.A) * 255f));
             renderer.SetObjectMaterial("Water", "WaterColor");
         }
@@ -322,6 +323,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             warp_Material material = new warp_Material(texture);
             material.setReflectivity(50);
             renderer.Scene.addMaterial("TerrainColor", material);
+			renderer.Scene.material("TerrainColor").setReflectivity(0); // reduces tile seams a bit thanks lkalif
             renderer.SetObjectMaterial("Terrain", "TerrainColor");
         }
 
