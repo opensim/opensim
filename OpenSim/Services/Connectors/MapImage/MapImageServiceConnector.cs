@@ -36,6 +36,7 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Communications;
+using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -83,60 +84,57 @@ namespace OpenSim.Services.Connectors
                 throw new Exception("MapImage connector init error");
             }
             m_ServerURI = serviceURI;
+            m_ServerURI = serviceURI.TrimEnd('/');
         }
 
-        public bool AddMapTile(int x, int y, byte[] pngData, out string reason)
+        public bool AddMapTile(int x, int y, byte[] jpgData, out string reason)
         {
-            List<MultipartForm.Element> postParameters = new List<MultipartForm.Element>()
-            {
-                new MultipartForm.Parameter("X", x.ToString()),
-                new MultipartForm.Parameter("Y", y.ToString()),
-                new MultipartForm.File("Tile", "tile.png", "image/png", pngData)
-            };
-
-           reason = string.Empty;
+            reason = string.Empty;
             int tickstart = Util.EnvironmentTickCount();
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            sendData["X"] = x.ToString();
+            sendData["Y"] = y.ToString();
+            sendData["TYPE"] = "image/jpeg";
+            sendData["DATA"] = Convert.ToBase64String(jpgData);
 
-            // Make the remote storage request
+            string reqString = ServerUtils.BuildQueryString(sendData);
+
             try
             {
-                HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(m_ServerURI);
-                request.Timeout = 20000;
-                request.ReadWriteTimeout = 5000;
-
-                using (HttpWebResponse response = MultipartForm.Post(request, postParameters))
+                string reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                        m_ServerURI + "/map",
+                        reqString);
+                if (reply != string.Empty)
                 {
-                    using (Stream responseStream = response.GetResponseStream())
+                    Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
+
+                    if (replyData.ContainsKey("Result") && (replyData["Result"].ToString().ToLower() == "success"))
                     {
-                        string responseStr = responseStream.GetStreamString();
-                        OSD responseOSD = OSDParser.Deserialize(responseStr);
-                        if (responseOSD.Type == OSDType.Map)
-                        {
-                            OSDMap responseMap = (OSDMap)responseOSD;
-                            if (responseMap["Success"].AsBoolean())
-                                return true;
-
-                            reason = "Upload failed: " + responseMap["Message"].AsString();
-                        }
-                        else
-                        {
-                            reason = "Response format was invalid:\n" + responseStr;
-                        }
+                        return true;
                     }
+                    else if (replyData.ContainsKey("Result") && (replyData["Result"].ToString().ToLower() == "failure"))
+                    {
+                        m_log.DebugFormat("[MAP IMAGE CONNECTOR]: Registration failed: {0}", replyData["Message"].ToString());
+                        reason = replyData["Message"].ToString();
+                        return false;
+                    }
+                    else if (!replyData.ContainsKey("Result"))
+                    {
+                        m_log.DebugFormat("[MAP IMAGE CONNECTOR]: reply data does not contain result field");
+                    }
+                    else
+                    {
+                        m_log.DebugFormat("[MAP IMAGE CONNECTOR]: unexpected result {0}", replyData["Result"].ToString());
+                        reason = "Unexpected result " + replyData["Result"].ToString();
+                    }
+
                 }
+                else
+                    m_log.DebugFormat("[MAP IMAGE CONNECTOR]: RegisterRegion received null reply");
             }
-            catch (WebException we)
+            catch (Exception e)
             {
-                reason = we.Message;
-                if (we.Status == WebExceptionStatus.ProtocolError)
-                {
-                    HttpWebResponse webResponse = (HttpWebResponse)we.Response;
-                    reason = String.Format("[{0}] {1}", webResponse.StatusCode, webResponse.StatusDescription);
-                }
-            }
-            catch (Exception ex)
-            {
-                reason = ex.Message;
+                m_log.DebugFormat("[MAP IMAGE CONNECTOR]: Exception when contacting grid server: {0}", e.Message);
             }
             finally
             {
@@ -146,6 +144,7 @@ namespace OpenSim.Services.Connectors
             }
 
             return false;
+
         }
 
         public byte[] GetMapTile(string fileName, out string format)
