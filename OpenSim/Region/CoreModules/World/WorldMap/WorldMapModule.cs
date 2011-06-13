@@ -836,7 +836,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     block.Access = 254; // means 'simulator is offline'
                     response.Add(block);
                 }
-                remoteClient.SendMapBlock(response, 0);
+                if ((flag & 2) == 2) // V2 !!!
+                    remoteClient.SendMapBlock(response, 2);
+                else
+                    remoteClient.SendMapBlock(response, 0);
             }
             else
             {
@@ -859,7 +862,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 MapBlockFromGridRegion(block, r);
                 mapBlocks.Add(block);
             }
-            remoteClient.SendMapBlock(mapBlocks, 0);
+            if ((flag & 2) == 2) // V2 !!!
+                remoteClient.SendMapBlock(mapBlocks, 2);
+            else
+                remoteClient.SendMapBlock(mapBlocks, 0);
 
             return mapBlocks;
         }

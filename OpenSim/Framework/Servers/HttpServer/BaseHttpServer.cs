@@ -412,7 +412,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 // OpenSim.Framework.WebUtil.OSHeaderRequestID
                 if (request.Headers["opensim-request-id"] != null)
                     reqnum = String.Format("{0}:{1}",request.RemoteIPEndPoint,request.Headers["opensim-request-id"]);
-                // m_log.DebugFormat("[BASE HTTP SERVER]: <{0}> handle request for {1}",reqnum,request.RawUrl);
+                 //m_log.DebugFormat("[BASE HTTP SERVER]: <{0}> handle request for {1}",reqnum,request.RawUrl);
 
                 Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US", true);
 
@@ -440,7 +440,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 string path = request.RawUrl;
                 string handlerKey = GetHandlerKey(request.HttpMethod, path);
 
-//                m_log.DebugFormat("[BASE HTTP SERVER]: Handling {0} request for {1}", request.HttpMethod, path);
+                //m_log.DebugFormat("[BASE HTTP SERVER]: Handling {0} request for {1}", request.HttpMethod, path);
 
                 if (TryGetStreamHandler(handlerKey, out requestHandler))
                 {

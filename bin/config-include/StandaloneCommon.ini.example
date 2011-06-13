@@ -99,6 +99,9 @@
     SRV_FriendsServerURI = "http://127.0.0.1:9000"
     SRV_IMServerURI = "http://127.0.0.1:9000"
 
+	;; For Viewer 2
+	MapTileURL = "http://127.0.0.1:9000/"
+
 	;; Regular expressions for controlling which client versions are accepted/denied.
 	;; An empty string means nothing is checked.
 	;;
