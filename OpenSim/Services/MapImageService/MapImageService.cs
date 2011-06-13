@@ -144,7 +144,6 @@ namespace OpenSim.Services.MapImageService
             }
             else if (File.Exists(m_WaterTileFile))
             {
-                m_log.DebugFormat("[MAP IMAGE SERVICE]: File not found {0}, sending water", fileName);
                 return File.ReadAllBytes(m_WaterTileFile);
             }
             else
@@ -188,7 +187,7 @@ namespace OpenSim.Services.MapImageService
                 else
                 {
                     // Create a new output tile with a transparent background
-                    Bitmap bm = new Bitmap(IMAGE_WIDTH, IMAGE_WIDTH);
+                    Bitmap bm = new Bitmap(IMAGE_WIDTH, IMAGE_WIDTH, PixelFormat.Format24bppRgb);
                     bm.MakeTransparent();
                     return bm;
                 }
@@ -255,7 +254,7 @@ namespace OpenSim.Services.MapImageService
                 using (Bitmap final = new Bitmap(output))
                 {
                     output.Dispose();
-                    final.Save(outputFile);
+                    final.Save(outputFile, ImageFormat.Jpeg);
                 }
             }
             catch (Exception e)

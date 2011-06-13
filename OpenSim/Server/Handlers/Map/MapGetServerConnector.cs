@@ -42,11 +42,13 @@ namespace OpenSim.Server.Handlers.MapImage
 {
     public class MapGetServiceConnector : ServiceConnector
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IMapImageService m_MapService;
+
         private string m_ConfigName = "MapImageService";
 
         public MapGetServiceConnector(IConfigSource config, IHttpServer server, string configName) :
-                base(config, server, configName)
+            base(config, server, configName)
         {
             IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
