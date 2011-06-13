@@ -836,7 +836,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     block.Access = 254; // means 'simulator is offline'
                     response.Add(block);
                 }
-                remoteClient.SendMapBlock(response, 0);
+                if ((flag & 2) == 2) // V2 !!!
+                    remoteClient.SendMapBlock(response, 2);
+                else
+                    remoteClient.SendMapBlock(response, 0);
             }
             else
             {
@@ -849,17 +852,20 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         {
             List<MapBlockData> mapBlocks = new List<MapBlockData>();
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                (minX - 8) * (int)Constants.RegionSize, 
-                (maxX + 8) * (int)Constants.RegionSize,
-                (minY - 8) * (int)Constants.RegionSize,
-                (maxY + 8) * (int)Constants.RegionSize);
+                (minX - 4) * (int)Constants.RegionSize, 
+                (maxX + 4) * (int)Constants.RegionSize,
+                (minY - 4) * (int)Constants.RegionSize,
+                (maxY + 4) * (int)Constants.RegionSize);
             foreach (GridRegion r in regions)
             {
                 MapBlockData block = new MapBlockData();
                 MapBlockFromGridRegion(block, r);
                 mapBlocks.Add(block);
             }
-            remoteClient.SendMapBlock(mapBlocks, 0);
+            if ((flag & 2) == 2) // V2 !!!
+                remoteClient.SendMapBlock(mapBlocks, 2);
+            else
+                remoteClient.SendMapBlock(mapBlocks, 0);
 
             return mapBlocks;
         }

@@ -134,7 +134,7 @@ namespace OpenSim.Services.MapImageService
 
         public byte[] GetMapTile(string fileName, out string format)
         {
-            format = "jpg";
+            format = ".jpg";
             string fullName = Path.Combine(m_TilesStoragePath, fileName);
             if (File.Exists(fullName))
             {

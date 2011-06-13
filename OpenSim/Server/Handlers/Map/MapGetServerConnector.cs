@@ -83,13 +83,12 @@ namespace OpenSim.Server.Handlers.MapImage
 
             string format = string.Empty;
             result = m_MapService.GetMapTile(path.Trim('/'), out format);
-
             if (result.Length > 0)
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                if (format.Equals("png"))
+                if (format.Equals(".png"))
                     httpResponse.ContentType = "image/png";
-                else if (format.Equals("jpg") || format.Equals("jpeg"))
+                else if (format.Equals(".jpg") || format.Equals(".jpeg"))
                     httpResponse.ContentType = "image/jpeg";
             }
             else
