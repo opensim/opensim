@@ -112,6 +112,14 @@ namespace OpenSim.Services.LLLoginService
             m_AllowedClients = m_LoginServerConfig.GetString("AllowedClients", string.Empty);
             m_DeniedClients = m_LoginServerConfig.GetString("DeniedClients", string.Empty);
 
+            // Clean up some of these vars
+            if (m_MapTileURL != String.Empty)
+            {
+                m_MapTileURL = m_MapTileURL.Trim();
+                if (!m_MapTileURL.EndsWith("/"))
+                    m_MapTileURL = m_MapTileURL + "/";
+            }
+
             // These are required; the others aren't
             if (accountService == string.Empty || authService == string.Empty)
                 throw new Exception("LoginService is missing service specifications");
