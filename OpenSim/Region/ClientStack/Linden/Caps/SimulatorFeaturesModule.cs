@@ -32,71 +32,67 @@ using log4net;
 using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
-using OpenSim.Capabilities.Handlers;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
     /// <summary>
-    /// A module to place miscellaneous capabilities
+    /// SimulatorFeatures capability. This is required for uploading Mesh.
+    /// Since is accepts an open-ended response, we also send more information
+    /// for viewers that care to interpret it.
+    /// 
+    /// NOTE: Part of this code was adapted from the Aurora project, specifically
+    /// the normal part of the response in the capability handler.
     /// </summary>
     /// 
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class MiscCapsModule : INonSharedRegionModule
+    public class SimulatorFeaturesModule : ISharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
 
-        private bool m_Enabled = false;
-        private string m_MapImageServerURL;
+        private string m_MapImageServerURL = string.Empty;
+        private string m_SearchURL = string.Empty;
 
         #region ISharedRegionModule Members
 
         public void Initialise(IConfigSource source)
         {
-            m_Enabled = true;
-            IConfig config = source.Configs["ClientStack.LindenCaps"];
+            IConfig config = source.Configs["SimulatorFeatures"];
             if (config == null)
                 return;
 
-            m_MapImageServerURL = config.GetString("Cap_MapImageService", string.Empty);
+            m_MapImageServerURL = config.GetString("MapImageServerURI", string.Empty);
             if (m_MapImageServerURL != string.Empty)
             {
                 m_MapImageServerURL = m_MapImageServerURL.Trim();
                 if (!m_MapImageServerURL.EndsWith("/"))
                     m_MapImageServerURL = m_MapImageServerURL + "/";
             }
+
+            m_SearchURL = config.GetString("SearchServerURI", string.Empty);
         }
 
         public void AddRegion(Scene s)
         {
-            if (!m_Enabled)
-                return;
-
             m_scene = s;
+            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
         }
 
         public void RemoveRegion(Scene s)
         {
-            if (!m_Enabled)
-                return;
-
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
-            m_scene = null;
         }
 
         public void RegionLoaded(Scene s)
         {
-            if (!m_Enabled)
-                return;
-
-            m_scene.EventManager.OnRegisterCaps += RegisterCaps;
         }
 
         public void PostInitialise()
@@ -105,7 +101,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void Close() { }
 
-        public string Name { get { return "MiscCapsModule"; } }
+        public string Name { get { return "SimulatorFeaturesModule"; } }
 
         public Type ReplaceableInterface
         {
@@ -116,9 +112,40 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            m_log.InfoFormat("[MISC CAPS MODULE]: {0} in region {1}", m_MapImageServerURL, m_scene.RegionInfo.RegionName);
+            IRequestHandler reqHandler = new RestHTTPHandler("GET", "/CAPS/" + UUID.Random(), SimulatorFeatures);
+            caps.RegisterHandler("SimulatorFeatures", reqHandler);
+        }
+
+        private Hashtable SimulatorFeatures(Hashtable mDhttpMethod)
+        {
+            m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
+            OSDMap data = new OSDMap();
+            data["MeshRezEnabled"] = true;
+            data["MeshUploadEnabled"] = true;
+            data["MeshXferEnabled"] = true;
+            data["PhysicsMaterialsEnabled"] = true;
+
+            OSDMap typesMap = new OSDMap();
+            typesMap["convex"] = true;
+            typesMap["none"] = true;
+            typesMap["prim"] = true;
+            data["PhysicsShapeTypes"] = typesMap;
+
+            // Extra information for viewers that want to use it
+            OSDMap gridServicesMap = new OSDMap();
             if (m_MapImageServerURL != string.Empty)
-                caps.RegisterHandler("MapImageService", m_MapImageServerURL);
+                gridServicesMap["map-server-url"] = m_MapImageServerURL;
+            if (m_SearchURL != string.Empty)
+                gridServicesMap["search"] = m_SearchURL;
+            data["GridServices"] = gridServicesMap;
+
+            //Send back data
+            Hashtable responsedata = new Hashtable();
+            responsedata["int_response_code"] = 200; 
+            responsedata["content_type"] = "text/plain";
+            responsedata["keepalive"] = false;
+            responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(data);
+            return responsedata;
         }
 
     }
