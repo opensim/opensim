@@ -66,6 +66,12 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
 
             m_MapImageServerURL = config.GetString("Cap_MapImageService", string.Empty);
+            if (m_MapImageServerURL != string.Empty)
+            {
+                m_MapImageServerURL = m_MapImageServerURL.Trim();
+                if (!m_MapImageServerURL.EndsWith("/"))
+                    m_MapImageServerURL = m_MapImageServerURL + "/";
+            }
         }
 
         public void AddRegion(Scene s)
