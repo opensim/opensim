@@ -3295,7 +3295,7 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 pVec = AbsolutePosition;
 
             // Old bug where the height was in centimeters instead of meters
-            m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec,
+            m_physicsActor = scene.AddAvatar(LocalId, Firstname + "." + Lastname, pVec,
                                                  new Vector3(0f, 0f, m_appearance.AvatarHeight), isFlying);
 
             scene.AddPhysicsActorTaint(m_physicsActor);

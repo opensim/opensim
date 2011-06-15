@@ -66,6 +66,13 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying);
 
+        public virtual PhysicsActor AddAvatar(uint localID, string avName, Vector3 position, Vector3 size, bool isFlying)
+        {
+            PhysicsActor ret = AddAvatar(avName, position, size, isFlying);
+            if (ret != null) ret.LocalID = localID;
+            return ret;
+        }
+
         public abstract void RemoveAvatar(PhysicsActor actor);
 
         public abstract void RemovePrim(PhysicsActor prim);
@@ -74,6 +81,14 @@ namespace OpenSim.Region.Physics.Manager
                                                   Vector3 size, Quaternion rotation); //To be removed
         public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical);
+
+        public virtual PhysicsActor AddPrimShape(uint localID, string primName, PrimitiveBaseShape pbs, Vector3 position,
+                                                  Vector3 size, Quaternion rotation, bool isPhysical)
+        {
+            PhysicsActor ret = AddPrimShape(primName, pbs, position, size, rotation, isPhysical);
+            if (ret != null) ret.LocalID = localID;
+            return ret;
+        }
 
         public virtual float TimeDilation
         {

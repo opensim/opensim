@@ -1467,6 +1467,7 @@ namespace OpenSim.Region.Framework.Scenes
     
                     newPart.PhysActor
                         = m_scene.PhysicsScene.AddPrimShape(
+                            part.LocalId,
                             string.Format("{0}/{1}", part.Name, part.UUID),
                             pbs,
                             part.AbsolutePosition,
@@ -1474,7 +1475,6 @@ namespace OpenSim.Region.Framework.Scenes
                             part.RotationOffset,
                             part.PhysActor.IsPhysical);
     
-                    newPart.PhysActor.LocalID = part.LocalId;
                     newPart.DoPhysicsPropertyUpdate(part.PhysActor.IsPhysical, true);
                 }
             }
