@@ -216,6 +216,9 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 
 [MapImageService]
     LocalServiceModule = "OpenSim.Services.MapImageService.dll:MapImageService"
+	; Set this if you want to change the default
+	; TilesStoragePath = "maptiles"
+
 
 [GridInfoService]
     ; These settings are used to return information on a get_grid_info call.

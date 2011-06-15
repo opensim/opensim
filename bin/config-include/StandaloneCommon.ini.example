@@ -223,3 +223,7 @@
     ; password help: optional: page providing password assistance for users of your grid
     ; currently unused
     ;password = http://127.0.0.1/password
+
+[MapImageService]
+	; Set this if you want to change the default
+	; TilesStoragePath = "maptiles"
