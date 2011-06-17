@@ -1449,10 +1449,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             foreach (SceneObjectPart part in partList)
             {
+                SceneObjectPart newPart;
                 if (part.UUID != m_rootPart.UUID)
                 {
-                    SceneObjectPart newPart = dupe.CopyPart(part, OwnerID, GroupID, userExposed);
+                    newPart = dupe.CopyPart(part, OwnerID, GroupID, userExposed);
                     newPart.LinkNum = part.LinkNum;
+                }
+                else
+                {
+                    newPart = dupe.m_rootPart;
                 }
 
                 // Need to duplicate the physics actor as well
@@ -1460,8 +1465,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     PrimitiveBaseShape pbs = part.Shape;
     
-                    part.PhysActor 
+                    newPart.PhysActor
                         = m_scene.PhysicsScene.AddPrimShape(
+                            part.LocalId,
                             string.Format("{0}/{1}", part.Name, part.UUID),
                             pbs,
                             part.AbsolutePosition,
@@ -1469,8 +1475,7 @@ namespace OpenSim.Region.Framework.Scenes
                             part.RotationOffset,
                             part.PhysActor.IsPhysical);
     
-                    part.PhysActor.LocalID = part.LocalId;
-                    part.DoPhysicsPropertyUpdate(part.PhysActor.IsPhysical, true);
+                    newPart.DoPhysicsPropertyUpdate(part.PhysActor.IsPhysical, true);
                 }
             }
             
