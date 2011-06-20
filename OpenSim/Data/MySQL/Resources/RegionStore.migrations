@@ -826,3 +826,19 @@ ALTER TABLE `prims` MODIFY COLUMN `CreatorID` VARCHAR(255) NOT NULL DEFAULT '';
 ALTER TABLE `primitems` MODIFY COLUMN `CreatorID` VARCHAR(255) NOT NULL DEFAULT '';
 
 COMMIT;
+
+:VERSION 38          #---------------------
+
+BEGIN;
+
+alter table land ENGINE = MyISAM;
+alter table landaccesslist ENGINE = MyISAM;
+alter table migrations ENGINE = MyISAM;
+alter table primitems ENGINE = MyISAM;
+alter table prims ENGINE = MyISAM;
+alter table primshapes ENGINE = MyISAM;
+alter table regionban ENGINE = MyISAM;
+alter table regionsettings ENGINE = MyISAM;
+alter table terrain ENGINE = MyISAM;
+
+COMMIT;

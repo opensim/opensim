@@ -82,11 +82,17 @@ namespace OpenSim.Server.Handlers.Friends
                     case "getfriends":
                         return GetFriends(request);
 
+                    case "getfriends_string":
+                        return GetFriendsString(request);
+
                     case "storefriend":
                         return StoreFriend(request);
 
                     case "deletefriend":
                         return DeleteFriend(request);
+
+                    case "deletefriend_string":
+                        return DeleteFriendString(request);
 
                 }
                 m_log.DebugFormat("[FRIENDS HANDLER]: unknown method {0} request {1}", method.Length, method);
@@ -111,7 +117,25 @@ namespace OpenSim.Server.Handlers.Friends
                 m_log.WarnFormat("[FRIENDS HANDLER]: no principalID in request to get friends");
 
             FriendInfo[] finfos = m_FriendsService.GetFriends(principalID);
-            //m_log.DebugFormat("[FRIENDS HANDLER]: neighbours for region {0}: {1}", regionID, rinfos.Count);
+
+            return PackageFriends(finfos);
+        }
+
+        byte[] GetFriendsString(Dictionary<string, object> request)
+        {
+            string principalID = string.Empty;
+            if (request.ContainsKey("PRINCIPALID"))
+                principalID = request["PRINCIPALID"].ToString();
+            else
+                m_log.WarnFormat("[FRIENDS HANDLER]: no principalID in request to get friends");
+
+            FriendInfo[] finfos = m_FriendsService.GetFriends(principalID);
+
+            return PackageFriends(finfos);
+        }
+
+        private byte[] PackageFriends(FriendInfo[] finfos)
+        {
 
             Dictionary<string, object> result = new Dictionary<string, object>();
             if ((finfos == null) || ((finfos != null) && (finfos.Length == 0)))
@@ -136,9 +160,9 @@ namespace OpenSim.Server.Handlers.Friends
 
         byte[] StoreFriend(Dictionary<string, object> request)
         {
-            FriendInfo friend = new FriendInfo(request);
-
-            bool success = m_FriendsService.StoreFriend(friend.PrincipalID, friend.Friend, friend.MyFlags);
+            string principalID = string.Empty, friend = string.Empty; int flags = 0;
+            FromKeyValuePairs(request, out principalID, out friend, out flags);
+            bool success = m_FriendsService.StoreFriend(principalID, friend, flags);
 
             if (success)
                 return SuccessResult();
@@ -163,7 +187,25 @@ namespace OpenSim.Server.Handlers.Friends
             else
                 return FailureResult();
         }
-        
+
+        byte[] DeleteFriendString(Dictionary<string, object> request)
+        {
+            string principalID = string.Empty;
+            if (request.ContainsKey("PRINCIPALID"))
+                principalID = request["PRINCIPALID"].ToString();
+            else
+                m_log.WarnFormat("[FRIENDS HANDLER]: no principalID in request to delete friend");
+            string friend = string.Empty;
+            if (request.ContainsKey("FRIEND"))
+                friend = request["FRIEND"].ToString();
+
+            bool success = m_FriendsService.Delete(principalID, friend);
+            if (success)
+                return SuccessResult();
+            else
+                return FailureResult();
+        }
+
         #endregion
 
         #region Misc
@@ -231,6 +273,19 @@ namespace OpenSim.Server.Handlers.Friends
             xw.Flush();
 
             return ms.ToArray();
+        }
+
+        void FromKeyValuePairs(Dictionary<string, object> kvp, out string principalID, out string friend, out int flags)
+        {
+            principalID = string.Empty;
+            if (kvp.ContainsKey("PrincipalID") && kvp["PrincipalID"] != null)
+                principalID = kvp["PrincipalID"].ToString();
+            friend = string.Empty;
+            if (kvp.ContainsKey("Friend") && kvp["Friend"] != null)
+                friend = kvp["Friend"].ToString();
+            flags = 0;
+            if (kvp.ContainsKey("MyFlags") && kvp["MyFlags"] != null)
+                Int32.TryParse(kvp["MyFlags"].ToString(), out flags);
         }
 
         #endregion

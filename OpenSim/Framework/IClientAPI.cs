@@ -83,7 +83,7 @@ namespace OpenSim.Framework
         IClientAPI remoteClient, ulong regionHandle, Vector3 position, Vector3 lookAt, uint flags);
 
     public delegate void TeleportLandmarkRequest(
-        IClientAPI remoteClient, UUID regionID, Vector3 position);
+        IClientAPI remoteClient, AssetLandmark lm);
 
     public delegate void DisconnectUser();
 
@@ -1165,7 +1165,19 @@ namespace OpenSim.Framework
         void SendAgentAlertMessage(string message, bool modal);
         void SendLoadURL(string objectname, UUID objectID, UUID ownerID, bool groupOwned, string message, string url);
 
-        void SendDialog(string objectname, UUID objectID, string ownerFirstName, string ownerLastName, string msg, UUID textureID, int ch,
+        /// <summary>
+        /// Open a dialog box on the client.
+        /// </summary>
+        /// <param name="objectname"></param>
+        /// <param name="objectID"></param>
+        /// <param name="ownerID">/param>
+        /// <param name="ownerFirstName"></param>
+        /// <param name="ownerLastName"></param>
+        /// <param name="msg"></param>
+        /// <param name="textureID"></param>
+        /// <param name="ch"></param>
+        /// <param name="buttonlabels"></param>
+        void SendDialog(string objectname, UUID objectID, UUID ownerID, string ownerFirstName, string ownerLastName, string msg, UUID textureID, int ch,
                         string[] buttonlabels);
 
         bool AddMoney(int debit);

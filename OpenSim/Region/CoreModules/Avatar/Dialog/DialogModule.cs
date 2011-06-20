@@ -124,7 +124,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
 
             ScenePresence sp = m_scene.GetScenePresence(avatarID);
             if (sp != null)
-                sp.ControllingClient.SendDialog(objectName, objectID, ownerFirstName, ownerLastName, message, textureID, ch, buttonlabels);
+                sp.ControllingClient.SendDialog(
+                    objectName, objectID, ownerID, ownerFirstName, ownerLastName, message, textureID, ch, buttonlabels);
         }
 
         public void SendUrlToUser(

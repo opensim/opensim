@@ -42,6 +42,9 @@ namespace OpenSim.Region.Framework.Interfaces
 
         bool TeleportHome(UUID id, IClientAPI client);
 
+        void DoTeleport(ScenePresence sp, GridRegion reg, GridRegion finalDestination,
+            Vector3 position, Vector3 lookAt, uint teleportFlags, IEventQueue eq);
+
         bool Cross(ScenePresence agent, bool isFlying);
 
         void AgentArrivedAtDestination(UUID agent);

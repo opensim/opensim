@@ -208,52 +208,65 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             //m_log.DebugFormat("[MAPLAYER]: path: {0}, param: {1}, agent:{2}",
             //                  path, param, agentID.ToString());
 
-            // this is here because CAPS map requests work even beyond the 10,000 limit.
-            ScenePresence avatarPresence = null;
+            // There is a major hack going on in this method. The viewer doesn't request
+            // map blocks (RequestMapBlocks) above 2048. That means that if we don't hack,
+            // grids above that cell don't have a map at all. So, here's the hack: we wait
+            // for this CAP request to come, and we inject the map blocks at this point. 
+            // In a normal scenario, this request simply sends back the MapLayer (the blue color).
+            // In the hacked scenario, it also sends the map blocks via UDP.
+            //
+            // 6/8/2011 -- I'm adding an explicit 2048 check, so that we never forget that there is
+            // a hack here, and so that regions below 4096 don't get spammed with unnecessary map blocks.
 
-            m_scene.TryGetScenePresence(agentID, out avatarPresence);
-
-            if (avatarPresence != null)
+            if (m_scene.RegionInfo.RegionLocX >= 2048 || m_scene.RegionInfo.RegionLocY >= 2048)
             {
-                bool lookup = false;
+                ScenePresence avatarPresence = null;
 
-                lock (cachedMapBlocks)
+                m_scene.TryGetScenePresence(agentID, out avatarPresence);
+
+                if (avatarPresence != null)
                 {
-                    if (cachedMapBlocks.Count > 0 && ((cachedTime + 1800) > Util.UnixTimeSinceEpoch()))
-                    {
-                        List<MapBlockData> mapBlocks;
-
-                        mapBlocks = cachedMapBlocks;
-                        avatarPresence.ControllingClient.SendMapBlock(mapBlocks, 0);
-                    }
-                    else
-                    {
-                        lookup = true;
-                    }
-                }
-                if (lookup)
-                {
-                    List<MapBlockData> mapBlocks = new List<MapBlockData>(); ;
-
-                    List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                        (int)(m_scene.RegionInfo.RegionLocX - 8) * (int)Constants.RegionSize,
-                        (int)(m_scene.RegionInfo.RegionLocX + 8) * (int)Constants.RegionSize,
-                        (int)(m_scene.RegionInfo.RegionLocY - 8) * (int)Constants.RegionSize,
-                        (int)(m_scene.RegionInfo.RegionLocY + 8) * (int)Constants.RegionSize);
-                    foreach (GridRegion r in regions)
-                    {
-                        MapBlockData block = new MapBlockData();
-                        MapBlockFromGridRegion(block, r);
-                        mapBlocks.Add(block);
-                    }
-                    avatarPresence.ControllingClient.SendMapBlock(mapBlocks, 0);
+                    bool lookup = false;
 
                     lock (cachedMapBlocks)
-                        cachedMapBlocks = mapBlocks;
+                    {
+                        if (cachedMapBlocks.Count > 0 && ((cachedTime + 1800) > Util.UnixTimeSinceEpoch()))
+                        {
+                            List<MapBlockData> mapBlocks;
 
-                    cachedTime = Util.UnixTimeSinceEpoch();
+                            mapBlocks = cachedMapBlocks;
+                            avatarPresence.ControllingClient.SendMapBlock(mapBlocks, 0);
+                        }
+                        else
+                        {
+                            lookup = true;
+                        }
+                    }
+                    if (lookup)
+                    {
+                        List<MapBlockData> mapBlocks = new List<MapBlockData>(); ;
+
+                        List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
+                            (int)(m_scene.RegionInfo.RegionLocX - 8) * (int)Constants.RegionSize,
+                            (int)(m_scene.RegionInfo.RegionLocX + 8) * (int)Constants.RegionSize,
+                            (int)(m_scene.RegionInfo.RegionLocY - 8) * (int)Constants.RegionSize,
+                            (int)(m_scene.RegionInfo.RegionLocY + 8) * (int)Constants.RegionSize);
+                        foreach (GridRegion r in regions)
+                        {
+                            MapBlockData block = new MapBlockData();
+                            MapBlockFromGridRegion(block, r);
+                            mapBlocks.Add(block);
+                        }
+                        avatarPresence.ControllingClient.SendMapBlock(mapBlocks, 0);
+
+                        lock (cachedMapBlocks)
+                            cachedMapBlocks = mapBlocks;
+
+                        cachedTime = Util.UnixTimeSinceEpoch();
+                    }
                 }
             }
+
             LLSDMapLayerResponse mapResponse = new LLSDMapLayerResponse();
             mapResponse.LayerData.Array.Add(GetOSDMapLayerResponse());
             return mapResponse.ToString();
@@ -823,7 +836,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     block.Access = 254; // means 'simulator is offline'
                     response.Add(block);
                 }
-                remoteClient.SendMapBlock(response, 0);
+                if ((flag & 2) == 2) // V2 !!!
+                    remoteClient.SendMapBlock(response, 2);
+                else
+                    remoteClient.SendMapBlock(response, 0);
             }
             else
             {
@@ -832,7 +848,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
         }
 
-        protected virtual void GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
+        protected virtual List<MapBlockData> GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
             List<MapBlockData> mapBlocks = new List<MapBlockData>();
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
@@ -846,7 +862,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 MapBlockFromGridRegion(block, r);
                 mapBlocks.Add(block);
             }
-            remoteClient.SendMapBlock(mapBlocks, 0);
+            if ((flag & 2) == 2) // V2 !!!
+                remoteClient.SendMapBlock(mapBlocks, 2);
+            else
+                remoteClient.SendMapBlock(mapBlocks, 0);
+
+            return mapBlocks;
         }
 
         protected void MapBlockFromGridRegion(MapBlockData block, GridRegion r)

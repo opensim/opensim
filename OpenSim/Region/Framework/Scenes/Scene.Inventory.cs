@@ -408,192 +408,198 @@ namespace OpenSim.Region.Framework.Scenes
             InventoryItemBase item = new InventoryItemBase(itemId, senderId);
             item = InventoryService.GetItem(item);
 
-            if ((item != null) && (item.Owner == senderId))
+            if (item == null)
             {
-                IUserManagement uman = RequestModuleInterface<IUserManagement>();
-                if (uman != null)
-                    uman.AddUser(item.CreatorIdAsUuid, item.CreatorData);
-
-                if (!Permissions.BypassPermissions())
-                {
-                    if ((item.CurrentPermissions & (uint)PermissionMask.Transfer) == 0)
-                        return null;
-                }
-
-                // Insert a copy of the item into the recipient
-                InventoryItemBase itemCopy = new InventoryItemBase();
-                itemCopy.Owner = recipient;
-                itemCopy.CreatorId = item.CreatorId;
-                itemCopy.CreatorData = item.CreatorData;
-                itemCopy.ID = UUID.Random();
-                itemCopy.AssetID = item.AssetID;
-                itemCopy.Description = item.Description;
-                itemCopy.Name = item.Name;
-                itemCopy.AssetType = item.AssetType;
-                itemCopy.InvType = item.InvType;
-                itemCopy.Folder = recipientFolderId;
-
-                if (Permissions.PropagatePermissions() && recipient != senderId)
-                {
-                    // Trying to do this right this time. This is evil. If
-                    // you believe in Good, go elsewhere. Vampires and other
-                    // evil creatores only beyond this point. You have been
-                    // warned.
-
-                    // We're going to mask a lot of things by the next perms
-                    // Tweak the next perms to be nicer to our data
-                    //
-                    // In this mask, all the bits we do NOT want to mess
-                    // with are set. These are:
-                    //
-                    // Transfer
-                    // Copy
-                    // Modufy
-                    uint permsMask = ~ ((uint)PermissionMask.Copy |
-                                        (uint)PermissionMask.Transfer |
-                                        (uint)PermissionMask.Modify);
-
-                    // Now, reduce the next perms to the mask bits
-                    // relevant to the operation
-                    uint nextPerms = permsMask | (item.NextPermissions &
-                                      ((uint)PermissionMask.Copy |
-                                       (uint)PermissionMask.Transfer |
-                                       (uint)PermissionMask.Modify));
-
-                    // nextPerms now has all bits set, except for the actual
-                    // next permission bits.
-
-                    // This checks for no mod, no copy, no trans.
-                    // This indicates an error or messed up item. Do it like
-                    // SL and assume trans
-                    if (nextPerms == permsMask)
-                        nextPerms |= (uint)PermissionMask.Transfer;
-
-                    // Inventory owner perms are the logical AND of the
-                    // folded perms and the root prim perms, however, if
-                    // the root prim is mod, the inventory perms will be
-                    // mod. This happens on "take" and is of little concern
-                    // here, save for preventing escalation
-
-                    // This hack ensures that items previously permalocked
-                    // get unlocked when they're passed or rezzed
-                    uint basePerms = item.BasePermissions |
-                                    (uint)PermissionMask.Move;
-                    uint ownerPerms = item.CurrentPermissions;
-
-                    // If this is an object, root prim perms may be more
-                    // permissive than folded perms. Use folded perms as
-                    // a mask
-                    if (item.InvType == (int)InventoryType.Object)
-                    {
-                        // Create a safe mask for the current perms
-                        uint foldedPerms = (item.CurrentPermissions & 7) << 13;
-                        foldedPerms |= permsMask;
-
-                        bool isRootMod = (item.CurrentPermissions &
-                                          (uint)PermissionMask.Modify) != 0 ?
-                                          true : false;
-
-                        // Mask the owner perms to the folded perms
-                        ownerPerms &= foldedPerms;
-                        basePerms &= foldedPerms;
-
-                        // If the root was mod, let the mask reflect that
-                        // We also need to adjust the base here, because
-                        // we should be able to edit in-inventory perms
-                        // for the root prim, if it's mod.
-                        if (isRootMod)
-                        {
-                            ownerPerms |= (uint)PermissionMask.Modify;
-                            basePerms |= (uint)PermissionMask.Modify;
-                        }
-                    }
-
-                    // These will be applied to the root prim at next rez.
-                    // The slam bit (bit 3) and folded permission (bits 0-2)
-                    // are preserved due to the above mangling
-                    ownerPerms &= nextPerms;
-
-                    // Mask the base permissions. This is a conservative
-                    // approach altering only the three main perms
-                    basePerms &= nextPerms;
-
-                    // Assign to the actual item. Make sure the slam bit is
-                    // set, if it wasn't set before.
-                    itemCopy.BasePermissions = basePerms;
-                    itemCopy.CurrentPermissions = ownerPerms;
-                    itemCopy.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
-
-                    itemCopy.NextPermissions = item.NextPermissions;
-
-                    // This preserves "everyone can move"
-                    itemCopy.EveryOnePermissions = item.EveryOnePermissions &
-                                                   nextPerms;
-
-                    // Intentionally killing "share with group" here, as
-                    // the recipient will not have the group this is
-                    // set to
-                    itemCopy.GroupPermissions = 0;
-                }
-                else
-                {
-                    itemCopy.CurrentPermissions = item.CurrentPermissions;
-                    itemCopy.NextPermissions = item.NextPermissions;
-                    itemCopy.EveryOnePermissions = item.EveryOnePermissions & item.NextPermissions;
-                    itemCopy.GroupPermissions = item.GroupPermissions & item.NextPermissions;
-                    itemCopy.BasePermissions = item.BasePermissions;
-                }
-                
-                if (itemCopy.Folder == UUID.Zero)
-                {
-                    InventoryFolderBase folder = InventoryService.GetFolderForType(recipient, (AssetType)itemCopy.AssetType);
-
-                    if (folder != null)
-                    {
-                        itemCopy.Folder = folder.ID;
-                    }
-                    else
-                    {
-                        InventoryFolderBase root = InventoryService.GetRootFolder(recipient);
-
-                        if (root != null)
-                            itemCopy.Folder = root.ID;
-                        else
-                            return null; // No destination
-                    }
-                }
-
-                itemCopy.GroupID = UUID.Zero;
-                itemCopy.GroupOwned = false;
-                itemCopy.Flags = item.Flags;
-                itemCopy.SalePrice = item.SalePrice;
-                itemCopy.SaleType = item.SaleType;
-
-                if (AddInventoryItem(itemCopy))
-                {
-                    IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
-                    if (invAccess != null)
-                        invAccess.TransferInventoryAssets(itemCopy, senderId, recipient);
-                }
-
-                if (!Permissions.BypassPermissions())
-                {
-                    if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                    {
-                        List<UUID> items = new List<UUID>();
-                        items.Add(itemId);
-                        InventoryService.DeleteItems(senderId, items);
-                    }
-                }
-
-                return itemCopy;
-            }
-            else
-            {
-                m_log.WarnFormat("[AGENT INVENTORY]: Failed to find item {0} or item does not belong to giver ", itemId);
+                m_log.WarnFormat(
+                    "[AGENT INVENTORY]: Failed to find item {0} sent by {1} to {2}", itemId, senderId, recipient);
                 return null;
             }
 
+            if (item.Owner != senderId)
+            {
+                m_log.WarnFormat(
+                    "[AGENT INVENTORY]: Attempt to send item {0} {1} to {2} failed because sender {3} did not match item owner {4}",
+                    item.Name, item.ID, recipient, senderId, item.Owner);
+                return null;
+            }
+
+            IUserManagement uman = RequestModuleInterface<IUserManagement>();
+            if (uman != null)
+                uman.AddUser(item.CreatorIdAsUuid, item.CreatorData);
+
+            if (!Permissions.BypassPermissions())
+            {
+                if ((item.CurrentPermissions & (uint)PermissionMask.Transfer) == 0)
+                    return null;
+            }
+
+            // Insert a copy of the item into the recipient
+            InventoryItemBase itemCopy = new InventoryItemBase();
+            itemCopy.Owner = recipient;
+            itemCopy.CreatorId = item.CreatorId;
+            itemCopy.CreatorData = item.CreatorData;
+            itemCopy.ID = UUID.Random();
+            itemCopy.AssetID = item.AssetID;
+            itemCopy.Description = item.Description;
+            itemCopy.Name = item.Name;
+            itemCopy.AssetType = item.AssetType;
+            itemCopy.InvType = item.InvType;
+            itemCopy.Folder = recipientFolderId;
+
+            if (Permissions.PropagatePermissions() && recipient != senderId)
+            {
+                // Trying to do this right this time. This is evil. If
+                // you believe in Good, go elsewhere. Vampires and other
+                // evil creatores only beyond this point. You have been
+                // warned.
+
+                // We're going to mask a lot of things by the next perms
+                // Tweak the next perms to be nicer to our data
+                //
+                // In this mask, all the bits we do NOT want to mess
+                // with are set. These are:
+                //
+                // Transfer
+                // Copy
+                // Modufy
+                uint permsMask = ~ ((uint)PermissionMask.Copy |
+                                    (uint)PermissionMask.Transfer |
+                                    (uint)PermissionMask.Modify);
+
+                // Now, reduce the next perms to the mask bits
+                // relevant to the operation
+                uint nextPerms = permsMask | (item.NextPermissions &
+                                  ((uint)PermissionMask.Copy |
+                                   (uint)PermissionMask.Transfer |
+                                   (uint)PermissionMask.Modify));
+
+                // nextPerms now has all bits set, except for the actual
+                // next permission bits.
+
+                // This checks for no mod, no copy, no trans.
+                // This indicates an error or messed up item. Do it like
+                // SL and assume trans
+                if (nextPerms == permsMask)
+                    nextPerms |= (uint)PermissionMask.Transfer;
+
+                // Inventory owner perms are the logical AND of the
+                // folded perms and the root prim perms, however, if
+                // the root prim is mod, the inventory perms will be
+                // mod. This happens on "take" and is of little concern
+                // here, save for preventing escalation
+
+                // This hack ensures that items previously permalocked
+                // get unlocked when they're passed or rezzed
+                uint basePerms = item.BasePermissions |
+                                (uint)PermissionMask.Move;
+                uint ownerPerms = item.CurrentPermissions;
+
+                // If this is an object, root prim perms may be more
+                // permissive than folded perms. Use folded perms as
+                // a mask
+                if (item.InvType == (int)InventoryType.Object)
+                {
+                    // Create a safe mask for the current perms
+                    uint foldedPerms = (item.CurrentPermissions & 7) << 13;
+                    foldedPerms |= permsMask;
+
+                    bool isRootMod = (item.CurrentPermissions &
+                                      (uint)PermissionMask.Modify) != 0 ?
+                                      true : false;
+
+                    // Mask the owner perms to the folded perms
+                    ownerPerms &= foldedPerms;
+                    basePerms &= foldedPerms;
+
+                    // If the root was mod, let the mask reflect that
+                    // We also need to adjust the base here, because
+                    // we should be able to edit in-inventory perms
+                    // for the root prim, if it's mod.
+                    if (isRootMod)
+                    {
+                        ownerPerms |= (uint)PermissionMask.Modify;
+                        basePerms |= (uint)PermissionMask.Modify;
+                    }
+                }
+
+                // These will be applied to the root prim at next rez.
+                // The slam bit (bit 3) and folded permission (bits 0-2)
+                // are preserved due to the above mangling
+                ownerPerms &= nextPerms;
+
+                // Mask the base permissions. This is a conservative
+                // approach altering only the three main perms
+                basePerms &= nextPerms;
+
+                // Assign to the actual item. Make sure the slam bit is
+                // set, if it wasn't set before.
+                itemCopy.BasePermissions = basePerms;
+                itemCopy.CurrentPermissions = ownerPerms;
+                itemCopy.Flags |= (uint)InventoryItemFlags.ObjectSlamPerm;
+
+                itemCopy.NextPermissions = item.NextPermissions;
+
+                // This preserves "everyone can move"
+                itemCopy.EveryOnePermissions = item.EveryOnePermissions &
+                                               nextPerms;
+
+                // Intentionally killing "share with group" here, as
+                // the recipient will not have the group this is
+                // set to
+                itemCopy.GroupPermissions = 0;
+            }
+            else
+            {
+                itemCopy.CurrentPermissions = item.CurrentPermissions;
+                itemCopy.NextPermissions = item.NextPermissions;
+                itemCopy.EveryOnePermissions = item.EveryOnePermissions & item.NextPermissions;
+                itemCopy.GroupPermissions = item.GroupPermissions & item.NextPermissions;
+                itemCopy.BasePermissions = item.BasePermissions;
+            }
+            
+            if (itemCopy.Folder == UUID.Zero)
+            {
+                InventoryFolderBase folder = InventoryService.GetFolderForType(recipient, (AssetType)itemCopy.AssetType);
+
+                if (folder != null)
+                {
+                    itemCopy.Folder = folder.ID;
+                }
+                else
+                {
+                    InventoryFolderBase root = InventoryService.GetRootFolder(recipient);
+
+                    if (root != null)
+                        itemCopy.Folder = root.ID;
+                    else
+                        return null; // No destination
+                }
+            }
+
+            itemCopy.GroupID = UUID.Zero;
+            itemCopy.GroupOwned = false;
+            itemCopy.Flags = item.Flags;
+            itemCopy.SalePrice = item.SalePrice;
+            itemCopy.SaleType = item.SaleType;
+
+            if (AddInventoryItem(itemCopy))
+            {
+                IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
+                if (invAccess != null)
+                    invAccess.TransferInventoryAssets(itemCopy, senderId, recipient);
+            }
+
+            if (!Permissions.BypassPermissions())
+            {
+                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+                {
+                    List<UUID> items = new List<UUID>();
+                    items.Add(itemId);
+                    InventoryService.DeleteItems(senderId, items);
+                }
+            }
+
+            return itemCopy;
         }
 
         /// <summary>
@@ -781,7 +787,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="asset"></param>
         /// <param name="invType"></param>
         /// <param name="nextOwnerMask"></param>
-        private void CreateNewInventoryItem(IClientAPI remoteClient, string creatorID, string creatorData, UUID folderID, string name, uint flags, uint callbackID,
+        public void CreateNewInventoryItem(IClientAPI remoteClient, string creatorID, string creatorData, UUID folderID, string name, uint flags, uint callbackID,
                                             AssetBase asset, sbyte invType, uint nextOwnerMask, int creationDate)
         {
             CreateNewInventoryItem(
@@ -832,78 +838,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.WarnFormat(
                     "Failed to add item for {0} in CreateNewInventoryItem!",
                      remoteClient.Name);
-            }
-        }
-
-        /// <summary>
-        /// Create a new inventory item.  Called when the client creates a new item directly within their
-        /// inventory (e.g. by selecting a context inventory menu option).
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="transactionID"></param>
-        /// <param name="folderID"></param>
-        /// <param name="callbackID"></param>
-        /// <param name="description"></param>
-        /// <param name="name"></param>
-        /// <param name="invType"></param>
-        /// <param name="type"></param>
-        /// <param name="wearableType"></param>
-        /// <param name="nextOwnerMask"></param>
-        public void CreateNewInventoryItem(IClientAPI remoteClient, UUID transactionID, UUID folderID,
-                                           uint callbackID, string description, string name, sbyte invType,
-                                           sbyte assetType,
-                                           byte wearableType, uint nextOwnerMask, int creationDate)
-        {
-            m_log.DebugFormat("[AGENT INVENTORY]: Received request to create inventory item {0} in folder {1}", name, folderID);
-
-            if (!Permissions.CanCreateUserInventory(invType, remoteClient.AgentId))
-                return;
-
-            InventoryFolderBase f = new InventoryFolderBase(folderID, remoteClient.AgentId);
-            InventoryFolderBase folder = InventoryService.GetFolder(f);
-
-            if (folder == null || folder.Owner != remoteClient.AgentId)
-                return;
-
-            if (transactionID == UUID.Zero)
-            {
-                ScenePresence presence;
-                if (TryGetScenePresence(remoteClient.AgentId, out presence))
-                {
-                    byte[] data = null;
-
-                    if (invType == (sbyte)InventoryType.Landmark && presence != null)
-                    {
-                        Vector3 pos = presence.AbsolutePosition;
-                        string strdata = String.Format(
-                            "Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
-                            presence.Scene.RegionInfo.RegionID,
-                            pos.X, pos.Y, pos.Z,
-                            presence.RegionHandle);
-                        data = Encoding.ASCII.GetBytes(strdata);
-                    }
-
-                    AssetBase asset = CreateAsset(name, description, assetType, data, remoteClient.AgentId);
-                    AssetService.Store(asset);
-
-                    CreateNewInventoryItem(remoteClient, remoteClient.AgentId.ToString(), string.Empty, folderID, asset.Name, 0, callbackID, asset, invType, nextOwnerMask, creationDate);
-                }
-                else
-                {
-                    m_log.ErrorFormat(
-                        "ScenePresence for agent uuid {0} unexpectedly not found in CreateNewInventoryItem",
-                        remoteClient.AgentId);
-                }
-            }
-            else
-            {
-                IAgentAssetTransactions agentTransactions = this.RequestModuleInterface<IAgentAssetTransactions>();
-                if (agentTransactions != null)
-                {
-                    agentTransactions.HandleItemCreationFromTransaction(
-                        remoteClient, transactionID, folderID, callbackID, description,
-                        name, invType, assetType, wearableType, nextOwnerMask);
-                }
             }
         }
 

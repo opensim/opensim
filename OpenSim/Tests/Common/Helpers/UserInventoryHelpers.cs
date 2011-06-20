@@ -26,8 +26,10 @@
  */
 
 using System;
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
@@ -40,18 +42,41 @@ namespace OpenSim.Tests.Common
     {
         public static readonly string PATH_DELIMITER = "/";
 
-        public static InventoryItemBase CreateInventoryItem(
-            Scene scene, string itemName, UUID itemId, string folderPath, UUID userId)
+        /// <summary>
+        /// Creates a notecard in the objects folder and specify an item id.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="itemName"></param>
+        /// <param name="itemId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public static InventoryItemBase CreateInventoryItem(Scene scene, string itemName, UUID userId)
         {
+            return CreateInventoryItem(scene, itemName, UUID.Random(), userId);
+        }
+
+        /// <summary>
+        /// Creates a notecard in the objects folder and specify an item id.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="itemName"></param>
+        /// <param name="itemId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public static InventoryItemBase CreateInventoryItem(Scene scene, string itemName, UUID itemId, UUID userId)
+        {
+            AssetBase asset = AssetHelpers.CreateAsset(scene, userId);
             InventoryItemBase item = new InventoryItemBase();
             item.Name = itemName;
-            item.AssetID = AssetHelpers.CreateAsset(scene, userId).FullID;
+            item.AssetID = asset.FullID;
             item.ID = itemId;
+            item.Owner = userId;
+            item.AssetType = asset.Type;
+            item.InvType = (int)InventoryType.Notecard;
+
+            InventoryFolderBase folder = scene.InventoryService.GetFolderForType(userId, AssetType.Notecard);
             
-            // Really quite bad since the objs folder could be moved in the future and confuse the tests
-            InventoryFolderBase objsFolder = scene.InventoryService.GetFolderForType(userId, AssetType.Object);
-            
-            item.Folder = objsFolder.ID;
+            item.Folder = folder.ID;
             scene.AddInventoryItem(item);
             
             return item;
@@ -110,6 +135,61 @@ namespace OpenSim.Tests.Common
                 return CreateInventoryFolder(inventoryService, newFolder, components[1]);
             else
                 return newFolder;
+        }
+
+        /// <summary>
+        /// Get the inventory folder that matches the path name.  If there are multiple folders then only the first
+        /// is returned.
+        /// </summary>
+        /// <param name="inventoryService"></param>
+        /// <param name="userId"></param>
+        /// <param name="path"></param>
+        /// <returns>null if no folder matching the path was found</returns>
+        public static InventoryFolderBase GetInventoryFolder(IInventoryService inventoryService, UUID userId, string path)
+        {
+            List<InventoryFolderBase> folders = GetInventoryFolders(inventoryService, userId, path);
+
+            if (folders.Count != 0)
+                return folders[0];
+            else
+                return null;
+        }
+
+        /// <summary>
+        /// Get the inventory folders that match the path name.
+        /// </summary>
+        /// <param name="inventoryService"></param>
+        /// <param name="userId"></param>
+        /// <param name="path"></param>
+        /// <returns>An empty list if no matching folders were found</returns>
+        public static List<InventoryFolderBase> GetInventoryFolders(IInventoryService inventoryService, UUID userId, string path)
+        {
+            return InventoryArchiveUtils.FindFolderByPath(inventoryService, userId, path);
+        }
+
+        /// <summary>
+        /// Get the inventory item that matches the path name.  If there are multiple items then only the first
+        /// is returned.
+        /// </summary>
+        /// <param name="inventoryService"></param>
+        /// <param name="userId"></param>
+        /// <param name="path"></param>
+        /// <returns>null if no item matching the path was found</returns>
+        public static InventoryItemBase GetInventoryItem(IInventoryService inventoryService, UUID userId, string path)
+        {
+            return InventoryArchiveUtils.FindItemByPath(inventoryService, userId, path);
+        }
+
+        /// <summary>
+        /// Get the inventory items that match the path name.
+        /// </summary>
+        /// <param name="inventoryService"></param>
+        /// <param name="userId"></param>
+        /// <param name="path"></param>
+        /// <returns>An empty list if no matching items were found.</returns>
+        public static List<InventoryItemBase> GetInventoryItems(IInventoryService inventoryService, UUID userId, string path)
+        {
+            return InventoryArchiveUtils.FindItemsByPath(inventoryService, userId, path);
         }
     }
 }

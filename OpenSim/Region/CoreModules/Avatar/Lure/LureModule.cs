@@ -45,16 +45,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
         private readonly List<Scene> m_scenes = new List<Scene>();
 
         private IMessageTransferModule m_TransferModule = null;
-        private bool m_Enabled = true;
+        private bool m_Enabled = false;
 
         public void Initialise(IConfigSource config)
         {
             if (config.Configs["Messaging"] != null)
             {
                 if (config.Configs["Messaging"].GetString(
-                        "LureModule", "LureModule") !=
+                        "LureModule", "LureModule") ==
                         "LureModule")
-                    m_Enabled = false;
+                {
+                    m_Enabled = true;
+                    m_log.DebugFormat("[LURE MODULE]: {0} enabled", Name);
+                }
             }
         }
 
@@ -74,6 +77,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
         public void RegionLoaded(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
             if (m_TransferModule == null)
             {
                 m_TransferModule =
@@ -96,6 +102,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
         public void RemoveRegion(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
             lock (m_scenes)
             {
                 m_scenes.Remove(scene);

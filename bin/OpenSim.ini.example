@@ -307,6 +307,14 @@
 	; serving this cap from the simulators may lead to poor performace.
 	Cap_WebFetchInventoryDescendents = ""
 
+[SimulatorFeatures]
+	; Experimental new information sent in SimulatorFeatures cap for Kokua viewers 
+	; meant to override the MapImage and search server url given at login, and varying 
+	; on a sim-basis.
+	; Viewers that don't understand it, will ignore it
+	;MapImageServerURI = "http://127.0.0.1:9000/
+	;SearchServerURI = "http://127.0.0.1:9000/
+
 [Chat]
     ;# {whisper_distance} {} {Distance at which a whisper is heard, in meters?} {} 10
     ;; Distance in meters that whispers should travel.
@@ -635,49 +643,12 @@
 
     ;; You need to load a local service for a standalone, and a remote service
     ;; for a grid region. Use one of the lines below, as appropriate
-    ;; If you're using Freeswitch on a standalone then you will also need to configure the [FreeswitchService] section
+    ;; If you're using Freeswitch on a standalone then you will also need to configure the [FreeswitchService] section in config-include/StandaloneCommon.ini
     ; LocalServiceModule = OpenSim.Services.FreeswitchService.dll:FreeswitchService
     ; LocalServiceModule = OpenSim.Services.Connectors.dll:RemoteFreeswitchConnector
 
     ;; If using a remote connector, specify the server URL
     ; FreeswitchServiceURL = http://my.grid.server:8004/fsapi
-
-
-[FreeswitchService]
-    ;; !!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ;; !!!!!!STANDALONE ONLY!!!!!!
-    ;; !!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ;; The IP address of your FreeSWITCH server.  The common case is for this to be the same as the server running the OpenSim standalone
-    ;; This has to be set for the FreeSWITCH service to work
-    ;ServerAddress = 127.0.0.1
-
-    ;; The following configuration parameters are optional
-
-    ;; By default, this is the same as the ServerAddress
-    ; Realm = 127.0.0.1
-
-    ;; By default, this is the same as the ServerAddress on port 5060
-    ; SIPProxy = 127.0.0.1:5060
-
-    ;; Default is 5000ms
-    ; DefaultTimeout = 5000
-
-    ;; The dial plan context.  Default is "default"
-    ; Context = default
-
-    ;; Currently unused
-    ; UserName = freeswitch
-
-    ;; Currently unused
-    ; Password = password
-
-    ;; The following parameters are for STUN = Simple Traversal of UDP through NATs
-    ;; See http://wiki.freeswitch.org/wiki/NAT_Traversal
-    ;; stun.freeswitch.org is not guaranteed to be running so use it in
-    ;; production at your own risk    
-    ; EchoServer = 127.0.0.1
-    ; EchoPort = 50505
-    ; AttemptSTUN = false
 
 [Groups]
     ;# {Enabled} {} {Enable groups?} {true false} false

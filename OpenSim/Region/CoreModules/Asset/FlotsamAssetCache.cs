@@ -64,13 +64,13 @@ namespace Flotsam.RegionModules.AssetCache
         private bool m_Enabled;
 
         private const string m_ModuleName = "FlotsamAssetCache";
-        private const string m_DefaultCacheDirectory = m_ModuleName;
+        private const string m_DefaultCacheDirectory = "./assetcache";
         private string m_CacheDirectory = m_DefaultCacheDirectory;
 
         private readonly List<char> m_InvalidChars = new List<char>();
 
         private int m_LogLevel = 0;
-        private ulong m_HitRateDisplay = 1; // How often to display hit statistics, given in requests
+        private ulong m_HitRateDisplay = 100; // How often to display hit statistics, given in requests
 
         private static ulong m_Requests;
         private static ulong m_RequestsForInprogress;
@@ -87,14 +87,14 @@ namespace Flotsam.RegionModules.AssetCache
 #endif
 
         private ExpiringCache<string, AssetBase> m_MemoryCache;
-        private bool m_MemoryCacheEnabled = true;
+        private bool m_MemoryCacheEnabled = false;
 
         // Expiration is expressed in hours.
-        private const double m_DefaultMemoryExpiration = 1.0; 
+        private const double m_DefaultMemoryExpiration = 2;
         private const double m_DefaultFileExpiration = 48;
         private TimeSpan m_MemoryExpiration = TimeSpan.FromHours(m_DefaultMemoryExpiration);
         private TimeSpan m_FileExpiration = TimeSpan.FromHours(m_DefaultFileExpiration);
-        private TimeSpan m_FileExpirationCleanupTimer = TimeSpan.FromHours(m_DefaultFileExpiration);
+        private TimeSpan m_FileExpirationCleanupTimer = TimeSpan.FromHours(0.166);
 
         private static int m_CacheDirectoryTiers = 1;
         private static int m_CacheDirectoryTierLen = 3;
@@ -141,26 +141,38 @@ namespace Flotsam.RegionModules.AssetCache
                     IConfig assetConfig = source.Configs["AssetCache"];
                     if (assetConfig == null)
                     {
-                        m_log.Warn("[FLOTSAM ASSET CACHE]: AssetCache missing from OpenSim.ini, using defaults.");
-                        m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Cache Directory", m_DefaultCacheDirectory);
-                        return;
+                        m_log.Warn(
+                           "[FLOTSAM ASSET CACHE]: AssetCache section missing from config (not copied config-include/FlotsamCache.ini.example?  Using defaults.");
+                    }
+                    else
+                    {
+                        m_CacheDirectory = assetConfig.GetString("CacheDirectory", m_DefaultCacheDirectory);
+
+                        m_MemoryCacheEnabled = assetConfig.GetBoolean("MemoryCacheEnabled", m_MemoryCacheEnabled);
+                        m_MemoryExpiration = TimeSpan.FromHours(assetConfig.GetDouble("MemoryCacheTimeout", m_DefaultMemoryExpiration));
+    
+    #if WAIT_ON_INPROGRESS_REQUESTS
+                        m_WaitOnInprogressTimeout = assetConfig.GetInt("WaitOnInprogressTimeout", 3000);
+    #endif
+    
+                        m_LogLevel = assetConfig.GetInt("LogLevel", m_LogLevel);
+                        m_HitRateDisplay = (ulong)assetConfig.GetLong("HitRateDisplay", (long)m_HitRateDisplay);
+
+                        m_FileExpiration = TimeSpan.FromHours(assetConfig.GetDouble("FileCacheTimeout", m_DefaultFileExpiration));
+                        m_FileExpirationCleanupTimer
+                            = TimeSpan.FromHours(
+                                assetConfig.GetDouble("FileCleanupTimer", m_FileExpirationCleanupTimer.TotalHours));
+
+                        m_CacheDirectoryTiers = assetConfig.GetInt("CacheDirectoryTiers", m_CacheDirectoryTiers);
+                        m_CacheDirectoryTierLen = assetConfig.GetInt("CacheDirectoryTierLength", m_CacheDirectoryTierLen);
+
+                        m_CacheWarnAt = assetConfig.GetInt("CacheWarnAt", m_CacheWarnAt);
+
+                        m_DeepScanBeforePurge = assetConfig.GetBoolean("DeepScanBeforePurge", m_DeepScanBeforePurge);
                     }
 
-                    m_CacheDirectory = assetConfig.GetString("CacheDirectory", m_DefaultCacheDirectory);
-                    m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Cache Directory", m_CacheDirectory);
+                    m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Cache Directory {0}", m_CacheDirectory);
 
-                    m_MemoryCacheEnabled = assetConfig.GetBoolean("MemoryCacheEnabled", false);
-                    m_MemoryExpiration = TimeSpan.FromHours(assetConfig.GetDouble("MemoryCacheTimeout", m_DefaultMemoryExpiration));
-
-#if WAIT_ON_INPROGRESS_REQUESTS
-                    m_WaitOnInprogressTimeout = assetConfig.GetInt("WaitOnInprogressTimeout", 3000);
-#endif
-
-                    m_LogLevel = assetConfig.GetInt("LogLevel", 0);
-                    m_HitRateDisplay = (ulong)assetConfig.GetInt("HitRateDisplay", 1000);
-
-                    m_FileExpiration = TimeSpan.FromHours(assetConfig.GetDouble("FileCacheTimeout", m_DefaultFileExpiration));
-                    m_FileExpirationCleanupTimer = TimeSpan.FromHours(assetConfig.GetDouble("FileCleanupTimer", m_DefaultFileExpiration));
                     if ((m_FileExpiration > TimeSpan.Zero) && (m_FileExpirationCleanupTimer > TimeSpan.Zero))
                     {
                         m_CacheCleanTimer = new System.Timers.Timer(m_FileExpirationCleanupTimer.TotalMilliseconds);
@@ -170,7 +182,6 @@ namespace Flotsam.RegionModules.AssetCache
                             m_CacheCleanTimer.Start();
                     }
 
-                    m_CacheDirectoryTiers = assetConfig.GetInt("CacheDirectoryTiers", 1);
                     if (m_CacheDirectoryTiers < 1)
                     {
                         m_CacheDirectoryTiers = 1;
@@ -180,7 +191,6 @@ namespace Flotsam.RegionModules.AssetCache
                         m_CacheDirectoryTiers = 3;
                     }
 
-                    m_CacheDirectoryTierLen = assetConfig.GetInt("CacheDirectoryTierLength", 3);
                     if (m_CacheDirectoryTierLen < 1)
                     {
                         m_CacheDirectoryTierLen = 1;
@@ -190,14 +200,10 @@ namespace Flotsam.RegionModules.AssetCache
                         m_CacheDirectoryTierLen = 4;
                     }
 
-                    m_CacheWarnAt = assetConfig.GetInt("CacheWarnAt", 30000);
-
-                    m_DeepScanBeforePurge = assetConfig.GetBoolean("DeepScanBeforePurge", false);
-
-                    MainConsole.Instance.Commands.AddCommand(this.Name, true, "fcache status", "fcache status", "Display cache status", HandleConsoleCommand);
-                    MainConsole.Instance.Commands.AddCommand(this.Name, true, "fcache clear",  "fcache clear [file] [memory]", "Remove all assets in the file and/or memory cache", HandleConsoleCommand);
-                    MainConsole.Instance.Commands.AddCommand(this.Name, true, "fcache assets", "fcache assets", "Attempt a deep scan and cache of all assets in all scenes", HandleConsoleCommand);
-                    MainConsole.Instance.Commands.AddCommand(this.Name, true, "fcache expire", "fcache expire <datetime>", "Purge cached assets older then the specified date/time", HandleConsoleCommand);
+                    MainConsole.Instance.Commands.AddCommand(Name, true, "fcache status", "fcache status", "Display cache status", HandleConsoleCommand);
+                    MainConsole.Instance.Commands.AddCommand(Name, true, "fcache clear",  "fcache clear [file] [memory]", "Remove all assets in the cache.  If file or memory is specified then only this cache is cleared.", HandleConsoleCommand);
+                    MainConsole.Instance.Commands.AddCommand(Name, true, "fcache assets", "fcache assets", "Attempt a deep scan and cache of all assets in all scenes", HandleConsoleCommand);
+                    MainConsole.Instance.Commands.AddCommand(Name, true, "fcache expire", "fcache expire <datetime>", "Purge cached assets older then the specified date/time", HandleConsoleCommand);
                 }
             }
         }
@@ -732,24 +738,39 @@ namespace Flotsam.RegionModules.AssetCache
                         break;
 
                     case "clear":
-                        if (cmdparams.Length < 3)
+                        if (cmdparams.Length < 2)
                         {
-                            m_log.Warn("[FLOTSAM ASSET CACHE] Please specify memory and/or file cache.");
+                            m_log.Warn("[FLOTSAM ASSET CACHE] Usage is fcache clear [file] [memory]");
                             break;
+                        }
+
+                        bool clearMemory = false, clearFile = false;
+
+                        if (cmdparams.Length == 2)
+                        {
+                            clearMemory = true;
+                            clearFile = true;
                         }
                         foreach (string s in cmdparams)
                         {
                             if (s.ToLower() == "memory")
-                            {
-                                m_MemoryCache.Clear();
-                                m_log.Info("[FLOTSAM ASSET CACHE] Memory cache cleared.");
-                            }
+                                clearMemory = true;
                             else if (s.ToLower() == "file")
-                            {
-                                ClearFileCache();
-                                m_log.Info("[FLOTSAM ASSET CACHE] File cache cleared.");
-                            }
+                                clearFile = true;
                         }
+
+                        if (clearMemory)
+                        {
+                            m_MemoryCache.Clear();
+                            m_log.Info("[FLOTSAM ASSET CACHE] Memory cache cleared.");
+                        }
+    
+                        if (clearFile)
+                        {
+                            ClearFileCache();
+                            m_log.Info("[FLOTSAM ASSET CACHE] File cache cleared.");
+                        }
+
                         break;
 
 

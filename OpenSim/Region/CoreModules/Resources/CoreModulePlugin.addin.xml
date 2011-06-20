@@ -24,6 +24,7 @@
         <RegionModule id="UrlModule" type="OpenSim.Region.CoreModules.Scripting.LSLHttp.UrlModule" />
         <RegionModule id="Chat" type="OpenSim.Region.CoreModules.Avatar.Chat.ChatModule" />
         <RegionModule id="FriendsModule" type="OpenSim.Region.CoreModules.Avatar.Friends.FriendsModule" />
+        <RegionModule id="HGFriendsModule" type="OpenSim.Region.CoreModules.Avatar.Friends.HGFriendsModule" />
         <RegionModule id="PresenceModule" type="OpenSim.Region.CoreModules.Avatar.InstantMessage.PresenceModule" />
         <RegionModule id="MuteListModule" type="OpenSim.Region.CoreModules.Avatar.InstantMessage.MuteListModule" />
         <RegionModule id="OfflineMessageModule" type="OpenSim.Region.CoreModules.Avatar.InstantMessage.OfflineMessageModule" />

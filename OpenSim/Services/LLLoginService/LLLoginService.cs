@@ -112,6 +112,14 @@ namespace OpenSim.Services.LLLoginService
             m_AllowedClients = m_LoginServerConfig.GetString("AllowedClients", string.Empty);
             m_DeniedClients = m_LoginServerConfig.GetString("DeniedClients", string.Empty);
 
+            // Clean up some of these vars
+            if (m_MapTileURL != String.Empty)
+            {
+                m_MapTileURL = m_MapTileURL.Trim();
+                if (!m_MapTileURL.EndsWith("/"))
+                    m_MapTileURL = m_MapTileURL + "/";
+            }
+
             // These are required; the others aren't
             if (accountService == string.Empty || authService == string.Empty)
                 throw new Exception("LoginService is missing service specifications");
@@ -523,6 +531,7 @@ namespace OpenSim.Services.LLLoginService
                 // free uri form
                 // e.g. New Moon&135&46  New Moon@osgrid.org:8002&153&34
                 where = "url";
+                GridRegion region = null;
                 Regex reURI = new Regex(@"^uri:(?<region>[^&]+)&(?<x>\d+)&(?<y>\d+)&(?<z>\d+)$");
                 Match uriMatch = reURI.Match(startLocation);
                 if (uriMatch == null)
@@ -553,8 +562,18 @@ namespace OpenSim.Services.LLLoginService
                                 }
                                 else
                                 {
-                                    m_log.InfoFormat("[LLLOGIN SERVICE]: Got Custom Login URI {0}, Grid does not provide default regions.", startLocation);
-                                    return null;
+                                    m_log.Info("[LLOGIN SERVICE]: Last Region Not Found Attempting to find random region");
+                                    region = FindAlternativeRegion(scopeID);
+                                    if (region != null)
+                                    {
+                                        where = "safe";
+                                        return region;
+                                    }
+                                    else
+                                    {
+                                        m_log.InfoFormat("[LLLOGIN SERVICE]: Got Custom Login URI {0}, Grid does not provide default regions and no alternative found.", startLocation);
+                                        return null;
+                                    }
                                 }
                             }
                             return regions[0];
@@ -582,7 +601,8 @@ namespace OpenSim.Services.LLLoginService
                             if (parts.Length > 1)
                                 UInt32.TryParse(parts[1], out port);
 
-                            GridRegion region = FindForeignRegion(domainName, port, regionName, out gatekeeper);
+//                            GridRegion region = FindForeignRegion(domainName, port, regionName, out gatekeeper);
+                            region = FindForeignRegion(domainName, port, regionName, out gatekeeper);
                             return region;
                         }
                     }
@@ -811,16 +831,13 @@ namespace OpenSim.Services.LLLoginService
             // Old style: get the service keys from the DB 
             foreach (KeyValuePair<string, object> kvp in account.ServiceURLs)
             {
-                if (kvp.Value == null || (kvp.Value != null && kvp.Value.ToString() == string.Empty))
-                {
-                    aCircuit.ServiceURLs[kvp.Key] = m_LoginServerConfig.GetString(kvp.Key, string.Empty);
-                }
-                else
+                if (kvp.Value != null)
                 {
                     aCircuit.ServiceURLs[kvp.Key] = kvp.Value;
+
+                    if (!aCircuit.ServiceURLs[kvp.Key].ToString().EndsWith("/"))
+                        aCircuit.ServiceURLs[kvp.Key] = aCircuit.ServiceURLs[kvp.Key] + "/";
                 }
-                if (!aCircuit.ServiceURLs[kvp.Key].ToString().EndsWith("/"))
-                    aCircuit.ServiceURLs[kvp.Key] = aCircuit.ServiceURLs[kvp.Key] + "/";
             }
 
             // New style: service keys  start with SRV_; override the previous
@@ -828,16 +845,29 @@ namespace OpenSim.Services.LLLoginService
 
             if (keys.Length > 0)
             {
+                bool newUrls = false;
                 IEnumerable<string> serviceKeys = keys.Where(value => value.StartsWith("SRV_"));
                 foreach (string serviceKey in serviceKeys)
                 {
                     string keyName = serviceKey.Replace("SRV_", "");
-                    aCircuit.ServiceURLs[keyName] = m_LoginServerConfig.GetString(serviceKey, string.Empty);
-                    if (!aCircuit.ServiceURLs[keyName].ToString().EndsWith("/"))
-                        aCircuit.ServiceURLs[keyName] = aCircuit.ServiceURLs[keyName] + "/";
+                    string keyValue = m_LoginServerConfig.GetString(serviceKey, string.Empty);
+                    if (!keyValue.EndsWith("/"))
+                        keyValue = keyValue + "/";
+
+                    if (!account.ServiceURLs.ContainsKey(keyName) || (account.ServiceURLs.ContainsKey(keyName) && account.ServiceURLs[keyName] != keyValue))
+                    {
+                        account.ServiceURLs[keyName] = keyValue;
+                        newUrls = true;
+                    }
+                    aCircuit.ServiceURLs[keyName] = keyValue;
 
                     m_log.DebugFormat("[LLLOGIN SERVICE]: found new key {0} {1}", keyName, aCircuit.ServiceURLs[keyName]);
                 }
+
+                // The grid operator decided to override the defaults in the
+                // [LoginService] configuration. Let's store the correct ones.
+                if (newUrls)
+                    m_UserAccountService.StoreUserAccount(account);
             }
 
         }

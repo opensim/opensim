@@ -1003,7 +1003,7 @@ CREATE TABLE "regionwindlight" (
   PRIMARY KEY ("region_id")
 )
 
-COMMIT TRANSACTION
+COMMIT
 
 :VERSION 26
 

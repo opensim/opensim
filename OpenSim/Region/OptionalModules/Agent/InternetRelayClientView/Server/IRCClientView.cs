@@ -1183,7 +1183,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             IRC_SendChannelPrivmsg(objectname,url);
         }
 
-        public void SendDialog(string objectname, UUID objectID, string ownerFirstName, string ownerLastName, string msg, UUID textureID, int ch, string[] buttonlabels)
+        public void SendDialog(string objectname, UUID objectID, UUID ownerID, string ownerFirstName, string ownerLastName, string msg, UUID textureID, int ch, string[] buttonlabels)
         {
             
         }

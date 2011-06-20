@@ -198,11 +198,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     m_log.ErrorFormat(
                         "[ARCHIVER]: (... {0} more not shown)", uuids.Count - MAX_UUID_DISPLAY_ON_TIMEOUT);
 
-                m_log.Error("[ARCHIVER]: OAR save aborted.  PLEASE DO NOT USE THIS OAR, IT WILL BE INCOMPLETE.");
+                m_log.Error("[ARCHIVER]: Archive save aborted.  PLEASE DO NOT USE THIS ARCHIVE, IT WILL BE INCOMPLETE.");
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[ARCHIVER]: Timeout handler exception {0}", e);
+                m_log.ErrorFormat("[ARCHIVER]: Timeout handler exception {0}{1}", e.Message, e.StackTrace);
             }
             finally
             {
@@ -230,6 +230,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <param name="asset"></param>
         public void AssetRequestCallback(string id, object sender, AssetBase asset)
         {
+            Culture.SetCurrentCulture();
+            
             try
             {
                 lock (this)
@@ -289,6 +291,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         protected void PerformAssetsRequestCallback(object o)
         {
+            Culture.SetCurrentCulture();
+
             try
             {
                 m_assetsRequestCallback(m_foundAssetUuids, m_notFoundAssetUuids);

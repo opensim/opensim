@@ -357,6 +357,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion Fields
 
+//        ~SceneObjectPart()
+//        {
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT PART]: Destructor called for {0}, local id {1}, parent {2} {3}",
+//                Name, LocalId, ParentGroup.Name, ParentGroup.LocalId);
+//        }
+
         #region Constructors
 
         /// <summary>
@@ -1636,7 +1643,6 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         PhysActor.SOPName = this.Name; // save object name and desc into the PhysActor so ODE internals know the joint/body info
                         PhysActor.SOPDescription = this.Description;
-                        PhysActor.LocalID = LocalId;
                         DoPhysicsPropertyUpdate(RigidBody, true);
                         PhysActor.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
                     }
@@ -4428,6 +4434,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // It's not phantom anymore. So make sure the physics engine get's knowledge of it
                     PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
+                        LocalId,
                         string.Format("{0}/{1}", Name, UUID),
                         Shape,
                         AbsolutePosition,
@@ -4439,7 +4446,6 @@ namespace OpenSim.Region.Framework.Scenes
                     pa = PhysActor;
                     if (pa != null)
                     {
-                        pa.LocalID = LocalId;
                         DoPhysicsPropertyUpdate(UsePhysics, true);
                         if (m_parentGroup != null)
                         {

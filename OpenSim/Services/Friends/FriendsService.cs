@@ -43,17 +43,16 @@ namespace OpenSim.Services.Friends
         {
         }
 
-        public FriendInfo[] GetFriends(UUID PrincipalID)
+        public virtual FriendInfo[] GetFriends(UUID PrincipalID)
         {
             FriendsData[] data = m_Database.GetFriends(PrincipalID);
-
             List<FriendInfo> info = new List<FriendInfo>();
 
             foreach (FriendsData d in data)
             {
                 FriendInfo i = new FriendInfo();
 
-                i.PrincipalID = d.PrincipalID;
+                i.PrincipalID = new UUID(d.PrincipalID);
                 i.Friend = d.Friend;
                 i.MyFlags = Convert.ToInt32(d.Data["Flags"]);
                 i.TheirFlags = Convert.ToInt32(d.Data["TheirFlags"]);
@@ -64,7 +63,33 @@ namespace OpenSim.Services.Friends
             return info.ToArray();
         }
 
-        public bool StoreFriend(UUID PrincipalID, string Friend, int flags)
+        public virtual FriendInfo[] GetFriends(string PrincipalID)
+        {
+            FriendsData[] data = m_Database.GetFriends(PrincipalID);
+            List<FriendInfo> info = new List<FriendInfo>();
+
+            foreach (FriendsData d in data)
+            {
+                FriendInfo i = new FriendInfo();
+
+                if (!UUID.TryParse(d.PrincipalID, out i.PrincipalID))
+                {
+                    string tmp = string.Empty;
+                    if (!Util.ParseUniversalUserIdentifier(d.PrincipalID, out i.PrincipalID, out tmp, out tmp, out tmp, out tmp))
+                        // bad record. ignore this entry
+                        continue;
+                }
+                i.Friend = d.Friend;
+                i.MyFlags = Convert.ToInt32(d.Data["Flags"]);
+                i.TheirFlags = Convert.ToInt32(d.Data["TheirFlags"]);
+
+                info.Add(i);
+            }
+
+            return info.ToArray();
+        }
+
+        public virtual bool StoreFriend(string PrincipalID, string Friend, int flags)
         {
             FriendsData d = new FriendsData();
 
@@ -76,7 +101,12 @@ namespace OpenSim.Services.Friends
             return m_Database.Store(d);
         }
 
-        public bool Delete(UUID PrincipalID, string Friend)
+        public bool Delete(string principalID, string friend)
+        {
+            return m_Database.Delete(principalID, friend);
+        }
+
+        public virtual bool Delete(UUID PrincipalID, string Friend)
         {
             return m_Database.Delete(PrincipalID, Friend);
         }

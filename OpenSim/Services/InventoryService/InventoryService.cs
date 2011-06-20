@@ -340,6 +340,9 @@ namespace OpenSim.Services.InventoryService
             List<InventoryItemBase> itemsList = new List<InventoryItemBase>();
             
             itemsList.AddRange(m_Database.getInventoryInFolder(folderID));
+
+//            m_log.DebugFormat(
+//                "[INVENTORY SERVICE]: Found {0} items in folder {1} for {2}", itemsList.Count, folderID, userID);
             
             return itemsList;
         }
@@ -385,8 +388,9 @@ namespace OpenSim.Services.InventoryService
         // See IInventoryServices
         public virtual bool AddItem(InventoryItemBase item)
         {
-            m_log.DebugFormat(
-                "[INVENTORY SERVICE]: Adding item {0} {1} to folder {2}", item.Name, item.ID, item.Folder);
+//            m_log.DebugFormat(
+//                "[INVENTORY SERVICE]: Adding item {0} {1} to folder {2} for {3}",
+//                item.Name, item.ID, item.Folder, item.Owner);
 
             m_Database.addInventoryItem(item);
 

@@ -51,20 +51,31 @@ namespace OpenSim.Services.Connectors.Hypergrid
             MethodBase.GetCurrentMethod().DeclaringType);
 
         string m_ServerURL;
-        public UserAgentServiceConnector(string url)
+
+        public UserAgentServiceConnector(string url) : this(url, true)
+        {
+        }
+
+        public UserAgentServiceConnector(string url, bool dnsLookup)
         {
             m_ServerURL = url;
-            // Doing this here, because XML-RPC or mono have some strong ideas about
-            // caching DNS translations.
-            try
+
+            if (dnsLookup)
             {
-                Uri m_Uri = new Uri(m_ServerURL);
-                IPAddress ip = Util.GetHostFromDNS(m_Uri.Host);
-                m_ServerURL = m_ServerURL.Replace(m_Uri.Host, ip.ToString()); ;
-            }
-            catch (Exception e)
-            {
-                m_log.DebugFormat("[USER AGENT CONNECTOR]: Malformed Uri {0}: {1}", m_ServerURL, e.Message);
+                // Doing this here, because XML-RPC or mono have some strong ideas about
+                // caching DNS translations.
+                try
+                {
+                    Uri m_Uri = new Uri(m_ServerURL);
+                    IPAddress ip = Util.GetHostFromDNS(m_Uri.Host);
+                    m_ServerURL = m_ServerURL.Replace(m_Uri.Host, ip.ToString());
+                    if (!m_ServerURL.EndsWith("/"))
+                        m_ServerURL += "/";
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[USER AGENT CONNECTOR]: Malformed Uri {0}: {1}", m_ServerURL, e.Message);
+                }
             }
             m_log.DebugFormat("[USER AGENT CONNECTOR]: new connector to {0} ({1})", url, m_ServerURL);
         }
@@ -400,6 +411,329 @@ namespace OpenSim.Services.Connectors.Hypergrid
             GetBoolResponse(request, out reason);
         }
 
+        public List<UUID> StatusNotification(List<string> friends, UUID userID, bool online)
+        {
+            Hashtable hash = new Hashtable();
+            hash["userID"] = userID.ToString();
+            hash["online"] = online.ToString();
+            int i = 0;
+            foreach (string s in friends)
+            {
+                hash["friend_" + i.ToString()] = s;
+                i++;
+            }
+
+            IList paramList = new ArrayList();
+            paramList.Add(hash);
+
+            XmlRpcRequest request = new XmlRpcRequest("status_notification", paramList);
+            string reason = string.Empty;
+
+            // Send and get reply
+            List<UUID> friendsOnline = new List<UUID>();
+            XmlRpcResponse response = null;
+            try
+            {
+                response = request.Send(m_ServerURL, 6000);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0}", m_ServerURL);
+                reason = "Exception: " + e.Message;
+                return friendsOnline;
+            }
+
+            if (response.IsFault)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
+                reason = "XMLRPC Fault";
+                return friendsOnline;
+            }
+
+            hash = (Hashtable)response.Value;
+            //foreach (Object o in hash)
+            //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
+            try
+            {
+                if (hash == null)
+                {
+                    m_log.ErrorFormat("[USER AGENT CONNECTOR]: GetOnlineFriends Got null response from {0}! THIS IS BAAAAD", m_ServerURL);
+                    reason = "Internal error 1";
+                    return friendsOnline;
+                }
+
+                // Here is the actual response
+                foreach (object key in hash.Keys)
+                {
+                    if (key is string && ((string)key).StartsWith("friend_") && hash[key] != null)
+                    {
+                        UUID uuid;
+                        if (UUID.TryParse(hash[key].ToString(), out uuid))
+                            friendsOnline.Add(uuid);
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: Got exception on GetOnlineFriends response.");
+                reason = "Exception: " + e.Message;
+            }
+
+            return friendsOnline;
+        }
+
+        public List<UUID> GetOnlineFriends(UUID userID, List<string> friends)
+        {
+            Hashtable hash = new Hashtable();
+            hash["userID"] = userID.ToString();
+            int i = 0;
+            foreach (string s in friends)
+            {
+                hash["friend_" + i.ToString()] = s;
+                i++;
+            }
+
+            IList paramList = new ArrayList();
+            paramList.Add(hash);
+
+            XmlRpcRequest request = new XmlRpcRequest("get_online_friends", paramList);
+            string reason = string.Empty;
+            
+            // Send and get reply
+            List<UUID> online = new List<UUID>();
+            XmlRpcResponse response = null;
+            try
+            {
+                response = request.Send(m_ServerURL, 10000);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0}", m_ServerURL);
+                reason = "Exception: " + e.Message;
+                return online;
+            }
+
+            if (response.IsFault)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
+                reason = "XMLRPC Fault";
+                return online;
+            }
+
+            hash = (Hashtable)response.Value;
+            //foreach (Object o in hash)
+            //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
+            try
+            {
+                if (hash == null)
+                {
+                    m_log.ErrorFormat("[USER AGENT CONNECTOR]: GetOnlineFriends Got null response from {0}! THIS IS BAAAAD", m_ServerURL);
+                    reason = "Internal error 1";
+                    return online;
+                }
+
+                // Here is the actual response
+                foreach (object key in hash.Keys)
+                {
+                    if (key is string && ((string)key).StartsWith("friend_") && hash[key] != null)
+                    {
+                        UUID uuid;
+                        if (UUID.TryParse(hash[key].ToString(), out uuid))
+                            online.Add(uuid);
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: Got exception on GetOnlineFriends response.");
+                reason = "Exception: " + e.Message;
+            }
+
+            return online;
+        }
+
+        public Dictionary<string, object> GetServerURLs(UUID userID)
+        {
+            Hashtable hash = new Hashtable();
+            hash["userID"] = userID.ToString();
+
+            IList paramList = new ArrayList();
+            paramList.Add(hash);
+
+            XmlRpcRequest request = new XmlRpcRequest("get_server_urls", paramList);
+            string reason = string.Empty;
+
+            // Send and get reply
+            Dictionary<string, object> serverURLs = new Dictionary<string,object>();
+            XmlRpcResponse response = null;
+            try
+            {
+                response = request.Send(m_ServerURL, 10000);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0}", m_ServerURL);
+                reason = "Exception: " + e.Message;
+                return serverURLs;
+            }
+
+            if (response.IsFault)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
+                reason = "XMLRPC Fault";
+                return serverURLs;
+            }
+
+            hash = (Hashtable)response.Value;
+            //foreach (Object o in hash)
+            //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
+            try
+            {
+                if (hash == null)
+                {
+                    m_log.ErrorFormat("[USER AGENT CONNECTOR]: GetServerURLs Got null response from {0}! THIS IS BAAAAD", m_ServerURL);
+                    reason = "Internal error 1";
+                    return serverURLs;
+                }
+
+                // Here is the actual response
+                foreach (object key in hash.Keys)
+                {
+                    if (key is string && ((string)key).StartsWith("SRV_") && hash[key] != null)
+                    {
+                        string serverType = key.ToString().Substring(4); // remove "SRV_"
+                        serverURLs.Add(serverType, hash[key].ToString());
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: Got exception on GetOnlineFriends response.");
+                reason = "Exception: " + e.Message;
+            }
+
+            return serverURLs;
+        }
+
+        public string LocateUser(UUID userID)
+        {
+            Hashtable hash = new Hashtable();
+            hash["userID"] = userID.ToString();
+
+            IList paramList = new ArrayList();
+            paramList.Add(hash);
+
+            XmlRpcRequest request = new XmlRpcRequest("locate_user", paramList);
+            string reason = string.Empty;
+
+            // Send and get reply
+            string url = string.Empty;
+            XmlRpcResponse response = null;
+            try
+            {
+                response = request.Send(m_ServerURL, 10000);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0}", m_ServerURL);
+                reason = "Exception: " + e.Message;
+                return url;
+            }
+
+            if (response.IsFault)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
+                reason = "XMLRPC Fault";
+                return url;
+            }
+
+            hash = (Hashtable)response.Value;
+            //foreach (Object o in hash)
+            //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
+            try
+            {
+                if (hash == null)
+                {
+                    m_log.ErrorFormat("[USER AGENT CONNECTOR]: LocateUser Got null response from {0}! THIS IS BAAAAD", m_ServerURL);
+                    reason = "Internal error 1";
+                    return url;
+                }
+
+                // Here's the actual response
+                if (hash.ContainsKey("URL"))
+                    url = hash["URL"].ToString();
+
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: Got exception on LocateUser response.");
+                reason = "Exception: " + e.Message;
+            }
+
+            return url;
+        }
+
+        public string GetUUI(UUID userID, UUID targetUserID)
+        {
+            Hashtable hash = new Hashtable();
+            hash["userID"] = userID.ToString();
+            hash["targetUserID"] = targetUserID.ToString();
+
+            IList paramList = new ArrayList();
+            paramList.Add(hash);
+
+            XmlRpcRequest request = new XmlRpcRequest("get_uui", paramList);
+            string reason = string.Empty;
+
+            // Send and get reply
+            string uui = string.Empty;
+            XmlRpcResponse response = null;
+            try
+            {
+                response = request.Send(m_ServerURL, 10000);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[USER AGENT CONNECTOR]: Unable to contact remote server {0}", m_ServerURL);
+                reason = "Exception: " + e.Message;
+                return uui;
+            }
+
+            if (response.IsFault)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: remote call to {0} returned an error: {1}", m_ServerURL, response.FaultString);
+                reason = "XMLRPC Fault";
+                return uui;
+            }
+
+            hash = (Hashtable)response.Value;
+            //foreach (Object o in hash)
+            //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
+            try
+            {
+                if (hash == null)
+                {
+                    m_log.ErrorFormat("[USER AGENT CONNECTOR]: GetUUI Got null response from {0}! THIS IS BAAAAD", m_ServerURL);
+                    reason = "Internal error 1";
+                    return uui;
+                }
+
+                // Here's the actual response
+                if (hash.ContainsKey("UUI"))
+                    uui = hash["UUI"].ToString();
+
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[USER AGENT CONNECTOR]: Got exception on LocateUser response.");
+                reason = "Exception: " + e.Message;
+            }
+
+            return uui;
+        }
 
         private bool GetBoolResponse(XmlRpcRequest request, out string reason)
         {

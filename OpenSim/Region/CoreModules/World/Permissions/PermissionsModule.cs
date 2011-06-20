@@ -548,18 +548,18 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             // libomv will moan about PrimFlags.ObjectYouOfficer being
             // deprecated
-            #pragma warning disable 0612 
+#pragma warning disable 0612
             objflags &= (uint)
                 ~(PrimFlags.ObjectCopy | // Tells client you can copy the object
-                  PrimFlags.ObjectModify | // tells client you can modify the object
-                  PrimFlags.ObjectMove |   // tells client that you can move the object (only, no mod)
-                  PrimFlags.ObjectTransfer | // tells the client that you can /take/ the object if you don't own it
-                  PrimFlags.ObjectYouOwner | // Tells client that you're the owner of the object
-                  PrimFlags.ObjectAnyOwner | // Tells client that someone owns the object
-                  PrimFlags.ObjectOwnerModify | // Tells client that you're the owner of the object
-                  PrimFlags.ObjectYouOfficer // Tells client that you've got group object editing permission. Used when ObjectGroupOwned is set
+                    PrimFlags.ObjectModify | // tells client you can modify the object
+                    PrimFlags.ObjectMove |   // tells client that you can move the object (only, no mod)
+                    PrimFlags.ObjectTransfer | // tells the client that you can /take/ the object if you don't own it
+                    PrimFlags.ObjectYouOwner | // Tells client that you're the owner of the object
+                    PrimFlags.ObjectAnyOwner | // Tells client that someone owns the object
+                    PrimFlags.ObjectOwnerModify | // Tells client that you're the owner of the object
+                    PrimFlags.ObjectYouOfficer // Tells client that you've got group object editing permission. Used when ObjectGroupOwned is set
                     );
-            #pragma warning restore 0612
+#pragma warning restore 0612
 
             // Creating the three ObjectFlags options for this method to choose from.
             // Customize the OwnerMask
@@ -576,22 +576,27 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             if (m_bypassPermissions)
                 return objectOwnerMask;
-        
+
             // Object owners should be able to edit their own content
             if (user == objectOwner)
                 return objectOwnerMask;
-            
-            if (IsFriendWithPerms(user, objectOwner))
-                return objectOwnerMask;
 
+            if (IsFriendWithPerms(user, objectOwner))
+            {
+                return objectOwnerMask;
+            }
             // Estate users should be able to edit anything in the sim if RegionOwnerIsGod is set
             if (m_RegionOwnerIsGod && IsEstateManager(user) && !IsAdministrator(objectOwner))
+            {
                 return objectOwnerMask;
+            }
 
             // Admin should be able to edit anything in the sim (including admin objects)
             if (IsAdministrator(user))
+            {
                 return objectOwnerMask;
-            
+            }
+
             // Users should be able to edit what is over their land.
             Vector3 taskPos = task.AbsolutePosition;
             ILandObject parcel = m_scene.LandChannel.GetLandObject(taskPos.X, taskPos.Y);
@@ -599,13 +604,15 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             {
                 // Admin objects should not be editable by the above
                 if (!IsAdministrator(objectOwner))
+                {
                     return objectOwnerMask;
+                }
             }
 
             // Group permissions
             if ((task.GroupID != UUID.Zero) && IsGroupMember(task.GroupID, user, 0))
                 return objectGroupMask | objectEveryoneMask;
-        
+
             return objectEveryoneMask;
         }
 
@@ -673,7 +680,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             //
             // Nobody but the object owner can set permissions on an object
             //
-
             if (locked && (!IsAdministrator(currentUser)) && denyOnLocked)
             {
                 return false;
@@ -704,6 +710,11 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 // Return immediately, so that the administrator can shares group objects
                 return true;
             }
+
+            // Friends with benefits should be able to edit the objects too
+            if (IsFriendWithPerms(currentUser, objectOwner))
+                // Return immediately, so that the administrator can share objects with friends
+                return true;
         
             // Users should be able to edit what is over their land.
             ILandObject parcel = m_scene.LandChannel.GetLandObject(group.AbsolutePosition.X, group.AbsolutePosition.Y);

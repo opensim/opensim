@@ -280,7 +280,7 @@ namespace OpenSim.Data.SQLite
 
             string where = String.Join(" and ", terms.ToArray());
 
-            string query = String.Format("delete * from {0} where {1}", m_Realm, where);
+            string query = String.Format("delete from {0} where {1}", m_Realm, where);
 
             cmd.CommandText = query;
 

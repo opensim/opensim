@@ -54,9 +54,34 @@ namespace OpenSim.Services.Interfaces
         bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, out string reason);
         void LogoutAgent(UUID userID, UUID sessionID);
         GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt);
+        Dictionary<string, object> GetServerURLs(UUID userID);
+
+        string LocateUser(UUID userID);
+        // Tries to get the universal user identifier for the targetUserId
+        // on behalf of the userID
+        string GetUUI(UUID userID, UUID targetUserID);
+
+        // Returns the local friends online
+        List<UUID> StatusNotification(List<string> friends, UUID userID, bool online);
+        //List<UUID> GetOnlineFriends(UUID userID, List<string> friends);
 
         bool AgentIsComingHome(UUID sessionID, string thisGridExternalName);
         bool VerifyAgent(UUID sessionID, string token);
         bool VerifyClient(UUID sessionID, string reportedIP);
+    }
+
+    public interface IInstantMessage
+    {
+        bool IncomingInstantMessage(GridInstantMessage im);
+        bool OutgoingInstantMessage(GridInstantMessage im, string url, bool foreigner);
+    }
+    public interface IFriendsSimConnector
+    {
+        bool StatusNotify(UUID userID, UUID friendID, bool online);
+    }
+
+    public interface IInstantMessageSimConnector
+    {
+        bool SendInstantMessage(GridInstantMessage im);
     }
 }

@@ -146,6 +146,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         protected void SaveInvItem(InventoryItemBase inventoryItem, string path, Dictionary<string, object> options, IUserAccountService userAccountService)
         {
+            if (options.ContainsKey("verbose"))
+                m_log.InfoFormat(
+                    "[INVENTORY ARCHIVER]: Saving item {0} {1} with asset {2}",
+                    inventoryItem.ID, inventoryItem.Name, inventoryItem.AssetID);
+
             string filename = path + CreateArchiveItemName(inventoryItem);
 
             // Record the creator of this item for user record purposes (which might go away soon)
@@ -154,7 +159,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             string serialization = UserInventoryItemSerializer.Serialize(inventoryItem, options, userAccountService);
             m_archiveWriter.WriteFile(filename, serialization);
 
-            if (SaveAssets)
+            AssetType itemAssetType = (AssetType)inventoryItem.AssetType;
+
+            // Don't chase down link asset items as they actually point to their target item IDs rather than an asset
+            if (SaveAssets && itemAssetType != AssetType.Link && itemAssetType != AssetType.LinkFolder)
                 m_assetGatherer.GatherAssetUuids(inventoryItem.AssetID, (AssetType)inventoryItem.AssetType, m_assetUuids);
         }
 
@@ -246,10 +254,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
     
                 // The path may point to an item instead
                 if (inventoryFolder == null)
-                {
                     inventoryItem = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, rootFolder, m_invPath);
-                    //inventoryItem = m_userInfo.RootFolder.FindItemByPath(m_invPath);
-                }
     
                 if (null == inventoryFolder && null == inventoryItem)
                 {

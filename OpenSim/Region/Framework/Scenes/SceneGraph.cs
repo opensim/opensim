@@ -1584,7 +1584,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        ///
+        /// Handle a prim description set request from a viewer.
         /// </summary>
         /// <param name="primLocalID"></param>
         /// <param name="description"></param>
@@ -1601,8 +1601,17 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Set a click action for the prim.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="primLocalID"></param>
+        /// <param name="clickAction"></param>
         protected internal void PrimClickAction(IClientAPI remoteClient, uint primLocalID, string clickAction)
         {
+//            m_log.DebugFormat(
+//                "[SCENEGRAPH]: User {0} set click action for {1} to {2}", remoteClient.Name, primLocalID, clickAction);
+
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
             if (group != null)
             {

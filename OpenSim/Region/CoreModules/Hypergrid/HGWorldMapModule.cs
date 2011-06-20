@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
@@ -40,7 +41,10 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 {
     public class HGWorldMapModule : WorldMapModule
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        // Remember the map area that each client has been exposed to in this region
+        private Dictionary<UUID, List<MapBlockData>> m_SeenMapBlocks = new Dictionary<UUID, List<MapBlockData>>();
 
         #region INonSharedRegionModule Members
 
@@ -51,6 +55,13 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                 m_Enabled = true;
         }
 
+        public override void AddRegion(Scene scene)
+        {
+            base.AddRegion(scene);
+
+            scene.EventManager.OnClientClosed += new EventManager.ClientClosed(EventManager_OnClientClosed);
+        }
+
         public override string Name
         {
             get { return "HGWorldMap"; }
@@ -58,47 +69,70 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         #endregion
 
-        protected override void GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
+        void EventManager_OnClientClosed(UUID clientID, Scene scene)
         {
-            List<MapBlockData> mapBlocks = new List<MapBlockData>();
-            List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                minX * (int)Constants.RegionSize, maxX * (int)Constants.RegionSize, 
-                minY * (int)Constants.RegionSize, maxY * (int)Constants.RegionSize);
-
-            foreach (GridRegion r in regions)
+            ScenePresence sp = scene.GetScenePresence(clientID);
+            if (sp != null)
             {
-                MapBlockData block = new MapBlockData();
-                MapBlockFromGridRegion(block, r);
-                mapBlocks.Add(block);
-            }
-
-            // Different from super
-            FillInMap(mapBlocks, minX, minY, maxX, maxY);
-            //
-
-            remoteClient.SendMapBlock(mapBlocks, 0);
-        }
-
-
-        private void FillInMap(List<MapBlockData> mapBlocks, int minX, int minY, int maxX, int maxY)
-        {
-            for (int x = minX; x <= maxX; x++)
-            {
-                for (int y = minY; y <= maxY; y++)
+                if (m_SeenMapBlocks.ContainsKey(clientID))
                 {
-                    MapBlockData mblock = mapBlocks.Find(delegate(MapBlockData mb) { return ((mb.X == x) && (mb.Y == y)); });
-                    if (mblock == null)
+                    List<MapBlockData> mapBlocks = m_SeenMapBlocks[clientID];
+                    foreach (MapBlockData b in mapBlocks)
                     {
-                        mblock = new MapBlockData();
-                        mblock.X = (ushort)x;
-                        mblock.Y = (ushort)y;
-                        mblock.Name = "";
-                        mblock.Access = 254; // means 'simulator is offline'. We need this because the viewer ignores 255's
-                        mblock.MapImageId = UUID.Zero;
-                        mapBlocks.Add(mblock);
+                        b.Name = string.Empty;
+                        b.Access = 254; // means 'simulator is offline'. We need this because the viewer ignores 255's
                     }
+
+                    m_log.DebugFormat("[HG MAP]: Reseting {0} blocks", mapBlocks.Count);
+                    sp.ControllingClient.SendMapBlock(mapBlocks, 0);
+                    m_SeenMapBlocks.Remove(clientID);
                 }
             }
+        }
+
+        protected override List<MapBlockData> GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
+        {
+            List<MapBlockData>  mapBlocks = base.GetAndSendBlocks(remoteClient, minX, minY, maxX, maxY, flag);
+            lock (m_SeenMapBlocks)
+            {
+                if (!m_SeenMapBlocks.ContainsKey(remoteClient.AgentId))
+                {
+                    m_SeenMapBlocks.Add(remoteClient.AgentId, mapBlocks);
+                }
+                else
+                {
+                    List<MapBlockData> seen = m_SeenMapBlocks[remoteClient.AgentId];
+                    List<MapBlockData> newBlocks = new List<MapBlockData>();
+                    foreach (MapBlockData b in mapBlocks)
+                        if (seen.Find(delegate(MapBlockData bdata) { return bdata.X == b.X && bdata.Y == b.Y; }) == null)
+                            newBlocks.Add(b);
+                    seen.AddRange(newBlocks);
+                }
+            }
+
+            return mapBlocks;
+        }
+
+    }
+
+    class MapArea
+    {
+        public int minX;
+        public int minY;
+        public int maxX;
+        public int maxY;
+
+        public MapArea(int mix, int miy, int max, int may)
+        {
+            minX = mix;
+            minY = miy;
+            maxX = max;
+            maxY = may;
+        }
+
+        public void Print()
+        {
+            Console.WriteLine(String.Format(" --> Area is minX={0} minY={1} minY={2} maxY={3}", minX, minY, maxY, maxY));
         }
     }
 }

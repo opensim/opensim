@@ -440,6 +440,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             rs.Elevation2SE = 9.2;
             rs.Elevation2SW = 2.1;
             rs.FixedSun = true;
+            rs.SunPosition = 12.0;
             rs.ObjectBonus = 1.4;
             rs.RestrictPushing = true;
             rs.TerrainLowerLimit = 0.4;
@@ -485,6 +486,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(loadedRs.Elevation2SE, Is.EqualTo(9.2));
             Assert.That(loadedRs.Elevation2SW, Is.EqualTo(2.1));
             Assert.That(loadedRs.FixedSun, Is.True);
+            Assert.AreEqual(12.0, loadedRs.SunPosition);
             Assert.That(loadedRs.ObjectBonus, Is.EqualTo(1.4));
             Assert.That(loadedRs.RestrictPushing, Is.True);
             Assert.That(loadedRs.TerrainLowerLimit, Is.EqualTo(0.4));
