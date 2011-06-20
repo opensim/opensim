@@ -1182,6 +1182,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 flags |= RegionFlags.AllowParcelChanges;
             if (Scene.RegionInfo.RegionSettings.BlockShowInSearch)
                 flags |= RegionFlags.BlockParcelSearch;
+            if (Scene.RegionInfo.RegionSettings.GodBlockSearch)
+                flags |= (RegionFlags)(1 << 11);
+            if (Scene.RegionInfo.RegionSettings.Casino)
+                flags |= (RegionFlags)(1 << 10);
 
             if (Scene.RegionInfo.RegionSettings.FixedSun)
                 flags |= RegionFlags.SunFixed;

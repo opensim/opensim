@@ -304,7 +304,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                 allowedDelta |= (uint)(ParcelFlags.ShowDirectory |
                         ParcelFlags.AllowPublish |
-                        ParcelFlags.MaturePublish);
+                        ParcelFlags.MaturePublish) | (uint)(1 << 23);
             }
 
             if (m_scene.Permissions.CanEditParcelProperties(remote_client.AgentId,this, GroupPowers.LandChangeIdentity))
