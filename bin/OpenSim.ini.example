@@ -307,6 +307,14 @@
 	; serving this cap from the simulators may lead to poor performace.
 	Cap_WebFetchInventoryDescendents = ""
 
+[SimulatorFeatures]
+	; Experimental new information sent in SimulatorFeatures cap for Kokua viewers 
+	; meant to override the MapImage and search server url given at login, and varying 
+	; on a sim-basis.
+	; Viewers that don't understand it, will ignore it
+	;MapImageServerURI = "http://127.0.0.1:9000/
+	;SearchServerURI = "http://127.0.0.1:9000/
+
 [Chat]
     ;# {whisper_distance} {} {Distance at which a whisper is heard, in meters?} {} 10
     ;; Distance in meters that whispers should travel.

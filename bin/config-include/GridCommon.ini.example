@@ -116,6 +116,9 @@
     ;
     UserAgentServerURI = "http://mygridserver.com:8002"
 
+[MapImageService]
+   	MapImageServerURI = "http://mygridserver.com:8003"
+
 [Modules]
     ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.
     ;; Copy the config .example file into your own .ini file and change configs there

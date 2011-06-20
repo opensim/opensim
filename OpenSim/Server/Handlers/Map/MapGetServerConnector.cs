@@ -80,7 +80,6 @@ namespace OpenSim.Server.Handlers.MapImage
 
         public override byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            m_log.DebugFormat("[MAP SERVICE IMAGE HANDLER]: retrieving {0}", path);
             byte[] result = new byte[0];
 
             string format = string.Empty;

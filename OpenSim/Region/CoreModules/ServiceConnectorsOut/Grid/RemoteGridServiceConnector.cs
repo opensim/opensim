@@ -53,6 +53,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         private IGridService m_LocalGridService;
         private IGridService m_RemoteGridService;
 
+        private RegionInfoCache m_RegionInfoCache = new RegionInfoCache();
+        
         public RemoteGridServicesConnector()
         {
         }
@@ -169,10 +171,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)
         {
-            GridRegion rinfo = m_LocalGridService.GetRegionByUUID(scopeID, regionID);
+            bool inCache = false;
+            GridRegion rinfo = m_RegionInfoCache.Get(scopeID,regionID,out inCache);
+            if (inCache)
+                return rinfo;
+            
+            rinfo = m_LocalGridService.GetRegionByUUID(scopeID, regionID);
             if (rinfo == null)
                 rinfo = m_RemoteGridService.GetRegionByUUID(scopeID, regionID);
 
+            m_RegionInfoCache.Cache(scopeID,regionID,rinfo);
             return rinfo;
         }
 
@@ -187,10 +195,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public GridRegion GetRegionByName(UUID scopeID, string regionName)
         {
-            GridRegion rinfo = m_LocalGridService.GetRegionByName(scopeID, regionName);
+            bool inCache = false;
+            GridRegion rinfo = m_RegionInfoCache.Get(scopeID,regionName, out inCache);
+            if (inCache)
+                return rinfo;
+            
+            rinfo = m_LocalGridService.GetRegionByName(scopeID, regionName);
             if (rinfo == null)
                 rinfo = m_RemoteGridService.GetRegionByName(scopeID, regionName);
 
+            // can't cache negative results for name lookups
+            m_RegionInfoCache.Cache(rinfo);
             return rinfo;
         }
 
@@ -204,8 +219,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Remote GetRegionsByName {0} found {1} regions", name, grinfo.Count);
                 foreach (GridRegion r in grinfo)
+                {
+                    m_RegionInfoCache.Cache(r);
                     if (rinfo.Find(delegate(GridRegion gr) { return gr.RegionID == r.RegionID; }) == null)
                         rinfo.Add(r);
+                }
             }
 
             return rinfo;
@@ -221,8 +239,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Remote GetRegionRange {0} found {1} regions", name, grinfo.Count);
                 foreach (GridRegion r in grinfo)
+                {
+                    m_RegionInfoCache.Cache(r);
                     if (rinfo.Find(delegate(GridRegion gr) { return gr.RegionID == r.RegionID; }) == null)
                         rinfo.Add(r);
+                }
             }
 
             return rinfo;
@@ -238,8 +259,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Remote GetDefaultRegions {0} found {1} regions", name, grinfo.Count);
                 foreach (GridRegion r in grinfo)
+                {
+                    m_RegionInfoCache.Cache(r);
                     if (rinfo.Find(delegate(GridRegion gr) { return gr.RegionID == r.RegionID; }) == null)
                         rinfo.Add(r);
+                }
             }
 
             return rinfo;
@@ -255,8 +279,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Remote GetFallbackRegions {0} found {1} regions", name, grinfo.Count);
                 foreach (GridRegion r in grinfo)
+                {
+                    m_RegionInfoCache.Cache(r);
                     if (rinfo.Find(delegate(GridRegion gr) { return gr.RegionID == r.RegionID; }) == null)
                         rinfo.Add(r);
+                }
             }
 
             return rinfo;
@@ -272,8 +299,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 //m_log.DebugFormat("[REMOTE GRID CONNECTOR]: Remote GetHyperlinks {0} found {1} regions", name, grinfo.Count);
                 foreach (GridRegion r in grinfo)
+                {
+                    m_RegionInfoCache.Cache(r);
                     if (rinfo.Find(delegate(GridRegion gr) { return gr.RegionID == r.RegionID; }) == null)
                         rinfo.Add(r);
+                }
             }
 
             return rinfo;

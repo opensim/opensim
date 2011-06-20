@@ -146,6 +146,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         protected void SaveInvItem(InventoryItemBase inventoryItem, string path, Dictionary<string, object> options, IUserAccountService userAccountService)
         {
+            if (options.ContainsKey("verbose"))
+                m_log.InfoFormat(
+                    "[INVENTORY ARCHIVER]: Saving item {0} {1} with asset {2}",
+                    inventoryItem.ID, inventoryItem.Name, inventoryItem.AssetID);
+
             string filename = path + CreateArchiveItemName(inventoryItem);
 
             // Record the creator of this item for user record purposes (which might go away soon)

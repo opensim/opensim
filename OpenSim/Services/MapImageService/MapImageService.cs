@@ -143,7 +143,7 @@ namespace OpenSim.Services.MapImageService
             if (File.Exists(fullName))
             {
                 format = Path.GetExtension(fileName).ToLower();
-                m_log.DebugFormat("[MAP IMAGE SERVICE]: Found file {0}, extension {1}", fileName, format);
+                //m_log.DebugFormat("[MAP IMAGE SERVICE]: Found file {0}, extension {1}", fileName, format);
                 return File.ReadAllBytes(fullName);
             }
             else if (File.Exists(m_WaterTileFile))
