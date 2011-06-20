@@ -342,7 +342,7 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             lock (m_UserCache)
                 m_UserCache[id] = user;
 
-            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}", user.Id, user.FirstName, user.LastName, user.HomeURL);
+            //m_log.DebugFormat("[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}", user.Id, user.FirstName, user.LastName, user.HomeURL);
         }
 
         public void AddUser(UUID uuid, string first, string last, string profileURL)
