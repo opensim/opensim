@@ -383,16 +383,19 @@ namespace OpenSim.Services.UserAccountService
 
             UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
             if (account == null)
-                m_log.ErrorFormat("[USER ACCOUNT SERVICE]: No such user");
+            {
+                MainConsole.Instance.OutputFormat("No such user as {0} {1}", firstName, lastName);
+                return;
+            }
 
             bool success = false;
             if (m_AuthenticationService != null)
                 success = m_AuthenticationService.SetPassword(account.PrincipalID, newPassword);
+
             if (!success)
-                m_log.ErrorFormat("[USER ACCOUNT SERVICE]: Unable to reset password for account {0} {1}.",
-                   firstName, lastName);
+                MainConsole.Instance.OutputFormat("Unable to reset password for account {0} {1}.", firstName, lastName);
             else
-                m_log.InfoFormat("[USER ACCOUNT SERVICE]: Password reset for user {0} {1}", firstName, lastName);
+                MainConsole.Instance.OutputFormat("Password reset for user {0} {1}", firstName, lastName);
         }
 
         protected void HandleSetUserLevel(string module, string[] cmdparams)
