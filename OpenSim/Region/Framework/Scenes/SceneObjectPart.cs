@@ -800,7 +800,8 @@ namespace OpenSim.Region.Framework.Scenes
                         actor.Orientation = GetWorldRotation();
 
                         // Tell the physics engines that this prim changed.
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
+                        if (m_parentGroup.Scene != null)
+                            m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
                 }
             }
@@ -1085,11 +1086,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Vector3 AbsolutePosition
         {
-            get {
+            get
+            {
                 if (IsAttachment)
                     return GroupPosition;
 
-                return m_offsetPosition + m_groupPosition; }
+                return m_offsetPosition + m_groupPosition;
+            }
         }
 
         public SceneObjectGroup ParentGroup
