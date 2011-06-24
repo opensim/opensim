@@ -83,9 +83,16 @@ namespace OpenSim.Services.UserAccountService
                             "create user",
                             "create user [<first> [<last> [<pass> [<email>]]]]",
                             "Create a new user", HandleCreateUser);
-                    MainConsole.Instance.Commands.AddCommand("UserService", false, "reset user password",
+
+                    MainConsole.Instance.Commands.AddCommand("UserService", false,
+                            "reset user password",
                             "reset user password [<first> [<last> [<password>]]]",
                             "Reset a user password", HandleResetUserPassword);
+
+                    MainConsole.Instance.Commands.AddCommand("UserService", false,
+                            "show account",
+                            "show account <first> <last>",
+                            "Show account details for the given user", HandleShowAccount);
                 }
 
             }
@@ -316,6 +323,36 @@ namespace OpenSim.Services.UserAccountService
             else email = cmdparams[5];
 
             CreateUser(firstName, lastName, password, email);
+        }
+
+        protected void HandleShowAccount(string module, string[] cmdparams)
+        {
+            if (cmdparams.Length != 4)
+            {
+                MainConsole.Instance.Output("Usage: show account <first-name> <last-name>");
+                return;
+            }
+
+            string firstName = cmdparams[2];
+            string lastName = cmdparams[3];
+
+            UserAccount ua = GetUserAccount(UUID.Zero, firstName, lastName);
+
+            if (ua == null)
+            {
+                MainConsole.Instance.OutputFormat("No user named {0} {1}", firstName, lastName);
+                return;
+            }
+
+            MainConsole.Instance.OutputFormat("Name:    {0}", ua.Name);
+            MainConsole.Instance.OutputFormat("ID:      {0}", ua.PrincipalID);
+            MainConsole.Instance.OutputFormat("Title:   {0}", ua.UserTitle);
+            MainConsole.Instance.OutputFormat("E-mail:  {0}", ua.Email);
+            MainConsole.Instance.OutputFormat("Created: {0}", Utils.UnixTimeToDateTime(ua.Created));
+            MainConsole.Instance.OutputFormat("Level:   {0}", ua.UserLevel);
+            MainConsole.Instance.OutputFormat("Flags:   {0}", ua.UserFlags);
+            foreach (KeyValuePair<string, Object> kvp in ua.ServiceURLs)
+                MainConsole.Instance.OutputFormat("{0}: {1}", kvp.Key, kvp.Value);
         }
 
         protected void HandleResetUserPassword(string module, string[] cmdparams)
