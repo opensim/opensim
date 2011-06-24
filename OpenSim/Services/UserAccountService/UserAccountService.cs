@@ -90,6 +90,14 @@ namespace OpenSim.Services.UserAccountService
                             "Reset a user password", HandleResetUserPassword);
 
                     MainConsole.Instance.Commands.AddCommand("UserService", false,
+                            "set user level",
+                            "set user level [<first> [<last> [<level>]]]",
+                            "Set user level. If >= 200 and 'allow_grid_gods = true' in OpenSim.ini, "
+                                + "this account will be treated as god-moded. "
+                                + "It will also affect the 'login level' command. ",
+                            HandleSetUserLevel);
+
+                    MainConsole.Instance.Commands.AddCommand("UserService", false,
                             "show account",
                             "show account <first> <last>",
                             "Show account details for the given user", HandleShowAccount);
@@ -385,6 +393,45 @@ namespace OpenSim.Services.UserAccountService
                    firstName, lastName);
             else
                 m_log.InfoFormat("[USER ACCOUNT SERVICE]: Password reset for user {0} {1}", firstName, lastName);
+        }
+
+        protected void HandleSetUserLevel(string module, string[] cmdparams)
+        {
+            string firstName;
+            string lastName;
+            string rawLevel;
+            int level;
+
+            if (cmdparams.Length < 4)
+                firstName = MainConsole.Instance.CmdPrompt("First name");
+            else firstName = cmdparams[3];
+
+            if (cmdparams.Length < 5)
+                lastName = MainConsole.Instance.CmdPrompt("Last name");
+            else lastName = cmdparams[4];
+
+            UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
+            if (account == null) {
+                MainConsole.Instance.OutputFormat("No such user");
+                return;
+            }
+
+            if (cmdparams.Length < 6)
+                rawLevel = MainConsole.Instance.CmdPrompt("User level");
+            else rawLevel = cmdparams[5];
+
+            if(int.TryParse(rawLevel, out level) == false) {
+                MainConsole.Instance.OutputFormat("Invalid user level");
+                return;
+            }
+
+            account.UserLevel = level;
+
+            bool success = StoreUserAccount(account);
+            if (!success)
+                MainConsole.Instance.OutputFormat("Unable to set user level for account {0} {1}.", firstName, lastName);
+            else
+                MainConsole.Instance.OutputFormat("User level set for user {0} {1} to {2}", firstName, lastName, level);
         }
 
         #endregion
