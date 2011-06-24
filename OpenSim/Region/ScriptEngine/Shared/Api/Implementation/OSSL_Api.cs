@@ -970,7 +970,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawPolygon(string drawList, LSL_List x, LSL_List y)
         {
-            CheckThreatLevel(ThreatLevel.None, "osDrawFilledPolygon");
+            CheckThreatLevel(ThreatLevel.None, "osDrawPolygon");
 
             m_host.AddScriptLPS(1);
 
@@ -1409,7 +1409,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             // What actually is the difference to the LL function?
             //
-            CheckThreatLevel(ThreatLevel.VeryLow, "osSetParcelMediaURL");
+            CheckThreatLevel(ThreatLevel.VeryLow, "osSetParcelSIPAddress");
 
             m_host.AddScriptLPS(1);
 
@@ -2301,7 +2301,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void osSetPrimitiveParams(LSL_Key prim, LSL_List rules)
         {
-            CheckThreatLevel(ThreatLevel.High, "osGetPrimitiveParams");
+            CheckThreatLevel(ThreatLevel.High, "osSetPrimitiveParams");
             m_host.AddScriptLPS(1);
             
             m_LSL_Api.SetPrimitiveParamsEx(prim, rules);
