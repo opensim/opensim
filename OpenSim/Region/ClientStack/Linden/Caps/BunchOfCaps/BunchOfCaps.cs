@@ -439,7 +439,7 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         /// <summary>
-        ///
+        /// Convert raw uploaded data into the appropriate asset and item.
         /// </summary>
         /// <param name="assetID"></param>
         /// <param name="inventoryItem"></param>
@@ -505,8 +505,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 AddNewInventoryItem(m_HostCapsObj.AgentID, item);
             }
         }
-
-
 
         /// <summary>
         ///
@@ -632,7 +630,7 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         /// <summary>
-        ///
+        /// Handle raw asset upload data via the capability.
         /// </summary>
         /// <param name="data"></param>
         /// <param name="path"></param>
@@ -670,6 +668,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             return res;
         }
+
         ///Left this in and commented in case there are unforseen issues
         //private void SaveAssetToFile(string filename, byte[] data)
         //{
@@ -679,6 +678,7 @@ namespace OpenSim.Region.ClientStack.Linden
         //    bw.Close();
         //    fs.Close();
         //}
+
         private static void SaveAssetToFile(string filename, byte[] data)
         {
             string assetPath = "UserAssets";
@@ -719,7 +719,7 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         /// <summary>
-        ///
+        /// Handle raw uploaded asset data.
         /// </summary>
         /// <param name="data"></param>
         /// <param name="path"></param>
@@ -752,6 +752,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             return res;
         }
+
         ///Left this in and commented in case there are unforseen issues
         //private void SaveAssetToFile(string filename, byte[] data)
         //{
@@ -761,6 +762,7 @@ namespace OpenSim.Region.ClientStack.Linden
         //    bw.Close();
         //    fs.Close();
         //}
+
         private static void SaveAssetToFile(string filename, byte[] data)
         {
             string assetPath = "UserAssets";
@@ -905,7 +907,7 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         /// <summary>
-        ///
+        /// Handle raw uploaded baked texture data.
         /// </summary>
         /// <param name="data"></param>
         /// <param name="path"></param>
