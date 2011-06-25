@@ -2295,6 +2295,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.High, "osGetPrimitiveParams");
             m_host.AddScriptLPS(1);
+            InitLSL();
             
             return m_LSL_Api.GetLinkPrimitiveParamsEx(prim, rules);
         }
@@ -2303,6 +2304,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.High, "osSetPrimitiveParams");
             m_host.AddScriptLPS(1);
+            InitLSL();
             
             m_LSL_Api.SetPrimitiveParamsEx(prim, rules);
         }
