@@ -1241,7 +1241,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return String.Empty;
         }
 
-        public void osSetWindParam(string plugin, string param, float value)
+        public void osSetWindParam(string plugin, string param, LSL_Float value)
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osSetWindParam");
             m_host.AddScriptLPS(1);
@@ -1251,13 +1251,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 try
                 {
-                    module.WindParamSet(plugin, param, value);
+                    module.WindParamSet(plugin, param, (float)value);
                 }
                 catch (Exception) { }
             }
         }
 
-        public float osGetWindParam(string plugin, string param)
+        public LSL_Float osGetWindParam(string plugin, string param)
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osGetWindParam");
             m_host.AddScriptLPS(1);

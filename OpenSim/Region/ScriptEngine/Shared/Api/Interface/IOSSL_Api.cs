@@ -129,8 +129,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         // Wind Module Functions
         string osWindActiveModelPluginName();
-        void osSetWindParam(string plugin, string param, float value);
-        float osGetWindParam(string plugin, string param);
+        void osSetWindParam(string plugin, string param, LSL_Float value);
+        LSL_Float osGetWindParam(string plugin, string param);
 
         // Parcel commands
         void osParcelJoin(vector pos1, vector pos2);
