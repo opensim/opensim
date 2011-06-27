@@ -443,8 +443,8 @@
     ;; to ConfigurableWind and uncomment the following.
     ; avg_strength = 5.0
     ; avg_direction = 0.0
-    ; var_strength = 0.0
-    ; var_direction = 0.0
+    ; var_strength = 5.0
+    ; var_direction = 30.0
     ; rate_change = 1.0
 
     ;# {strength} {enabled:true wind_plugin:SimpleRandomWind} {Wind strength?} {} 1.0
