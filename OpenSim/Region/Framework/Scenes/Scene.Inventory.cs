@@ -1341,7 +1341,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                         // Take care of genuinely broken links where the target doesn't exist
                         if (linkedItem != null)
-                            linkedItemFolderIdsToSend.Add(linkedItem.Folder);
+                        {
+                            // We don't need to send the folder if source and destination of the link are in the same
+                            // folder.
+                            if (linkedItem.Folder != containingFolder.ID)
+                                linkedItemFolderIdsToSend.Add(linkedItem.Folder);
+                        }
                     }
                 }
 
