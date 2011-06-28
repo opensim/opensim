@@ -1328,7 +1328,7 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat("[AGENT INVENTORY]: Sending inventory folder contents ({0} nodes) for \"{1}\" to {2} {3}",
 //                contents.Folders.Count + contents.Items.Count, containingFolder.Name, client.FirstName, client.LastName);
 
-            if (containingFolder != null && containingFolder != null)
+            if (containingFolder != null)
             {
                 // If the folder requested contains links, then we need to send those folders first, otherwise the links
                 // will be broken in the viewer.
@@ -1353,7 +1353,9 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (UUID linkedItemFolderId in linkedItemFolderIdsToSend)
                     SendInventoryUpdate(client, new InventoryFolderBase(linkedItemFolderId), false, true);
 
-                client.SendInventoryFolderDetails(client.AgentId, folder.ID, contents.Items, contents.Folders, containingFolder.Version, fetchFolders, fetchItems);
+                client.SendInventoryFolderDetails(
+                    client.AgentId, folder.ID, contents.Items, contents.Folders,
+                    containingFolder.Version, fetchFolders, fetchItems);
             }
         }
 
