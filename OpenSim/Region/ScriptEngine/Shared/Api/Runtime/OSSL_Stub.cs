@@ -713,7 +713,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osKickAvatar(FirstName, SurName, alert);
         }
         
-        public void osSetSpeed(string UUID, float SpeedModifier)
+        public void osSetSpeed(string UUID, LSL_Float SpeedModifier)
         {
             m_OSSL_Functions.osSetSpeed(UUID, SpeedModifier);
         }

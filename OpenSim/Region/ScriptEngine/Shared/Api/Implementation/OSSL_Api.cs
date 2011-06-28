@@ -2209,12 +2209,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return (int)pws;
         }
         
-        public void osSetSpeed(string UUID, float SpeedModifier)
+        public void osSetSpeed(string UUID, LSL_Float SpeedModifier)
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osSetSpeed");
             m_host.AddScriptLPS(1);
             ScenePresence avatar = World.GetScenePresence(new UUID(UUID));
-            avatar.SpeedModifier = SpeedModifier;
+            avatar.SpeedModifier = (float)SpeedModifier;
         }
         
         public void osKickAvatar(string FirstName,string SurName,string alert)

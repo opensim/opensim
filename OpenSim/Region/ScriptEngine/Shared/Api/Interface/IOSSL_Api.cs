@@ -180,7 +180,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         int osGetSimulatorMemory();
         void osKickAvatar(string FirstName,string SurName,string alert);
-        void osSetSpeed(string UUID, float SpeedModifier);
+        void osSetSpeed(string UUID, LSL_Float SpeedModifier);
         void osCauseHealing(string avatar, double healing);
         void osCauseDamage(string avatar, double damage);
         LSL_List osGetPrimitiveParams(LSL_Key prim, LSL_List rules);
