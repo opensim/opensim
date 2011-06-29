@@ -1340,7 +1340,10 @@ namespace OpenSim.Region.Framework.Scenes
                         InventoryItemBase linkedItem = InventoryService.GetItem(new InventoryItemBase(item.AssetID));
 
                         // Take care of genuinely broken links where the target doesn't exist
-                        if (linkedItem != null)
+                        // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
+                        // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
+                        // rather than having to keep track of every folder requested in the recursion.
+                        if (linkedItem != null && linkedItem.AssetType != (int)AssetType.Link)
                         {
                             // We don't need to send the folder if source and destination of the link are in the same
                             // folder.
