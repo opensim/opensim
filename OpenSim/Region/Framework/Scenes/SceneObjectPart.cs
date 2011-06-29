@@ -806,7 +806,8 @@ namespace OpenSim.Region.Framework.Scenes
                         actor.Orientation = GetWorldRotation();
 
                         // Tell the physics engines that this prim changed.
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
+                        if (m_parentGroup.Scene != null)
+                            m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
 
                     if (!m_parentGroup.m_dupeInProgress)
@@ -1117,6 +1118,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
+                if (IsAttachment)
+                    return GroupPosition;
+
                 return GroupPosition + (m_offsetPosition * ParentGroup.RootPart.RotationOffset);
             }
         }

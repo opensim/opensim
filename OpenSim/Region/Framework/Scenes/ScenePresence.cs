@@ -2251,10 +2251,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.Warn("Sit requested on unknown object: " + targetID.ToString());
             }
 
-            
-
             SendSitResponse(remoteClient, targetID, offset, Quaternion.Identity);
         }
+
         /*
         public void SitRayCastAvatarPosition(SceneObjectPart part)
         {
@@ -2797,7 +2796,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void SendTerseUpdateToClient(IClientAPI remoteClient)
         {
-
             // If the client is inactive, it's getting its updates from another
             // server.
             if (remoteClient.IsActive)
@@ -2912,7 +2910,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             
             // If we aren't using a cached appearance, then clear out the baked textures
-            if (! cachedappearance) 
+            if (!cachedappearance)
             {
                 m_appearance.ResetAppearance();
                 if (m_scene.AvatarFactory != null)

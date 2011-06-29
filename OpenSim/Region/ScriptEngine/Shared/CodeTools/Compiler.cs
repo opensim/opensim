@@ -106,6 +106,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             // Get some config
             WriteScriptSourceToDebugFile = m_scriptEngine.Config.GetBoolean("WriteScriptSourceToDebugFile", false);
             CompileWithDebugInformation = m_scriptEngine.Config.GetBoolean("CompileWithDebugInformation", true);
+            bool DeleteScriptsOnStartup = m_scriptEngine.Config.GetBoolean("DeleteScriptsOnStartup", true);
 
             // Get file prefix from scriptengine name and make it file system safe:
             FilePrefix = "CommonCompiler";
@@ -114,11 +115,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 FilePrefix = FilePrefix.Replace(c, '_');
             }
 
-            // First time we start? Delete old files
             if (in_startup)
             {
                 in_startup = false;
-                DeleteOldFiles();
+                CreateScriptsDirectory();
+                
+                // First time we start? Delete old files
+                if (DeleteScriptsOnStartup)
+                    DeleteOldFiles();
             }
 
             // Map name and enum type of our supported languages
@@ -187,11 +191,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         }
 
         /// <summary>
-        /// Delete old script files
+        /// Create the directory where compiled scripts are stored.
         /// </summary>
-        private void DeleteOldFiles()
+        private void CreateScriptsDirectory()
         {
-            // CREATE FOLDER IF IT DOESNT EXIST
             if (!Directory.Exists(ScriptEnginesPath))
             {
                 try
@@ -218,7 +221,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                                             m_scriptEngine.World.RegionInfo.RegionID.ToString()) + "\": " + ex.ToString());
                 }
             }
+        }
 
+        /// <summary>
+        /// Delete old script files
+        /// </summary>
+        private void DeleteOldFiles()
+        {
             foreach (string file in Directory.GetFiles(Path.Combine(ScriptEnginesPath,
                      m_scriptEngine.World.RegionInfo.RegionID.ToString()), FilePrefix + "_compiled*"))
             {

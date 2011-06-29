@@ -162,12 +162,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     // one and we're done otherwise, ask for a rebake
                     if (checkonly) return false;
 
-                    m_log.InfoFormat("[AVFACTORY]: missing baked texture {0}, requesting rebake",face.TextureID);
+                    m_log.InfoFormat("[AVFACTORY]: missing baked texture {0}, requesting rebake", face.TextureID);
                     client.SendRebakeAvatarTextures(face.TextureID);
                 }
             }
 
-            m_log.DebugFormat("[AVFACTORY]: completed texture check for {0}", client.AgentId);
+            m_log.DebugFormat("[AVFACTORY]: Completed texture check for {0}", client.AgentId);
 
             // If we only found default textures, then the appearance is not cached
             return (defonly ? false : true);

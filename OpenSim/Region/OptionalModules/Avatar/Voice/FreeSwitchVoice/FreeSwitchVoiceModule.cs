@@ -417,9 +417,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         public string ParcelVoiceInfoRequest(Scene scene, string request, string path, string param,
                                              UUID agentID, Caps caps)
         {
-//            m_log.DebugFormat(
-//                "[FreeSwitchVoice][PARCELVOICE]: ParcelVoiceInfoRequest() on {0} for {1}", 
-//                scene.RegionInfo.RegionName, agentID);
+            m_log.DebugFormat(
+                "[FreeSwitchVoice][PARCELVOICE]: ParcelVoiceInfoRequest() on {0} for {1}", 
+                scene.RegionInfo.RegionName, agentID);
             
             ScenePresence avatar = scene.GetScenePresence(agentID);
             string avatarName = avatar.Name;

@@ -129,8 +129,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         // Wind Module Functions
         string osWindActiveModelPluginName();
-        void osSetWindParam(string plugin, string param, float value);
-        float osGetWindParam(string plugin, string param);
+        void osSetWindParam(string plugin, string param, LSL_Float value);
+        LSL_Float osGetWindParam(string plugin, string param);
 
         // Parcel commands
         void osParcelJoin(vector pos1, vector pos2);
@@ -180,7 +180,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         int osGetSimulatorMemory();
         void osKickAvatar(string FirstName,string SurName,string alert);
-        void osSetSpeed(string UUID, float SpeedModifier);
+        void osSetSpeed(string UUID, LSL_Float SpeedModifier);
         void osCauseHealing(string avatar, double healing);
         void osCauseDamage(string avatar, double damage);
         LSL_List osGetPrimitiveParams(LSL_Key prim, LSL_List rules);

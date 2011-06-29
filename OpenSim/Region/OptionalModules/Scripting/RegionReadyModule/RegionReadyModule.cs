@@ -36,6 +36,7 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using OpenSim.Services.Interfaces;
 
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -175,6 +176,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 
                 m_scene.EventManager.TriggerOnChatBroadcast(this, c);
                 m_scene.EventManager.TriggerLoginsEnabled(m_scene.RegionInfo.RegionName);
+                m_scene.SceneGridService.InformNeighborsThatRegionisUp(m_scene.RequestModuleInterface<INeighbourService>(), m_scene.RegionInfo);
             }
         }
 

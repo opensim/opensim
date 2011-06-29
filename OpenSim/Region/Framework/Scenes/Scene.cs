@@ -2706,8 +2706,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 string homeURL = string.Empty;
                 string first = aCircuit.firstname, last = aCircuit.lastname;
+
                 if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
                     homeURL = aCircuit.ServiceURLs["HomeURI"].ToString();
+
                 if (aCircuit.lastname.StartsWith("@"))
                 {
                     string[] parts = aCircuit.firstname.Split('.');
@@ -2717,6 +2719,7 @@ namespace OpenSim.Region.Framework.Scenes
                         last = parts[1];
                     }
                 }
+
                 uMan.AddUser(aCircuit.AgentID, first, last, homeURL);
             }
         }
@@ -3529,7 +3532,6 @@ namespace OpenSim.Region.Framework.Scenes
                         CapsModule.SetAgentCapsSeeds(agent);
                 }
             }
-
 
             // In all cases, add or update the circuit data with the new agent circuit data and teleport flags
             agent.teleportFlags = teleportFlags;

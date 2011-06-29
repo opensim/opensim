@@ -977,7 +977,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osDrawPolygon(string drawList, LSL_List x, LSL_List y)
         {
-            CheckThreatLevel(ThreatLevel.None, "osDrawFilledPolygon");
+            CheckThreatLevel(ThreatLevel.None, "osDrawPolygon");
 
             m_host.AddScriptLPS(1);
 
@@ -1248,7 +1248,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return String.Empty;
         }
 
-        public void osSetWindParam(string plugin, string param, float value)
+        public void osSetWindParam(string plugin, string param, LSL_Float value)
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osSetWindParam");
             m_host.AddScriptLPS(1);
@@ -1258,13 +1258,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 try
                 {
-                    module.WindParamSet(plugin, param, value);
+                    module.WindParamSet(plugin, param, (float)value);
                 }
                 catch (Exception) { }
             }
         }
 
-        public float osGetWindParam(string plugin, string param)
+        public LSL_Float osGetWindParam(string plugin, string param)
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osGetWindParam");
             m_host.AddScriptLPS(1);
@@ -1416,7 +1416,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             // What actually is the difference to the LL function?
             //
-            CheckThreatLevel(ThreatLevel.VeryLow, "osSetParcelMediaURL");
+            CheckThreatLevel(ThreatLevel.VeryLow, "osSetParcelSIPAddress");
 
             m_host.AddScriptLPS(1);
 
@@ -2222,12 +2222,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return (int)pws;
         }
         
-        public void osSetSpeed(string UUID, float SpeedModifier)
+        public void osSetSpeed(string UUID, LSL_Float SpeedModifier)
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osSetSpeed");
             m_host.AddScriptLPS(1);
             ScenePresence avatar = World.GetScenePresence(new UUID(UUID));
-            avatar.SpeedModifier = SpeedModifier;
+            avatar.SpeedModifier = (float)SpeedModifier;
         }
         
         public void osKickAvatar(string FirstName,string SurName,string alert)
@@ -2308,14 +2308,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.High, "osGetPrimitiveParams");
             m_host.AddScriptLPS(1);
+            InitLSL();
             
             return m_LSL_Api.GetLinkPrimitiveParamsEx(prim, rules);
         }
 
         public void osSetPrimitiveParams(LSL_Key prim, LSL_List rules)
         {
-            CheckThreatLevel(ThreatLevel.High, "osGetPrimitiveParams");
+            CheckThreatLevel(ThreatLevel.High, "osSetPrimitiveParams");
             m_host.AddScriptLPS(1);
+            InitLSL();
             
             m_LSL_Api.SetPrimitiveParamsEx(prim, rules);
         }
