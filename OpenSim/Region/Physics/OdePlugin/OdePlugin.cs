@@ -2502,7 +2502,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             // if it's a standard box or sphere with no cuts, hollows, twist or top shear, return false since ODE can use an internal representation for the prim
-            if (!forceSimplePrimMeshing)
+            if (!forceSimplePrimMeshing && !pbs.SculptEntry)
             {
                 if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
                     || (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1
@@ -2591,6 +2591,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     iPropertiesNotSupportedDefault++;
                 }
             }
+
+            if (pbs.SculptEntry && meshSculptedPrim)
+                iPropertiesNotSupportedDefault++;
 
 
             if (iPropertiesNotSupportedDefault == 0)
