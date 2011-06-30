@@ -292,28 +292,31 @@
     ;; building's lights to possibly not be rendered.
     ; DisableFacelights = "false"
 
+
 [ClientStack.LindenCaps]
-	;; For the long list of capabilities, see OpenSimDefaults.ini
-	;; Here are the few ones you may want to change. Possible values
-	;; are:
-	;;   "" -- empty, capability disabled
-	;;   "localhost" -- capability enabled and served by the simulator
-	;;   "<url>" -- capability enabled and served by some other server
-	;;
-	; These are enabled by default to localhost. Change if you see fit.
-    Cap_GetTexture = "localhost"
-	Cap_GetMesh = "localhost"
-	; This is disabled by default. Change if you see fit. Note that
-	; serving this cap from the simulators may lead to poor performace.
-	Cap_WebFetchInventoryDescendents = ""
+    ;; For the long list of capabilities, see OpenSimDefaults.ini
+    ;; Here are the few ones you may want to change. Possible values
+    ;; are:
+    ;;   "" -- empty, capability disabled
+    ;;   "localhost" -- capability enabled and served by the simulator
+    ;;   "<url>" -- capability enabled and served by some other server
+    ;;
+    ; These are enabled by default to localhost. Change if you see fit.
+      Cap_GetTexture = "localhost"
+    Cap_GetMesh = "localhost"
+    ; This is disabled by default. Change if you see fit. Note that
+    ; serving this cap from the simulators may lead to poor performace.
+    Cap_WebFetchInventoryDescendents = ""
+
 
 [SimulatorFeatures]
-	; Experimental new information sent in SimulatorFeatures cap for Kokua viewers 
-	; meant to override the MapImage and search server url given at login, and varying 
-	; on a sim-basis.
-	; Viewers that don't understand it, will ignore it
-	;MapImageServerURI = "http://127.0.0.1:9000/
-	;SearchServerURI = "http://127.0.0.1:9000/
+    ; Experimental new information sent in SimulatorFeatures cap for Kokua viewers 
+    ; meant to override the MapImage and search server url given at login, and varying 
+    ; on a sim-basis.
+    ; Viewers that don't understand it, will ignore it
+    ;MapImageServerURI = "http://127.0.0.1:9000/
+    ;SearchServerURI = "http://127.0.0.1:9000/
+
 
 [Chat]
     ;# {whisper_distance} {} {Distance at which a whisper is heard, in meters?} {} 10
@@ -650,6 +653,7 @@
     ;; If using a remote connector, specify the server URL
     ; FreeswitchServiceURL = http://my.grid.server:8004/fsapi
 
+
 [Groups]
     ;# {Enabled} {} {Enable groups?} {true false} false
     ;; Enables the groups module
@@ -707,10 +711,12 @@
     ;; Enable media on a prim facilities
     ; Enabled = true;
 
+
 [PrimLimitsModule]
     ;# {EnforcePrimLimits} {} {Enforce parcel prim limits} {true false} false
     ;; Enable parcel prim limits.  Off by default to emulate pre-existing behavior.
     ; EnforcePrimLimits = false
+
 
 [Architecture]
     ;# {Include-Architecture} {} {Choose one of the following architectures} {config-include/Standalone.ini config-include/StandaloneHypergrid.ini config-include/Grid.ini config-include/GridHypergrid.ini config-include/SimianGrid.ini config-include/HyperSimianGrid.ini} config-include/Standalone.ini
