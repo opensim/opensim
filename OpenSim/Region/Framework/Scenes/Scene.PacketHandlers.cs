@@ -461,31 +461,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             );
         }
-
-
-        /// <summary>
-        /// Handle a fetch inventory request from the client
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="itemID"></param>
-        /// <param name="ownerID"></param>
-        public void HandleFetchInventory(IClientAPI remoteClient, UUID itemID, UUID ownerID)
-        {
-            if (LibraryService != null && LibraryService.LibraryRootFolder != null && ownerID == LibraryService.LibraryRootFolder.Owner)
-            {
-                //m_log.Debug("request info for library item");
-                return;
-            }
-            
-            InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
-            item = InventoryService.GetItem(item);
-            
-            if (item != null)
-            {
-                remoteClient.SendInventoryItemDetails(ownerID, item);
-            }
-            // else shouldn't we send an alert message?
-        }
         
         /// <summary>
         /// Tell the client about the various child items and folders contained in the requested folder.

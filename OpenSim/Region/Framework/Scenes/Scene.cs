@@ -583,6 +583,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_asyncSceneObjectDeleter = new AsyncSceneObjectGroupDeleter(this);
             m_asyncSceneObjectDeleter.Enabled = true;
 
+            m_asyncInventorySender = new AsyncInventorySender(this);
+
             #region Region Settings
 
             // Load region settings
@@ -2760,14 +2762,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void SubscribeToClientInventoryEvents(IClientAPI client)
         {
-            
             client.OnLinkInventoryItem += HandleLinkInventoryItem;
             client.OnCreateNewInventoryFolder += HandleCreateInventoryFolder;
             client.OnUpdateInventoryFolder += HandleUpdateInventoryFolder;
             client.OnMoveInventoryFolder += HandleMoveInventoryFolder; // 2; //!!
             client.OnFetchInventoryDescendents += HandleFetchInventoryDescendents;
             client.OnPurgeInventoryDescendents += HandlePurgeInventoryDescendents; // 2; //!!
-            client.OnFetchInventory += HandleFetchInventory;
+            client.OnFetchInventory += m_asyncInventorySender.HandleFetchInventory;
             client.OnUpdateInventoryItem += UpdateInventoryItemAsset;
             client.OnCopyInventoryItem += CopyInventoryItem;
             client.OnMoveInventoryItem += MoveInventoryItem;
