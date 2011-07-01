@@ -460,21 +460,20 @@ namespace OpenSim.Framework.Servers
             // elsewhere as well
             string svnRevisionFileName = "svn_revision";
             string svnFileName = ".svn/entries";
-            string gitCommitFileName = ".version";
+            string manualVersionFileName = ".version";
             string inputLine;
             int strcmp;
 
-            if (File.Exists(gitCommitFileName))
+            if (File.Exists(manualVersionFileName))
             {
-                StreamReader CommitFile = File.OpenText(gitCommitFileName);
+                StreamReader CommitFile = File.OpenText(manualVersionFileName);
                 buildVersion = CommitFile.ReadLine();
                 CommitFile.Close();
                 m_version += buildVersion ?? "";
             }
-
-            // Remove the else logic when subversion mirror is no longer used
             else
             {
+                // Remove the else logic when subversion mirror is no longer used
                 if (File.Exists(svnRevisionFileName))
                 {
                     StreamReader RevisionFile = File.OpenText(svnRevisionFileName);
