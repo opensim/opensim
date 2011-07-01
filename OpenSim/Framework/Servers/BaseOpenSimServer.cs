@@ -31,6 +31,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Timers;
 using log4net;
@@ -124,7 +125,6 @@ namespace OpenSim.Framework.Servers
                     m_logFileAppender = appender;
                 }
             }
-
         }
         
         /// <summary>
@@ -458,6 +458,9 @@ namespace OpenSim.Framework.Servers
             // This allows to make the revision available in simulators not running from the source tree.
             // FIXME: Making an assumption about the directory we're currently in - we do this all over the place
             // elsewhere as well
+            string gitDir = "../.git/";
+            string gitRefPointerPath = gitDir + "HEAD";
+
             string svnRevisionFileName = "svn_revision";
             string svnFileName = ".svn/entries";
             string manualVersionFileName = ".version";
@@ -466,13 +469,45 @@ namespace OpenSim.Framework.Servers
 
             if (File.Exists(manualVersionFileName))
             {
-                StreamReader CommitFile = File.OpenText(manualVersionFileName);
-                buildVersion = CommitFile.ReadLine();
-                CommitFile.Close();
+                using (StreamReader CommitFile = File.OpenText(manualVersionFileName))
+                    buildVersion = CommitFile.ReadLine();
+
                 m_version += buildVersion ?? "";
+            }
+            else if (File.Exists(gitRefPointerPath))
+            {
+//                m_log.DebugFormat("[OPENSIM]: Found {0}", gitRefPointerPath);
+
+                string rawPointer = "";
+
+                using (StreamReader pointerFile = File.OpenText(gitRefPointerPath))
+                    rawPointer = pointerFile.ReadLine();
+
+//                m_log.DebugFormat("[OPENSIM]: rawPointer [{0}]", rawPointer);
+
+                Match m = Regex.Match(rawPointer, "^ref: (.+)$");
+
+                if (m.Success)
+                {
+//                    m_log.DebugFormat("[OPENSIM]: Matched [{0}]", m.Groups[1].Value);
+
+                    string gitRef = m.Groups[1].Value;
+                    string gitRefPath = gitDir + gitRef;
+                    if (File.Exists(gitRefPath))
+                    {
+//                        m_log.DebugFormat("[OPENSIM]: Found gitRefPath [{0}]", gitRefPath);
+
+                        using (StreamReader refFile = File.OpenText(gitRefPath))
+                        {
+                            string gitHash = refFile.ReadLine();
+                            m_version += gitHash.Substring(0, 7);
+                        }
+                    }
+                }
             }
             else
             {
+                m_log.DebugFormat("[OPENSIM]: Looking for SVN");
                 // Remove the else logic when subversion mirror is no longer used
                 if (File.Exists(svnRevisionFileName))
                 {
