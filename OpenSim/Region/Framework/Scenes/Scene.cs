@@ -2887,13 +2887,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void UnSubscribeToClientInventoryEvents(IClientAPI client)
         {
-            
             client.OnCreateNewInventoryFolder -= HandleCreateInventoryFolder;
             client.OnUpdateInventoryFolder -= HandleUpdateInventoryFolder;
             client.OnMoveInventoryFolder -= HandleMoveInventoryFolder; // 2; //!!
             client.OnFetchInventoryDescendents -= HandleFetchInventoryDescendents;
             client.OnPurgeInventoryDescendents -= HandlePurgeInventoryDescendents; // 2; //!!
-            client.OnFetchInventory -= HandleFetchInventory;
+            client.OnFetchInventory -= m_asyncInventorySender.HandleFetchInventory;
             client.OnUpdateInventoryItem -= UpdateInventoryItemAsset;
             client.OnCopyInventoryItem -= CopyInventoryItem;
             client.OnMoveInventoryItem -= MoveInventoryItem;
