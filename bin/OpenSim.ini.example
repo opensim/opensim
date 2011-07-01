@@ -172,7 +172,7 @@
     ;; permission checks (allowing anybody to copy
     ;; any item, etc.  This may not yet be implemented uniformally.
     ;; If set to true, then all permissions checks are carried out
-    ; serverside_object_permissions = false
+    ; serverside_object_permissions = true
 
     ;; This allows users with a UserLevel of 200 or more to assume god
     ;; powers in the regions in this simulator.

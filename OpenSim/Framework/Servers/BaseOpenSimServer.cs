@@ -443,15 +443,6 @@ namespace OpenSim.Framework.Servers
         {
             string buildVersion = string.Empty;
 
-            // Add commit hash and date information if available
-            // The commit hash and date are stored in a file bin/.version
-            // This file can automatically created by a post
-            // commit script in the opensim git master repository or
-            // by issuing the follwoing command from the top level
-            // directory of the opensim repository
-            // git log -n 1 --pretty="format:%h: %ci" >bin/.version
-            // For the full git commit hash use %H instead of %h
-            //
             // The subversion information is deprecated and will be removed at a later date
             // Add subversion revision information if available
             // Try file "svn_revision" in the current directory first, then the .svn info.
@@ -507,7 +498,6 @@ namespace OpenSim.Framework.Servers
             }
             else
             {
-                m_log.DebugFormat("[OPENSIM]: Looking for SVN");
                 // Remove the else logic when subversion mirror is no longer used
                 if (File.Exists(svnRevisionFileName))
                 {
@@ -515,7 +505,6 @@ namespace OpenSim.Framework.Servers
                     buildVersion = RevisionFile.ReadLine();
                     buildVersion.Trim();
                     RevisionFile.Close();
-
                 }
 
                 if (string.IsNullOrEmpty(buildVersion) && File.Exists(svnFileName))
