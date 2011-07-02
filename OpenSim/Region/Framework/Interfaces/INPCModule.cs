@@ -28,7 +28,7 @@
 using OpenMetaverse;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.Avatar.NPC
+namespace OpenSim.Region.Framework.Interfaces
 {
     public interface INPCModule
     {

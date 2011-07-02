@@ -34,7 +34,6 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules.Avatar.NPC;
 using OpenSim.Framework;
 using Timer=System.Timers.Timer;
 using OpenSim.Services.Interfaces;
@@ -70,7 +69,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return new AvatarAppearance();
         }
 
-        public UUID CreateNPC(string firstname, string lastname,Vector3 position, Scene scene, UUID cloneAppearanceFrom)
+        public UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, UUID cloneAppearanceFrom)
         {
             NPCAvatar npcAvatar = new NPCAvatar(firstname, lastname, position, scene);
             npcAvatar.CircuitCode = (uint)Util.RandomClass.Next(0, int.MaxValue);

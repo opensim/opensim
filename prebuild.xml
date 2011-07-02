@@ -2997,6 +2997,7 @@
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.OptionalModules"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
+      <Reference name="OpenSim.Services.AvatarService"/>
       <Reference name="OpenSim.Services.Interfaces"/>
 
       <!-- Unit tests -->
@@ -3020,6 +3021,7 @@
       <Files>
         <!-- SADLY the way this works means you need to keep adding these paths -->
         <Match path="Avatar/XmlRpcGroups/Tests" pattern="*.cs" recurse="true"/>
+        <Match path="World/NPC/Tests" pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
 
