@@ -106,5 +106,22 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
             AssetBase retrievedAsset = m_cache.Get(asset.ID.ToString());
             Assert.That(retrievedAsset, Is.Null);
         }
+
+        [Test]
+        public void TestClearCache()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            AssetBase asset = AssetHelpers.CreateAsset();
+            asset.ID = TestHelper.ParseTail(0x2).ToString();
+
+            m_cache.Store(asset);
+
+            m_cache.Clear();
+
+            AssetBase retrievedAsset = m_cache.Get(asset.ID.ToString());
+            Assert.That(retrievedAsset, Is.Null);
+        }
     }
 }
