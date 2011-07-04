@@ -47,7 +47,7 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
     [TestFixture]
     public class FlotsamAssetCacheTests
     {
-//        [Test]
+        [Test]
         public void TestCacheAsset()
         {
             TestHelper.InMethod();
@@ -58,6 +58,7 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
             config.AddConfig("Modules");            
             config.Configs["Modules"].Set("AssetCaching", "FlotsamAssetCache");
             config.AddConfig("AssetCache");
+            config.Configs["AssetCache"].Set("FileCacheEnabled", "false");
             config.Configs["AssetCache"].Set("MemoryCacheEnabled", "true");
 
             FlotsamAssetCache cache = new FlotsamAssetCache();
