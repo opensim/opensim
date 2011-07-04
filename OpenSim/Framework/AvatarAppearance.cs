@@ -196,6 +196,9 @@ namespace OpenSim.Framework
             if (appearance.VisualParams != null)
                 m_visualparams = (byte[])appearance.VisualParams.Clone();
 
+            m_avatarHeight = appearance.m_avatarHeight;
+            m_hipOffset = appearance.m_hipOffset;
+
             // Copy the attachment, force append mode since that ensures consistency
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
             foreach (AvatarAttachment attachment in appearance.GetAttachments())
@@ -237,7 +240,6 @@ namespace OpenSim.Framework
         {
             m_serial = 0;
 
-            SetDefaultParams();
             SetDefaultTexture();
             
             //for (int i = 0; i < BAKE_INDICES.Length; i++)

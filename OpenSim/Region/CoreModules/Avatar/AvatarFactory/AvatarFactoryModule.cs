@@ -210,7 +210,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     changed = sp.Appearance.SetVisualParams(visualParams);
                     if (sp.Appearance.AvatarHeight > 0)
                         sp.SetHeight(sp.Appearance.AvatarHeight);
-                }
+                    }
 
                 // Process the baked texture array
                 if (textureEntry != null)
@@ -387,11 +387,11 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             // m_log.WarnFormat("[AVFACTORY]: AvatarIsWearing called for {0}", client.AgentId);
 
             // we need to clean out the existing textures
-            sp.Appearance.ResetAppearance(); 
+            sp.Appearance.ResetAppearance();
 
-            // operate on a copy of the appearance so we don't have to lock anything
+            // operate on a copy of the appearance so we don't have to lock anything yet
             AvatarAppearance avatAppearance = new AvatarAppearance(sp.Appearance, false);
-            
+
             foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
             {
                 if (wear.Type < AvatarWearable.MAX_WEARABLES)
@@ -403,12 +403,19 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             // This could take awhile since it needs to pull inventory
             SetAppearanceAssets(sp.UUID, ref avatAppearance);
 
-            // could get fancier with the locks here, but in the spirit of "last write wins"
-            // this should work correctly, also, we don't need to send the appearance here
-            // since the "iswearing" will trigger a new set of visual param and baked texture changes
-            // when those complete, the new appearance will be sent
-            sp.Appearance = avatAppearance;
-            QueueAppearanceSave(client.AgentId);
+            lock (m_setAppearanceLock)
+            {
+                // Update only those fields that we have changed. This is important because the viewer
+                // often sends AvatarIsWearing and SetAppearance packets at once, and AvatarIsWearing
+                // shouldn't overwrite the changes made in SetAppearance.
+                sp.Appearance.Wearables = avatAppearance.Wearables;
+                sp.Appearance.Texture = avatAppearance.Texture;
+
+                // We don't need to send the appearance here since the "iswearing" will trigger a new set
+                // of visual param and baked texture changes. When those complete, the new appearance will be sent
+
+                QueueAppearanceSave(client.AgentId);
+            }
         }
 
         private void SetAppearanceAssets(UUID userID, ref AvatarAppearance appearance)
