@@ -47,35 +47,42 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
     [TestFixture]
     public class FlotsamAssetCacheTests
     {
-        [Test]
-        public void TestCacheAsset()
-        {
-            TestHelper.InMethod();
-            log4net.Config.XmlConfigurator.Configure();
+        protected TestScene m_scene;
+        protected FlotsamAssetCache m_cache;
 
+        [SetUp]
+        public void SetUp()
+        {
             IConfigSource config = new IniConfigSource();
-            
-            config.AddConfig("Modules");            
+
+            config.AddConfig("Modules");
             config.Configs["Modules"].Set("AssetCaching", "FlotsamAssetCache");
             config.AddConfig("AssetCache");
             config.Configs["AssetCache"].Set("FileCacheEnabled", "false");
             config.Configs["AssetCache"].Set("MemoryCacheEnabled", "true");
 
-            FlotsamAssetCache cache = new FlotsamAssetCache();
-            TestScene scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(scene, config, cache);
+            m_cache = new FlotsamAssetCache();
+            m_scene = SceneSetupHelpers.SetupScene();
+            SceneSetupHelpers.SetupSceneModules(m_scene, config, m_cache);
+        }
+
+        [Test]
+        public void TestCacheAsset()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
 
             AssetBase asset = AssetHelpers.CreateAsset();
             asset.ID = TestHelper.ParseTail(0x1).ToString();
 
             // Check we don't get anything before the asset is put in the cache
-            AssetBase retrievedAsset = cache.Get(asset.ID.ToString());
+            AssetBase retrievedAsset = m_cache.Get(asset.ID.ToString());
             Assert.That(retrievedAsset, Is.Null);
 
-            cache.Store(asset);
+            m_cache.Store(asset);
 
             // Check that asset is now in cache
-            retrievedAsset = cache.Get(asset.ID.ToString());
+            retrievedAsset = m_cache.Get(asset.ID.ToString());
             Assert.That(retrievedAsset, Is.Not.Null);
             Assert.That(retrievedAsset.ID, Is.EqualTo(asset.ID));
         }
