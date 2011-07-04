@@ -44,6 +44,9 @@ using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.CoreModules.Asset.Tests
 {
+    /// <summary>
+    /// At the moment we're only test the in-memory part of the FlotsamAssetCache.  This is a considerable weakness.
+    /// </summary>
     [TestFixture]
     public class FlotsamAssetCacheTests
     {
@@ -85,6 +88,23 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
             retrievedAsset = m_cache.Get(asset.ID.ToString());
             Assert.That(retrievedAsset, Is.Not.Null);
             Assert.That(retrievedAsset.ID, Is.EqualTo(asset.ID));
+        }
+
+        [Test]
+        public void TestExpireAsset()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            AssetBase asset = AssetHelpers.CreateAsset();
+            asset.ID = TestHelper.ParseTail(0x2).ToString();
+
+            m_cache.Store(asset);
+
+            m_cache.Expire(asset.ID);
+
+            AssetBase retrievedAsset = m_cache.Get(asset.ID.ToString());
+            Assert.That(retrievedAsset, Is.Null);
         }
     }
 }
