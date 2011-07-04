@@ -226,7 +226,6 @@ namespace Flotsam.RegionModules.AssetCache
                 if (m_AssetService == null)
                 {
                     m_AssetService = scene.RequestModuleInterface<IAssetService>();
-
                 }
             }
         }
@@ -250,8 +249,57 @@ namespace Flotsam.RegionModules.AssetCache
 
         private void UpdateMemoryCache(string key, AssetBase asset)
         {
-            if (m_MemoryCacheEnabled)
-                m_MemoryCache.AddOrUpdate(key, asset, m_MemoryExpiration);
+            m_MemoryCache.AddOrUpdate(key, asset, m_MemoryExpiration);
+        }
+
+        private void UpdateFileCache(string key, AssetBase asset)
+        {
+            string filename = GetFileName(asset.ID);
+
+            try
+            {
+                // If the file is already cached, don't cache it, just touch it so access time is updated
+                if (File.Exists(filename))
+                {
+                    File.SetLastAccessTime(filename, DateTime.Now);
+                }
+                else
+                {
+                    // Once we start writing, make sure we flag that we're writing
+                    // that object to the cache so that we don't try to write the
+                    // same file multiple times.
+                    lock (m_CurrentlyWriting)
+                    {
+#if WAIT_ON_INPROGRESS_REQUESTS
+                        if (m_CurrentlyWriting.ContainsKey(filename))
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            m_CurrentlyWriting.Add(filename, new ManualResetEvent(false));
+                       }
+
+#else
+                        if (m_CurrentlyWriting.Contains(filename))
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            m_CurrentlyWriting.Add(filename);
+                        }
+#endif
+                    }
+
+                    Util.FireAndForget(
+                        delegate { WriteFileCache(filename, asset); });
+                }
+            }
+            catch (Exception e)
+            {
+                LogException(e);
+            }
         }
 
         public void Cache(AssetBase asset)
@@ -259,57 +307,100 @@ namespace Flotsam.RegionModules.AssetCache
             // TODO: Spawn this off to some seperate thread to do the actual writing
             if (asset != null)
             {
-                m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Caching asset with id {0}", asset.ID);
+                //m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Caching asset with id {0}", asset.ID);
 
-                UpdateMemoryCache(asset.ID, asset);
+                if (m_MemoryCacheEnabled)
+                    UpdateMemoryCache(asset.ID, asset);
 
-                string filename = GetFileName(asset.ID);
+                UpdateFileCache(asset.ID, asset);
+            }
+        }
 
+        /// <summary>
+        /// Try to get an asset from the in-memory cache.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private AssetBase GetFromMemoryCache(string id)
+        {
+            AssetBase asset = null;
+
+            if (m_MemoryCache.TryGetValue(id, out asset))
+                m_MemoryHits++;
+
+            return asset;
+        }
+
+        /// <summary>
+        /// Try to get an asset from the file cache.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private AssetBase GetFromFileCache(string id)
+        {
+            AssetBase asset = null;
+
+            string filename = GetFileName(id);
+            if (File.Exists(filename))
+            {
+                FileStream stream = null;
                 try
                 {
-                    // If the file is already cached, don't cache it, just touch it so access time is updated
-                    if (File.Exists(filename))
-                    {
-                        File.SetLastAccessTime(filename, DateTime.Now);
-                    } else { 
-                        
-                        // Once we start writing, make sure we flag that we're writing
-                        // that object to the cache so that we don't try to write the 
-                        // same file multiple times.
-                        lock (m_CurrentlyWriting)
-                        {
-#if WAIT_ON_INPROGRESS_REQUESTS
-                            if (m_CurrentlyWriting.ContainsKey(filename))
-                            {
-                                return;
-                            }
-                            else
-                            {
-                                m_CurrentlyWriting.Add(filename, new ManualResetEvent(false));
-                            }
+                    stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    BinaryFormatter bformatter = new BinaryFormatter();
 
-#else
-                            if (m_CurrentlyWriting.Contains(filename))
-                            {
-                                return;
-                            }
-                            else
-                            {
-                                m_CurrentlyWriting.Add(filename);
-                            }
-#endif
+                    asset = (AssetBase)bformatter.Deserialize(stream);
 
-                        }
+                    UpdateMemoryCache(id, asset);
 
-                        Util.FireAndForget(
-                            delegate { WriteFileCache(filename, asset); });
-                    }
+                    m_DiskHits++;
+                }
+                catch (System.Runtime.Serialization.SerializationException e)
+                {
+                    LogException(e);
+
+                    // If there was a problem deserializing the asset, the asset may
+                    // either be corrupted OR was serialized under an old format
+                    // {different version of AssetBase} -- we should attempt to
+                    // delete it and re-cache
+                    File.Delete(filename);
                 }
                 catch (Exception e)
                 {
                     LogException(e);
                 }
+                finally
+                {
+                    if (stream != null)
+                        stream.Close();
+                }
             }
+
+
+#if WAIT_ON_INPROGRESS_REQUESTS
+            // Check if we're already downloading this asset.  If so, try to wait for it to
+            // download.
+            if (m_WaitOnInprogressTimeout > 0)
+            {
+                m_RequestsForInprogress++;
+
+                ManualResetEvent waitEvent;
+                if (m_CurrentlyWriting.TryGetValue(filename, out waitEvent))
+                {
+                    waitEvent.WaitOne(m_WaitOnInprogressTimeout);
+                    return Get(id);
+                }
+            }
+#else
+            // Track how often we have the problem that an asset is requested while
+            // it is still being downloaded by a previous request.
+            if (m_CurrentlyWriting.Contains(filename))
+            {
+                m_RequestsForInprogress++;
+            }
+#endif
+
+            return asset;
         }
 
         public AssetBase Get(string id)
@@ -318,72 +409,10 @@ namespace Flotsam.RegionModules.AssetCache
 
             AssetBase asset = null;
 
-            if (m_MemoryCacheEnabled && m_MemoryCache.TryGetValue(id, out asset))
-            {
-                m_MemoryHits++;
-            }
+            if (m_MemoryCacheEnabled)
+                asset = GetFromMemoryCache(id);
             else
-            {
-                string filename = GetFileName(id);
-                if (File.Exists(filename))
-                {
-                    FileStream stream = null;
-                    try
-                    {
-                        stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-                        BinaryFormatter bformatter = new BinaryFormatter();
-
-                        asset = (AssetBase)bformatter.Deserialize(stream);
-
-                        UpdateMemoryCache(id, asset);
-
-                        m_DiskHits++;
-                    }
-                    catch (System.Runtime.Serialization.SerializationException e)
-                    {
-                        LogException(e);
-
-                        // If there was a problem deserializing the asset, the asset may 
-                        // either be corrupted OR was serialized under an old format 
-                        // {different version of AssetBase} -- we should attempt to
-                        // delete it and re-cache
-                        File.Delete(filename);
-                    }
-                    catch (Exception e)
-                    {
-                        LogException(e);
-                    }
-                    finally
-                    {
-                        if (stream != null)
-                            stream.Close();
-                    }
-                }
-
-
-#if WAIT_ON_INPROGRESS_REQUESTS
-                // Check if we're already downloading this asset.  If so, try to wait for it to 
-                // download.
-                if (m_WaitOnInprogressTimeout > 0)
-                {
-                    m_RequestsForInprogress++;
-
-                    ManualResetEvent waitEvent;
-                    if (m_CurrentlyWriting.TryGetValue(filename, out waitEvent))
-                    {
-                        waitEvent.WaitOne(m_WaitOnInprogressTimeout);
-                        return Get(id);
-                    }
-                }
-#else
-                // Track how often we have the problem that an asset is requested while
-                // it is still being downloaded by a previous request.
-                if (m_CurrentlyWriting.Contains(filename))
-                {
-                    m_RequestsForInprogress++;
-                }
-#endif
-            }
+                asset = GetFromFileCache(id);
 
             if (((m_LogLevel >= 1)) && (m_HitRateDisplay != 0) && (m_Requests % m_HitRateDisplay == 0))
             {
@@ -474,9 +503,9 @@ namespace Flotsam.RegionModules.AssetCache
         /// removes empty tier directories.
         /// </summary>
         /// <param name="dir"></param>
+        /// <param name="purgeLine"></param>
         private void CleanExpiredFiles(string dir, DateTime purgeLine)
         {
-
             foreach (string file in Directory.GetFiles(dir))
             {
                 if (File.GetLastAccessTime(file) < purgeLine)
