@@ -28,6 +28,7 @@
 using System;
 using System.Diagnostics;
 using NUnit.Framework;
+using OpenMetaverse;
 
 namespace OpenSim.Tests.Common
 {
@@ -55,6 +56,16 @@ namespace OpenSim.Tests.Common
             StackTrace stackTrace = new StackTrace();
             Console.WriteLine();
             Console.WriteLine("===> In Test Method : {0} <===", stackTrace.GetFrame(1).GetMethod().Name);
+        }
+
+        /// <summary>
+        /// Parse tail section into full UUID.
+        /// </summary>
+        /// <param name="tail"></param>
+        /// <returns></returns>
+        public static UUID ParseTail(int tail)
+        {
+            return new UUID(string.Format("00000000-0000-0000-0000-{0:X12}", tail));
         }
     }
 }

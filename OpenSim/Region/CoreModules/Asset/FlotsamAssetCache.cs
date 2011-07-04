@@ -259,6 +259,8 @@ namespace Flotsam.RegionModules.AssetCache
             // TODO: Spawn this off to some seperate thread to do the actual writing
             if (asset != null)
             {
+                m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Caching asset with id {0}", asset.ID);
+
                 UpdateMemoryCache(asset.ID, asset);
 
                 string filename = GetFileName(asset.ID);
