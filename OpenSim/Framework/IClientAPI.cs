@@ -741,7 +741,7 @@ namespace OpenSim.Framework
         bool IsActive { get; set; }
 
         /// <value>
-        /// Determines whether the client is logging out or not.
+        /// Determines whether the client is or has been removed from a given scene
         /// </value>
         bool IsLoggingOut { get; set; }
         

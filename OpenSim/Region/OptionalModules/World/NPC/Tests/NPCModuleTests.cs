@@ -26,46 +26,46 @@
  */
 
 using System;
-using System.Diagnostics;
+using System.Reflection;
+using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Framework.Communications;
+using OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.AvatarService;
+using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Tests.Common
+namespace OpenSim.Region.OptionalModules.World.NPC.Tests
 {
-    public class TestHelper
+    [TestFixture]
+    public class NPCModuleTests
     {
-        public static bool AssertThisDelegateCausesArgumentException(TestDelegate d)
+        [Test]
+        public void TestCreate()
         {
-            try
-            {
-                d();
-            }
-            catch(ArgumentException)
-            {
-                return true;
-            }
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
 
-            return false;
-        }
-        
-        /// <summary>
-        /// A debugging method that can be used to print out which test method you are in 
-        /// </summary>
-        public static void InMethod()
-        {
-            StackTrace stackTrace = new StackTrace();
-            Console.WriteLine();
-            Console.WriteLine("===> In Test Method : {0} <===", stackTrace.GetFrame(1).GetMethod().Name);
-        }
+            IConfigSource config = new IniConfigSource();
 
-        /// <summary>
-        /// Parse tail section into full UUID.
-        /// </summary>
-        /// <param name="tail"></param>
-        /// <returns></returns>
-        public static UUID ParseTail(int tail)
-        {
-            return new UUID(string.Format("00000000-0000-0000-0000-{0:X12}", tail));
+            config.AddConfig("Modules");
+            config.Configs["Modules"].Set("AvatarServices", "LocalAvatarServicesConnector");
+            config.AddConfig("AvatarService");
+            config.Configs["AvatarService"].Set("LocalServiceModule", "OpenSim.Services.AvatarService.dll:AvatarService");
+            config.Configs["AvatarService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
+
+            TestScene scene = SceneSetupHelpers.SetupScene();
+            SceneSetupHelpers.SetupSceneModules(scene, config, new NPCModule(), new LocalAvatarServicesConnector());
+
+            INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
+            UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), scene, UUID.Zero);
+
+            ScenePresence npc = scene.GetScenePresence(npcId);
+            Assert.That(npc, Is.Not.Null);
         }
     }
 }

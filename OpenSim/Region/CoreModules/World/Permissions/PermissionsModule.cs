@@ -134,7 +134,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 return;
 
             m_allowGridGods = myConfig.GetBoolean("allow_grid_gods", false);
-            m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", false);
+            m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", true);
             m_propagatePermissions = myConfig.GetBoolean("propagate_permissions", true);
             m_RegionOwnerIsGod = myConfig.GetBoolean("region_owner_is_god", true);
             m_RegionManagerIsGod = myConfig.GetBoolean("region_manager_is_god", false);

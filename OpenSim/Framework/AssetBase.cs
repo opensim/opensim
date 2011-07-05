@@ -281,6 +281,7 @@ namespace OpenSim.Framework
 
                 return m_id;
             }
+            
             set
             {
                 UUID uuid = UUID.Zero;

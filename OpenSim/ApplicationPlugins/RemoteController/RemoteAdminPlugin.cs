@@ -2304,6 +2304,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>UUID of the region</description></item>
         /// <item><term>region_name</term>
         ///       <description>region name</description></item>
+        /// <item><term>merge</term>
+        ///       <description>true if oar should be merged</description></item>
+        /// <item><term>skip-assets</term>
+        ///       <description>true if assets should be skiped</description></item>
         /// </list>
         ///
         /// <code>region_uuid</code> takes precedence over
@@ -2362,10 +2366,22 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                             throw new Exception(String.Format("failed to switch to region {0}", region_name));
                     }
                     else throw new Exception("neither region_name nor region_uuid given");
+                    
+                    bool mergeOar = false;
+                    bool skipAssets = false;
+
+                    if ((string)requestData["merge"] == "true")
+                    {
+                        mergeOar = true;
+                    }
+                    if ((string)requestData["skip-assets"] == "true")
+                    {
+                        skipAssets = true;
+                    }
 
                     IRegionArchiverModule archiver = scene.RequestModuleInterface<IRegionArchiverModule>();
                     if (archiver != null)
-                        archiver.DearchiveRegion(filename);
+                        archiver.DearchiveRegion(filename, mergeOar, skipAssets, Guid.Empty);
                     else
                         throw new Exception("Archiver module not present for scene");
 
@@ -2405,6 +2421,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         ///       <description>UUID of the region</description></item>
         /// <item><term>region_name</term>
         ///       <description>region name</description></item>
+        ///       <item><term>profile</term>
+        ///       <description>profile url</description></item>
+        /// <item><term>noassets</term>
+        ///       <description>true if no assets should be saved</description></item>
         /// </list>
         ///
         /// <code>region_uuid</code> takes precedence over
@@ -2462,12 +2482,29 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 }
                 else throw new Exception("neither region_name nor region_uuid given");
 
+                Dictionary<string, object> options = new Dictionary<string, object>();
+
+                //if (requestData.Contains("version"))
+                //{
+                //    options["version"] = (string)requestData["version"];
+                //}
+
+                if (requestData.Contains("profile"))
+                {
+                    options["profile"] = (string)requestData["profile"];
+                }
+
+                if (requestData["noassets"] == "true")
+                {
+                    options["noassets"] = (string)requestData["noassets"] ;
+                }
+
                 IRegionArchiverModule archiver = scene.RequestModuleInterface<IRegionArchiverModule>();
 
                 if (archiver != null)
                 {
                     scene.EventManager.OnOarFileSaved += RemoteAdminOarSaveCompleted;
-                    archiver.ArchiveRegion(filename, new Dictionary<string, object>());
+                    archiver.ArchiveRegion(filename, options);
                     lock (m_saveOarLock) Monitor.Wait(m_saveOarLock,5000);
                     scene.EventManager.OnOarFileSaved -= RemoteAdminOarSaveCompleted;
                 }

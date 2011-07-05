@@ -31,6 +31,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Timers;
 using log4net;
@@ -124,7 +125,6 @@ namespace OpenSim.Framework.Servers
                     m_logFileAppender = appender;
                 }
             }
-
         }
         
         /// <summary>
@@ -443,45 +443,68 @@ namespace OpenSim.Framework.Servers
         {
             string buildVersion = string.Empty;
 
-            // Add commit hash and date information if available
-            // The commit hash and date are stored in a file bin/.version
-            // This file can automatically created by a post
-            // commit script in the opensim git master repository or
-            // by issuing the follwoing command from the top level
-            // directory of the opensim repository
-            // git log -n 1 --pretty="format:%h: %ci" >bin/.version
-            // For the full git commit hash use %H instead of %h
-            //
             // The subversion information is deprecated and will be removed at a later date
             // Add subversion revision information if available
             // Try file "svn_revision" in the current directory first, then the .svn info.
             // This allows to make the revision available in simulators not running from the source tree.
             // FIXME: Making an assumption about the directory we're currently in - we do this all over the place
             // elsewhere as well
+            string gitDir = "../.git/";
+            string gitRefPointerPath = gitDir + "HEAD";
+
             string svnRevisionFileName = "svn_revision";
             string svnFileName = ".svn/entries";
-            string gitCommitFileName = ".version";
+            string manualVersionFileName = ".version";
             string inputLine;
             int strcmp;
 
-            if (File.Exists(gitCommitFileName))
+            if (File.Exists(manualVersionFileName))
             {
-                StreamReader CommitFile = File.OpenText(gitCommitFileName);
-                buildVersion = CommitFile.ReadLine();
-                CommitFile.Close();
+                using (StreamReader CommitFile = File.OpenText(manualVersionFileName))
+                    buildVersion = CommitFile.ReadLine();
+
                 m_version += buildVersion ?? "";
             }
+            else if (File.Exists(gitRefPointerPath))
+            {
+//                m_log.DebugFormat("[OPENSIM]: Found {0}", gitRefPointerPath);
 
-            // Remove the else logic when subversion mirror is no longer used
+                string rawPointer = "";
+
+                using (StreamReader pointerFile = File.OpenText(gitRefPointerPath))
+                    rawPointer = pointerFile.ReadLine();
+
+//                m_log.DebugFormat("[OPENSIM]: rawPointer [{0}]", rawPointer);
+
+                Match m = Regex.Match(rawPointer, "^ref: (.+)$");
+
+                if (m.Success)
+                {
+//                    m_log.DebugFormat("[OPENSIM]: Matched [{0}]", m.Groups[1].Value);
+
+                    string gitRef = m.Groups[1].Value;
+                    string gitRefPath = gitDir + gitRef;
+                    if (File.Exists(gitRefPath))
+                    {
+//                        m_log.DebugFormat("[OPENSIM]: Found gitRefPath [{0}]", gitRefPath);
+
+                        using (StreamReader refFile = File.OpenText(gitRefPath))
+                        {
+                            string gitHash = refFile.ReadLine();
+                            m_version += gitHash.Substring(0, 7);
+                        }
+                    }
+                }
+            }
             else
             {
+                // Remove the else logic when subversion mirror is no longer used
                 if (File.Exists(svnRevisionFileName))
                 {
                     StreamReader RevisionFile = File.OpenText(svnRevisionFileName);
                     buildVersion = RevisionFile.ReadLine();
                     buildVersion.Trim();
                     RevisionFile.Close();
-
                 }
 
                 if (string.IsNullOrEmpty(buildVersion) && File.Exists(svnFileName))

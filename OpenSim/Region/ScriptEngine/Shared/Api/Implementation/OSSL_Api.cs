@@ -38,7 +38,6 @@ using OpenSim;
 using OpenSim.Framework;
 
 using OpenSim.Framework.Console;
-using OpenSim.Region.CoreModules.Avatar.NPC;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;

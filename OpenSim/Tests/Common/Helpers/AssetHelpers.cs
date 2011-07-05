@@ -37,6 +37,15 @@ namespace OpenSim.Tests.Common
     public class AssetHelpers
     {
         /// <summary>
+        /// Create a notecard asset with a random uuids and dummy text.
+        /// </summary>
+        /// <returns></returns>
+        public static AssetBase CreateAsset()
+        {
+            return CreateAsset(UUID.Random(), AssetType.Notecard, "hello", UUID.Random());
+        }
+
+        /// <summary>
         /// Create a notecard asset with a random uuid and dummy text.
         /// </summary>
         /// <param name="creatorId">/param>

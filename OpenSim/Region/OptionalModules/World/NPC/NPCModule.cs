@@ -34,7 +34,6 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.CoreModules.Avatar.NPC;
 using OpenSim.Framework;
 using Timer=System.Timers.Timer;
 using OpenSim.Services.Interfaces;
@@ -47,31 +46,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         // private const bool m_enabled = false;
 
-        private Mutex m_createMutex;
-        private Timer m_timer;
-
         private Dictionary<UUID,NPCAvatar> m_avatars = new Dictionary<UUID, NPCAvatar>();
         private Dictionary<UUID,AvatarAppearance> m_appearanceCache = new Dictionary<UUID, AvatarAppearance>();
 
-        // Timer vars.
-        private bool p_inUse = false;
-        private readonly object p_lock = new object();
-        // Private Temporary Variables.
-        private string p_firstname;
-        private string p_lastname;
-        private Vector3 p_position;
-        private Scene p_scene;
-        private UUID p_cloneAppearanceFrom;
-        private UUID p_returnUuid;
-
         public void Initialise(Scene scene, IConfigSource source)
         {
-            m_createMutex = new Mutex(false);
-
-            m_timer = new Timer(500);
-            m_timer.Elapsed += m_timer_Elapsed;
-            m_timer.Start();
-
             scene.RegisterModuleInterface<INPCModule>(this);
         }
 
@@ -90,35 +69,53 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return new AvatarAppearance();
         }
 
-        public UUID CreateNPC(string firstname, string lastname,Vector3 position, Scene scene, UUID cloneAppearanceFrom)
+        public UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, UUID cloneAppearanceFrom)
         {
+            NPCAvatar npcAvatar = new NPCAvatar(firstname, lastname, position, scene);
+            npcAvatar.CircuitCode = (uint)Util.RandomClass.Next(0, int.MaxValue);
+
             m_log.DebugFormat(
-                "[NPC MODULE]: Queueing request to create NPC {0} {1} at {2} in {3} cloning appearance of {4}",
-                firstname, lastname, position, scene.RegionInfo.RegionName, cloneAppearanceFrom);
+                "[NPC MODULE]: Creating NPC {0} {1} {2} at {3} in {4}",
+                firstname, lastname, npcAvatar.AgentId, position, scene.RegionInfo.RegionName);
 
-            // Block.
-            m_createMutex.WaitOne();
+            AgentCircuitData acd = new AgentCircuitData();
+            acd.AgentID = npcAvatar.AgentId;
+            acd.firstname = firstname;
+            acd.lastname = lastname;
+            acd.ServiceURLs = new Dictionary<string, object>();
 
-            // Copy Temp Variables for Timer to pick up.
-            lock (p_lock)
+            AvatarAppearance originalAppearance = GetAppearance(cloneAppearanceFrom, scene);
+            AvatarAppearance npcAppearance = new AvatarAppearance(originalAppearance, true);
+            acd.Appearance = npcAppearance;
+
+            scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode, acd);
+            scene.AddNewClient(npcAvatar);
+
+            ScenePresence sp;
+            if (scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
             {
-                p_firstname = firstname;
-                p_lastname = lastname;
-                p_position = position;
-                p_scene = scene;
-                p_cloneAppearanceFrom = cloneAppearanceFrom;
-                p_inUse = true;
-                p_returnUuid = UUID.Zero;
+                m_log.DebugFormat(
+                    "[NPC MODULE]: Successfully retrieved scene presence for NPC {0} {1}", sp.Name, sp.UUID);
+
+                // Shouldn't call this - temporary.
+                sp.CompleteMovement(npcAvatar);
+
+//                        sp.SendAppearanceToAllOtherAgents();
+//
+//                        // Send animations back to the avatar as well
+//                        sp.Animator.SendAnimPack();
+            }
+            else
+            {
+                m_log.WarnFormat("[NPC MODULE]: Could not find scene presence for NPC {0} {1}", sp.Name, sp.UUID);
             }
 
-            while (p_returnUuid == UUID.Zero)
-            {
-                Thread.Sleep(250);
-            }
+            lock (m_avatars)
+                m_avatars.Add(npcAvatar.AgentId, npcAvatar);
 
-            m_createMutex.ReleaseMutex();
+            m_log.DebugFormat("[NPC MODULE]: Created NPC with id {0}", npcAvatar.AgentId);
 
-            return p_returnUuid;
+            return npcAvatar.AgentId;
         }
 
         public void Autopilot(UUID agentID, Scene scene, Vector3 pos)
@@ -154,69 +151,6 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     scene.RemoveClient(agentID);
                     m_avatars.Remove(agentID);
                 }
-            }
-        }
-
-        void m_timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            try
-            {
-                lock (p_lock)
-                {
-                    if (p_inUse)
-                    {
-                        p_inUse = false;
-    
-                        NPCAvatar npcAvatar = new NPCAvatar(p_firstname, p_lastname, p_position, p_scene);
-                        npcAvatar.CircuitCode = (uint) Util.RandomClass.Next(0, int.MaxValue);
-    
-                        m_log.DebugFormat(
-                            "[NPC MODULE]: Creating NPC {0} {1} {2} at {3} in {4}",
-                            p_firstname, p_lastname, npcAvatar.AgentId, p_position, p_scene.RegionInfo.RegionName);
-    
-                        AgentCircuitData acd = new AgentCircuitData();
-                        acd.AgentID = npcAvatar.AgentId;
-                        acd.firstname = p_firstname;
-                        acd.lastname = p_lastname;
-                        acd.ServiceURLs = new Dictionary<string, object>();
-    
-                        AvatarAppearance originalAppearance = GetAppearance(p_cloneAppearanceFrom, p_scene);
-                        AvatarAppearance npcAppearance = new AvatarAppearance(originalAppearance, true);
-                        acd.Appearance = npcAppearance;
-    
-                        p_scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode, acd);
-                        p_scene.AddNewClient(npcAvatar);
-    
-                        ScenePresence sp;
-                        if (p_scene.TryGetScenePresence(npcAvatar.AgentId, out sp))
-                        {
-                            m_log.DebugFormat(
-                                "[NPC MODULE]: Successfully retrieved scene presence for NPC {0} {1}", sp.Name, sp.UUID);
-    
-                            // Shouldn't call this - temporary.
-                            sp.CompleteMovement(npcAvatar);
-    
-    //                        sp.SendAppearanceToAllOtherAgents();
-    //
-    //                        // Send animations back to the avatar as well
-    //                        sp.Animator.SendAnimPack();
-                        }
-                        else
-                        {
-                            m_log.WarnFormat("[NPC MODULE]: Could not find scene presence for NPC {0} {1}", sp.Name, sp.UUID);
-                        }
-    
-                        m_avatars.Add(npcAvatar.AgentId, npcAvatar);
-    
-                        p_returnUuid = npcAvatar.AgentId;
-
-                        m_log.DebugFormat("[NPC MODULE]: Created NPC with id {0}", p_returnUuid);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                m_log.ErrorFormat("[NPC MODULE]: NPC creation failed with exception {0} {1}", ex.Message, ex.StackTrace);
             }
         }
 

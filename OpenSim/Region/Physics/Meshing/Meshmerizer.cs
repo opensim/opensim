@@ -291,7 +291,14 @@ namespace OpenSim.Region.Physics.Meshing
                     {
                         try
                         {
-                            meshOsd = (OSDMap)OSDParser.DeserializeLLSDBinary(data);
+                            OSD osd = OSDParser.DeserializeLLSDBinary(data);
+                            if (osd is OSDMap)
+                                meshOsd = (OSDMap)osd;
+                            else
+                            {
+                                m_log.Warn("[Mesh}: unable to cast mesh asset to OSDMap");
+                                return null;
+                            }
                         }
                         catch (Exception e)
                         {
@@ -302,11 +309,17 @@ namespace OpenSim.Region.Physics.Meshing
 
                     if (meshOsd is OSDMap)
                     {
+                        OSDMap physicsParms = null;
                         OSDMap map = (OSDMap)meshOsd;
-                        OSDMap physicsParms = (OSDMap)map["physics_shape"]; // old asset format
-
-                        if (physicsParms.Count == 0)
+                        if (map.ContainsKey("physics_shape"))
+                            physicsParms = (OSDMap)map["physics_shape"]; // old asset format
+                        else if (map.ContainsKey("physics_mesh"))
                             physicsParms = (OSDMap)map["physics_mesh"]; // new asset format
+                        if (physicsParms == null)
+                        {
+                            m_log.Warn("[Mesh]: no recognized physics mesh found in mesh asset");
+                            return null;
+                        }
 
                         int physOffset = physicsParms["offset"].AsInteger() + (int)start;
                         int physSize = physicsParms["size"].AsInteger();

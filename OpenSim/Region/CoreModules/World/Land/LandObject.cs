@@ -449,7 +449,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsBannedFromLand(UUID avatar)
         {
-            if (m_scene.Permissions.IsAdministrator(avatar))
+            if (m_scene.Permissions.CanEditParcelProperties(avatar, this, 0))
                 return false;
 
             if (m_scene.RegionInfo.EstateSettings.IsEstateManager(avatar))
@@ -463,7 +463,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                             if (e.AgentID == avatar && e.Flags == AccessList.Ban)
                                 return true;
                             return false;
-                        }) != -1 && LandData.OwnerID != avatar)
+                        }) != -1)
                 {
                     return true;
                 }
@@ -473,7 +473,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsRestrictedFromLand(UUID avatar)
         {
-            if (m_scene.Permissions.IsAdministrator(avatar))
+            if (m_scene.Permissions.CanEditParcelProperties(avatar, this, 0))
                 return false;
 
             if (m_scene.RegionInfo.EstateSettings.IsEstateManager(avatar))
@@ -487,7 +487,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                             if (e.AgentID == avatar && e.Flags == AccessList.Access)
                                 return true;
                             return false;
-                        }) == -1 && LandData.OwnerID != avatar)
+                        }) == -1)
                 {
                     if (!HasGroupAccess(avatar))
                     {

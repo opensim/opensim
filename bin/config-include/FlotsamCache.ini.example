@@ -19,8 +19,11 @@
     ; 0 to disable
     HitRateDisplay = 100
 
-    ; Set to false for disk cache only.
+    ; Set to false for no memory cache
     MemoryCacheEnabled = false
+
+    ; Set to false for no file cache
+    FileCacheEnabled = true
 
     ; How long {in hours} to keep assets cached in memory, .5 == 30 minutes
     ; Optimization: for VPS or limited memory system installs set Timeout to .016 (1 minute)

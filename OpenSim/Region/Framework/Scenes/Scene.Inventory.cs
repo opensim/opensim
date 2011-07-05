@@ -52,6 +52,11 @@ namespace OpenSim.Region.Framework.Scenes
         protected AsyncSceneObjectGroupDeleter m_asyncSceneObjectDeleter;
 
         /// <summary>
+        /// Allows inventory details to be sent to clients asynchronously
+        /// </summary>
+        protected AsyncInventorySender m_asyncInventorySender;
+
+        /// <summary>
         /// Start all the scripts in the scene which should be started.
         /// </summary>
         public void CreateScriptInstances()
