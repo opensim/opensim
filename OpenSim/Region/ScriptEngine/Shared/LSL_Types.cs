@@ -1396,6 +1396,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 string s = String.Format(Culture.FormatProvider, "{0:0.000000}", f.value);
                 m_string=s;
             }
+            
+            public LSLString(int i)
+            {
+                string s = String.Format("{0}", i);
+                m_string = s;
+            }
 
             public LSLString(LSLInteger i)
             {
@@ -1468,6 +1474,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
             public static explicit operator LSLString(double d)
             {
                 return new LSLString(d);
+            }
+            
+            static public explicit operator LSLString(int i)
+            {
+                return new LSLString(i);
             }
 
             public static explicit operator LSLString(LSLFloat f)
