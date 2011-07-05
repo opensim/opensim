@@ -753,7 +753,7 @@ namespace OpenSim.Data.MySQL
                     {
                         //No result, so store our default windlight profile and return it
                         nWP.regionID = regionUUID;
-                        StoreRegionWindlightSettings(nWP);
+                        // StoreRegionWindlightSettings(nWP);
                         return nWP;
                     }
                     else
