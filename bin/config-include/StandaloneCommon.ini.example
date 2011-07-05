@@ -63,9 +63,6 @@
     ;;--- For MySql region storage (alternative)
     ;StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
 
-    ;; With hypergrid, perform distance check for the creation of a linked region
-    ; Check4096 = true
-
     ;; Directory for map tile images of remote regions
     ; MapTileDirectory = "./maptiles"
 

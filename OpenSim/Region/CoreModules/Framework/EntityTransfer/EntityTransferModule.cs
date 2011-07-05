@@ -50,6 +50,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// The maximum distance, in standard region units (256m) that an agent is allowed to transfer.
+        /// </summary>
+        public int MaxTransferDistance { get; set; }
+
         protected bool m_Enabled = false;
         protected Scene m_aScene;
         protected List<Scene> m_Scenes = new List<Scene>();
@@ -78,11 +83,24 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 string name = moduleConfig.GetString("EntityTransferModule", "");
                 if (name == Name)
                 {
-                    m_agentsInTransit = new List<UUID>();
-                    m_Enabled = true;
-                    m_log.InfoFormat("[ENTITY TRANSFER MODULE]: {0} enabled.", Name);
+                    InitialiseCommon(source);
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: {0} enabled.", Name);
                 }
             }
+        }
+
+        /// <summary>
+        /// Initialize config common for this module and any descendents.
+        /// </summary>
+        /// <param name="source"></param>
+        protected virtual void InitialiseCommon(IConfigSource source)
+        {
+            IConfig transferConfig = source.Configs["EntityTransfer"];
+            if (transferConfig != null)
+                MaxTransferDistance = transferConfig.GetInt("max_distance", 4095);
+
+            m_agentsInTransit = new List<UUID>();
+            m_Enabled = true;
         }
 
         public virtual void PostInitialise()
@@ -114,7 +132,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 return;
         }
 
-
         public virtual void RemoveRegion(Scene scene)
         {
             if (!m_Enabled)
@@ -129,7 +146,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             if (!m_Enabled)
                 return;
-
         }
 
         #endregion
@@ -205,8 +221,18 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             sp.ControllingClient.SendTeleportFailed("Problem at destination");
                             return;
                         }
-                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Final destination is x={0} y={1} {2}@{3}",
-                            finalDestination.RegionLocX / Constants.RegionSize, finalDestination.RegionLocY / Constants.RegionSize, finalDestination.RegionID, finalDestination.ServerURI);
+
+                        uint curX = 0, curY = 0;
+                        Utils.LongToUInts(sp.Scene.RegionInfo.RegionHandle, out curX, out curY);
+                        int curCellX = (int)(curX / Constants.RegionSize);
+                        int curCellY = (int)(curY / Constants.RegionSize);
+                        int destCellX = (int)(finalDestination.RegionLocX / Constants.RegionSize);
+                        int destCellY = (int)(finalDestination.RegionLocY / Constants.RegionSize);
+
+//                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Source co-ords are x={0} y={1}", curRegionX, curRegionY);
+//
+//                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Final dest is x={0} y={1} {2}@{3}",
+//                            destRegionX, destRegionY, finalDestination.RegionID, finalDestination.ServerURI);
 
                         // Check that these are not the same coordinates
                         if (finalDestination.RegionLocX == sp.Scene.RegionInfo.RegionLocX &&
@@ -214,6 +240,18 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         {
                             // Can't do. Viewer crashes
                             sp.ControllingClient.SendTeleportFailed("Space warp! You would crash. Move to a different region and try again.");
+                            return;
+                        }
+
+                        if (Math.Abs(curCellX - destCellX) > MaxTransferDistance || Math.Abs(curCellY - destCellY) > MaxTransferDistance)
+                        {
+                            sp.ControllingClient.SendTeleportFailed(
+                                string.Format(
+                                  "Can't teleport to {0} ({1},{2}) from {3} ({4},{5}), destination is more than {6} regions way",
+                                  finalDestination.RegionName, destCellX, destCellY,
+                                  sp.Scene.RegionInfo.RegionName, curCellX, curCellY,
+                                  MaxTransferDistance));
+
                             return;
                         }
 

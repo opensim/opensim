@@ -1,10 +1,39 @@
-﻿using System;
+﻿/*
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSimulator Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using Nini.Config;
 using log4net;
 
@@ -12,11 +41,14 @@ using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Services.Interfaces;
 
 using Caps = OpenSim.Framework.Capabilities.Caps;
+using OSDArray = OpenMetaverse.StructuredData.OSDArray;
+using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
 namespace OpenSim.Region.ClientStack.Linden
 {
@@ -79,7 +111,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private bool m_persistBakedTextures = false;
         private IAssetService m_assetService;
-        private bool m_dumpAssetsToFile;
+        private bool m_dumpAssetsToFile = false;
         private string m_regionName;
 
         public BunchOfCaps(Scene scene, Caps caps)
@@ -439,7 +471,7 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         /// <summary>
-        ///
+        /// Convert raw uploaded data into the appropriate asset and item.
         /// </summary>
         /// <param name="assetID"></param>
         /// <param name="inventoryItem"></param>
@@ -448,6 +480,10 @@ namespace OpenSim.Region.ClientStack.Linden
                                           UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
                                           string assetType)
         {
+            m_log.DebugFormat(
+                "Uploaded asset {0} for inventory item {1}, inv type {2}, asset type {3}",
+                assetID, inventoryItem, inventoryType, assetType);
+
             sbyte assType = 0;
             sbyte inType = 0;
 
@@ -473,6 +509,156 @@ namespace OpenSim.Region.ClientStack.Linden
                         assType = 5;
                         break;
                 }
+            }
+            else if (inventoryType == "object")
+            {
+                inType = (sbyte)InventoryType.Object;
+                assType = (sbyte)AssetType.Object;
+
+                List<Vector3> positions = new List<Vector3>();
+                List<Quaternion> rotations = new List<Quaternion>();
+                OSDMap request = (OSDMap)OSDParser.DeserializeLLSDXml(data);
+                OSDArray instance_list = (OSDArray)request["instance_list"];
+                OSDArray mesh_list = (OSDArray)request["mesh_list"];
+                OSDArray texture_list = (OSDArray)request["texture_list"];
+                SceneObjectGroup grp = null;
+
+                List<UUID> textures = new List<UUID>();
+                for (int i = 0; i < texture_list.Count; i++)
+                {
+                    AssetBase textureAsset = new AssetBase(UUID.Random(), assetName, (sbyte)AssetType.Texture, "");
+                    textureAsset.Data = texture_list[i].AsBinary();
+                    m_assetService.Store(textureAsset);
+                    textures.Add(textureAsset.FullID);
+                }
+
+                for (int i = 0; i < mesh_list.Count; i++)
+                {
+                    PrimitiveBaseShape pbs = PrimitiveBaseShape.CreateBox();
+
+                    Primitive.TextureEntry textureEntry
+                        = new Primitive.TextureEntry(Primitive.TextureEntry.WHITE_TEXTURE);
+                    OSDMap inner_instance_list = (OSDMap)instance_list[i];
+
+                    OSDArray face_list = (OSDArray)inner_instance_list["face_list"];
+                    for (uint face = 0; face < face_list.Count; face++)
+                    {
+                        OSDMap faceMap = (OSDMap)face_list[(int)face];
+                        Primitive.TextureEntryFace f = pbs.Textures.CreateFace(face);
+                        if(faceMap.ContainsKey("fullbright"))
+                            f.Fullbright = faceMap["fullbright"].AsBoolean();
+                        if (faceMap.ContainsKey ("diffuse_color"))
+                            f.RGBA = faceMap["diffuse_color"].AsColor4();
+
+                        int textureNum = faceMap["image"].AsInteger();
+                        float imagerot = faceMap["imagerot"].AsInteger();
+                        float offsets = (float)faceMap["offsets"].AsReal();
+                        float offsett = (float)faceMap["offsett"].AsReal();
+                        float scales = (float)faceMap["scales"].AsReal();
+                        float scalet = (float)faceMap["scalet"].AsReal();
+
+                        if(imagerot != 0)
+                            f.Rotation = imagerot;
+
+                        if(offsets != 0)
+                            f.OffsetU = offsets;
+
+                        if (offsett != 0)
+                            f.OffsetV = offsett;
+
+                        if (scales != 0)
+                            f.RepeatU = scales;
+
+                        if (scalet != 0)
+                            f.RepeatV = scalet;
+
+                        if (textures.Count > textureNum)
+                            f.TextureID = textures[textureNum];
+                        else
+                            f.TextureID = Primitive.TextureEntry.WHITE_TEXTURE;
+
+                        textureEntry.FaceTextures[face] = f;
+                    }
+
+                    pbs.TextureEntry = textureEntry.GetBytes();
+
+                    AssetBase meshAsset = new AssetBase(UUID.Random(), assetName, (sbyte)AssetType.Mesh, "");
+                    meshAsset.Data = mesh_list[i].AsBinary();
+                    m_assetService.Store(meshAsset);
+
+                    pbs.SculptEntry = true;
+                    pbs.SculptTexture = meshAsset.FullID;
+                    pbs.SculptType = (byte)SculptType.Mesh;
+                    pbs.SculptData = meshAsset.Data;
+
+                    Vector3 position = inner_instance_list["position"].AsVector3();
+                    Vector3 scale = inner_instance_list["scale"].AsVector3();
+                    Quaternion rotation = inner_instance_list["rotation"].AsQuaternion();
+
+//                    int physicsShapeType = inner_instance_list["physics_shape_type"].AsInteger();
+//                    int material = inner_instance_list["material"].AsInteger();
+//                    int mesh = inner_instance_list["mesh"].AsInteger();
+
+                    OSDMap permissions = (OSDMap)inner_instance_list["permissions"];
+                    int base_mask = permissions["base_mask"].AsInteger();
+                    int everyone_mask = permissions["everyone_mask"].AsInteger();
+                    UUID creator_id = permissions["creator_id"].AsUUID();
+                    UUID group_id = permissions["group_id"].AsUUID();
+                    int group_mask = permissions["group_mask"].AsInteger();
+//                    bool is_owner_group = permissions["is_owner_group"].AsBoolean();
+//                    UUID last_owner_id = permissions["last_owner_id"].AsUUID();
+                    int next_owner_mask = permissions["next_owner_mask"].AsInteger();
+                    UUID owner_id = permissions["owner_id"].AsUUID();
+                    int owner_mask = permissions["owner_mask"].AsInteger();
+
+                    SceneObjectPart prim
+                        = new SceneObjectPart(owner_id, pbs, position, Quaternion.Identity, Vector3.Zero);
+
+                    prim.Scale = scale;
+                    prim.OffsetPosition = position;
+                    rotations.Add(rotation);
+                    positions.Add(position);
+                    prim.UUID = UUID.Random();
+                    prim.CreatorID = creator_id;
+                    prim.OwnerID = owner_id;
+                    prim.GroupID = group_id;
+                    prim.LastOwnerID = prim.OwnerID;
+                    prim.CreationDate = Util.UnixTimeSinceEpoch();
+                    prim.Name = assetName;
+                    prim.Description = "";
+
+                    prim.BaseMask = (uint)base_mask;
+                    prim.EveryoneMask = (uint)everyone_mask;
+                    prim.GroupMask = (uint)group_mask;
+                    prim.NextOwnerMask = (uint)next_owner_mask;
+                    prim.OwnerMask = (uint)owner_mask;
+
+                    if (grp == null)
+                        grp = new SceneObjectGroup(prim);
+                    else
+                        grp.AddPart(prim);
+                }
+
+                // Fix first link number
+                if (grp.Parts.Length > 1)
+                    grp.RootPart.LinkNum++;
+
+                Vector3 rootPos = positions[0];
+                grp.AbsolutePosition = rootPos;
+                for (int i = 0; i < positions.Count; i++)
+                {
+                    Vector3 offset = positions[i] - rootPos;
+                    grp.Parts[i].OffsetPosition = offset;
+                }
+
+                for (int i = 0; i < rotations.Count; i++)
+                {
+                    if (i != 0)
+                        grp.Parts[i].RotationOffset = rotations[i];
+                }
+
+                grp.UpdateGroupRotationR(rotations[0]);
+                data = ASCIIEncoding.ASCII.GetBytes(SceneObjectSerializer.ToOriginalXmlFormat(grp));
             }
 
             AssetBase asset;
@@ -505,8 +691,6 @@ namespace OpenSim.Region.ClientStack.Linden
                 AddNewInventoryItem(m_HostCapsObj.AgentID, item);
             }
         }
-
-
 
         /// <summary>
         ///
@@ -632,7 +816,7 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         /// <summary>
-        ///
+        /// Handle raw asset upload data via the capability.
         /// </summary>
         /// <param name="data"></param>
         /// <param name="path"></param>
@@ -670,6 +854,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             return res;
         }
+
         ///Left this in and commented in case there are unforseen issues
         //private void SaveAssetToFile(string filename, byte[] data)
         //{
@@ -679,6 +864,7 @@ namespace OpenSim.Region.ClientStack.Linden
         //    bw.Close();
         //    fs.Close();
         //}
+
         private static void SaveAssetToFile(string filename, byte[] data)
         {
             string assetPath = "UserAssets";
@@ -719,7 +905,7 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         /// <summary>
-        ///
+        /// Handle raw uploaded asset data.
         /// </summary>
         /// <param name="data"></param>
         /// <param name="path"></param>
@@ -752,6 +938,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             return res;
         }
+
         ///Left this in and commented in case there are unforseen issues
         //private void SaveAssetToFile(string filename, byte[] data)
         //{
@@ -761,6 +948,7 @@ namespace OpenSim.Region.ClientStack.Linden
         //    bw.Close();
         //    fs.Close();
         //}
+
         private static void SaveAssetToFile(string filename, byte[] data)
         {
             string assetPath = "UserAssets";
@@ -839,7 +1027,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 uploadComplete.new_asset = inventoryItemID;
                 uploadComplete.compiled = errors.Count > 0 ? false : true;
                 uploadComplete.state = "complete";
-                uploadComplete.errors = new OSDArray();
+                uploadComplete.errors = new OpenSim.Framework.Capabilities.OSDArray();
                 uploadComplete.errors.Array = errors;
 
                 res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
@@ -905,7 +1093,7 @@ namespace OpenSim.Region.ClientStack.Linden
         }
 
         /// <summary>
-        ///
+        /// Handle raw uploaded baked texture data.
         /// </summary>
         /// <param name="data"></param>
         /// <param name="path"></param>

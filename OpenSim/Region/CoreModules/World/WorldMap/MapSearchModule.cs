@@ -91,6 +91,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 remoteClient.SendAlertMessage("Use a search string with at least 2 characters");
                 return;
             }
+
+m_log.DebugFormat("MAP NAME=({0})", mapName);
             
             // try to fetch from GridServer
             List<GridRegion> regionInfos = m_scene.GridService.GetRegionsByName(m_scene.RegionInfo.ScopeID, mapName, 20);
@@ -103,7 +105,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 if (info != null) 
                     regionInfos.Add(info);
             }
-            else if (regionInfos.Count == 0 && mapName.StartsWith("http://"))
+            else if (regionInfos.Count == 0)
                 remoteClient.SendAlertMessage("Hyperlink could not be established.");
 
             //m_log.DebugFormat("[MAPSEARCHMODULE]: search {0} returned {1} regions", mapName, regionInfos.Count);

@@ -106,16 +106,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osWindActiveModelPluginName();
         }
 
-// Not yet plugged in as available OSSL functions, so commented out
-//        void osSetWindParam(string plugin, string param, float value)
-//        {
-//            m_OSSL_Functions.osSetWindParam(plugin, param, value);
-//        }
-//
-//        float osGetWindParam(string plugin, string param)
-//        {
-//            return m_OSSL_Functions.osGetWindParam(plugin, param);
-//        }
+        public void osSetWindParam(string plugin, string param, LSL_Float value)
+        {
+            m_OSSL_Functions.osSetWindParam(plugin, param, value);
+        }
+
+        public LSL_Float osGetWindParam(string plugin, string param)
+        {
+            return m_OSSL_Functions.osGetWindParam(plugin, param);
+        }
 
         public void osParcelJoin(vector pos1, vector pos2)
         {
@@ -714,7 +713,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osKickAvatar(FirstName, SurName, alert);
         }
         
-        public void osSetSpeed(string UUID, float SpeedModifier)
+        public void osSetSpeed(string UUID, LSL_Float SpeedModifier)
         {
             m_OSSL_Functions.osSetSpeed(UUID, SpeedModifier);
         }
