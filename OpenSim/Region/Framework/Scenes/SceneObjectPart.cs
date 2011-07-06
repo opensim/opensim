@@ -1118,9 +1118,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (IsAttachment)
-                    return GroupPosition;
-
                 return GroupPosition + (m_offsetPosition * ParentGroup.RootPart.RotationOffset);
             }
         }
