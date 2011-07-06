@@ -190,10 +190,26 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
             {
                 // Normal Calculations
-                int parcelMax = (int)(((float)LandData.Area / 65536.0f)
-                              * (float)m_scene.RegionInfo.ObjectCapacity
-                              * (float)m_scene.RegionInfo.RegionSettings.ObjectBonus);
-                // TODO: The calculation of ObjectBonus should be refactored. It does still not work in the same manner as SL!
+                int parcelMax = (int)((double)(LandData.Area
+                              * m_scene.RegionInfo.ObjectCapacity)
+                              * m_scene.RegionInfo.RegionSettings.ObjectBonus)
+                              / 65536;
+                return parcelMax;
+            }
+        }
+
+        private int GetParcelBasePrimCount()
+        {
+            if (overrideParcelMaxPrimCount != null)
+            {
+                return overrideParcelMaxPrimCount(this);
+            }
+            else
+            {
+                // Normal Calculations
+                int parcelMax = LandData.Area
+                              * m_scene.RegionInfo.ObjectCapacity
+                              / 65536;
                 return parcelMax;
             }
         }
@@ -245,7 +261,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             remote_client.SendLandProperties(seq_id,
                     snap_selection, request_result, this,
                     (float)m_scene.RegionInfo.RegionSettings.ObjectBonus,
-                    GetParcelMaxPrimCount(),
+                    GetParcelBasePrimCount(),
                     GetSimulatorMaxPrimCount(), regionFlags);
         }
 
