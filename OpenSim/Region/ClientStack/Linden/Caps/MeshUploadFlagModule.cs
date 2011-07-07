@@ -47,7 +47,7 @@ namespace OpenSim.Region.ClientStack.Linden
     /// </summary>
     /// 
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class MeshUploadFlagModule : ISharedRegionModule
+    public class MeshUploadFlagModule : INonSharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
