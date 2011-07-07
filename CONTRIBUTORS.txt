@@ -111,6 +111,7 @@ what it is today.
 * Mircea Kitsune
 * mpallari
 * MrMonkE
+* Nebadon Izumi (Michael Cerquoni - http://OSgrid.org)
 * nornalbion
 * Omar Vera Ustariz (IBM)
 * openlifegrid.com
