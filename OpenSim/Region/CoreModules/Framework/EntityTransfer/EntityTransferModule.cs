@@ -53,7 +53,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// <summary>
         /// The maximum distance, in standard region units (256m) that an agent is allowed to transfer.
         /// </summary>
-        public int MaxTransferDistance { get; set; }
+        private int m_MaxTransferDistance = 4095;
+        public int MaxTransferDistance
+        {
+            get { return m_MaxTransferDistance; }
+            set { m_MaxTransferDistance = value; }
+        }
+        
 
         protected bool m_Enabled = false;
         protected Scene m_aScene;
