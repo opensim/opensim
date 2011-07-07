@@ -1741,8 +1741,13 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override bool Equals(Object o)
             {
-                if (!(o is LSLInteger))
-                    return false;
+                if (!(o is LSLInteger)) {
+                    if(o is int) {
+                        return value == (int)o;
+                    } else {
+                        return false;
+                    }
+                }
                 return value == ((LSLInteger)o).value;
             }
 
