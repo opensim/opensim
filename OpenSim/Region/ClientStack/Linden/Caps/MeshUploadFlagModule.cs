@@ -45,33 +45,54 @@ namespace OpenSim.Region.ClientStack.Linden
     /// <summary>
     /// MeshUploadFlag capability. This is required for uploading Mesh.
     /// </summary>
-    /// 
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class MeshUploadFlagModule : INonSharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        /// <summary>
+        /// Is this module enabled?
+        /// </summary>
+        public bool Enabled { get; private set; }
+
         private Scene m_scene;
         private UUID m_agentID;
 
-
         #region ISharedRegionModule Members
+
+        public MeshUploadFlagModule()
+        {
+            Enabled = true;
+        }
 
         public void Initialise(IConfigSource source)
         {
-            IConfig config = source.Configs["MeshUploadFlag"];
+            IConfig config = source.Configs["Mesh"];
             if (config == null)
+            {
                 return;
+            }
+            else
+            {
+                Enabled = config.GetBoolean("AllowMeshUpload", Enabled);
+            }
         }
 
         public void AddRegion(Scene s)
         {
+            if (!Enabled)
+                return;
+
             m_scene = s;
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
         }
 
         public void RemoveRegion(Scene s)
         {
+            if (!Enabled)
+                return;
+
             m_scene.EventManager.OnRegisterCaps -= RegisterCaps;
         }
 
@@ -98,22 +119,23 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             IRequestHandler reqHandler = new RestHTTPHandler("GET", "/CAPS/" + UUID.Random(), MeshUploadFlag);
             caps.RegisterHandler("MeshUploadFlag", reqHandler);
-	     m_agentID = agentID;
+	        m_agentID = agentID;
         }
 
         private Hashtable MeshUploadFlag(Hashtable mDhttpMethod)
         {
             m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: MeshUploadFlag request");
+
             OSDMap data = new OSDMap();
-	     ScenePresence sp = m_scene.GetScenePresence(m_agentID);
-	     data["username"] = sp.Firstname + "." + sp.Lastname;
-	     data["display_name_next_update"] = new OSDDate(DateTime.Now);
-	     data["legacy_first_name"] = sp.Firstname;
-	     data["mesh_upload_status"] = "valid";
-	     data["display_name"] = sp.Firstname + " " + sp.Lastname;
-	     data["legacy_last_name"] = sp.Lastname;
-	     data["id"] = m_agentID;
-	     data["is_display_name_default"] = true;
+    	    ScenePresence sp = m_scene.GetScenePresence(m_agentID);
+    	    data["username"] = sp.Firstname + "." + sp.Lastname;
+    	    data["display_name_next_update"] = new OSDDate(DateTime.Now);
+    	    data["legacy_first_name"] = sp.Firstname;
+    	    data["mesh_upload_status"] = "valid";
+    	    data["display_name"] = sp.Firstname + " " + sp.Lastname;
+    	    data["legacy_last_name"] = sp.Lastname;
+    	    data["id"] = m_agentID;
+    	    data["is_display_name_default"] = true;
 
             //Send back data
             Hashtable responsedata = new Hashtable();
@@ -123,6 +145,5 @@ namespace OpenSim.Region.ClientStack.Linden
             responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(data);
             return responsedata;
         }
-
     }
 }
