@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -595,21 +595,25 @@ namespace OpenSim.Region.ClientStack.Linden
                     Vector3 scale = inner_instance_list["scale"].AsVector3();
                     Quaternion rotation = inner_instance_list["rotation"].AsQuaternion();
 
+// no longer used - begin ------------------------
 //                    int physicsShapeType = inner_instance_list["physics_shape_type"].AsInteger();
 //                    int material = inner_instance_list["material"].AsInteger();
 //                    int mesh = inner_instance_list["mesh"].AsInteger();
 
-                    OSDMap permissions = (OSDMap)inner_instance_list["permissions"];
-                    int base_mask = permissions["base_mask"].AsInteger();
-                    int everyone_mask = permissions["everyone_mask"].AsInteger();
-                    UUID creator_id = permissions["creator_id"].AsUUID();
-                    UUID group_id = permissions["group_id"].AsUUID();
-                    int group_mask = permissions["group_mask"].AsInteger();
+//                    OSDMap permissions = (OSDMap)inner_instance_list["permissions"];
+//                    int base_mask = permissions["base_mask"].AsInteger();
+//                    int everyone_mask = permissions["everyone_mask"].AsInteger();
+//                    UUID creator_id = permissions["creator_id"].AsUUID();
+//                    UUID group_id = permissions["group_id"].AsUUID();
+//                    int group_mask = permissions["group_mask"].AsInteger();
 //                    bool is_owner_group = permissions["is_owner_group"].AsBoolean();
 //                    UUID last_owner_id = permissions["last_owner_id"].AsUUID();
-                    int next_owner_mask = permissions["next_owner_mask"].AsInteger();
-                    UUID owner_id = permissions["owner_id"].AsUUID();
-                    int owner_mask = permissions["owner_mask"].AsInteger();
+//                    int next_owner_mask = permissions["next_owner_mask"].AsInteger();
+//                    UUID owner_id = permissions["owner_id"].AsUUID();
+//                    int owner_mask = permissions["owner_mask"].AsInteger();
+// no longer used - end ------------------------
+
+		      UUID owner_id = m_HostCapsObj.AgentID;
 
                     SceneObjectPart prim
                         = new SceneObjectPart(owner_id, pbs, position, Quaternion.Identity, Vector3.Zero);
@@ -619,19 +623,19 @@ namespace OpenSim.Region.ClientStack.Linden
                     rotations.Add(rotation);
                     positions.Add(position);
                     prim.UUID = UUID.Random();
-                    prim.CreatorID = creator_id;
+                    prim.CreatorID = owner_id;
                     prim.OwnerID = owner_id;
-                    prim.GroupID = group_id;
+                    prim.GroupID = UUID.Zero;
                     prim.LastOwnerID = prim.OwnerID;
                     prim.CreationDate = Util.UnixTimeSinceEpoch();
                     prim.Name = assetName;
                     prim.Description = "";
 
-                    prim.BaseMask = (uint)base_mask;
-                    prim.EveryoneMask = (uint)everyone_mask;
-                    prim.GroupMask = (uint)group_mask;
-                    prim.NextOwnerMask = (uint)next_owner_mask;
-                    prim.OwnerMask = (uint)owner_mask;
+//                    prim.BaseMask = (uint)base_mask;
+//                    prim.EveryoneMask = (uint)everyone_mask;
+//                    prim.GroupMask = (uint)group_mask;
+//                    prim.NextOwnerMask = (uint)next_owner_mask;
+//                    prim.OwnerMask = (uint)owner_mask;
 
                     if (grp == null)
                         grp = new SceneObjectGroup(prim);
