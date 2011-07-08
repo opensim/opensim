@@ -299,8 +299,6 @@ namespace OpenSim.Region.Physics.Meshing
                 Face f = new Face(v1, v2, v3);
                 faces.Add(f);
             }
-
-            return;
         }
 
         private Mesh CreateMeshFromPrimMesher(string primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
@@ -361,7 +359,7 @@ namespace OpenSim.Region.Physics.Meshing
                             physicsParms = (OSDMap)map["physics_shape"]; // old asset format
                         else if (map.ContainsKey("physics_mesh"))
                             physicsParms = (OSDMap)map["physics_mesh"]; // new asset format
-                        
+
                         if (physicsParms == null)
                         {
                             m_log.Warn("[MESH]: no recognized physics mesh found in mesh asset");
