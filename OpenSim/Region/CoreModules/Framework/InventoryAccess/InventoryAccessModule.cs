@@ -1057,7 +1057,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             InventoryItemBase item = new InventoryItemBase(itemID, agentID);
             item = invService.GetItem(item);
             
-            if (item.CreatorData != null && item.CreatorData != string.Empty)
+            if (item != null && item.CreatorData != null && item.CreatorData != string.Empty)
                 UserManagementModule.AddUser(item.CreatorIdAsUuid, item.CreatorData);
 
             return item;
