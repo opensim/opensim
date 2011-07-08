@@ -26,7 +26,7 @@
  */
 
 //#define USE_DRAWSTUFF
-//#define DEBUG
+//#define SPAM
 
 using System;
 using System.Collections.Generic;
@@ -2463,7 +2463,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (pbs.SculptEntry && !meshSculptedPrim)
             {
-#if DEBUG
+#if SPAM
                 m_log.Warn("NonMesh");
 #endif
                 return false;
@@ -2485,7 +2485,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
                         && pbs.PathShearX == 0 && pbs.PathShearY == 0)
                     {
-#if DEBUG
+#if SPAM
                     m_log.Warn("NonMesh");
 #endif
                         return false;
@@ -2566,12 +2566,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (iPropertiesNotSupportedDefault == 0)
             {
-#if DEBUG
+#if SPAM
                 m_log.Warn("NonMesh");
 #endif
                 return false;
             }
-#if DEBUG
+#if SPAM
             m_log.Debug("Mesh");
 #endif
             return true; 

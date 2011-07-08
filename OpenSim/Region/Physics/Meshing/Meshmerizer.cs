@@ -100,7 +100,6 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 m_log.WarnFormat("[SCULPT]: Unable to create {0} directory: ", decodedSculptMapPath, e.Message);
             }
-
         }
 
         /// <summary>
@@ -156,7 +155,6 @@ namespace OpenSim.Region.Physics.Meshing
             return box;
         }
 
-
         /// <summary>
         /// Creates a simple bounding box mesh for a complex input mesh
         /// </summary>
@@ -193,7 +191,6 @@ namespace OpenSim.Region.Physics.Meshing
             m_log.Error(message);
             m_log.Error("\nPrim Name: " + primName);
             m_log.Error("****** PrimMesh Parameters ******\n" + primMesh.ParamsToDisplayString());
-
         }
 
         private ulong GetMeshKey(PrimitiveBaseShape pbs, Vector3 size, float lod)
@@ -257,6 +254,54 @@ namespace OpenSim.Region.Physics.Meshing
             return ((hash << 5) + hash) + (ulong)(c >> 8);
         }
 
+        /// <summary>
+        /// Add a submesh to an existing list of coords and faces.
+        /// </summary>
+        /// <param name="subMeshData"></param>
+        /// <param name="size">Size of entire object</param>
+        /// <param name="coords"></param>
+        /// <param name="faces"></param>
+        private void AddSubMesh(OSDMap subMeshData, Vector3 size, List<Coord> coords, List<Face> faces)
+        {
+    //                                    Console.WriteLine("subMeshMap for {0} - {1}", primName, Util.GetFormattedXml((OSD)subMeshMap));
+    
+            // As per http://wiki.secondlife.com/wiki/Mesh/Mesh_Asset_Format, some Mesh Level
+            // of Detail Blocks (maps) contain just a NoGeometry key to signal there is no
+            // geometry for this submesh.
+            if (subMeshData.ContainsKey("NoGeometry") && ((OSDBoolean)subMeshData["NoGeometry"]))
+                return;
+    
+            OpenMetaverse.Vector3 posMax = ((OSDMap)subMeshData["PositionDomain"])["Max"].AsVector3();
+            OpenMetaverse.Vector3 posMin = ((OSDMap)subMeshData["PositionDomain"])["Min"].AsVector3();
+            ushort faceIndexOffset = (ushort)coords.Count;
+
+            byte[] posBytes = subMeshData["Position"].AsBinary();
+            for (int i = 0; i < posBytes.Length; i += 6)
+            {
+                ushort uX = Utils.BytesToUInt16(posBytes, i);
+                ushort uY = Utils.BytesToUInt16(posBytes, i + 2);
+                ushort uZ = Utils.BytesToUInt16(posBytes, i + 4);
+    
+                Coord c = new Coord(
+                Utils.UInt16ToFloat(uX, posMin.X, posMax.X) * size.X,
+                Utils.UInt16ToFloat(uY, posMin.Y, posMax.Y) * size.Y,
+                Utils.UInt16ToFloat(uZ, posMin.Z, posMax.Z) * size.Z);
+    
+                coords.Add(c);
+            }
+    
+            byte[] triangleBytes = subMeshData["TriangleList"].AsBinary();
+            for (int i = 0; i < triangleBytes.Length; i += 6)
+            {
+                ushort v1 = (ushort)(Utils.BytesToUInt16(triangleBytes, i) + faceIndexOffset);
+                ushort v2 = (ushort)(Utils.BytesToUInt16(triangleBytes, i + 2) + faceIndexOffset);
+                ushort v3 = (ushort)(Utils.BytesToUInt16(triangleBytes, i + 4) + faceIndexOffset);
+                Face f = new Face(v1, v2, v3);
+                faces.Add(f);
+            }
+
+            return;
+        }
 
         private Mesh CreateMeshFromPrimMesher(string primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
         {
@@ -304,6 +349,7 @@ namespace OpenSim.Region.Physics.Meshing
                         {
                             m_log.Error("[MESH]: Exception deserializing mesh asset header:" + e.ToString());
                         }
+
                         start = data.Position;
                     }
 
@@ -315,9 +361,10 @@ namespace OpenSim.Region.Physics.Meshing
                             physicsParms = (OSDMap)map["physics_shape"]; // old asset format
                         else if (map.ContainsKey("physics_mesh"))
                             physicsParms = (OSDMap)map["physics_mesh"]; // new asset format
+                        
                         if (physicsParms == null)
                         {
-                            m_log.Warn("[Mesh]: no recognized physics mesh found in mesh asset");
+                            m_log.Warn("[MESH]: no recognized physics mesh found in mesh asset");
                             return null;
                         }
 
@@ -372,46 +419,7 @@ namespace OpenSim.Region.Physics.Meshing
                             foreach (OSD subMeshOsd in decodedMeshOsdArray)
                             {
                                 if (subMeshOsd is OSDMap)
-                                {
-                                    OSDMap subMeshMap = (OSDMap)subMeshOsd;
-
-//                                    Console.WriteLine("subMeshMap for {0} - {1}", primName, Util.GetFormattedXml((OSD)subMeshMap));
-
-                                    // As per http://wiki.secondlife.com/wiki/Mesh/Mesh_Asset_Format, some Mesh Level
-                                    // of Detail Blocks (maps) contain just a NoGeometry key to signal there is no
-                                    // geometry for this submesh.
-                                    if (subMeshMap.ContainsKey("NoGeometry") && ((OSDBoolean)subMeshMap["NoGeometry"]))
-                                        continue;
-
-                                    OpenMetaverse.Vector3 posMax = ((OSDMap)subMeshMap["PositionDomain"])["Max"].AsVector3();
-                                    OpenMetaverse.Vector3 posMin = ((OSDMap)subMeshMap["PositionDomain"])["Min"].AsVector3();
-                                    ushort faceIndexOffset = (ushort)coords.Count;
-
-                                    byte[] posBytes = subMeshMap["Position"].AsBinary();
-                                    for (int i = 0; i < posBytes.Length; i += 6)
-                                    {
-                                        ushort uX = Utils.BytesToUInt16(posBytes, i);
-                                        ushort uY = Utils.BytesToUInt16(posBytes, i + 2);
-                                        ushort uZ = Utils.BytesToUInt16(posBytes, i + 4);
-
-                                        Coord c = new Coord(
-                                        Utils.UInt16ToFloat(uX, posMin.X, posMax.X) * size.X,
-                                        Utils.UInt16ToFloat(uY, posMin.Y, posMax.Y) * size.Y,
-                                        Utils.UInt16ToFloat(uZ, posMin.Z, posMax.Z) * size.Z);
-
-                                        coords.Add(c);
-                                    }
-
-                                    byte[] triangleBytes = subMeshMap["TriangleList"].AsBinary();
-                                    for (int i = 0; i < triangleBytes.Length; i += 6)
-                                    {
-                                        ushort v1 = (ushort)(Utils.BytesToUInt16(triangleBytes, i) + faceIndexOffset);
-                                        ushort v2 = (ushort)(Utils.BytesToUInt16(triangleBytes, i + 2) + faceIndexOffset);
-                                        ushort v3 = (ushort)(Utils.BytesToUInt16(triangleBytes, i + 4) + faceIndexOffset);
-                                        Face f = new Face(v1, v2, v3);
-                                        faces.Add(f);
-                                    }
-                                }
+                                    AddSubMesh(subMeshOsd as OSDMap, size, coords, faces);
                             }
                         }
                     }
@@ -643,6 +651,7 @@ namespace OpenSim.Region.Physics.Meshing
                 Face f = faces[i];
                 mesh.Add(new Triangle(vertices[f.v1], vertices[f.v2], vertices[f.v3]));
             }
+
             return mesh;
         }
 
