@@ -26,7 +26,7 @@
  */
 
 //#define USE_DRAWSTUFF
-//#define SPAM
+#define SPAM
 
 using System;
 using System.Collections.Generic;
@@ -311,7 +311,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 viewthread.Start();
                 #endif
             }
-
 
             _watermap = new float[258 * 258];
 
@@ -2563,7 +2562,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (pbs.SculptEntry && meshSculptedPrim)
                 iPropertiesNotSupportedDefault++;
 
-
             if (iPropertiesNotSupportedDefault == 0)
             {
 #if SPAM
@@ -2703,7 +2701,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     {
                                         foreach (OdeCharacter character in _taintedActors)
                                         {
-
                                             character.ProcessTaints(timeStep);
 
                                             processedtaints = true;

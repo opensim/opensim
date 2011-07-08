@@ -38,6 +38,9 @@
  * switch between 'VEHICLE' parameter use and general dynamics
  * settings use.
  */
+
+//#define SPAM
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -746,7 +749,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                             d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
                         }
 
-                        
                         d.BodyDestroy(Body);
                         lock (childrenPrim)
                         {
@@ -775,7 +777,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
                     }
 
-                    
                     Body = IntPtr.Zero;
                 }
             }
@@ -858,7 +859,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void ProcessTaints(float timestep)
         {
-//Console.WriteLine("ProcessTaints for " + Name);
+Console.WriteLine("ProcessTaints for " + Name);
             if (m_taintadd)
             {
                 changeadd(timestep);
@@ -867,7 +868,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (prim_geom != IntPtr.Zero)
             {
                  if (!_position.ApproxEquals(m_taintposition, 0f))
-                        changemove(timestep);
+                     changemove(timestep);
 
                  if (m_taintrot != _orientation)
                  {
@@ -885,19 +886,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                         rotate(timestep);
                     }
                 }
-                //
             
                 if (m_taintPhysics != m_isphysical && !(m_taintparent != _parent))
                     changePhysicsStatus(timestep);
-                //
 
-                if (!_size.ApproxEquals(m_taintsize,0f))
+                if (!_size.ApproxEquals(m_taintsize, 0f))
                     changesize(timestep);
-                //
 
                 if (m_taintshape)
                     changeshape(timestep);
-                //
 
                 if (m_taintforce)
                     changeAddForce(timestep);
@@ -925,7 +922,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (!m_angularlock.ApproxEquals(m_taintAngularLock,0f))
                     changeAngularLock(timestep);
- 
             }
             else
             {
@@ -1424,10 +1420,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-
             lock (_parent_scene.OdeLock)
             {
-//Console.WriteLine("changeadd 1");
+#if SPAM
+Console.WriteLine("changeadd 1");
+#endif
                 CreateGeom(m_targetSpace, _mesh);
 
                 if (prim_geom != IntPtr.Zero)
@@ -1890,6 +1887,10 @@ Console.WriteLine(" JointCreateFixed");
 
         public void changesize(float timestamp)
         {
+#if SPAM
+            m_log.DebugFormat("[ODE PRIM]: Called changesize");
+#endif
+
             string oldname = _parent_scene.geom_name_map[prim_geom];
 
             if (_size.X <= 0) _size.X = 0.01f;
@@ -1899,8 +1900,9 @@ Console.WriteLine(" JointCreateFixed");
             // Cleanup of old prim geometry
             if (_mesh != null)
             {
-                // Cleanup meshing here
+                // TODO: Cleanup meshing here
             }
+
             //kill body to rebuild
             if (IsPhysical && Body != IntPtr.Zero)
             {
@@ -1917,11 +1919,13 @@ Console.WriteLine(" JointCreateFixed");
                     disableBody();
                 }
             }
+
             if (d.SpaceQuery(m_targetSpace, prim_geom))
             {
                 _parent_scene.waitForSpaceUnlock(m_targetSpace);
                 d.SpaceRemove(m_targetSpace, prim_geom);
             }
+
             d.GeomDestroy(prim_geom);
             prim_geom = IntPtr.Zero;
             // we don't need to do space calculation because the client sends a position update also.
@@ -1941,13 +1945,19 @@ Console.WriteLine(" JointCreateFixed");
                     mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
 
                 //IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
-//Console.WriteLine("changesize 1");
+#if SPAM
+Console.WriteLine("changesize 1");
+#endif
                 CreateGeom(m_targetSpace, mesh);
             }
             else
             {
                 _mesh = null;
-//Console.WriteLine("changesize 2");
+
+#if SPAM
+Console.WriteLine("changesize 2");
+#endif
+
                 CreateGeom(m_targetSpace, _mesh);
             }
 
@@ -2030,6 +2040,7 @@ Console.WriteLine(" JointCreateFixed");
                 prim_geom = IntPtr.Zero;
                 m_log.ErrorFormat("[PHYSICS]: PrimGeom dead for {0}", Name);
             }
+
             prim_geom = IntPtr.Zero;
             // we don't need to do space calculation because the client sends a position update also.
             if (_size.X <= 0) _size.X = 0.01f;
@@ -2039,7 +2050,7 @@ Console.WriteLine(" JointCreateFixed");
 
             if (_parent_scene.needsMeshing(_pbs))
             {
-                // Don't need to re-enable body..   it's done in SetMesh
+                // Don't need to re-enable body..   it's done in CreateMesh
                 float meshlod = _parent_scene.meshSculptLOD;
 
                 if (IsPhysical)
@@ -2047,13 +2058,18 @@ Console.WriteLine(" JointCreateFixed");
 
                 IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
                 // createmesh returns null when it doesn't mesh.
-//Console.WriteLine("changeshape needed meshing");
+#if SPAM
+Console.WriteLine("changeshape needed meshing");
+#endif
                 CreateGeom(m_targetSpace, mesh);
             }
             else
             {
                 _mesh = null;
-//Console.WriteLine("changeshape not need meshing");
+
+#if SPAM
+Console.WriteLine("changeshape not need meshing");
+#endif
                 CreateGeom(m_targetSpace, null);
             }
 

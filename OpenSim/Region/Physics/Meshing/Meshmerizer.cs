@@ -540,7 +540,6 @@ namespace OpenSim.Region.Physics.Meshing
 
                     profileBegin = 0.5f * profileBegin + 0.5f;
                     profileEnd = 0.5f * profileEnd + 0.5f;
-
                 }
 
                 int hollowSides = sides;
@@ -660,7 +659,9 @@ namespace OpenSim.Region.Physics.Meshing
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical)
         {
-//            m_log.DebugFormat("[MESH]: Creating mesh for {0}", primName);
+#if SPAM
+            m_log.DebugFormat("[MESH]: Creating mesh for {0}", primName);
+#endif
 
             Mesh mesh = null;
             ulong key = 0;

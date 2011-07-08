@@ -2958,7 +2958,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-
         public void SculptTextureCallback(UUID textureID, AssetBase texture)
         {
             if (m_shape.SculptEntry)
