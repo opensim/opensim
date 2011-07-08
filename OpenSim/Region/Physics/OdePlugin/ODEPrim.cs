@@ -791,6 +791,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void setMesh(OdeScene parent_scene, IMesh mesh)
         {
+//            m_log.DebugFormat("[ODE PRIM]: Setting mesh on {0} to {1}", Name, mesh);
+
             // This sleeper is there to moderate how long it takes between
             // setting up the mesh and pre-processing it when we get rapid fire mesh requests on a single object
 
@@ -1398,7 +1400,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                     }
                 }
-
                 else
                 {
                     _parent_scene.waitForSpaceUnlock(m_targetSpace);
@@ -1960,7 +1961,7 @@ Console.WriteLine(" JointCreateFixed");
                     mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
 
                 //IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
-//Console.WriteLine("changesize 1");
+Console.WriteLine("changesize 1");
                 CreateGeom(m_targetSpace, mesh);
 
                
@@ -1968,7 +1969,7 @@ Console.WriteLine(" JointCreateFixed");
             else
             {
                 _mesh = null;
-//Console.WriteLine("changesize 2");
+Console.WriteLine("changesize 2");
                 CreateGeom(m_targetSpace, _mesh);
             }
 
@@ -2070,12 +2071,13 @@ Console.WriteLine(" JointCreateFixed");
 
                 IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
                 // createmesh returns null when it doesn't mesh.
+Console.WriteLine("changeshape needed meshing");
                 CreateGeom(m_targetSpace, mesh);
             }
             else
             {
                 _mesh = null;
-//Console.WriteLine("changeshape");
+Console.WriteLine("changeshape not need meshing");
                 CreateGeom(m_targetSpace, null);
             }
 

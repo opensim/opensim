@@ -1770,6 +1770,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical)
         {
+//            m_log.DebugFormat("[PHYSICS]: Adding physics actor to {0}", primName);
+            
             PhysicsActor result;
             IMesh mesh = null;
 

@@ -643,6 +643,8 @@ namespace OpenSim.Region.Physics.Meshing
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical)
         {
+//            m_log.DebugFormat("[MESH]: Creating mesh for {0}", primName);
+
             Mesh mesh = null;
             ulong key = 0;
 

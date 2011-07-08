@@ -86,7 +86,10 @@ namespace OpenSim.Region.Physics.Manager
                                                   Vector3 size, Quaternion rotation, bool isPhysical)
         {
             PhysicsActor ret = AddPrimShape(primName, pbs, position, size, rotation, isPhysical);
-            if (ret != null) ret.LocalID = localID;
+
+            if (ret != null)
+                ret.LocalID = localID;
+
             return ret;
         }
 
