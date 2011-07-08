@@ -324,10 +324,25 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Debug utility function to convert unbroken strings of XML into something human readable for occasional debugging purposes.
-        ///
-        /// Please don't delete me even if I appear currently unused!
+        /// Debug utility function to convert OSD into formatted XML for debugging purposes.
         /// </summary>
+        /// <param name="osd">
+        /// A <see cref="OSD"/>
+        /// </param>
+        /// <returns>
+        /// A <see cref="System.String"/>
+        /// </returns>
+        public static string GetFormattedXml(OSD osd)
+        {
+            return GetFormattedXml(OSDParser.SerializeLLSDXmlString(osd));
+        }
+
+        /// <summary>
+        /// Debug utility function to convert unbroken strings of XML into something human readable for occasional debugging purposes.
+        /// </summary>
+        /// <remarks>
+        /// Please don't delete me even if I appear currently unused!
+        /// </remarks>
         /// <param name="rawXml"></param>
         /// <returns></returns>
         public static string GetFormattedXml(string rawXml)

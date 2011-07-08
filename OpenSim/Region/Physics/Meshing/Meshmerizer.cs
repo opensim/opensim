@@ -366,12 +366,22 @@ namespace OpenSim.Region.Physics.Meshing
                         // physics_shape is an array of OSDMaps, one for each submesh
                         if (decodedMeshOsd is OSDArray)
                         {
+//                            Console.WriteLine("decodedMeshOsd for {0} - {1}", primName, Util.GetFormattedXml(decodedMeshOsd));
+
                             decodedMeshOsdArray = (OSDArray)decodedMeshOsd;
                             foreach (OSD subMeshOsd in decodedMeshOsdArray)
                             {
                                 if (subMeshOsd is OSDMap)
                                 {
                                     OSDMap subMeshMap = (OSDMap)subMeshOsd;
+
+//                                    Console.WriteLine("subMeshMap for {0} - {1}", primName, Util.GetFormattedXml((OSD)subMeshMap));
+
+                                    // As per http://wiki.secondlife.com/wiki/Mesh/Mesh_Asset_Format, some Mesh Level
+                                    // of Detail Blocks (maps) contain just a NoGeometry key to signal there is no
+                                    // geometry for this submesh.
+                                    if (subMeshMap.ContainsKey("NoGeometry") && ((OSDBoolean)subMeshMap["NoGeometry"]))
+                                        continue;
 
                                     OpenMetaverse.Vector3 posMax = ((OSDMap)subMeshMap["PositionDomain"])["Max"].AsVector3();
                                     OpenMetaverse.Vector3 posMin = ((OSDMap)subMeshMap["PositionDomain"])["Min"].AsVector3();
