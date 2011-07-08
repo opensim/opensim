@@ -440,20 +440,30 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Return an SHA1 hash of the given string
+        /// Return an SHA1 hash
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
         public static string SHA1Hash(string data)
         {
+            return SHA1Hash(Encoding.Default.GetBytes(data));
+        }
+
+        /// <summary>
+        /// Return an SHA1 hash
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static string SHA1Hash(byte[] data)
+        {
             byte[] hash = ComputeSHA1Hash(data);
             return BitConverter.ToString(hash).Replace("-", String.Empty);
         }
 
-        private static byte[] ComputeSHA1Hash(string src)
+        private static byte[] ComputeSHA1Hash(byte[] src)
         {
             SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider();
-            return SHA1.ComputeHash(Encoding.Default.GetBytes(src));
+            return SHA1.ComputeHash(src);
         }
 
         public static int fast_distance2d(int x, int y)
