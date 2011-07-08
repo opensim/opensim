@@ -978,7 +978,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         {
         }
 
-        public virtual bool GetAgentInventoryItem(IClientAPI remoteClient, UUID itemID, UUID requestID)
+        public virtual bool CanGetAgentInventoryItem(IClientAPI remoteClient, UUID itemID, UUID requestID)
         {
             InventoryItemBase assetRequestItem = GetItem(remoteClient.AgentId, itemID);
             if (assetRequestItem == null)
