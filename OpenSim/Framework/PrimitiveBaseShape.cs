@@ -378,7 +378,7 @@ namespace OpenSim.Framework
             _pathEnd = Primitive.PackEndCut(end);
         }
 
-        public void SetSculptData(byte sculptType, UUID SculptTextureUUID)
+        public void SetSculptProperties(byte sculptType, UUID SculptTextureUUID)
         {
             _sculptType = sculptType;
             _sculptTexture = SculptTextureUUID;
