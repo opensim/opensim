@@ -54,7 +54,6 @@ namespace OpenSim.Region.Physics.OdePlugin
     /// <summary>
     /// Various properties that ODE uses for AMotors but isn't exposed in ODE.NET so we must define them ourselves.
     /// </summary>
-
     public class OdePrim : PhysicsActor
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -279,14 +278,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override bool Selected
         {
-            set {
-        
-            
+            set
+            {
                 // This only makes the object not collidable if the object
                 // is physical or the object is modified somehow *IN THE FUTURE*
                 // without this, if an avatar selects prim, they can walk right
                 // through it while it's selected
                 m_collisionscore = 0;
+
                 if ((m_isphysical && !_zeroFlag) || !value)
                 {
                     m_taintselected = value;
@@ -297,7 +296,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_taintselected = value;
                     m_isSelected = value;
                 }
-                if (m_isSelected) disableBodySoft();
+
+                if (m_isSelected)
+                    disableBodySoft();
             }
         }
 
@@ -323,8 +324,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             //m_log.Warn("Setting Geom to: " + prim_geom);
         }
-
-        
 
         public void enableBodySoft()
         {
@@ -626,8 +625,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
                 }
 
-
-
             float taperX1;
             float taperY1;
             float taperX;
@@ -682,9 +679,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 //            else if (returnMass > _parent_scene.maximumMassObject)
 //                returnMass = _parent_scene.maximumMassObject;
 
-
-
-
             // Recursively calculate mass
             bool HasChildPrim = false;
             lock (childrenPrim)
@@ -693,8 +687,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     HasChildPrim = true;
                 }
-
             }
+
             if (HasChildPrim)
             {
                 OdePrim[] childPrimArr = new OdePrim[0];
@@ -711,10 +705,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                         break;
                 }
             }
+
             if (returnMass > _parent_scene.maximumMassObject)
                 returnMass = _parent_scene.maximumMassObject;
+
             return returnMass;
-        }// end CalculateMass
+        }
 
         #endregion
 
@@ -937,7 +933,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-
         private void changeAngularLock(float timestep)
         {
             // do we have a Physical object?
@@ -965,7 +960,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             // Store this for later in case we get turned into a separate body
             m_angularlock = m_taintAngularLock;
-            
         }
 
         private void changelink(float timestep)
@@ -1104,7 +1098,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     m_log.DebugFormat("[PHYSICS]: {0} ain't got no boooooooooddy, no body", Name);
                                 }
 
-
                                 prm.m_interpenetrationcount = 0;
                                 prm.m_collisionscore = 0;
                                 prm.m_disabled = false;
@@ -1164,7 +1157,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
             }
-
         }
 
         private void ChildSetGeom(OdePrim odePrim)
@@ -1225,16 +1217,11 @@ namespace OpenSim.Region.Physics.OdePlugin
  //Console.WriteLine("childrenPrim.Remove " + odePrim);
                 childrenPrim.Remove(odePrim);
             }
-            
-            
-            
 
             if (Body != IntPtr.Zero)
             {
                 _parent_scene.remActivePrim(this);
             }
-
-            
 
             lock (childrenPrim)
             {
@@ -1244,8 +1231,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     ParentPrim(prm);
                 }
             }
-
-           
         }
 
         private void changeSelectedStatus(float timestep)
@@ -1685,12 +1670,10 @@ Console.WriteLine(" JointCreateFixed");
                         {
                             PID_G = m_PIDTau + 1;
                         }
-                    
 
                         // Where are we, and where are we headed?
                         d.Vector3 pos = d.BodyGetPosition(Body);
                         d.Vector3 vel = d.BodyGetLinearVel(Body);
-
 
                         //    Non-Vehicles have a limited set of Hover options.
                         // determine what our target height really is based on HoverType
@@ -1796,8 +1779,6 @@ Console.WriteLine(" JointCreateFixed");
                
             }
         }
-
-
 
         public void rotate(float timestep)
         {
@@ -1909,7 +1890,6 @@ Console.WriteLine(" JointCreateFixed");
 
         public void changesize(float timestamp)
         {
-            
             string oldname = _parent_scene.geom_name_map[prim_geom];
 
             if (_size.X <= 0) _size.X = 0.01f;
@@ -1961,15 +1941,13 @@ Console.WriteLine(" JointCreateFixed");
                     mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
 
                 //IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
-Console.WriteLine("changesize 1");
+//Console.WriteLine("changesize 1");
                 CreateGeom(m_targetSpace, mesh);
-
-               
             }
             else
             {
                 _mesh = null;
-Console.WriteLine("changesize 2");
+//Console.WriteLine("changesize 2");
                 CreateGeom(m_targetSpace, _mesh);
             }
 
@@ -2004,8 +1982,6 @@ Console.WriteLine("changesize 2");
             resetCollisionAccounting();
             m_taintsize = _size;
         }
-
-       
 
         public void changefloatonwater(float timestep)
         {
@@ -2071,13 +2047,13 @@ Console.WriteLine("changesize 2");
 
                 IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
                 // createmesh returns null when it doesn't mesh.
-Console.WriteLine("changeshape needed meshing");
+//Console.WriteLine("changeshape needed meshing");
                 CreateGeom(m_targetSpace, mesh);
             }
             else
             {
                 _mesh = null;
-Console.WriteLine("changeshape not need meshing");
+//Console.WriteLine("changeshape not need meshing");
                 CreateGeom(m_targetSpace, null);
             }
 
@@ -2162,10 +2138,7 @@ Console.WriteLine("changeshape not need meshing");
             }
 
             m_taintforce = false;
-
         }
-
-
 
         public void changeSetTorque(float timestamp)
         {
@@ -2835,7 +2808,6 @@ Console.WriteLine("changeshape not need meshing");
 
         public override float APIDDamping{ set { return; } }
 
-
         private void createAMotor(Vector3 axis)
         {
             if (Body == IntPtr.Zero)
@@ -2955,7 +2927,6 @@ Console.WriteLine("changeshape not need meshing");
             //d.JointSetAMotorParam(Amotor, (int) dParam.Vel, 9000f);
             d.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
             d.JointSetAMotorParam(Amotor, (int)dParam.FMax, Mass * 50f);//
-            
         }
 
         public Matrix4 FromDMass(d.Mass pMass)
@@ -3040,8 +3011,6 @@ Console.WriteLine("changeshape not need meshing");
                 return Matrix4.Identity; // should probably throw an error.  singluar matrix inverse not possible
             }
 
-
-
             return (Adjoint(pMat) / determinant3x3(pMat));
         }
 
@@ -3078,6 +3047,7 @@ Console.WriteLine("changeshape not need meshing");
                 }
                 m++;
             }
+
             return minor;
         }
 
@@ -3180,7 +3150,6 @@ Console.WriteLine("changeshape not need meshing");
 
             det = diag1 + diag2 + diag3 - (diag4 + diag5 + diag6);
             return det;
-
         }
         
         private static void DMassCopy(ref d.Mass src, ref d.Mass dst)
@@ -3205,6 +3174,5 @@ Console.WriteLine("changeshape not need meshing");
         {
             m_material = pMaterial;
         }
-
     }
 }

@@ -26,6 +26,7 @@
  */
 
 //#define USE_DRAWSTUFF
+//#define DEBUG
 
 using System;
 using System.Collections.Generic;
@@ -1716,7 +1717,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical)
         {
-//            m_log.DebugFormat("[PHYSICS]: Adding physics actor to {0}", primName);
+#if SPAM
+            m_log.DebugFormat("[PHYSICS]: Adding physics actor to {0}", primName);
+#endif
 
             PhysicsActor result;
             IMesh mesh = null;
@@ -2460,7 +2463,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (pbs.SculptEntry && !meshSculptedPrim)
             {
-#if SPAM
+#if DEBUG
                 m_log.Warn("NonMesh");
 #endif
                 return false;
@@ -2482,7 +2485,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         && pbs.PathScaleX == 100 && pbs.PathScaleY == 100
                         && pbs.PathShearX == 0 && pbs.PathShearY == 0)
                     {
-#if SPAM
+#if DEBUG
                     m_log.Warn("NonMesh");
 #endif
                         return false;
@@ -2563,12 +2566,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (iPropertiesNotSupportedDefault == 0)
             {
-#if SPAM
+#if DEBUG
                 m_log.Warn("NonMesh");
 #endif
                 return false;
             }
-#if SPAM
+#if DEBUG
             m_log.Debug("Mesh");
 #endif
             return true; 
@@ -3606,7 +3609,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     else
                     {
                         m_log.Warn("[PHYSICS]: Couldn't proceed with UnCombine.  Region has inconsistant data.");
-
                     }
                 }
             }
