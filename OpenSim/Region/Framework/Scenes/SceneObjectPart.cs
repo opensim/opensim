@@ -1603,6 +1603,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="m_physicalPrim"></param>
         public void ApplyPhysics(uint rootObjectFlags, bool VolumeDetectActive, bool m_physicalPrim)
         {
+//            m_log.DebugFormat("[SCENE OBJECT PART]: Applying physics to {0} {1} {2}", Name, LocalId, UUID);
+
             bool isPhysical = (((rootObjectFlags & (uint) PrimFlags.Physics) != 0) && m_physicalPrim);
             bool isPhantom = ((rootObjectFlags & (uint) PrimFlags.Phantom) != 0);
 
@@ -2973,7 +2975,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_parentGroup.ScriptSetVolumeDetect(SetVD);
             }
         }
-
 
         public void SculptTextureCallback(UUID textureID, AssetBase texture)
         {

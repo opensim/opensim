@@ -1008,6 +1008,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         private static void ProcessShpSculptData(PrimitiveBaseShape shp, XmlTextReader reader)
         {
+//            m_log.DebugFormat("[SCENE OBJECT SERIALIZER]: Setting sculpt data length {0}", shp.SculptData.Length);
+
             shp.SculptData = Convert.FromBase64String(reader.ReadElementString("SculptData"));
         }
 

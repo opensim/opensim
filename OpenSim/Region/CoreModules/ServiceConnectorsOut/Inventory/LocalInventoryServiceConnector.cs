@@ -284,9 +284,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             
             item = m_InventoryService.GetItem(item);
 
-            if (null == item)
-                m_log.ErrorFormat(
-                    "[LOCAL INVENTORY SERVICES CONNECTOR]: Could not find item with id {0}", requestedItemId);
+//            if (null == item)
+//                m_log.ErrorFormat(
+//                    "[LOCAL INVENTORY SERVICES CONNECTOR]: Could not find item with id {0}", requestedItemId);
 
             return item;
         }

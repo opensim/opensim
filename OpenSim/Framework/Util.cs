@@ -324,10 +324,25 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Debug utility function to convert unbroken strings of XML into something human readable for occasional debugging purposes.
-        ///
-        /// Please don't delete me even if I appear currently unused!
+        /// Debug utility function to convert OSD into formatted XML for debugging purposes.
         /// </summary>
+        /// <param name="osd">
+        /// A <see cref="OSD"/>
+        /// </param>
+        /// <returns>
+        /// A <see cref="System.String"/>
+        /// </returns>
+        public static string GetFormattedXml(OSD osd)
+        {
+            return GetFormattedXml(OSDParser.SerializeLLSDXmlString(osd));
+        }
+
+        /// <summary>
+        /// Debug utility function to convert unbroken strings of XML into something human readable for occasional debugging purposes.
+        /// </summary>
+        /// <remarks>
+        /// Please don't delete me even if I appear currently unused!
+        /// </remarks>
         /// <param name="rawXml"></param>
         /// <returns></returns>
         public static string GetFormattedXml(string rawXml)
@@ -431,26 +446,36 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Return an SHA1 hash of the given string
+        /// Return an SHA1 hash
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
 
-        public static string SHA1Hash(string data)
+        public static string SHA1Hash(string data, Encoding enc)
         {
-            return SHA1Hash(data, Encoding.Default);
+            return SHA1Hash(enc.GetBytes(data));
         }
 
-        public static string SHA1Hash(string data, Encoding encoding)
+        public static string SHA1Hash(string data)
         {
-            byte[] hash = ComputeSHA1Hash(data, encoding);
+            return SHA1Hash(Encoding.Default.GetBytes(data));
+        }
+
+        /// <summary>
+        /// Return an SHA1 hash
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static string SHA1Hash(byte[] data)
+        {
+            byte[] hash = ComputeSHA1Hash(data);
             return BitConverter.ToString(hash).Replace("-", String.Empty);
         }
 
-        private static byte[] ComputeSHA1Hash(string src, Encoding encoding)
+        private static byte[] ComputeSHA1Hash(byte[] src)
         {
             SHA1CryptoServiceProvider SHA1 = new SHA1CryptoServiceProvider();
-            return SHA1.ComputeHash(encoding.GetBytes(src));
+            return SHA1.ComputeHash(src);
         }
 
         public static int fast_distance2d(int x, int y)

@@ -820,7 +820,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             World.ForEachScenePresence(delegate(ScenePresence sp)
             {
                 if (!sp.IsChildAgent)
-                    result.Add(sp.Name);
+                    result.Add(new LSL_String(sp.Name));
             });
             return result;
         }
@@ -2043,8 +2043,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     if (g.Success)
                     {
-                        result.Add(g.Value);
-                        result.Add(g.Index);
+                        result.Add(new LSL_String(g.Value));
+                        result.Add(new LSL_Integer(g.Index));
                     }
                 }
             }
@@ -2378,8 +2378,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     if (avatar.IsChildAgent == false)
                     {
-                        result.Add(new LSL_Key(avatar.UUID.ToString()));
-                        result.Add(new LSL_Vector(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y, avatar.AbsolutePosition.Z));
+                        result.Add(new LSL_String(avatar.UUID.ToString()));
+                        OpenMetaverse.Vector3 ap = avatar.AbsolutePosition;
+                        result.Add(new LSL_Vector(ap.X, ap.Y, ap.Z));
                         result.Add(new LSL_String(avatar.Name));
                     }
                 }

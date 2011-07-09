@@ -59,7 +59,15 @@ namespace OpenSim.Region.Framework.Interfaces
                                     UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                     bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment);
         void TransferInventoryAssets(InventoryItemBase item, UUID sender, UUID receiver);
-        bool GetAgentInventoryItem(IClientAPI remoteClient, UUID itemID, UUID requestID);
+
+        /// <summary>
+        /// Does the client have sufficient permissions to retrieve the inventory item?
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="requestID"></param>
+        /// <returns></returns>
+        bool CanGetAgentInventoryItem(IClientAPI remoteClient, UUID itemID, UUID requestID);
 
         // Must be here because of textures in user's inventory
         bool IsForeignUser(UUID userID, out string assetServerURL);

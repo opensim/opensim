@@ -213,6 +213,8 @@ namespace OpenSim.Framework
         /// <param name="prim"></param>
         public PrimitiveBaseShape(Primitive prim)
         {
+//            m_log.DebugFormat("[PRIMITIVE BASE SHAPE]: Creating from {0}", prim.ID);
+
             PCode = (byte)prim.PrimData.PCode;
             ExtraParams = new byte[1];
 
@@ -376,7 +378,7 @@ namespace OpenSim.Framework
             _pathEnd = Primitive.PackEndCut(end);
         }
 
-        public void SetSculptData(byte sculptType, UUID SculptTextureUUID)
+        public void SetSculptProperties(byte sculptType, UUID SculptTextureUUID)
         {
             _sculptType = sculptType;
             _sculptTexture = SculptTextureUUID;
@@ -613,29 +615,39 @@ namespace OpenSim.Framework
             }
         }
 
-        public byte SculptType {
-            get {
+        public byte SculptType
+        {
+            get
+            {
                 return _sculptType;
             }
-            set {
+            set
+            {
                 _sculptType = value;
             }
         }
 
-        public byte[] SculptData {
-            get {
+        public byte[] SculptData
+        {
+            get
+            {
                 return _sculptData;
             }
-            set {
+            set
+            {
+//                m_log.DebugFormat("[PRIMITIVE BASE SHAPE]: Setting SculptData to data with length {0}", value.Length);
                 _sculptData = value;
             }
         }
 
-        public int FlexiSoftness {
-            get {
+        public int FlexiSoftness
+        {
+            get
+            {
                 return _flexiSoftness;
             }
-            set {
+            set
+            {
                 _flexiSoftness = value;
             }
         }
@@ -869,6 +881,8 @@ namespace OpenSim.Framework
 
         public byte[] ExtraParamsToBytes()
         {
+//            m_log.DebugFormat("[EXTRAPARAMS]: Called ExtraParamsToBytes()");
+
             ushort FlexiEP = 0x10;
             ushort LightEP = 0x20;
             ushort SculptEP = 0x30;
@@ -884,18 +898,21 @@ namespace OpenSim.Framework
                 TotalBytesLength += 16;// data
                 TotalBytesLength += 2 + 4; // type
             }
+
             if (_lightEntry)
             {
                 ExtraParamsNum++;
                 TotalBytesLength += 16;// data
                 TotalBytesLength += 2 + 4; // type
             }
+
             if (_sculptEntry)
             {
                 ExtraParamsNum++;
                 TotalBytesLength += 17;// data
                 TotalBytesLength += 2 + 4; // type
             }
+
             if (_projectionEntry)
             {
                 ExtraParamsNum++;
@@ -904,7 +921,6 @@ namespace OpenSim.Framework
             }
 
             byte[] returnbytes = new byte[TotalBytesLength];
-
 
             // uint paramlength = ExtraParamsNum;
 
@@ -925,6 +941,7 @@ namespace OpenSim.Framework
                 Array.Copy(FlexiData, 0, returnbytes, i, FlexiData.Length);
                 i += FlexiData.Length;
             }
+
             if (_lightEntry)
             {
                 byte[] LightData = GetLightBytes();
@@ -939,6 +956,7 @@ namespace OpenSim.Framework
                 Array.Copy(LightData, 0, returnbytes, i, LightData.Length);
                 i += LightData.Length;
             }
+
             if (_sculptEntry)
             {
                 byte[] SculptData = GetSculptBytes();
@@ -953,6 +971,7 @@ namespace OpenSim.Framework
                 Array.Copy(SculptData, 0, returnbytes, i, SculptData.Length);
                 i += SculptData.Length;
             }
+
             if (_projectionEntry)
             {
                 byte[] ProjectionData = GetProjectionBytes();
@@ -966,6 +985,7 @@ namespace OpenSim.Framework
                 Array.Copy(ProjectionData, 0, returnbytes, i, ProjectionData.Length);
                 i += ProjectionData.Length;
             }
+
             if (!_flexiEntry && !_lightEntry && !_sculptEntry && !_projectionEntry)
             {
                 byte[] returnbyte = new byte[1];
@@ -973,10 +993,7 @@ namespace OpenSim.Framework
                 return returnbyte;
             }
 
-
             return returnbytes;
-            //m_log.Info("[EXTRAPARAMS]: Length = " + m_shape.ExtraParams.Length.ToString());
-
         }
 
         public void ReadInUpdateExtraParam(ushort type, bool inUse, byte[] data)
@@ -1047,7 +1064,6 @@ namespace OpenSim.Framework
                 extraParamCount = data[i++];
             }
 
-
             for (int k = 0; k < extraParamCount; k++)
             {
                 ushort epType = Utils.BytesToUInt16(data, i);
@@ -1091,7 +1107,6 @@ namespace OpenSim.Framework
                 _sculptEntry = false;
             if (!lGotFilter)
                 _projectionEntry = false;
-
         }
 
         public void ReadSculptData(byte[] data, int pos)
@@ -1120,6 +1135,7 @@ namespace OpenSim.Framework
                 if (_sculptType != (byte)1 && _sculptType != (byte)2 && _sculptType != (byte)3 && _sculptType != (byte)4)
                     _sculptType = 4;
             }
+
             _sculptTexture = SculptUUID;
             _sculptType = SculptTypel;
             //m_log.Info("[SCULPT]:" + SculptUUID.ToString());
