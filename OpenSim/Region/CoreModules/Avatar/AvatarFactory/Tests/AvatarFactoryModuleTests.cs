@@ -55,7 +55,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             AgentCircuitData acd = new AgentCircuitData();
             acd.AgentID = userId;
-            TestClient tc = SceneSetupHelpers.AddRootAgent(scene, acd);
+            TestClient tc = SceneSetupHelpers.AddClient(scene, acd);
 
             byte[] visualParams = new byte[AvatarAppearance.VISUALPARAM_COUNT];
             for (byte i = 0; i < visualParams.Length; i++)

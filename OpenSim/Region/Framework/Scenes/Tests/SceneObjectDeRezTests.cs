@@ -66,7 +66,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             IConfig config = configSource.AddConfig("Startup");
             config.Set("serverside_object_permissions", true);
             SceneSetupHelpers.SetupSceneModules(scene, configSource, new object[] { new PermissionsModule() });
-            TestClient client = SceneSetupHelpers.AddRootAgent(scene, userId);
+            TestClient client = SceneSetupHelpers.AddClient(scene, userId);
             
             // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
             AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
@@ -105,7 +105,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             IConfig config = configSource.AddConfig("Startup");
             config.Set("serverside_object_permissions", true);
             SceneSetupHelpers.SetupSceneModules(scene, configSource, new object[] { new PermissionsModule() });            
-            TestClient client = SceneSetupHelpers.AddRootAgent(scene, userId);
+            TestClient client = SceneSetupHelpers.AddClient(scene, userId);
             
             // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
             AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;

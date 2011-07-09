@@ -75,7 +75,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                      new GroupsModule(), 
                      new MockGroupsServicesConnector() });
             
-            TestClient client = SceneSetupHelpers.AddRootAgent(scene, userId);            
+            TestClient client = SceneSetupHelpers.AddClient(scene, userId);            
             
             IGroupsModule groupsModule = scene.RequestModuleInterface<IGroupsModule>();     
             
