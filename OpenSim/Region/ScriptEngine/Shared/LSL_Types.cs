@@ -1379,7 +1379,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
         public struct LSLString
         {
             public string m_string;
+
             #region Constructors
+
             public LSLString(string s)
             {
                 m_string = s;
@@ -1387,14 +1389,14 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSLString(double d)
             {
-                string s=String.Format(Culture.FormatProvider, "{0:0.000000}", d);
-                m_string=s;
+                string s = String.Format(Culture.FormatProvider, "{0:0.000000}", d);
+                m_string = s;
             }
 
             public LSLString(LSLFloat f)
             {
                 string s = String.Format(Culture.FormatProvider, "{0:0.000000}", f.value);
-                m_string=s;
+                m_string = s;
             }
             
             public LSLString(int i)
@@ -1403,12 +1405,8 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 m_string = s;
             }
 
-            public LSLString(LSLInteger i)
-            {
-                string s = String.Format("{0}", i);
-                m_string = s;
-            }
-
+            public LSLString(LSLInteger i) : this(i.value) {}
+            
             #endregion
 
             #region Operators
