@@ -116,16 +116,20 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         #endregion
 
         /// <summary>
+        /// Check for the existence of the baked texture assets.
+        /// </summary>
+        /// <param name="client"></param>
+        public bool ValidateBakedTextureCache(IClientAPI client)
+        {
+            return ValidateBakedTextureCache(client, true);
+        }
+
+        /// <summary>
         /// Check for the existence of the baked texture assets. Request a rebake
         /// unless checkonly is true.
         /// </summary>
         /// <param name="client"></param>
         /// <param name="checkonly"></param>
-        public bool ValidateBakedTextureCache(IClientAPI client)
-        {
-            return ValidateBakedTextureCache(client, true);
-        }
-        
         private bool ValidateBakedTextureCache(IClientAPI client, bool checkonly)
         {
             ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
@@ -156,13 +160,15 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 
                 defonly = false; // found a non-default texture reference
 
-                if (! CheckBakedTextureAsset(client,face.TextureID,idx))
+                if (!CheckBakedTextureAsset(client, face.TextureID, idx))
                 {
                     // the asset didn't exist if we are only checking, then we found a bad
                     // one and we're done otherwise, ask for a rebake
-                    if (checkonly) return false;
+                    if (checkonly)
+                        return false;
 
                     m_log.InfoFormat("[AVFACTORY]: missing baked texture {0}, requesting rebake", face.TextureID);
+                    
                     client.SendRebakeAvatarTextures(face.TextureID);
                 }
             }
@@ -183,7 +189,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
             if (sp == null)
             {
-                m_log.WarnFormat("[AVFACTORY]: SetAppearance unable to find presence for {0}",client.AgentId);
+                m_log.WarnFormat("[AVFACTORY]: SetAppearance unable to find presence for {0}", client.AgentId);
                 return;
             }
 
@@ -211,7 +217,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     changed = sp.Appearance.SetTextureEntries(textureEntry) || changed;
 
                     m_log.InfoFormat("[AVFACTORY]: received texture update for {0}", client.AgentId);
-                    Util.FireAndForget(delegate(object o) { ValidateBakedTextureCache(client,false); });
+                    Util.FireAndForget(delegate(object o) { ValidateBakedTextureCache(client, false); });
 
                     // This appears to be set only in the final stage of the appearance
                     // update transaction. In theory, we should be able to do an immediate
@@ -220,9 +226,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     // save only if there were changes, send no matter what (doesn't hurt to send twice)
                     if (changed)
                         QueueAppearanceSave(client.AgentId);
+
                     QueueAppearanceSend(client.AgentId);
                 }
-
             }
 
             // m_log.WarnFormat("[AVFACTORY]: complete SetAppearance for {0}:\n{1}",client.AgentId,sp.Appearance.ToString());

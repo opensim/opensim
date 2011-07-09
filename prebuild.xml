@@ -2954,6 +2954,7 @@
         <!-- SADLY the way this works means you need to keep adding these paths -->
         <Match path="Agent/TextureSender/Tests" pattern="*.cs" recurse="true"/>
         <Match path="Asset/Tests" pattern="*.cs" recurse="true"/>
+        <Match path="Avatar/AvatarFactory/Tests" pattern="*.cs" recurse="true"/>
         <Match path="Avatar/Inventory/Archiver/Tests" pattern="*.cs" recurse="true"/>
         <Match path="Framework/InventoryAccess/Tests" pattern="*.cs" recurse="true"/>
         <Match path="World/Archiver/Tests" pattern="*.cs" recurse="true"/>
