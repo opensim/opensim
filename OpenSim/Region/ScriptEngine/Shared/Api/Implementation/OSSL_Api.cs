@@ -1909,8 +1909,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             };
 
             return NotecardCache.GetLines(assetID);
-
-
         }
 
         public string osAvatarName2Key(string firstname, string lastname)
@@ -2024,7 +2022,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // Find matches beginning at start position
             Regex matcher = new Regex(pattern);
             Match match = matcher.Match(src, start);
-            if (match.Success)
+            while (match.Success)
             {
                 foreach (System.Text.RegularExpressions.Group g in match.Groups)
                 {
@@ -2034,6 +2032,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         result.Add(new LSL_Integer(g.Index));
                     }
                 }
+
+                match = match.NextMatch();
             }
 
             return result;
