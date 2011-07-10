@@ -801,7 +801,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             // retain pathcurve
             shapeBlock.PathCurve = part.Shape.PathCurve;
 
-            part.Shape.SetSculptData((byte)type, sculptId);
+            part.Shape.SetSculptProperties((byte)type, sculptId);
             part.Shape.SculptEntry = true;
             part.UpdateShape(shapeBlock);
         }

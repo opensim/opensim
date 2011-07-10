@@ -250,11 +250,9 @@ namespace OpenSim.Region.ClientStack.Linden
                         case 0x40:
                             pbs.ReadProjectionData(extraParam.ExtraParamData, 0);
                             break;
-                       
                     }
-                    
-                    
                 }
+
                 pbs.PathBegin = (ushort) obj.PathBegin;
                 pbs.PathCurve = (byte) obj.PathCurve;
                 pbs.PathEnd = (ushort) obj.PathEnd;
