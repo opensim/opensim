@@ -245,6 +245,7 @@ namespace OpenSim.Framework
             catch (Exception ex)
             {
                 errorMessage = ex.Message;
+                m_log.Debug("[WEB UTIL]: Exception making request: " + ex.ToString());
             }
             finally
             {
