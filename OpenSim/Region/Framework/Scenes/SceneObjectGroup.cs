@@ -2513,14 +2513,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// Update prim flags for this group.
         /// </summary>
         /// <param name="localID"></param>
-        /// <param name="type"></param>
-        /// <param name="inUse"></param>
-        /// <param name="data"></param>
-        public void UpdatePrimFlags(uint localID, bool UsePhysics, bool IsTemporary, bool IsPhantom, bool IsVolumeDetect)
+        /// <param name="UsePhysics"></param>
+        /// <param name="SetTemporary"></param>
+        /// <param name="SetPhantom"></param>
+        /// <param name="SetVolumeDetect"></param>
+        public void UpdatePrimFlags(uint localID, bool UsePhysics, bool SetTemporary, bool SetPhantom, bool SetVolumeDetect)
         {
             SceneObjectPart selectionPart = GetChildPart(localID);
 
-            if (IsTemporary)
+            if (SetTemporary)
             {
                 DetachFromBackup();
                 // Remove from database and parcel prim count
@@ -2545,7 +2546,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 for (int i = 0; i < parts.Length; i++)
-                    parts[i].UpdatePrimFlags(UsePhysics, IsTemporary, IsPhantom, IsVolumeDetect);
+                    parts[i].UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect);
             }
         }
 
@@ -3292,6 +3293,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (IsDeleted)
                 return;
+
             if ((RootPart.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) != 0)
                 return;
 
