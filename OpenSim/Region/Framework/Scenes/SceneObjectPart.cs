@@ -1068,7 +1068,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        
         public bool CreateSelected
         {
             get { return m_createSelected; }
@@ -1241,7 +1240,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Property flags.  See OpenMetaverse.PrimFlags 
         /// </summary>
+        /// <remarks>
         /// Example properties are PrimFlags.Phantom and PrimFlags.DieAtEdge
+        /// </remarks>
         public PrimFlags Flags
         {
             get { return _flags; }
@@ -4324,14 +4325,21 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void UpdatePrimFlags(bool UsePhysics, bool IsTemporary, bool IsPhantom, bool IsVD)
+        /// <summary>
+        /// Update the flags on this prim.  This covers properties such as phantom, physics and temporary.
+        /// </summary>
+        /// <param name="UsePhysics"></param>
+        /// <param name="SetTemporary"></param>
+        /// <param name="SetPhantom"></param>
+        /// <param name="SetVD"></param>
+        public void UpdatePrimFlags(bool UsePhysics, bool SetTemporary, bool SetPhantom, bool SetVD)
         {
             bool wasUsingPhysics = ((Flags & PrimFlags.Physics) != 0);
             bool wasTemporary = ((Flags & PrimFlags.TemporaryOnRez) != 0);
             bool wasPhantom = ((Flags & PrimFlags.Phantom) != 0);
             bool wasVD = VolumeDetectActive;
 
-            if ((UsePhysics == wasUsingPhysics) && (wasTemporary == IsTemporary) && (wasPhantom == IsPhantom) && (IsVD==wasVD))
+            if ((UsePhysics == wasUsingPhysics) && (wasTemporary == SetTemporary) && (wasPhantom == SetPhantom) && (SetVD== wasVD))
             {
                 return;
             }
@@ -4341,32 +4349,31 @@ namespace OpenSim.Region.Framework.Scenes
             // that...
             // ... if VD is changed, all others are not.
             // ... if one of the others is changed, VD is not.
-            if (IsVD) // VD is active, special logic applies
+            if (SetVD) // VD is active, special logic applies
             {
                 // State machine logic for VolumeDetect
                 // More logic below
-                bool phanReset = (IsPhantom != wasPhantom) && !IsPhantom;
+                bool phanReset = (SetPhantom != wasPhantom) && !SetPhantom;
 
                 if (phanReset) // Phantom changes from on to off switch VD off too
                 {
-                    IsVD = false;               // Switch it of for the course of this routine
+                    SetVD = false;               // Switch it of for the course of this routine
                     VolumeDetectActive = false; // and also permanently
                     if (PhysActor != null)
                         PhysActor.SetVolumeDetect(0);   // Let physics know about it too
                 }
                 else
                 {
-                    IsPhantom = false;
                     // If volumedetect is active we don't want phantom to be applied.
                     // If this is a new call to VD out of the state "phantom"
                     // this will also cause the prim to be visible to physics
+                    SetPhantom = false;
                 }
-
             }
 
             if (UsePhysics && IsJoint())
             {
-                IsPhantom = true;
+                SetPhantom = true;
             }
 
             if (UsePhysics)
@@ -4396,8 +4403,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-
-            if (IsPhantom || IsAttachment || (Shape.PathCurve == (byte)Extrusion.Flexible)) // note: this may have been changed above in the case of joints
+            if (SetPhantom || IsAttachment || (Shape.PathCurve == (byte)Extrusion.Flexible)) // note: this may have been changed above in the case of joints
             {
                 AddFlag(PrimFlags.Phantom);
                 if (PhysActor != null)
@@ -4471,7 +4477,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (IsVD)
+            if (SetVD)
             {
                 // If the above logic worked (this is urgent candidate to unit tests!)
                 // we now have a physicsactor.
@@ -4496,8 +4502,7 @@ namespace OpenSim.Region.Framework.Scenes
                 this.VolumeDetectActive = false;
             }
 
-
-            if (IsTemporary)
+            if (SetTemporary)
             {
                 AddFlag(PrimFlags.TemporaryOnRez);
             }
