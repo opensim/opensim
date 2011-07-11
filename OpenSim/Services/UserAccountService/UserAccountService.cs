@@ -83,9 +83,24 @@ namespace OpenSim.Services.UserAccountService
                             "create user",
                             "create user [<first> [<last> [<pass> [<email>]]]]",
                             "Create a new user", HandleCreateUser);
-                    MainConsole.Instance.Commands.AddCommand("UserService", false, "reset user password",
+
+                    MainConsole.Instance.Commands.AddCommand("UserService", false,
+                            "reset user password",
                             "reset user password [<first> [<last> [<password>]]]",
                             "Reset a user password", HandleResetUserPassword);
+
+                    MainConsole.Instance.Commands.AddCommand("UserService", false,
+                            "set user level",
+                            "set user level [<first> [<last> [<level>]]]",
+                            "Set user level. If >= 200 and 'allow_grid_gods = true' in OpenSim.ini, "
+                                + "this account will be treated as god-moded. "
+                                + "It will also affect the 'login level' command. ",
+                            HandleSetUserLevel);
+
+                    MainConsole.Instance.Commands.AddCommand("UserService", false,
+                            "show account",
+                            "show account <first> <last>",
+                            "Show account details for the given user", HandleShowAccount);
                 }
 
             }
@@ -318,6 +333,36 @@ namespace OpenSim.Services.UserAccountService
             CreateUser(firstName, lastName, password, email);
         }
 
+        protected void HandleShowAccount(string module, string[] cmdparams)
+        {
+            if (cmdparams.Length != 4)
+            {
+                MainConsole.Instance.Output("Usage: show account <first-name> <last-name>");
+                return;
+            }
+
+            string firstName = cmdparams[2];
+            string lastName = cmdparams[3];
+
+            UserAccount ua = GetUserAccount(UUID.Zero, firstName, lastName);
+
+            if (ua == null)
+            {
+                MainConsole.Instance.OutputFormat("No user named {0} {1}", firstName, lastName);
+                return;
+            }
+
+            MainConsole.Instance.OutputFormat("Name:    {0}", ua.Name);
+            MainConsole.Instance.OutputFormat("ID:      {0}", ua.PrincipalID);
+            MainConsole.Instance.OutputFormat("Title:   {0}", ua.UserTitle);
+            MainConsole.Instance.OutputFormat("E-mail:  {0}", ua.Email);
+            MainConsole.Instance.OutputFormat("Created: {0}", Utils.UnixTimeToDateTime(ua.Created));
+            MainConsole.Instance.OutputFormat("Level:   {0}", ua.UserLevel);
+            MainConsole.Instance.OutputFormat("Flags:   {0}", ua.UserFlags);
+            foreach (KeyValuePair<string, Object> kvp in ua.ServiceURLs)
+                MainConsole.Instance.OutputFormat("{0}: {1}", kvp.Key, kvp.Value);
+        }
+
         protected void HandleResetUserPassword(string module, string[] cmdparams)
         {
             string firstName;
@@ -338,16 +383,58 @@ namespace OpenSim.Services.UserAccountService
 
             UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
             if (account == null)
-                m_log.ErrorFormat("[USER ACCOUNT SERVICE]: No such user");
+            {
+                MainConsole.Instance.OutputFormat("No such user as {0} {1}", firstName, lastName);
+                return;
+            }
 
             bool success = false;
             if (m_AuthenticationService != null)
                 success = m_AuthenticationService.SetPassword(account.PrincipalID, newPassword);
+
             if (!success)
-                m_log.ErrorFormat("[USER ACCOUNT SERVICE]: Unable to reset password for account {0} {1}.",
-                   firstName, lastName);
+                MainConsole.Instance.OutputFormat("Unable to reset password for account {0} {1}.", firstName, lastName);
             else
-                m_log.InfoFormat("[USER ACCOUNT SERVICE]: Password reset for user {0} {1}", firstName, lastName);
+                MainConsole.Instance.OutputFormat("Password reset for user {0} {1}", firstName, lastName);
+        }
+
+        protected void HandleSetUserLevel(string module, string[] cmdparams)
+        {
+            string firstName;
+            string lastName;
+            string rawLevel;
+            int level;
+
+            if (cmdparams.Length < 4)
+                firstName = MainConsole.Instance.CmdPrompt("First name");
+            else firstName = cmdparams[3];
+
+            if (cmdparams.Length < 5)
+                lastName = MainConsole.Instance.CmdPrompt("Last name");
+            else lastName = cmdparams[4];
+
+            UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
+            if (account == null) {
+                MainConsole.Instance.OutputFormat("No such user");
+                return;
+            }
+
+            if (cmdparams.Length < 6)
+                rawLevel = MainConsole.Instance.CmdPrompt("User level");
+            else rawLevel = cmdparams[5];
+
+            if(int.TryParse(rawLevel, out level) == false) {
+                MainConsole.Instance.OutputFormat("Invalid user level");
+                return;
+            }
+
+            account.UserLevel = level;
+
+            bool success = StoreUserAccount(account);
+            if (!success)
+                MainConsole.Instance.OutputFormat("Unable to set user level for account {0} {1}.", firstName, lastName);
+            else
+                MainConsole.Instance.OutputFormat("User level set for user {0} {1} to {2}", firstName, lastName, level);
         }
 
         #endregion

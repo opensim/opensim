@@ -1401,21 +1401,26 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        ///
+        /// Update the flags on a scene object.  This covers properties such as phantom, physics and temporary.
         /// </summary>
+        /// <remarks>
+        /// This is currently handling the incoming call from the client stack (e.g. LLClientView).
+        /// </remarks>
         /// <param name="localID"></param>
-        /// <param name="packet"></param>
+        /// <param name="UsePhysics"></param>
+        /// <param name="SetTemporary"></param>
+        /// <param name="SetPhantom"></param>
         /// <param name="remoteClient"></param>
-        /// This routine seems to get called when a user changes object settings in the viewer.
-        /// If some one can confirm that, please change the comment according.
-        protected internal void UpdatePrimFlags(uint localID, bool UsePhysics, bool IsTemporary, bool IsPhantom, IClientAPI remoteClient)
+        protected internal void UpdatePrimFlags(
+            uint localID, bool UsePhysics, bool SetTemporary, bool SetPhantom, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
                 if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
                 {
-                    group.UpdatePrimFlags(localID, UsePhysics, IsTemporary, IsPhantom, false); // VolumeDetect can't be set via UI and will always be off when a change is made there
+                    // VolumeDetect can't be set via UI and will always be off when a change is made there
+                    group.UpdatePrimFlags(localID, UsePhysics, SetTemporary, SetPhantom, false);
                 }
             }
         }

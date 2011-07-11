@@ -25,16 +25,45 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using NUnit.Framework;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Region.CoreModules.Avatar.NPC
+namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 {
-    public interface INPCModule
+    [TestFixture]
+    public class AvatarFactoryModuleTests
     {
-        UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, UUID cloneAppearanceFrom);
-        void Autopilot(UUID agentID, Scene scene, Vector3 pos);
-        void Say(UUID agentID, Scene scene, string text);
-        void DeleteNPC(UUID agentID, Scene scene);
+        /// <summary>
+        /// Only partial right now since we don't yet test that it's ended up in the avatar appearance service.
+        /// </summary>
+        [Test]
+        public void TestSetAppearance()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID userId = TestHelper.ParseTail(0x1);
+
+            AvatarFactoryModule afm = new AvatarFactoryModule();
+            TestScene scene = SceneSetupHelpers.SetupScene();
+            SceneSetupHelpers.SetupSceneModules(scene, afm);
+            TestClient tc = SceneSetupHelpers.AddClient(scene, userId);
+
+            byte[] visualParams = new byte[AvatarAppearance.VISUALPARAM_COUNT];
+            for (byte i = 0; i < visualParams.Length; i++)
+                visualParams[i] = i;
+
+            afm.SetAppearance(tc, new Primitive.TextureEntry(TestHelper.ParseTail(0x10)), visualParams);
+
+            ScenePresence sp = scene.GetScenePresence(userId);
+
+            // TODO: Check baked texture
+            Assert.AreEqual(visualParams, sp.Appearance.VisualParams);
+        }
     }
 }

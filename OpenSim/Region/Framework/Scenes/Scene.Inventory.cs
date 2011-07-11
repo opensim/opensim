@@ -52,6 +52,11 @@ namespace OpenSim.Region.Framework.Scenes
         protected AsyncSceneObjectGroupDeleter m_asyncSceneObjectDeleter;
 
         /// <summary>
+        /// Allows inventory details to be sent to clients asynchronously
+        /// </summary>
+        protected AsyncInventorySender m_asyncInventorySender;
+
+        /// <summary>
         /// Start all the scripts in the scene which should be started.
         /// </summary>
         public void CreateScriptInstances()
@@ -1328,7 +1333,7 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat("[AGENT INVENTORY]: Sending inventory folder contents ({0} nodes) for \"{1}\" to {2} {3}",
 //                contents.Folders.Count + contents.Items.Count, containingFolder.Name, client.FirstName, client.LastName);
 
-            if (containingFolder != null && containingFolder != null)
+            if (containingFolder != null)
             {
                 // If the folder requested contains links, then we need to send those folders first, otherwise the links
                 // will be broken in the viewer.
@@ -1340,15 +1345,25 @@ namespace OpenSim.Region.Framework.Scenes
                         InventoryItemBase linkedItem = InventoryService.GetItem(new InventoryItemBase(item.AssetID));
 
                         // Take care of genuinely broken links where the target doesn't exist
-                        if (linkedItem != null)
-                            linkedItemFolderIdsToSend.Add(linkedItem.Folder);
+                        // HACK: Also, don't follow up links that just point to other links.  In theory this is legitimate,
+                        // but no viewer has been observed to set these up and this is the lazy way of avoiding cycles
+                        // rather than having to keep track of every folder requested in the recursion.
+                        if (linkedItem != null && linkedItem.AssetType != (int)AssetType.Link)
+                        {
+                            // We don't need to send the folder if source and destination of the link are in the same
+                            // folder.
+                            if (linkedItem.Folder != containingFolder.ID)
+                                linkedItemFolderIdsToSend.Add(linkedItem.Folder);
+                        }
                     }
                 }
 
                 foreach (UUID linkedItemFolderId in linkedItemFolderIdsToSend)
                     SendInventoryUpdate(client, new InventoryFolderBase(linkedItemFolderId), false, true);
 
-                client.SendInventoryFolderDetails(client.AgentId, folder.ID, contents.Items, contents.Folders, containingFolder.Version, fetchFolders, fetchItems);
+                client.SendInventoryFolderDetails(
+                    client.AgentId, folder.ID, contents.Items, contents.Folders,
+                    containingFolder.Version, fetchFolders, fetchItems);
             }
         }
 

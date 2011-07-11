@@ -200,7 +200,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 // if groups aren't enabled, we're not needed.
                 // if we're not specified as the connector to use, then we're not wanted
                 if ((groupsConfig.GetBoolean("Enabled", false) == false)
-                    || (groupsConfig.GetString("ServicesConnectorModule", "Default") != Name))
+                    || (groupsConfig.GetString("ServicesConnectorModule", "XmlRpcGroupsServicesConnector") != Name))
                 {
                     m_connectorEnabled = false;
                     return;

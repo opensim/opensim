@@ -297,9 +297,10 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             if (m_UserCache.ContainsKey(id))
                 return;
 
+//            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, craetorData {1}", id, creatorData);
+
             UserData user = new UserData();
             user.Id = id;
-
             UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, id);
 
             if (account != null)

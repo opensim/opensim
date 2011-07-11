@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
@@ -800,7 +801,8 @@ namespace OpenSim.Region.Framework.Scenes
                         actor.Orientation = GetWorldRotation();
 
                         // Tell the physics engines that this prim changed.
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
+                        if (m_parentGroup.Scene != null)
+                            m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
                 }
             }
@@ -1067,7 +1069,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        
         public bool CreateSelected
         {
             get { return m_createSelected; }
@@ -1085,11 +1086,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Vector3 AbsolutePosition
         {
-            get {
+            get
+            {
                 if (IsAttachment)
                     return GroupPosition;
 
-                return m_offsetPosition + m_groupPosition; }
+                return m_offsetPosition + m_groupPosition;
+            }
         }
 
         public SceneObjectGroup ParentGroup
@@ -1238,7 +1241,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Property flags.  See OpenMetaverse.PrimFlags 
         /// </summary>
+        /// <remarks>
         /// Example properties are PrimFlags.Phantom and PrimFlags.DieAtEdge
+        /// </remarks>
         public PrimFlags Flags
         {
             get { return _flags; }
@@ -1561,6 +1566,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="m_physicalPrim"></param>
         public void ApplyPhysics(uint rootObjectFlags, bool VolumeDetectActive, bool m_physicalPrim)
         {
+//            m_log.DebugFormat("[SCENE OBJECT PART]: Applying physics to {0} {1} {2}", Name, LocalId, UUID);
+
             bool isPhysical = (((rootObjectFlags & (uint) PrimFlags.Physics) != 0) && m_physicalPrim);
             bool isPhantom = ((rootObjectFlags & (uint) PrimFlags.Phantom) != 0);
 
@@ -1581,6 +1588,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // or flexible
                 if (!isPhantom && !IsAttachment && !(Shape.PathCurve == (byte) Extrusion.Flexible))
                 {
+//                    m_log.DebugFormat("[SCENE OBJECT PART]: Creating PhysActor for {0} {1} {2}", Name, LocalId, UUID);
+
                     PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
                         LocalId,
                         string.Format("{0}/{1}", Name, UUID),
@@ -1802,7 +1811,6 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         ParentGroup.Scene.jointErrorMessage(joint, "warning: tracked body name not found! joint location will not be updated properly. joint: " + Name);
                     }
-
                 }
                 else
                 {
@@ -1864,7 +1872,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                         PhysActor.IsPhysical = UsePhysics;
 
-
                         // If we're not what we're supposed to be in the physics scene, recreate ourselves.
                         //m_parentGroup.Scene.PhysicsScene.RemovePrim(PhysActor);
                         /// that's not wholesome.  Had to make Scene public
@@ -1888,6 +1895,7 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                         }
                     }
+
                     m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                 }
             }
@@ -2823,6 +2831,12 @@ namespace OpenSim.Region.Framework.Scenes
             StoreUndoState();
             m_shape.Scale = scale;
 
+            // If we're a mesh/sculpt, then we need to tell the physics engine about our new size.  To do this, we
+            // need to reinsert the sculpt data into the shape, since the physics engine deletes it when done to
+            // save memory
+            if (PhysActor != null)
+                CheckSculptAndLoad();
+
             ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
         }
@@ -2951,7 +2965,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-
         public void SculptTextureCallback(UUID textureID, AssetBase texture)
         {
             if (m_shape.SculptEntry)
@@ -2960,14 +2973,17 @@ namespace OpenSim.Region.Framework.Scenes
                 //if (texture != null)
                 {
                     if (texture != null)
+                    {
+//                        m_log.DebugFormat(
+//                            "[SCENE OBJECT PART]: Setting sculpt data for {0} on SculptTextureCallback()", Name);
+
                         m_shape.SculptData = texture.Data;
+                    }
 
                     if (PhysActor != null)
                     {
-                        // Tricks physics engine into thinking we've changed the part shape.
-                        PrimitiveBaseShape m_newshape = m_shape.Copy();
-                        PhysActor.Shape = m_newshape;
-                        m_shape = m_newshape;
+                        // Update the physics actor with the new loaded sculpt data and set the taint signal.
+                        PhysActor.Shape = m_shape;
 
                         m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                     }
@@ -3263,11 +3279,14 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_parentGroup.SetAxisRotation(axis, rotate);
             }
+
             //Cannot use ScriptBaseClass constants as no referance to it currently.
             if (axis == 2)//STATUS_ROTATE_X
                 STATUS_ROTATE_X = rotate;
+
             if (axis == 4)//STATUS_ROTATE_Y
                 STATUS_ROTATE_Y = rotate;
+
             if (axis == 8)//STATUS_ROTATE_Z
                 STATUS_ROTATE_Z = rotate;
         }
@@ -4318,14 +4337,21 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void UpdatePrimFlags(bool UsePhysics, bool IsTemporary, bool IsPhantom, bool IsVD)
+        /// <summary>
+        /// Update the flags on this prim.  This covers properties such as phantom, physics and temporary.
+        /// </summary>
+        /// <param name="UsePhysics"></param>
+        /// <param name="SetTemporary"></param>
+        /// <param name="SetPhantom"></param>
+        /// <param name="SetVD"></param>
+        public void UpdatePrimFlags(bool UsePhysics, bool SetTemporary, bool SetPhantom, bool SetVD)
         {
             bool wasUsingPhysics = ((Flags & PrimFlags.Physics) != 0);
             bool wasTemporary = ((Flags & PrimFlags.TemporaryOnRez) != 0);
             bool wasPhantom = ((Flags & PrimFlags.Phantom) != 0);
             bool wasVD = VolumeDetectActive;
 
-            if ((UsePhysics == wasUsingPhysics) && (wasTemporary == IsTemporary) && (wasPhantom == IsPhantom) && (IsVD==wasVD))
+            if ((UsePhysics == wasUsingPhysics) && (wasTemporary == SetTemporary) && (wasPhantom == SetPhantom) && (SetVD == wasVD))
             {
                 return;
             }
@@ -4335,32 +4361,31 @@ namespace OpenSim.Region.Framework.Scenes
             // that...
             // ... if VD is changed, all others are not.
             // ... if one of the others is changed, VD is not.
-            if (IsVD) // VD is active, special logic applies
+            if (SetVD) // VD is active, special logic applies
             {
                 // State machine logic for VolumeDetect
                 // More logic below
-                bool phanReset = (IsPhantom != wasPhantom) && !IsPhantom;
+                bool phanReset = (SetPhantom != wasPhantom) && !SetPhantom;
 
                 if (phanReset) // Phantom changes from on to off switch VD off too
                 {
-                    IsVD = false;               // Switch it of for the course of this routine
+                    SetVD = false;               // Switch it of for the course of this routine
                     VolumeDetectActive = false; // and also permanently
                     if (PhysActor != null)
                         PhysActor.SetVolumeDetect(0);   // Let physics know about it too
                 }
                 else
                 {
-                    IsPhantom = false;
                     // If volumedetect is active we don't want phantom to be applied.
                     // If this is a new call to VD out of the state "phantom"
                     // this will also cause the prim to be visible to physics
+                    SetPhantom = false;
                 }
-
             }
 
             if (UsePhysics && IsJoint())
             {
-                IsPhantom = true;
+                SetPhantom = true;
             }
 
             if (UsePhysics)
@@ -4390,8 +4415,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-
-            if (IsPhantom || IsAttachment || (Shape.PathCurve == (byte)Extrusion.Flexible)) // note: this may have been changed above in the case of joints
+            if (SetPhantom || IsAttachment || (Shape.PathCurve == (byte)Extrusion.Flexible)) // note: this may have been changed above in the case of joints
             {
                 AddFlag(PrimFlags.Phantom);
                 if (PhysActor != null)
@@ -4406,6 +4430,7 @@ namespace OpenSim.Region.Framework.Scenes
                 RemFlag(PrimFlags.Phantom);
 
                 PhysicsActor pa = PhysActor;
+
                 if (pa == null)
                 {
                     // It's not phantom anymore. So make sure the physics engine get's knowledge of it
@@ -4422,6 +4447,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (pa != null)
                     {
                         DoPhysicsPropertyUpdate(UsePhysics, true);
+
                         if (m_parentGroup != null)
                         {
                             if (!m_parentGroup.IsDeleted)
@@ -4432,6 +4458,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 }
                             }
                         }
+
                         if (
                             ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
                             ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
@@ -4442,8 +4469,8 @@ namespace OpenSim.Region.Framework.Scenes
                             (CollisionSound != UUID.Zero)
                             )
                         {
-                                PhysActor.OnCollisionUpdate += PhysicsCollision;
-                                PhysActor.SubscribeEvents(1000);
+                            PhysActor.OnCollisionUpdate += PhysicsCollision;
+                            PhysActor.SubscribeEvents(1000);
                         }
                     }
                 }
@@ -4465,7 +4492,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (IsVD)
+            if (SetVD)
             {
                 // If the above logic worked (this is urgent candidate to unit tests!)
                 // we now have a physicsactor.
@@ -4480,18 +4507,19 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             else
-            {   // Remove VolumeDetect in any case. Note, it's safe to call SetVolumeDetect as often as you like
+            {
+                // Remove VolumeDetect in any case. Note, it's safe to call SetVolumeDetect as often as you like
                 // (mumbles, well, at least if you have infinte CPU powers :-))
                 PhysicsActor pa = this.PhysActor;
                 if (pa != null)
                 {
                     PhysActor.SetVolumeDetect(0);
                 }
+
                 this.VolumeDetectActive = false;
             }
 
-
-            if (IsTemporary)
+            if (SetTemporary)
             {
                 AddFlag(PrimFlags.TemporaryOnRez);
             }
@@ -4542,6 +4570,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_shape.PathTaperY = shapeBlock.PathTaperY;
             m_shape.PathTwist = shapeBlock.PathTwist;
             m_shape.PathTwistBegin = shapeBlock.PathTwistBegin;
+
             if (PhysActor != null)
             {
                 PhysActor.Shape = m_shape;
@@ -4563,11 +4592,44 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// If the part is a sculpt/mesh, retrieve the mesh data and reinsert it into the shape so that the physics
+        /// engine can use it.
+        /// </summary>
+        /// <remarks>
+        /// When the physics engine has finished with it, the sculpt data is discarded to save memory.
+        /// </remarks>
+        public void CheckSculptAndLoad()
+        {
+//            m_log.Debug("Processing CheckSculptAndLoad for {0} {1}", Name, LocalId);
+
+            if (ParentGroup.IsDeleted)
+                return;
+
+            if ((ParentGroup.RootPart.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) != 0)
+                return;
+
+            if (Shape.SculptEntry && Shape.SculptTexture != UUID.Zero)
+            {
+                // check if a previously decoded sculpt map has been cached
+                if (File.Exists(System.IO.Path.Combine("j2kDecodeCache", "smap_" + Shape.SculptTexture.ToString())))
+                {
+                    SculptTextureCallback(Shape.SculptTexture, null);
+                }
+                else
+                {
+                    ParentGroup.Scene.AssetService.Get(Shape.SculptTexture.ToString(), this, AssetReceived);
+                }
+            }
+        }
+
+        /// <summary>
         /// Update the textures on the part.
         /// </summary>
+        /// <remarks>
         /// Added to handle bug in libsecondlife's TextureEntry.ToBytes()
         /// not handling RGBA properly. Cycles through, and "fixes" the color
         /// info
+        /// </remarks>
         /// <param name="tex"></param>
         public void UpdateTexture(Primitive.TextureEntry tex)
         {
@@ -4798,6 +4860,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Inventory.ApplyNextOwnerPermissions();
         }
+
         public void UpdateLookAt()
         {
             try

@@ -2513,14 +2513,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// Update prim flags for this group.
         /// </summary>
         /// <param name="localID"></param>
-        /// <param name="type"></param>
-        /// <param name="inUse"></param>
-        /// <param name="data"></param>
-        public void UpdatePrimFlags(uint localID, bool UsePhysics, bool IsTemporary, bool IsPhantom, bool IsVolumeDetect)
+        /// <param name="UsePhysics"></param>
+        /// <param name="SetTemporary"></param>
+        /// <param name="SetPhantom"></param>
+        /// <param name="SetVolumeDetect"></param>
+        public void UpdatePrimFlags(uint localID, bool UsePhysics, bool SetTemporary, bool SetPhantom, bool SetVolumeDetect)
         {
             SceneObjectPart selectionPart = GetChildPart(localID);
 
-            if (IsTemporary)
+            if (SetTemporary)
             {
                 DetachFromBackup();
                 // Remove from database and parcel prim count
@@ -2545,7 +2546,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 for (int i = 0; i < parts.Length; i++)
-                    parts[i].UpdatePrimFlags(UsePhysics, IsTemporary, IsPhantom, IsVolumeDetect);
+                    parts[i].UpdatePrimFlags(UsePhysics, SetTemporary, SetPhantom, SetVolumeDetect);
             }
         }
 
@@ -3287,34 +3288,36 @@ namespace OpenSim.Region.Framework.Scenes
 
             return retmass;
         }
-        
+
+        /// <summary>
+        /// If the object is a sculpt/mesh, retrieve the mesh data for each part and reinsert it into each shape so that
+        /// the physics engine can use it.
+        /// </summary>
+        /// <remarks>
+        /// When the physics engine has finished with it, the sculpt data is discarded to save memory.
+        /// </remarks>
         public void CheckSculptAndLoad()
         {
             if (IsDeleted)
                 return;
+
             if ((RootPart.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) != 0)
                 return;
 
+//            m_log.Debug("Processing CheckSculptAndLoad for {0} {1}", Name, LocalId);
+
             SceneObjectPart[] parts = m_parts.GetArray();
+
             for (int i = 0; i < parts.Length; i++)
-            {
-                SceneObjectPart part = parts[i];
-                if (part.Shape.SculptEntry && part.Shape.SculptTexture != UUID.Zero)
-                {
-                    // check if a previously decoded sculpt map has been cached
-                    if (File.Exists(System.IO.Path.Combine("j2kDecodeCache", "smap_" + part.Shape.SculptTexture.ToString())))
-                    {
-                        part.SculptTextureCallback(part.Shape.SculptTexture, null);
-                    }
-                    else
-                    {
-                        m_scene.AssetService.Get(
-                            part.Shape.SculptTexture.ToString(), part, AssetReceived);
-                    }
-                }
-            }
+                parts[i].CheckSculptAndLoad();
         }
 
+        /// <summary>
+        /// Handle an asset received asynchronously from the asset service.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="sender"></param>
+        /// <param name="asset"></param>
         protected void AssetReceived(string id, Object sender, AssetBase asset)
         {
             SceneObjectPart sop = (SceneObjectPart)sender;

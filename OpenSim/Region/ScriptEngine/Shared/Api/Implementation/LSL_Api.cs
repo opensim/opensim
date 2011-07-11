@@ -5050,7 +5050,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
 
-            result.Add(src.Substring(start,length).Trim());
+            result.Add(new LSL_String(src.Substring(start,length).Trim()));
 
             return result;
         }
@@ -6900,7 +6900,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // retain pathcurve
             shapeBlock.PathCurve = part.Shape.PathCurve;
 
-            part.Shape.SetSculptData((byte)type, sculptId);
+            part.Shape.SetSculptProperties((byte)type, sculptId);
             part.Shape.SculptEntry = true;
             part.UpdateShape(shapeBlock);
         }
@@ -7391,7 +7391,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID[] anims;
             anims = av.Animator.GetAnimationArray();
             foreach (UUID foo in anims)
-                l.Add(foo.ToString());
+                l.Add(new LSL_Key(foo.ToString()));
             return l;
         }
 
@@ -7926,17 +7926,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_TEXT:
                         Color4 textColor = part.GetTextColor();
-                        res.Add(part.Text);
+                        res.Add(new LSL_String(part.Text));
                         res.Add(new LSL_Vector(textColor.R,
                                                textColor.G,
                                                textColor.B));
                         res.Add(new LSL_Float(textColor.A));
                         break;
                     case (int)ScriptBaseClass.PRIM_NAME:
-                        res.Add(part.Name);
+                        res.Add(new LSL_String(part.Name));
                         break;
                     case (int)ScriptBaseClass.PRIM_DESC:
-                        res.Add(part.Description);
+                        res.Add(new LSL_String(part.Description));
                         break;
                     case (int)ScriptBaseClass.PRIM_ROT_LOCAL:
                         res.Add(new LSL_Rotation(part.RotationOffset.X, part.RotationOffset.Y, part.RotationOffset.Z, part.RotationOffset.W));
@@ -9895,8 +9895,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 foreach (KeyValuePair<UUID, int> detectedParams in land.GetLandObjectOwners())
                 {
-                    ret.Add(detectedParams.Key.ToString());
-                    ret.Add(detectedParams.Value);
+                    ret.Add(new LSL_String(detectedParams.Key.ToString()));
+                    ret.Add(new LSL_Integer(detectedParams.Value));
                 }
             }
             ScriptSleep(2000);
@@ -9946,25 +9946,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 switch (o.ToString())
                 {
                     case "0":
-                        ret = ret + new LSL_List(land.Name);
+                        ret.Add(new LSL_String(land.Name));
                         break;
                     case "1":
-                        ret = ret + new LSL_List(land.Description);
+                        ret.Add(new LSL_String(land.Description));
                         break;
                     case "2":
-                        ret = ret + new LSL_List(land.OwnerID.ToString());
+                        ret.Add(new LSL_Key(land.OwnerID.ToString()));
                         break;
                     case "3":
-                        ret = ret + new LSL_List(land.GroupID.ToString());
+                        ret.Add(new LSL_Key(land.GroupID.ToString()));
                         break;
                     case "4":
-                        ret = ret + new LSL_List(land.Area);
+                        ret.Add(new LSL_Integer(land.Area));
                         break;
                     case "5":
-                        ret = ret + new LSL_List(land.GlobalID);
+                        ret.Add(new LSL_Key(land.GlobalID.ToString()));
                         break;
                     default:
-                        ret = ret + new LSL_List(0);
+                        ret.Add(new LSL_Integer(0));
                         break;
                 }
             }
@@ -9996,10 +9996,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         switch (o.ToString())
                         {
                             case "1":
-                                ret.Add(av.Firstname + " " + av.Lastname);
+                                ret.Add(new LSL_String(av.Firstname + " " + av.Lastname));
                                 break;
                             case "2":
-                                ret.Add("");
+                                ret.Add(new LSL_String(""));
                                 break;
                             case "3":
                                 ret.Add(new LSL_Vector((double)av.AbsolutePosition.X, (double)av.AbsolutePosition.Y, (double)av.AbsolutePosition.Z));
@@ -10011,13 +10011,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 ret.Add(new LSL_Vector(av.Velocity.X, av.Velocity.Y, av.Velocity.Z));
                                 break;
                             case "6":
-                                ret.Add(id);
+                                ret.Add(new LSL_String(id));
                                 break;
                             case "7":
-                                ret.Add(UUID.Zero.ToString());
+                                ret.Add(new LSL_String(UUID.Zero.ToString()));
                                 break;
                             case "8":
-                                ret.Add(UUID.Zero.ToString());
+                                ret.Add(new LSL_String(UUID.Zero.ToString()));
                                 break;
                         }
                     }
@@ -10031,10 +10031,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         switch (o.ToString())
                         {
                             case "1":
-                                ret.Add(obj.Name);
+                                ret.Add(new LSL_String(obj.Name));
                                 break;
                             case "2":
-                                ret.Add(obj.Description);
+                                ret.Add(new LSL_String(obj.Description));
                                 break;
                             case "3":
                                 ret.Add(new LSL_Vector(obj.AbsolutePosition.X, obj.AbsolutePosition.Y, obj.AbsolutePosition.Z));
@@ -10046,13 +10046,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 ret.Add(new LSL_Vector(obj.Velocity.X, obj.Velocity.Y, obj.Velocity.Z));
                                 break;
                             case "6":
-                                ret.Add(obj.OwnerID.ToString());
+                                ret.Add(new LSL_String(obj.OwnerID.ToString()));
                                 break;
                             case "7":
-                                ret.Add(obj.GroupID.ToString());
+                                ret.Add(new LSL_String(obj.GroupID.ToString()));
                                 break;
                             case "8":
-                                ret.Add(obj.CreatorID.ToString());
+                                ret.Add(new LSL_String(obj.CreatorID.ToString()));
                                 break;
                         }
                     }

@@ -26,60 +26,46 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Region.CoreModules.Avatar.InstantMessage;
-using OpenSim.Region.CoreModules.World.Permissions;
+using OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups;
+using OpenSim.Services.AvatarService;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Region.Framework.Scenes.Tests
+namespace OpenSim.Region.OptionalModules.World.NPC.Tests
 {
     [TestFixture]
-    public class SceneObjectUserGroupTests
+    public class NPCModuleTests
     {
-        /// <summary>
-        /// Test share with group object functionality
-        /// </summary>
-        /// <remarks>This test is not yet fully implemented</remarks>
         [Test]
-        public void TestShareWithGroup()
+        public void TestCreate()
         {
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
-                        
-            UUID userId = UUID.Parse("10000000-0000-0000-0000-000000000001");
-            
+
+            IConfigSource config = new IniConfigSource();
+
+            config.AddConfig("Modules");
+            config.Configs["Modules"].Set("AvatarServices", "LocalAvatarServicesConnector");
+            config.AddConfig("AvatarService");
+            config.Configs["AvatarService"].Set("LocalServiceModule", "OpenSim.Services.AvatarService.dll:AvatarService");
+            config.Configs["AvatarService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
+
             TestScene scene = SceneSetupHelpers.SetupScene();
-            IConfigSource configSource = new IniConfigSource();
-            
-            IConfig startupConfig = configSource.AddConfig("Startup");
-            startupConfig.Set("serverside_object_permissions", true);
-            
-            IConfig groupsConfig = configSource.AddConfig("Groups");            
-            groupsConfig.Set("Enabled", true);
-            groupsConfig.Set("Module", "GroupsModule");            
-            groupsConfig.Set("DebugEnabled", true);            
-                       
-            SceneSetupHelpers.SetupSceneModules(
-                scene, configSource, new object[] 
-                   { new PermissionsModule(), 
-                     new GroupsModule(), 
-                     new MockGroupsServicesConnector() });
-            
-            TestClient client = SceneSetupHelpers.AddClient(scene, userId);            
-            
-            IGroupsModule groupsModule = scene.RequestModuleInterface<IGroupsModule>();     
-            
-            groupsModule.CreateGroup(client, "group1", "To boldly go", true, UUID.Zero, 5, true, true, true);
+            SceneSetupHelpers.SetupSceneModules(scene, config, new NPCModule(), new LocalAvatarServicesConnector());
+
+            INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
+            UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), scene, UUID.Zero);
+
+            ScenePresence npc = scene.GetScenePresence(npcId);
+            Assert.That(npc, Is.Not.Null);
         }
     }
 }

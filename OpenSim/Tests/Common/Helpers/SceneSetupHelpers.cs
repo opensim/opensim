@@ -341,9 +341,9 @@ namespace OpenSim.Tests.Common
         /// <param name="scene"></param>
         /// <param name="agentId"></param>
         /// <returns></returns>
-        public static TestClient AddRootAgent(Scene scene, UUID agentId)
+        public static TestClient AddClient(Scene scene, UUID agentId)
         {
-            return AddRootAgent(scene, GenerateAgentData(agentId));
+            return AddClient(scene, GenerateAgentData(agentId));
         }
 
         /// <summary>
@@ -364,7 +364,7 @@ namespace OpenSim.Tests.Common
         /// <param name="scene"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
-        public static TestClient AddRootAgent(Scene scene, AgentCircuitData agentData)
+        public static TestClient AddClient(Scene scene, AgentCircuitData agentData)
         {
             string reason;
 

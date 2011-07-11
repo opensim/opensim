@@ -7548,13 +7548,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
                         if (invAccess != null)
                         {
-                            if (!invAccess.GetAgentInventoryItem(this, itemID, requestID))
+                            if (!invAccess.CanGetAgentInventoryItem(this, itemID, requestID))
                                 return false;
-
                         }
                         else
+                        {
                             return false;
-
+                        }
                     }
                 }
             }
@@ -7567,7 +7567,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private bool HandleAssetUploadRequest(IClientAPI sender, Packet Pack)
         {
             AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
-
 
             // m_log.Debug("upload request " + request.ToString());
             // m_log.Debug("upload request was for assetid: " + request.AssetBlock.TransactionID.Combine(this.SecureSessionId).ToString());

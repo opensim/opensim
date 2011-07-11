@@ -25,47 +25,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Diagnostics;
-using NUnit.Framework;
 using OpenMetaverse;
+using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Tests.Common
+namespace OpenSim.Region.Framework.Interfaces
 {
-    public class TestHelper
+    public interface INPCModule
     {
-        public static bool AssertThisDelegateCausesArgumentException(TestDelegate d)
-        {
-            try
-            {
-                d();
-            }
-            catch(ArgumentException)
-            {
-                return true;
-            }
-
-            return false;
-        }
-        
-        /// <summary>
-        /// A debugging method that can be used to print out which test method you are in 
-        /// </summary>
-        public static void InMethod()
-        {
-            StackTrace stackTrace = new StackTrace();
-            Console.WriteLine();
-            Console.WriteLine("===> In Test Method : {0} <===", stackTrace.GetFrame(1).GetMethod().Name);
-        }
-
-        /// <summary>
-        /// Parse tail section into full UUID.
-        /// </summary>
-        /// <param name="tail"></param>
-        /// <returns></returns>
-        public static UUID ParseTail(int tail)
-        {
-            return new UUID(string.Format("00000000-0000-0000-0000-{0:X12}", tail));
-        }
+        UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, UUID cloneAppearanceFrom);
+        void Autopilot(UUID agentID, Scene scene, Vector3 pos);
+        void Say(UUID agentID, Scene scene, string text);
+        void DeleteNPC(UUID agentID, Scene scene);
     }
 }
