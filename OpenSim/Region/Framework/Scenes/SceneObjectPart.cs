@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
@@ -4563,6 +4564,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_shape.PathTaperY = shapeBlock.PathTaperY;
             m_shape.PathTwist = shapeBlock.PathTwist;
             m_shape.PathTwistBegin = shapeBlock.PathTwistBegin;
+
             if (PhysActor != null)
             {
                 PhysActor.Shape = m_shape;
@@ -4581,6 +4583,37 @@ namespace OpenSim.Region.Framework.Scenes
             ParentGroup.HasGroupChanged = true;
             TriggerScriptChangedEvent(Changed.SHAPE);
             ScheduleFullUpdate();
+        }
+
+        /// <summary>
+        /// If the part is a sculpt/mesh, retrieve the mesh data and reinsert it into the shape so that the physics
+        /// engine can use it.
+        /// </summary>
+        /// <remarks>
+        /// When the physics engine has finished with it, the sculpt data is discarded to save memory.
+        /// </remarks>
+        public void CheckSculptAndLoad()
+        {
+//            m_log.Debug("Processing CheckSculptAndLoad for {0} {1}", Name, LocalId);
+
+            if (ParentGroup.IsDeleted)
+                return;
+
+            if ((ParentGroup.RootPart.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) != 0)
+                return;
+
+            if (Shape.SculptEntry && Shape.SculptTexture != UUID.Zero)
+            {
+                // check if a previously decoded sculpt map has been cached
+                if (File.Exists(System.IO.Path.Combine("j2kDecodeCache", "smap_" + Shape.SculptTexture.ToString())))
+                {
+                    SculptTextureCallback(Shape.SculptTexture, null);
+                }
+                else
+                {
+                    ParentGroup.Scene.AssetService.Get(Shape.SculptTexture.ToString(), this, AssetReceived);
+                }
+            }
         }
 
         /// <summary>
@@ -4819,6 +4852,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Inventory.ApplyNextOwnerPermissions();
         }
+
         public void UpdateLookAt()
         {
             try

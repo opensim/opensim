@@ -3288,7 +3288,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             return retmass;
         }
-        
+
+        /// <summary>
+        /// If the object is a sculpt/mesh, retrieve the mesh data for each part and reinsert it into each shape so that
+        /// the physics engine can use it.
+        /// </summary>
+        /// <remarks>
+        /// When the physics engine has finished with it, the sculpt data is discarded to save memory.
+        /// </remarks>
         public void CheckSculptAndLoad()
         {
             if (IsDeleted)
@@ -3302,24 +3309,15 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart[] parts = m_parts.GetArray();
 
             for (int i = 0; i < parts.Length; i++)
-            {
-                SceneObjectPart part = parts[i];
-                if (part.Shape.SculptEntry && part.Shape.SculptTexture != UUID.Zero)
-                {
-                    // check if a previously decoded sculpt map has been cached
-                    if (File.Exists(System.IO.Path.Combine("j2kDecodeCache", "smap_" + part.Shape.SculptTexture.ToString())))
-                    {
-                        part.SculptTextureCallback(part.Shape.SculptTexture, null);
-                    }
-                    else
-                    {
-                        m_scene.AssetService.Get(
-                            part.Shape.SculptTexture.ToString(), part, AssetReceived);
-                    }
-                }
-            }
+                parts[i].CheckSculptAndLoad();
         }
 
+        /// <summary>
+        /// Handle an asset received asynchronously from the asset service.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="sender"></param>
+        /// <param name="asset"></param>
         protected void AssetReceived(string id, Object sender, AssetBase asset)
         {
             SceneObjectPart sop = (SceneObjectPart)sender;
