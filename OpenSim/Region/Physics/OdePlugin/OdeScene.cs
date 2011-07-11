@@ -26,7 +26,7 @@
  */
 
 //#define USE_DRAWSTUFF
-#define SPAM
+//#define SPAM
 
 using System;
 using System.Collections.Generic;

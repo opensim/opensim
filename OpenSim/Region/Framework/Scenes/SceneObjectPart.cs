@@ -1810,7 +1810,6 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         ParentGroup.Scene.jointErrorMessage(joint, "warning: tracked body name not found! joint location will not be updated properly. joint: " + Name);
                     }
-
                 }
                 else
                 {
@@ -1872,7 +1871,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                         PhysActor.IsPhysical = UsePhysics;
 
-
                         // If we're not what we're supposed to be in the physics scene, recreate ourselves.
                         //m_parentGroup.Scene.PhysicsScene.RemovePrim(PhysActor);
                         /// that's not wholesome.  Had to make Scene public
@@ -1896,6 +1894,7 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                         }
                     }
+
                     m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                 }
             }
@@ -2967,14 +2966,17 @@ namespace OpenSim.Region.Framework.Scenes
                 //if (texture != null)
                 {
                     if (texture != null)
+                    {
+//                        m_log.DebugFormat(
+//                            "[SCENE OBJECT PART]: Setting sculpt data for {0} on SculptTextureCallback()", Name);
+
                         m_shape.SculptData = texture.Data;
+                    }
 
                     if (PhysActor != null)
                     {
-                        // Tricks physics engine into thinking we've changed the part shape.
-                        PrimitiveBaseShape m_newshape = m_shape.Copy();
-                        PhysActor.Shape = m_newshape;
-                        m_shape = m_newshape;
+                        // Update the physics actor with the new loaded sculpt data and set the taint signal.
+                        PhysActor.Shape = m_shape;
 
                         m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                     }
@@ -3270,11 +3272,14 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_parentGroup.SetAxisRotation(axis, rotate);
             }
+
             //Cannot use ScriptBaseClass constants as no referance to it currently.
             if (axis == 2)//STATUS_ROTATE_X
                 STATUS_ROTATE_X = rotate;
+
             if (axis == 4)//STATUS_ROTATE_Y
                 STATUS_ROTATE_Y = rotate;
+
             if (axis == 8)//STATUS_ROTATE_Z
                 STATUS_ROTATE_Z = rotate;
         }
@@ -4418,6 +4423,7 @@ namespace OpenSim.Region.Framework.Scenes
                 RemFlag(PrimFlags.Phantom);
 
                 PhysicsActor pa = PhysActor;
+
                 if (pa == null)
                 {
                     // It's not phantom anymore. So make sure the physics engine get's knowledge of it
@@ -4434,6 +4440,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (pa != null)
                     {
                         DoPhysicsPropertyUpdate(UsePhysics, true);
+
                         if (m_parentGroup != null)
                         {
                             if (!m_parentGroup.IsDeleted)
@@ -4444,6 +4451,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 }
                             }
                         }
+
                         if (
                             ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
                             ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
@@ -4454,8 +4462,8 @@ namespace OpenSim.Region.Framework.Scenes
                             (CollisionSound != UUID.Zero)
                             )
                         {
-                                PhysActor.OnCollisionUpdate += PhysicsCollision;
-                                PhysActor.SubscribeEvents(1000);
+                            PhysActor.OnCollisionUpdate += PhysicsCollision;
+                            PhysActor.SubscribeEvents(1000);
                         }
                     }
                 }
@@ -4492,13 +4500,15 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             else
-            {   // Remove VolumeDetect in any case. Note, it's safe to call SetVolumeDetect as often as you like
+            {
+                // Remove VolumeDetect in any case. Note, it's safe to call SetVolumeDetect as often as you like
                 // (mumbles, well, at least if you have infinte CPU powers :-))
                 PhysicsActor pa = this.PhysActor;
                 if (pa != null)
                 {
                     PhysActor.SetVolumeDetect(0);
                 }
+
                 this.VolumeDetectActive = false;
             }
 

@@ -2104,6 +2104,7 @@ Console.WriteLine("changeshape not need meshing");
                     parent.ChildSetGeom(this);
                 }
             }
+
             resetCollisionAccounting();
             m_taintshape = false;
         }
@@ -2343,7 +2344,7 @@ Console.WriteLine("changeshape not need meshing");
         {
             lock (_parent_scene.OdeLock)
             {
-                m_isVolumeDetect = (param!=0);
+                m_isVolumeDetect = (param != 0);
             }
         }
 

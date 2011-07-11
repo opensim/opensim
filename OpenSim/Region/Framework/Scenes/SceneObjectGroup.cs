@@ -3297,7 +3297,10 @@ namespace OpenSim.Region.Framework.Scenes
             if ((RootPart.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) != 0)
                 return;
 
+//            m_log.Debug("Processing CheckSculptAndLoad for {0} {1}", Name, LocalId);
+
             SceneObjectPart[] parts = m_parts.GetArray();
+
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart part = parts[i];
