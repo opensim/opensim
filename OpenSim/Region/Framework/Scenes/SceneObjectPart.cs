@@ -2831,6 +2831,12 @@ namespace OpenSim.Region.Framework.Scenes
             StoreUndoState();
             m_shape.Scale = scale;
 
+            // If we're a mesh/sculpt, then we need to tell the physics engine about our new size.  To do this, we
+            // need to reinsert the sculpt data into the shape, since the physics engine deletes it when done to
+            // save memory
+            if (PhysActor != null)
+                CheckSculptAndLoad();
+
             ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
         }
@@ -4619,9 +4625,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Update the textures on the part.
         /// </summary>
+        /// <remarks>
         /// Added to handle bug in libsecondlife's TextureEntry.ToBytes()
         /// not handling RGBA properly. Cycles through, and "fixes" the color
         /// info
+        /// </remarks>
         /// <param name="tex"></param>
         public void UpdateTexture(Primitive.TextureEntry tex)
         {
