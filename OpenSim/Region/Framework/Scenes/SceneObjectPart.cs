@@ -4339,7 +4339,7 @@ namespace OpenSim.Region.Framework.Scenes
             bool wasPhantom = ((Flags & PrimFlags.Phantom) != 0);
             bool wasVD = VolumeDetectActive;
 
-            if ((UsePhysics == wasUsingPhysics) && (wasTemporary == SetTemporary) && (wasPhantom == SetPhantom) && (SetVD== wasVD))
+            if ((UsePhysics == wasUsingPhysics) && (wasTemporary == SetTemporary) && (wasPhantom == SetPhantom) && (SetVD == wasVD))
             {
                 return;
             }
