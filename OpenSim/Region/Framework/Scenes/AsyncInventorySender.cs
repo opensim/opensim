@@ -70,7 +70,7 @@ namespace OpenSim.Region.Framework.Scenes
     /// </remarks>
     public class AsyncInventorySender
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Scene m_scene;
 
