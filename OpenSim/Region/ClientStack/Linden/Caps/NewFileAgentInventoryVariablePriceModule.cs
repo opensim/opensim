@@ -160,8 +160,6 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 }
            // }
-            
-
 
             string assetName = llsdRequest.name;
             string assetDes = llsdRequest.description;
@@ -208,12 +206,10 @@ namespace OpenSim.Region.ClientStack.Linden
             return uploadResponse;
         }
 
-       
         public void UploadCompleteHandler(string assetName, string assetDescription, UUID assetID,
                                           UUID inventoryItem, UUID parentFolder, byte[] data, string inventoryType,
                                           string assetType,UUID AgentID)
         {
-            
             sbyte assType = 0;
             sbyte inType = 0;
 
@@ -266,7 +262,7 @@ namespace OpenSim.Region.ClientStack.Linden
             item.CurrentPermissions = (uint)PermissionMask.All;
             item.BasePermissions = (uint)PermissionMask.All;
             item.EveryOnePermissions = 0;
-            item.NextPermissions = (uint)(PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer);
+            item.NextPermissions = (uint)PermissionMask.All;
             item.CreationDate = Util.UnixTimeSinceEpoch();
             m_scene.AddInventoryItem(item);
             

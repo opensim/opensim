@@ -124,7 +124,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Hashtable MeshUploadFlag(Hashtable mDhttpMethod)
         {
-            m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: MeshUploadFlag request");
+//            m_log.DebugFormat("[MESH UPLOAD FLAG MODULE]: MeshUploadFlag request");
 
             OSDMap data = new OSDMap();
     	    ScenePresence sp = m_scene.GetScenePresence(m_agentID);

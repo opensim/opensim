@@ -687,7 +687,7 @@ namespace OpenSim.Region.ClientStack.Linden
             item.CurrentPermissions = (uint)PermissionMask.All;
             item.BasePermissions = (uint)PermissionMask.All;
             item.EveryOnePermissions = 0;
-            item.NextPermissions = (uint)(PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer);
+            item.NextPermissions = (uint)PermissionMask.All;
             item.CreationDate = Util.UnixTimeSinceEpoch();
 
             if (AddNewInventoryItem != null)
