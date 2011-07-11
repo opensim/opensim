@@ -859,7 +859,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void ProcessTaints(float timestep)
         {
-Console.WriteLine("ProcessTaints for " + Name);
+//Console.WriteLine("ProcessTaints for " + Name);
             if (m_taintadd)
             {
                 changeadd(timestep);
