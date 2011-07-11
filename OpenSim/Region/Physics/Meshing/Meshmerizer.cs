@@ -319,7 +319,7 @@ namespace OpenSim.Region.Physics.Meshing
                     if (!useMeshiesPhysicsMesh)
                         return null;
 
-                    m_log.Debug("[MESH]: experimental mesh proxy generation");
+                    m_log.DebugFormat("[MESH]: experimental mesh proxy generation for {0}", primName);
 
                     OSD meshOsd = null;
 
