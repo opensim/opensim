@@ -3736,6 +3736,34 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
             }
         }
 
+        public override void RaycastWorld(Vector3 position, Vector3 direction, float length, int Count, RayCallback retMethod)
+        {
+            if (retMethod != null)
+            {
+                m_rayCastManager.QueueRequest(position, direction, length, Count, retMethod);
+            }
+        }
+
+        public override List<ContactResult> RaycastWorld(Vector3 position, Vector3 direction, float length, int Count)
+        {
+            ContactResult[] ourResults = null;
+            RayCallback retMethod = delegate(List<ContactResult> results)
+            {
+                ourResults = new ContactResult[results.Count];
+                results.CopyTo(ourResults, 0);
+            };
+            int waitTime = 0;
+            m_rayCastManager.QueueRequest(position, direction, length, Count, retMethod);
+            while (ourResults == null && waitTime < 1000)
+            {
+                Thread.Sleep(1);
+                waitTime++;
+            }
+            if (ourResults == null)
+                return new List<ContactResult> ();
+            return new List<ContactResult>(ourResults);
+        }
+
 #if USE_DRAWSTUFF
         // Keyboard callback
         public void command(int cmd)

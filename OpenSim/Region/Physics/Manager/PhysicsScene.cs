@@ -37,6 +37,18 @@ namespace OpenSim.Region.Physics.Manager
     public delegate void physicsCrash();
 
     public delegate void RaycastCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 normal);
+    public delegate void RayCallback(List<ContactResult> list);
+
+    /// <summary>
+    /// Contact result from a raycast.
+    /// </summary>
+    public struct ContactResult
+    {
+        public Vector3 Pos;
+        public float Depth;
+        public uint ConsumerID;
+        public Vector3 Normal;
+    }
 
     public abstract class PhysicsScene
     {
@@ -60,7 +72,6 @@ namespace OpenSim.Region.Physics.Manager
                 OnPhysicsCrash();
             }
         }
-
 
         public abstract void Initialise(IMesher meshmerizer, IConfigSource config);
 
@@ -223,6 +234,17 @@ namespace OpenSim.Region.Physics.Manager
         {
             if (retMethod != null)
                 retMethod(false, Vector3.Zero, 0, 999999999999f, Vector3.Zero);
+        }
+
+        public virtual void RaycastWorld(Vector3 position, Vector3 direction, float length, int Count, RayCallback retMethod)
+        {
+            if (retMethod != null)
+                retMethod(new List<ContactResult>());
+        }
+
+        public virtual List<ContactResult> RaycastWorld(Vector3 position, Vector3 direction, float length, int Count)
+        {
+            return new List<ContactResult>();
         }
 
         private class NullPhysicsScene : PhysicsScene
