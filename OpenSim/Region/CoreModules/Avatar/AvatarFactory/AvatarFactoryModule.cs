@@ -224,12 +224,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     // update transaction. In theory, we should be able to do an immediate
                     // appearance send and save here.
 
-                    // save only if there were changes, send no matter what (doesn't hurt to send twice)
-                    if (changed)
-                        QueueAppearanceSave(client.AgentId);
-
-                    QueueAppearanceSend(client.AgentId);
                 }
+				// save only if there were changes, send no matter what (doesn't hurt to send twice)
+				if (changed)
+					QueueAppearanceSave(client.AgentId);
+
+				QueueAppearanceSend(client.AgentId);
             }
 
             // m_log.WarnFormat("[AVFACTORY]: complete SetAppearance for {0}:\n{1}",client.AgentId,sp.Appearance.ToString());
