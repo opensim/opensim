@@ -1751,8 +1751,9 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart rootPart = group.GetChildPart(group.UUID);
                 rootPart.Flags &= ~PrimFlags.Scripted;
                 rootPart.TrimPermissions();
-                group.CheckSculptAndLoad();
-                //rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
+
+                // Don't do this here - it will get done later on when sculpt data is loaded.
+//                group.CheckSculptAndLoad();
             }
 
             m_log.Info("[SCENE]: Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");

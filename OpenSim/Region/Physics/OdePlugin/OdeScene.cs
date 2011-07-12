@@ -1723,20 +1723,21 @@ namespace OpenSim.Region.Physics.OdePlugin
             PhysicsActor result;
             IMesh mesh = null;
 
-            if (needsMeshing(pbs))
-            {
-                try
-                {
-                    mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
-                }
-                catch(Exception e)
-                {
-                    m_log.ErrorFormat("[PHYSICS]: Exception while meshing prim {0}.", primName);
-                    m_log.Debug(e.ToString());
-                    mesh = null;
-                    return null;
-                }
-            }
+            // Don't create the mesh here - wait until the mesh data is loaded from the asset store.
+//            if (needsMeshing(pbs))
+//            {
+//                try
+//                {
+//                    mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
+//                }
+//                catch(Exception e)
+//                {
+//                    m_log.ErrorFormat("[PHYSICS]: Exception while meshing prim {0}.", primName);
+//                    m_log.Debug(e.ToString());
+//                    mesh = null;
+//                    return null;
+//                }
+//            }
 
             result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical);
 
@@ -2590,7 +2591,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (!(_taintedPrimH.Contains(taintedprim))) 
                     {
-//Console.WriteLine("AddPhysicsActorTaint to " +  taintedprim.m_primName);
+#if SPAM
+Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
+#endif
                         _taintedPrimH.Add(taintedprim);                    // HashSet for searching
                         _taintedPrimL.Add(taintedprim);                    // List for ordered readout
                     }

@@ -584,7 +584,7 @@ namespace OpenSim.Region.Framework.Scenes
                 part.ParentID = m_rootPart.LocalId;
                 //m_log.DebugFormat("[SCENE]: Given local id {0} to part {1}, linknum {2}, parent {3} {4}", part.LocalId, part.UUID, part.LinkNum, part.ParentID, part.ParentUUID);
             }
-            
+
             ApplyPhysics(m_scene.m_physicalPrim);
 
             // Don't trigger the update here - otherwise some client issues occur when multiple updates are scheduled

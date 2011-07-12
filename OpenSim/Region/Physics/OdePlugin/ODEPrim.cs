@@ -638,7 +638,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             float profileEnd;
 
             if (_pbs.PathCurve == (byte)Extrusion.Straight || _pbs.PathCurve == (byte)Extrusion.Flexible)
-                {
+            {
                 taperX1 = _pbs.PathScaleX * 0.01f;
                 if (taperX1 > 1.0f)
                     taperX1 = 2.0f - taperX1;
@@ -648,9 +648,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (taperY1 > 1.0f)
                     taperY1 = 2.0f - taperY1;
                 taperY = 1.0f - taperY1;
-                }
+            }
             else
-                {
+            {
                 taperX = _pbs.PathTaperX * 0.01f;
                 if (taperX < 0.0f)
                     taperX = -taperX;
@@ -660,9 +660,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (taperY < 0.0f)
                     taperY = -taperY;
                 taperY1 = 1.0f - taperY;
-
-                }
-
+            }
 
             volume *= (taperX1 * taperY1 + 0.5f * (taperX1 * taperY + taperX * taperY1) + 0.3333333333f * taperX * taperY);
 
@@ -859,7 +857,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void ProcessTaints(float timestep)
         {
-//Console.WriteLine("ProcessTaints for " + Name);
+#if SPAM
+Console.WriteLine("ZProcessTaints for " + Name);
+#endif
             if (m_taintadd)
             {
                 changeadd(timestep);
@@ -1323,7 +1323,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void CreateGeom(IntPtr m_targetSpace, IMesh _mesh)
         {
-//Console.WriteLine("CreateGeom:");
+#if SPAM
+Console.WriteLine("CreateGeom:");
+#endif
             if (_mesh != null)
             {
                 setMesh(_parent_scene, _mesh);
@@ -1944,7 +1946,6 @@ Console.WriteLine(" JointCreateFixed");
                 if (_parent_scene.needsMeshing(_pbs))
                     mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
 
-                //IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
 #if SPAM
 Console.WriteLine("changesize 1");
 #endif
@@ -2056,8 +2057,8 @@ Console.WriteLine("changesize 2");
                 if (IsPhysical)
                     meshlod = _parent_scene.MeshSculptphysicalLOD;
 
-                IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
                 // createmesh returns null when it doesn't mesh.
+                IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
 #if SPAM
 Console.WriteLine("changeshape needed meshing");
 #endif
