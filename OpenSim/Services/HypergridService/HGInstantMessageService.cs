@@ -326,7 +326,6 @@ namespace OpenSim.Services.HypergridService
                 // This is recursive!!!!!
                 return TrySendInstantMessage(im, url, false, foreigner);
             }
-
         }
 
         private bool UndeliveredMessage(GridInstantMessage im)
@@ -335,11 +334,10 @@ namespace OpenSim.Services.HypergridService
                 && (!im.fromGroup || (im.fromGroup && m_ForwardOfflineGroupMessages)))
             {
                 m_log.DebugFormat("[HG IM SERVICE]: Message saved");
-                return SynchronousRestObjectPoster.BeginPostObject<GridInstantMessage, bool>(
+
+                return SynchronousRestObjectRequester.MakeRequest<GridInstantMessage, bool>(
                          "POST", m_RestURL + "/SaveMessage/", im);
-
             }
-
             else
             {
                 return false;
