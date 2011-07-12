@@ -844,7 +844,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return;
             }
 
-
            // if (IsPhysical && Body == (IntPtr) 0)
            // {
                 // Recreate the body
