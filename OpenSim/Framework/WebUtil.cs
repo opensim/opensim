@@ -981,7 +981,6 @@ namespace OpenSim.Framework
                     }
                     else
                         m_log.DebugFormat("[SynchronousRestObjectRequester]: Oops! no content found in response stream from {0} {1}", requestUrl, verb);
-
                 }
             }
             catch (WebException e)
