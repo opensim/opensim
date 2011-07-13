@@ -987,6 +987,17 @@ namespace OpenSim.Framework
 
                 }
             }
+            catch (WebException e)
+            {
+                HttpWebResponse hwr = (HttpWebResponse)e.Response;
+
+                if (hwr != null && hwr.StatusCode == HttpStatusCode.NotFound)
+                    return deserial;
+                else
+                    m_log.ErrorFormat(
+                        "[SynchronousRestObjectRequester]: WebException {0} {1} {2} {3}",
+                        requestUrl, typeof(TResponse).ToString(), e.Message, e.StackTrace);
+            }
             catch (System.InvalidOperationException)
             {
                 // This is what happens when there is invalid XML
