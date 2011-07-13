@@ -972,9 +972,6 @@ namespace OpenSim.Framework
             {
                 using (HttpWebResponse resp = (HttpWebResponse)request.GetResponse())
                 {
-                    if (resp.StatusCode == HttpStatusCode.NotFound)
-                        return deserial;
-
                     if (resp.ContentLength != 0)
                     {
                         Stream respStream = resp.GetResponseStream();
