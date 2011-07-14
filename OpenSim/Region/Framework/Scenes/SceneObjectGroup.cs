@@ -1463,16 +1463,16 @@ namespace OpenSim.Region.Framework.Scenes
                 // Need to duplicate the physics actor as well
                 if (part.PhysActor != null && userExposed)
                 {
-                    PrimitiveBaseShape pbs = part.Shape;
+                    PrimitiveBaseShape pbs = newPart.Shape;
     
                     newPart.PhysActor
                         = m_scene.PhysicsScene.AddPrimShape(
-                            part.LocalId,
-                            string.Format("{0}/{1}", part.Name, part.UUID),
+                            newPart.LocalId,
+                            string.Format("{0}/{1}", newPart.Name, newPart.UUID),
                             pbs,
-                            part.AbsolutePosition,
-                            part.Scale,
-                            part.RotationOffset,
+                            newPart.AbsolutePosition,
+                            newPart.Scale,
+                            newPart.RotationOffset,
                             part.PhysActor.IsPhysical);
     
                     newPart.DoPhysicsPropertyUpdate(part.PhysActor.IsPhysical, true);
