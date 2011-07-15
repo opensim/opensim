@@ -1717,7 +1717,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
-                                     IMesh mesh, PrimitiveBaseShape pbs, bool isphysical)
+                                     IMesh mesh, PrimitiveBaseShape pbs, bool isphysical, uint localid)
         {
 
             Vector3 pos = position;
@@ -1727,7 +1727,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             OdePrim newPrim;
             lock (OdeLock)
             {
-                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs, isphysical, ode);
+                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs, isphysical, ode, localid);
 
                 lock (_prims)
                     _prims.Add(newPrim);
@@ -1749,13 +1749,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation) //To be removed
-        {
-            return AddPrimShape(primName, pbs, position, size, rotation, false);
-        }
-
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation, bool isPhysical)
+                                                  Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
         {
             PhysicsActor result;
             IMesh mesh = null;
@@ -1763,7 +1757,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (needsMeshing(pbs))
                 mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
 
-            result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical);
+            result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical, localid);
 
             return result;
         }
