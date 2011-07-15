@@ -108,13 +108,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         }
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation) //To be removed
-        {
-            return AddPrimShape(primName, pbs, position, size, rotation, false);
-        }
-
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation, bool isPhysical)
+                                                  Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
         {
             return AddPrim(position, size, rotation);
         }
