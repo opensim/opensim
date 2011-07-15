@@ -1767,7 +1767,8 @@ namespace OpenSim.Region.Framework.Scenes
                                 part.AbsolutePosition,
                                 part.Scale,
                                 part.RotationOffset,
-                                part.PhysActor.IsPhysical);
+                                part.PhysActor.IsPhysical,
+                                m_localId);
                         part.PhysActor.SetMaterial((int)part.Material);
         
                         part.PhysActor.LocalID = part.LocalId;

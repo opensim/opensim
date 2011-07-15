@@ -256,8 +256,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
         public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
-                       Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
+                       Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode, uint localid)
         {
+            m_localID = localid;
             ode = dode;
             if (!pos.IsFinite())
             {
