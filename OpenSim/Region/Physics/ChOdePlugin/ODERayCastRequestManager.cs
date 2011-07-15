@@ -109,8 +109,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                     ODERayCastRequest[] reqs = m_PendingRequests.ToArray();
                     for (int i = 0; i < reqs.Length; i++)
                     {
-                        if (reqs[i].callbackMethod != null) // quick optimization here, don't raycast 
-                            RayCast(reqs[i]);               // if there isn't anyone to send results   
+                        try
+                        {
+                            if (reqs[i].callbackMethod != null) // quick optimization here, don't raycast 
+                                RayCast(reqs[i]);               // if there isn't anyone to send results   
+                        }
+                        catch
+                        {
+                            //Fail silently
+                            //This can genuinely happen because raycast requests are queued, and the actor may have
+                            //been removed from the scene since it was queued
+                        }
                     }
                     /*
                     foreach (ODERayCastRequest req in m_PendingRequests)
