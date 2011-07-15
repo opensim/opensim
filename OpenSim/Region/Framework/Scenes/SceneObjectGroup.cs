@@ -1467,13 +1467,13 @@ namespace OpenSim.Region.Framework.Scenes
     
                     newPart.PhysActor
                         = m_scene.PhysicsScene.AddPrimShape(
-                            newPart.LocalId,
                             string.Format("{0}/{1}", newPart.Name, newPart.UUID),
                             pbs,
                             newPart.AbsolutePosition,
                             newPart.Scale,
                             newPart.RotationOffset,
-                            part.PhysActor.IsPhysical);
+                            part.PhysActor.IsPhysical,
+                            newPart.LocalId);
     
                     newPart.DoPhysicsPropertyUpdate(part.PhysActor.IsPhysical, true);
                 }

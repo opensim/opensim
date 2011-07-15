@@ -88,15 +88,16 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void RemovePrim(PhysicsActor prim);
 
+        //public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
+        //                                          Vector3 size, Quaternion rotation); //To be removed - Actually removed!
+
         public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation); //To be removed
-        public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation, bool isPhysical);
+                                                  Vector3 size, Quaternion rotation, bool isPhysical, uint localid);
 
         public virtual PhysicsActor AddPrimShape(uint localID, string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation, bool isPhysical)
+                                                  Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
         {
-            PhysicsActor ret = AddPrimShape(primName, pbs, position, size, rotation, isPhysical);
+            PhysicsActor ret = AddPrimShape(primName, pbs, position, size, rotation, isPhysical, localid);
 
             if (ret != null)
                 ret.LocalID = localID;
@@ -284,13 +285,7 @@ namespace OpenSim.Region.Physics.Manager
 */
 
             public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                      Vector3 size, Quaternion rotation) //To be removed
-            {
-                return AddPrimShape(primName, pbs, position, size, rotation, false);
-            }
-
-            public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                      Vector3 size, Quaternion rotation, bool isPhysical)
+                                                      Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
             {
                 m_log.InfoFormat("[PHYSICS]: NullPhysicsScene : AddPrim({0},{1})", position, size);
                 return PhysicsActor.Null;

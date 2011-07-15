@@ -1588,17 +1588,23 @@ namespace OpenSim.Region.Framework.Scenes
                 // or flexible
                 if (!isPhantom && !IsAttachment && !(Shape.PathCurve == (byte) Extrusion.Flexible))
                 {
-//                    m_log.DebugFormat("[SCENE OBJECT PART]: Creating PhysActor for {0} {1} {2}", Name, LocalId, UUID);
-
-                    PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
-                        LocalId,
-                        string.Format("{0}/{1}", Name, UUID),
-                        Shape,
-                        AbsolutePosition,
-                        Scale,
-                        RotationOffset,
-                        RigidBody);
-
+                    try
+                    {
+                        PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
+                                string.Format("{0}/{1}", Name, UUID),
+                                Shape,
+                                AbsolutePosition,
+                                Scale,
+                                RotationOffset,
+                                RigidBody,
+                                m_localId);
+                        PhysActor.SetMaterial(Material);
+                    }
+                    catch
+                    {
+                        m_log.ErrorFormat("[SCENE]: caught exception meshing object {0}. Object set to phantom.", m_uuid);
+                        PhysActor = null;
+                    }
                     // Basic Physics returns null..  joy joy joy.
                     if (PhysActor != null)
                     {
@@ -4446,7 +4452,9 @@ namespace OpenSim.Region.Framework.Scenes
                         AbsolutePosition,
                         Scale,
                         RotationOffset,
-                        UsePhysics);
+                        UsePhysics,
+                        m_localId);
+                    PhysActor.SetMaterial(Material);
 
                     pa = PhysActor;
                     if (pa != null)
