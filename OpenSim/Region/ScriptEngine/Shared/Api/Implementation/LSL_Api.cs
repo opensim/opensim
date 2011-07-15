@@ -2214,7 +2214,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetVel()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Vector(m_host.Velocity.X, m_host.Velocity.Y, m_host.Velocity.Z);
+
+            Vector3 vel;
+
+            if (m_host.IsAttachment)
+            {
+                ScenePresence avatar = m_host.ParentGroup.Scene.GetScenePresence(m_host.AttachedAvatar);
+                vel = avatar.Velocity;
+            }
+            else
+            {
+                vel = m_host.Velocity;
+            }
+
+            return new LSL_Vector(vel.X, vel.Y, vel.Z);
         }
 
         public LSL_Vector llGetAccel()
@@ -10021,8 +10034,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 break;
                         }
                     }
+
                     return ret;
                 }
+
                 SceneObjectPart obj = World.GetSceneObjectPart(key);
                 if (obj != null)
                 {
