@@ -1633,8 +1633,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 AbsolutePosition,
                                 Scale,
                                 RotationOffset,
-                                RigidBody,
-                                m_localId);
+                                RigidBody);
                         PhysActor.SetMaterial(Material);
                     }
                     catch
@@ -4443,8 +4442,7 @@ namespace OpenSim.Region.Framework.Scenes
                         AbsolutePosition,
                         Scale,
                         RotationOffset,
-                        UsePhysics,
-                        m_localId);
+                        UsePhysics);
                     PhysActor.SetMaterial(Material);
 
                     pa = PhysActor;

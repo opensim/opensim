@@ -1708,7 +1708,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
+                                                  Vector3 size, Quaternion rotation) //To be removed
+        {
+            return AddPrimShape(primName, pbs, position, size, rotation, false);
+        }
+
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
+                                                  Vector3 size, Quaternion rotation, bool isPhysical)
         {
 #if SPAM
             m_log.DebugFormat("[PHYSICS]: Adding physics actor to {0}", primName);

@@ -91,7 +91,13 @@ namespace OpenSim.Region.Physics.POSPlugin
 */
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
+                                                  Vector3 size, Quaternion rotation)
+        {
+            return AddPrimShape(primName, pbs, position, size, rotation, false);
+        }
+
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
+                                                  Vector3 size, Quaternion rotation, bool isPhysical)
         {
             POSPrim prim = new POSPrim();
             prim.Position = position;

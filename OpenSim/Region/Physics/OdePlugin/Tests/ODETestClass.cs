@@ -83,7 +83,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             Vector3 position = new Vector3(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f), 128f);
             Vector3 size = new Vector3(0.5f, 0.5f, 0.5f);
             Quaternion rot = Quaternion.Identity;
-            PhysicsActor prim = ps.AddPrimShape("CoolShape", newcube, position, size, rot, true, 0);
+            PhysicsActor prim = ps.AddPrimShape("CoolShape", newcube, position, size, rot, true);
             OdePrim oprim = (OdePrim)prim;
             OdeScene pscene = (OdeScene) ps;
 

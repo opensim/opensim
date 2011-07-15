@@ -213,7 +213,12 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             return newPrim;
         }
 
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position, Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position, Vector3 size, Quaternion rotation)
+        {
+            return AddPrimShape(primName, pbs, position, size, rotation, false);
+        }
+
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position, Vector3 size, Quaternion rotation, bool isPhysical)
         {
             PhysicsActor result;
             IMesh mesh = null;

@@ -626,7 +626,13 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         }
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, OpenMetaverse.Vector3 position,
-                                                  OpenMetaverse.Vector3 size, OpenMetaverse.Quaternion rotation, bool isPhysical, uint localid)
+                                                  OpenMetaverse.Vector3 size, OpenMetaverse.Quaternion rotation)
+        {
+            return AddPrimShape(primName, pbs, position, size, rotation, false);
+        }
+
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, OpenMetaverse.Vector3 position,
+                                                  OpenMetaverse.Vector3 size, OpenMetaverse.Quaternion rotation, bool isPhysical)
         {
             PhysicsActor result;
 
