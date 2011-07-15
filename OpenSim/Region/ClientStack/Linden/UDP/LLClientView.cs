@@ -574,22 +574,42 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return result;
         }
 
+        /// <summary>
+        /// Add a handler for the given packet type.
+        /// </summary>
+        /// <remarks>The packet is handled on its own thread.  If packets must be handled in the order in which thye
+        /// are received then please us ethe synchronous version of this method.</remarks>
+        /// <param name="packetType"></param>
+        /// <param name="handler"></param>
+        /// <returns>true if the handler was added.  This is currently always the case.</returns>
         public bool AddLocalPacketHandler(PacketType packetType, PacketMethod handler)
         {
             return AddLocalPacketHandler(packetType, handler, true);
         }
 
-        public bool AddLocalPacketHandler(PacketType packetType, PacketMethod handler, bool async)
+        /// <summary>
+        /// Add a handler for the given packet type.
+        /// </summary>
+        /// <param name="packetType"></param>
+        /// <param name="handler"></param>
+        /// <param name="doAsync">
+        /// If true, when the packet is received it is handled on its own thread rather than on the main inward bound
+        /// packet handler thread.  This vastly increases respnosiveness but some packets need to be handled
+        /// synchronously.
+        /// </param>
+        /// <returns>true if the handler was added.  This is currently always the case.</returns>
+        public bool AddLocalPacketHandler(PacketType packetType, PacketMethod handler, bool doAsync)
         {
             bool result = false;
             lock (m_packetHandlers)
             {
                 if (!m_packetHandlers.ContainsKey(packetType))
                 {
-                    m_packetHandlers.Add(packetType, new PacketProcessor() { method = handler, Async = async });
+                    m_packetHandlers.Add(packetType, new PacketProcessor() { method = handler, Async = doAsync });
                     result = true;
                 }
             }
+
             return result;
         }
 
