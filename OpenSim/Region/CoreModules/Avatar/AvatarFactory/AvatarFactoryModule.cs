@@ -180,8 +180,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         }
 
         /// <summary>
-        /// Set appearance data (textureentry and slider settings) received from the client
+        /// Set appearance data (texture asset IDs and slider settings) received from the client
         /// </summary>
+        /// <param name="client"></param>
         /// <param name="texture"></param>
         /// <param name="visualParam"></param>
         public void SetAppearance(IClientAPI client, Primitive.TextureEntry textureEntry, byte[] visualParams)

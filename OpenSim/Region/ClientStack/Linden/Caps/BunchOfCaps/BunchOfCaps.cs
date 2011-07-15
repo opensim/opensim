@@ -331,14 +331,22 @@ namespace OpenSim.Region.ClientStack.Linden
             }
         }
 
+        /// <summary>
+        /// Handle a request from the client for a Uri to upload a baked texture.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        /// <param name="httpRequest"></param>
+        /// <param name="httpResponse"></param>
+        /// <returns>The upload response if the request is successful, null otherwise.</returns>
         public string UploadBakedTexture(string request, string path,
                 string param, OSHttpRequest httpRequest,
                 OSHttpResponse httpResponse)
         {
             try
             {
-                //                m_log.Debug("[CAPS]: UploadBakedTexture Request in region: " +
-                //                        m_regionName);
+//                m_log.Debug("[CAPS]: UploadBakedTexture Request in region: " + m_regionName);
 
                 string capsBase = "/CAPS/" + m_HostCapsObj.CapsObjectPath;
                 string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
@@ -374,6 +382,11 @@ namespace OpenSim.Region.ClientStack.Linden
             return null;
         }
 
+        /// <summary>
+        /// Called when a baked texture has been successfully uploaded by a client.
+        /// </summary>
+        /// <param name="assetID"></param>
+        /// <param name="data"></param>
         public void BakedTextureUploaded(UUID assetID, byte[] data)
         {
             //            m_log.WarnFormat("[CAPS]: Received baked texture {0}", assetID.ToString());
