@@ -3687,6 +3687,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (m_parentGroup != null)
                     {
+//                        m_log.DebugFormat("[SCENE OBJECT PART]: Storing undo state for {0} {1}", Name, LocalId);
+
                         lock (m_undo)
                         {
                             if (m_undo.Count > 0)
@@ -3705,11 +3707,18 @@ namespace OpenSim.Region.Framework.Scenes
 
                                 m_undo.Push(nUndo);
                             }
-
                         }
                     }
                 }
+//                else
+//                {
+//                    m_log.DebugFormat("[SCENE OBJECT PART]: Ignoring undo store for {0} {1}", Name, LocalId);
+//                }
             }
+//            else
+//            {
+//                m_log.DebugFormat("[SCENE OBJECT PART]: Ignoring undo store for {0} {1} since already undoing", Name, LocalId);
+//            }
         }
 
         public EntityIntersection TestIntersection(Ray iray, Quaternion parentrot)
@@ -4179,11 +4188,14 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_undo.Count > 0)
                 {
                     UndoState nUndo = null;
+
                     if (m_parentGroup.GetSceneMaxUndo() > 0)
                     {
                         nUndo = new UndoState(this);
                     }
+                    
                     UndoState goback = m_undo.Pop();
+
                     if (goback != null)
                     {
                         goback.PlaybackState(this);
@@ -4196,6 +4208,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Redo()
         {
+//            m_log.DebugFormat("[SCENE OBJECT PART]: Handling redo request for {0} {1}", Name, LocalId);
+
             lock (m_redo)
             {
                 if (m_parentGroup.GetSceneMaxUndo() > 0)
@@ -4204,7 +4218,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                     m_undo.Push(nUndo);
                 }
+
                 UndoState gofwd = m_redo.Pop();
+
                 if (gofwd != null)
                     gofwd.PlayfwdState(this);
             }

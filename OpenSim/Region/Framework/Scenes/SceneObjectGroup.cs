@@ -2623,21 +2623,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             RootPart.IgnoreUndoUpdate = true;
 
-            if (scale.X > m_scene.m_maxNonphys)
-                scale.X = m_scene.m_maxNonphys;
-            if (scale.Y > m_scene.m_maxNonphys)
-                scale.Y = m_scene.m_maxNonphys;
-            if (scale.Z > m_scene.m_maxNonphys)
-                scale.Z = m_scene.m_maxNonphys;
+            scale.X = Math.Min(scale.X, Scene.m_maxNonphys);
+            scale.Y = Math.Min(scale.Y, Scene.m_maxNonphys);
+            scale.Z = Math.Min(scale.Z, Scene.m_maxNonphys);
 
             if (RootPart.PhysActor != null && RootPart.PhysActor.IsPhysical)
             {
-                if (scale.X > m_scene.m_maxPhys)
-                    scale.X = m_scene.m_maxPhys;
-                if (scale.Y > m_scene.m_maxPhys)
-                    scale.Y = m_scene.m_maxPhys;
-                if (scale.Z > m_scene.m_maxPhys)
-                    scale.Z = m_scene.m_maxPhys;
+                scale.X = Math.Min(scale.X, Scene.m_maxPhys);
+                scale.Y = Math.Min(scale.Y, Scene.m_maxPhys);
+                scale.Z = Math.Min(scale.Z, Scene.m_maxPhys);
             }
 
             float x = (scale.X / RootPart.Scale.X);
@@ -2715,7 +2709,6 @@ namespace OpenSim.Region.Framework.Scenes
                         }
 
                         obPart.IgnoreUndoUpdate = false;
-                        obPart.StoreUndoState();
                     }
                 }
             }
@@ -2753,6 +2746,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             RootPart.IgnoreUndoUpdate = false;
+
             RootPart.StoreUndoState();
         }
 

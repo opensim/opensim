@@ -569,6 +569,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (primId != UUID.Zero)
             {
                 SceneObjectPart part = m_parentScene.GetSceneObjectPart(primId);
+
                 if (part != null)
                     part.Redo();
             }
