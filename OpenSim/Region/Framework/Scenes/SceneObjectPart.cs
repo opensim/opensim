@@ -1736,6 +1736,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (asset != null)
                 SculptTextureCallback(asset);
+            else
+                m_log.WarnFormat(
+                    "[SCENE OBJECT PART]: Part {0} {1} requested mesh/sculpt data for asset id {2} from asset service but received no data",
+                    Name, LocalId, id);
         }
 
         public static SceneObjectPart Create()
