@@ -1711,7 +1711,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (dupe.m_shape.SculptEntry && dupe.m_shape.SculptTexture != UUID.Zero)
                 {
-                    m_parentGroup.Scene.AssetService.Get(dupe.m_shape.SculptTexture.ToString(), dupe, AssetReceived); 
+                    ParentGroup.Scene.AssetService.Get(
+                        dupe.m_shape.SculptTexture.ToString(), dupe, dupe.AssetReceived);
                 }
                 
                 bool UsePhysics = ((dupe.Flags & PrimFlags.Physics) != 0);
@@ -1725,14 +1726,16 @@ namespace OpenSim.Region.Framework.Scenes
             return dupe;
         }
 
+        /// <summary>
+        /// Called back by asynchronous asset fetch.
+        /// </summary>
+        /// <param name="id">ID of asset received</param>
+        /// <param name="sender">Register</param>
+        /// <param name="asset"></param>
         protected void AssetReceived(string id, Object sender, AssetBase asset)
         {
             if (asset != null)
-            {
-                SceneObjectPart sop = (SceneObjectPart)sender;
-                if (sop != null)
-                    sop.SculptTextureCallback(asset);
-            }
+                SculptTextureCallback(asset);
         }
 
         public static SceneObjectPart Create()
