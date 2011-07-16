@@ -303,6 +303,10 @@ namespace OpenSim.Region.Physics.Meshing
 
         private Mesh CreateMeshFromPrimMesher(string primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
         {
+//            m_log.DebugFormat(
+//                "[MESH]: Creating physics proxy for {0}, shape {1}",
+//                primName, (OpenMetaverse.SculptType)primShape.SculptType);
+
             PrimMesh primMesh;
             PrimMesher.SculptMesh sculptMesh;
 
@@ -668,7 +672,6 @@ namespace OpenSim.Region.Physics.Meshing
 
             // If this mesh has been created already, return it instead of creating another copy
             // For large regions with 100k+ prims and hundreds of copies of each, this can save a GB or more of memory
-
             key = GetMeshKey(primShape, size, lod);
             if (m_uniqueMeshes.TryGetValue(key, out mesh))
                 return mesh;

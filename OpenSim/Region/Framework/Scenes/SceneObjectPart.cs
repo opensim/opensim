@@ -2839,6 +2839,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="scale"></param>
         public void Resize(Vector3 scale)
         {
+//            m_log.DebugFormat("[SCENE OBJECT PART]: Resizing {0} {1} to {2}", Name, LocalId, scale);
+
             StoreUndoState();
             m_shape.Scale = scale;
 
@@ -2976,6 +2978,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Sets sculpt and mesh data, and tells the physics engine to process the change.
+        /// </summary>
+        /// <param name="textureID">Texture id of the mesh.  XXX: Redundant since this is also in AssetBase</param>
+        /// <param name="texture">The mesh itself.</param>
         public void SculptTextureCallback(UUID textureID, AssetBase texture)
         {
             if (m_shape.SculptEntry)
@@ -4613,7 +4620,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public void CheckSculptAndLoad()
         {
-//            m_log.Debug("Processing CheckSculptAndLoad for {0} {1}", Name, LocalId);
+//            m_log.DebugFormat("Processing CheckSculptAndLoad for {0} {1}", Name, LocalId);
 
             if (ParentGroup.IsDeleted)
                 return;

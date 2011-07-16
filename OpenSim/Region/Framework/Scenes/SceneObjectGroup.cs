@@ -2662,13 +2662,18 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT GROUP]: Group resizing {0} {1} from {2} to {3}", Name, localID, part.Scale, scale);
+
                 part.IgnoreUndoUpdate = true;
+
                 if (scale.X > m_scene.m_maxNonphys)
                     scale.X = m_scene.m_maxNonphys;
                 if (scale.Y > m_scene.m_maxNonphys)
                     scale.Y = m_scene.m_maxNonphys;
                 if (scale.Z > m_scene.m_maxNonphys)
                     scale.Z = m_scene.m_maxNonphys;
+
                 if (part.PhysActor != null && part.PhysActor.IsPhysical)
                 {
                     if (scale.X > m_scene.m_maxPhys)
@@ -2780,7 +2785,14 @@ namespace OpenSim.Region.Framework.Scenes
                         newSize.Z *= z;
                         obPart.Resize(newSize);
                         obPart.UpdateOffSet(currentpos);
+
+                        if (obPart.PhysActor != null)
+                        {
+                            obPart.PhysActor.Size = newSize;
+                            m_scene.PhysicsScene.AddPhysicsActorTaint(obPart.PhysActor);
+                        }
                     }
+
                     obPart.IgnoreUndoUpdate = false;
                     obPart.StoreUndoState();
                 }
