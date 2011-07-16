@@ -2611,6 +2611,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Resize
 
+
         /// <summary>
         /// Resize the entire group of prims.
         /// </summary>
@@ -2712,6 +2713,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 z *= a;
                             }
                         }
+
                         obPart.IgnoreUndoUpdate = false;
                         obPart.StoreUndoState();
                     }
@@ -2729,47 +2731,29 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SceneObjectPart obPart = parts[i];
                 obPart.IgnoreUndoUpdate = true;
+
                 if (obPart.UUID != m_rootPart.UUID)
                 {
                     Vector3 currentpos = new Vector3(obPart.OffsetPosition);
                     currentpos.X *= x;
                     currentpos.Y *= y;
                     currentpos.Z *= z;
+
                     Vector3 newSize = new Vector3(obPart.Scale);
                     newSize.X *= x;
                     newSize.Y *= y;
                     newSize.Z *= z;
+                    
                     obPart.Resize(newSize);
                     obPart.UpdateOffSet(currentpos);
-
-                    if (obPart.PhysActor != null)
-                    {
-                        obPart.PhysActor.Size = newSize;
-
-                        // If we're a sculpt wait for the trigger when the sculpt texture is retrieved.
-                        if (((OpenMetaverse.SculptType)obPart.Shape.SculptType) != SculptType.Mesh)
-                            m_scene.PhysicsScene.AddPhysicsActorTaint(obPart.PhysActor);
-                    }
                 }
 
                 obPart.IgnoreUndoUpdate = false;
                 obPart.StoreUndoState();
             }
 
-            if (RootPart.PhysActor != null)
-            {
-                RootPart.PhysActor.Size = prevScale;
-
-                // If we're a sculpt wait for the trigger when the sculpt texture is retrieved.
-                if (((OpenMetaverse.SculptType)RootPart.Shape.SculptType) != SculptType.Mesh)
-                    m_scene.PhysicsScene.AddPhysicsActorTaint(RootPart.PhysActor);
-            }
-
             RootPart.IgnoreUndoUpdate = false;
             RootPart.StoreUndoState();
-            HasGroupChanged = true;
-            RootPart.TriggerScriptChangedEvent(Changed.SCALE);
-            ScheduleGroupForTerseUpdate();
         }
 
         #endregion
