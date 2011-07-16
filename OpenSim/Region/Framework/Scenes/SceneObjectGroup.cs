@@ -2789,7 +2789,10 @@ namespace OpenSim.Region.Framework.Scenes
                         if (obPart.PhysActor != null)
                         {
                             obPart.PhysActor.Size = newSize;
-                            m_scene.PhysicsScene.AddPhysicsActorTaint(obPart.PhysActor);
+
+                            // If we're a sculpt wait for the trigger when the sculpt texture is retrieved.
+                            if (((OpenMetaverse.SculptType)obPart.Shape.SculptType) != SculptType.Mesh)
+                                m_scene.PhysicsScene.AddPhysicsActorTaint(obPart.PhysActor);
                         }
                     }
 
@@ -2800,7 +2803,10 @@ namespace OpenSim.Region.Framework.Scenes
                 if (part.PhysActor != null)
                 {
                     part.PhysActor.Size = prevScale;
-                    m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
+
+                    // If we're a sculpt wait for the trigger when the sculpt texture is retrieved.
+                    if (((OpenMetaverse.SculptType)part.Shape.SculptType) != SculptType.Mesh)
+                        m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
                 }
 
                 part.IgnoreUndoUpdate = false;
