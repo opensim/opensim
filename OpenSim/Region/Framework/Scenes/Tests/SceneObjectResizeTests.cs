@@ -55,7 +55,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Scene scene = SceneSetupHelpers.SetupScene();
             SceneObjectGroup g1 = SceneSetupHelpers.AddSceneObject(scene).ParentGroup;
 
-            g1.GroupResize(new Vector3(2, 3, 4), g1.LocalId);
+            g1.GroupResize(new Vector3(2, 3, 4));
 
             SceneObjectGroup g1Post = scene.GetSceneObjectGroup(g1.UUID);
 

@@ -1234,7 +1234,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
                 {
-                    group.GroupResize(scale, localID);
+                    group.GroupResize(scale);
                 }
             }
         }

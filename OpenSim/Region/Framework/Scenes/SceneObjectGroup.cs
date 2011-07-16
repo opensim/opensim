@@ -2658,164 +2658,165 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void GroupResize(Vector3 scale, uint localID)
+        /// <summary>
+        /// Resize the entire group of prims.
+        /// </summary>
+        /// <param name="scale"></param>
+        public void GroupResize(Vector3 scale)
         {
-            SceneObjectPart part = GetChildPart(localID);
-            if (part != null)
-            {
 //                m_log.DebugFormat(
-//                    "[SCENE OBJECT GROUP]: Group resizing {0} {1} from {2} to {3}", Name, localID, part.Scale, scale);
+//                    "[SCENE OBJECT GROUP]: Group resizing {0} {1} from {2} to {3}", Name, localID, RootPart.Scale, scale);
 
-                part.IgnoreUndoUpdate = true;
+            RootPart.IgnoreUndoUpdate = true;
 
-                if (scale.X > m_scene.m_maxNonphys)
-                    scale.X = m_scene.m_maxNonphys;
-                if (scale.Y > m_scene.m_maxNonphys)
-                    scale.Y = m_scene.m_maxNonphys;
-                if (scale.Z > m_scene.m_maxNonphys)
-                    scale.Z = m_scene.m_maxNonphys;
+            if (scale.X > m_scene.m_maxNonphys)
+                scale.X = m_scene.m_maxNonphys;
+            if (scale.Y > m_scene.m_maxNonphys)
+                scale.Y = m_scene.m_maxNonphys;
+            if (scale.Z > m_scene.m_maxNonphys)
+                scale.Z = m_scene.m_maxNonphys;
 
-                if (part.PhysActor != null && part.PhysActor.IsPhysical)
-                {
-                    if (scale.X > m_scene.m_maxPhys)
-                        scale.X = m_scene.m_maxPhys;
-                    if (scale.Y > m_scene.m_maxPhys)
-                        scale.Y = m_scene.m_maxPhys;
-                    if (scale.Z > m_scene.m_maxPhys)
-                        scale.Z = m_scene.m_maxPhys;
-                }
-                float x = (scale.X / part.Scale.X);
-                float y = (scale.Y / part.Scale.Y);
-                float z = (scale.Z / part.Scale.Z);
+            if (RootPart.PhysActor != null && RootPart.PhysActor.IsPhysical)
+            {
+                if (scale.X > m_scene.m_maxPhys)
+                    scale.X = m_scene.m_maxPhys;
+                if (scale.Y > m_scene.m_maxPhys)
+                    scale.Y = m_scene.m_maxPhys;
+                if (scale.Z > m_scene.m_maxPhys)
+                    scale.Z = m_scene.m_maxPhys;
+            }
 
-                SceneObjectPart[] parts;
-                if (x > 1.0f || y > 1.0f || z > 1.0f)
-                {
-                    parts = m_parts.GetArray();
-                    for (int i = 0; i < parts.Length; i++)
-                    {
-                        SceneObjectPart obPart = parts[i];
-                        if (obPart.UUID != m_rootPart.UUID)
-                        {
-                            obPart.IgnoreUndoUpdate = true;
-                            Vector3 oldSize = new Vector3(obPart.Scale);
+            float x = (scale.X / RootPart.Scale.X);
+            float y = (scale.Y / RootPart.Scale.Y);
+            float z = (scale.Z / RootPart.Scale.Z);
 
-                            float f = 1.0f;
-                            float a = 1.0f;
-
-                            if (part.PhysActor != null && part.PhysActor.IsPhysical)
-                            {
-                                if (oldSize.X * x > m_scene.m_maxPhys)
-                                {
-                                    f = m_scene.m_maxPhys / oldSize.X;
-                                    a = f / x;
-                                    x *= a;
-                                    y *= a;
-                                    z *= a;
-                                }
-                                if (oldSize.Y * y > m_scene.m_maxPhys)
-                                {
-                                    f = m_scene.m_maxPhys / oldSize.Y;
-                                    a = f / y;
-                                    x *= a;
-                                    y *= a;
-                                    z *= a;
-                                }
-                                if (oldSize.Z * z > m_scene.m_maxPhys)
-                                {
-                                    f = m_scene.m_maxPhys / oldSize.Z;
-                                    a = f / z;
-                                    x *= a;
-                                    y *= a;
-                                    z *= a;
-                                }
-                            }
-                            else
-                            {
-                                if (oldSize.X * x > m_scene.m_maxNonphys)
-                                {
-                                    f = m_scene.m_maxNonphys / oldSize.X;
-                                    a = f / x;
-                                    x *= a;
-                                    y *= a;
-                                    z *= a;
-                                }
-                                if (oldSize.Y * y > m_scene.m_maxNonphys)
-                                {
-                                    f = m_scene.m_maxNonphys / oldSize.Y;
-                                    a = f / y;
-                                    x *= a;
-                                    y *= a;
-                                    z *= a;
-                                }
-                                if (oldSize.Z * z > m_scene.m_maxNonphys)
-                                {
-                                    f = m_scene.m_maxNonphys / oldSize.Z;
-                                    a = f / z;
-                                    x *= a;
-                                    y *= a;
-                                    z *= a;
-                                }
-                            }
-                            obPart.IgnoreUndoUpdate = false;
-                            obPart.StoreUndoState();
-                        }
-                    }
-                }
-
-                Vector3 prevScale = part.Scale;
-                prevScale.X *= x;
-                prevScale.Y *= y;
-                prevScale.Z *= z;
-                part.Resize(prevScale);
-
+            SceneObjectPart[] parts;
+            if (x > 1.0f || y > 1.0f || z > 1.0f)
+            {
                 parts = m_parts.GetArray();
                 for (int i = 0; i < parts.Length; i++)
                 {
                     SceneObjectPart obPart = parts[i];
-                    obPart.IgnoreUndoUpdate = true;
                     if (obPart.UUID != m_rootPart.UUID)
                     {
-                        Vector3 currentpos = new Vector3(obPart.OffsetPosition);
-                        currentpos.X *= x;
-                        currentpos.Y *= y;
-                        currentpos.Z *= z;
-                        Vector3 newSize = new Vector3(obPart.Scale);
-                        newSize.X *= x;
-                        newSize.Y *= y;
-                        newSize.Z *= z;
-                        obPart.Resize(newSize);
-                        obPart.UpdateOffSet(currentpos);
+                        obPart.IgnoreUndoUpdate = true;
+                        Vector3 oldSize = new Vector3(obPart.Scale);
 
-                        if (obPart.PhysActor != null)
+                        float f = 1.0f;
+                        float a = 1.0f;
+
+                        if (RootPart.PhysActor != null && RootPart.PhysActor.IsPhysical)
                         {
-                            obPart.PhysActor.Size = newSize;
-
-                            // If we're a sculpt wait for the trigger when the sculpt texture is retrieved.
-                            if (((OpenMetaverse.SculptType)obPart.Shape.SculptType) != SculptType.Mesh)
-                                m_scene.PhysicsScene.AddPhysicsActorTaint(obPart.PhysActor);
+                            if (oldSize.X * x > m_scene.m_maxPhys)
+                            {
+                                f = m_scene.m_maxPhys / oldSize.X;
+                                a = f / x;
+                                x *= a;
+                                y *= a;
+                                z *= a;
+                            }
+                            if (oldSize.Y * y > m_scene.m_maxPhys)
+                            {
+                                f = m_scene.m_maxPhys / oldSize.Y;
+                                a = f / y;
+                                x *= a;
+                                y *= a;
+                                z *= a;
+                            }
+                            if (oldSize.Z * z > m_scene.m_maxPhys)
+                            {
+                                f = m_scene.m_maxPhys / oldSize.Z;
+                                a = f / z;
+                                x *= a;
+                                y *= a;
+                                z *= a;
+                            }
                         }
+                        else
+                        {
+                            if (oldSize.X * x > m_scene.m_maxNonphys)
+                            {
+                                f = m_scene.m_maxNonphys / oldSize.X;
+                                a = f / x;
+                                x *= a;
+                                y *= a;
+                                z *= a;
+                            }
+                            if (oldSize.Y * y > m_scene.m_maxNonphys)
+                            {
+                                f = m_scene.m_maxNonphys / oldSize.Y;
+                                a = f / y;
+                                x *= a;
+                                y *= a;
+                                z *= a;
+                            }
+                            if (oldSize.Z * z > m_scene.m_maxNonphys)
+                            {
+                                f = m_scene.m_maxNonphys / oldSize.Z;
+                                a = f / z;
+                                x *= a;
+                                y *= a;
+                                z *= a;
+                            }
+                        }
+                        obPart.IgnoreUndoUpdate = false;
+                        obPart.StoreUndoState();
                     }
-
-                    obPart.IgnoreUndoUpdate = false;
-                    obPart.StoreUndoState();
                 }
-
-                if (part.PhysActor != null)
-                {
-                    part.PhysActor.Size = prevScale;
-
-                    // If we're a sculpt wait for the trigger when the sculpt texture is retrieved.
-                    if (((OpenMetaverse.SculptType)part.Shape.SculptType) != SculptType.Mesh)
-                        m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
-                }
-
-                part.IgnoreUndoUpdate = false;
-                part.StoreUndoState();
-                HasGroupChanged = true;
-                m_rootPart.TriggerScriptChangedEvent(Changed.SCALE);
-                ScheduleGroupForTerseUpdate();
             }
+
+            Vector3 prevScale = RootPart.Scale;
+            prevScale.X *= x;
+            prevScale.Y *= y;
+            prevScale.Z *= z;
+            RootPart.Resize(prevScale);
+
+            parts = m_parts.GetArray();
+            for (int i = 0; i < parts.Length; i++)
+            {
+                SceneObjectPart obPart = parts[i];
+                obPart.IgnoreUndoUpdate = true;
+                if (obPart.UUID != m_rootPart.UUID)
+                {
+                    Vector3 currentpos = new Vector3(obPart.OffsetPosition);
+                    currentpos.X *= x;
+                    currentpos.Y *= y;
+                    currentpos.Z *= z;
+                    Vector3 newSize = new Vector3(obPart.Scale);
+                    newSize.X *= x;
+                    newSize.Y *= y;
+                    newSize.Z *= z;
+                    obPart.Resize(newSize);
+                    obPart.UpdateOffSet(currentpos);
+
+                    if (obPart.PhysActor != null)
+                    {
+                        obPart.PhysActor.Size = newSize;
+
+                        // If we're a sculpt wait for the trigger when the sculpt texture is retrieved.
+                        if (((OpenMetaverse.SculptType)obPart.Shape.SculptType) != SculptType.Mesh)
+                            m_scene.PhysicsScene.AddPhysicsActorTaint(obPart.PhysActor);
+                    }
+                }
+
+                obPart.IgnoreUndoUpdate = false;
+                obPart.StoreUndoState();
+            }
+
+            if (RootPart.PhysActor != null)
+            {
+                RootPart.PhysActor.Size = prevScale;
+
+                // If we're a sculpt wait for the trigger when the sculpt texture is retrieved.
+                if (((OpenMetaverse.SculptType)RootPart.Shape.SculptType) != SculptType.Mesh)
+                    m_scene.PhysicsScene.AddPhysicsActorTaint(RootPart.PhysActor);
+            }
+
+            RootPart.IgnoreUndoUpdate = false;
+            RootPart.StoreUndoState();
+            HasGroupChanged = true;
+            RootPart.TriggerScriptChangedEvent(Changed.SCALE);
+            ScheduleGroupForTerseUpdate();
         }
 
         #endregion
