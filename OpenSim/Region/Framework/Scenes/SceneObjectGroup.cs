@@ -3333,23 +3333,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Handle an asset received asynchronously from the asset service.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="sender"></param>
-        /// <param name="asset"></param>
-        protected void AssetReceived(string id, Object sender, AssetBase asset)
-        {
-            SceneObjectPart sop = (SceneObjectPart)sender;
-
-            if (sop != null)
-            {
-                if (asset != null)
-                    sop.SculptTextureCallback(asset);
-            }
-        }
-
-        /// <summary>
         /// Set the user group to which this scene object belongs.
         /// </summary>
         /// <param name="GroupID"></param>
