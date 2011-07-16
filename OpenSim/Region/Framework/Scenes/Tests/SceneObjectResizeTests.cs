@@ -83,7 +83,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             SceneObjectGroup g1Post = scene.GetSceneObjectGroup(g1.UUID);
 
-            g1Post.Resize(new Vector3(8, 9, 10), g1Post.Parts[1].LocalId);
+            g1Post.Parts[1].Resize(new Vector3(8, 9, 10));
 
             SceneObjectGroup g1PostPost = scene.GetSceneObjectGroup(g1.UUID);
 

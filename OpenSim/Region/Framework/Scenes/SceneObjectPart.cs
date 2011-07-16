@@ -2846,6 +2846,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="scale"></param>
         public void Resize(Vector3 scale)
         {
+            if (scale.X > ParentGroup.Scene.m_maxNonphys)
+                scale.X = ParentGroup.Scene.m_maxNonphys;
+            if (scale.Y > ParentGroup.Scene.m_maxNonphys)
+                scale.Y = ParentGroup.Scene.m_maxNonphys;
+            if (scale.Z > ParentGroup.Scene.m_maxNonphys)
+                scale.Z = ParentGroup.Scene.m_maxNonphys;
+
 //            m_log.DebugFormat("[SCENE OBJECT PART]: Resizing {0} {1} to {2}", Name, LocalId, scale);
 
             StoreUndoState();
@@ -2855,9 +2862,27 @@ namespace OpenSim.Region.Framework.Scenes
             // need to reinsert the sculpt data into the shape, since the physics engine deletes it when done to
             // save memory
             if (PhysActor != null)
-                CheckSculptAndLoad();
+            {
+                if (PhysActor.IsPhysical)
+                {
+                    if (scale.X > ParentGroup.Scene.m_maxPhys)
+                        scale.X = ParentGroup.Scene.m_maxPhys;
+                    if (scale.Y > ParentGroup.Scene.m_maxPhys)
+                        scale.Y = ParentGroup.Scene.m_maxPhys;
+                    if (scale.Z > ParentGroup.Scene.m_maxPhys)
+                        scale.Z = ParentGroup.Scene.m_maxPhys;
+                }
+
+                PhysActor.Size = scale;
+
+                if (((OpenMetaverse.SculptType)Shape.SculptType) == SculptType.Mesh)
+                    CheckSculptAndLoad();
+                else
+                    ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+            }
 
             ParentGroup.HasGroupChanged = true;
+            TriggerScriptChangedEvent(Changed.SCALE);
             ScheduleFullUpdate();
         }
         

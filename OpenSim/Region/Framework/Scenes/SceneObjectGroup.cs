@@ -2612,56 +2612,6 @@ namespace OpenSim.Region.Framework.Scenes
         #region Resize
 
         /// <summary>
-        /// Resize the given part
-        /// </summary>
-        /// <param name="scale"></param>
-        /// <param name="localID"></param>
-        public void Resize(Vector3 scale, uint localID)
-        {
-            if (scale.X > m_scene.m_maxNonphys)
-                scale.X = m_scene.m_maxNonphys;
-            if (scale.Y > m_scene.m_maxNonphys)
-                scale.Y = m_scene.m_maxNonphys;
-            if (scale.Z > m_scene.m_maxNonphys)
-                scale.Z = m_scene.m_maxNonphys;
-
-            SceneObjectPart part = GetChildPart(localID);
-            if (part != null)
-            {
-                part.Resize(scale);
-                if (part.PhysActor != null)
-                {
-                    if (part.PhysActor.IsPhysical)
-                    {
-                        if (scale.X > m_scene.m_maxPhys)
-                            scale.X = m_scene.m_maxPhys;
-                        if (scale.Y > m_scene.m_maxPhys)
-                            scale.Y = m_scene.m_maxPhys;
-                        if (scale.Z > m_scene.m_maxPhys)
-                            scale.Z = m_scene.m_maxPhys;
-                    }
-                    part.PhysActor.Size = scale;
-                    m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
-                }
-                //if (part.UUID != m_rootPart.UUID)
-
-                HasGroupChanged = true;
-                part.TriggerScriptChangedEvent(Changed.SCALE);
-                ScheduleGroupForFullUpdate();
-
-                //if (part.UUID == m_rootPart.UUID)
-                //{
-                //if (m_rootPart.PhysActor != null)
-                //{
-                //m_rootPart.PhysActor.Size =
-                //new PhysicsVector(m_rootPart.Scale.X, m_rootPart.Scale.Y, m_rootPart.Scale.Z);
-                //m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
-                //}
-                //}
-            }
-        }
-
-        /// <summary>
         /// Resize the entire group of prims.
         /// </summary>
         /// <param name="scale"></param>

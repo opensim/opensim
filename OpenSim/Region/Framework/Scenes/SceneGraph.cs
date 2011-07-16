@@ -1217,12 +1217,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         protected internal void UpdatePrimScale(uint localID, Vector3 scale, IClientAPI remoteClient)
         {
-            SceneObjectGroup group = GetGroupByPrim(localID);
-            if (group != null)
+            SceneObjectPart part = GetSceneObjectPart(localID);
+
+            if (part != null)
             {
-                if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
+                if (m_parentScene.Permissions.CanEditObject(part.ParentGroup.UUID, remoteClient.AgentId))
                 {
-                    group.Resize(scale, localID);
+                    part.Resize(scale);
                 }
             }
         }
