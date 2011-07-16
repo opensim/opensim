@@ -1731,7 +1731,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SceneObjectPart sop = (SceneObjectPart)sender;
                 if (sop != null)
-                    sop.SculptTextureCallback(asset.FullID, asset);
+                    sop.SculptTextureCallback(asset);
             }
         }
 
@@ -2979,11 +2979,10 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Sets sculpt and mesh data, and tells the physics engine to process the change.
+        /// Set sculpt and mesh data, and tell the physics engine to process the change.
         /// </summary>
-        /// <param name="textureID">Texture id of the mesh.  XXX: Redundant since this is also in AssetBase</param>
         /// <param name="texture">The mesh itself.</param>
-        public void SculptTextureCallback(UUID textureID, AssetBase texture)
+        public void SculptTextureCallback(AssetBase texture)
         {
             if (m_shape.SculptEntry)
             {
@@ -3008,16 +3007,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-
-//        /// <summary>
-//        ///
-//        /// </summary>
-//        /// <param name="remoteClient"></param>
-//        public void SendFullUpdate(IClientAPI remoteClient, uint clientFlags)
-//        {
-//            m_parentGroup.SendPartFullUpdate(remoteClient, this, clientFlags);
-//        }
-
 
         /// <summary>
         /// Send a full update to the client for the given part
@@ -4631,9 +4620,11 @@ namespace OpenSim.Region.Framework.Scenes
             if (Shape.SculptEntry && Shape.SculptTexture != UUID.Zero)
             {
                 // check if a previously decoded sculpt map has been cached
+                // We don't read the file here - the meshmerizer will do that later.
+                // TODO: Could we simplify the meshmerizer code by reading and setting the data here?
                 if (File.Exists(System.IO.Path.Combine("j2kDecodeCache", "smap_" + Shape.SculptTexture.ToString())))
                 {
-                    SculptTextureCallback(Shape.SculptTexture, null);
+                    SculptTextureCallback(null);
                 }
                 else
                 {
