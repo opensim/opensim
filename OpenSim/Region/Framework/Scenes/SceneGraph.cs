@@ -1210,7 +1210,7 @@ namespace OpenSim.Region.Framework.Scenes
         #region Client Event handlers
 
         /// <summary>
-        ///
+        /// Update the scale of an individual prim.
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="scale"></param>

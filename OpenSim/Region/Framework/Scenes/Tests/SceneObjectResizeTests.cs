@@ -63,5 +63,40 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(g1Post.RootPart.Scale.Y, Is.EqualTo(3));
             Assert.That(g1Post.RootPart.Scale.Z, Is.EqualTo(4));
         }
+
+        /// <summary>
+        /// Test resizing an individual part in a scene object.
+        /// </summary>
+        [Test]
+        public void TestResizeSceneObjectPart()
+        {
+            TestHelper.InMethod();
+            //log4net.Config.XmlConfigurator.Configure();
+
+            Scene scene = SceneSetupHelpers.SetupScene();
+
+            SceneObjectGroup g1 = SceneSetupHelpers.CreateSceneObject(2, UUID.Zero);
+            g1.RootPart.Scale = new Vector3(2, 3, 4);
+            g1.Parts[1].Scale = new Vector3(5, 6, 7);
+
+            scene.AddSceneObject(g1);
+
+            SceneObjectGroup g1Post = scene.GetSceneObjectGroup(g1.UUID);
+
+            g1Post.Resize(new Vector3(8, 9, 10), g1Post.Parts[1].LocalId);
+
+            SceneObjectGroup g1PostPost = scene.GetSceneObjectGroup(g1.UUID);
+
+            SceneObjectPart g1RootPart = g1PostPost.RootPart;
+            SceneObjectPart g1ChildPart = g1PostPost.Parts[1];
+
+            Assert.That(g1RootPart.Scale.X, Is.EqualTo(2));
+            Assert.That(g1RootPart.Scale.Y, Is.EqualTo(3));
+            Assert.That(g1RootPart.Scale.Z, Is.EqualTo(4));
+
+            Assert.That(g1ChildPart.Scale.X, Is.EqualTo(8));
+            Assert.That(g1ChildPart.Scale.Y, Is.EqualTo(9));
+            Assert.That(g1ChildPart.Scale.Z, Is.EqualTo(10));
+        }
     }
 }
