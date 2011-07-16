@@ -3345,7 +3345,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (sop != null)
             {
                 if (asset != null)
-                    sop.SculptTextureCallback(asset.FullID, asset);
+                    sop.SculptTextureCallback(asset);
             }
         }
 
