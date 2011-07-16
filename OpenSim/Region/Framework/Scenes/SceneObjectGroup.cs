@@ -236,6 +236,38 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_rootPart.RotationOffset; }
         }
 
+        public Vector3 GroupScale
+        {
+            get
+            {
+                Vector3 minScale = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionSize);
+                Vector3 maxScale = Vector3.Zero;
+                Vector3 finalScale = new Vector3(0.5f, 0.5f, 0.5f);
+    
+                SceneObjectPart[] parts = m_parts.GetArray();
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    SceneObjectPart part = parts[i];
+                    Vector3 partscale = part.Scale;
+                    Vector3 partoffset = part.OffsetPosition;
+    
+                    minScale.X = (partscale.X + partoffset.X < minScale.X) ? partscale.X + partoffset.X : minScale.X;
+                    minScale.Y = (partscale.Y + partoffset.Y < minScale.Y) ? partscale.Y + partoffset.Y : minScale.Y;
+                    minScale.Z = (partscale.Z + partoffset.Z < minScale.Z) ? partscale.Z + partoffset.Z : minScale.Z;
+    
+                    maxScale.X = (partscale.X + partoffset.X > maxScale.X) ? partscale.X + partoffset.X : maxScale.X;
+                    maxScale.Y = (partscale.Y + partoffset.Y > maxScale.Y) ? partscale.Y + partoffset.Y : maxScale.Y;
+                    maxScale.Z = (partscale.Z + partoffset.Z > maxScale.Z) ? partscale.Z + partoffset.Z : maxScale.Z;
+                }
+    
+                finalScale.X = (minScale.X > maxScale.X) ? minScale.X : maxScale.X;
+                finalScale.Y = (minScale.Y > maxScale.Y) ? minScale.Y : maxScale.Y;
+                finalScale.Z = (minScale.Z > maxScale.Z) ? minScale.Z : maxScale.Z;
+    
+                return finalScale;
+            }
+        }
+
         public UUID GroupID
         {
             get { return m_rootPart.GroupID; }
@@ -590,35 +622,6 @@ namespace OpenSim.Region.Framework.Scenes
             // Don't trigger the update here - otherwise some client issues occur when multiple updates are scheduled
             // for the same object with very different properties.  The caller must schedule the update.
             //ScheduleGroupForFullUpdate();
-        }
-
-        public Vector3 GroupScale()
-        {
-            Vector3 minScale = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionSize);
-            Vector3 maxScale = Vector3.Zero;
-            Vector3 finalScale = new Vector3(0.5f, 0.5f, 0.5f);
-
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-            {
-                SceneObjectPart part = parts[i];
-                Vector3 partscale = part.Scale;
-                Vector3 partoffset = part.OffsetPosition;
-
-                minScale.X = (partscale.X + partoffset.X < minScale.X) ? partscale.X + partoffset.X : minScale.X;
-                minScale.Y = (partscale.Y + partoffset.Y < minScale.Y) ? partscale.Y + partoffset.Y : minScale.Y;
-                minScale.Z = (partscale.Z + partoffset.Z < minScale.Z) ? partscale.Z + partoffset.Z : minScale.Z;
-
-                maxScale.X = (partscale.X + partoffset.X > maxScale.X) ? partscale.X + partoffset.X : maxScale.X;
-                maxScale.Y = (partscale.Y + partoffset.Y > maxScale.Y) ? partscale.Y + partoffset.Y : maxScale.Y;
-                maxScale.Z = (partscale.Z + partoffset.Z > maxScale.Z) ? partscale.Z + partoffset.Z : maxScale.Z;
-            }
-
-            finalScale.X = (minScale.X > maxScale.X) ? minScale.X : maxScale.X;
-            finalScale.Y = (minScale.Y > maxScale.Y) ? minScale.Y : maxScale.Y;
-            finalScale.Z = (minScale.Z > maxScale.Z) ? minScale.Z : maxScale.Z;
-
-            return finalScale;
         }
 
         public EntityIntersection TestIntersection(Ray hRay, bool frontFacesOnly, bool faceCenters)
