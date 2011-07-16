@@ -617,9 +617,10 @@ namespace OpenSim.Region.Framework.Scenes
             finalScale.X = (minScale.X > maxScale.X) ? minScale.X : maxScale.X;
             finalScale.Y = (minScale.Y > maxScale.Y) ? minScale.Y : maxScale.Y;
             finalScale.Z = (minScale.Z > maxScale.Z) ? minScale.Z : maxScale.Z;
-            return finalScale;
 
+            return finalScale;
         }
+
         public EntityIntersection TestIntersection(Ray hRay, bool frontFacesOnly, bool faceCenters)
         {
             // We got a request from the inner_scene to raytrace along the Ray hRay
