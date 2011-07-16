@@ -196,7 +196,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
             if (!(client.Scene is Scene))
                 return;
 
-            Scene scene = (Scene)(client.Scene);
+//            Scene scene = (Scene)(client.Scene);
 
             GridInstantMessage im = null;
             if (m_PendingLures.TryGetValue(lureID, out im))
