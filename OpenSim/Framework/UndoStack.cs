@@ -45,59 +45,96 @@ namespace OpenSim.Framework
             m_Undos = new T[capacity + 1];
         }
 
+        /// <summary>
+        /// Is the stack full?
+        /// </summary>
         public bool IsFull
         {
-            get { return m_new == m_old; }
+            get
+            {
+                // If the old and new pointers are in the same place then all stack slots are occupied.
+                return m_new == m_old;
+            }
         }
 
+        /// <summary>
+        /// Capacity of the stack.
+        /// </summary>
         public int Capacity
         {
             get { return m_Undos.Length - 1; }
         }
 
+        /// <summary>
+        /// Return the number of undos on the stack.
+        /// </summary>
         public int Count
         {
             get
             {
                 int count = m_new - m_old - 1;
+
                 if (count < 0)
                     count += m_Undos.Length;
+
                 return count;
             }
         }
 
+        /// <summary>
+        /// Push a new undo onto the stack.
+        /// </summary>
+        /// <param name="item"></param>
         public void Push(T item)
         {
             if (IsFull)
             {
                 m_old++;
+
                 if (m_old >= m_Undos.Length)
                     m_old -= m_Undos.Length;
             }
+
             if (++m_new >= m_Undos.Length)
                 m_new -= m_Undos.Length;
+
             m_Undos[m_new] = item;
         }
 
+        /// <summary>
+        /// Pop and item from the top of the undo stack.
+        /// </summary>
+        /// <returns></returns>
         public T Pop()
         {
             if (Count > 0)
             {
                 T deleted = m_Undos[m_new];
                 m_Undos[m_new--] = default(T);
+
                 if (m_new < 0)
                     m_new += m_Undos.Length;
+
                 return deleted;
             }
             else
+            {
                 throw new InvalidOperationException("Cannot pop from empty stack");
+            }
         }
 
+        /// <summary>
+        /// Peek at the undo on the top of the stack.
+        /// </summary>
+        /// <returns></returns>
         public T Peek()
         {
             return m_Undos[m_new];
         }
 
+        /// <summary>
+        /// Clear the stack.
+        /// </summary>
         public void Clear()
         {
             if (Count > 0)
@@ -106,6 +143,7 @@ namespace OpenSim.Framework
                 {
                     m_Undos[i] = default(T);
                 }
+
                 m_new = 1;
                 m_old = 0;
             }

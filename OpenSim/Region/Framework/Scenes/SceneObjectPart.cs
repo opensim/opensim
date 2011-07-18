@@ -287,8 +287,8 @@ namespace OpenSim.Region.Framework.Scenes
         private string m_sitAnimation = "SIT";
         private string m_text = String.Empty;
         private string m_touchName = String.Empty;
-        private readonly UndoStack<UndoState> m_undo = new UndoStack<UndoState>(5);
-        private readonly UndoStack<UndoState> m_redo = new UndoStack<UndoState>(5);
+        private readonly Stack<UndoState> m_undo = new Stack<UndoState>(5);
+        private readonly Stack<UndoState> m_redo = new Stack<UndoState>(5);
         private UUID _creatorID;
 
         private bool m_passTouches;
@@ -3705,6 +3705,18 @@ namespace OpenSim.Region.Framework.Scenes
 //            {
 //                m_log.DebugFormat("[SCENE OBJECT PART]: Ignoring undo store for {0} {1} since already undoing", Name, LocalId);
 //            }
+        }
+
+        /// <summary>
+        /// Return number of undos on the stack.  Here temporarily pending a refactor.
+        /// </summary>
+        public int UndoCount
+        {
+            get
+            {
+                lock (m_undo)
+                    return m_undo.Count;
+            }
         }
 
         public void Undo()
