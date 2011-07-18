@@ -414,7 +414,6 @@ namespace OpenSim.Region.Framework.Scenes
             CreateSelected = true;
 
             TrimPermissions();
-            //m_undo = new UndoStack<UndoState>(ParentGroup.GetSceneMaxUndo());
             
             m_inventory = new SceneObjectPartInventory(this);
         }
@@ -1619,19 +1618,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-        }
-
-        public void ClearUndoState()
-        {
-            lock (m_undo)
-            {
-                m_undo.Clear();
-            }
-            lock (m_redo)
-            {
-                m_redo.Clear();
-            }
-            StoreUndoState();
         }
 
         public byte ConvertScriptUintToByte(uint indata)
@@ -3721,6 +3707,68 @@ namespace OpenSim.Region.Framework.Scenes
 //            }
         }
 
+        public void Undo()
+        {
+//            m_log.DebugFormat("[SCENE OBJECT PART]: Handling undo request for {0} {1}", Name, LocalId);
+
+            lock (m_undo)
+            {
+                if (m_undo.Count > 0)
+                {
+                    UndoState nUndo = null;
+
+                    if (m_parentGroup.GetSceneMaxUndo() > 0)
+                    {
+                        nUndo = new UndoState(this);
+                    }
+                    
+                    UndoState goback = m_undo.Pop();
+
+                    if (goback != null)
+                    {
+                        goback.PlaybackState(this);
+                        if (nUndo != null)
+                            m_redo.Push(nUndo);
+                    }
+                }
+            }
+        }
+
+        public void Redo()
+        {
+//            m_log.DebugFormat("[SCENE OBJECT PART]: Handling redo request for {0} {1}", Name, LocalId);
+
+            lock (m_redo)
+            {
+                if (m_parentGroup.GetSceneMaxUndo() > 0)
+                {
+                    UndoState nUndo = new UndoState(this);
+
+                    m_undo.Push(nUndo);
+                }
+
+                UndoState gofwd = m_redo.Pop();
+
+                if (gofwd != null)
+                    gofwd.PlayfwdState(this);
+            }
+        }
+
+        public void ClearUndoState()
+        {
+            lock (m_undo)
+            {
+                m_undo.Clear();
+            }
+
+            lock (m_redo)
+            {
+                m_redo.Clear();
+            }
+
+            StoreUndoState();
+        }
+
         public EntityIntersection TestIntersection(Ray iray, Quaternion parentrot)
         {
             // In this case we're using a sphere with a radius of the largest dimension of the prim
@@ -4179,51 +4227,6 @@ namespace OpenSim.Region.Framework.Scenes
             _groupMask &= (uint)PermissionMask.All;
             _everyoneMask &= (uint)PermissionMask.All;
             _nextOwnerMask &= (uint)PermissionMask.All;
-        }
-
-        public void Undo()
-        {
-            lock (m_undo)
-            {
-                if (m_undo.Count > 0)
-                {
-                    UndoState nUndo = null;
-
-                    if (m_parentGroup.GetSceneMaxUndo() > 0)
-                    {
-                        nUndo = new UndoState(this);
-                    }
-                    
-                    UndoState goback = m_undo.Pop();
-
-                    if (goback != null)
-                    {
-                        goback.PlaybackState(this);
-                        if (nUndo != null)
-                            m_redo.Push(nUndo);
-                    }
-                }
-            }
-        }
-
-        public void Redo()
-        {
-//            m_log.DebugFormat("[SCENE OBJECT PART]: Handling redo request for {0} {1}", Name, LocalId);
-
-            lock (m_redo)
-            {
-                if (m_parentGroup.GetSceneMaxUndo() > 0)
-                {
-                    UndoState nUndo = new UndoState(this);
-
-                    m_undo.Push(nUndo);
-                }
-
-                UndoState gofwd = m_redo.Pop();
-
-                if (gofwd != null)
-                    gofwd.PlayfwdState(this);
-            }
         }
 
         public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
