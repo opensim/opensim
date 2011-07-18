@@ -84,7 +84,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private ITerrainChannel m_revert;
         private Scene m_scene;
         private volatile bool m_tainted;
-        private readonly UndoStack<LandUndoState> m_undo = new UndoStack<LandUndoState>(5);
+        private readonly Stack<LandUndoState> m_undo = new Stack<LandUndoState>(5);
 
         #region ICommandableModule Members
 
