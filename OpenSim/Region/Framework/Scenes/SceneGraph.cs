@@ -564,6 +564,7 @@ namespace OpenSim.Region.Framework.Scenes
                     part.Undo();
             }
         }
+
         protected internal void HandleRedo(IClientAPI remoteClient, UUID primId)
         {
             if (primId != UUID.Zero)

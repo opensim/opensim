@@ -1145,6 +1145,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void OnGrabPart(SceneObjectPart part, Vector3 offsetPos, IClientAPI remoteClient)
         {
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT GROUP]: Processing OnGrabPart for {0} on {1} {2}, offsetPos {3}",
+//                remoteClient.Name, part.Name, part.LocalId, offsetPos);
+
             part.StoreUndoState();
             part.OnGrab(offsetPos, remoteClient);
         }
@@ -2611,17 +2615,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Resize
 
-
         /// <summary>
         /// Resize the entire group of prims.
         /// </summary>
         /// <param name="scale"></param>
         public void GroupResize(Vector3 scale)
         {
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT GROUP]: Group resizing {0} {1} from {2} to {3}", Name, localID, RootPart.Scale, scale);
-
-            RootPart.IgnoreUndoUpdate = true;
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT GROUP]: Group resizing {0} {1} from {2} to {3}", Name, LocalId, RootPart.Scale, scale);
 
             scale.X = Math.Min(scale.X, Scene.m_maxNonphys);
             scale.Y = Math.Min(scale.Y, Scene.m_maxNonphys);
@@ -2647,7 +2648,7 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectPart obPart = parts[i];
                     if (obPart.UUID != m_rootPart.UUID)
                     {
-                        obPart.IgnoreUndoUpdate = true;
+//                        obPart.IgnoreUndoUpdate = true;
                         Vector3 oldSize = new Vector3(obPart.Scale);
 
                         float f = 1.0f;
@@ -2663,6 +2664,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 y *= a;
                                 z *= a;
                             }
+
                             if (oldSize.Y * y > m_scene.m_maxPhys)
                             {
                                 f = m_scene.m_maxPhys / oldSize.Y;
@@ -2671,6 +2673,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 y *= a;
                                 z *= a;
                             }
+
                             if (oldSize.Z * z > m_scene.m_maxPhys)
                             {
                                 f = m_scene.m_maxPhys / oldSize.Z;
@@ -2690,6 +2693,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 y *= a;
                                 z *= a;
                             }
+
                             if (oldSize.Y * y > m_scene.m_maxNonphys)
                             {
                                 f = m_scene.m_maxNonphys / oldSize.Y;
@@ -2698,6 +2702,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 y *= a;
                                 z *= a;
                             }
+
                             if (oldSize.Z * z > m_scene.m_maxNonphys)
                             {
                                 f = m_scene.m_maxNonphys / oldSize.Z;
@@ -2708,7 +2713,7 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                         }
 
-                        obPart.IgnoreUndoUpdate = false;
+//                        obPart.IgnoreUndoUpdate = false;
                     }
                 }
             }
@@ -2723,7 +2728,7 @@ namespace OpenSim.Region.Framework.Scenes
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart obPart = parts[i];
-                obPart.IgnoreUndoUpdate = true;
+//                obPart.IgnoreUndoUpdate = true;
 
                 if (obPart.UUID != m_rootPart.UUID)
                 {
@@ -2738,16 +2743,18 @@ namespace OpenSim.Region.Framework.Scenes
                     newSize.Z *= z;
                     
                     obPart.Resize(newSize);
+
+                    obPart.IgnoreUndoUpdate = true;
                     obPart.UpdateOffSet(currentpos);
+                    obPart.IgnoreUndoUpdate = false;
                 }
 
-                obPart.IgnoreUndoUpdate = false;
-                obPart.StoreUndoState();
+//                obPart.IgnoreUndoUpdate = false;
+//                obPart.StoreUndoState();
             }
 
-            RootPart.IgnoreUndoUpdate = false;
-
-            RootPart.StoreUndoState();
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT GROUP]: Finished group resizing {0} {1} to {2}", Name, LocalId, RootPart.Scale);
         }
 
         #endregion
@@ -2760,6 +2767,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="pos"></param>
         public void UpdateGroupPosition(Vector3 pos)
         {
+//            m_log.DebugFormat("[SCENE OBJECT GROUP]: Updating group position on {0} {1} to {2}", Name, LocalId, pos);
+
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
                 parts[i].StoreUndoState();
@@ -2805,6 +2814,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (part != null)
             {
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT GROUP]: Updating single position of {0} {1} to {2}", part.Name, part.LocalId, pos);
+
                 if (part.UUID == m_rootPart.UUID)
                 {
                     UpdateRootPosition(pos);
@@ -2824,6 +2836,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="pos"></param>
         private void UpdateRootPosition(Vector3 pos)
         {
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT GROUP]: Updating root position of {0} {1} to {2}", Name, LocalId, pos);
+
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
                 parts[i].StoreUndoState();
@@ -2868,6 +2883,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rot"></param>
         public void UpdateGroupRotationR(Quaternion rot)
         {
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT GROUP]: Updating group rotation R of {0} {1} to {2}", Name, LocalId, rot);
+
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
                 parts[i].StoreUndoState();
@@ -2892,6 +2910,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rot"></param>
         public void UpdateGroupRotationPR(Vector3 pos, Quaternion rot)
         {
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT GROUP]: Updating group rotation PR of {0} {1} to {2}", Name, LocalId, rot);
+
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
                 parts[i].StoreUndoState();
@@ -2926,6 +2947,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (part != null)
             {
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT GROUP]: Updating single rotation of {0} {1} to {2}", part.Name, part.LocalId, rot);
+
                 if (part.UUID == m_rootPart.UUID)
                 {
                     UpdateRootRotation(rot);
@@ -2947,6 +2971,10 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT GROUP]: Updating single position and rotation of {0} {1} to {2}",
+//                    part.Name, part.LocalId, rot);
+
                 if (part.UUID == m_rootPart.UUID)
                 {
                     UpdateRootRotation(rot);
@@ -2969,6 +2997,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rot"></param>
         private void UpdateRootRotation(Quaternion rot)
         {
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT GROUP]: Updating root rotation of {0} {1} to {2}",
+//                Name, LocalId, rot);
+
             Quaternion axRot = rot;
             Quaternion oldParentRot = m_rootPart.RotationOffset;
 

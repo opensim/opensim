@@ -11242,6 +11242,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     else
                     {
+                        // Do this once since fetch parts creates a new array.
+                        SceneObjectPart[] parts = part.ParentGroup.Parts;
+                        for (int j = 0; j < parts.Length; j++)
+                        {
+                            part.StoreUndoState();
+                            parts[j].IgnoreUndoUpdate = true;
+                        }
+
                         // UUID partId = part.UUID;
                         UpdatePrimGroupRotation handlerUpdatePrimGroupRotation;
 
@@ -11257,6 +11265,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     handlerUpdatePrimSinglePosition(localId, pos1, this);
                                 }
                                 break;
+
                             case 2:
                                 Quaternion rot1 = new Quaternion(block.Data, 0, true);
 
@@ -11267,6 +11276,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     handlerUpdatePrimSingleRotation(localId, rot1, this);
                                 }
                                 break;
+
                             case 3:
                                 Vector3 rotPos = new Vector3(block.Data, 0);
                                 Quaternion rot2 = new Quaternion(block.Data, 12, true);
@@ -11279,6 +11289,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     handlerUpdatePrimSingleRotationPosition(localId, rot2, rotPos, this);
                                 }
                                 break;
+
                             case 4:
                             case 20:
                                 Vector3 scale4 = new Vector3(block.Data, 0);
@@ -11290,8 +11301,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     handlerUpdatePrimScale(localId, scale4, this);
                                 }
                                 break;
-                            case 5:
 
+                            case 5:
                                 Vector3 scale1 = new Vector3(block.Data, 12);
                                 Vector3 pos11 = new Vector3(block.Data, 0);
 
@@ -11308,6 +11319,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     }
                                 }
                                 break;
+
                             case 9:
                                 Vector3 pos2 = new Vector3(block.Data, 0);
 
@@ -11315,10 +11327,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                                 if (handlerUpdateVector != null)
                                 {
-
                                     handlerUpdateVector(localId, pos2, this);
                                 }
                                 break;
+
                             case 10:
                                 Quaternion rot3 = new Quaternion(block.Data, 0, true);
 
@@ -11329,6 +11341,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     handlerUpdatePrimRotation(localId, rot3, this);
                                 }
                                 break;
+
                             case 11:
                                 Vector3 pos3 = new Vector3(block.Data, 0);
                                 Quaternion rot4 = new Quaternion(block.Data, 12, true);
@@ -11352,6 +11365,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     handlerUpdatePrimGroupScale(localId, scale7, this);
                                 }
                                 break;
+
                             case 13:
                                 Vector3 scale2 = new Vector3(block.Data, 12);
                                 Vector3 pos4 = new Vector3(block.Data, 0);
@@ -11371,6 +11385,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     }
                                 }
                                 break;
+
                             case 29:
                                 Vector3 scale5 = new Vector3(block.Data, 12);
                                 Vector3 pos5 = new Vector3(block.Data, 0);
@@ -11388,6 +11403,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     }
                                 }
                                 break;
+
                             case 21:
                                 Vector3 scale6 = new Vector3(block.Data, 12);
                                 Vector3 pos6 = new Vector3(block.Data, 0);
@@ -11404,13 +11420,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     }
                                 }
                                 break;
+
                             default:
-                                m_log.Debug("[CLIENT] MultipleObjUpdate recieved an unknown packet type: " + (block.Type));
+                                m_log.Debug("[CLIENT]: MultipleObjUpdate recieved an unknown packet type: " + (block.Type));
                                 break;
                         }
+
+                        for (int j = 0; j < parts.Length; j++)
+                            parts[j].IgnoreUndoUpdate = false;
                     }
                 }
             }
+
             return true;
         }
 

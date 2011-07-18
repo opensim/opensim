@@ -1014,15 +1014,19 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_shape; }
             set { m_shape = value; }
         }
-        
+
+        /// <summary>
+        /// Change the scale of this part.
+        /// </summary>
         public Vector3 Scale
         {
             get { return m_shape.Scale; }
             set
             {
-                StoreUndoState();
                 if (m_shape != null)
                 {
+                    StoreUndoState();
+
                     m_shape.Scale = value;
 
                     PhysicsActor actor = PhysActor;
@@ -1033,11 +1037,16 @@ namespace OpenSim.Region.Framework.Scenes
                             if (m_parentGroup.Scene.PhysicsScene != null)
                             {
                                 actor.Size = m_shape.Scale;
-                                m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
+
+                                if (((OpenMetaverse.SculptType)Shape.SculptType) == SculptType.Mesh)
+                                    CheckSculptAndLoad();
+                                else
+                                    ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                             }
                         }
                     }
                 }
+
                 TriggerScriptChangedEvent(Changed.SCALE);
             }
         }
@@ -2827,8 +2836,12 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Resize this part.
+        /// Set the scale of this part.
         /// </summary>
+        /// <remarks>
+        /// Unlike the scale property, this checks the new size against scene limits and schedules a full property
+        /// update to viewers.
+        /// </remarks>
         /// <param name="scale"></param>
         public void Resize(Vector3 scale)
         {
@@ -2836,33 +2849,18 @@ namespace OpenSim.Region.Framework.Scenes
             scale.Y = Math.Min(scale.Y, ParentGroup.Scene.m_maxNonphys);
             scale.Z = Math.Min(scale.Z, ParentGroup.Scene.m_maxNonphys);
 
-//            m_log.DebugFormat("[SCENE OBJECT PART]: Resizing {0} {1} to {2}", Name, LocalId, scale);
-
-            StoreUndoState();
-            m_shape.Scale = scale;
-
-            // If we're a mesh/sculpt, then we need to tell the physics engine about our new size.  To do this, we
-            // need to reinsert the sculpt data into the shape, since the physics engine deletes it when done to
-            // save memory
-            if (PhysActor != null)
+            if (PhysActor != null && PhysActor.IsPhysical)
             {
-                if (PhysActor.IsPhysical)
-                {
-                    scale.X = Math.Min(scale.X, ParentGroup.Scene.m_maxPhys);
-                    scale.Y = Math.Min(scale.Y, ParentGroup.Scene.m_maxPhys);
-                    scale.Z = Math.Min(scale.Z, ParentGroup.Scene.m_maxPhys);
-                }
-
-                PhysActor.Size = scale;
-
-                if (((OpenMetaverse.SculptType)Shape.SculptType) == SculptType.Mesh)
-                    CheckSculptAndLoad();
-                else
-                    ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                scale.X = Math.Min(scale.X, ParentGroup.Scene.m_maxPhys);
+                scale.Y = Math.Min(scale.Y, ParentGroup.Scene.m_maxPhys);
+                scale.Z = Math.Min(scale.Z, ParentGroup.Scene.m_maxPhys);
             }
 
+//            m_log.DebugFormat("[SCENE OBJECT PART]: Resizing {0} {1} to {2}", Name, LocalId, scale);
+
+            Scale = scale;
+
             ParentGroup.HasGroupChanged = true;
-            TriggerScriptChangedEvent(Changed.SCALE);
             ScheduleFullUpdate();
         }
         
@@ -3673,8 +3671,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (m_parentGroup != null)
                     {
-//                        m_log.DebugFormat("[SCENE OBJECT PART]: Storing undo state for {0} {1}", Name, LocalId);
-
                         lock (m_undo)
                         {
                             if (m_undo.Count > 0)
@@ -3683,15 +3679,29 @@ namespace OpenSim.Region.Framework.Scenes
                                 if (last != null)
                                 {
                                     if (last.Compare(this))
+                                    {
+//                                        m_log.DebugFormat(
+//                                            "[SCENE OBJECT PART]: Not storing undo for {0} {1} since current state is same as last undo state, initial stack size {2}",
+//                                            Name, LocalId, m_undo.Count);
+
                                         return;
+                                    }
                                 }
                             }
+
+//                            m_log.DebugFormat(
+//                                "[SCENE OBJECT PART]: Storing undo state for {0} {1}, initial stack size {2}",
+//                                Name, LocalId, m_undo.Count);
 
                             if (m_parentGroup.GetSceneMaxUndo() > 0)
                             {
                                 UndoState nUndo = new UndoState(this);
 
                                 m_undo.Push(nUndo);
+
+//                                m_log.DebugFormat(
+//                                    "[SCENE OBJECT PART]: Stored undo state for {0} {1}, stack size now {2}",
+//                                    Name, LocalId, m_undo.Count);
                             }
                         }
                     }
@@ -3703,7 +3713,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
 //            else
 //            {
-//                m_log.DebugFormat("[SCENE OBJECT PART]: Ignoring undo store for {0} {1} since already undoing", Name, LocalId);
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT PART]: Ignoring undo store for {0} {1} since already undoing", Name, LocalId);
 //            }
         }
 
@@ -3721,10 +3732,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Undo()
         {
-//            m_log.DebugFormat("[SCENE OBJECT PART]: Handling undo request for {0} {1}", Name, LocalId);
-
             lock (m_undo)
             {
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT PART]: Handling undo request for {0} {1}, stack size {2}",
+//                    Name, LocalId, m_undo.Count);
+
                 if (m_undo.Count > 0)
                 {
                     UndoState nUndo = null;
@@ -3739,19 +3752,26 @@ namespace OpenSim.Region.Framework.Scenes
                     if (goback != null)
                     {
                         goback.PlaybackState(this);
+
                         if (nUndo != null)
                             m_redo.Push(nUndo);
                     }
                 }
+
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT PART]: Handled undo request for {0} {1}, stack size now {2}",
+//                    Name, LocalId, m_undo.Count);
             }
         }
 
         public void Redo()
         {
-//            m_log.DebugFormat("[SCENE OBJECT PART]: Handling redo request for {0} {1}", Name, LocalId);
-
             lock (m_redo)
             {
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT PART]: Handling redo request for {0} {1}, stack size {2}",
+//                    Name, LocalId, m_redo.Count);
+
                 if (m_parentGroup.GetSceneMaxUndo() > 0)
                 {
                     UndoState nUndo = new UndoState(this);
@@ -3763,11 +3783,17 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (gofwd != null)
                     gofwd.PlayfwdState(this);
+
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT PART]: Handled redo request for {0} {1}, stack size now {2}",
+//                    Name, LocalId, m_redo.Count);
             }
         }
 
         public void ClearUndoState()
         {
+//            m_log.DebugFormat("[SCENE OBJECT PART]: Clearing undo and redo stacks in {0} {1}", Name, LocalId);
+
             lock (m_undo)
             {
                 m_undo.Clear();

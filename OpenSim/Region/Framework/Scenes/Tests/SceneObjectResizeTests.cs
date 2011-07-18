@@ -50,7 +50,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestResizeSceneObject()
         {
             TestHelper.InMethod();
-            //log4net.Config.XmlConfigurator.Configure();
+//            log4net.Config.XmlConfigurator.Configure();
 
             Scene scene = SceneSetupHelpers.SetupScene();
             SceneObjectGroup g1 = SceneSetupHelpers.AddSceneObject(scene).ParentGroup;
