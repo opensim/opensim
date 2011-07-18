@@ -57,6 +57,11 @@ namespace OpenSim.Data.SQLite
 
         private SqliteConnection m_conn;
 
+        protected virtual Assembly Assembly
+        {
+            get { return GetType().Assembly; }
+        }
+
         override public void Dispose()
         {
             if (m_conn != null)
@@ -83,8 +88,7 @@ namespace OpenSim.Data.SQLite
             m_conn = new SqliteConnection(dbconnect);
             m_conn.Open();
 
-            Assembly assem = GetType().Assembly;
-            Migration m = new Migration(m_conn, assem, "AssetStore");
+            Migration m = new Migration(m_conn, Assembly, "AssetStore");
             m.Update();
 
             return;

@@ -53,6 +53,11 @@ namespace OpenSim.Data.SQLite
         protected static SqliteConnection m_Connection;
         private static bool m_initialized = false;
 
+        protected virtual Assembly Assembly
+        {
+            get { return GetType().Assembly; }
+        }
+
         public SQLiteAuthenticationData(string connectionString, string realm)
                 : base(connectionString)
         {
@@ -63,7 +68,7 @@ namespace OpenSim.Data.SQLite
                 m_Connection = new SqliteConnection(connectionString);
                 m_Connection.Open();
 
-                Migration m = new Migration(m_Connection, GetType().Assembly, "AuthStore");
+                Migration m = new Migration(m_Connection, Assembly, "AuthStore");
                 m.Update();
 
                 m_initialized = true;

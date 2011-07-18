@@ -55,6 +55,11 @@ namespace OpenSim.Data.SQLite
         protected static SqliteConnection m_Connection;
         private static bool m_initialized;
 
+        protected virtual Assembly Assembly
+        {
+            get { return GetType().Assembly; }
+        }
+
         public SQLiteGenericTableHandler(string connectionString,
                 string realm, string storeName) : base(connectionString)
         {
@@ -68,13 +73,12 @@ namespace OpenSim.Data.SQLite
 
                 if (storeName != String.Empty)
                 {
-                    Assembly assem = GetType().Assembly;
                     //SqliteConnection newConnection =
                     //        (SqliteConnection)((ICloneable)m_Connection).Clone();
                     //newConnection.Open();
 
-                    //Migration m = new Migration(newConnection, assem, storeName);
-                    Migration m = new Migration(m_Connection, assem, storeName);
+                    //Migration m = new Migration(newConnection, Assembly, storeName);
+                    Migration m = new Migration(m_Connection, Assembly, storeName);
                     m.Update();
                     //newConnection.Close();
                     //newConnection.Dispose();
