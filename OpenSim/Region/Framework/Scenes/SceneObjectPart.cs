@@ -3803,8 +3803,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_redo.Clear();
             }
-
-            StoreUndoState();
         }
 
         public EntityIntersection TestIntersection(Ray iray, Quaternion parentrot)
