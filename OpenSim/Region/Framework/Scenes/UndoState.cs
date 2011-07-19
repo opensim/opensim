@@ -35,7 +35,7 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public class UndoState
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public Vector3 Position = Vector3.Zero;
         public Vector3 Scale = Vector3.Zero;
@@ -57,23 +57,25 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (part.ParentID == 0)
                 {
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Storing undo position {0} for root part", part.ParentGroup.AbsolutePosition);
+                    ForGroup = forGroup;
 
                     if (ForGroup)
                         Position = part.ParentGroup.AbsolutePosition;
                     else
                         Position = part.OffsetPosition;
 
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Storing undo rotation {0} for root part", part.RotationOffset);
+                    m_log.DebugFormat(
+                        "[UNDO STATE]: Storing undo position {0} for root part", Position);
+
                     Rotation = part.RotationOffset;
 
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Storing undo scale {0} for root part", part.Shape.Scale);
+                    m_log.DebugFormat(
+                        "[UNDO STATE]: Storing undo rotation {0} for root part", Rotation);
+
                     Scale = part.Shape.Scale;
 
-                    ForGroup = forGroup;
+                    m_log.DebugFormat(
+                        "[UNDO STATE]: Storing undo scale {0} for root part", Scale);
                 }
                 else
                 {
@@ -132,23 +134,24 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (part.ParentID == 0)
                 {
+                    m_log.DebugFormat(
+                        "[UNDO STATE]: Undoing position to {0} for root part {1} {2}",
+                        Position, part.Name, part.LocalId);
+
                     if (Position != Vector3.Zero)
                     {
-//                        m_log.DebugFormat(
-//                            "[UNDO STATE]: Undoing position {0} to {1} for root part {2} {3}",
-//                            part.ParentGroup.AbsolutePosition, Position, part.Name, part.LocalId);
-
                         if (ForGroup)
                             part.ParentGroup.AbsolutePosition = Position;
                         else
                             part.OffsetPosition = Position;
                     }
 
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Undoing rotation {0} to {1} for root part {2} {3}",
-//                        part.RotationOffset, Rotation, part.Name, part.LocalId);
+                    m_log.DebugFormat(
+                        "[UNDO STATE]: Undoing rotation {0} to {1} for root part {2} {3}",
+                        part.RotationOffset, Rotation, part.Name, part.LocalId);
 
-                    part.RotationOffset = Rotation;
+                    part.UpdateRotation(Rotation);
+                    //part.RotationOffset = Rotation;
 
                     if (Scale != Vector3.Zero)
                     {

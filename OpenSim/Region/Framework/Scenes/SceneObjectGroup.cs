@@ -2895,9 +2895,11 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT GROUP]: Updating group rotation R of {0} {1} to {2}", Name, LocalId, rot);
 
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].StoreUndoState();
+//            SceneObjectPart[] parts = m_parts.GetArray();
+//            for (int i = 0; i < parts.Length; i++)
+//                parts[i].StoreUndoState();
+
+            m_rootPart.StoreUndoState(true);
 
             m_rootPart.UpdateRotation(rot);
 
@@ -2922,9 +2924,12 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT GROUP]: Updating group rotation PR of {0} {1} to {2}", Name, LocalId, rot);
 
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].StoreUndoState();
+//            SceneObjectPart[] parts = m_parts.GetArray();
+//            for (int i = 0; i < parts.Length; i++)
+//                parts[i].StoreUndoState();
+
+            RootPart.StoreUndoState(true);
+            RootPart.IgnoreUndoUpdate = true;
 
             m_rootPart.UpdateRotation(rot);
 
@@ -2939,6 +2944,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             HasGroupChanged = true;
             ScheduleGroupForTerseUpdate();
+
+            RootPart.IgnoreUndoUpdate = false;
         }
 
         /// <summary>
