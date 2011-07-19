@@ -11220,8 +11220,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected bool HandleMultipleObjUpdate(IClientAPI simClient, Packet packet)
         {
             MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)packet;
-            if (multipleupdate.AgentData.SessionID != SessionId) return false;
-            // m_log.Debug("new multi update packet " + multipleupdate.ToString());
+
+            if (multipleupdate.AgentData.SessionID != SessionId)
+                return false;
+
+//            m_log.DebugFormat(
+//                "[CLIENT]: Incoming MultipleObjectUpdatePacket contained {0} blocks", multipleupdate.ObjectData.Length);
+
             Scene tScene = (Scene)m_scene;
 
             for (int i = 0; i < multipleupdate.ObjectData.Length; i++)
@@ -11242,15 +11247,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     else
                     {
-                        // Do this once since fetch parts creates a new array.
-                        SceneObjectPart[] parts = part.ParentGroup.Parts;
-                        for (int j = 0; j < parts.Length; j++)
-                        {
-                            part.StoreUndoState();
-                            parts[j].IgnoreUndoUpdate = true;
-                        }
+//                        m_log.DebugFormat(
+//                            "[CLIENT]: Processing block {0} type {1} for {2} {3}",
+//                            i, block.Type, part.Name, part.LocalId);
 
-                        // UUID partId = part.UUID;
+//                        // Do this once since fetch parts creates a new array.
+//                        SceneObjectPart[] parts = part.ParentGroup.Parts;
+//                        for (int j = 0; j < parts.Length; j++)
+//                        {
+//                            part.StoreUndoState();
+//                            parts[j].IgnoreUndoUpdate = true;
+//                        }
+
                         UpdatePrimGroupRotation handlerUpdatePrimGroupRotation;
 
                         switch (block.Type)
@@ -11394,6 +11402,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 if (handlerUpdatePrimGroupScale != null)
                                 {
                                     // m_log.Debug("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
+                                    part.StoreUndoState(true);
+                                    part.IgnoreUndoUpdate = true;
                                     handlerUpdatePrimGroupScale(localId, scale5, this);
                                     handlerUpdateVector = OnUpdatePrimGroupPosition;
 
@@ -11401,7 +11411,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     {
                                         handlerUpdateVector(localId, pos5, this);
                                     }
+
+                                    part.IgnoreUndoUpdate = false;
                                 }
+
                                 break;
 
                             case 21:
@@ -11426,8 +11439,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 break;
                         }
 
-                        for (int j = 0; j < parts.Length; j++)
-                            parts[j].IgnoreUndoUpdate = false;
+//                        for (int j = 0; j < parts.Length; j++)
+//                            parts[j].IgnoreUndoUpdate = false;
                     }
                 }
             }

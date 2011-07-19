@@ -42,10 +42,16 @@ namespace OpenSim.Region.Framework.Scenes
         public Quaternion Rotation = Quaternion.Identity;
 
         /// <summary>
+        /// Is this undo state for an entire group?
+        /// </summary>
+        public bool ForGroup;
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="part"></param>
-        public UndoState(SceneObjectPart part)
+        /// <param name="forGroup">True if the undo is for an entire group</param>
+        public UndoState(SceneObjectPart part, bool forGroup)
         {
             if (part != null)
             {
@@ -62,6 +68,8 @@ namespace OpenSim.Region.Framework.Scenes
 //                    m_log.DebugFormat(
 //                        "[UNDO STATE]: Storing undo scale {0} for root part", part.Shape.Scale);
                     Scale = part.Shape.Scale;
+
+                    ForGroup = forGroup;
                 }
                 else
                 {
@@ -141,7 +149,10 @@ namespace OpenSim.Region.Framework.Scenes
 //                            "[UNDO STATE]: Undoing scale {0} to {1} for root part {2} {3}",
 //                            part.Shape.Scale, Scale, part.Name, part.LocalId);
 
-                        part.Resize(Scale);
+                        if (ForGroup)
+                            part.ParentGroup.GroupResize(Scale);
+                        else
+                            part.Resize(Scale);
                     }
 
                     part.ParentGroup.ScheduleGroupForTerseUpdate();
@@ -194,7 +205,12 @@ namespace OpenSim.Region.Framework.Scenes
                         part.UpdateRotation(Rotation);
 
                     if (Scale != Vector3.Zero)
-                        part.Resize(Scale);
+                    {
+                        if (ForGroup)
+                            part.ParentGroup.GroupResize(Scale);
+                        else
+                            part.Resize(Scale);
+                    }
 
                     part.ParentGroup.ScheduleGroupForTerseUpdate();
                 }

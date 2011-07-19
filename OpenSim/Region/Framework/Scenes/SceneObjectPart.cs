@@ -3665,6 +3665,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StoreUndoState()
         {
+            StoreUndoState(false);
+        }
+
+        public void StoreUndoState(bool forGroup)
+        {
             if (!Undoing)
             {
                 if (!IgnoreUndoUpdate)
@@ -3678,6 +3683,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 UndoState last = m_undo.Peek();
                                 if (last != null)
                                 {
+                                    // TODO: May need to fix for group comparison
                                     if (last.Compare(this))
                                     {
 //                                        m_log.DebugFormat(
@@ -3690,12 +3696,12 @@ namespace OpenSim.Region.Framework.Scenes
                             }
 
 //                            m_log.DebugFormat(
-//                                "[SCENE OBJECT PART]: Storing undo state for {0} {1}, initial stack size {2}",
-//                                Name, LocalId, m_undo.Count);
+//                                "[SCENE OBJECT PART]: Storing undo state for {0} {1}, forGroup {2}, initial stack size {3}",
+//                                Name, LocalId, forGroup, m_undo.Count);
 
                             if (m_parentGroup.GetSceneMaxUndo() > 0)
                             {
-                                UndoState nUndo = new UndoState(this);
+                                UndoState nUndo = new UndoState(this, forGroup);
 
                                 m_undo.Push(nUndo);
 
@@ -3740,17 +3746,17 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (m_undo.Count > 0)
                 {
-                    UndoState nUndo = null;
-
-                    if (m_parentGroup.GetSceneMaxUndo() > 0)
-                    {
-                        nUndo = new UndoState(this);
-                    }
-                    
                     UndoState goback = m_undo.Pop();
 
                     if (goback != null)
                     {
+                        UndoState nUndo = null;
+        
+                        if (m_parentGroup.GetSceneMaxUndo() > 0)
+                        {
+                            nUndo = new UndoState(this, goback.ForGroup);
+                        }
+
                         goback.PlaybackState(this);
 
                         if (nUndo != null)
@@ -3772,17 +3778,19 @@ namespace OpenSim.Region.Framework.Scenes
 //                    "[SCENE OBJECT PART]: Handling redo request for {0} {1}, stack size {2}",
 //                    Name, LocalId, m_redo.Count);
 
-                if (m_parentGroup.GetSceneMaxUndo() > 0)
-                {
-                    UndoState nUndo = new UndoState(this);
-
-                    m_undo.Push(nUndo);
-                }
-
                 UndoState gofwd = m_redo.Pop();
 
                 if (gofwd != null)
+                {
+                    if (m_parentGroup.GetSceneMaxUndo() > 0)
+                    {
+                        UndoState nUndo = new UndoState(this, gofwd.ForGroup);
+
+                        m_undo.Push(nUndo);
+                    }
+
                     gofwd.PlayfwdState(this);
+                }
 
 //                m_log.DebugFormat(
 //                    "[SCENE OBJECT PART]: Handled redo request for {0} {1}, stack size now {2}",

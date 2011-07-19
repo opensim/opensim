@@ -2624,6 +2624,8 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT GROUP]: Group resizing {0} {1} from {2} to {3}", Name, LocalId, RootPart.Scale, scale);
 
+            RootPart.StoreUndoState(true);
+
             scale.X = Math.Min(scale.X, Scene.m_maxNonphys);
             scale.Y = Math.Min(scale.Y, Scene.m_maxNonphys);
             scale.Z = Math.Min(scale.Z, Scene.m_maxNonphys);
@@ -2722,16 +2724,20 @@ namespace OpenSim.Region.Framework.Scenes
             prevScale.X *= x;
             prevScale.Y *= y;
             prevScale.Z *= z;
+
+//            RootPart.IgnoreUndoUpdate = true;
             RootPart.Resize(prevScale);
+//            RootPart.IgnoreUndoUpdate = false;
 
             parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart obPart = parts[i];
-//                obPart.IgnoreUndoUpdate = true;
 
                 if (obPart.UUID != m_rootPart.UUID)
                 {
+                    obPart.IgnoreUndoUpdate = true;
+
                     Vector3 currentpos = new Vector3(obPart.OffsetPosition);
                     currentpos.X *= x;
                     currentpos.Y *= y;
@@ -2741,12 +2747,11 @@ namespace OpenSim.Region.Framework.Scenes
                     newSize.X *= x;
                     newSize.Y *= y;
                     newSize.Z *= z;
-                    
-                    obPart.Resize(newSize);
 
-                    obPart.IgnoreUndoUpdate = true;
+                    obPart.Resize(newSize);
                     obPart.UpdateOffSet(currentpos);
-                    obPart.IgnoreUndoUpdate = false;
+
+                    obPart.IgnoreUndoUpdate = false;                    
                 }
 
 //                obPart.IgnoreUndoUpdate = false;
@@ -2769,9 +2774,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
 //            m_log.DebugFormat("[SCENE OBJECT GROUP]: Updating group position on {0} {1} to {2}", Name, LocalId, pos);
 
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].StoreUndoState();
+            RootPart.StoreUndoState(true);
+
+//            SceneObjectPart[] parts = m_parts.GetArray();
+//            for (int i = 0; i < parts.Length; i++)
+//                parts[i].StoreUndoState();
 
             if (m_scene.EventManager.TriggerGroupMove(UUID, pos))
             {
