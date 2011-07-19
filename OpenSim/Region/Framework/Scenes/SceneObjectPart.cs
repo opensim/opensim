@@ -3705,9 +3705,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                                 m_undo.Push(nUndo);
 
-//                                m_log.DebugFormat(
-//                                    "[SCENE OBJECT PART]: Stored undo state for {0} {1}, stack size now {2}",
-//                                    Name, LocalId, m_undo.Count);
+                                m_log.DebugFormat(
+                                    "[SCENE OBJECT PART]: Stored undo state for {0} {1}, stack size now {2}",
+                                    Name, LocalId, m_undo.Count);
                             }
                         }
                     }
@@ -3740,9 +3740,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_undo)
             {
-//                m_log.DebugFormat(
-//                    "[SCENE OBJECT PART]: Handling undo request for {0} {1}, stack size {2}",
-//                    Name, LocalId, m_undo.Count);
+                m_log.DebugFormat(
+                    "[SCENE OBJECT PART]: Handling undo request for {0} {1}, stack size {2}",
+                    Name, LocalId, m_undo.Count);
 
                 if (m_undo.Count > 0)
                 {

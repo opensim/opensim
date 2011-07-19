@@ -59,7 +59,11 @@ namespace OpenSim.Region.Framework.Scenes
                 {
 //                    m_log.DebugFormat(
 //                        "[UNDO STATE]: Storing undo position {0} for root part", part.ParentGroup.AbsolutePosition);
-                    Position = part.ParentGroup.AbsolutePosition;
+
+                    if (ForGroup)
+                        Position = part.ParentGroup.AbsolutePosition;
+                    else
+                        Position = part.OffsetPosition;
 
 //                    m_log.DebugFormat(
 //                        "[UNDO STATE]: Storing undo rotation {0} for root part", part.RotationOffset);
@@ -134,7 +138,10 @@ namespace OpenSim.Region.Framework.Scenes
 //                            "[UNDO STATE]: Undoing position {0} to {1} for root part {2} {3}",
 //                            part.ParentGroup.AbsolutePosition, Position, part.Name, part.LocalId);
 
-                        part.ParentGroup.AbsolutePosition = Position;
+                        if (ForGroup)
+                            part.ParentGroup.AbsolutePosition = Position;
+                        else
+                            part.OffsetPosition = Position;
                     }
 
 //                    m_log.DebugFormat(
