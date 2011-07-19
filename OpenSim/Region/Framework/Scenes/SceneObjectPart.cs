@@ -3705,6 +3705,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                                 m_undo.Push(nUndo);
 
+                                if (m_redo.Count > 0)
+                                    m_redo.Clear();
+
 //                                m_log.DebugFormat(
 //                                    "[SCENE OBJECT PART]: Stored undo state for {0} {1}, forGroup {2}, stack size now {3}",
 //                                    Name, LocalId, forGroup, m_undo.Count);
