@@ -3015,9 +3015,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rot"></param>
         public void UpdateRootRotation(Quaternion rot)
         {
-            m_log.DebugFormat(
-                "[SCENE OBJECT GROUP]: Updating root rotation of {0} {1} to {2}",
-                Name, LocalId, rot);
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT GROUP]: Updating root rotation of {0} {1} to {2}",
+//                Name, LocalId, rot);
 
             Quaternion axRot = rot;
             Quaternion oldParentRot = m_rootPart.RotationOffset;
@@ -3050,21 +3050,21 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            for (int i = 0; i < parts.Length; i++)
-            {
-                SceneObjectPart childpart = parts[i];
-                if (childpart != m_rootPart)
-                {
-//                    childpart.IgnoreUndoUpdate = false;
-//                    childpart.StoreUndoState();
-                }
-            }
+//            for (int i = 0; i < parts.Length; i++)
+//            {
+//                SceneObjectPart childpart = parts[i];
+//                if (childpart != m_rootPart)
+//                {
+////                    childpart.IgnoreUndoUpdate = false;
+////                    childpart.StoreUndoState();
+//                }
+//            }
 
             m_rootPart.ScheduleTerseUpdate();
 
-            m_log.DebugFormat(
-                "[SCENE OBJECT GROUP]: Updated root rotation of {0} {1} to {2}",
-                Name, LocalId, rot);
+//            m_log.DebugFormat(
+//                "[SCENE OBJECT GROUP]: Updated root rotation of {0} {1} to {2}",
+//                Name, LocalId, rot);
         }
 
         #endregion

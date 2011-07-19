@@ -64,32 +64,32 @@ namespace OpenSim.Region.Framework.Scenes
                     else
                         Position = part.OffsetPosition;
 
-                    m_log.DebugFormat(
-                        "[UNDO STATE]: Storing undo position {0} for root part", Position);
+//                    m_log.DebugFormat(
+//                        "[UNDO STATE]: Storing undo position {0} for root part", Position);
 
                     Rotation = part.RotationOffset;
 
-                    m_log.DebugFormat(
-                        "[UNDO STATE]: Storing undo rotation {0} for root part", Rotation);
+//                    m_log.DebugFormat(
+//                        "[UNDO STATE]: Storing undo rotation {0} for root part", Rotation);
 
                     Scale = part.Shape.Scale;
 
-                    m_log.DebugFormat(
-                        "[UNDO STATE]: Storing undo scale {0} for root part", Scale);
+//                    m_log.DebugFormat(
+//                        "[UNDO STATE]: Storing undo scale {0} for root part", Scale);
                 }
                 else
                 {
                     Position = part.OffsetPosition;
-                    m_log.DebugFormat(
-                        "[UNDO STATE]: Storing undo position {0} for child part", Position);
+//                    m_log.DebugFormat(
+//                        "[UNDO STATE]: Storing undo position {0} for child part", Position);
 
                     Rotation = part.RotationOffset;
-                    m_log.DebugFormat(
-                        "[UNDO STATE]: Storing undo rotation {0} for child part", Rotation);
+//                    m_log.DebugFormat(
+//                        "[UNDO STATE]: Storing undo rotation {0} for child part", Rotation);
 
                     Scale = part.Shape.Scale;
-                    m_log.DebugFormat(
-                        "[UNDO STATE]: Storing undo scale {0} for child part", Scale);
+//                    m_log.DebugFormat(
+//                        "[UNDO STATE]: Storing undo scale {0} for child part", Scale);
                 }
             }
         }
@@ -134,9 +134,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (part.ParentID == 0)
                 {
-                    m_log.DebugFormat(
-                        "[UNDO STATE]: Undoing position to {0} for root part {1} {2}",
-                        Position, part.Name, part.LocalId);
+//                    m_log.DebugFormat(
+//                        "[UNDO STATE]: Undoing position to {0} for root part {1} {2}",
+//                        Position, part.Name, part.LocalId);
 
                     if (Position != Vector3.Zero)
                     {
@@ -146,9 +146,9 @@ namespace OpenSim.Region.Framework.Scenes
                             part.OffsetPosition = Position;
                     }
 
-                    m_log.DebugFormat(
-                        "[UNDO STATE]: Undoing rotation {0} to {1} for root part {2} {3}",
-                        part.RotationOffset, Rotation, part.Name, part.LocalId);
+//                    m_log.DebugFormat(
+//                        "[UNDO STATE]: Undoing rotation {0} to {1} for root part {2} {3}",
+//                        part.RotationOffset, Rotation, part.Name, part.LocalId);
 
                     if (ForGroup)
                         part.UpdateRotation(Rotation);

@@ -11224,8 +11224,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (multipleupdate.AgentData.SessionID != SessionId)
                 return false;
 
-            m_log.DebugFormat(
-                "[CLIENT]: Incoming MultipleObjectUpdatePacket contained {0} blocks", multipleupdate.ObjectData.Length);
+//            m_log.DebugFormat(
+//                "[CLIENT]: Incoming MultipleObjectUpdatePacket contained {0} blocks", multipleupdate.ObjectData.Length);
 
             Scene tScene = (Scene)m_scene;
 
@@ -11247,9 +11247,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     else
                     {
-                        m_log.DebugFormat(
-                            "[CLIENT]: Processing block {0} type {1} for {2} {3}",
-                            i, block.Type, part.Name, part.LocalId);
+//                        m_log.DebugFormat(
+//                            "[CLIENT]: Processing block {0} type {1} for {2} {3}",
+//                            i, block.Type, part.Name, part.LocalId);
 
 //                        // Do this once since fetch parts creates a new array.
 //                        SceneObjectPart[] parts = part.ParentGroup.Parts;
