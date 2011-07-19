@@ -150,8 +150,10 @@ namespace OpenSim.Region.Framework.Scenes
                         "[UNDO STATE]: Undoing rotation {0} to {1} for root part {2} {3}",
                         part.RotationOffset, Rotation, part.Name, part.LocalId);
 
-                    part.UpdateRotation(Rotation);
-                    //part.RotationOffset = Rotation;
+                    if (ForGroup)
+                        part.UpdateRotation(Rotation);
+                    else
+                        part.ParentGroup.UpdateRootRotation(Rotation);
 
                     if (Scale != Vector3.Zero)
                     {
