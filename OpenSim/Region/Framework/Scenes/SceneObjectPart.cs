@@ -3778,23 +3778,26 @@ namespace OpenSim.Region.Framework.Scenes
 //                    "[SCENE OBJECT PART]: Handling redo request for {0} {1}, stack size {2}",
 //                    Name, LocalId, m_redo.Count);
 
-                UndoState gofwd = m_redo.Pop();
-
-                if (gofwd != null)
+                if (m_redo.Count > 0)
                 {
-                    if (m_parentGroup.GetSceneMaxUndo() > 0)
+                    UndoState gofwd = m_redo.Pop();
+    
+                    if (gofwd != null)
                     {
-                        UndoState nUndo = new UndoState(this, gofwd.ForGroup);
-
-                        m_undo.Push(nUndo);
+                        if (m_parentGroup.GetSceneMaxUndo() > 0)
+                        {
+                            UndoState nUndo = new UndoState(this, gofwd.ForGroup);
+    
+                            m_undo.Push(nUndo);
+                        }
+    
+                        gofwd.PlayfwdState(this);
                     }
-
-                    gofwd.PlayfwdState(this);
-                }
 
 //                m_log.DebugFormat(
 //                    "[SCENE OBJECT PART]: Handled redo request for {0} {1}, stack size now {2}",
 //                    Name, LocalId, m_redo.Count);
+                }
             }
         }
 
