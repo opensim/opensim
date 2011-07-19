@@ -2825,6 +2825,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                    "[SCENE OBJECT GROUP]: Updating single position of {0} {1} to {2}", part.Name, part.LocalId, pos);
 
                 part.StoreUndoState(false);
+                part.IgnoreUndoUpdate = true;
 
                 if (part.UUID == m_rootPart.UUID)
                 {
@@ -2836,6 +2837,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 HasGroupChanged = true;
+                part.IgnoreUndoUpdate = false;
             }
         }
 
@@ -2848,9 +2850,9 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT GROUP]: Updating root position of {0} {1} to {2}", Name, LocalId, pos);
 
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].StoreUndoState();
+//            SceneObjectPart[] parts = m_parts.GetArray();
+//            for (int i = 0; i < parts.Length; i++)
+//                parts[i].StoreUndoState();
 
             Vector3 newPos = new Vector3(pos.X, pos.Y, pos.Z);
             Vector3 oldPos =
@@ -2863,7 +2865,7 @@ namespace OpenSim.Region.Framework.Scenes
             axDiff *= Quaternion.Inverse(partRotation);
             diff = axDiff;
 
-            parts = m_parts.GetArray();
+            SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
             {
                 SceneObjectPart obPart = parts[i];

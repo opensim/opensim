@@ -788,7 +788,7 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_offsetPosition; }
             set
             {
-                StoreUndoState();
+//                StoreUndoState();
                 m_offsetPosition = value;
 
                 if (ParentGroup != null && !ParentGroup.IsDeleted)

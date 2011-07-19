@@ -59,10 +59,10 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     ForGroup = forGroup;
 
-                    if (ForGroup)
+//                    if (ForGroup)
                         Position = part.ParentGroup.AbsolutePosition;
-                    else
-                        Position = part.OffsetPosition;
+//                    else
+//                        Position = part.OffsetPosition;
 
 //                    m_log.DebugFormat(
 //                        "[UNDO STATE]: Storing undo position {0} for root part", Position);
@@ -143,7 +143,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (ForGroup)
                             part.ParentGroup.AbsolutePosition = Position;
                         else
-                            part.OffsetPosition = Position;
+                            part.ParentGroup.UpdateRootPosition(Position);
                     }
 
 //                    m_log.DebugFormat(
