@@ -3775,7 +3775,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Redo()
         {
-            lock (m_redo)
+            lock (m_undo)
             {
 //                m_log.DebugFormat(
 //                    "[SCENE OBJECT PART]: Handling redo request for {0} {1}, stack size {2}",
@@ -3811,10 +3811,6 @@ namespace OpenSim.Region.Framework.Scenes
             lock (m_undo)
             {
                 m_undo.Clear();
-            }
-
-            lock (m_redo)
-            {
                 m_redo.Clear();
             }
         }
