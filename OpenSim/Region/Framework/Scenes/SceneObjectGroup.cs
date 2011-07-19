@@ -2991,6 +2991,9 @@ namespace OpenSim.Region.Framework.Scenes
 //                    "[SCENE OBJECT GROUP]: Updating single position and rotation of {0} {1} to {2}",
 //                    part.Name, part.LocalId, rot);
 
+                part.StoreUndoState();
+                part.IgnoreUndoUpdate = true;
+
                 if (part.UUID == m_rootPart.UUID)
                 {
                     UpdateRootRotation(rot);
@@ -2998,12 +3001,11 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    part.IgnoreUndoUpdate = true;
                     part.UpdateRotation(rot);
                     part.OffsetPosition = pos;
-                    part.IgnoreUndoUpdate = false;
-                    part.StoreUndoState();
                 }
+
+                part.IgnoreUndoUpdate = false;
             }
         }
 

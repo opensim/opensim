@@ -79,17 +79,17 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Storing undo position {0} for child part", part.OffsetPosition);
                     Position = part.OffsetPosition;
+                    m_log.DebugFormat(
+                        "[UNDO STATE]: Storing undo position {0} for child part", Position);
 
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Storing undo rotation {0} for child part", part.RotationOffset);
                     Rotation = part.RotationOffset;
+                    m_log.DebugFormat(
+                        "[UNDO STATE]: Storing undo rotation {0} for child part", Rotation);
 
-//                    m_log.DebugFormat(
-//                        "[UNDO STATE]: Storing undo scale {0} for child part", part.Shape.Scale);
                     Scale = part.Shape.Scale;
+                    m_log.DebugFormat(
+                        "[UNDO STATE]: Storing undo scale {0} for child part", Scale);
                 }
             }
         }
