@@ -1352,12 +1352,12 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Update the position of the given part
+        /// Update the position of the given group.
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="pos"></param>
         /// <param name="remoteClient"></param>
-        public void UpdatePrimPosition(uint localID, Vector3 pos, IClientAPI remoteClient)
+        public void UpdatePrimGroupPosition(uint localID, Vector3 pos, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
             

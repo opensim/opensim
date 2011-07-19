@@ -2840,10 +2840,10 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        ///
+        /// Update just the root prim position in a linkset
         /// </summary>
         /// <param name="pos"></param>
-        private void UpdateRootPosition(Vector3 pos)
+        public void UpdateRootPosition(Vector3 pos)
         {
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT GROUP]: Updating root position of {0} {1} to {2}", Name, LocalId, pos);

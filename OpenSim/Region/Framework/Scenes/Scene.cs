@@ -2716,7 +2716,7 @@ namespace OpenSim.Region.Framework.Scenes
         
         public virtual void SubscribeToClientPrimEvents(IClientAPI client)
         {
-            client.OnUpdatePrimGroupPosition += m_sceneGraph.UpdatePrimPosition;
+            client.OnUpdatePrimGroupPosition += m_sceneGraph.UpdatePrimGroupPosition;
             client.OnUpdatePrimSinglePosition += m_sceneGraph.UpdatePrimSinglePosition;
 
             client.OnUpdatePrimGroupRotation += m_sceneGraph.UpdatePrimGroupRotation;
@@ -2845,7 +2845,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void UnSubscribeToClientPrimEvents(IClientAPI client)
         {
-            client.OnUpdatePrimGroupPosition -= m_sceneGraph.UpdatePrimPosition;
+            client.OnUpdatePrimGroupPosition -= m_sceneGraph.UpdatePrimGroupPosition;
             client.OnUpdatePrimSinglePosition -= m_sceneGraph.UpdatePrimSinglePosition;
 
             client.OnUpdatePrimGroupRotation -= m_sceneGraph.UpdatePrimGroupRotation;
