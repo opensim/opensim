@@ -101,23 +101,15 @@ namespace OpenSim.Region.Framework.Scenes
             if (part != null)
             {
                 if (part.ParentID == 0)
-                {
-                    if (Position == part.ParentGroup.AbsolutePosition
-                        && Rotation == part.RotationOffset
-                        && Scale == part.Shape.Scale)
-                        return true;
-                    else
-                        return false;
-                }
+                    return
+                        Position == part.ParentGroup.AbsolutePosition
+                            && Rotation == part.RotationOffset
+                            && Scale == part.Shape.Scale;
                 else
-                {
-                    if (Position == part.OffsetPosition
-                        && Rotation == part.RotationOffset
-                        && Scale == part.Shape.Scale)
-                        return true;
-                    else
-                        return false;
-                }
+                    return
+                        Position == part.OffsetPosition
+                            && Rotation == part.RotationOffset
+                            && Scale == part.Shape.Scale;
             }
 
             return false;
@@ -249,10 +241,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool Compare(ITerrainChannel terrainChannel)
         {
-            if (m_terrainChannel != terrainChannel)
-                return false;
-            else
-                return false;
+            return m_terrainChannel == terrainChannel;
         }
 
         public void PlaybackState()
