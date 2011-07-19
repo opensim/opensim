@@ -2815,14 +2815,16 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectPart part = GetChildPart(localID);
 
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].StoreUndoState();
+//            SceneObjectPart[] parts = m_parts.GetArray();
+//            for (int i = 0; i < parts.Length; i++)
+//                parts[i].StoreUndoState();
 
             if (part != null)
             {
 //                m_log.DebugFormat(
 //                    "[SCENE OBJECT GROUP]: Updating single position of {0} {1} to {2}", part.Name, part.LocalId, pos);
+
+                part.StoreUndoState(false);
 
                 if (part.UUID == m_rootPart.UUID)
                 {

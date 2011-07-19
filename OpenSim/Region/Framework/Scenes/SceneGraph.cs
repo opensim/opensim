@@ -1291,7 +1291,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))
                 {
-                    group.UpdateSingleRotation(rot,pos, localID);
+                    group.UpdateSingleRotation(rot, pos, localID);
                 }
             }
         }

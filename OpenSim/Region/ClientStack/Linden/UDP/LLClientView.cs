@@ -11424,6 +11424,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 handlerUpdatePrimScale = OnUpdatePrimScale;
                                 if (handlerUpdatePrimScale != null)
                                 {
+                                    part.StoreUndoState(false);
+                                    part.IgnoreUndoUpdate = true;
+
                                     // m_log.Debug("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
                                     handlerUpdatePrimScale(localId, scale6, this);
                                     handlerUpdatePrimSinglePosition = OnUpdatePrimSinglePosition;
@@ -11431,6 +11434,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     {
                                         handlerUpdatePrimSinglePosition(localId, pos6, this);
                                     }
+
+                                    part.IgnoreUndoUpdate = false;
                                 }
                                 break;
 
