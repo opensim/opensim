@@ -1677,7 +1677,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
-                                     IMesh mesh, PrimitiveBaseShape pbs, bool isphysical)
+                                     IMesh mesh, PrimitiveBaseShape pbs, bool isphysical, uint localID)
         {
             Vector3 pos = position;
             Vector3 siz = size;
@@ -1691,7 +1691,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 lock (_prims)
                     _prims.Add(newPrim);
             }
-
+            newPrim.LocalID = localID;
             return newPrim;
         }
 
@@ -1708,13 +1708,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation) //To be removed
-        {
-            return AddPrimShape(primName, pbs, position, size, rotation, false);
-        }
-
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation, bool isPhysical)
+                                                  Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
         {
 #if SPAM
             m_log.DebugFormat("[PHYSICS]: Adding physics actor to {0}", primName);
@@ -1723,22 +1717,23 @@ namespace OpenSim.Region.Physics.OdePlugin
             PhysicsActor result;
             IMesh mesh = null;
 
-            if (needsMeshing(pbs))
-            {
-                try
-                {
-                    mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
-                }
-                catch(Exception e)
-                {
-                    m_log.ErrorFormat("[PHYSICS]: Exception while meshing prim {0}.", primName);
-                    m_log.Debug(e.ToString());
-                    mesh = null;
-                    return null;
-                }
-            }
+            // Don't create the mesh here - wait until the mesh data is loaded from the asset store.
+//            if (needsMeshing(pbs))
+//            {
+//                try
+//                {
+//                    mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
+//                }
+//                catch(Exception e)
+//                {
+//                    m_log.ErrorFormat("[PHYSICS]: Exception while meshing prim {0}.", primName);
+//                    m_log.Debug(e.ToString());
+//                    mesh = null;
+//                    return null;
+//                }
+//            }
 
-            result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical);
+            result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical, localid);
 
             return result;
         }
@@ -2590,7 +2585,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (!(_taintedPrimH.Contains(taintedprim))) 
                     {
-//Console.WriteLine("AddPhysicsActorTaint to " +  taintedprim.m_primName);
+#if SPAM
+Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
+#endif
                         _taintedPrimH.Add(taintedprim);                    // HashSet for searching
                         _taintedPrimL.Add(taintedprim);                    // List for ordered readout
                     }
@@ -3731,6 +3728,34 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 m_rayCastManager.QueueRequest(position, direction, length, retMethod);
             }
+        }
+
+        public override void RaycastWorld(Vector3 position, Vector3 direction, float length, int Count, RayCallback retMethod)
+        {
+            if (retMethod != null)
+            {
+                m_rayCastManager.QueueRequest(position, direction, length, Count, retMethod);
+            }
+        }
+
+        public override List<ContactResult> RaycastWorld(Vector3 position, Vector3 direction, float length, int Count)
+        {
+            ContactResult[] ourResults = null;
+            RayCallback retMethod = delegate(List<ContactResult> results)
+            {
+                ourResults = new ContactResult[results.Count];
+                results.CopyTo(ourResults, 0);
+            };
+            int waitTime = 0;
+            m_rayCastManager.QueueRequest(position, direction, length, Count, retMethod);
+            while (ourResults == null && waitTime < 1000)
+            {
+                Thread.Sleep(1);
+                waitTime++;
+            }
+            if (ourResults == null)
+                return new List<ContactResult> ();
+            return new List<ContactResult>(ourResults);
         }
 
 #if USE_DRAWSTUFF

@@ -74,6 +74,11 @@ namespace OpenSim.Data.SQLite
 
         private String m_connectionString;
 
+        protected virtual Assembly Assembly
+        {
+            get { return GetType().Assembly; }
+        }
+
         public SQLiteSimulationData()
         {
         }
@@ -132,8 +137,7 @@ namespace OpenSim.Data.SQLite
                 SqliteCommand regionSettingsSelectCmd = new SqliteCommand(regionSettingsSelect, m_conn);
                 regionSettingsDa = new SqliteDataAdapter(regionSettingsSelectCmd);
                 // This actually does the roll forward assembly stuff
-                Assembly assem = GetType().Assembly;
-                Migration m = new Migration(m_conn, assem, "RegionStore");
+                Migration m = new Migration(m_conn, Assembly, "RegionStore");
                 m.Update();
 
                 lock (ds)

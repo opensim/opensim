@@ -28,19 +28,19 @@
     AssetLoaderArgs = "assets/AssetSets.xml"
 
     ;
-    ; change this to your grid-wide asset server
+    ; Change this to your grid-wide asset server.  Do not add a slash to the end of any of these addresses.
     ;
     AssetServerURI = "http://myassetserver.com:8003"
 
 [InventoryService]
     ;
-    ; change this to your grid-wide inventory server
+    ; Change this to your grid-wide inventory server
     ;
     InventoryServerURI = "http://myinventoryserver.com:8003"
 
 [GridService]
     ;
-    ; change this to your grid-wide grid server
+    ; Change this to your grid-wide grid server
     ;
     GridServerURI = "http://mygridserver.com:8003"
     ;AllowHypergridMapSearch = true
@@ -49,51 +49,51 @@
     ; MapTileDirectory = "./maptiles"
 
     ; === HG ONLY ===
-	;; change this to the address of your Gatekeeper service
-	;; (usually bundled with the rest of the services in one 
-	;; Robust server in port 8002, but not always)
-	Gatekeeper="http://mygridserver.com:8002"
+    ;; Change this to the address of your Gatekeeper service
+    ;; (usually bundled with the rest of the services in one 
+    ;; Robust server in port 8002, but not always)
+    Gatekeeper="http://mygridserver.com:8002"
 
 [Messaging]
     ; === HG ONLY ===
-    ;; change this to the address of your Gatekeeper service
+    ;; Change this to the address of your Gatekeeper service
     ;; (usually bundled with the rest of the services in one 
     ;; Robust server in port 8002, but not always)
     Gatekeeper = "http://mygridserver.com:8002"
 
 [AvatarService]
     ;
-    ; change this to your grid-wide grid server
+    ; Change this to your grid-wide grid server
     ;
     AvatarServerURI = "http://mygridserver.com:8003"
 
 [PresenceService]
     ;
-    ; change this to your grid-wide presence server
+    ; Change this to your grid-wide presence server
     ;
     PresenceServerURI = "http://mygridserver.com:8003"
 
 [UserAccountService]
     ;
-    ; change this to your grid-wide user accounts server
+    ; Change this to your grid-wide user accounts server
     ;
     UserAccountServerURI = "http://mygridserver.com:8003"
 
 [GridUserService]
     ;
-    ; change this to your grid-wide user accounts server
+    ; Change this to your grid-wide user accounts server
     ;
     GridUserServerURI = "http://mygridserver.com:8003"
 
 [AuthenticationService]
     ;
-    ; change this to your grid-wide authentication server
+    ; Change this to your grid-wide authentication server
     ;
     AuthenticationServerURI = "http://mygridserver.com:8003"
 
 [FriendsService]
     ;
-    ; change this to your grid-wide friends server
+    ; Change this to your grid-wide friends server
     ;
     FriendsServerURI = "http://mygridserver.com:8003"
 
@@ -104,10 +104,10 @@
     ; accessible from other grids
     ;
     ProfileServerURI = "http://mygridserver.com:8002/user"
-	Gatekeeper = "http://mygridserver.com:8002"
-	;; If you want to protect your assets from being copied by foreign visitors
-	;; uncomment the next line. You may want to do this on sims that have licensed content.
-	; OutboundPermission = False
+    Gatekeeper = "http://mygridserver.com:8002"
+    ;; If you want to protect your assets from being copied by foreign visitors
+    ;; uncomment the next line. You may want to do this on sims that have licensed content.
+    ; OutboundPermission = False
 
 [UserAgentService]
     ;

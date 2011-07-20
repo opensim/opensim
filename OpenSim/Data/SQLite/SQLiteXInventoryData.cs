@@ -41,7 +41,7 @@ using OpenSim.Framework;
 namespace OpenSim.Data.SQLite
 {
     /// <summary>
-    /// A MySQL Interface for the Asset Server
+    /// A SQLite Interface for the Asset Server
     /// </summary>
     public class SQLiteXInventoryData : IXInventoryData
     {

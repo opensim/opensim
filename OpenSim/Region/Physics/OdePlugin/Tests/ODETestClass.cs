@@ -31,17 +31,18 @@ using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.Physics.OdePlugin;
 using log4net;
 using System.Reflection;
 
-namespace OpenSim.Region.Physics.OdePlugin
+namespace OpenSim.Region.Physics.OdePlugin.Tests
 {
     [TestFixture]
     public class ODETestClass
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private OdePlugin cbt;
+        private OpenSim.Region.Physics.OdePlugin.OdePlugin cbt;
         private PhysicsScene ps;
         private IMeshingPlugin imp;
 
@@ -83,7 +84,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             Vector3 position = new Vector3(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f), 128f);
             Vector3 size = new Vector3(0.5f, 0.5f, 0.5f);
             Quaternion rot = Quaternion.Identity;
-            PhysicsActor prim = ps.AddPrimShape("CoolShape", newcube, position, size, rot, true);
+            PhysicsActor prim = ps.AddPrimShape("CoolShape", newcube, position, size, rot, true, 0);
             OdePrim oprim = (OdePrim)prim;
             OdeScene pscene = (OdeScene) ps;
 

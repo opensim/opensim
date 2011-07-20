@@ -102,7 +102,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     sceneObject.AddPart(part);
                     part.LinkNum = linkNum;
                     part.TrimPermissions();
-                    part.StoreUndoState();
                     reader.Close();
                     sr.Close();
                 }
@@ -236,15 +235,14 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     if (originalLinkNum != 0)
                         part.LinkNum = originalLinkNum;
 
-                    part.StoreUndoState();
                     reader.Close();
                     sr.Close();
                 }
 
                 // Script state may, or may not, exist. Not having any, is NOT
                 // ever a problem.
-
                 sceneObject.LoadScriptState(doc);
+                
                 return sceneObject;
             }
             catch (Exception e)

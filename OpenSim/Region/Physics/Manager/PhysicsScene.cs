@@ -37,6 +37,18 @@ namespace OpenSim.Region.Physics.Manager
     public delegate void physicsCrash();
 
     public delegate void RaycastCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 normal);
+    public delegate void RayCallback(List<ContactResult> list);
+
+    /// <summary>
+    /// Contact result from a raycast.
+    /// </summary>
+    public struct ContactResult
+    {
+        public Vector3 Pos;
+        public float Depth;
+        public uint ConsumerID;
+        public Vector3 Normal;
+    }
 
     public abstract class PhysicsScene
     {
@@ -61,7 +73,6 @@ namespace OpenSim.Region.Physics.Manager
             }
         }
 
-
         public abstract void Initialise(IMesher meshmerizer, IConfigSource config);
 
         public abstract PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying);
@@ -78,20 +89,7 @@ namespace OpenSim.Region.Physics.Manager
         public abstract void RemovePrim(PhysicsActor prim);
 
         public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation); //To be removed
-        public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation, bool isPhysical);
-
-        public virtual PhysicsActor AddPrimShape(uint localID, string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation, bool isPhysical)
-        {
-            PhysicsActor ret = AddPrimShape(primName, pbs, position, size, rotation, isPhysical);
-
-            if (ret != null)
-                ret.LocalID = localID;
-
-            return ret;
-        }
+                                                  Vector3 size, Quaternion rotation, bool isPhysical, uint localid);
 
         public virtual float TimeDilation
         {
@@ -225,6 +223,17 @@ namespace OpenSim.Region.Physics.Manager
                 retMethod(false, Vector3.Zero, 0, 999999999999f, Vector3.Zero);
         }
 
+        public virtual void RaycastWorld(Vector3 position, Vector3 direction, float length, int Count, RayCallback retMethod)
+        {
+            if (retMethod != null)
+                retMethod(new List<ContactResult>());
+        }
+
+        public virtual List<ContactResult> RaycastWorld(Vector3 position, Vector3 direction, float length, int Count)
+        {
+            return new List<ContactResult>();
+        }
+
         private class NullPhysicsScene : PhysicsScene
         {
             private static int m_workIndicator;
@@ -262,13 +271,7 @@ namespace OpenSim.Region.Physics.Manager
 */
 
             public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                      Vector3 size, Quaternion rotation) //To be removed
-            {
-                return AddPrimShape(primName, pbs, position, size, rotation, false);
-            }
-
-            public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                      Vector3 size, Quaternion rotation, bool isPhysical)
+                                                      Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
             {
                 m_log.InfoFormat("[PHYSICS]: NullPhysicsScene : AddPrim({0},{1})", position, size);
                 return PhysicsActor.Null;

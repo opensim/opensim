@@ -907,15 +907,6 @@ namespace OpenSim.Framework
         }
     }
 
-    public class SynchronousRestObjectPoster
-    {
-        [Obsolete]
-        public static TResponse BeginPostObject<TRequest, TResponse>(string verb, string requestUrl, TRequest obj)
-        {
-            return SynchronousRestObjectRequester.MakeRequest<TRequest, TResponse>(verb, requestUrl, obj);
-        }
-    }
-
     public class SynchronousRestObjectRequester
     {
         private static readonly ILog m_log =
@@ -981,9 +972,6 @@ namespace OpenSim.Framework
             {
                 using (HttpWebResponse resp = (HttpWebResponse)request.GetResponse())
                 {
-                    if (resp.StatusCode == HttpStatusCode.NotFound)
-                        return deserial;
-
                     if (resp.ContentLength != 0)
                     {
                         Stream respStream = resp.GetResponseStream();
@@ -993,8 +981,18 @@ namespace OpenSim.Framework
                     }
                     else
                         m_log.DebugFormat("[SynchronousRestObjectRequester]: Oops! no content found in response stream from {0} {1}", requestUrl, verb);
-
                 }
+            }
+            catch (WebException e)
+            {
+                HttpWebResponse hwr = (HttpWebResponse)e.Response;
+
+                if (hwr != null && hwr.StatusCode == HttpStatusCode.NotFound)
+                    return deserial;
+                else
+                    m_log.ErrorFormat(
+                        "[SynchronousRestObjectRequester]: WebException {0} {1} {2} {3}",
+                        requestUrl, typeof(TResponse).ToString(), e.Message, e.StackTrace);
             }
             catch (System.InvalidOperationException)
             {

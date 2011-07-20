@@ -134,7 +134,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Profile
             if (!(s is Scene))
                 return;
 
-            Scene scene = (Scene)s;
+//            Scene scene = (Scene)s;
 
             string profileUrl = String.Empty;
             string aboutText = String.Empty;

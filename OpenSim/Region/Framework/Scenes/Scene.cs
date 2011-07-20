@@ -1751,8 +1751,9 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart rootPart = group.GetChildPart(group.UUID);
                 rootPart.Flags &= ~PrimFlags.Scripted;
                 rootPart.TrimPermissions();
-                group.CheckSculptAndLoad();
-                //rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
+
+                // Don't do this here - it will get done later on when sculpt data is loaded.
+//                group.CheckSculptAndLoad();
             }
 
             m_log.Info("[SCENE]: Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
@@ -2715,12 +2716,14 @@ namespace OpenSim.Region.Framework.Scenes
         
         public virtual void SubscribeToClientPrimEvents(IClientAPI client)
         {
-            client.OnUpdatePrimGroupPosition += m_sceneGraph.UpdatePrimPosition;
+            client.OnUpdatePrimGroupPosition += m_sceneGraph.UpdatePrimGroupPosition;
             client.OnUpdatePrimSinglePosition += m_sceneGraph.UpdatePrimSinglePosition;
-            client.OnUpdatePrimGroupRotation += m_sceneGraph.UpdatePrimRotation;
-            client.OnUpdatePrimGroupMouseRotation += m_sceneGraph.UpdatePrimRotation;
+
+            client.OnUpdatePrimGroupRotation += m_sceneGraph.UpdatePrimGroupRotation;
+            client.OnUpdatePrimGroupMouseRotation += m_sceneGraph.UpdatePrimGroupRotation;
             client.OnUpdatePrimSingleRotation += m_sceneGraph.UpdatePrimSingleRotation;
             client.OnUpdatePrimSingleRotationPosition += m_sceneGraph.UpdatePrimSingleRotationPosition;
+            
             client.OnUpdatePrimScale += m_sceneGraph.UpdatePrimScale;
             client.OnUpdatePrimGroupScale += m_sceneGraph.UpdatePrimGroupScale;
             client.OnUpdateExtraParams += m_sceneGraph.UpdateExtraParam;
@@ -2842,12 +2845,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void UnSubscribeToClientPrimEvents(IClientAPI client)
         {
-            client.OnUpdatePrimGroupPosition -= m_sceneGraph.UpdatePrimPosition;
+            client.OnUpdatePrimGroupPosition -= m_sceneGraph.UpdatePrimGroupPosition;
             client.OnUpdatePrimSinglePosition -= m_sceneGraph.UpdatePrimSinglePosition;
-            client.OnUpdatePrimGroupRotation -= m_sceneGraph.UpdatePrimRotation;
-            client.OnUpdatePrimGroupMouseRotation -= m_sceneGraph.UpdatePrimRotation;
+
+            client.OnUpdatePrimGroupRotation -= m_sceneGraph.UpdatePrimGroupRotation;
+            client.OnUpdatePrimGroupMouseRotation -= m_sceneGraph.UpdatePrimGroupRotation;
             client.OnUpdatePrimSingleRotation -= m_sceneGraph.UpdatePrimSingleRotation;
             client.OnUpdatePrimSingleRotationPosition -= m_sceneGraph.UpdatePrimSingleRotationPosition;
+
             client.OnUpdatePrimScale -= m_sceneGraph.UpdatePrimScale;
             client.OnUpdatePrimGroupScale -= m_sceneGraph.UpdatePrimGroupScale;
             client.OnUpdateExtraParams -= m_sceneGraph.UpdateExtraParam;
