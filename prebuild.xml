@@ -601,6 +601,31 @@
       </Files>
     </Project>
 
+    <Project frameworkVersion="v3_5" name="OpenSim.Region.Physics.ConvexDecompositionDotNet" path="OpenSim/Region/Physics/ConvexDecompositionDotNet" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Core"/>
+      <Reference name="System.Data"/>
+      <Reference name="System.Xml"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true">
+          <Exclude name="Tests" pattern="Tests"/>
+        </Match>
+      </Files>
+    </Project>
+
     <Project frameworkVersion="v3_5" name="OpenSim.Region.Physics.BulletSPlugin" path="OpenSim/Region/Physics/BulletSPlugin" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -626,31 +651,6 @@
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Region.Physics.ConvexDecompositionDotNet"/>
       <Reference name="log4net.dll" path="../../../../bin/"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-          <Exclude name="Tests" pattern="Tests"/>
-        </Match>
-      </Files>
-    </Project>
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Region.Physics.ConvexDecompositionDotNet" path="OpenSim/Region/Physics/ConvexDecompositionDotNet" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/Physics/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/Physics/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Core"/>
-      <Reference name="System.Data"/>
-      <Reference name="System.Xml"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true">
