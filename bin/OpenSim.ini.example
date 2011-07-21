@@ -68,15 +68,6 @@
     ;; in a <Regions> tag.
     ; regionload_webserver_url = "http://example.com/regions.xml";
 
-    ;# {TextureOnMapTile} {} {Use terrain textures for map tiles?} {true false} true
-    ;; Use terrain texture for maptiles if true, use shaded green if false
-    ; TextureOnMapTile = true
-
-    ;# {DrawPrimOnMapTile} {} {Draw prim shapes on map tiles?} {true false} false
-    ;; Draw objects on maptile.  This step might take a long time if you've
-    ;; got a large number of objects, so you can turn it off here if you'd like.
-    ; DrawPrimOnMapTile = true
-
     ;# {NonPhysicalPrimMax} {} {Maximum size of nonphysical prims?} {} 256
     ;; Maximum size for non-physical prims.  Affects resizing of existing prims.  This can be overriden in the region config file (as NonphysicalPrimMax!).
     ; NonPhysicalPrimMax = 256
@@ -199,6 +190,15 @@
 
     ;; If not generating maptiles, use this static texture asset ID
     ; MaptileStaticUUID = "00000000-0000-0000-0000-000000000000"
+
+    ;# {TextureOnMapTile} {} {Use terrain textures for map tiles?} {true false} true
+    ;; Use terrain texture for maptiles if true, use shaded green if false
+    ; TextureOnMapTile = true
+
+    ;# {DrawPrimOnMapTile} {} {Draw prim shapes on map tiles?} {true false} false
+    ;; Draw objects on maptile.  This step might take a long time if you've
+    ;; got a large number of objects, so you can turn it off here if you'd like.
+    ; DrawPrimOnMapTile = true
 
     ;; Http proxy setting for llHTTPRequest and dynamic texture loading, if required
     ; HttpProxy = "http://proxy.com:8080"
