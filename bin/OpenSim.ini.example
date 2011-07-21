@@ -190,7 +190,7 @@
     ;; Map tile options. You can choose to generate no map tiles at all,
     ;; generate normal maptiles, or nominate an uploaded texture to
     ;; be the map tile
-    ; GenerateMaptiles = "true"
+    ; GenerateMaptiles = true
 
     ;; If desired, a running region can update the map tiles periodically
     ;; to reflect building activity. This names no sense of you don't have
