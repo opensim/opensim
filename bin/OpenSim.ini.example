@@ -218,7 +218,7 @@
     ;; The SMTP server enabled the email module to send email to external
     ;; destinations.
 
-    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {Enable SMTP service?} {true false} true
+    ;# {enabled} {[Startup]emailmodule:DefaultEmailModule} {Enable SMTP service?} {true false} false
     ;; Enable sending email via SMTP
     ; enabled = false
 
