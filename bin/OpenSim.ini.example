@@ -68,9 +68,9 @@
     ;; in a <Regions> tag.
     ; regionload_webserver_url = "http://example.com/regions.xml";
 
-    ;# {TextureOnMapTile} {} {Use terrain textures for map tiles?} {true false} false
+    ;# {TextureOnMapTile} {} {Use terrain textures for map tiles?} {true false} true
     ;; Use terrain texture for maptiles if true, use shaded green if false
-    ; TextureOnMapTile = false
+    ; TextureOnMapTile = true
 
     ;# {DrawPrimOnMapTile} {} {Draw prim shapes on map tiles?} {true false} false
     ;; Draw objects on maptile.  This step might take a long time if you've
