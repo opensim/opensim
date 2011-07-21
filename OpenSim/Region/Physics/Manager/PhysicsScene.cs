@@ -88,22 +88,8 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void RemovePrim(PhysicsActor prim);
 
-        //public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-        //                                          Vector3 size, Quaternion rotation); //To be removed - Actually removed!
-
         public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical, uint localid);
-
-        public virtual PhysicsActor AddPrimShape(uint localID, string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                                  Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
-        {
-            PhysicsActor ret = AddPrimShape(primName, pbs, position, size, rotation, isPhysical, localid);
-
-            if (ret != null)
-                ret.LocalID = localID;
-
-            return ret;
-        }
 
         public virtual float TimeDilation
         {
