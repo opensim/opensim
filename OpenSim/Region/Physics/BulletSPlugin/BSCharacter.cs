@@ -107,7 +107,7 @@ public class BSCharacter : PhysicsActor
         shapeData.Velocity = _velocity;
         shapeData.Scale = _scale;
         shapeData.Mass = _mass;
-        shapeData.Buoyancy = isFlying ? 0f : 1f;
+        shapeData.Buoyancy = isFlying ? 1f : 0f;
         shapeData.Static = ShapeData.numericFalse;
 
         // do actual create at taint time
@@ -258,7 +258,7 @@ public class BSCharacter : PhysicsActor
             _scene.TaintedObject(delegate()
             {
                 // simulate flying by changing the effect of gravity
-                BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, LocalID, _flying ? 0f : 1f);
+                BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, LocalID, _flying ? 1f : 0f);
             });
         } 
     }
@@ -296,7 +296,13 @@ public class BSCharacter : PhysicsActor
     }
     public override float Buoyancy { 
         get { return _buoyancy; } 
-        set { _buoyancy = value; } 
+        set { _buoyancy = value; 
+            _scene.TaintedObject(delegate()
+            {
+                // simulate flying by changing the effect of gravity
+                BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, LocalID, _buoyancy);
+            });
+        } 
     }
 
     // Used for MoveTo

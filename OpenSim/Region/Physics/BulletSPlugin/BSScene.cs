@@ -37,7 +37,6 @@ using OpenMetaverse;
 using OpenSim.Region.Framework;
 
 // TODOs for BulletSim (for BSScene, BSPrim, BSCharacter and BulletSim)
-// Fix folding up feet
 // Parameterize BulletSim. Pass a structure of parameters to the C++ code. Capsule size, friction, ...
 // Adjust character capsule size when height is adjusted (ScenePresence.SetHeight)
 // Test sculpties
@@ -108,6 +107,31 @@ public class BSScene : PhysicsScene
     private List<TaintCallback> _taintedObjects;
     private Object _taintLock = new Object();
 
+    // A pointer to an instance if this structure is passed to the C++ code
+    // Format of this structure must match the definition in the C++ code
+    private struct ConfigurationParameters
+    {
+        public float defaultFriction;
+        public float defaultDensity;
+        public float collisionMargin;
+        public float gravity;
+
+        public float linearDamping;
+        public float angularDamping;
+        public float deactivationTime;
+        public float linearSleepingThreshold;
+        public float angularSleepingThreshold;
+
+        public float terrainFriction;
+        public float terrainHitFriction;
+        public float terrainRestitution;
+        public float avatarFriction;
+        public float avatarCapsuleRadius;
+        public float avatarCapsuleHeight;
+    }
+    ConfigurationParameters m_params;
+    GCHandle m_paramsHandle;
+
     private BulletSimAPI.DebugLogCallback debugLogCallbackHandle;
 
     public BSScene(string identifier)
@@ -116,16 +140,12 @@ public class BSScene : PhysicsScene
 
     public override void Initialise(IMesher meshmerizer, IConfigSource config)
     {
-        if (config != null)
-        {
-            IConfig pConfig = config.Configs["BulletSim"];
-            if (pConfig != null)
-            {
-                DefaultFriction = pConfig.GetFloat("Friction", DefaultFriction);
-                DefaultDensity = pConfig.GetFloat("Density", DefaultDensity);
-                // TODO: a lot more parameters that are passed to BulletSim
-            }
-        }
+        m_params = new ConfigurationParameters();
+        m_paramsHandle = GCHandle.Alloc(m_params, GCHandleType.Pinned);
+
+        // Set default values for physics parameters plus any overrides from the ini file
+        GetInitialParameterValues(config);
+
         // if Debug, enable logging from the unmanaged code
         if (m_log.IsDebugEnabled)
         {
@@ -133,9 +153,6 @@ public class BSScene : PhysicsScene
             debugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLogger);
             BulletSimAPI.SetDebugLogCallback(debugLogCallbackHandle);
         }
-
-        _meshSculptedPrim = true;           // mesh sculpted prims
-        _forceSimplePrimMeshing = false;    // use complex meshing if called for
 
         _taintedObjects = new List<TaintCallback>();
 
@@ -153,6 +170,58 @@ public class BSScene : PhysicsScene
         m_worldID = BulletSimAPI.Initialize(worldExtent, 
                                         m_maxCollisionsPerFrame, m_collisionArrayPinnedHandle.AddrOfPinnedObject(),
                                         m_maxUpdatesPerFrame, m_updateArrayPinnedHandle.AddrOfPinnedObject());
+    }
+
+    private void GetInitialParameterValues(IConfigSource config)
+    {
+        _meshSculptedPrim = true;           // mesh sculpted prims
+        _forceSimplePrimMeshing = false;    // use complex meshing if called for
+
+        // Set the default values for the physics parameters
+        m_params.defaultFriction = 0.70f;
+        m_params.defaultDensity = 10.000006836f; // Aluminum g/cm3
+        m_params.collisionMargin = 0.0f;
+        m_params.gravity = -9.80665f;
+
+        m_params.linearDamping = 0.1f;
+        m_params.angularDamping = 0.85f;
+        m_params.deactivationTime = 0.2f;
+        m_params.linearSleepingThreshold = 0.8f;
+        m_params.angularSleepingThreshold = 1.0f;
+
+        m_params.terrainFriction = 0.85f;
+        m_params.terrainHitFriction = 0.8f;
+        m_params.terrainRestitution = 0.2f;
+        m_params.avatarFriction = 0.85f;
+        m_params.avatarCapsuleRadius = 0.37f;
+        m_params.avatarCapsuleHeight = 1.5f; // 2.140599f
+
+        if (config != null)
+        {
+            // If there are specifications in the ini file, use those values
+            IConfig pConfig = config.Configs["BulletSim"];
+            if (pConfig != null)
+            {
+                _meshSculptedPrim = pConfig.GetBoolean("MeshSculptedPrim", true);
+                _forceSimplePrimMeshing = pConfig.GetBoolean("ForceSimplePrimMeshing", false);
+
+                m_params.defaultFriction = pConfig.GetFloat("DefaultFriction", m_params.defaultFriction);
+                m_params.defaultDensity = pConfig.GetFloat("DefaultDensity", m_params.defaultDensity);
+                m_params.collisionMargin = pConfig.GetFloat("CollisionMargin", m_params.collisionMargin);
+                m_params.gravity = pConfig.GetFloat("Gravity", m_params.gravity);
+                m_params.linearDamping = pConfig.GetFloat("LinearDamping", m_params.linearDamping);
+                m_params.angularDamping = pConfig.GetFloat("AngularDamping", m_params.angularDamping);
+                m_params.deactivationTime = pConfig.GetFloat("DeactivationTime", m_params.deactivationTime);
+                m_params.linearSleepingThreshold = pConfig.GetFloat("LinearSleepingThreshold", m_params.linearSleepingThreshold);
+                m_params.angularSleepingThreshold = pConfig.GetFloat("AngularSleepingThreshold", m_params.angularSleepingThreshold);
+                m_params.terrainFriction = pConfig.GetFloat("TerrainFriction", m_params.terrainFriction);
+                m_params.terrainHitFriction = pConfig.GetFloat("TerrainHitFriction", m_params.terrainHitFriction);
+                m_params.terrainRestitution = pConfig.GetFloat("TerrainRestitution", m_params.terrainRestitution);
+                m_params.avatarFriction = pConfig.GetFloat("AvatarFriction", m_params.avatarFriction);
+                m_params.avatarCapsuleRadius = pConfig.GetFloat("AvatarCapsuleRadius", m_params.avatarCapsuleRadius);
+                m_params.avatarCapsuleHeight = pConfig.GetFloat("AvatarCapsuleHeight", m_params.avatarCapsuleHeight);
+            }
+        }
     }
 
     // Called directly from unmanaged code so don't do much
