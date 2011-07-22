@@ -769,7 +769,10 @@ namespace OpenSim.Framework
                                                 "Clamp prims to max size", "false", true);
 
             configMember.addConfigurationOption("object_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Max objects this sim will hold", "0", true);
+                                                "Max objects this sim will hold", "15000", true);
+            
+            configMember.addConfigurationOption("agent_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                                                "Max avatars this sim will hold", "100", true);
 
             configMember.addConfigurationOption("agent_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Max agents this sim will hold", "0", true);
