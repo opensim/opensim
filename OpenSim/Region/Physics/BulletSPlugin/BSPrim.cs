@@ -261,6 +261,7 @@ public sealed class BSPrim : PhysicsActor
         {
             if (_childrenPrims.Contains(child))
             {
+                BulletSimAPI.RemoveConstraint(_scene.WorldID, child.LocalID, this.LocalID);
                 _childrenPrims.Remove(child);
                 child.ParentPrim = null;    // the child has lost its parent
                 RecreateGeomAndObject();    // rebuild my shape with the child removed
@@ -1018,47 +1019,8 @@ public sealed class BSPrim : PhysicsActor
         if (IsRootOfLinkset)
         {
             // Create a linkset around this object
-            /*
-             * NOTE: the original way of creating a linkset was to create a compound hull in the
-             * root which consisted of the hulls of all the children. This didn't work well because
-             * OpenSimulator needs updates and collisions for all the children and the physics
-             * engine didn't create events for the children when the root hull was moved.
-             * This code creates the compound hull.
-            // If I am the root prim of a linkset, replace my physical shape with all the
-            // pieces of the children.
-            // All of the children should have called CreateGeom so they have a hull
-            // in the physics engine already. Here we pull together all of those hulls
-            // into one shape.
-            int totalPrimsInLinkset = _childrenPrims.Count + 1;
-            // m_log.DebugFormat("{0}: CreateLinkset. Root prim={1}, prims={2}", LogHeader, LocalID, totalPrimsInLinkset);
-            ShapeData[] shapes = new ShapeData[totalPrimsInLinkset];
-            FillShapeInfo(out shapes[0]);
-            int ii = 1;
-            foreach (BSPrim prim in _childrenPrims)
-            {
-                // m_log.DebugFormat("{0}: CreateLinkset: adding prim {1}", LogHeader, prim.LocalID);
-                prim.FillShapeInfo(out shapes[ii]);
-                ii++;
-            }
-            BulletSimAPI.CreateLinkset(_scene.WorldID, totalPrimsInLinkset, shapes);
-             */
-            // Create the linkset by putting constraints between the objects of the set so they cannot move
-            // relative to each other.
-            // m_log.DebugFormat("{0}: CreateLinkset. Root prim={1}, prims={2}", LogHeader, LocalID, _childrenPrims.Count+1);
-
-            // remove any constraints that might be in place
-            foreach (BSPrim prim in _childrenPrims)
-            {
-                BulletSimAPI.RemoveConstraint(_scene.WorldID, LocalID, prim.LocalID);
-            }
-            // create constraints between the root prim and each of the children
-            foreach (BSPrim prim in _childrenPrims)
-            {
-                // this is a constraint that allows no freedom of movement between the two objects
-                // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
-                BulletSimAPI.AddConstraint(_scene.WorldID, LocalID, prim.LocalID, OMV.Vector3.Zero, OMV.Vector3.Zero,
-                    OMV.Vector3.Zero, OMV.Vector3.Zero, OMV.Vector3.Zero, OMV.Vector3.Zero);
-            }
+            CreateLinksetWithCompoundHull();
+            // CreateLinksetWithConstraints();
         }
         else
         {
@@ -1067,6 +1029,73 @@ public sealed class BSPrim : PhysicsActor
             ShapeData shape;
             FillShapeInfo(out shape);
             BulletSimAPI.CreateObject(_scene.WorldID, shape);
+        }
+    }
+
+    // Create a linkset by creating a compound hull at the root prim that consists of all
+    // the children.
+    void CreateLinksetWithCompoundHull()
+    {
+        // If I am the root prim of a linkset, replace my physical shape with all the
+        // pieces of the children.
+        // All of the children should have called CreateGeom so they have a hull
+        // in the physics engine already. Here we pull together all of those hulls
+        // into one shape.
+        int totalPrimsInLinkset = _childrenPrims.Count + 1;
+        // m_log.DebugFormat("{0}: CreateLinkset. Root prim={1}, prims={2}", LogHeader, LocalID, totalPrimsInLinkset);
+        ShapeData[] shapes = new ShapeData[totalPrimsInLinkset];
+        FillShapeInfo(out shapes[0]);
+        int ii = 1;
+        foreach (BSPrim prim in _childrenPrims)
+        {
+            // m_log.DebugFormat("{0}: CreateLinkset: adding prim {1}", LogHeader, prim.LocalID);
+            prim.FillShapeInfo(out shapes[ii]);
+            ii++;
+        }
+        BulletSimAPI.CreateLinkset(_scene.WorldID, totalPrimsInLinkset, shapes);
+    }
+
+    // Create the linkset by putting constraints between the objects of the set so they cannot move
+    // relative to each other.
+    void CreateLinksetWithConstraints()
+    {
+        // m_log.DebugFormat("{0}: CreateLinkset. Root prim={1}, prims={2}", LogHeader, LocalID, _childrenPrims.Count+1);
+
+        // remove any constraints that might be in place
+        foreach (BSPrim prim in _childrenPrims)
+        {
+            // m_log.DebugFormat("{0}: CreateObject: RemoveConstraint between root prim {1} and child prim {2}", LogHeader, LocalID, prim.LocalID);
+            BulletSimAPI.RemoveConstraint(_scene.WorldID, LocalID, prim.LocalID);
+        }
+        // create constraints between the root prim and each of the children
+        foreach (BSPrim prim in _childrenPrims)
+        {
+            // this is a constraint that allows no freedom of movement between the two objects
+            // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
+            // m_log.DebugFormat("{0}: CreateObject: AddConstraint between root prim {1} and child prim {2}", LogHeader, LocalID, prim.LocalID);
+
+            // relative position normalized to the root prim
+            OMV.Vector3 childRelativePosition = (prim._position - this._position) * OMV.Quaternion.Inverse(this._orientation);
+            // OMV.Quaternion relativeRotation = OMV.Quaternion.Identity;
+
+            // rotation is pointing up the vector between the object centers
+            OMV.Quaternion relativeRotation = OMV.Quaternion.CreateFromAxisAngle(childRelativePosition, 0f);
+
+            /* // the logic for relative rotation from http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=6391
+            OMV.Vector3 rrn = childRelativePosition;
+            rrn.Normalize();
+            rrn /= rrn.X;
+            OMV.Matrix4 rotmat = new OMV.Matrix4(rrn.X, rrn.Y, rrn.Z, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+            OMV.Quaternion relativeRotation = OMV.Quaternion.CreateFromRotationMatrix(rotmat);
+             */
+
+            BulletSimAPI.AddConstraint(_scene.WorldID, LocalID, prim.LocalID, 
+                childRelativePosition / 2,
+                relativeRotation,
+                -childRelativePosition / 2,
+                relativeRotation,
+                OMV.Vector3.Zero, OMV.Vector3.Zero,
+                OMV.Vector3.Zero, OMV.Vector3.Zero);
         }
     }
 
@@ -1118,50 +1147,53 @@ public sealed class BSPrim : PhysicsActor
     // The physics engine says that properties have updated. Update same and inform
     // the world that things have changed.
     // TODO: do we really need to check for changed? Maybe just copy values and call RequestPhysicsterseUpdate()
-    private int UpPropPosition      = 1 << 0;
-    private int UpPropRotation      = 1 << 1;
-    private int UpPropVelocity      = 1 << 2;
-    private int UpPropAcceleration  = 1 << 3;
-    private int UpPropAngularVel    = 1 << 4;
+    enum UpdatedProperties {
+        Position      = 1 << 0,
+        Rotation      = 1 << 1,
+        Velocity      = 1 << 2,
+        Acceleration  = 1 << 3,
+        AngularVel    = 1 << 4
+    }
 
     public void UpdateProperties(EntityProperties entprop)
     {
-        int changed = 0;
+        UpdatedProperties changed = 0;
         // assign to the local variables so the normal set action does not happen
         if (_position != entprop.Position)
         {
             _position = entprop.Position;
             // m_log.DebugFormat("{0}: UpdateProperties: position = {1}", LogHeader, _position);
-            changed |= UpPropPosition;
+            changed |= UpdatedProperties.Position;
         }
         if (_orientation != entprop.Rotation)
         {
             _orientation = entprop.Rotation;
             // m_log.DebugFormat("{0}: UpdateProperties: rotation = {1}", LogHeader, _orientation);
-            changed |= UpPropRotation;
+            changed |= UpdatedProperties.Rotation;
         }
         if (_velocity != entprop.Velocity)
         {
             _velocity = entprop.Velocity;
             // m_log.DebugFormat("{0}: UpdateProperties: velocity = {1}", LogHeader, _velocity);
-            changed |= UpPropVelocity;
+            changed |= UpdatedProperties.Velocity;
         }
         if (_acceleration != entprop.Acceleration)
         {
             _acceleration = entprop.Acceleration;
             // m_log.DebugFormat("{0}: UpdateProperties: acceleration = {1}", LogHeader, _acceleration);
-            changed |= UpPropAcceleration;
+            changed |= UpdatedProperties.Acceleration;
         }
         if (_rotationalVelocity != entprop.AngularVelocity)
         {
             _rotationalVelocity = entprop.AngularVelocity;
             // m_log.DebugFormat("{0}: UpdateProperties: rotationalVelocity = {1}", LogHeader, _rotationalVelocity);
-            changed |= UpPropAngularVel;
+            changed |= UpdatedProperties.AngularVel;
         }
         if (changed != 0)
         {
             // m_log.DebugFormat("{0}: UpdateProperties: id={1}, c={2}, pos={3}, rot={4}", LogHeader, LocalID, changed, _position, _orientation);
-            base.RequestPhysicsterseUpdate();
+            if (this._parentPrim == null)
+                base.RequestPhysicsterseUpdate();
         }
     }
 
@@ -1178,7 +1210,7 @@ public sealed class BSPrim : PhysicsActor
 
         if (_subscribedEventsMs == 0) return;   // nothing in the object is waiting for collision events
         // throttle the collisions to the number of milliseconds specified in the subscription
-        int nowTime = Util.EnvironmentTickCount();
+        int nowTime = _scene.SimulationNowTime;
         if (nowTime < (_lastCollisionTime + _subscribedEventsMs)) return;
         _lastCollisionTime = nowTime;
 

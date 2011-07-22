@@ -78,7 +78,13 @@ public struct RaycastHit
     public float Fraction;
     public Vector3 Normal;
 }
-
+public struct CollisionDesc
+{
+    public uint aID;
+    public uint bID;
+    public Vector3 point;
+    public Vector3 normal;
+}
 public struct EntityProperties
 {
     public uint ID;
@@ -92,7 +98,8 @@ public struct EntityProperties
 static class BulletSimAPI {
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern uint Initialize(Vector3 maxPosition);
+public static extern uint Initialize(Vector3 maxPosition, int maxCollisions, IntPtr collisionArray, 
+                        int maxUpdates, IntPtr updateArray);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void SetHeightmap(uint worldID, [MarshalAs(UnmanagedType.LPArray)] float[] heightMap);
@@ -124,7 +131,12 @@ public static extern void CreateLinkset(uint worldID, int objectCount, ShapeData
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void AddConstraint(uint worldID, uint id1, uint id2, 
-    Vector3 frame1, Vector3 frame2, Vector3 lowLinear, Vector3 hiLinear, Vector3 lowAngular, Vector3 hiAngular);
+    Vector3 frame1, Quaternion frame1rot,
+    Vector3 frame2, Quaternion frame2rot,
+    Vector3 lowLinear, Vector3 hiLinear, Vector3 lowAngular, Vector3 hiAngular);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool RemoveConstraintByID(uint worldID, uint id1);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool RemoveConstraint(uint worldID, uint id1, uint id2);

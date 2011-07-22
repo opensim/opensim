@@ -185,7 +185,7 @@ public class BSCharacter : PhysicsActor
         get { return _force; } 
         set {
             _force = value;
-            m_log.DebugFormat("{0}: Force = {1}", LogHeader, _force);
+            // m_log.DebugFormat("{0}: Force = {1}", LogHeader, _force);
             _scene.TaintedObject(delegate()
             {
                 BulletSimAPI.SetObjectForce(_scene.WorldID, _localID, _force);
@@ -411,8 +411,9 @@ public class BSCharacter : PhysicsActor
             _collidingGroundStep = _scene.SimulationStep;
         }
 
+        // throttle collisions to the rate specified in the subscription
         if (_subscribedEventsMs == 0) return;   // don't want collisions
-        int nowTime = Util.EnvironmentTickCount();
+        int nowTime = _scene.SimulationNowTime;
         if (nowTime < (_lastCollisionTime + _subscribedEventsMs)) return;
         _lastCollisionTime = nowTime;
 
