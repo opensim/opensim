@@ -1110,14 +1110,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             if (data == null)
                 return;
             
-            UUID lastMapRegionUUID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
-
             m_log.Debug("[WORLDMAP]: STORING MAPTILE IMAGE");
 
-            m_scene.RegionInfo.RegionSettings.TerrainImageID = UUID.Random();
+            UUID terrainImageID = UUID.Random();
 
             AssetBase asset = new AssetBase(
-                m_scene.RegionInfo.RegionSettings.TerrainImageID,
+                terrainImageID,
                 "terrainImage_" + m_scene.RegionInfo.RegionID.ToString(),
                 (sbyte)AssetType.Texture,
                 m_scene.RegionInfo.RegionID.ToString());
@@ -1129,6 +1127,10 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // Store the new one
             m_log.DebugFormat("[WORLDMAP]: Storing map tile {0}", asset.ID);
             m_scene.AssetService.Store(asset);
+            
+            // Switch to the new one
+            UUID lastMapRegionUUID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
+            m_scene.RegionInfo.RegionSettings.TerrainImageID = terrainImageID;
             m_scene.RegionInfo.RegionSettings.Save();
             
             // Delete the old one

@@ -1672,20 +1672,20 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_sceneGridService.SetScene(this);
 
-            // If we generate maptiles internally at all, the maptile generator
-            // will register the region. If not, do it here
+            GridRegion region = new GridRegion(RegionInfo);
+            string error = GridService.RegisterRegion(RegionInfo.ScopeID, region);
+            if (error != String.Empty)
+            {
+                throw new Exception(error);
+            }
+
+            // Generate the maptile asynchronously, because sometimes it can be very slow and we
+            // don't want this to delay starting the region.
             if (m_generateMaptiles)
             {
-                RegenerateMaptile(null, null);
-            }
-            else
-            {
-                GridRegion region = new GridRegion(RegionInfo);
-                string error = GridService.RegisterRegion(RegionInfo.ScopeID, region);
-                if (error != String.Empty)
-                {
-                    throw new Exception(error);
-                }
+                Util.FireAndForget(delegate {
+                    RegenerateMaptile(null, null);
+                });
             }
         }
 
