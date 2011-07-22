@@ -38,9 +38,7 @@ using OpenSim.Region.Framework;
 
 // TODOs for BulletSim (for BSScene, BSPrim, BSCharacter and BulletSim)
 // Fix folding up feet
-// Fix terrain. Only flat terrain works. Terrain with shape is oriented wrong? Origined wrong?
 // Parameterize BulletSim. Pass a structure of parameters to the C++ code. Capsule size, friction, ...
-// Shift drag duplication of objects does not work
 // Adjust character capsule size when height is adjusted (ScenePresence.SetHeight)
 // Test sculpties
 // Compute physics FPS reasonably
@@ -81,6 +79,19 @@ public class BSScene : PhysicsScene
     private float m_fixedTimeStep = 1f / 60f;
     private long m_simulationStep = 0;
     public long SimulationStep { get { return m_simulationStep; } }
+
+    // A value of the time now so all the collision and update routines do not have to get their own
+    // Set to 'now' just before all the prims and actors are called for collisions and updates
+    private int m_simulationNowTime;
+    public int SimulationNowTime { get { return m_simulationNowTime; } }
+
+    private int m_maxCollisionsPerFrame = 2048;
+    private CollisionDesc[] m_collisionArray;
+    private GCHandle m_collisionArrayPinnedHandle;
+
+    private int m_maxUpdatesPerFrame = 2048;
+    private EntityProperties[] m_updateArray;
+    private GCHandle m_updateArrayPinnedHandle;
 
     private bool _meshSculptedPrim = true;         // cause scuplted prims to get meshed
     private bool _forceSimplePrimMeshing = false;   // if a cube or sphere, let Bullet do internal shapes
@@ -129,8 +140,19 @@ public class BSScene : PhysicsScene
         _taintedObjects = new List<TaintCallback>();
 
         mesher = meshmerizer;
+        // The bounding box for the simulated world
+        Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, 4096f);
+
+        // Allocate pinned memory to pass back object property updates and collisions from simulation step
+        m_collisionArray = new CollisionDesc[m_maxCollisionsPerFrame];
+        m_collisionArrayPinnedHandle = GCHandle.Alloc(m_collisionArray, GCHandleType.Pinned);
+        m_updateArray = new EntityProperties[m_maxUpdatesPerFrame];
+        m_updateArrayPinnedHandle = GCHandle.Alloc(m_updateArray, GCHandleType.Pinned);
+
         // m_log.DebugFormat("{0}: Initialize: Calling BulletSimAPI.Initialize.", LogHeader);
-        m_worldID = BulletSimAPI.Initialize(new Vector3(Constants.RegionSize, Constants.RegionSize, 4096f));
+        m_worldID = BulletSimAPI.Initialize(worldExtent, 
+                                        m_maxCollisionsPerFrame, m_collisionArrayPinnedHandle.AddrOfPinnedObject(),
+                                        m_maxUpdatesPerFrame, m_updateArrayPinnedHandle.AddrOfPinnedObject());
     }
 
     // Called directly from unmanaged code so don't do much
@@ -188,19 +210,7 @@ public class BSScene : PhysicsScene
     }
 
     public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                              Vector3 size, Quaternion rotation)  // deprecated
-    {
-        return null;
-    }
-    public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                              Vector3 size, Quaternion rotation, bool isPhysical)
-    {
-        m_log.ErrorFormat("{0}: CALL TO AddPrimShape in BSScene. NOT IMPLEMENTED", LogHeader);
-        return null;
-    }
-
-    public override PhysicsActor AddPrimShape(uint localID, string primName, PrimitiveBaseShape pbs, Vector3 position,
-                                              Vector3 size, Quaternion rotation, bool isPhysical)
+                                              Vector3 size, Quaternion rotation, bool isPhysical, uint localID)
     {
         // m_log.DebugFormat("{0}: AddPrimShape2: {1}", LogHeader, primName);
         IMesh mesh = null;
@@ -225,10 +235,8 @@ public class BSScene : PhysicsScene
     {
         int updatedEntityCount;
         IntPtr updatedEntitiesPtr;
-        IntPtr[] updatedEntities;
         int collidersCount;
         IntPtr collidersPtr;
-        int[] colliders;    // should be uint but Marshal.Copy does not have that overload
 
         // update the prim states while we know the physics engine is not busy
         ProcessTaints();
@@ -242,32 +250,33 @@ public class BSScene : PhysicsScene
         int numSubSteps = BulletSimAPI.PhysicsStep(m_worldID, timeStep, m_maxSubSteps, m_fixedTimeStep, 
                     out updatedEntityCount, out updatedEntitiesPtr, out collidersCount, out collidersPtr);
 
-        // if there were collisions, they show up here
+        // Don't have to use the pointers passed back since we know it is the same pinned memory we passed in
+
+        // Get a value for 'now' so all the collision and update routines don't have to get their own
+        m_simulationNowTime = Util.EnvironmentTickCount();
+
+        // If there were collisions, process them by sending the event to the prim.
+        // Collisions must be processed before updates.
         if (collidersCount > 0)
         {
-            colliders = new int[collidersCount];
-            Marshal.Copy(collidersPtr, colliders, 0, collidersCount);
-            for (int ii = 0; ii < collidersCount; ii+=2)
+            for (int ii = 0; ii < collidersCount; ii++)
             {
-                uint cA = (uint)colliders[ii];
-                uint cB = (uint)colliders[ii+1];
-                SendCollision(cA, cB);
-                SendCollision(cB, cA);
+                uint cA = m_collisionArray[ii].aID;
+                uint cB = m_collisionArray[ii].bID;
+                Vector3 point = m_collisionArray[ii].point;
+                Vector3 normal = m_collisionArray[ii].normal;
+                SendCollision(cA, cB, point, normal, 0.01f);
+                SendCollision(cB, cA, point, -normal, 0.01f);
             }
         }
 
-        // if any of the objects had updated properties, they are returned in the updatedEntity structure
-        // TODO: figure out how to pass all of the EntityProperties structures in one marshal call.
+        // If any of the objects had updated properties, tell the object it has been changed by the physics engine
         if (updatedEntityCount > 0)
         {
-            updatedEntities = new IntPtr[updatedEntityCount];
-            // fetch all the pointers to all the EntityProperties structures for these updates
-            Marshal.Copy(updatedEntitiesPtr, updatedEntities, 0, updatedEntityCount);
             for (int ii = 0; ii < updatedEntityCount; ii++)
             {
-                IntPtr updatePointer = updatedEntities[ii];
-                EntityProperties entprop = (EntityProperties)Marshal.PtrToStructure(updatePointer, typeof(EntityProperties));
-                // m_log.DebugFormat("{0}: entprop: id={1}, pos={2}", LogHeader, entprop.ID, entprop.Position);
+                EntityProperties entprop = m_updateArray[ii];
+                // m_log.DebugFormat("{0}: entprop[{1}]: id={2}, pos={3}", LogHeader, ii, entprop.ID, entprop.Position);
                 BSCharacter actor;
                 if (m_avatars.TryGetValue(entprop.ID, out actor))
                 {
@@ -282,12 +291,12 @@ public class BSScene : PhysicsScene
             }
         }
 
-        // fps calculation wrong. This calculation returns about 1 in normal operation.
+        // fps calculation wrong. This calculation always returns about 1 in normal operation.
         return timeStep / (numSubSteps * m_fixedTimeStep) * 1000f;
     }
 
     // Something has collided
-    private void SendCollision(uint localID, uint collidingWith)
+    private void SendCollision(uint localID, uint collidingWith, Vector3 collidePoint, Vector3 collideNormal, float penitration)
     {
         if (localID == TERRAIN_ID || localID == GROUNDPLANE_ID)
         {
@@ -303,12 +312,12 @@ public class BSScene : PhysicsScene
 
         BSPrim prim;
         if (m_prims.TryGetValue(localID, out prim)) {
-            prim.Collide(collidingWith, type, Vector3.Zero, Vector3.UnitZ, 0.01f);
+            prim.Collide(collidingWith, type, collidePoint, collideNormal, 0.01f);
             return;
         }
         BSCharacter actor;
         if (m_avatars.TryGetValue(localID, out actor)) {
-            actor.Collide(collidingWith, type, Vector3.Zero, Vector3.UnitZ, 0.01f);
+            actor.Collide(collidingWith, type, collidePoint, collideNormal, 0.01f);
             return;
         }
         return;
@@ -317,7 +326,6 @@ public class BSScene : PhysicsScene
     public override void GetResults() { }
 
     public override void SetTerrain(float[] heightMap) {
-        m_log.DebugFormat("{0}: SetTerrain", LogHeader);
         m_heightMap = heightMap;
         this.TaintedObject(delegate()
         {
