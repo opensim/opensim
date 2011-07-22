@@ -1038,7 +1038,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 actor.Size = m_shape.Scale;
 
-                                if (((OpenMetaverse.SculptType)Shape.SculptType) == SculptType.Mesh)
+                                if (Shape.SculptEntry)
                                     CheckSculptAndLoad();
                                 else
                                     ParentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
@@ -1906,7 +1906,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // If this part is a sculpt then delay the physics update until we've asynchronously loaded the
                     // mesh data.
-                    if (((OpenMetaverse.SculptType)Shape.SculptType) == SculptType.Mesh)
+                    if (Shape.SculptEntry)
                         CheckSculptAndLoad();
                     else
                         m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
