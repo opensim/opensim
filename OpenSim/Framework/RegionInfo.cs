@@ -774,9 +774,6 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("agent_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                                                 "Max avatars this sim will hold", "100", true);
 
-            configMember.addConfigurationOption("agent_capacity", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
-                                                "Max agents this sim will hold", "0", true);
-
             configMember.addConfigurationOption("scope_id", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                                                 "Scope ID for this region", UUID.Zero.ToString(), true);
 
