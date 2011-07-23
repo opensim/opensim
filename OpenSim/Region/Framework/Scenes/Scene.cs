@@ -3553,11 +3553,12 @@ namespace OpenSim.Region.Framework.Scenes
                       
             if (AuthorizationService != null)
             {
-                if (!AuthorizationService.IsAuthorizedForRegion(agent.AgentID.ToString(), RegionInfo.RegionID.ToString(),out reason))
+                if (!AuthorizationService.IsAuthorizedForRegion(
+                    agent.AgentID.ToString(), agent.firstname, agent.lastname, RegionInfo.RegionID.ToString(), out reason))
                 {
                     m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the region",
                                      agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
-                    //reason = String.Format("You are not currently on the access list for {0}",RegionInfo.RegionName);
+                    
                     return false;
                 }
             }
