@@ -724,7 +724,10 @@ namespace OpenSim.Region.Framework.Scenes
                     newName = item.Name;
                 }
 
-                if (remoteClient.AgentId == oldAgentID || (LibraryService != null && LibraryService.LibraryRootFolder != null && oldAgentID == LibraryService.LibraryRootFolder.Owner))
+                if (remoteClient.AgentId == oldAgentID
+                    || (LibraryService != null
+                        && LibraryService.LibraryRootFolder != null
+                        && oldAgentID == LibraryService.LibraryRootFolder.Owner))
                 {
                     CreateNewInventoryItem(
                         remoteClient, item.CreatorId, item.CreatorData, newFolderID, newName, item.Flags, callbackID, asset, (sbyte)item.InvType,
