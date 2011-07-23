@@ -9,6 +9,10 @@
     <Key Name="name" Value="Example Library Item" />
     <Key Name="assetType" Value="7" />
     <Key Name="inventoryType" Value="7" />
+    <Key Name="currentPermissions" Value="2147483647" />
+    <Key Name="nextPermissions" Value="2147483647" />
+    <Key Name="everyonePermissions" Value="2147483647" />
+    <Key Name="basePermissions" Value="2147483647" />
   </Section>
 --> 
 
@@ -20,8 +24,11 @@
     <Key Name="name" Value="Welcome" />
     <Key Name="assetType" Value="7" />
     <Key Name="inventoryType" Value="7" />
+    <Key Name="currentPermissions" Value="2147483647" />
+    <Key Name="nextPermissions" Value="2147483647" />
+    <Key Name="everyonePermissions" Value="2147483647" />
+    <Key Name="basePermissions" Value="2147483647" />
   </Section>
-
   <Section Name="Example notecard">
     <Key Name="inventoryID" Value="a170ffc0-b9c7-11dc-95ff-0800200c9a66" />
     <Key Name="assetID" Value="8d1ada50-b9c7-11dc-95ff-0800200c9a66" />
@@ -30,6 +37,9 @@
     <Key Name="name" Value="Example notecard" />
     <Key Name="assetType" Value="7" />
     <Key Name="inventoryType" Value="7" />
+    <Key Name="currentPermissions" Value="2147483647" />
+    <Key Name="nextPermissions" Value="2147483647" />
+    <Key Name="everyonePermissions" Value="2147483647" />
+    <Key Name="basePermissions" Value="2147483647" />
   </Section>
-
 </Nini>

@@ -984,14 +984,11 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         public virtual bool CanGetAgentInventoryItem(IClientAPI remoteClient, UUID itemID, UUID requestID)
         {
             InventoryItemBase assetRequestItem = GetItem(remoteClient.AgentId, itemID);
-
             if (assetRequestItem == null)
             {
                 ILibraryService lib = m_Scene.RequestModuleInterface<ILibraryService>();
-
                 if (lib != null)
                     assetRequestItem = lib.LibraryRootFolder.FindItem(itemID);
-
                 if (assetRequestItem == null)
                     return false;
             }
@@ -1022,7 +1019,6 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 m_log.WarnFormat(
                     "[CLIENT]: {0} requested asset {1} from item {2} but this does not match item's asset {3}",
                     Name, requestID, itemID, assetRequestItem.AssetID);
-
                 return false;
             }
 

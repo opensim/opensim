@@ -27,15 +27,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using log4net;
 using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     public class InventoryFolderImpl : InventoryFolderBase
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static readonly string PATH_DELIMITER = "/";
 
@@ -404,10 +402,6 @@ namespace OpenSim.Framework
             {
                 foreach (InventoryItemBase item in Items.Values)
                 {
-//                    m_log.DebugFormat(
-//                        "[INVENTORY FOLDER IMPL]: Returning item {0} {1}, OwnerPermissions {2:X}",
-//                        item.Name, item.ID, item.CurrentPermissions);
-
                     itemList.Add(item);
                 }
             }
