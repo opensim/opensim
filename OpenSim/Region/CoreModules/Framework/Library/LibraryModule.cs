@@ -185,6 +185,7 @@ namespace OpenSim.Region.CoreModules.Framework.Library
                         archread = new InventoryArchiveReadRequest(m_MockScene, uinfo, "/", iarFileName, false);
                         archread.Execute();
                     }
+
                     foreach (InventoryNodeBase node in nodes)
                         FixPerms(node);
                 }
@@ -197,18 +198,23 @@ namespace OpenSim.Region.CoreModules.Framework.Library
                     archread.Close();
                 }
             }
-
         }
 
         private void FixPerms(InventoryNodeBase node)
         {
+            m_log.DebugFormat("[LIBRARY MODULE]: Fixing perms for {0} {1}", node.Name, node.ID);
+
             if (node is InventoryItemBase)
             {
                 InventoryItemBase item = (InventoryItemBase)node;
+//                item.BasePermissions = (uint)PermissionMask.All;
                 item.BasePermissions = 0x7FFFFFFF;
                 item.EveryOnePermissions = 0x7FFFFFFF;
                 item.CurrentPermissions = 0x7FFFFFFF;
                 item.NextPermissions = 0x7FFFFFFF;
+//                item.EveryOnePermissions = (uint)PermissionMask.Copy;
+//                item.CurrentPermissions = (uint)PermissionMask.None;
+//                item.NextPermissions = (uint)PermissionMask.All;
             }
         }
 

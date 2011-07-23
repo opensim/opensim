@@ -10,10 +10,6 @@
     <Key Name="name" Value="Example Library Item" />
     <Key Name="assetType" Value="7" />
     <Key Name="inventoryType" Value="7" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
 --> 
 

@@ -93,26 +93,6 @@ namespace OpenSim.Services.InventoryService
             LoadLibraries(pLibrariesLocation);
         }
 
-        public InventoryItemBase CreateItem(UUID inventoryID, UUID assetID, string name, string description,
-                                            int assetType, int invType, UUID parentFolderID)
-        {
-            InventoryItemBase item = new InventoryItemBase();
-            item.Owner = libOwner;
-            item.CreatorId = libOwner.ToString();
-            item.ID = inventoryID;
-            item.AssetID = assetID;
-            item.Description = description;
-            item.Name = name;
-            item.AssetType = assetType;
-            item.InvType = invType;
-            item.Folder = parentFolderID;
-            item.BasePermissions = 0x7FFFFFFF;
-            item.EveryOnePermissions = 0x7FFFFFFF;
-            item.CurrentPermissions = 0x7FFFFFFF;
-            item.NextPermissions = 0x7FFFFFFF;
-            return item;
-        }
-
         /// <summary>
         /// Use the asset set information at path to load assets
         /// </summary>
@@ -193,22 +173,27 @@ namespace OpenSim.Services.InventoryService
             item.Description = config.GetString("description", item.Name);
             item.InvType = config.GetInt("inventoryType", 0);
             item.AssetType = config.GetInt("assetType", item.InvType);
-            item.CurrentPermissions = (uint)config.GetLong("currentPermissions", 0x7FFFFFFF);
-            item.NextPermissions = (uint)config.GetLong("nextPermissions", 0x7FFFFFFF);
-            item.EveryOnePermissions = (uint)config.GetLong("everyonePermissions", 0x7FFFFFFF);
-            item.BasePermissions = (uint)config.GetLong("basePermissions", 0x7FFFFFFF);
-            item.Flags = (uint)config.GetInt("flags", 0);
+            item.CurrentPermissions = (uint)PermissionMask.All;
+            item.NextPermissions = (uint)PermissionMask.All;
+            item.EveryOnePermissions = (uint)PermissionMask.All;
+//            item.EveryOnePermissions = (uint)PermissionMask.All - (uint)PermissionMask.Modify;
+            item.BasePermissions = (uint)PermissionMask.All;
 
             if (libraryFolders.ContainsKey(item.Folder))
             {
                 InventoryFolderImpl parentFolder = libraryFolders[item.Folder];
+
                 try
                 {
+//                    m_log.DebugFormat(
+//                        "[LIBRARY INVENTORY]: Adding item {0} {1}, OwnerPermissions {2:X} to {3}",
+//                        item.Name, item.ID, item.CurrentPermissions, item.Folder);
+
                     parentFolder.Items.Add(item.ID, item);
                 }
                 catch (Exception)
                 {
-                    m_log.WarnFormat("[LIBRARY INVENTORY] Item {1} [{0}] not added, duplicate item", item.ID, item.Name);
+                    m_log.WarnFormat("[LIBRARY INVENTORY]: Item {1} [{0}] not added, duplicate item", item.ID, item.Name);
                 }
             }
             else
