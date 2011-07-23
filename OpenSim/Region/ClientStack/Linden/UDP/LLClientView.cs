@@ -12129,7 +12129,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
-        public void SendTextBoxRequest(string message, int chatChannel, string objectname, string ownerFirstName, string ownerLastName, UUID objectId)
+        public void SendTextBoxRequest(string message, int chatChannel, string objectname, UUID ownerID, string ownerFirstName, string ownerLastName, UUID objectId)
         {
             ScriptDialogPacket dialog = (ScriptDialogPacket)PacketPool.Instance.GetPacket(PacketType.ScriptDialog);
             dialog.Data.ObjectID = objectId;
@@ -12145,6 +12145,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             buttons[0] = new ScriptDialogPacket.ButtonsBlock();
             buttons[0].ButtonLabel = Util.StringToBytes256("!!llTextBox!!");
             dialog.Buttons = buttons;
+
+            dialog.OwnerData = new ScriptDialogPacket.OwnerDataBlock[1];
+            dialog.OwnerData[0] = new ScriptDialogPacket.OwnerDataBlock();
+            dialog.OwnerData[0].OwnerID = ownerID;
+
             OutPacket(dialog, ThrottleOutPacketType.Task);
         }
 
