@@ -378,7 +378,10 @@ namespace OpenSim.Region.Framework.Scenes
             List<UserAccount> accounts = UserAccountService.GetUserAccounts(RegionInfo.ScopeID, query);
 
             if (accounts == null)
+            {
+                m_log.DebugFormat("[LLCIENT]: ProcessAvatarPickerRequest: returned null result");
                 return;
+            }
 
             AvatarPickerReplyPacket replyPacket = (AvatarPickerReplyPacket) PacketPool.Instance.GetPacket(PacketType.AvatarPickerReply);
             // TODO: don't create new blocks if recycling an old packet
