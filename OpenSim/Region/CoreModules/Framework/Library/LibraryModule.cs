@@ -207,14 +207,10 @@ namespace OpenSim.Region.CoreModules.Framework.Library
             if (node is InventoryItemBase)
             {
                 InventoryItemBase item = (InventoryItemBase)node;
-//                item.BasePermissions = (uint)PermissionMask.All;
-                item.BasePermissions = 0x7FFFFFFF;
-                item.EveryOnePermissions = 0x7FFFFFFF;
-                item.CurrentPermissions = 0x7FFFFFFF;
-                item.NextPermissions = 0x7FFFFFFF;
-//                item.EveryOnePermissions = (uint)PermissionMask.Copy;
-//                item.CurrentPermissions = (uint)PermissionMask.None;
-//                item.NextPermissions = (uint)PermissionMask.All;
+                item.BasePermissions = (uint)PermissionMask.All;
+                item.EveryOnePermissions = (uint)PermissionMask.All - (uint)PermissionMask.Modify;
+                item.CurrentPermissions = (uint)PermissionMask.All;
+                item.NextPermissions = (uint)PermissionMask.All;
             }
         }
 

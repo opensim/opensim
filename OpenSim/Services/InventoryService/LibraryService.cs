@@ -195,7 +195,8 @@ namespace OpenSim.Services.InventoryService
             item.AssetType = config.GetInt("assetType", item.InvType);
             item.CurrentPermissions = (uint)config.GetLong("currentPermissions", (uint)PermissionMask.All);
             item.NextPermissions = (uint)config.GetLong("nextPermissions", (uint)PermissionMask.All);
-            item.EveryOnePermissions = (uint)config.GetLong("everyonePermissions", (uint)PermissionMask.All);
+            item.EveryOnePermissions
+                = (uint)config.GetLong("everyonePermissions", (uint)PermissionMask.All - (uint)PermissionMask.Modify);
             item.BasePermissions = (uint)config.GetLong("basePermissions", (uint)PermissionMask.All);
             item.Flags = (uint)config.GetInt("flags", 0);
 
