@@ -1401,7 +1401,7 @@ namespace OpenSim.Framework
         void SendGroupTransactionsSummaryDetails(IClientAPI sender,UUID groupID, UUID transactionID, UUID sessionID,int amt);
         
         void SendChangeUserRights(UUID agentID, UUID friendID, int rights);
-        void SendTextBoxRequest(string message, int chatChannel, string objectname, string ownerFirstName, string ownerLastName, UUID objectId);
+        void SendTextBoxRequest(string message, int chatChannel, string objectname, UUID ownerID, string ownerFirstName, string ownerLastName, UUID objectId);
 
         void StopFlying(ISceneEntity presence);
 

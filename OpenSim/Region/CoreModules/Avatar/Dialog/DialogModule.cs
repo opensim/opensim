@@ -141,10 +141,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         {
             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, ownerid);
             string ownerFirstName, ownerLastName;
+			UUID ownerID = UUID.Zero;
             if (account != null)
             {
                 ownerFirstName = account.FirstName;
                 ownerLastName = account.LastName;
+				ownerID = account.PrincipalID;
             }
             else
             {
@@ -155,7 +157,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             ScenePresence sp = m_scene.GetScenePresence(avatarid);
             
             if (sp != null)
-                sp.ControllingClient.SendTextBoxRequest(message, chatChannel, name, ownerFirstName, ownerLastName, objectid);
+                sp.ControllingClient.SendTextBoxRequest(message, chatChannel, name, ownerID, ownerFirstName, ownerLastName, objectid);
         }
 
         public void SendNotificationToUsersInRegion(
