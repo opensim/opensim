@@ -109,6 +109,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected int m_splitRegionID;
         protected Timer m_restartWaitTimer = new Timer();
+        protected Timer m_timerWatchdog = new Timer();
         protected List<RegionInfo> m_regionRestartNotifyList = new List<RegionInfo>();
         protected List<RegionInfo> m_neighbours = new List<RegionInfo>();
         protected string m_simulatorVersion = "OpenSimulator Server";
@@ -191,7 +192,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_scripts_enabled = true;
         private string m_defaultScriptEngine;
         private int m_LastLogin;
-        private Thread HeartbeatThread;
+        private Thread HeartbeatThread = null;
         private volatile bool shuttingdown;
 
         private int m_lastUpdate;
@@ -4886,7 +4887,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_firstHeartbeat)
                 return;
 
-            if (Util.EnvironmentTickCountSubtract(m_lastUpdate) > 10000)
+            if (Util.EnvironmentTickCountSubtract(m_lastUpdate) > 5000)
                 StartTimer();
         }
 
@@ -5379,6 +5380,19 @@ namespace OpenSim.Region.Framework.Scenes
 
             reason = String.Empty;
             return true;
+        }
+
+        public void StartTimerWatchdog()
+        {
+            m_timerWatchdog.Interval = 1000;
+            m_timerWatchdog.Elapsed += TimerWatchdog;
+            m_timerWatchdog.AutoReset = true;
+            m_timerWatchdog.Start();
+        }
+
+        public void TimerWatchdog(object sender, ElapsedEventArgs e)
+        {
+            CheckHeartbeat();
         }
     }
 }

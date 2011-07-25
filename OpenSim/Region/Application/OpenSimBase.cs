@@ -487,6 +487,7 @@ namespace OpenSim
             }
 
             scene.StartTimer();
+            scene.StartTimerWatchdog();
 
             return clientServer;
         }
