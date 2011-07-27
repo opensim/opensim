@@ -160,6 +160,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public Socket Server { get { return null; } }
 
+        private int m_malformedCount = 0; // Guard against a spamming attack
+
         public LLUDPServer(IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, AgentCircuitManager circuitManager)
             : base(listenIP, (int)port)
         {
@@ -612,6 +614,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #region Decoding
 
+            if (buffer.DataLength < 7)
+                return; // Drop undersizd packet
+
+            int headerLen = 7;
+            if (buffer.Data[6] == 0xFF)
+            {
+                if (buffer.Data[7] == 0xFF)
+                    headerLen = 10;
+                else
+                    headerLen = 8;
+            }
+
+            if (buffer.DataLength < headerLen)
+                return; // Malformed header
+
             try
             {
                 packet = Packet.BuildPacket(buffer.Data, ref packetEnd,
@@ -620,6 +637,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             catch (MalformedDataException)
             {
+            }
+            catch (IndexOutOfRangeException)
+            {
+                return; // Drop short packet
+            }
+            catch(Exception e)
+            {
+                if (m_malformedCount < 100)
+                    m_log.DebugFormat("[LLUDPSERVER]: Dropped malformed packet: " + e.ToString());
+                m_malformedCount++;
+                if ((m_malformedCount % 100000) == 0)
+                    m_log.DebugFormat("[LLUDPSERVER]: Received {0} malformed packets so far, probable network attack.", m_malformedCount);
             }
 
             // Fail-safe check
