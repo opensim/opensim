@@ -2732,192 +2732,13 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
 
                                 // This loop can block up the Heartbeat for a very long time on large regions.
                                 // We need to let the Watchdog know that the Heartbeat is not dead
-                                // NOTE: This is currently commented out, but if things like OAR loading are 
+                                // NOTE: This is currently commented out, but if things like OAR loading are
                                 // timing the heartbeat out we will need to uncomment it
                                 //Watchdog.UpdateThread();
                             }
 
                             if (SupportsNINJAJoints)
-                            {
-                                // Create pending joints, if possible
-
-                                // joints can only be processed after ALL bodies are processed (and exist in ODE), since creating
-                                // a joint requires specifying the body id of both involved bodies
-                                if (pendingJoints.Count > 0)
-                                {
-                                    List<PhysicsJoint> successfullyProcessedPendingJoints = new List<PhysicsJoint>();
-                                    //DoJointErrorMessage(joints_connecting_actor, "taint: " + pendingJoints.Count + " pending joints");
-                                    foreach (PhysicsJoint joint in pendingJoints)
-                                    {
-                                        //DoJointErrorMessage(joint, "taint: time to create joint with parms: " + joint.RawParams);
-                                        string[] jointParams = joint.RawParams.Split(" ".ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries);
-                                        List<IntPtr> jointBodies = new List<IntPtr>();
-                                        bool allJointBodiesAreReady = true;
-                                        foreach (string jointParam in jointParams)
-                                        {
-                                            if (jointParam == "NULL")
-                                            {
-                                                //DoJointErrorMessage(joint, "attaching NULL joint to world");
-                                                jointBodies.Add(IntPtr.Zero);
-                                            }
-                                            else
-                                            {
-                                                //DoJointErrorMessage(joint, "looking for prim name: " + jointParam);
-                                                bool foundPrim = false;
-                                                lock (_prims)
-                                                {
-                                                    foreach (OdePrim prim in _prims) // FIXME: inefficient
-                                                    {
-                                                        if (prim.SOPName == jointParam)
-                                                        {
-                                                            //DoJointErrorMessage(joint, "found for prim name: " + jointParam);
-                                                            if (prim.IsPhysical && prim.Body != IntPtr.Zero)
-                                                            {
-                                                                jointBodies.Add(prim.Body);
-                                                                foundPrim = true;
-                                                                break;
-                                                            }
-                                                            else
-                                                            {
-                                                                DoJointErrorMessage(joint, "prim name " + jointParam +
-                                                                    " exists but is not (yet) physical; deferring joint creation. " +
-                                                                    "IsPhysical property is " + prim.IsPhysical +
-                                                                    " and body is " + prim.Body);
-                                                                foundPrim = false;
-                                                                break;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                if (foundPrim)
-                                                {
-                                                    // all is fine
-                                                }
-                                                else
-                                                {
-                                                    allJointBodiesAreReady = false;
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                        if (allJointBodiesAreReady)
-                                        {
-                                            //DoJointErrorMessage(joint, "allJointBodiesAreReady for " + joint.ObjectNameInScene + " with parms " + joint.RawParams);
-                                            if (jointBodies[0] == jointBodies[1])
-                                            {
-                                                DoJointErrorMessage(joint, "ERROR: joint cannot be created; the joint bodies are the same, body1==body2. Raw body is " + jointBodies[0] + ". raw parms: " + joint.RawParams);
-                                            }
-                                            else
-                                            {
-                                                switch (joint.Type)
-                                                {
-                                                    case PhysicsJointType.Ball:
-                                                        {
-                                                            IntPtr odeJoint;
-                                                            //DoJointErrorMessage(joint, "ODE creating ball joint ");
-                                                            odeJoint = d.JointCreateBall(world, IntPtr.Zero);
-                                                            //DoJointErrorMessage(joint, "ODE attaching ball joint: " + odeJoint + " with b1:" + jointBodies[0] + " b2:" + jointBodies[1]);
-                                                            d.JointAttach(odeJoint, jointBodies[0], jointBodies[1]);
-                                                            //DoJointErrorMessage(joint, "ODE setting ball anchor: " + odeJoint + " to vec:" + joint.Position);
-                                                            d.JointSetBallAnchor(odeJoint,
-                                                                                joint.Position.X,
-                                                                                joint.Position.Y,
-                                                                                joint.Position.Z);
-                                                            //DoJointErrorMessage(joint, "ODE joint setting OK");
-                                                            //DoJointErrorMessage(joint, "The ball joint's bodies are here: b0: ");
-                                                            //DoJointErrorMessage(joint, "" + (jointBodies[0] != IntPtr.Zero ? "" + d.BodyGetPosition(jointBodies[0]) : "fixed environment"));
-                                                            //DoJointErrorMessage(joint, "The ball joint's bodies are here: b1: ");
-                                                            //DoJointErrorMessage(joint, "" + (jointBodies[1] != IntPtr.Zero ? "" + d.BodyGetPosition(jointBodies[1]) : "fixed environment"));
-
-                                                            if (joint is OdePhysicsJoint)
-                                                            {
-                                                                ((OdePhysicsJoint)joint).jointID = odeJoint;
-                                                            }
-                                                            else
-                                                            {
-                                                                DoJointErrorMessage(joint, "WARNING: non-ode joint in ODE!");
-                                                            }
-                                                        }
-                                                        break;
-                                                    case PhysicsJointType.Hinge:
-                                                        {
-                                                            IntPtr odeJoint;
-                                                            //DoJointErrorMessage(joint, "ODE creating hinge joint ");
-                                                            odeJoint = d.JointCreateHinge(world, IntPtr.Zero);
-                                                            //DoJointErrorMessage(joint, "ODE attaching hinge joint: " + odeJoint + " with b1:" + jointBodies[0] + " b2:" + jointBodies[1]);
-                                                            d.JointAttach(odeJoint, jointBodies[0], jointBodies[1]);
-                                                            //DoJointErrorMessage(joint, "ODE setting hinge anchor: " + odeJoint + " to vec:" + joint.Position);
-                                                            d.JointSetHingeAnchor(odeJoint,
-                                                                                  joint.Position.X,
-                                                                                  joint.Position.Y,
-                                                                                  joint.Position.Z);
-                                                            // We use the orientation of the x-axis of the joint's coordinate frame
-                                                            // as the axis for the hinge. 
-
-                                                            // Therefore, we must get the joint's coordinate frame based on the
-                                                            // joint.Rotation field, which originates from the orientation of the 
-                                                            // joint's proxy object in the scene.
-
-                                                            // The joint's coordinate frame is defined as the transformation matrix
-                                                            // that converts a vector from joint-local coordinates into world coordinates.
-                                                            // World coordinates are defined as the XYZ coordinate system of the sim,
-                                                            // as shown in the top status-bar of the viewer.
-
-                                                            // Once we have the joint's coordinate frame, we extract its X axis (AtAxis)
-                                                            // and use that as the hinge axis.
-
-                                                            //joint.Rotation.Normalize();
-                                                            Matrix4 proxyFrame = Matrix4.CreateFromQuaternion(joint.Rotation);
-
-                                                            // Now extract the X axis of the joint's coordinate frame.
-
-                                                            // Do not try to use proxyFrame.AtAxis or you will become mired in the
-                                                            // tar pit of transposed, inverted, and generally messed-up orientations.
-                                                            // (In other words, Matrix4.AtAxis() is borked.)
-                                                            // Vector3 jointAxis = proxyFrame.AtAxis; <--- this path leadeth to madness
-
-                                                            // Instead, compute the X axis of the coordinate frame by transforming
-                                                            // the (1,0,0) vector. At least that works.
-
-                                                            //m_log.Debug("PHY: making axis: complete matrix is " + proxyFrame);
-                                                            Vector3 jointAxis = Vector3.Transform(Vector3.UnitX, proxyFrame);
-                                                            //m_log.Debug("PHY: making axis: hinge joint axis is " + jointAxis); 
-                                                            //DoJointErrorMessage(joint, "ODE setting hinge axis: " + odeJoint + " to vec:" + jointAxis);
-                                                            d.JointSetHingeAxis(odeJoint,
-                                                                                jointAxis.X,
-                                                                                jointAxis.Y,
-                                                                                jointAxis.Z);
-                                                            //d.JointSetHingeParam(odeJoint, (int)dParam.CFM, 0.1f);
-                                                            if (joint is OdePhysicsJoint)
-                                                            {
-                                                                ((OdePhysicsJoint)joint).jointID = odeJoint;
-                                                            }
-                                                            else
-                                                            {
-                                                                DoJointErrorMessage(joint, "WARNING: non-ode joint in ODE!");
-                                                            }
-                                                        }
-                                                        break;
-                                                }
-                                                successfullyProcessedPendingJoints.Add(joint);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            DoJointErrorMessage(joint, "joint could not yet be created; still pending");
-                                        }
-                                    }
-                                    foreach (PhysicsJoint successfullyProcessedJoint in successfullyProcessedPendingJoints)
-                                    {
-                                        //DoJointErrorMessage(successfullyProcessedJoint, "finalizing succesfully procsssed joint " + successfullyProcessedJoint.ObjectNameInScene + " parms " + successfullyProcessedJoint.RawParams);
-                                        //DoJointErrorMessage(successfullyProcessedJoint, "removing from pending");
-                                        InternalRemovePendingJoint(successfullyProcessedJoint);
-                                        //DoJointErrorMessage(successfullyProcessedJoint, "adding to active");
-                                        InternalAddActiveJoint(successfullyProcessedJoint);
-                                        //DoJointErrorMessage(successfullyProcessedJoint, "done");
-                                    }
-                                }
-                            }
+                                SimulateNINJAJoints();
 
                             if (processedtaints)
 //Console.WriteLine("Simulate calls Clear of _taintedPrim list");
@@ -3095,7 +2916,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
 
                     d.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
                 }
-                
+
                 latertickcount = Util.EnvironmentTickCount() - tickCountFrameRun;
 
                 // OpenSimulator above does 10 fps.  10 fps = means that the main thread loop and physics
@@ -3115,6 +2936,194 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
             }
 
             return fps;
+        }
+
+        /// <summary>
+        /// Simulate NINJA joints.
+        /// </summary>
+        /// <remarks>
+        /// Called by the main Simulate() loop if NINJA joints are active.  Should not be called from anywhere else.
+        /// </remarks>
+        protected void SimulateNINJAJoints()
+        {
+            // Create pending joints, if possible
+
+            // joints can only be processed after ALL bodies are processed (and exist in ODE), since creating
+            // a joint requires specifying the body id of both involved bodies
+            if (pendingJoints.Count > 0)
+            {
+                List<PhysicsJoint> successfullyProcessedPendingJoints = new List<PhysicsJoint>();
+                //DoJointErrorMessage(joints_connecting_actor, "taint: " + pendingJoints.Count + " pending joints");
+                foreach (PhysicsJoint joint in pendingJoints)
+                {
+                    //DoJointErrorMessage(joint, "taint: time to create joint with parms: " + joint.RawParams);
+                    string[] jointParams = joint.RawParams.Split(" ".ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries);
+                    List<IntPtr> jointBodies = new List<IntPtr>();
+                    bool allJointBodiesAreReady = true;
+                    foreach (string jointParam in jointParams)
+                    {
+                        if (jointParam == "NULL")
+                        {
+                            //DoJointErrorMessage(joint, "attaching NULL joint to world");
+                            jointBodies.Add(IntPtr.Zero);
+                        }
+                        else
+                        {
+                            //DoJointErrorMessage(joint, "looking for prim name: " + jointParam);
+                            bool foundPrim = false;
+                            lock (_prims)
+                            {
+                                foreach (OdePrim prim in _prims) // FIXME: inefficient
+                                {
+                                    if (prim.SOPName == jointParam)
+                                    {
+                                        //DoJointErrorMessage(joint, "found for prim name: " + jointParam);
+                                        if (prim.IsPhysical && prim.Body != IntPtr.Zero)
+                                        {
+                                            jointBodies.Add(prim.Body);
+                                            foundPrim = true;
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            DoJointErrorMessage(joint, "prim name " + jointParam +
+                                                " exists but is not (yet) physical; deferring joint creation. " +
+                                                "IsPhysical property is " + prim.IsPhysical +
+                                                " and body is " + prim.Body);
+                                            foundPrim = false;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if (foundPrim)
+                            {
+                                // all is fine
+                            }
+                            else
+                            {
+                                allJointBodiesAreReady = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (allJointBodiesAreReady)
+                    {
+                        //DoJointErrorMessage(joint, "allJointBodiesAreReady for " + joint.ObjectNameInScene + " with parms " + joint.RawParams);
+                        if (jointBodies[0] == jointBodies[1])
+                        {
+                            DoJointErrorMessage(joint, "ERROR: joint cannot be created; the joint bodies are the same, body1==body2. Raw body is " + jointBodies[0] + ". raw parms: " + joint.RawParams);
+                        }
+                        else
+                        {
+                            switch (joint.Type)
+                            {
+                                case PhysicsJointType.Ball:
+                                    {
+                                        IntPtr odeJoint;
+                                        //DoJointErrorMessage(joint, "ODE creating ball joint ");
+                                        odeJoint = d.JointCreateBall(world, IntPtr.Zero);
+                                        //DoJointErrorMessage(joint, "ODE attaching ball joint: " + odeJoint + " with b1:" + jointBodies[0] + " b2:" + jointBodies[1]);
+                                        d.JointAttach(odeJoint, jointBodies[0], jointBodies[1]);
+                                        //DoJointErrorMessage(joint, "ODE setting ball anchor: " + odeJoint + " to vec:" + joint.Position);
+                                        d.JointSetBallAnchor(odeJoint,
+                                                            joint.Position.X,
+                                                            joint.Position.Y,
+                                                            joint.Position.Z);
+                                        //DoJointErrorMessage(joint, "ODE joint setting OK");
+                                        //DoJointErrorMessage(joint, "The ball joint's bodies are here: b0: ");
+                                        //DoJointErrorMessage(joint, "" + (jointBodies[0] != IntPtr.Zero ? "" + d.BodyGetPosition(jointBodies[0]) : "fixed environment"));
+                                        //DoJointErrorMessage(joint, "The ball joint's bodies are here: b1: ");
+                                        //DoJointErrorMessage(joint, "" + (jointBodies[1] != IntPtr.Zero ? "" + d.BodyGetPosition(jointBodies[1]) : "fixed environment"));
+
+                                        if (joint is OdePhysicsJoint)
+                                        {
+                                            ((OdePhysicsJoint)joint).jointID = odeJoint;
+                                        }
+                                        else
+                                        {
+                                            DoJointErrorMessage(joint, "WARNING: non-ode joint in ODE!");
+                                        }
+                                    }
+                                    break;
+                                case PhysicsJointType.Hinge:
+                                    {
+                                        IntPtr odeJoint;
+                                        //DoJointErrorMessage(joint, "ODE creating hinge joint ");
+                                        odeJoint = d.JointCreateHinge(world, IntPtr.Zero);
+                                        //DoJointErrorMessage(joint, "ODE attaching hinge joint: " + odeJoint + " with b1:" + jointBodies[0] + " b2:" + jointBodies[1]);
+                                        d.JointAttach(odeJoint, jointBodies[0], jointBodies[1]);
+                                        //DoJointErrorMessage(joint, "ODE setting hinge anchor: " + odeJoint + " to vec:" + joint.Position);
+                                        d.JointSetHingeAnchor(odeJoint,
+                                                              joint.Position.X,
+                                                              joint.Position.Y,
+                                                              joint.Position.Z);
+                                        // We use the orientation of the x-axis of the joint's coordinate frame
+                                        // as the axis for the hinge.
+
+                                        // Therefore, we must get the joint's coordinate frame based on the
+                                        // joint.Rotation field, which originates from the orientation of the 
+                                        // joint's proxy object in the scene.
+
+                                        // The joint's coordinate frame is defined as the transformation matrix
+                                        // that converts a vector from joint-local coordinates into world coordinates.
+                                        // World coordinates are defined as the XYZ coordinate system of the sim,
+                                        // as shown in the top status-bar of the viewer.
+
+                                        // Once we have the joint's coordinate frame, we extract its X axis (AtAxis)
+                                        // and use that as the hinge axis.
+
+                                        //joint.Rotation.Normalize();
+                                        Matrix4 proxyFrame = Matrix4.CreateFromQuaternion(joint.Rotation);
+
+                                        // Now extract the X axis of the joint's coordinate frame.
+
+                                        // Do not try to use proxyFrame.AtAxis or you will become mired in the
+                                        // tar pit of transposed, inverted, and generally messed-up orientations.
+                                        // (In other words, Matrix4.AtAxis() is borked.)
+                                        // Vector3 jointAxis = proxyFrame.AtAxis; <--- this path leadeth to madness
+
+                                        // Instead, compute the X axis of the coordinate frame by transforming
+                                        // the (1,0,0) vector. At least that works.
+
+                                        //m_log.Debug("PHY: making axis: complete matrix is " + proxyFrame);
+                                        Vector3 jointAxis = Vector3.Transform(Vector3.UnitX, proxyFrame);
+                                        //m_log.Debug("PHY: making axis: hinge joint axis is " + jointAxis);
+                                        //DoJointErrorMessage(joint, "ODE setting hinge axis: " + odeJoint + " to vec:" + jointAxis);
+                                        d.JointSetHingeAxis(odeJoint,
+                                                            jointAxis.X,
+                                                            jointAxis.Y,
+                                                            jointAxis.Z);
+                                        //d.JointSetHingeParam(odeJoint, (int)dParam.CFM, 0.1f);
+                                        if (joint is OdePhysicsJoint)
+                                        {
+                                            ((OdePhysicsJoint)joint).jointID = odeJoint;
+                                        }
+                                        else
+                                        {
+                                            DoJointErrorMessage(joint, "WARNING: non-ode joint in ODE!");
+                                        }
+                                    }
+                                    break;
+                            }
+                            successfullyProcessedPendingJoints.Add(joint);
+                        }
+                    }
+                    else
+                    {
+                        DoJointErrorMessage(joint, "joint could not yet be created; still pending");
+                    }
+                }
+                foreach (PhysicsJoint successfullyProcessedJoint in successfullyProcessedPendingJoints)
+                {
+                    //DoJointErrorMessage(successfullyProcessedJoint, "finalizing succesfully procsssed joint " + successfullyProcessedJoint.ObjectNameInScene + " parms " + successfullyProcessedJoint.RawParams);
+                    //DoJointErrorMessage(successfullyProcessedJoint, "removing from pending");
+                    InternalRemovePendingJoint(successfullyProcessedJoint);
+                    //DoJointErrorMessage(successfullyProcessedJoint, "adding to active");
+                    InternalAddActiveJoint(successfullyProcessedJoint);
+                    //DoJointErrorMessage(successfullyProcessedJoint, "done");
+                }
+            }
         }
 
         public override void GetResults()
