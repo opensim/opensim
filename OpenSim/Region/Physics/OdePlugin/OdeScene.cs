@@ -2738,7 +2738,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                             }
 
                             if (SupportsNINJAJoints)
-                                SimulateNINJAJoints();
+                                SimulatePendingNINJAJoints();
 
                             if (processedtaints)
 //Console.WriteLine("Simulate calls Clear of _taintedPrim list");
@@ -2839,6 +2839,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                         {
                             if (actor.bad)
                                 m_log.WarnFormat("[PHYSICS]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
+                            
                             actor.UpdatePositionAndVelocity();
                         }
                     }
@@ -2852,6 +2853,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                         {
                             RemoveCharacter(chr);
                         }
+
                         _badCharacter.Clear();
                     }
                 }
@@ -2867,30 +2869,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                                 actor.UpdatePositionAndVelocity();
 
                                 if (SupportsNINJAJoints)
-                                {
-                                    // If an actor moved, move its joint proxy objects as well.
-                                    // There seems to be an event PhysicsActor.OnPositionUpdate that could be used
-                                    // for this purpose but it is never called! So we just do the joint
-                                    // movement code here.
-
-                                    if (actor.SOPName != null &&
-                                        joints_connecting_actor.ContainsKey(actor.SOPName) &&
-                                        joints_connecting_actor[actor.SOPName] != null &&
-                                        joints_connecting_actor[actor.SOPName].Count > 0)
-                                    {
-                                        foreach (PhysicsJoint affectedJoint in joints_connecting_actor[actor.SOPName])
-                                        {
-                                            if (affectedJoint.IsInPhysicsEngine)
-                                            {
-                                                DoJointMoved(affectedJoint);
-                                            }
-                                            else
-                                            {
-                                                DoJointErrorMessage(affectedJoint, "a body connected to a joint was moved, but the joint doesn't exist yet! this will lead to joint error. joint was: " + affectedJoint.ObjectNameInScene + " parms:" + affectedJoint.RawParams);
-                                            }
-                                        }
-                                    }
-                                }
+                                    SimulateActorPendingJoints(actor);
                             }
                         }
                     }
@@ -2901,7 +2880,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 // Finished with all sim stepping. If requested, dump world state to file for debugging.
                 // TODO: This call to the export function is already inside lock (OdeLock) - but is an extra lock needed?
                 // TODO: This overwrites all dump files in-place. Should this be a growing logfile, or separate snapshots?
-                if (physics_logging && (physics_logging_interval>0) && (framecount % physics_logging_interval == 0))
+                if (physics_logging && (physics_logging_interval > 0) && (framecount % physics_logging_interval == 0))
                 {
                     string fname = "state-" + world.ToString() + ".DIF"; // give each physics world a separate filename
                     string prefix = "world" + world.ToString(); // prefix for variable names in exported .DIF file
@@ -2925,7 +2904,9 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 // If Physics stalls, it takes longer which makes the tick count ms larger.
 
                 if (latertickcount < 100)
+                {
                     m_timeDilation = 1.0f;
+                }
                 else
                 {
                     m_timeDilation = 100f / latertickcount;
@@ -2939,12 +2920,12 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
         }
 
         /// <summary>
-        /// Simulate NINJA joints.
+        /// Simulate pending NINJA joints.
         /// </summary>
         /// <remarks>
         /// Called by the main Simulate() loop if NINJA joints are active.  Should not be called from anywhere else.
         /// </remarks>
-        protected void SimulateNINJAJoints()
+        protected void SimulatePendingNINJAJoints()
         {
             // Create pending joints, if possible
 
@@ -3007,6 +2988,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                             }
                         }
                     }
+
                     if (allJointBodiesAreReady)
                     {
                         //DoJointErrorMessage(joint, "allJointBodiesAreReady for " + joint.ObjectNameInScene + " with parms " + joint.RawParams);
@@ -3122,6 +3104,32 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                     //DoJointErrorMessage(successfullyProcessedJoint, "adding to active");
                     InternalAddActiveJoint(successfullyProcessedJoint);
                     //DoJointErrorMessage(successfullyProcessedJoint, "done");
+                }
+            }
+        }
+
+        protected void SimulateActorPendingJoints(OdePrim actor)
+        {
+            // If an actor moved, move its joint proxy objects as well.
+            // There seems to be an event PhysicsActor.OnPositionUpdate that could be used
+            // for this purpose but it is never called! So we just do the joint
+            // movement code here.
+
+            if (actor.SOPName != null &&
+                joints_connecting_actor.ContainsKey(actor.SOPName) &&
+                joints_connecting_actor[actor.SOPName] != null &&
+                joints_connecting_actor[actor.SOPName].Count > 0)
+            {
+                foreach (PhysicsJoint affectedJoint in joints_connecting_actor[actor.SOPName])
+                {
+                    if (affectedJoint.IsInPhysicsEngine)
+                    {
+                        DoJointMoved(affectedJoint);
+                    }
+                    else
+                    {
+                        DoJointErrorMessage(affectedJoint, "a body connected to a joint was moved, but the joint doesn't exist yet! this will lead to joint error. joint was: " + affectedJoint.ObjectNameInScene + " parms:" + affectedJoint.RawParams);
+                    }
                 }
             }
         }
