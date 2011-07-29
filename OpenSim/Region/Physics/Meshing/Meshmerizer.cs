@@ -456,11 +456,21 @@ namespace OpenSim.Region.Physics.Meshing
                         {
                             OpenMetaverse.Imaging.ManagedImage unusedData;
                             OpenMetaverse.Imaging.OpenJPEG.DecodeToImage(primShape.SculptData, out unusedData, out idata);
+
+                            if (idata == null)
+                            {
+                                // In some cases it seems that the decode can return a null bitmap without throwing
+                                // an exception
+                                m_log.WarnFormat("[PHYSICS]: OpenJPEG decoded sculpt data for {0} to a null bitmap.  Ignoring.", primName);
+
+                                return null;
+                            }
+
                             unusedData = null;
 
                             //idata = CSJ2K.J2kImage.FromBytes(primShape.SculptData);
 
-                            if (cacheSculptMaps && idata != null)
+                            if (cacheSculptMaps)
                             {
                                 try { idata.Save(decodedSculptFileName, ImageFormat.MemoryBmp); }
                                 catch (Exception e) { m_log.Error("[SCULPT]: unable to cache sculpt map " + decodedSculptFileName + " " + e.Message); }
