@@ -305,6 +305,11 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         private void HandleAppearanceSave(UUID agentid)
         {
+            // We must set appearance parameters in the en_US culture in order to avoid issues where values are saved
+            // in a culture where decimal points are commas and then reloaded in a culture which just treats them as
+            // number seperators.
+            Culture.SetCurrentCulture();
+
             ScenePresence sp = m_scene.GetScenePresence(agentid);
             if (sp == null)
             {
