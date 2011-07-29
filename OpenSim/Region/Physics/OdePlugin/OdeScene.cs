@@ -2719,14 +2719,15 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                             {
                                 if (prim.m_taintremove)
                                 {
-                                    //Console.WriteLine("Simulate calls RemovePrimThreadLocked");
+//                                    Console.WriteLine("Simulate calls RemovePrimThreadLocked for {0}", prim.Name);
                                     RemovePrimThreadLocked(prim);
                                 }
                                 else
                                 {
-                                    //Console.WriteLine("Simulate calls ProcessTaints");
+//                                    Console.WriteLine("Simulate calls ProcessTaints for {0}", prim.Name);
                                     prim.ProcessTaints(timeStep);
                                 }
+
                                 processedtaints = true;
                                 prim.m_collisionscore = 0;
 
@@ -2741,9 +2742,11 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                                 SimulatePendingNINJAJoints();
 
                             if (processedtaints)
+                            {
 //Console.WriteLine("Simulate calls Clear of _taintedPrim list");
                                 _taintedPrimH.Clear();
                                 _taintedPrimL.Clear();
+                            }
                         }
 
                         // Move characters
@@ -2839,7 +2842,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                         {
                             if (actor.bad)
                                 m_log.WarnFormat("[PHYSICS]: BAD Actor {0} in _characters list was not removed?", actor.m_uuid);
-                            
+
                             actor.UpdatePositionAndVelocity();
                         }
                     }
@@ -3096,6 +3099,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                         DoJointErrorMessage(joint, "joint could not yet be created; still pending");
                     }
                 }
+
                 foreach (PhysicsJoint successfullyProcessedJoint in successfullyProcessedPendingJoints)
                 {
                     //DoJointErrorMessage(successfullyProcessedJoint, "finalizing succesfully procsssed joint " + successfullyProcessedJoint.ObjectNameInScene + " parms " + successfullyProcessedJoint.RawParams);
@@ -3108,6 +3112,13 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
             }
         }
 
+        /// <summary>
+        /// Simulate the joint proxies of a NINJA actor.
+        /// </summary>
+        /// <remarks>
+        /// Called as part of the Simulate() loop if NINJA physics is active.  Must only be called from there.
+        /// </remarks>
+        /// <param name="actor"></param>
         protected void SimulateActorPendingJoints(OdePrim actor)
         {
             // If an actor moved, move its joint proxy objects as well.
