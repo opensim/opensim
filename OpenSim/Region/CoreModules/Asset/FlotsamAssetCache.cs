@@ -765,7 +765,7 @@ namespace Flotsam.RegionModules.AssetCache
     
                             foreach (string s in Directory.GetFiles(m_CacheDirectory, "*.fac"))
                             {
-                                m_log.Info("[FLOTSAM ASSET CACHE]: Deep Scans were performed on the following regions:");
+                                m_log.Info("[FLOTSAM ASSET CACHE]: Deep scans have previously been performed on the following regions:");
     
                                 string RegionID = s.Remove(0,s.IndexOf("_")).Replace(".fac","");
                                 DateTime RegionDeepScanTMStamp = File.GetLastWriteTime(s);
