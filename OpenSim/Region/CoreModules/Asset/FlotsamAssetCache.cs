@@ -301,7 +301,9 @@ namespace Flotsam.RegionModules.AssetCache
             }
             catch (Exception e)
             {
-                LogException(e);
+                m_log.ErrorFormat(
+                    "[FLOTSAM ASSET CACHE]: Failed to update cache for asset {0}.  Exception {1} {2}",
+                    asset.ID, e.Message, e.StackTrace);
             }
         }
 
@@ -361,7 +363,9 @@ namespace Flotsam.RegionModules.AssetCache
                 }
                 catch (System.Runtime.Serialization.SerializationException e)
                 {
-                    LogException(e);
+                    m_log.ErrorFormat(
+                        "[FLOTSAM ASSET CACHE]: Failed to get file {0} for asset {1}.  Exception {2} {3}",
+                        filename, id, e.Message, e.StackTrace);
 
                     // If there was a problem deserializing the asset, the asset may
                     // either be corrupted OR was serialized under an old format
@@ -371,7 +375,9 @@ namespace Flotsam.RegionModules.AssetCache
                 }
                 catch (Exception e)
                 {
-                    LogException(e);
+                    m_log.ErrorFormat(
+                        "[FLOTSAM ASSET CACHE]: Failed to get file {0} for asset {1}.  Exception {2} {3}",
+                        filename, id, e.Message, e.StackTrace);
                 }
                 finally
                 {
@@ -379,7 +385,6 @@ namespace Flotsam.RegionModules.AssetCache
                         stream.Close();
                 }
             }
-
 
 #if WAIT_ON_INPROGRESS_REQUESTS
             // Check if we're already downloading this asset.  If so, try to wait for it to
@@ -403,7 +408,6 @@ namespace Flotsam.RegionModules.AssetCache
                 m_RequestsForInprogress++;
             }
 #endif
-
             return asset;
         }
 
@@ -432,7 +436,6 @@ namespace Flotsam.RegionModules.AssetCache
                 }
 
                 m_log.InfoFormat("[FLOTSAM ASSET CACHE]: {0} unnessesary requests due to requests for assets that are currently downloading.", m_RequestsForInprogress);
-                
             }
 
             return asset;
@@ -446,7 +449,7 @@ namespace Flotsam.RegionModules.AssetCache
         public void Expire(string id)
         {
             if (m_LogLevel >= 2)
-                m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Expiring Asset {0}.", id);
+                m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Expiring Asset {0}", id);
 
             try
             {
@@ -464,7 +467,9 @@ namespace Flotsam.RegionModules.AssetCache
             }
             catch (Exception e)
             {
-                LogException(e);
+                m_log.ErrorFormat(
+                    "[FLOTSAM ASSET CACHE]: Failed to expire cached file {0}.  Exception {1} {2}",
+                    id, e.Message, e.StackTrace);
             }
         }
 
@@ -602,7 +607,9 @@ namespace Flotsam.RegionModules.AssetCache
             }
             catch (Exception e)
             {
-                LogException(e);
+                m_log.ErrorFormat(
+                    "[FLOTSAM ASSET CACHE]: Failed to write asset {0} to cache.  Directory {1}, tempname {2}, filename {3}.  Exception {4} {5}.",
+                    asset.ID, directory, tempname, filename, e.Message, e.StackTrace);
             }
             finally
             {
@@ -629,15 +636,6 @@ namespace Flotsam.RegionModules.AssetCache
 #endif
                 }
 
-            }
-        }
-
-        private static void LogException(Exception e)
-        {
-            string[] text = e.ToString().Split(new char[] { '\n' });
-            foreach (string t in text)
-            {
-                m_log.ErrorFormat("[FLOTSAM ASSET CACHE]: {0} ", t);
             }
         }
 
@@ -693,8 +691,7 @@ namespace Flotsam.RegionModules.AssetCache
                 s.ForEachSOG(delegate(SceneObjectGroup e)
                 {
                     gatherer.GatherAssetUuids(e, assets);
-                }
-                );
+                });
             }
 
             foreach (UUID assetID in assets.Keys)
@@ -727,7 +724,9 @@ namespace Flotsam.RegionModules.AssetCache
                 }
                 catch (Exception e)
                 {
-                    LogException(e);
+                    m_log.ErrorFormat(
+                        "[FLOTSAM ASSET CACHE]: Couldn't clear asset cache directory {0} from {1}.  Exception {2} {3}",
+                        dir, m_CacheDirectory, e.Message, e.StackTrace);
                 }
             }
 
@@ -739,7 +738,9 @@ namespace Flotsam.RegionModules.AssetCache
                 }
                 catch (Exception e)
                 {
-                    LogException(e);
+                    m_log.ErrorFormat(
+                        "[FLOTSAM ASSET CACHE]: Couldn't clear asset cache file {0} from {1}.  Exception {1} {2}",
+                        file, m_CacheDirectory, e.Message, e.StackTrace);
                 }
             }
         }
@@ -836,7 +837,6 @@ namespace Flotsam.RegionModules.AssetCache
                         Util.FireAndForget(delegate {
                             int assetsCached = CacheScenes();
                             m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Completed Scene Caching, {0} assets found.", assetsCached);
-
                         });
 
                         break;
@@ -891,7 +891,6 @@ namespace Flotsam.RegionModules.AssetCache
 
         #region IAssetService Members
 
-
         public AssetMetadata GetMetadata(string id)
         {
             AssetBase asset = Get(id);
@@ -921,7 +920,6 @@ namespace Flotsam.RegionModules.AssetCache
             Cache(asset);
 
             return asset.ID;
-
         }
 
         public bool UpdateContent(string id, byte[] data)
