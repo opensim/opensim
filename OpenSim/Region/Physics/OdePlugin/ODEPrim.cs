@@ -157,7 +157,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         private IMesh _mesh;
         private PrimitiveBaseShape _pbs;
         private OdeScene _parent_scene;
+
+        /// <summary>
+        /// The physics space which contains prim geometries
+        /// </summary>
         public IntPtr m_targetSpace = IntPtr.Zero;
+
         public IntPtr prim_geom;
         public IntPtr prev_geom;
         public IntPtr _triMeshData;
@@ -222,7 +227,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_density = parent_scene.geomDefaultDensity;
             // m_tensor = parent_scene.bodyMotorJointMaxforceTensor;
             body_autodisable_frames = parent_scene.bodyFramesAutoDisable;
-
 
             prim_geom = IntPtr.Zero;
             prev_geom = IntPtr.Zero;
@@ -322,6 +326,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        /// <summary>
+        /// Set a new geometry for this prim.
+        /// </summary>
+        /// <param name="geom"></param>
         public void SetGeom(IntPtr geom)
         {
             prev_geom = prim_geom;
@@ -370,6 +378,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        /// <summary>
+        /// Make a prim subject to physics.
+        /// </summary>
         public void enableBody()
         {
             // Don't enable this body if we're a child prim
@@ -745,6 +756,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        /// <summary>
+        /// Stop a prim from being subject to physics.
+        /// </summary>
         public void disableBody()
         {
             //this kills the body so things like 'mesh' can re-create it.
@@ -1192,7 +1206,6 @@ Console.WriteLine("ZProcessTaints for " + Name);
             }
             disableBody();
 
-
             if (Body != IntPtr.Zero)
             {
                 _parent_scene.remActivePrim(this);
@@ -1206,7 +1219,6 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     AddChildPrim(prm);
                 }
             }
-            
         }
 
         private void ChildDelink(OdePrim odePrim)
@@ -1341,6 +1353,11 @@ Console.WriteLine("ZProcessTaints for " + Name);
             m_taintVelocity = Vector3.Zero;
         }
 
+        /// <summary>
+        /// Create a geometry for the given mesh in the given target space.
+        /// </summary>
+        /// <param name="m_targetSpace"></param>
+        /// <param name="_mesh">/param>
         public void CreateGeom(IntPtr m_targetSpace, IMesh _mesh)
         {
 #if SPAM

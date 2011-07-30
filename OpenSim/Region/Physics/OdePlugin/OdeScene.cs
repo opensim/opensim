@@ -305,7 +305,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 world = d.WorldCreate();
                 space = d.HashSpaceCreate(IntPtr.Zero);
                 
-
                 contactgroup = d.JointGroupCreate(0);
                 //contactgroup
 
