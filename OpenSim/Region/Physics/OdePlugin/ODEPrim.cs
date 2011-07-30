@@ -1457,7 +1457,6 @@ Console.WriteLine("changeadd 1");
         {
             if (m_isphysical)
             {
-                
                 if (!m_disabled && !m_taintremove && !childPrim)
                 {
                     if (Body == IntPtr.Zero)
@@ -2999,6 +2998,7 @@ Console.WriteLine("changeshape not need meshing");
         {
             if (CollisionEventsThisFrame == null)
                 CollisionEventsThisFrame = new CollisionEventUpdate();
+
             CollisionEventsThisFrame.addCollider(CollidedWith, contact);
         }
 

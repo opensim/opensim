@@ -100,7 +100,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         Rubber = 6
     }
 
-    public sealed class OdeScene : PhysicsScene
+    public class OdeScene : PhysicsScene
     {
         private readonly ILog m_log;
         // private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
@@ -957,7 +957,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     character.SetPidStatus(true);
                                 }
                             }
-                            
 
                             if (p1.PhysicsActorType == (int) ActorTypes.Agent)
                             {
@@ -1058,9 +1057,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     {
                                         joint = d.JointCreateContact(world, contactgroup, ref m_materialContacts[material, movintYN]);
                                         m_global_contactcount++;
-
                                     }
-                                    
                                 }
                                 else
                                 {
@@ -1083,7 +1080,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     {
                                         joint = d.JointCreateContact(world, contactgroup, ref m_materialContacts[material, movintYN]);
                                         m_global_contactcount++;
-
                                     }
                                 }
                             }
@@ -1295,6 +1291,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                             //returncollisions = true;
                             break;
+
                         case ActorTypes.Prim:
                             if (p1 is OdePrim)
                             {
@@ -1322,6 +1319,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     cc2.AddCollisionEvent(obj2LocalID, contact);
                     break;
+
                 case ActorTypes.Prim:
 
                     if (p2 is OdePrim)
