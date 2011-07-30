@@ -4821,7 +4821,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     PhysActor.OnCollisionUpdate += PhysicsCollision;
                     PhysActor.SubscribeEvents(1000);
-
                 }
             }
             else

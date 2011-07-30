@@ -2986,12 +2986,12 @@ Console.WriteLine("changeshape not need meshing");
         public override void SubscribeEvents(int ms)
         {
             m_eventsubscription = ms;
-            _parent_scene.addCollisionEventReporting(this);
+            _parent_scene.AddCollisionEventReporting(this);
         }
 
         public override void UnSubscribeEvents()
         {
-            _parent_scene.remCollisionEventReporting(this);
+            _parent_scene.RemoveCollisionEventReporting(this);
             m_eventsubscription = 0;
         }
 

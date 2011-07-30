@@ -198,7 +198,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         private readonly List<OdePrim> _taintedPrimL = new List<OdePrim>();
         private readonly HashSet<OdeCharacter> _taintedActors = new HashSet<OdeCharacter>();
         private readonly List<d.ContactGeom> _perloopContact = new List<d.ContactGeom>();
+
+        /// <summary>
+        /// A list of actors that should receive collision events.
+        /// </summary>
         private readonly List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
+        
         private readonly HashSet<OdeCharacter> _badCharacter = new HashSet<OdeCharacter>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
@@ -1604,7 +1609,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         } 
 // End recovered. Kitto Flora
 
-        public void addCollisionEventReporting(PhysicsActor obj)
+        /// <summary>
+        /// Add actor to the list that should receive collision events in the simulate loop.
+        /// </summary>
+        /// <param name="obj"></param>
+        public void AddCollisionEventReporting(PhysicsActor obj)
         {
             lock (_collisionEventPrim)
             {
@@ -1613,7 +1622,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
-        public void remCollisionEventReporting(PhysicsActor obj)
+        /// <summary>
+        /// Remove actor from the list that should receive collision events in the simulate loop.
+        /// </summary>
+        /// <param name="obj"></param>
+        public void RemoveCollisionEventReporting(PhysicsActor obj)
         {
             lock (_collisionEventPrim)
             {
@@ -2132,7 +2145,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 //Console.WriteLine("RemovePrimThreadLocked " +  prim.m_primName);
             lock (prim)
             {
-                remCollisionEventReporting(prim);
+                RemoveCollisionEventReporting(prim);
                 lock (ode)
                 {
                     if (prim.prim_geom != IntPtr.Zero)
@@ -2792,6 +2805,8 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                                 if (obj == null)
                                     continue;
 
+//                                m_log.DebugFormat("[PHYSICS]: Assessing {0} for collision events", obj.SOPName);
+
                                 switch ((ActorTypes)obj.PhysicsActorType)
                                 {
                                     case ActorTypes.Agent:
@@ -2799,6 +2814,7 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                                         cobj.AddCollisionFrameTime(100);
                                         cobj.SendCollisions();
                                         break;
+
                                     case ActorTypes.Prim:
                                         OdePrim pobj = (OdePrim)obj;
                                         pobj.SendCollisions();

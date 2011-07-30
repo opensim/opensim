@@ -1220,14 +1220,16 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             m_requestedUpdateFrequency = ms;
             m_eventsubscription = ms;
-            _parent_scene.addCollisionEventReporting(this);
+            _parent_scene.AddCollisionEventReporting(this);
         }
+
         public override void UnSubscribeEvents()
         {
-            _parent_scene.remCollisionEventReporting(this);
+            _parent_scene.RemoveCollisionEventReporting(this);
             m_requestedUpdateFrequency = 0;
             m_eventsubscription = 0;
         }
+        
         public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
             if (m_eventsubscription > 0)
@@ -1248,6 +1250,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_eventsubscription = 0;
             }
         }
+
         public override bool SubscribedEvents()
         {
             if (m_eventsubscription > 0)
