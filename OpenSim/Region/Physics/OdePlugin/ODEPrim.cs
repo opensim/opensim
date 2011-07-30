@@ -1358,14 +1358,14 @@ Console.WriteLine("ZProcessTaints for " + Name);
         /// </summary>
         /// <param name="m_targetSpace"></param>
         /// <param name="_mesh">/param>
-        public void CreateGeom(IntPtr m_targetSpace, IMesh _mesh)
+        public void CreateGeom(IntPtr m_targetSpace, IMesh mesh)
         {
 #if SPAM
 Console.WriteLine("CreateGeom:");
 #endif
-            if (_mesh != null)
+            if (mesh != null)
             {
-                setMesh(_parent_scene, _mesh);
+                setMesh(_parent_scene, mesh);
             }
             else
             {
