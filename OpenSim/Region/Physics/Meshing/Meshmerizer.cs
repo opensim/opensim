@@ -448,7 +448,8 @@ namespace OpenSim.Region.Physics.Meshing
                     if (!useMeshiesPhysicsMesh)
                         return null;
 
-                    GeneratePointsAndFacesFromPrimMeshData(primName, primShape, size, coords, faces);
+                    if (!GeneratePointsAndFacesFromPrimMeshData(primName, primShape, size, coords, faces))
+                        return null;
                 }
                 else
                 {
