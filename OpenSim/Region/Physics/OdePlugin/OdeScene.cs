@@ -304,7 +304,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // Create the world and the first space
                 world = d.WorldCreate();
                 space = d.HashSpaceCreate(IntPtr.Zero);
-                
+
                 contactgroup = d.JointGroupCreate(0);
                 //contactgroup
 
@@ -1687,7 +1687,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
-                                     IMesh mesh, PrimitiveBaseShape pbs, bool isphysical, uint localID)
+                                     PrimitiveBaseShape pbs, bool isphysical, uint localID)
         {
             Vector3 pos = position;
             Vector3 siz = size;
@@ -1696,7 +1696,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             OdePrim newPrim;
             lock (OdeLock)
             {
-                newPrim = new OdePrim(name, this, pos, siz, rot, mesh, pbs, isphysical, ode);
+                newPrim = new OdePrim(name, this, pos, siz, rot, pbs, isphysical, ode);
 
                 lock (_prims)
                     _prims.Add(newPrim);
@@ -1724,28 +1724,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_log.DebugFormat("[PHYSICS]: Adding physics actor to {0}", primName);
 #endif
 
-            PhysicsActor result;
-            IMesh mesh = null;
-
-            // Don't create the mesh here - wait until the mesh data is loaded from the asset store.
-//            if (needsMeshing(pbs))
-//            {
-//                try
-//                {
-//                    mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
-//                }
-//                catch(Exception e)
-//                {
-//                    m_log.ErrorFormat("[PHYSICS]: Exception while meshing prim {0}.", primName);
-//                    m_log.Debug(e.ToString());
-//                    mesh = null;
-//                    return null;
-//                }
-//            }
-
-            result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical, localid);
-
-            return result;
+            return AddPrim(primName, position, size, rotation, pbs, isPhysical, localid);
         }
 
         public override float TimeDilation

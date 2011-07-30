@@ -208,7 +208,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         internal int m_material = (int)Material.Wood;
 
         public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
-                       Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
+                       Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
         {
             Name = primName;
             m_vehicle = new ODEDynamics();
@@ -252,7 +252,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _orientation = rotation;
             m_taintrot = _orientation;
-            _mesh = mesh;
             _pbs = pbs;
 
             _parent_scene = parent_scene;
