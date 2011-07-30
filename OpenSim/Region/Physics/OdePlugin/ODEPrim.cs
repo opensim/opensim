@@ -778,6 +778,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     Body = IntPtr.Zero;
                 }
             }
+
             m_disabled = true;
             m_collisionscore = 0;
         }
@@ -968,7 +969,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     OdePrim obj = (OdePrim)m_taintparent;
                     //obj.disableBody();
 //Console.WriteLine("changelink calls ParentPrim");
-                    obj.ParentPrim(this);
+                    obj.AddChildPrim(this);
 
                     /*
                     if (obj.Body != (IntPtr)0 && Body != (IntPtr)0 && obj.Body != Body)
@@ -1008,11 +1009,13 @@ Console.WriteLine("ZProcessTaints for " + Name);
             m_taintPhysics = m_isphysical;
         }
 
-        // I'm the parent
-        // prim is the child
-        public void ParentPrim(OdePrim prim)
+        /// <summary>
+        /// Add a child prim to this parent prim.
+        /// </summary>
+        /// <param name="prim">Child prim</param>
+        public void AddChildPrim(OdePrim prim)
         {
-//Console.WriteLine("ParentPrim  " + Name);
+//Console.WriteLine("AddChildPrim  " + Name);
             if (this.m_localID != prim.m_localID)
             {
                 if (Body == IntPtr.Zero)
@@ -1034,7 +1037,6 @@ Console.WriteLine("ZProcessTaints for " + Name);
                                 d.Mass m2;
                                 d.MassSetZero(out m2);
                                 d.MassSetBoxTotal(out m2, prim.CalculateMass(), prm._size.X, prm._size.Y, prm._size.Z);
-
 
                                 d.Quaternion quat = new d.Quaternion();
                                 quat.W = prm._orientation.W;
@@ -1105,6 +1107,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                                 prm.Body = Body;
                                 _parent_scene.addActivePrim(prm);
                             }
+
                             m_collisionCategories |= CollisionCategories.Body;
                             m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 
@@ -1112,7 +1115,6 @@ Console.WriteLine("ZProcessTaints for " + Name);
                             d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
 //Console.WriteLine(" Post GeomSetCategoryBits 2");
                             d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-
 
                             d.Quaternion quat2 = new d.Quaternion();
                             quat2.W = _orientation.W;
@@ -1135,7 +1137,6 @@ Console.WriteLine("ZProcessTaints for " + Name);
                             d.BodySetAutoDisableFlag(Body, true);
                             d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
 
-
                             m_interpenetrationcount = 0;
                             m_collisionscore = 0;
                             m_disabled = false;
@@ -1146,7 +1147,9 @@ Console.WriteLine("ZProcessTaints for " + Name);
                                 createAMotor(m_angularlock);
                             }
                             d.BodySetPosition(Body, Position.X, Position.Y, Position.Z);
-                            if (m_vehicle.Type != Vehicle.TYPE_NONE) m_vehicle.Enable(Body, _parent_scene);
+                            if (m_vehicle.Type != Vehicle.TYPE_NONE)
+                                m_vehicle.Enable(Body, _parent_scene);
+
                             _parent_scene.addActivePrim(this);
                         }
                     }
@@ -1183,7 +1186,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 foreach (OdePrim prm in childrenPrim)
                 {
 //Console.WriteLine("ChildSetGeom calls ParentPrim");
-                    ParentPrim(prm);
+                    AddChildPrim(prm);
                 }
             }
             
@@ -1223,7 +1226,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 foreach (OdePrim prm in childrenPrim)
                 {
 //Console.WriteLine("ChildDelink calls ParentPrim");
-                    ParentPrim(prm);
+                    AddChildPrim(prm);
                 }
             }
         }
