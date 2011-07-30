@@ -1357,7 +1357,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
         /// Create a geometry for the given mesh in the given target space.
         /// </summary>
         /// <param name="m_targetSpace"></param>
-        /// <param name="_mesh">/param>
+        /// <param name="mesh">/param>
         public void CreateGeom(IntPtr m_targetSpace, IMesh mesh)
         {
 #if SPAM
