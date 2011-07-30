@@ -301,6 +301,131 @@ namespace OpenSim.Region.Physics.Meshing
             }
         }
 
+        /// <summary>
+        /// Generate the co-ords and faces necessary to construct a mesh from the mesh data the accompanies a prim.
+        /// </summary>
+        /// <param name="primName"></param>
+        /// <param name="primShape"></param>
+        /// <param name="size"></param>
+        /// <param name="coords">Coords are added to this list by the method.</param>
+        /// <param name="faces">Faces are added to this list by the method.</param>
+        /// <returns>true if coords and faces were successfully generated, false if not</returns>
+        private bool GenerateCoordsAndFacesFromPrimMeshData(string primName, PrimitiveBaseShape primShape, Vector3 size, List<Coord> coords, List<Face> faces)
+        {
+            m_log.DebugFormat("[MESH]: experimental mesh proxy generation for {0}", primName);
+
+            OSD meshOsd = null;
+
+            if (primShape.SculptData.Length <= 0)
+            {
+                m_log.Error("[MESH]: asset data is zero length");
+                return false;
+            }
+
+            long start = 0;
+            using (MemoryStream data = new MemoryStream(primShape.SculptData))
+            {
+                try
+                {
+                    OSD osd = OSDParser.DeserializeLLSDBinary(data);
+                    if (osd is OSDMap)
+                        meshOsd = (OSDMap)osd;
+                    else
+                    {
+                        m_log.Warn("[Mesh}: unable to cast mesh asset to OSDMap");
+                        return false;
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[MESH]: Exception deserializing mesh asset header:" + e.ToString());
+                }
+
+                start = data.Position;
+            }
+
+            if (meshOsd is OSDMap)
+            {
+                OSDMap physicsParms = null;
+                OSDMap map = (OSDMap)meshOsd;
+                if (map.ContainsKey("physics_shape"))
+                    physicsParms = (OSDMap)map["physics_shape"]; // old asset format
+                else if (map.ContainsKey("physics_mesh"))
+                    physicsParms = (OSDMap)map["physics_mesh"]; // new asset format
+
+                if (physicsParms == null)
+                {
+                    m_log.Warn("[MESH]: no recognized physics mesh found in mesh asset");
+                    return false;
+                }
+
+                int physOffset = physicsParms["offset"].AsInteger() + (int)start;
+                int physSize = physicsParms["size"].AsInteger();
+
+                if (physOffset < 0 || physSize == 0)
+                    return false; // no mesh data in asset
+
+                OSD decodedMeshOsd = new OSD();
+                byte[] meshBytes = new byte[physSize];
+                System.Buffer.BlockCopy(primShape.SculptData, physOffset, meshBytes, 0, physSize);
+//                        byte[] decompressed = new byte[physSize * 5];
+                try
+                {
+                    using (MemoryStream inMs = new MemoryStream(meshBytes))
+                    {
+                        using (MemoryStream outMs = new MemoryStream())
+                        {
+                            using (ZOutputStream zOut = new ZOutputStream(outMs))
+                            {
+                                byte[] readBuffer = new byte[2048];
+                                int readLen = 0;
+                                while ((readLen = inMs.Read(readBuffer, 0, readBuffer.Length)) > 0)
+                                {
+                                    zOut.Write(readBuffer, 0, readLen);
+                                }
+                                zOut.Flush();
+                                outMs.Seek(0, SeekOrigin.Begin);
+
+                                byte[] decompressedBuf = outMs.GetBuffer();
+
+                                decodedMeshOsd = OSDParser.DeserializeLLSDBinary(decompressedBuf);
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[MESH]: exception decoding physical mesh: " + e.ToString());
+                    return false;
+                }
+
+                OSDArray decodedMeshOsdArray = null;
+
+                // physics_shape is an array of OSDMaps, one for each submesh
+                if (decodedMeshOsd is OSDArray)
+                {
+//                            Console.WriteLine("decodedMeshOsd for {0} - {1}", primName, Util.GetFormattedXml(decodedMeshOsd));
+
+                    decodedMeshOsdArray = (OSDArray)decodedMeshOsd;
+                    foreach (OSD subMeshOsd in decodedMeshOsdArray)
+                    {
+                        if (subMeshOsd is OSDMap)
+                            AddSubMesh(subMeshOsd as OSDMap, size, coords, faces);
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Create a physics mesh from data that comes with the prim.  The actual data used depends on the prim type.
+        /// </summary>
+        /// <param name="primName"></param>
+        /// <param name="primShape"></param>
+        /// <param name="size"></param>
+        /// <param name="lod"></param>
+        /// <returns></returns>
         private Mesh CreateMeshFromPrimMesher(string primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
         {
 //            m_log.DebugFormat(
@@ -323,108 +448,7 @@ namespace OpenSim.Region.Physics.Meshing
                     if (!useMeshiesPhysicsMesh)
                         return null;
 
-                    m_log.DebugFormat("[MESH]: experimental mesh proxy generation for {0}", primName);
-
-                    OSD meshOsd = null;
-
-                    if (primShape.SculptData.Length <= 0)
-                    {
-                        m_log.Error("[MESH]: asset data is zero length");
-                        return null;
-                    }
-
-                    long start = 0;
-                    using (MemoryStream data = new MemoryStream(primShape.SculptData))
-                    {
-                        try
-                        {
-                            OSD osd = OSDParser.DeserializeLLSDBinary(data);
-                            if (osd is OSDMap)
-                                meshOsd = (OSDMap)osd;
-                            else
-                            {
-                                m_log.Warn("[Mesh}: unable to cast mesh asset to OSDMap");
-                                return null;
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.Error("[MESH]: Exception deserializing mesh asset header:" + e.ToString());
-                        }
-
-                        start = data.Position;
-                    }
-
-                    if (meshOsd is OSDMap)
-                    {
-                        OSDMap physicsParms = null;
-                        OSDMap map = (OSDMap)meshOsd;
-                        if (map.ContainsKey("physics_shape"))
-                            physicsParms = (OSDMap)map["physics_shape"]; // old asset format
-                        else if (map.ContainsKey("physics_mesh"))
-                            physicsParms = (OSDMap)map["physics_mesh"]; // new asset format
-
-                        if (physicsParms == null)
-                        {
-                            m_log.Warn("[MESH]: no recognized physics mesh found in mesh asset");
-                            return null;
-                        }
-
-                        int physOffset = physicsParms["offset"].AsInteger() + (int)start;
-                        int physSize = physicsParms["size"].AsInteger();
-
-                        if (physOffset < 0 || physSize == 0)
-                            return null; // no mesh data in asset
-
-                        OSD decodedMeshOsd = new OSD();
-                        byte[] meshBytes = new byte[physSize];
-                        System.Buffer.BlockCopy(primShape.SculptData, physOffset, meshBytes, 0, physSize);
-//                        byte[] decompressed = new byte[physSize * 5];
-                        try
-                        {
-                            using (MemoryStream inMs = new MemoryStream(meshBytes))
-                            {
-                                using (MemoryStream outMs = new MemoryStream())
-                                {
-                                    using (ZOutputStream zOut = new ZOutputStream(outMs))
-                                    {
-                                        byte[] readBuffer = new byte[2048];
-                                        int readLen = 0;
-                                        while ((readLen = inMs.Read(readBuffer, 0, readBuffer.Length)) > 0)
-                                        {
-                                            zOut.Write(readBuffer, 0, readLen);
-                                        }
-                                        zOut.Flush();
-                                        outMs.Seek(0, SeekOrigin.Begin);
-
-                                        byte[] decompressedBuf = outMs.GetBuffer();
-
-                                        decodedMeshOsd = OSDParser.DeserializeLLSDBinary(decompressedBuf);
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.Error("[MESH]: exception decoding physical mesh: " + e.ToString());
-                            return null;
-                        }
-
-                        OSDArray decodedMeshOsdArray = null;
-
-                        // physics_shape is an array of OSDMaps, one for each submesh
-                        if (decodedMeshOsd is OSDArray)
-                        {
-//                            Console.WriteLine("decodedMeshOsd for {0} - {1}", primName, Util.GetFormattedXml(decodedMeshOsd));
-
-                            decodedMeshOsdArray = (OSDArray)decodedMeshOsd;
-                            foreach (OSD subMeshOsd in decodedMeshOsdArray)
-                            {
-                                if (subMeshOsd is OSDMap)
-                                    AddSubMesh(subMeshOsd as OSDMap, size, coords, faces);
-                            }
-                        }
-                    }
+                    GeneratePointsAndFacesFromPrimMeshData(primName, primShape, size, coords, faces);
                 }
                 else
                 {
