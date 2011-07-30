@@ -315,10 +315,8 @@ namespace OpenSim.Region.Physics.Meshing
 //                "[MESH]: Creating physics proxy for {0}, shape {1}",
 //                primName, (OpenMetaverse.SculptType)primShape.SculptType);
 
-            PrimMesh primMesh;
-
-            List<Coord> coords = new List<Coord>();
-            List<Face> faces = new List<Face>();
+            List<Coord> coords;
+            List<Face> faces;
 
             if (primShape.SculptEntry)
             {
@@ -327,126 +325,19 @@ namespace OpenSim.Region.Physics.Meshing
                     if (!useMeshiesPhysicsMesh)
                         return null;
 
-                    if (!GenerateCoordsAndFacesFromPrimMeshData(primName, primShape, size, coords, faces))
+                    if (!GenerateCoordsAndFacesFromPrimMeshData(primName, primShape, size, out coords, out faces))
                         return null;
                 }
                 else
                 {
-                    if (!GenerateCoordsAndFacesFromPrimSculptData(primName, primShape, size, lod, coords, faces))
+                    if (!GenerateCoordsAndFacesFromPrimSculptData(primName, primShape, size, lod, out coords, out faces))
                         return null;
                 }
             }
             else
             {
-                float pathShearX = primShape.PathShearX < 128 ? (float)primShape.PathShearX * 0.01f : (float)(primShape.PathShearX - 256) * 0.01f;
-                float pathShearY = primShape.PathShearY < 128 ? (float)primShape.PathShearY * 0.01f : (float)(primShape.PathShearY - 256) * 0.01f;
-                float pathBegin = (float)primShape.PathBegin * 2.0e-5f;
-                float pathEnd = 1.0f - (float)primShape.PathEnd * 2.0e-5f;
-                float pathScaleX = (float)(primShape.PathScaleX - 100) * 0.01f;
-                float pathScaleY = (float)(primShape.PathScaleY - 100) * 0.01f;
-
-                float profileBegin = (float)primShape.ProfileBegin * 2.0e-5f;
-                float profileEnd = 1.0f - (float)primShape.ProfileEnd * 2.0e-5f;
-                float profileHollow = (float)primShape.ProfileHollow * 2.0e-5f;
-                if (profileHollow > 0.95f)
-                    profileHollow = 0.95f;
-
-                int sides = 4;
-                if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
-                    sides = 3;
-                else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
-                    sides = 24;
-                else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
-                { // half circle, prim is a sphere
-                    sides = 24;
-
-                    profileBegin = 0.5f * profileBegin + 0.5f;
-                    profileEnd = 0.5f * profileEnd + 0.5f;
-                }
-
-                int hollowSides = sides;
-                if (primShape.HollowShape == HollowShape.Circle)
-                    hollowSides = 24;
-                else if (primShape.HollowShape == HollowShape.Square)
-                    hollowSides = 4;
-                else if (primShape.HollowShape == HollowShape.Triangle)
-                    hollowSides = 3;
-
-                primMesh = new PrimMesh(sides, profileBegin, profileEnd, profileHollow, hollowSides);
-
-                if (primMesh.errorMessage != null)
-                    if (primMesh.errorMessage.Length > 0)
-                        m_log.Error("[ERROR] " + primMesh.errorMessage);
-
-                primMesh.topShearX = pathShearX;
-                primMesh.topShearY = pathShearY;
-                primMesh.pathCutBegin = pathBegin;
-                primMesh.pathCutEnd = pathEnd;
-
-                if (primShape.PathCurve == (byte)Extrusion.Straight || primShape.PathCurve == (byte) Extrusion.Flexible)
-                {
-                    primMesh.twistBegin = primShape.PathTwistBegin * 18 / 10;
-                    primMesh.twistEnd = primShape.PathTwist * 18 / 10;
-                    primMesh.taperX = pathScaleX;
-                    primMesh.taperY = pathScaleY;
-
-                    if (profileBegin < 0.0f || profileBegin >= profileEnd || profileEnd > 1.0f)
-                    {
-                        ReportPrimError("*** CORRUPT PRIM!! ***", primName, primMesh);
-                        if (profileBegin < 0.0f) profileBegin = 0.0f;
-                        if (profileEnd > 1.0f) profileEnd = 1.0f;
-                    }
-#if SPAM
-                m_log.Debug("****** PrimMesh Parameters (Linear) ******\n" + primMesh.ParamsToDisplayString());
-#endif
-                    try
-                    {
-                        primMesh.ExtrudeLinear();
-                    }
-                    catch (Exception ex)
-                    {
-                        ReportPrimError("Extrusion failure: exception: " + ex.ToString(), primName, primMesh);
-                        return null;
-                    }
-                }
-                else
-                {
-                    primMesh.holeSizeX = (200 - primShape.PathScaleX) * 0.01f;
-                    primMesh.holeSizeY = (200 - primShape.PathScaleY) * 0.01f;
-                    primMesh.radius = 0.01f * primShape.PathRadiusOffset;
-                    primMesh.revolutions = 1.0f + 0.015f * primShape.PathRevolutions;
-                    primMesh.skew = 0.01f * primShape.PathSkew;
-                    primMesh.twistBegin = primShape.PathTwistBegin * 36 / 10;
-                    primMesh.twistEnd = primShape.PathTwist * 36 / 10;
-                    primMesh.taperX = primShape.PathTaperX * 0.01f;
-                    primMesh.taperY = primShape.PathTaperY * 0.01f;
-
-                    if (profileBegin < 0.0f || profileBegin >= profileEnd || profileEnd > 1.0f)
-                    {
-                        ReportPrimError("*** CORRUPT PRIM!! ***", primName, primMesh);
-                        if (profileBegin < 0.0f) profileBegin = 0.0f;
-                        if (profileEnd > 1.0f) profileEnd = 1.0f;
-                    }
-#if SPAM
-                m_log.Debug("****** PrimMesh Parameters (Circular) ******\n" + primMesh.ParamsToDisplayString());
-#endif
-                    try
-                    {
-                        primMesh.ExtrudeCircular();
-                    }
-                    catch (Exception ex)
-                    {
-                        ReportPrimError("Extrusion failure: exception: " + ex.ToString(), primName, primMesh);
-                        return null;
-                    }
-                }
-
-                primMesh.DumpRaw(baseDir, primName, "primMesh");
-
-                primMesh.Scale(size.X, size.Y, size.Z);
-
-                coords = primMesh.coords;
-                faces = primMesh.faces;
+                if (!GenerateCoordsAndFacesFromPrimShapeData(primName, primShape, size, out coords, out faces))
+                    return null;
             }
 
             // Remove the reference to any JPEG2000 sculpt data so it can be GCed
@@ -484,10 +375,12 @@ namespace OpenSim.Region.Physics.Meshing
         /// <param name="faces">Faces are added to this list by the method.</param>
         /// <returns>true if coords and faces were successfully generated, false if not</returns>
         private bool GenerateCoordsAndFacesFromPrimMeshData(
-            string primName, PrimitiveBaseShape primShape, Vector3 size, List<Coord> coords, List<Face> faces)
+            string primName, PrimitiveBaseShape primShape, Vector3 size, out List<Coord> coords, out List<Face> faces)
         {
             m_log.DebugFormat("[MESH]: experimental mesh proxy generation for {0}", primName);
 
+            coords = new List<Coord>();
+            faces = new List<Face>();
             OSD meshOsd = null;
 
             if (primShape.SculptData.Length <= 0)
@@ -603,8 +496,10 @@ namespace OpenSim.Region.Physics.Meshing
         /// <param name="faces">Faces are added to this list by the method.</param>
         /// <returns>true if coords and faces were successfully generated, false if not</returns>
         private bool GenerateCoordsAndFacesFromPrimSculptData(
-            string primName, PrimitiveBaseShape primShape, Vector3 size, float lod, List<Coord> coords, List<Face> faces)
+            string primName, PrimitiveBaseShape primShape, Vector3 size, float lod, out List<Coord> coords, out List<Face> faces)
         {
+            coords = new List<Coord>();
+            faces = new List<Face>();
             PrimMesher.SculptMesh sculptMesh;
             Image idata = null;
             string decodedSculptFileName = "";
@@ -707,6 +602,135 @@ namespace OpenSim.Region.Physics.Meshing
 
             coords = sculptMesh.coords;
             faces = sculptMesh.faces;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Generate the co-ords and faces necessary to construct a mesh from the shape data the accompanies a prim.
+        /// </summary>
+        /// <param name="primName"></param>
+        /// <param name="primShape"></param>
+        /// <param name="size"></param>
+        /// <param name="coords">Coords are added to this list by the method.</param>
+        /// <param name="faces">Faces are added to this list by the method.</param>
+        /// <returns>true if coords and faces were successfully generated, false if not</returns>
+        private bool GenerateCoordsAndFacesFromPrimShapeData(
+            string primName, PrimitiveBaseShape primShape, Vector3 size, out List<Coord> coords, out List<Face> faces)
+        {
+            PrimMesh primMesh;
+            coords = new List<Coord>();
+            faces = new List<Face>();            
+
+            float pathShearX = primShape.PathShearX < 128 ? (float)primShape.PathShearX * 0.01f : (float)(primShape.PathShearX - 256) * 0.01f;
+            float pathShearY = primShape.PathShearY < 128 ? (float)primShape.PathShearY * 0.01f : (float)(primShape.PathShearY - 256) * 0.01f;
+            float pathBegin = (float)primShape.PathBegin * 2.0e-5f;
+            float pathEnd = 1.0f - (float)primShape.PathEnd * 2.0e-5f;
+            float pathScaleX = (float)(primShape.PathScaleX - 100) * 0.01f;
+            float pathScaleY = (float)(primShape.PathScaleY - 100) * 0.01f;
+
+            float profileBegin = (float)primShape.ProfileBegin * 2.0e-5f;
+            float profileEnd = 1.0f - (float)primShape.ProfileEnd * 2.0e-5f;
+            float profileHollow = (float)primShape.ProfileHollow * 2.0e-5f;
+            if (profileHollow > 0.95f)
+                profileHollow = 0.95f;
+
+            int sides = 4;
+            if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
+                sides = 3;
+            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
+                sides = 24;
+            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
+            { // half circle, prim is a sphere
+                sides = 24;
+
+                profileBegin = 0.5f * profileBegin + 0.5f;
+                profileEnd = 0.5f * profileEnd + 0.5f;
+            }
+
+            int hollowSides = sides;
+            if (primShape.HollowShape == HollowShape.Circle)
+                hollowSides = 24;
+            else if (primShape.HollowShape == HollowShape.Square)
+                hollowSides = 4;
+            else if (primShape.HollowShape == HollowShape.Triangle)
+                hollowSides = 3;
+
+            primMesh = new PrimMesh(sides, profileBegin, profileEnd, profileHollow, hollowSides);
+
+            if (primMesh.errorMessage != null)
+                if (primMesh.errorMessage.Length > 0)
+                    m_log.Error("[ERROR] " + primMesh.errorMessage);
+
+            primMesh.topShearX = pathShearX;
+            primMesh.topShearY = pathShearY;
+            primMesh.pathCutBegin = pathBegin;
+            primMesh.pathCutEnd = pathEnd;
+
+            if (primShape.PathCurve == (byte)Extrusion.Straight || primShape.PathCurve == (byte) Extrusion.Flexible)
+            {
+                primMesh.twistBegin = primShape.PathTwistBegin * 18 / 10;
+                primMesh.twistEnd = primShape.PathTwist * 18 / 10;
+                primMesh.taperX = pathScaleX;
+                primMesh.taperY = pathScaleY;
+
+                if (profileBegin < 0.0f || profileBegin >= profileEnd || profileEnd > 1.0f)
+                {
+                    ReportPrimError("*** CORRUPT PRIM!! ***", primName, primMesh);
+                    if (profileBegin < 0.0f) profileBegin = 0.0f;
+                    if (profileEnd > 1.0f) profileEnd = 1.0f;
+                }
+#if SPAM
+            m_log.Debug("****** PrimMesh Parameters (Linear) ******\n" + primMesh.ParamsToDisplayString());
+#endif
+                try
+                {
+                    primMesh.ExtrudeLinear();
+                }
+                catch (Exception ex)
+                {
+                    ReportPrimError("Extrusion failure: exception: " + ex.ToString(), primName, primMesh);
+                    return false;
+                }
+            }
+            else
+            {
+                primMesh.holeSizeX = (200 - primShape.PathScaleX) * 0.01f;
+                primMesh.holeSizeY = (200 - primShape.PathScaleY) * 0.01f;
+                primMesh.radius = 0.01f * primShape.PathRadiusOffset;
+                primMesh.revolutions = 1.0f + 0.015f * primShape.PathRevolutions;
+                primMesh.skew = 0.01f * primShape.PathSkew;
+                primMesh.twistBegin = primShape.PathTwistBegin * 36 / 10;
+                primMesh.twistEnd = primShape.PathTwist * 36 / 10;
+                primMesh.taperX = primShape.PathTaperX * 0.01f;
+                primMesh.taperY = primShape.PathTaperY * 0.01f;
+
+                if (profileBegin < 0.0f || profileBegin >= profileEnd || profileEnd > 1.0f)
+                {
+                    ReportPrimError("*** CORRUPT PRIM!! ***", primName, primMesh);
+                    if (profileBegin < 0.0f) profileBegin = 0.0f;
+                    if (profileEnd > 1.0f) profileEnd = 1.0f;
+                }
+#if SPAM
+            m_log.Debug("****** PrimMesh Parameters (Circular) ******\n" + primMesh.ParamsToDisplayString());
+#endif
+                try
+                {
+                    primMesh.ExtrudeCircular();
+                }
+                catch (Exception ex)
+                {
+                    ReportPrimError("Extrusion failure: exception: " + ex.ToString(), primName, primMesh);
+                    return false;
+                }
+            }
+
+            primMesh.DumpRaw(baseDir, primName, "primMesh");
+
+            primMesh.Scale(size.X, size.Y, size.Z);
+
+            coords = primMesh.coords;
+            faces = primMesh.faces;
 
             return true;
         }
