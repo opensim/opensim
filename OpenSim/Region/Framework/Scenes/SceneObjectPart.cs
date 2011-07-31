@@ -1751,95 +1751,110 @@ namespace OpenSim.Region.Framework.Scenes
             return part;
         }
 
+        /// <summary>
+        /// Do a physics property update for a NINJA joint.
+        /// </summary>
+        /// <param name="UsePhysics"></param>
+        /// <param name="isNew"></param>
+        protected void DoPhysicsPropertyUpdateForNinjaJoint(bool UsePhysics, bool isNew)
+        {
+            if (UsePhysics)
+            {
+                // by turning a joint proxy object physical, we cause creation of a joint in the ODE scene.
+                // note that, as a special case, joints have no bodies or geoms in the physics scene, even though they are physical.
+
+                PhysicsJointType jointType;
+                if (IsHingeJoint())
+                {
+                    jointType = PhysicsJointType.Hinge;
+                }
+                else if (IsBallJoint())
+                {
+                    jointType = PhysicsJointType.Ball;
+                }
+                else
+                {
+                    jointType = PhysicsJointType.Ball;
+                }
+
+                List<string> bodyNames = new List<string>();
+                string RawParams = Description;
+                string[] jointParams = RawParams.Split(" ".ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries);
+                string trackedBodyName = null;
+                if (jointParams.Length >= 2)
+                {
+                    for (int iBodyName = 0; iBodyName < 2; iBodyName++)
+                    {
+                        string bodyName = jointParams[iBodyName];
+                        bodyNames.Add(bodyName);
+                        if (bodyName != "NULL")
+                        {
+                            if (trackedBodyName == null)
+                            {
+                                trackedBodyName = bodyName;
+                            }
+                        }
+                    }
+                }
+
+                SceneObjectPart trackedBody = m_parentGroup.Scene.GetSceneObjectPart(trackedBodyName); // FIXME: causes a sequential lookup
+                Quaternion localRotation = Quaternion.Identity;
+                if (trackedBody != null)
+                {
+                    localRotation = Quaternion.Inverse(trackedBody.RotationOffset) * this.RotationOffset;
+                }
+                else
+                {
+                    // error, output it below
+                }
+
+                PhysicsJoint joint;
+
+                joint = m_parentGroup.Scene.PhysicsScene.RequestJointCreation(Name, jointType,
+                    AbsolutePosition,
+                    this.RotationOffset,
+                    Description,
+                    bodyNames,
+                    trackedBodyName,
+                    localRotation);
+
+                if (trackedBody == null)
+                {
+                    ParentGroup.Scene.jointErrorMessage(joint, "warning: tracked body name not found! joint location will not be updated properly. joint: " + Name);
+                }
+            }
+            else
+            {
+                if (isNew)
+                {
+                    // if the joint proxy is new, and it is not physical, do nothing. There is no joint in ODE to
+                    // delete, and if we try to delete it, due to asynchronous processing, the deletion request
+                    // will get processed later at an indeterminate time, which could cancel a later-arriving
+                    // joint creation request.
+                }
+                else
+                {
+                    // here we turn off the joint object, so remove the joint from the physics scene
+                    m_parentGroup.Scene.PhysicsScene.RequestJointDeletion(Name); // FIXME: what if the name changed?
+
+                    // make sure client isn't interpolating the joint proxy object
+                    Velocity = Vector3.Zero;
+                    AngularVelocity = Vector3.Zero;
+                    Acceleration = Vector3.Zero;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Do a physics propery update for this part.
+        /// </summary>
+        /// <param name="UsePhysics"></param>
+        /// <param name="isNew"></param>
         public void DoPhysicsPropertyUpdate(bool UsePhysics, bool isNew)
         {
             if (IsJoint())
             {
-                if (UsePhysics)
-                {
-                    // by turning a joint proxy object physical, we cause creation of a joint in the ODE scene.
-                    // note that, as a special case, joints have no bodies or geoms in the physics scene, even though they are physical.
-
-                    PhysicsJointType jointType;
-                    if (IsHingeJoint())
-                    {
-                        jointType = PhysicsJointType.Hinge;
-                    }
-                    else if (IsBallJoint())
-                    {
-                        jointType = PhysicsJointType.Ball;
-                    }
-                    else
-                    {
-                        jointType = PhysicsJointType.Ball;
-                    }
-
-                    List<string> bodyNames = new List<string>();
-                    string RawParams = Description;
-                    string[] jointParams = RawParams.Split(" ".ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries);
-                    string trackedBodyName = null;
-                    if (jointParams.Length >= 2)
-                    {
-                        for (int iBodyName = 0; iBodyName < 2; iBodyName++)
-                        {
-                            string bodyName = jointParams[iBodyName];
-                            bodyNames.Add(bodyName);
-                            if (bodyName != "NULL")
-                            {
-                                if (trackedBodyName == null)
-                                {
-                                    trackedBodyName = bodyName;
-                                }
-                            }
-                        }
-                    }
-
-                    SceneObjectPart trackedBody = m_parentGroup.Scene.GetSceneObjectPart(trackedBodyName); // FIXME: causes a sequential lookup
-                    Quaternion localRotation = Quaternion.Identity;
-                    if (trackedBody != null)
-                    {
-                        localRotation = Quaternion.Inverse(trackedBody.RotationOffset) * this.RotationOffset;
-                    }
-                    else
-                    {
-                        // error, output it below
-                    }
-
-                    PhysicsJoint joint;
-
-                    joint = m_parentGroup.Scene.PhysicsScene.RequestJointCreation(Name, jointType,
-                        AbsolutePosition,
-                        this.RotationOffset,
-                        Description,
-                        bodyNames,
-                        trackedBodyName,
-                        localRotation);
-
-                    if (trackedBody == null)
-                    {
-                        ParentGroup.Scene.jointErrorMessage(joint, "warning: tracked body name not found! joint location will not be updated properly. joint: " + Name);
-                    }
-                }
-                else
-                {
-                    if (isNew)
-                    {
-                        // if the joint proxy is new, and it is not physical, do nothing. There is no joint in ODE to
-                        // delete, and if we try to delete it, due to asynchronous processing, the deletion request
-                        // will get processed later at an indeterminate time, which could cancel a later-arriving
-                        // joint creation request.
-                    }
-                    else
-                    {
-                        // here we turn off the joint object, so remove the joint from the physics scene
-                        m_parentGroup.Scene.PhysicsScene.RequestJointDeletion(Name); // FIXME: what if the name changed?
-
-                        // make sure client isn't interpolating the joint proxy object
-                        Velocity = Vector3.Zero;
-                        AngularVelocity = Vector3.Zero;
-                        Acceleration = Vector3.Zero;
-                    }
-                }
+                DoPhysicsPropertyUpdateForNinjaJoint(UsePhysics, isNew);
             }
             else
             {
@@ -4699,7 +4714,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         public void CheckSculptAndLoad()
         {
-//            m_log.DebugFormat("Processing CheckSculptAndLoad for {0} {1}", Name, LocalId);
+            m_log.DebugFormat("Processing CheckSculptAndLoad for {0} {1}", Name, LocalId);
 
             if (ParentGroup.IsDeleted)
                 return;
