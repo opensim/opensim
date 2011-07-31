@@ -154,7 +154,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private List<Vector3> m_forcelist = new List<Vector3>();
         private List<Vector3> m_angularforcelist = new List<Vector3>();
 
-        private IMesh _mesh;
         private PrimitiveBaseShape _pbs;
         private OdeScene _parent_scene;
 
@@ -1356,7 +1355,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
         /// Create a geometry for the given mesh in the given target space.
         /// </summary>
         /// <param name="m_targetSpace"></param>
-        /// <param name="mesh">/param>
+        /// <param name="mesh">If null, then a mesh is used that is based on the profile shape data.</param>
         public void CreateGeom(IntPtr m_targetSpace, IMesh mesh)
         {
 #if SPAM
@@ -1447,15 +1446,14 @@ Console.WriteLine("CreateGeom:");
 
             m_targetSpace = targetspace;
 
-            if (_mesh == null)
+            IMesh mesh = null;
+
+            if (_parent_scene.needsMeshing(_pbs))
             {
-                if (_parent_scene.needsMeshing(_pbs))
-                {
-                    // Don't need to re-enable body..   it's done in SetMesh
-                    _mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
-                    // createmesh returns null when it's a shape that isn't a cube.
-                   // m_log.Debug(m_localID);
-                }
+                // Don't need to re-enable body..   it's done in SetMesh
+                mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
+                // createmesh returns null when it's a shape that isn't a cube.
+               // m_log.Debug(m_localID);
             }
 
             lock (_parent_scene.OdeLock)
@@ -1463,7 +1461,7 @@ Console.WriteLine("CreateGeom:");
 #if SPAM
 Console.WriteLine("changeadd 1");
 #endif
-                CreateGeom(m_targetSpace, _mesh);
+                CreateGeom(m_targetSpace, mesh);
 
                 if (prim_geom != IntPtr.Zero)
                 {
@@ -1888,7 +1886,6 @@ Console.WriteLine(" JointCreateFixed");
                             {
                                 d.GeomDestroy(prim_geom);
                                 prim_geom = IntPtr.Zero;
-                                _mesh = null;
                             }
                             catch (System.AccessViolationException)
                             {
@@ -1933,12 +1930,6 @@ Console.WriteLine(" JointCreateFixed");
             if (_size.Y <= 0) _size.Y = 0.01f;
             if (_size.Z <= 0) _size.Z = 0.01f;
 
-            // Cleanup of old prim geometry
-            if (_mesh != null)
-            {
-                // TODO: Cleanup meshing here
-            }
-
             //kill body to rebuild
             if (IsPhysical && Body != IntPtr.Zero)
             {
@@ -1966,6 +1957,8 @@ Console.WriteLine(" JointCreateFixed");
             prim_geom = IntPtr.Zero;
             // we don't need to do space calculation because the client sends a position update also.
 
+            IMesh mesh = null;
+
             // Construction of new prim
             if (_parent_scene.needsMeshing(_pbs))
             {
@@ -1975,27 +1968,11 @@ Console.WriteLine(" JointCreateFixed");
                     meshlod = _parent_scene.MeshSculptphysicalLOD;
                 // Don't need to re-enable body..   it's done in SetMesh
 
-                IMesh mesh = null;
-
                 if (_parent_scene.needsMeshing(_pbs))
                     mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
-
-#if SPAM
-Console.WriteLine("changesize 1");
-#endif
-                CreateGeom(m_targetSpace, mesh);
-            }
-            else
-            {
-                _mesh = null;
-
-#if SPAM
-Console.WriteLine("changesize 2");
-#endif
-
-                CreateGeom(m_targetSpace, _mesh);
             }
 
+            CreateGeom(m_targetSpace, mesh);
             d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
             d.Quaternion myrot = new d.Quaternion();
             myrot.X = _orientation.X;
@@ -2083,6 +2060,8 @@ Console.WriteLine("changesize 2");
             if (_size.Z <= 0) _size.Z = 0.01f;
             // Construction of new prim
 
+            IMesh mesh = null;
+
             if (_parent_scene.needsMeshing(_pbs))
             {
                 // Don't need to re-enable body..   it's done in CreateMesh
@@ -2092,22 +2071,10 @@ Console.WriteLine("changesize 2");
                     meshlod = _parent_scene.MeshSculptphysicalLOD;
 
                 // createmesh returns null when it doesn't mesh.
-                IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
-#if SPAM
-Console.WriteLine("changeshape needed meshing");
-#endif
-                CreateGeom(m_targetSpace, mesh);
-            }
-            else
-            {
-                _mesh = null;
-
-#if SPAM
-Console.WriteLine("changeshape not need meshing");
-#endif
-                CreateGeom(m_targetSpace, null);
+                mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
             }
 
+            CreateGeom(m_targetSpace, mesh);
             d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
             d.Quaternion myrot = new d.Quaternion();
             //myrot.W = _orientation.w;
