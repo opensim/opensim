@@ -2647,7 +2647,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="avatar"></param>
         public void SendAppearanceToAgent(ScenePresence avatar)
         {
-//          m_log.WarnFormat("[SP] Send appearance from {0} to {1}",m_uuid,avatar.ControllingClient.AgentId);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE] Send appearance from {0} {1} to {2} {3}", Name, m_uuid, avatar.Name, avatar.UUID);
 
             avatar.ControllingClient.SendAppearance(
                 m_appearance.Owner, m_appearance.VisualParams, m_appearance.Texture.GetBytes());
@@ -2659,7 +2660,11 @@ namespace OpenSim.Region.Framework.Scenes
         public AvatarAppearance Appearance
         {
             get { return m_appearance; }
-            set { m_appearance = value; }
+            set
+            {
+                m_appearance = value;
+//                m_log.DebugFormat("[SCENE PRESENCE]: Set appearance for {0} to {1}", Name, value);
+            }
         }
 
         #endregion

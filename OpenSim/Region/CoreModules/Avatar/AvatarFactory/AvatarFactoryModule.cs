@@ -151,6 +151,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 if (face == null)
                     continue;
 
+//                m_log.DebugFormat(
+//                    "[AVFACTORY]: Looking for texture {0}, id {1} for {2} {3}",
+//                    face.TextureID, idx, client.Name, client.AgentId);
+
                 // if the texture is one of the "defaults" then skip it
                 // this should probably be more intelligent (skirt texture doesnt matter
                 // if the avatar isnt wearing a skirt) but if any of the main baked 

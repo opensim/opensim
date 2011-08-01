@@ -77,7 +77,11 @@ namespace OpenSim.Framework
         public virtual Primitive.TextureEntry Texture
         {
             get { return m_texture; }
-            set { m_texture = value; }
+            set
+            {
+//                m_log.DebugFormat("[AVATAR APPEARANCE]: Set TextureEntry to {0}", value);
+                m_texture = value;
+            }
         }
 
         public virtual AvatarWearable[] Wearables

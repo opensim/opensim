@@ -27,11 +27,13 @@
 
 using System;
 using System.Reflection;
+using log4net;
 using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Region.CoreModules.Avatar.AvatarFactory;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -58,14 +60,31 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             config.Configs["AvatarService"].Set("LocalServiceModule", "OpenSim.Services.AvatarService.dll:AvatarService");
             config.Configs["AvatarService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
 
+            AvatarFactoryModule afm = new AvatarFactoryModule();
             TestScene scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(scene, config, new NPCModule(), new LocalAvatarServicesConnector());
+            SceneSetupHelpers.SetupSceneModules(scene, config, afm, new NPCModule(), new LocalAvatarServicesConnector());
+            TestClient originalClient = SceneSetupHelpers.AddClient(scene, TestHelper.ParseTail(0x1));
+//            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
+
+            // 8 is the index of the first baked texture in AvatarAppearance
+            UUID originalFace8TextureId = TestHelper.ParseTail(0x10);
+            Primitive.TextureEntry originalTe = new Primitive.TextureEntry(UUID.Zero);
+            Primitive.TextureEntryFace originalTef = originalTe.CreateFace(8);
+            originalTef.TextureID = originalFace8TextureId;
+
+            // We also need to add the texture to the asset service, otherwise the AvatarFactoryModule will tell
+            // ScenePresence.SendInitialData() to reset our entire appearance.
+            scene.AssetService.Store(AssetHelpers.CreateAsset(originalFace8TextureId));
+
+            afm.SetAppearance(originalClient, originalTe, null);
 
             INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
-            UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), scene, UUID.Zero);
+            UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), scene, originalClient.AgentId);
 
             ScenePresence npc = scene.GetScenePresence(npcId);
+
             Assert.That(npc, Is.Not.Null);
+            Assert.That(npc.Appearance.Texture.FaceTextures[8].TextureID, Is.EqualTo(originalFace8TextureId));
         }
     }
 }

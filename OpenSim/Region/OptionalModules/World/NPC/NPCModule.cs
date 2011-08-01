@@ -59,14 +59,21 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             if (m_appearanceCache.ContainsKey(target))
                 return m_appearanceCache[target];
 
-            AvatarAppearance appearance = scene.AvatarService.GetAppearance(target);
-            if (appearance != null)
-            {
-                m_appearanceCache.Add(target, appearance);
-                return appearance;
-            }
+            ScenePresence originalPresence = scene.GetScenePresence(target);
 
-            return new AvatarAppearance();
+            if (originalPresence != null)
+            {
+                AvatarAppearance originalAppearance = originalPresence.Appearance;
+                m_appearanceCache.Add(target, originalAppearance);
+                return originalAppearance;
+            }
+            else
+            {
+                m_log.DebugFormat(
+                    "[NPC MODULE]: Avatar {0} is not in the scene for us to grab baked textures from them.  Using defaults.", target);
+
+                return new AvatarAppearance();
+            }
         }
 
         public UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, UUID cloneAppearanceFrom)
@@ -86,7 +93,15 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
             AvatarAppearance originalAppearance = GetAppearance(cloneAppearanceFrom, scene);
             AvatarAppearance npcAppearance = new AvatarAppearance(originalAppearance, true);
+            npcAppearance.Owner = acd.AgentID;
             acd.Appearance = npcAppearance;
+
+//            for (int i = 0; i < acd.Appearance.Texture.FaceTextures.Length; i++)
+//            {
+//                m_log.DebugFormat(
+//                    "[NPC MODULE]: NPC avatar {0} has texture id {1} : {2}",
+//                    acd.AgentID, i, acd.Appearance.Texture.FaceTextures[i]);
+//            }
 
             scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode, acd);
             scene.AddNewClient(npcAvatar);
