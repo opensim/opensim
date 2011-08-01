@@ -1352,7 +1352,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
         }
 
         /// <summary>
-        /// Create a geometry for the given mesh in the given target space.
+        /// Create a geometry for the given mesh/shape in the given target space.
         /// </summary>
         /// <param name="m_targetSpace"></param>
         /// <param name="mesh">If null, then a mesh is used that is based on the profile shape data.</param>

@@ -2110,6 +2110,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <summary>
         /// This is called from within simulate but outside the locked portion
         /// We need to do our own locking here
+        /// (Note: As of 20110801 this no longer appears to be true - this is being called within lock (odeLock) in
+        /// Simulate() -- justincc).
+        ///
         /// Essentially, we need to remove the prim from our space segment, whatever segment it's in.
         ///
         /// If there are no more prim in the segment, we need to empty (spacedestroy)the segment and reclaim memory
