@@ -1423,18 +1423,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public int TriCallback(IntPtr trimesh, IntPtr refObject, int triangleIndex)
         {
-            String name1 = null;
-            String name2 = null;
-
-            if (!geom_name_map.TryGetValue(trimesh, out name1))
-            {
-                name1 = "null";
-            }
-
-            if (!geom_name_map.TryGetValue(refObject, out name2))
-            {
-                name2 = "null";
-            }
+//            String name1 = null;
+//            String name2 = null;
+//
+//            if (!geom_name_map.TryGetValue(trimesh, out name1))
+//            {
+//                name1 = "null";
+//            }
+//
+//            if (!geom_name_map.TryGetValue(refObject, out name2))
+//            {
+//                name2 = "null";
+//            }
 
             //            m_log.InfoFormat("TriCallback: A collision was detected between {1} and {2}. Index was {3}", 0, name1, name2, triangleIndex);
 
