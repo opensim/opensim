@@ -334,6 +334,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                 d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+
+                _parent_scene.geom_name_map[prim_geom] = Name;
+                _parent_scene.actor_name_map[prim_geom] = this;
             }
 
             if (childPrim)
@@ -1510,9 +1513,6 @@ Console.WriteLine("changeadd 1");
                 }
             }
 
-            _parent_scene.geom_name_map[prim_geom] = Name;
-            _parent_scene.actor_name_map[prim_geom] = this;
-
             changeSelectedStatus(timestep);
 
             m_taintadd = false;
@@ -1986,7 +1986,7 @@ Console.WriteLine(" JointCreateFixed");
                 // Don't need to re-enable body..   it's done in SetMesh
 
                 if (_parent_scene.needsMeshing(_pbs))
-                    mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
+                    mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, meshlod, IsPhysical);
             }
 
             CreateGeom(m_targetSpace, mesh);
@@ -2006,9 +2006,6 @@ Console.WriteLine(" JointCreateFixed");
                 enableBody();
                 d.BodyEnable(Body);
             }
-
-            _parent_scene.geom_name_map[prim_geom] = Name;
-            _parent_scene.actor_name_map[prim_geom] = this;
 
             changeSelectedStatus(timestamp);
             if (childPrim)
@@ -2079,7 +2076,7 @@ Console.WriteLine(" JointCreateFixed");
                     meshlod = _parent_scene.MeshSculptphysicalLOD;
 
                 // createmesh returns null when it doesn't mesh.
-                mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
+                mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, meshlod, IsPhysical);
             }
 
             CreateGeom(m_targetSpace, mesh);
@@ -2103,9 +2100,6 @@ Console.WriteLine(" JointCreateFixed");
                     d.BodyEnable(Body);
                 }
             }
-
-            _parent_scene.geom_name_map[prim_geom] = Name;
-            _parent_scene.actor_name_map[prim_geom] = this;
 
             changeSelectedStatus(timestamp);
             if (childPrim)
