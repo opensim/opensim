@@ -1510,7 +1510,7 @@ Console.WriteLine("changeadd 1");
                 }
             }
 
-            _parent_scene.geom_name_map[prim_geom] = this.Name;
+            _parent_scene.geom_name_map[prim_geom] = Name;
             _parent_scene.actor_name_map[prim_geom] = this;
 
             changeSelectedStatus(timestep);
@@ -1943,8 +1943,6 @@ Console.WriteLine(" JointCreateFixed");
             m_log.DebugFormat("[ODE PRIM]: Called changesize");
 #endif
 
-            string oldname = _parent_scene.geom_name_map[prim_geom];
-
             if (_size.X <= 0) _size.X = 0.01f;
             if (_size.Y <= 0) _size.Y = 0.01f;
             if (_size.Z <= 0) _size.Z = 0.01f;
@@ -2009,7 +2007,7 @@ Console.WriteLine(" JointCreateFixed");
                 d.BodyEnable(Body);
             }
 
-            _parent_scene.geom_name_map[prim_geom] = oldname;
+            _parent_scene.geom_name_map[prim_geom] = Name;
             _parent_scene.actor_name_map[prim_geom] = this;
 
             changeSelectedStatus(timestamp);
@@ -2045,8 +2043,6 @@ Console.WriteLine(" JointCreateFixed");
 
         public void changeshape(float timestamp)
         {
-            string oldname = _parent_scene.geom_name_map[prim_geom];
-
             // Cleanup of old prim geometry and Bodies
             if (IsPhysical && Body != IntPtr.Zero)
             {
@@ -2108,7 +2104,7 @@ Console.WriteLine(" JointCreateFixed");
                 }
             }
 
-            _parent_scene.geom_name_map[prim_geom] = oldname;
+            _parent_scene.geom_name_map[prim_geom] = Name;
             _parent_scene.actor_name_map[prim_geom] = this;
 
             changeSelectedStatus(timestamp);
