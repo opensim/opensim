@@ -96,16 +96,7 @@ m_log.DebugFormat("MAP NAME=({0})", mapName);
             
             // try to fetch from GridServer
             List<GridRegion> regionInfos = m_scene.GridService.GetRegionsByName(m_scene.RegionInfo.ScopeID, mapName, 20);
-            if (regionInfos == null)
-            {
-                m_log.Warn("[MAPSEARCHMODULE]: RequestNamedRegions returned null. Old gridserver?");
-                // service wasn't available; maybe still an old GridServer. Try the old API, though it will return only one region
-                regionInfos = new List<GridRegion>();
-                GridRegion info = m_scene.GridService.GetRegionByName(m_scene.RegionInfo.ScopeID, mapName);
-                if (info != null) 
-                    regionInfos.Add(info);
-            }
-            else if (regionInfos.Count == 0)
+            if (regionInfos.Count == 0)
                 remoteClient.SendAlertMessage("Hyperlink could not be established.");
 
             m_log.DebugFormat("[MAPSEARCHMODULE]: search {0} returned {1} regions. Flags={2}", mapName, regionInfos.Count, flags);
