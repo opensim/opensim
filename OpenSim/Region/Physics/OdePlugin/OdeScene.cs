@@ -3482,24 +3482,21 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
             float hfmin = 2000;
             float hfmax = -2000;
             
-                for (int x = 0; x < heightmapWidthSamples; x++)
+            for (int x = 0; x < heightmapWidthSamples; x++)
+            {
+                for (int y = 0; y < heightmapHeightSamples; y++)
                 {
-                    for (int y = 0; y < heightmapHeightSamples; y++)
-                    {
-                        int xx = Util.Clip(x - 1, 0, regionsize - 1);
-                        int yy = Util.Clip(y - 1, 0, regionsize - 1);
-                        
-                        
-                        float val= heightMap[yy * (int)Constants.RegionSize + xx];
-                         _heightmap[x * ((int)Constants.RegionSize + 2) + y] = val;
-                        
-                        hfmin = (val < hfmin) ? val : hfmin;
-                        hfmax = (val > hfmax) ? val : hfmax;
-                    }
+                    int xx = Util.Clip(x - 1, 0, regionsize - 1);
+                    int yy = Util.Clip(y - 1, 0, regionsize - 1);
+                    
+                    
+                    float val= heightMap[yy * (int)Constants.RegionSize + xx];
+                     _heightmap[x * ((int)Constants.RegionSize + 2) + y] = val;
+                    
+                    hfmin = (val < hfmin) ? val : hfmin;
+                    hfmax = (val > hfmax) ? val : hfmax;
                 }
-                
-            
-            
+            }
 
             lock (OdeLock)
             {
@@ -3554,7 +3551,6 @@ Console.WriteLine("AddPhysicsActorTaint to " + taintedprim.Name);
                 }
                 RegionTerrain.Add(pOffset, GroundGeom, GroundGeom);
                 TerrainHeightFieldHeights.Add(GroundGeom,_heightmap);
-                
             }
         }
 
