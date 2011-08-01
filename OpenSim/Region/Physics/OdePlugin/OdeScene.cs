@@ -2094,6 +2094,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void RemovePrim(PhysicsActor prim)
         {
+            // As with all ODE physics operations, we don't remove the prim immediately but signal that it should be
+            // removed in the next physics simulate pass.
             if (prim is OdePrim)
             {
                 lock (OdeLock)
@@ -2169,24 +2171,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                         //}
                         //}
                         //m_log.Warn(prim.prim_geom);
-                        try
-                        {
-                            if (prim.prim_geom != IntPtr.Zero)
-                            {
-                                d.GeomDestroy(prim.prim_geom);
-                                prim.prim_geom = IntPtr.Zero;
-                            }
-                            else
-                            {
-                                m_log.Warn("[PHYSICS]: Unable to remove prim from physics scene");
-                            }
-                        }
-                        catch (AccessViolationException)
-                        {
-                            m_log.Info("[PHYSICS]: Couldn't remove prim from physics scene, it was already be removed.");
-                        }
+
+                        if (!prim.RemoveGeom())
+                            m_log.Warn("[PHYSICS]: Unable to remove prim from physics scene");
+
                         lock (_prims)
-                        _prims.Remove(prim);
+                            _prims.Remove(prim);
 
                         //If there are no more geometries in the sub-space, we don't need it in the main space anymore
                         //if (d.SpaceGetNumGeoms(prim.m_targetSpace) == 0)

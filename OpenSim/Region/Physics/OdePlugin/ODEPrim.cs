@@ -1352,7 +1352,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
         }
 
         /// <summary>
-        /// Create a geometry for the given mesh/shape in the given target space.
+        /// Create a geometry for the given mesh in the given target space.
         /// </summary>
         /// <param name="m_targetSpace"></param>
         /// <param name="mesh">If null, then a mesh is used that is based on the profile shape data.</param>
@@ -1433,6 +1433,36 @@ Console.WriteLine("CreateGeom:");
                         return;
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Remove the existing geom from this prim.
+        /// </summary>
+        /// <param name="m_targetSpace"></param>
+        /// <param name="mesh">If null, then a mesh is used that is based on the profile shape data.</param>
+        /// <returns>true if the geom was successfully removed, false if it was already gone or the remove failed.</returns>
+        public bool RemoveGeom()
+        {
+            if (prim_geom != IntPtr.Zero)
+            {
+                try
+                {
+                    d.GeomDestroy(prim_geom);
+                    prim_geom = IntPtr.Zero;
+                }
+                catch (System.AccessViolationException)
+                {
+                    prim_geom = IntPtr.Zero;
+                    m_log.ErrorFormat("[PHYSICS]: PrimGeom dead for {0}", Name);
+                    return false;
+                }
+
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
@@ -1880,19 +1910,8 @@ Console.WriteLine(" JointCreateFixed");
                 {
                     if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
                     {
-                        if (prim_geom != IntPtr.Zero)
-                        {
-                            try
-                            {
-                                d.GeomDestroy(prim_geom);
-                                prim_geom = IntPtr.Zero;
-                            }
-                            catch (System.AccessViolationException)
-                            {
-                                prim_geom = IntPtr.Zero;
-                                m_log.ErrorFormat("[PHYSICS]: PrimGeom dead for {0}", Name);
-                            }
-                        }
+                        RemoveGeom();
+
 //Console.WriteLine("changePhysicsStatus for " + Name);
                         changeadd(2f);
                     }
@@ -1953,8 +1972,8 @@ Console.WriteLine(" JointCreateFixed");
                 d.SpaceRemove(m_targetSpace, prim_geom);
             }
 
-            d.GeomDestroy(prim_geom);
-            prim_geom = IntPtr.Zero;
+            RemoveGeom();
+
             // we don't need to do space calculation because the client sends a position update also.
 
             IMesh mesh = null;
@@ -2044,17 +2063,9 @@ Console.WriteLine(" JointCreateFixed");
                     disableBody();
                 }
             }
-            try
-            {
-                d.GeomDestroy(prim_geom);
-            }
-            catch (System.AccessViolationException)
-            {
-                prim_geom = IntPtr.Zero;
-                m_log.ErrorFormat("[PHYSICS]: PrimGeom dead for {0}", Name);
-            }
 
-            prim_geom = IntPtr.Zero;
+            RemoveGeom();
+
             // we don't need to do space calculation because the client sends a position update also.
             if (_size.X <= 0) _size.X = 0.01f;
             if (_size.Y <= 0) _size.Y = 0.01f;

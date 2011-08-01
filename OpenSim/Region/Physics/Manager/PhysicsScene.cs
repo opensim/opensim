@@ -86,6 +86,10 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void RemoveAvatar(PhysicsActor actor);
 
+        /// <summary>
+        /// Remove a prim from the physics scene.
+        /// </summary>
+        /// <param name="prim"></param>
         public abstract void RemovePrim(PhysicsActor prim);
 
         public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
