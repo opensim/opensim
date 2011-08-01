@@ -47,7 +47,6 @@ namespace OpenSim.Framework
         public readonly static int TEXTURE_COUNT = 21;
         public readonly static byte[] BAKE_INDICES = new byte[] { 8, 9, 10, 11, 19, 20 };
 
-        protected UUID m_owner;
         protected int m_serial = 0;
         protected byte[] m_visualparams;
         protected Primitive.TextureEntry m_texture;
@@ -55,12 +54,6 @@ namespace OpenSim.Framework
         protected Dictionary<int, List<AvatarAttachment>> m_attachments;
         protected float m_avatarHeight = 0;
         protected float m_hipOffset = 0;
-
-        public virtual UUID Owner
-        {
-            get { return m_owner; }
-            set { m_owner = value; }
-        }
 
         public virtual int Serial
         {
@@ -101,38 +94,31 @@ namespace OpenSim.Framework
             get { return m_hipOffset; }
         }
 
-        public AvatarAppearance() : this(UUID.Zero) {}
-
-        public AvatarAppearance(UUID owner)
+        public AvatarAppearance()
         {
-//            m_log.WarnFormat("[AVATAR APPEARANCE]: create empty appearance for {0}",owner);
+//            m_log.WarnFormat("[AVATAR APPEARANCE]: create empty appearance");
 
             m_serial = 0;
-            m_owner = owner;
-
             SetDefaultWearables();
             SetDefaultTexture();
             SetDefaultParams();
             SetHeight();
-
             m_attachments = new Dictionary<int, List<AvatarAttachment>>();
         }
 
-        public AvatarAppearance(UUID avatarID, OSDMap map)
+        public AvatarAppearance(OSDMap map)
         {
-//            m_log.WarnFormat("[AVATAR APPEARANCE]: create appearance for {0} from OSDMap",avatarID);
+//            m_log.WarnFormat("[AVATAR APPEARANCE]: create appearance from OSDMap");
 
-            m_owner = avatarID;
             Unpack(map);
             SetHeight();
         }
 
-        public AvatarAppearance(UUID avatarID, AvatarWearable[] wearables, Primitive.TextureEntry textureEntry, byte[] visualParams)
+        public AvatarAppearance(AvatarWearable[] wearables, Primitive.TextureEntry textureEntry, byte[] visualParams)
         {
-//            m_log.WarnFormat("[AVATAR APPEARANCE] create initialized appearance for {0}",avatarID);
+//            m_log.WarnFormat("[AVATAR APPEARANCE] create initialized appearance");
 
             m_serial = 0;
-            m_owner = avatarID;
 
             if (wearables != null)
                 m_wearables = wearables;
@@ -165,24 +151,21 @@ namespace OpenSim.Framework
             if (appearance == null)
             {
                 m_serial = 0;
-                m_owner = UUID.Zero;
-
                 SetDefaultWearables();
                 SetDefaultTexture();
                 SetDefaultParams();
                 SetHeight();
-
                 m_attachments = new Dictionary<int, List<AvatarAttachment>>();
 
                 return;
             }
 
             m_serial = appearance.Serial;
-            m_owner = appearance.Owner;
 
             m_wearables = new AvatarWearable[AvatarWearable.MAX_WEARABLES];
             for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)
                 m_wearables[i] = new AvatarWearable();
+
             if (copyWearables && (appearance.Wearables != null))
             {
                 for (int i = 0; i < AvatarWearable.MAX_WEARABLES; i++)

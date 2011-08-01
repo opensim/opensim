@@ -93,7 +93,6 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
             AvatarAppearance originalAppearance = GetAppearance(cloneAppearanceFrom, scene);
             AvatarAppearance npcAppearance = new AvatarAppearance(originalAppearance, true);
-            npcAppearance.Owner = acd.AgentID;
             acd.Appearance = npcAppearance;
 
 //            for (int i = 0; i < acd.Appearance.Texture.FaceTextures.Length; i++)

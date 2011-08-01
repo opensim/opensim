@@ -89,7 +89,7 @@ namespace OpenSim.Services.Connectors
         public AvatarAppearance GetAppearance(UUID userID)
         {
             AvatarData avatar = GetAvatar(userID);
-            return avatar.ToAvatarAppearance(userID);
+            return avatar.ToAvatarAppearance();
         }
         
         public bool SetAppearance(UUID userID, AvatarAppearance appearance)

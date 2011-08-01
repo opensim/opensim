@@ -916,7 +916,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.ErrorFormat("[SCENE PRESENCE]: null appearance in MakeRoot in {0}", Scene.RegionInfo.RegionName);
                 // emergency; this really shouldn't happen
-                m_appearance = new AvatarAppearance(UUID);
+                m_appearance = new AvatarAppearance();
             }
             
             AddToPhysicalScene(isFlying);
@@ -2651,7 +2651,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENE PRESENCE] Send appearance from {0} {1} to {2} {3}", Name, m_uuid, avatar.Name, avatar.UUID);
 
             avatar.ControllingClient.SendAppearance(
-                m_appearance.Owner, m_appearance.VisualParams, m_appearance.Texture.GetBytes());
+                UUID, m_appearance.VisualParams, m_appearance.Texture.GetBytes());
         }
 
         // Because appearance setting is in a module, we actually need

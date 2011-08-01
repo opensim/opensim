@@ -213,7 +213,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     wearables[11] = new AvatarWearable(map["UnderpantsItem"].AsUUID(), map["UnderpantsAsset"].AsUUID());
                     wearables[12] = new AvatarWearable(map["SkirtItem"].AsUUID(), map["SkirtAsset"].AsUUID());
 
-                    AvatarAppearance appearance = new AvatarAppearance(userID);
+                    AvatarAppearance appearance = new AvatarAppearance();
                     appearance.Wearables = wearables;
                     appearance.AvatarHeight = (float)map["Height"].AsReal();
 
@@ -257,7 +257,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
             if (avatar.AvatarType == 1) // LLAvatar
             {
-                AvatarAppearance appearance = avatar.ToAvatarAppearance(userID);
+                AvatarAppearance appearance = avatar.ToAvatarAppearance();
 
                 OSDMap map = new OSDMap();
 

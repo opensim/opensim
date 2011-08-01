@@ -3079,7 +3079,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (aCircuit == null)
             {
                 m_log.DebugFormat("[APPEARANCE] Client did not supply a circuit. Non-Linden? Creating default appearance.");
-                appearance = new AvatarAppearance(client.AgentId);
+                appearance = new AvatarAppearance();
                 return;
             }
 
@@ -3087,7 +3087,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (appearance == null)
             {
                 m_log.DebugFormat("[APPEARANCE]: Appearance not found in {0}, returning default", RegionInfo.RegionName);
-                appearance = new AvatarAppearance(client.AgentId);
+                appearance = new AvatarAppearance();
             }
         }
 

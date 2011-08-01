@@ -54,7 +54,7 @@ namespace OpenSim.Services.AvatarService
         public AvatarAppearance GetAppearance(UUID principalID)
         {
             AvatarData avatar = GetAvatar(principalID);
-            return avatar.ToAvatarAppearance(principalID);
+            return avatar.ToAvatarAppearance();
         }
         
         public bool SetAppearance(UUID principalID, AvatarAppearance appearance)

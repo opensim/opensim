@@ -180,9 +180,9 @@ namespace OpenSim.Services.Interfaces
             }
         }
 
-        public AvatarAppearance ToAvatarAppearance(UUID owner)
+        public AvatarAppearance ToAvatarAppearance()
         {
-            AvatarAppearance appearance = new AvatarAppearance(owner);
+            AvatarAppearance appearance = new AvatarAppearance();
 
             if (Data.Count == 0)
                 return appearance;
