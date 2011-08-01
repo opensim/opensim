@@ -322,7 +322,7 @@ namespace OpenSim.Services.GridService
 
         public GridRegion GetRegionByName(UUID scopeID, string regionName)
         {
-            List<RegionData> rdatas = m_Database.Get(regionName + "%", scopeID);
+            List<RegionData> rdatas = m_Database.Get(regionName, scopeID);
             if ((rdatas != null) && (rdatas.Count > 0))
                 return RegionData2RegionInfo(rdatas[0]); // get the first
 
