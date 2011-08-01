@@ -1481,7 +1481,7 @@ Console.WriteLine("changeadd 1");
             }
 
             _parent_scene.geom_name_map[prim_geom] = this.Name;
-            _parent_scene.actor_name_map[prim_geom] = (PhysicsActor)this;
+            _parent_scene.actor_name_map[prim_geom] = this;
 
             changeSelectedStatus(timestep);
 
@@ -1991,6 +1991,7 @@ Console.WriteLine(" JointCreateFixed");
             }
 
             _parent_scene.geom_name_map[prim_geom] = oldname;
+            _parent_scene.actor_name_map[prim_geom] = this;
 
             changeSelectedStatus(timestamp);
             if (childPrim)
@@ -2095,7 +2096,9 @@ Console.WriteLine(" JointCreateFixed");
                     d.BodyEnable(Body);
                 }
             }
+
             _parent_scene.geom_name_map[prim_geom] = oldname;
+            _parent_scene.actor_name_map[prim_geom] = this;
 
             changeSelectedStatus(timestamp);
             if (childPrim)
