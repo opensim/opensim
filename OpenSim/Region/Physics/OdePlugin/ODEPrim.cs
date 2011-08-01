@@ -163,7 +163,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr m_targetSpace = IntPtr.Zero;
 
         public IntPtr prim_geom;
-        public IntPtr prev_geom;
         public IntPtr _triMeshData;
 
         private IntPtr _linkJointGroup = IntPtr.Zero;
@@ -228,7 +227,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             body_autodisable_frames = parent_scene.bodyFramesAutoDisable;
 
             prim_geom = IntPtr.Zero;
-            prev_geom = IntPtr.Zero;
 
             if (!pos.IsFinite())
             {
@@ -330,7 +328,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="geom"></param>
         public void SetGeom(IntPtr geom)
         {
-            prev_geom = prim_geom;
             prim_geom = geom;
 //Console.WriteLine("SetGeom to " + prim_geom + " for " + Name);
             if (prim_geom != IntPtr.Zero)
