@@ -1445,6 +1445,7 @@ Console.WriteLine("CreateGeom:");
             {
                 try
                 {
+                    _parent_scene.geom_name_map.Remove(prim_geom);
                     _parent_scene.actor_name_map.Remove(prim_geom);
                     d.GeomDestroy(prim_geom);
                     prim_geom = IntPtr.Zero;
