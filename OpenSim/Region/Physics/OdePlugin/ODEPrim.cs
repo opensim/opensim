@@ -1448,6 +1448,7 @@ Console.WriteLine("CreateGeom:");
             {
                 try
                 {
+                    _parent_scene.actor_name_map.Remove(prim_geom);
                     d.GeomDestroy(prim_geom);
                     prim_geom = IntPtr.Zero;
                 }
@@ -1455,6 +1456,7 @@ Console.WriteLine("CreateGeom:");
                 {
                     prim_geom = IntPtr.Zero;
                     m_log.ErrorFormat("[PHYSICS]: PrimGeom dead for {0}", Name);
+
                     return false;
                 }
 
