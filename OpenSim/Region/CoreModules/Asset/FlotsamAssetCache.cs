@@ -419,7 +419,7 @@ namespace Flotsam.RegionModules.AssetCache
 
             if (m_MemoryCacheEnabled)
                 asset = GetFromMemoryCache(id);
-            else if (m_FileCacheEnabled)
+            if (asset == null && m_FileCacheEnabled)
                 asset = GetFromFileCache(id);
 
             if (((m_LogLevel >= 1)) && (m_HitRateDisplay != 0) && (m_Requests % m_HitRateDisplay == 0))
