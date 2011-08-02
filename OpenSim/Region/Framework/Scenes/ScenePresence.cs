@@ -1377,11 +1377,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 return;
             }
-            
-            bool update_movementflag = false;
 
             if (m_allowMovement && !SitGround)
             {
+                bool update_movementflag = false;
+
                 if (agentData.UseClientAgentPosition)
                 {
                     m_moveToPositionInProgress = (agentData.ClientAgentPosition - AbsolutePosition).Length() > 0.2f;
@@ -1521,10 +1521,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                     AddNewMovement(agent_control_v3, q);
                 }
-            }
 
-            if (update_movementflag && ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) == 0) && (m_parentID == 0) && !SitGround)
-                Animator.UpdateMovementAnimations();
+                if (update_movementflag && ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) == 0) && (m_parentID == 0) && !SitGround)
+                    Animator.UpdateMovementAnimations();
+            }
 
             m_scene.EventManager.TriggerOnClientMovement(this);
 
