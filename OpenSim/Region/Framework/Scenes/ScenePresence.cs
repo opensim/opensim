@@ -116,7 +116,7 @@ namespace OpenSim.Region.Framework.Scenes
         private ScriptControlled IgnoredControls = ScriptControlled.CONTROL_ZERO;
         private ScriptControlled LastCommands = ScriptControlled.CONTROL_ZERO;
         private bool MouseDown = false;
-        private SceneObjectGroup proxyObjectGroup;
+//        private SceneObjectGroup proxyObjectGroup;
         //private SceneObjectPart proxyObjectPart = null;
         public Vector3 lastKnownAllowedPosition;
         public bool sentMessageAboutRestrictedParcelFlyingDown;
@@ -779,8 +779,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_controllingClient.OnStartAnim += HandleStartAnim;
             m_controllingClient.OnStopAnim += HandleStopAnim;
             m_controllingClient.OnForceReleaseControls += HandleForceReleaseControls;
-            m_controllingClient.OnAutoPilotGo += DoAutoPilot;
-            m_controllingClient.AddGenericPacketHandler("autopilot", DoMoveToPosition);
+            m_controllingClient.OnAutoPilotGo += DoMoveToPosition;
 
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             // ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
@@ -1480,6 +1479,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 bAllowUpdateMoveToPosition = true;
                             }
                         }
+
                         i++;
                     }
 
@@ -1492,12 +1492,21 @@ namespace OpenSim.Region.Framework.Scenes
                         bAllowUpdateMoveToPosition = false;
                     }
 
+                    m_log.DebugFormat(
+                        "[SCENE PRESENCE]: bAllowUpdateMoveToPosition {0}, m_moveToPositionInProgress {1}, m_autopilotMoving {2}",
+                        bAllowUpdateMoveToPosition, m_moveToPositionInProgress, m_autopilotMoving);
+
                     if (bAllowUpdateMoveToPosition && (m_moveToPositionInProgress && !m_autopilotMoving))
                     {
-                        //Check the error term of the current position in relation to the target position
-                        if (Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget) <= 0.5f)
+                        double distanceToTarget = Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget);
+//                        m_log.DebugFormat(
+//                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
+//                            Name, AbsolutePosition, m_moveToPositionTarget, distanceToTarget);
+
+                        // Check the error term of the current position in relation to the target position
+                        if (distanceToTarget <= 1)
                         {
-                            // we are close enough to the target
+                            // We are close enough to the target
                             m_moveToPositionTarget = Vector3.Zero;
                             m_moveToPositionInProgress = false;
                             update_movementflag = true;
@@ -1608,8 +1617,6 @@ namespace OpenSim.Region.Framework.Scenes
                     //                        "In {0} adding velocity to {1} of {2}", m_scene.RegionInfo.RegionName, Name, agent_control_v3);
 
                     AddNewMovement(agent_control_v3, q);
-
-                    
                 }
             }
 
@@ -1621,61 +1628,44 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
         }
 
-        public void DoAutoPilot(uint not_used, Vector3 Pos, IClientAPI remote_client)
-        {
-            m_autopilotMoving = true;
-            m_autoPilotTarget = Pos;
-            m_sitAtAutoTarget = false;
-            PrimitiveBaseShape proxy = PrimitiveBaseShape.Default;
-            //proxy.PCode = (byte)PCode.ParticleSystem;
+//        public void DoAutoPilot(uint not_used, Vector3 Pos, IClientAPI remote_client)
+//        {
+//            m_autopilotMoving = true;
+//            m_autoPilotTarget = Pos;
+//            m_sitAtAutoTarget = false;
+//            PrimitiveBaseShape proxy = PrimitiveBaseShape.Default;
+//            //proxy.PCode = (byte)PCode.ParticleSystem;
+//
+//            proxyObjectGroup = new SceneObjectGroup(UUID, Pos, Rotation, proxy);
+//            proxyObjectGroup.AttachToScene(m_scene);
+//            
+//            // Commented out this code since it could never have executed, but might still be informative.
+////            if (proxyObjectGroup != null)
+////            {
+//                proxyObjectGroup.SendGroupFullUpdate();
+//                remote_client.SendSitResponse(proxyObjectGroup.UUID, Vector3.Zero, Quaternion.Identity, true, Vector3.Zero, Vector3.Zero, false);
+//                m_scene.DeleteSceneObject(proxyObjectGroup, false);
+////            }
+////            else
+////            {
+////                m_autopilotMoving = false;
+////                m_autoPilotTarget = Vector3.Zero;
+////                ControllingClient.SendAlertMessage("Autopilot cancelled");
+////            }
+//        }
 
-            proxyObjectGroup = new SceneObjectGroup(UUID, Pos, Rotation, proxy);
-            proxyObjectGroup.AttachToScene(m_scene);
-            
-            // Commented out this code since it could never have executed, but might still be informative.
-//            if (proxyObjectGroup != null)
-//            {
-                proxyObjectGroup.SendGroupFullUpdate();
-                remote_client.SendSitResponse(proxyObjectGroup.UUID, Vector3.Zero, Quaternion.Identity, true, Vector3.Zero, Vector3.Zero, false);
-                m_scene.DeleteSceneObject(proxyObjectGroup, false);
-//            }
-//            else
-//            {
-//                m_autopilotMoving = false;
-//                m_autoPilotTarget = Vector3.Zero;
-//                ControllingClient.SendAlertMessage("Autopilot cancelled");
-//            }
-        }
-
-        public void DoMoveToPosition(Object sender, string method, List<String> args)
+        /// <summary>
+        /// Move this presence to the given position over time.
+        /// </summary>
+        /// <param name="pos"></param>
+        public void DoMoveToPosition(uint not_used, Vector3 pos, IClientAPI remote_client)
         {
-            try
-            {
-                float locx = 0f;
-                float locy = 0f;
-                float locz = 0f;
-                uint regionX = 0;
-                uint regionY = 0;
-                try
-                {
-                    Utils.LongToUInts(Scene.RegionInfo.RegionHandle, out regionX, out regionY);
-                    locx = Convert.ToSingle(args[0]) - (float)regionX;
-                    locy = Convert.ToSingle(args[1]) - (float)regionY;
-                    locz = Convert.ToSingle(args[2]);
-                }
-                catch (InvalidCastException)
-                {
-                    m_log.Error("[CLIENT]: Invalid autopilot request");
-                    return;
-                }
-                m_moveToPositionInProgress = true;
-                m_moveToPositionTarget = new Vector3(locx, locy, locz);
-            }
-            catch (Exception ex)
-            {
-                //Why did I get this error?
-               m_log.Error("[SCENEPRESENCE]: DoMoveToPosition" + ex);
-            }
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
+                Name, pos, m_scene.RegionInfo.RegionName);
+
+            m_moveToPositionInProgress = true;
+            m_moveToPositionTarget = pos;
         }
 
         private void CheckAtSitTarget()

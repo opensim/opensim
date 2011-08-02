@@ -99,6 +99,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
 
         }
+        
         public void SendSitResponse(UUID TargetID, Vector3 OffsetPos, Quaternion SitOrientation, bool autopilot,
                                         Vector3 CameraAtOffset, Vector3 CameraEyeOffset, bool ForceMouseLook)
         {

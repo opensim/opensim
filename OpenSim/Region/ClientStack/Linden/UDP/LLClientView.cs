@@ -5266,6 +5266,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.GroupVoteHistoryRequest, HandleGroupVoteHistoryRequest);
             AddLocalPacketHandler(PacketType.SimWideDeletes, HandleSimWideDeletes);
             AddLocalPacketHandler(PacketType.SendPostcard, HandleSendPostcard);
+
+            AddGenericPacketHandler("autopilot", HandleAutopilot);
         }
 
         #region Packet Handlers
@@ -5308,7 +5310,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                        );
                 }
                 else
+                {
                     update = true;
+                }
 
                 // These should be ordered from most-likely to
                 // least likely to change. I've made an initial
@@ -5316,6 +5320,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (update)
                 {
+//                    m_log.DebugFormat("[LLCLIENTVIEW]: Triggered AgentUpdate for {0}", sener.Name);
+
                     AgentUpdateArgs arg = new AgentUpdateArgs();
                     arg.AgentID = x.AgentID;
                     arg.BodyRotation = x.BodyRotation;
@@ -11609,54 +11615,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return false;
         }
 
-        /// <summary>
-        /// Breaks down the genericMessagePacket into specific events
-        /// </summary>
-        /// <param name="gmMethod"></param>
-        /// <param name="gmInvoice"></param>
-        /// <param name="gmParams"></param>
-        public void DecipherGenericMessage(string gmMethod, UUID gmInvoice, GenericMessagePacket.ParamListBlock[] gmParams)
+        protected void HandleAutopilot(Object sender, string method, List<String> args)
         {
-            switch (gmMethod)
+            try
             {
-                case "autopilot":
-                    float locx;
-                    float locy;
-                    float locz;
+                float locx = 0f;
+                float locy = 0f;
+                float locz = 0f;
+                uint regionX = 0;
+                uint regionY = 0;
+                try
+                {
+                    Utils.LongToUInts(m_scene.RegionInfo.RegionHandle, out regionX, out regionY);
+                    locx = Convert.ToSingle(args[0]) - (float)regionX;
+                    locy = Convert.ToSingle(args[1]) - (float)regionY;
+                    locz = Convert.ToSingle(args[2]);
+                }
+                catch (InvalidCastException)
+                {
+                    m_log.Error("[CLIENT]: Invalid autopilot request");
+                    return;
+                }
 
-                    try
-                    {
-                        uint regionX;
-                        uint regionY;
-                        Utils.LongToUInts(Scene.RegionInfo.RegionHandle, out regionX, out regionY);
-                        locx = Convert.ToSingle(Utils.BytesToString(gmParams[0].Parameter)) - regionX;
-                        locy = Convert.ToSingle(Utils.BytesToString(gmParams[1].Parameter)) - regionY;
-                        locz = Convert.ToSingle(Utils.BytesToString(gmParams[2].Parameter));
-                    }
-                    catch (InvalidCastException)
-                    {
-                        m_log.Error("[CLIENT]: Invalid autopilot request");
-                        return;
-                    }
-
-                    UpdateVector handlerAutoPilotGo = OnAutoPilotGo;
-                    if (handlerAutoPilotGo != null)
-                    {
-                        handlerAutoPilotGo(0, new Vector3(locx, locy, locz), this);
-                    }
-                    m_log.InfoFormat("[CLIENT]: Client Requests autopilot to position <{0},{1},{2}>", locx, locy, locz);
-
-
-                    break;
-                default:
-                    m_log.Debug("[CLIENT]: Unknown Generic Message, Method: " + gmMethod + ". Invoice: " + gmInvoice + ".  Dumping Params:");
-                    for (int hi = 0; hi < gmParams.Length; hi++)
-                    {
-                        Console.WriteLine(gmParams[hi].ToString());
-                    }
-                    //gmpack.MethodData.
-                    break;
-
+                UpdateVector handlerAutoPilotGo = OnAutoPilotGo;
+                if (handlerAutoPilotGo != null)
+                {
+                    handlerAutoPilotGo(0, new Vector3(locx, locy, locz), this);
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[LLCLIENTVIEW]: HandleAutopilot exception {0} {1}", e.Message, e.StackTrace);
             }
         }
 

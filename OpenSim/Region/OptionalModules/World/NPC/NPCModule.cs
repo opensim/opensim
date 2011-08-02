@@ -140,7 +140,16 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 {
                     ScenePresence sp;
                     scene.TryGetScenePresence(agentID, out sp);
-                    sp.DoAutoPilot(0, pos, m_avatars[agentID]);
+
+//                    m_log.DebugFormat(
+//                        "[NPC MODULE]: Moving {0} to {1} in {2}", sp.Name, pos, scene.RegionInfo.RegionName);
+//
+//                    List<string> targetArgs = new List<string>();
+//                    targetArgs.Add(pos.X);
+//                    targetArgs.Add(pos.Y);
+//                    targetArgs.Add(pos.Z);
+//                    sp.DoMoveToPosition(null, "NPC", targetArgs);
+//                    sp.DoMoveToPosition(0, pos, m_avatars[agentID]);
                 }
             }
         }

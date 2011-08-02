@@ -169,7 +169,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory.Tests
                         float y = Convert.ToSingle(rdata.Parameters[PARM_MOVE_Y]);
                         float z = Convert.ToSingle(rdata.Parameters[PARM_MOVE_Z]);
                         Vector3 vector = new Vector3(x,y,z);
-                        presence.DoAutoPilot(0,vector,presence.ControllingClient);
+                        presence.DoMoveToPosition(0, vector, presence.ControllingClient);
                     }
                     catch (Exception e)
                     {
