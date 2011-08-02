@@ -1483,105 +1483,8 @@ namespace OpenSim.Region.Framework.Scenes
                         i++;
                     }
 
-                    //Paupaw:Do Proper PID for Autopilot here
-                    if (bResetMoveToPosition)
-                    {
-                        m_moveToPositionTarget = Vector3.Zero;
-                        m_moveToPositionInProgress = false;
+                    if (DoMoveToPositionUpdate(ref agent_control_v3, bodyRotation, bResetMoveToPosition, bAllowUpdateMoveToPosition))
                         update_movementflag = true;
-                        bAllowUpdateMoveToPosition = false;
-                    }
-
-                    m_log.DebugFormat(
-                        "[SCENE PRESENCE]: bAllowUpdateMoveToPosition {0}, m_moveToPositionInProgress {1}, m_autopilotMoving {2}",
-                        bAllowUpdateMoveToPosition, m_moveToPositionInProgress, m_autopilotMoving);
-
-                    if (bAllowUpdateMoveToPosition && (m_moveToPositionInProgress && !m_autopilotMoving))
-                    {
-                        double distanceToTarget = Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget);
-//                        m_log.DebugFormat(
-//                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
-//                            Name, AbsolutePosition, m_moveToPositionTarget, distanceToTarget);
-
-                        // Check the error term of the current position in relation to the target position
-                        if (distanceToTarget <= 1)
-                        {
-                            // We are close enough to the target
-                            m_moveToPositionTarget = Vector3.Zero;
-                            m_moveToPositionInProgress = false;
-                            update_movementflag = true;
-                        }
-                        else
-                        {
-                            try
-                            {
-                                // move avatar in 2D at one meter/second towards target, in avatar coordinate frame.
-                                // This movement vector gets added to the velocity through AddNewMovement().
-                                // Theoretically we might need a more complex PID approach here if other 
-                                // unknown forces are acting on the avatar and we need to adaptively respond
-                                // to such forces, but the following simple approach seems to works fine.
-                                Vector3 LocalVectorToTarget3D =
-                                    (m_moveToPositionTarget - AbsolutePosition) // vector from cur. pos to target in global coords
-                                    * Matrix4.CreateFromQuaternion(Quaternion.Inverse(bodyRotation)); // change to avatar coords
-                                // Ignore z component of vector
-                                Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
-                                LocalVectorToTarget2D.Normalize();
-                                agent_control_v3 += LocalVectorToTarget2D;
-
-                                // update avatar movement flags. the avatar coordinate system is as follows:
-                                //
-                                //                        +X (forward)
-                                //
-                                //                        ^
-                                //                        |
-                                //                        |
-                                //                        |
-                                //                        |
-                                //     (left) +Y <--------o--------> -Y
-                                //                       avatar
-                                //                        |
-                                //                        |
-                                //                        |
-                                //                        |
-                                //                        v
-                                //                        -X
-                                //
-
-                                // based on the above avatar coordinate system, classify the movement into 
-                                // one of left/right/back/forward.
-                                if (LocalVectorToTarget2D.Y > 0)//MoveLeft
-                                {
-                                    m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
-                                    //AgentControlFlags
-                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
-                                    update_movementflag = true;
-                                }
-                                else if (LocalVectorToTarget2D.Y < 0) //MoveRight
-                                {
-                                    m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
-                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
-                                    update_movementflag = true;
-                                }
-                                if (LocalVectorToTarget2D.X < 0) //MoveBack
-                                {
-                                    m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
-                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
-                                    update_movementflag = true;
-                                }
-                                else if (LocalVectorToTarget2D.X > 0) //Move Forward
-                                {
-                                    m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
-                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
-                                    update_movementflag = true;
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                //Avoid system crash, can be slower but...
-                                m_log.DebugFormat("Crash! {0}", e.ToString());
-                            }
-                        }
-                    }
                 }
 
                 // Cause the avatar to stop flying if it's colliding
@@ -1626,6 +1529,121 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.EventManager.TriggerOnClientMovement(this);
 
             m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
+        }
+
+        /// <summary>
+        /// Process moving the avatar if a position has been set.
+        /// </summary>
+        /// <param value="agent_control_v3">Cumulative agent movement that this method will update.</param>
+        /// <param value="bodyRotation">New body rotation of the avatar.</param>
+        /// <param value="reset">If true, clear the move to position</param>
+        /// <param value="allowUpdate">If true, allow the update in principle.</param>
+        /// <returns>True if movement has been updated in some way.  False otherwise.</returns>
+        protected bool DoMoveToPositionUpdate(
+            ref Vector3 agent_control_v3, Quaternion bodyRotation, bool reset, bool allowUpdate)
+        {
+            bool updated = false;
+
+            //Paupaw:Do Proper PID for Autopilot here
+            if (reset)
+            {
+                m_moveToPositionTarget = Vector3.Zero;
+                m_moveToPositionInProgress = false;
+                updated = true;
+            }
+
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: bAllowUpdateMoveToPosition {0}, m_moveToPositionInProgress {1}, m_autopilotMoving {2}",
+                allowUpdate, m_moveToPositionInProgress, m_autopilotMoving);
+
+            if (allowUpdate && (m_moveToPositionInProgress && !m_autopilotMoving))
+            {
+                double distanceToTarget = Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget);
+//                        m_log.DebugFormat(
+//                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
+//                            Name, AbsolutePosition, m_moveToPositionTarget, distanceToTarget);
+
+                // Check the error term of the current position in relation to the target position
+                if (distanceToTarget <= 1)
+                {
+                    // We are close enough to the target
+                    m_moveToPositionTarget = Vector3.Zero;
+                    m_moveToPositionInProgress = false;
+                    updated = true;
+                }
+                else
+                {
+                    try
+                    {
+                        // move avatar in 2D at one meter/second towards target, in avatar coordinate frame.
+                        // This movement vector gets added to the velocity through AddNewMovement().
+                        // Theoretically we might need a more complex PID approach here if other
+                        // unknown forces are acting on the avatar and we need to adaptively respond
+                        // to such forces, but the following simple approach seems to works fine.
+                        Vector3 LocalVectorToTarget3D =
+                            (m_moveToPositionTarget - AbsolutePosition) // vector from cur. pos to target in global coords
+                            * Matrix4.CreateFromQuaternion(Quaternion.Inverse(bodyRotation)); // change to avatar coords
+                        // Ignore z component of vector
+                        Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
+                        LocalVectorToTarget2D.Normalize();
+                        agent_control_v3 += LocalVectorToTarget2D;
+
+                        // update avatar movement flags. the avatar coordinate system is as follows:
+                        //
+                        //                        +X (forward)
+                        //
+                        //                        ^
+                        //                        |
+                        //                        |
+                        //                        |
+                        //                        |
+                        //     (left) +Y <--------o--------> -Y
+                        //                       avatar
+                        //                        |
+                        //                        |
+                        //                        |
+                        //                        |
+                        //                        v
+                        //                        -X
+                        //
+
+                        // based on the above avatar coordinate system, classify the movement into
+                        // one of left/right/back/forward.
+                        if (LocalVectorToTarget2D.Y > 0)//MoveLeft
+                        {
+                            m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
+                            //AgentControlFlags
+                            AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
+                            updated = true;
+                        }
+                        else if (LocalVectorToTarget2D.Y < 0) //MoveRight
+                        {
+                            m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
+                            AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
+                            updated = true;
+                        }
+                        if (LocalVectorToTarget2D.X < 0) //MoveBack
+                        {
+                            m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
+                            AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
+                            updated = true;
+                        }
+                        else if (LocalVectorToTarget2D.X > 0) //Move Forward
+                        {
+                            m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
+                            AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
+                            updated = true;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        //Avoid system crash, can be slower but...
+                        m_log.DebugFormat("Crash! {0}", e.ToString());
+                    }
+                }
+            }
+
+            return updated;
         }
 
 //        public void DoAutoPilot(uint not_used, Vector3 Pos, IClientAPI remote_client)
