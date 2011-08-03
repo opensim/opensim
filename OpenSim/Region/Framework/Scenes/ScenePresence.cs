@@ -1537,8 +1537,11 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Process moving the avatar if a position has been set.
+        /// Process move to update for an avatar.
         /// </summary>
+        /// <remarks>
+        /// This doesn't actually perform the movement.  Instead, it adds its vector to agent_control_v3
+        /// </remarks>
         /// <param value="agent_control_v3">Cumulative agent movement that this method will update.</param>
         /// <param value="bodyRotation">New body rotation of the avatar.</param>
         /// <param value="reset">If true, clear the move to position</param>
@@ -1698,7 +1701,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Move this presence to the given position over time.
         /// </summary>
         /// <param name="pos"></param>
-        public void DoMoveToPosition(uint not_used, Vector3 pos, IClientAPI remote_client)
+        public void DoMoveToPosition(Vector3 pos)
         {
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",

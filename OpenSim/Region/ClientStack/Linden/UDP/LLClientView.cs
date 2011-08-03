@@ -231,7 +231,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ScriptReset OnScriptReset;
         public event GetScriptRunning OnGetScriptRunning;
         public event SetScriptRunning OnSetScriptRunning;
-        public event UpdateVector OnAutoPilotGo;
+        public event Action<Vector3> OnAutoPilotGo;
         public event TerrainUnacked OnUnackedTerrain;
         public event ActivateGesture OnActivateGesture;
         public event DeactivateGesture OnDeactivateGesture;
@@ -11617,36 +11617,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected void HandleAutopilot(Object sender, string method, List<String> args)
         {
-            try
-            {
-                float locx = 0f;
-                float locy = 0f;
-                float locz = 0f;
-                uint regionX = 0;
-                uint regionY = 0;
-                try
-                {
-                    Utils.LongToUInts(m_scene.RegionInfo.RegionHandle, out regionX, out regionY);
-                    locx = Convert.ToSingle(args[0]) - (float)regionX;
-                    locy = Convert.ToSingle(args[1]) - (float)regionY;
-                    locz = Convert.ToSingle(args[2]);
-                }
-                catch (InvalidCastException)
-                {
-                    m_log.Error("[CLIENT]: Invalid autopilot request");
-                    return;
-                }
+            float locx = 0;
+            float locy = 0;
+            float locz = 0;
+            uint regionX = 0;
+            uint regionY = 0;
 
-                UpdateVector handlerAutoPilotGo = OnAutoPilotGo;
-                if (handlerAutoPilotGo != null)
-                {
-                    handlerAutoPilotGo(0, new Vector3(locx, locy, locz), this);
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[LLCLIENTVIEW]: HandleAutopilot exception {0} {1}", e.Message, e.StackTrace);
-            }
+            Utils.LongToUInts(m_scene.RegionInfo.RegionHandle, out regionX, out regionY);
+            locx = Convert.ToSingle(args[0]) - (float)regionX;
+            locy = Convert.ToSingle(args[1]) - (float)regionY;
+            locz = Convert.ToSingle(args[2]);
+
+            Action<Vector3> handlerAutoPilotGo = OnAutoPilotGo;
+            if (handlerAutoPilotGo != null)
+                handlerAutoPilotGo(new Vector3(locx, locy, locz));
         }
 
         /// <summary>

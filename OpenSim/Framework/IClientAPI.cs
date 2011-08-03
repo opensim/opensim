@@ -935,7 +935,7 @@ namespace OpenSim.Framework
         event ScriptReset OnScriptReset;
         event GetScriptRunning OnGetScriptRunning;
         event SetScriptRunning OnSetScriptRunning;
-        event UpdateVector OnAutoPilotGo;
+        event Action<Vector3> OnAutoPilotGo;
 
         event TerrainUnacked OnUnackedTerrain;
         event ActivateGesture OnActivateGesture;

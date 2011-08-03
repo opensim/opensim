@@ -189,7 +189,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     m_log.DebugFormat(
                         "[NPC MODULE]: Moving {0} to {1} in {2}", sp.Name, pos, scene.RegionInfo.RegionName);
 
-                    sp.DoMoveToPosition(0, pos, m_avatars[agentID]);
+                    sp.DoMoveToPosition(pos);
                 }
             }
         }

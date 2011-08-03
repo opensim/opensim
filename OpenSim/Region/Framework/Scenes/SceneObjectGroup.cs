@@ -1650,7 +1650,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
                     if (avatar != null)
                     {
-                        avatar.DoMoveToPosition(0, target, null);
+                        avatar.DoMoveToPosition(target);
                     }
                 }
                 else
