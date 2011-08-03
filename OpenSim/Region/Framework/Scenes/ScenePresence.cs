@@ -1075,14 +1075,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             SendTerseUpdateToAllClients();
         }
-
-        /// <summary>
-        ///
-        /// </summary>
-        public void StopMovement()
-        {
-        }
-
+        
         public void StopFlying()
         {
             ControllingClient.StopFlying(this);
