@@ -112,7 +112,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             scene.Update();
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
 
-            Vector3 targetPos = new Vector3(128, 128, 40);
+            Vector3 targetPos = startPos + new Vector3(0, 0, 10);
             npcModule.MoveToTarget(npc.UUID, scene, targetPos);
 
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
@@ -129,7 +129,26 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
                 scene.Update();
 
             double distanceToTarget = Util.GetDistanceTo(npc.AbsolutePosition, targetPos);
-            Assert.That(distanceToTarget, Is.LessThan(1), "NPC not within 1 unit of target position");
+            Assert.That(distanceToTarget, Is.LessThan(1), "NPC not within 1 unit of target position on first move");
+
+            // Try a second movement
+            startPos = npc.AbsolutePosition;
+            targetPos = startPos + new Vector3(10, 0, 0);
+            npcModule.MoveToTarget(npc.UUID, scene, targetPos);
+
+            scene.Update();
+
+            // We should really check the exact figure.
+            Assert.That(npc.AbsolutePosition.X, Is.GreaterThan(startPos.X));
+            Assert.That(npc.AbsolutePosition.X, Is.LessThan(targetPos.X));
+            Assert.That(npc.AbsolutePosition.Y, Is.EqualTo(startPos.Y));
+            Assert.That(npc.AbsolutePosition.Z, Is.EqualTo(startPos.Z));
+
+            for (int i = 0; i < 10; i++)
+                scene.Update();
+
+            distanceToTarget = Util.GetDistanceTo(npc.AbsolutePosition, targetPos);
+            Assert.That(distanceToTarget, Is.LessThan(1), "NPC not within 1 unit of target position on second move");
         }
     }
 }
