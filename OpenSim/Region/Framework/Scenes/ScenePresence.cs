@@ -1522,7 +1522,11 @@ namespace OpenSim.Region.Framework.Scenes
                     AddNewMovement(agent_control_v3, q);
                 }
 
-                if (update_movementflag && ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) == 0) && (m_parentID == 0) && !SitGround)
+                if (update_movementflag
+                    && ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) == 0)
+                    && (m_parentID == 0)
+                    && !SitGround
+                    && !m_moveToPositionInProgress)
                     Animator.UpdateMovementAnimations();
             }
 
@@ -1559,9 +1563,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (allowUpdate && (m_moveToPositionInProgress && !m_autopilotMoving))
             {
                 double distanceToTarget = Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget);
-                        m_log.DebugFormat(
-                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
-                            Name, AbsolutePosition, m_moveToPositionTarget, distanceToTarget);
+//                        m_log.DebugFormat(
+//                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
+//                            Name, AbsolutePosition, m_moveToPositionTarget, distanceToTarget);
 
                 // Check the error term of the current position in relation to the target position
                 if (distanceToTarget <= 1)
@@ -1637,15 +1641,15 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if (LocalVectorToTarget3D.Z > 0) //Up
                         {
-                            m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_UP;
+                            //m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_UP;
                             //AgentControlFlags
-                            AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_UP;
+                            //AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_UP;
                             updated = true;
                         }
                         else if (LocalVectorToTarget3D.Z < 0) //Down
                         {
-                            m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN;
-                            AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN;
+                            //m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN;
+                            //AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN;
                             updated = true;
                         }
 
@@ -1694,16 +1698,24 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="pos"></param>
         public void DoMoveToPosition(uint not_used, Vector3 pos, IClientAPI remote_client)
         {
-            m_log.DebugFormat(
-                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
-                Name, pos, m_scene.RegionInfo.RegionName);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
+//                Name, pos, m_scene.RegionInfo.RegionName);
+
+            if (pos.X < 0 || pos.X >= Constants.RegionSize
+                || pos.Y < 0 || pos.Y >= Constants.RegionSize
+                || pos.Z < 0)
+                return;
 
             Vector3 heightAdjust = new Vector3(0, 0, Appearance.AvatarHeight / 2);
             pos += heightAdjust;
 
             // Anti duck-walking measure
             if (Math.Abs(pos.Z - AbsolutePosition.Z) < 0.2f)
+            {
+//                m_log.DebugFormat("[SCENE PRESENCE]: Adjusting MoveToPosition from {0} to {1}", pos, AbsolutePosition);
                 pos.Z = AbsolutePosition.Z;
+            }
 
             m_moveToPositionInProgress = true;
             m_moveToPositionTarget = pos;
