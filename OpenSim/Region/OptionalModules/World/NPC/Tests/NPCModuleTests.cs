@@ -59,6 +59,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             config.AddConfig("AvatarService");
             config.Configs["AvatarService"].Set("LocalServiceModule", "OpenSim.Services.AvatarService.dll:AvatarService");
             config.Configs["AvatarService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
+            config.AddConfig("NPC");
+            config.Configs["NPC"].Set("Enabled", "true");
 
             AvatarFactoryModule afm = new AvatarFactoryModule();
             TestScene scene = SceneSetupHelpers.SetupScene();
