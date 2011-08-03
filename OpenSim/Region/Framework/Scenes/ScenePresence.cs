@@ -1552,9 +1552,9 @@ namespace OpenSim.Region.Framework.Scenes
                 updated = true;
             }
 
-            m_log.DebugFormat(
-                "[SCENE PRESENCE]: bAllowUpdateMoveToPosition {0}, m_moveToPositionInProgress {1}, m_autopilotMoving {2}",
-                allowUpdate, m_moveToPositionInProgress, m_autopilotMoving);
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: bAllowUpdateMoveToPosition {0}, m_moveToPositionInProgress {1}, m_autopilotMoving {2}",
+//                allowUpdate, m_moveToPositionInProgress, m_autopilotMoving);
 
             if (allowUpdate && (m_moveToPositionInProgress && !m_autopilotMoving))
             {
@@ -1684,6 +1684,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_moveToPositionInProgress = true;
             m_moveToPositionTarget = pos;
+
+            Vector3 agent_control_v3 = new Vector3();
+            DoMoveToPositionUpdate(ref agent_control_v3, Rotation, false, true);
+            AddNewMovement(agent_control_v3, Rotation);
         }
 
         private void CheckAtSitTarget()
