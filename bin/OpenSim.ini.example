@@ -716,6 +716,12 @@
     ; Enabled = true;
 
 
+[NPC]
+    ;# {Enabled} {} {Enable Non Player Character (NPC) facilities} {true false} false
+    ;; Enable media on a prim facilities
+    ; Enabled = false
+
+
 [PrimLimitsModule]
     ;# {EnforcePrimLimits} {} {Enforce parcel prim limits} {true false} false
     ;; Enable parcel prim limits.  Off by default to emulate pre-existing behavior.

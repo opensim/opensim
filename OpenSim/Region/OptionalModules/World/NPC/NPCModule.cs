@@ -44,15 +44,18 @@ namespace OpenSim.Region.OptionalModules.World.NPC
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        // private const bool m_enabled = false;
-
         private Dictionary<UUID, NPCAvatar> m_avatars = new Dictionary<UUID, NPCAvatar>();
         private Dictionary<UUID, AvatarAppearance> m_appearanceCache = new Dictionary<UUID, AvatarAppearance>();
 
         public void Initialise(Scene scene, IConfigSource source)
         {
-            scene.RegisterModuleInterface<INPCModule>(this);
-            scene.EventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
+            IConfig config = source.Configs["NPC"];
+
+            if (config != null && config.GetBoolean("Enabled", false))
+            {
+                scene.RegisterModuleInterface<INPCModule>(this);
+                scene.EventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
+            }
         }
 
         public void HandleOnSignificantClientMovement(ScenePresence presence)
