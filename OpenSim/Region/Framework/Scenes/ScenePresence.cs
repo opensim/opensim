@@ -1430,6 +1430,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // The fact that m_movementflag is a byte needs to be fixed
                     // it really should be a uint
+                    // A DIR_CONTROL_FLAG occurs when the user is trying to move in a particular direction.
                     uint nudgehack = 250;
                     foreach (Dir_ControlFlags DCF in DIR_CONTROL_FLAGS)
                     {
@@ -1554,11 +1555,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool updated = false;
 
-            //Paupaw:Do Proper PID for Autopilot here
             if (reset)
             {
-                ResetMoveToTarget();
-                updated = true;
+                if (m_moveToPositionInProgress)
+                {
+                    ResetMoveToTarget();
+                    updated = true;
+                }
+
+                return updated;
             }
 
 //            m_log.DebugFormat(
@@ -1576,8 +1581,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (distanceToTarget <= 1)
                 {
                     // We are close enough to the target
-                    MoveToPositionTarget = Vector3.Zero;
-                    m_moveToPositionInProgress = false;
+                    ResetMoveToTarget();
                     updated = true;
                 }
                 else
@@ -1660,6 +1664,10 @@ namespace OpenSim.Region.Framework.Scenes
                             updated = true;
                         }
 
+//                        m_log.DebugFormat(
+//                            "[SCENE PRESENCE]: HandleMoveToTargetUpdate adding {0} to move vector {1} for {2}",
+//                            LocalVectorToTarget3D, agent_control_v3, Name);
+
                         agent_control_v3 += LocalVectorToTarget3D;
                     }
                     catch (Exception e)
@@ -1711,8 +1719,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ResetMoveToTarget()
         {
-            MoveToPositionTarget = Vector3.Zero;
+//            m_log.DebugFormat("[SCENE PRESENCE]: Resetting move to target for {0}", Name);
+
             m_moveToPositionInProgress = false;
+            MoveToPositionTarget = Vector3.Zero;
         }
 
         private void CheckAtSitTarget()
