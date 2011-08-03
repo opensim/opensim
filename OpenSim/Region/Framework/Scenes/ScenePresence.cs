@@ -1559,9 +1559,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (allowUpdate && (m_moveToPositionInProgress && !m_autopilotMoving))
             {
                 double distanceToTarget = Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget);
-//                        m_log.DebugFormat(
-//                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
-//                            Name, AbsolutePosition, m_moveToPositionTarget, distanceToTarget);
+                        m_log.DebugFormat(
+                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
+                            Name, AbsolutePosition, m_moveToPositionTarget, distanceToTarget);
 
                 // Check the error term of the current position in relation to the target position
                 if (distanceToTarget <= 1)
@@ -1575,7 +1575,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     try
                     {
-                        // move avatar in 2D at one meter/second towards target, in avatar coordinate frame.
+                        // move avatar in 3D at one meter/second towards target, in avatar coordinate frame.
                         // This movement vector gets added to the velocity through AddNewMovement().
                         // Theoretically we might need a more complex PID approach here if other
                         // unknown forces are acting on the avatar and we need to adaptively respond
@@ -1584,9 +1584,8 @@ namespace OpenSim.Region.Framework.Scenes
                             (m_moveToPositionTarget - AbsolutePosition) // vector from cur. pos to target in global coords
                             * Matrix4.CreateFromQuaternion(Quaternion.Inverse(bodyRotation)); // change to avatar coords
                         // Ignore z component of vector
-                        Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
-                        LocalVectorToTarget2D.Normalize();
-                        agent_control_v3 += LocalVectorToTarget2D;
+//                        Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
+                        LocalVectorToTarget3D.Normalize();
 
                         // update avatar movement flags. the avatar coordinate system is as follows:
                         //
@@ -1609,31 +1608,48 @@ namespace OpenSim.Region.Framework.Scenes
 
                         // based on the above avatar coordinate system, classify the movement into
                         // one of left/right/back/forward.
-                        if (LocalVectorToTarget2D.Y > 0)//MoveLeft
+                        if (LocalVectorToTarget3D.X < 0) //MoveBack
+                        {
+                            m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
+                            AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
+                            updated = true;
+                        }
+                        else if (LocalVectorToTarget3D.X > 0) //Move Forward
+                        {
+                            m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
+                            AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
+                            updated = true;
+                        }
+
+                        if (LocalVectorToTarget3D.Y > 0) //MoveLeft
                         {
                             m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
                             //AgentControlFlags
                             AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
                             updated = true;
                         }
-                        else if (LocalVectorToTarget2D.Y < 0) //MoveRight
+                        else if (LocalVectorToTarget3D.Y < 0) //MoveRight
                         {
                             m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
                             AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
                             updated = true;
                         }
-                        if (LocalVectorToTarget2D.X < 0) //MoveBack
+
+                        if (LocalVectorToTarget3D.Z > 0) //Up
                         {
-                            m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
-                            AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
+                            m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_UP;
+                            //AgentControlFlags
+                            AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_UP;
                             updated = true;
                         }
-                        else if (LocalVectorToTarget2D.X > 0) //Move Forward
+                        else if (LocalVectorToTarget3D.Z < 0) //Down
                         {
-                            m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
-                            AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
+                            m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN;
+                            AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_DOWN;
                             updated = true;
                         }
+
+                        agent_control_v3 += LocalVectorToTarget3D;
                     }
                     catch (Exception e)
                     {
@@ -1681,6 +1697,13 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.DebugFormat(
                 "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
                 Name, pos, m_scene.RegionInfo.RegionName);
+
+            Vector3 heightAdjust = new Vector3(0, 0, Appearance.AvatarHeight / 2);
+            pos += heightAdjust;
+
+            // Anti duck-walking measure
+            if (Math.Abs(pos.Z - AbsolutePosition.Z) < 0.2f)
+                pos.Z = AbsolutePosition.Z;
 
             m_moveToPositionInProgress = true;
             m_moveToPositionTarget = pos;

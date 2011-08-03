@@ -295,7 +295,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 if (move.X != 0f || move.Y != 0f)
                 {
                     // Walking / crouchwalking / running
-                    if (move.Z < 0f)
+                    if (move.Z < 0)
                         return "CROUCHWALK";
                     else if (m_scenePresence.SetAlwaysRun)
                         return "RUN";
@@ -305,7 +305,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 else
                 {
                     // Not walking
-                    if (move.Z < 0f)
+                    if (move.Z < 0)
                         return "CROUCH";
                     else
                         return "STAND";
