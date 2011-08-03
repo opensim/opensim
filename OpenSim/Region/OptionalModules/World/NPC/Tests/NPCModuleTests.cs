@@ -125,7 +125,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             Assert.That(npc.AbsolutePosition.Z, Is.GreaterThan(startPos.Z));
             Assert.That(npc.AbsolutePosition.Z, Is.LessThan(targetPos.Z));
 
-            // Not yet complete
+            for (int i = 0; i < 10; i++)
+                scene.Update();
+
+            double distanceToTarget = Util.GetDistanceTo(npc.AbsolutePosition, targetPos);
+            Assert.That(distanceToTarget, Is.LessThan(1), "NPC not within 1 unit of target position");
         }
     }
 }

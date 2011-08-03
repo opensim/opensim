@@ -1568,9 +1568,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (allowUpdate && (m_moveToPositionInProgress && !m_autopilotMoving))
             {
                 double distanceToTarget = Util.GetDistanceTo(AbsolutePosition, MoveToPositionTarget);
-                        m_log.DebugFormat(
-                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
-                            Name, AbsolutePosition, MoveToPositionTarget, distanceToTarget);
+//                        m_log.DebugFormat(
+//                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
+//                            Name, AbsolutePosition, MoveToPositionTarget, distanceToTarget);
 
                 // Check the error term of the current position in relation to the target position
                 if (distanceToTarget <= 1)
@@ -1688,15 +1688,15 @@ namespace OpenSim.Region.Framework.Scenes
                 || pos.Z < 0)
                 return;
 
-            Vector3 heightAdjust = new Vector3(0, 0, Appearance.AvatarHeight / 2);
-            pos += heightAdjust;
-
-            // Anti duck-walking measure
-            if (Math.Abs(pos.Z - AbsolutePosition.Z) < 0.2f)
-            {
-//                m_log.DebugFormat("[SCENE PRESENCE]: Adjusting MoveToPosition from {0} to {1}", pos, AbsolutePosition);
-                pos.Z = AbsolutePosition.Z;
-            }
+//            Vector3 heightAdjust = new Vector3(0, 0, Appearance.AvatarHeight / 2);
+//            pos += heightAdjust;
+//
+//            // Anti duck-walking measure
+//            if (Math.Abs(pos.Z - AbsolutePosition.Z) < 0.2f)
+//            {
+////                m_log.DebugFormat("[SCENE PRESENCE]: Adjusting MoveToPosition from {0} to {1}", pos, AbsolutePosition);
+//                pos.Z = AbsolutePosition.Z;
+//            }
 
             m_moveToPositionInProgress = true;
             MoveToPositionTarget = pos;
