@@ -87,7 +87,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
         public void TestMove()
         {
             TestHelper.InMethod();
-            log4net.Config.XmlConfigurator.Configure();
+//            log4net.Config.XmlConfigurator.Configure();
 
             IConfigSource config = new IniConfigSource();
 
@@ -104,6 +104,12 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             UUID npcId = npcModule.CreateNPC("John", "Smith", startPos, scene, originalClient.AgentId);
 
             ScenePresence npc = scene.GetScenePresence(npcId);
+            Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
+
+            // For now, we'll make the scene presence fly to simplify this test, but this needs to change.
+            npc.PhysicsActor.Flying = true;
+
+            scene.Update();
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
 
             // Not yet complete

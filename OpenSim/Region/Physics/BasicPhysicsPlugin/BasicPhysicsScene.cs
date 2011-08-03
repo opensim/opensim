@@ -123,11 +123,15 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                     actorPosition.X = ((int)Constants.RegionSize - 0.1f);
                 }
 
-                float height = _heightMap[(int)actor.Position.Y * Constants.RegionSize + (int)actor.Position.X] + actor.Size.Z;
+                float terrainHeight = 0;
+                if (_heightMap != null)
+                    terrainHeight = _heightMap[(int)actor.Position.Y * Constants.RegionSize + (int)actor.Position.X];
+
+                float height = terrainHeight + actor.Size.Z;
+
                 if (actor.Flying)
                 {
-                    if (actor.Position.Z + (actor.Velocity.Z*timeStep) <
-                        _heightMap[(int)actor.Position.Y * Constants.RegionSize + (int)actor.Position.X] + 2)
+                    if (actor.Position.Z + (actor.Velocity.Z * timeStep) < terrainHeight + 2)
                     {
                         actorPosition.Z = height;
                         actorVelocity.Z = 0;
@@ -135,7 +139,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                     }
                     else
                     {
-                        actorPosition.Z += actor.Velocity.Z*timeStep;
+                        actorPosition.Z += actor.Velocity.Z * timeStep;
                         actor.IsColliding = false;
                     }
                 }
