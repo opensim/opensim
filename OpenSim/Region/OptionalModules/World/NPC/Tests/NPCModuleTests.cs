@@ -112,6 +112,19 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             scene.Update();
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
 
+            Vector3 targetPos = new Vector3(128, 128, 40);
+            npcModule.Autopilot(npc.UUID, scene, targetPos);
+
+            Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
+
+            scene.Update();
+
+            // We should really check the exact figure.
+            Assert.That(npc.AbsolutePosition.X, Is.EqualTo(startPos.X));
+            Assert.That(npc.AbsolutePosition.Y, Is.EqualTo(startPos.Y));
+            Assert.That(npc.AbsolutePosition.Z, Is.GreaterThan(startPos.Z));
+            Assert.That(npc.AbsolutePosition.Z, Is.LessThan(targetPos.Z));
+
             // Not yet complete
         }
     }
