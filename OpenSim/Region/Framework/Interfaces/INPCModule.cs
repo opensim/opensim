@@ -32,9 +32,39 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public interface INPCModule
     {
+        /// <summary>
+        /// Create an NPC
+        /// </summary>
+        /// <param name="firstname"></param>
+        /// <param name="lastname"></param>
+        /// <param name="position"></param>
+        /// <param name="scene"></param>
+        /// <param name="cloneAppearanceFrom">The UUID of the avatar from which to clone the NPC's appearance from.</param>
+        /// <returns>The UUID of the ScenePresence created.</returns>
         UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, UUID cloneAppearanceFrom);
-        void Autopilot(UUID agentID, Scene scene, Vector3 pos);
+
+        /// <summary>
+        /// Move an NPC to a target over time.
+        /// </summary>
+        /// <param name="agentID">The UUID of the NPC</param>
+        /// <param name="scene"></param>
+        /// <param name="pos"></param>
+        void MoveToTarget(UUID agentID, Scene scene, Vector3 pos);
+
+        /// <summary>
+        /// Get the NPC to say something.
+        /// </summary>
+        /// <param name="agentID">The UUID of the NPC</param>
+        /// <param name="scene"></param>
+        /// <param name="text"></param>
         void Say(UUID agentID, Scene scene, string text);
+
+
+        /// <summary>
+        /// Delete an NPC.
+        /// </summary>
+        /// <param name="agentID">The UUID of the NPC</param>
+        /// <param name="scene"></param>
         void DeleteNPC(UUID agentID, Scene scene);
     }
 }

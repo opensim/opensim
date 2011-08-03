@@ -177,7 +177,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return npcAvatar.AgentId;
         }
 
-        public void Autopilot(UUID agentID, Scene scene, Vector3 pos)
+        public void MoveToTarget(UUID agentID, Scene scene, Vector3 pos)
         {
             lock (m_avatars)
             {

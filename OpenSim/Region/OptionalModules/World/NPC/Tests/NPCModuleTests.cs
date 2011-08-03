@@ -113,7 +113,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
 
             Vector3 targetPos = new Vector3(128, 128, 40);
-            npcModule.Autopilot(npc.UUID, scene, targetPos);
+            npcModule.MoveToTarget(npc.UUID, scene, targetPos);
 
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
 

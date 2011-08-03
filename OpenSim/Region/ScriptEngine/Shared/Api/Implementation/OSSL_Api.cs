@@ -2110,7 +2110,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (module != null)
             {
                 Vector3 pos = new Vector3((float) position.x, (float) position.y, (float) position.z);
-                module.Autopilot(new UUID(npc.m_string), World, pos);
+                module.MoveToTarget(new UUID(npc.m_string), World, pos);
             }
         }
 
