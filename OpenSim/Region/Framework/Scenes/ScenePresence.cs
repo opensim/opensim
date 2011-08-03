@@ -780,7 +780,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_controllingClient.OnStartAnim += HandleStartAnim;
             m_controllingClient.OnStopAnim += HandleStopAnim;
             m_controllingClient.OnForceReleaseControls += HandleForceReleaseControls;
-            m_controllingClient.OnAutoPilotGo += DoMoveToPosition;
+            m_controllingClient.OnAutoPilotGo += MoveToTarget;
 
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             // ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
@@ -1484,7 +1484,7 @@ namespace OpenSim.Region.Framework.Scenes
                         i++;
                     }
 
-                    if (DoMoveToPositionUpdate(ref agent_control_v3, bodyRotation, bResetMoveToPosition, bAllowUpdateMoveToPosition))
+                    if (HandleMoveToPositionUpdate(ref agent_control_v3, bodyRotation, bResetMoveToPosition, bAllowUpdateMoveToPosition))
                         update_movementflag = true;
                 }
 
@@ -1547,7 +1547,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param value="reset">If true, clear the move to position</param>
         /// <param value="allowUpdate">If true, allow the update in principle.</param>
         /// <returns>True if movement has been updated in some way.  False otherwise.</returns>
-        public bool DoMoveToPositionUpdate(
+        public bool HandleMoveToPositionUpdate(
             ref Vector3 agent_control_v3, Quaternion bodyRotation, bool reset, bool allowUpdate)
         {
 //            m_log.DebugFormat("[SCENE PRESENCE]: Called DoMoveToPositionUpdate() for {0}", Name);
@@ -1557,7 +1557,7 @@ namespace OpenSim.Region.Framework.Scenes
             //Paupaw:Do Proper PID for Autopilot here
             if (reset)
             {
-                ResetMoveToPosition();
+                ResetMoveToTarget();
                 updated = true;
             }
 
@@ -1646,6 +1646,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if (LocalVectorToTarget3D.Z > 0) //Up
                         {
+                            // Don't set these flags for up or down - doing so will make the avatar crouch or
+                            // keep trying to jump even if walking along level ground
                             //m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_UP;
                             //AgentControlFlags
                             //AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_UP;
@@ -1671,37 +1673,11 @@ namespace OpenSim.Region.Framework.Scenes
             return updated;
         }
 
-//        public void DoAutoPilot(uint not_used, Vector3 Pos, IClientAPI remote_client)
-//        {
-//            m_autopilotMoving = true;
-//            m_autoPilotTarget = Pos;
-//            m_sitAtAutoTarget = false;
-//            PrimitiveBaseShape proxy = PrimitiveBaseShape.Default;
-//            //proxy.PCode = (byte)PCode.ParticleSystem;
-//
-//            proxyObjectGroup = new SceneObjectGroup(UUID, Pos, Rotation, proxy);
-//            proxyObjectGroup.AttachToScene(m_scene);
-//            
-//            // Commented out this code since it could never have executed, but might still be informative.
-////            if (proxyObjectGroup != null)
-////            {
-//                proxyObjectGroup.SendGroupFullUpdate();
-//                remote_client.SendSitResponse(proxyObjectGroup.UUID, Vector3.Zero, Quaternion.Identity, true, Vector3.Zero, Vector3.Zero, false);
-//                m_scene.DeleteSceneObject(proxyObjectGroup, false);
-////            }
-////            else
-////            {
-////                m_autopilotMoving = false;
-////                m_autoPilotTarget = Vector3.Zero;
-////                ControllingClient.SendAlertMessage("Autopilot cancelled");
-////            }
-//        }
-
         /// <summary>
-        /// Move this presence to the given position over time.
+        /// Move to the given target over time.
         /// </summary>
         /// <param name="pos"></param>
-        public void DoMoveToPosition(Vector3 pos)
+        public void MoveToTarget(Vector3 pos)
         {
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
@@ -1726,14 +1702,14 @@ namespace OpenSim.Region.Framework.Scenes
             MoveToPositionTarget = pos;
 
             Vector3 agent_control_v3 = new Vector3();
-            DoMoveToPositionUpdate(ref agent_control_v3, Rotation, false, true);
+            HandleMoveToPositionUpdate(ref agent_control_v3, Rotation, false, true);
             AddNewMovement(agent_control_v3, Rotation);
         }
 
         /// <summary>
-        /// Reset the move to position.
+        /// Reset the move to target.
         /// </summary>
-        public void ResetMoveToPosition()
+        public void ResetMoveToTarget()
         {
             MoveToPositionTarget = Vector3.Zero;
             m_moveToPositionInProgress = false;

@@ -74,7 +74,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     {
 //                        m_log.DebugFormat("[NPC MODULE]: Stopping movement of npc {0} {1}", presence.Name, presence.UUID);
                         // We are close enough to the target for now
-                        presence.ResetMoveToPosition();
+                        presence.ResetMoveToTarget();
                         presence.Velocity = Vector3.Zero;
 
                         // FIXME: This doesn't work
@@ -86,7 +86,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     else
                     {
                         Vector3 agent_control_v3 = new Vector3();
-                        presence.DoMoveToPositionUpdate(ref agent_control_v3, presence.Rotation, false, true);
+                        presence.HandleMoveToPositionUpdate(ref agent_control_v3, presence.Rotation, false, true);
                         presence.AddNewMovement(agent_control_v3, presence.Rotation);
                     }
 //
@@ -189,7 +189,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     m_log.DebugFormat(
                         "[NPC MODULE]: Moving {0} to {1} in {2}", sp.Name, pos, scene.RegionInfo.RegionName);
 
-                    sp.DoMoveToPosition(pos);
+                    sp.MoveToTarget(pos);
                 }
             }
         }
