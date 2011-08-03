@@ -1417,7 +1417,6 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_parentID == 0)
                 {
                     bool bAllowUpdateMoveToPosition = false;
-                    bool bResetMoveToPosition = false;
 
                     Vector3[] dirVectors;
 
@@ -1436,8 +1435,8 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (((uint)flags & (uint)DCF) != 0)
                         {
-                            bResetMoveToPosition = true;
                             DCFlagKeyPressed = true;
+
                             try
                             {
                                 agent_control_v3 += dirVectors[i];
@@ -1485,7 +1484,9 @@ namespace OpenSim.Region.Framework.Scenes
                         i++;
                     }
 
-                    if (HandleMoveToPositionUpdate(ref agent_control_v3, bodyRotation, bResetMoveToPosition, bAllowUpdateMoveToPosition))
+                    // If the user has pressed a key then we want to cancel any move to target.
+                    if (HandleMoveToPositionUpdate(
+                        ref agent_control_v3, bodyRotation, DCFlagKeyPressed, bAllowUpdateMoveToPosition))
                         update_movementflag = true;
                 }
 
