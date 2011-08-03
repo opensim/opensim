@@ -470,52 +470,47 @@ namespace OpenSim.Region.CoreModules.World.Land
             SendLandUpdate(avatar, false);
         }
 
-        public void EventManagerOnSignificantClientMovement(IClientAPI remote_client)
+        public void EventManagerOnSignificantClientMovement(ScenePresence clientAvatar)
         {
-            ScenePresence clientAvatar = m_scene.GetScenePresence(remote_client.AgentId);
-
-            if (clientAvatar != null)
+            SendLandUpdate(clientAvatar);
+            SendOutNearestBanLine(clientAvatar.ControllingClient);
+            ILandObject parcel = GetLandObject(clientAvatar.AbsolutePosition.X, clientAvatar.AbsolutePosition.Y);
+            if (parcel != null)
             {
-                SendLandUpdate(clientAvatar);
-                SendOutNearestBanLine(remote_client);
-                ILandObject parcel = GetLandObject(clientAvatar.AbsolutePosition.X, clientAvatar.AbsolutePosition.Y);
-                if (parcel != null)
+                if (clientAvatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT &&
+                    clientAvatar.sentMessageAboutRestrictedParcelFlyingDown)
                 {
-                    if (clientAvatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT &&
-                        clientAvatar.sentMessageAboutRestrictedParcelFlyingDown)
+                    EventManagerOnAvatarEnteringNewParcel(clientAvatar, parcel.LandData.LocalID,
+                                                          m_scene.RegionInfo.RegionID);
+                    //They are going under the safety line!
+                    if (!parcel.IsBannedFromLand(clientAvatar.UUID))
                     {
-                        EventManagerOnAvatarEnteringNewParcel(clientAvatar, parcel.LandData.LocalID,
-                                                              m_scene.RegionInfo.RegionID);
-                        //They are going under the safety line!
-                        if (!parcel.IsBannedFromLand(clientAvatar.UUID))
-                        {
-                            clientAvatar.sentMessageAboutRestrictedParcelFlyingDown = false;
-                        }
+                        clientAvatar.sentMessageAboutRestrictedParcelFlyingDown = false;
                     }
-                    else if (clientAvatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT &&
-                             parcel.IsBannedFromLand(clientAvatar.UUID))
+                }
+                else if (clientAvatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT &&
+                         parcel.IsBannedFromLand(clientAvatar.UUID))
+                {
+                    //once we've sent the message once, keep going toward the target until we are done
+                    if (forcedPosition.ContainsKey(clientAvatar.ControllingClient.AgentId))
                     {
-                        //once we've sent the message once, keep going toward the target until we are done
-                        if (forcedPosition.ContainsKey(clientAvatar.ControllingClient.AgentId))
-                        {
-                            SendYouAreBannedNotice(clientAvatar);
-                            ForceAvatarToPosition(clientAvatar, m_scene.GetNearestAllowedPosition(clientAvatar));
-                        }
+                        SendYouAreBannedNotice(clientAvatar);
+                        ForceAvatarToPosition(clientAvatar, m_scene.GetNearestAllowedPosition(clientAvatar));
                     }
-                    else if (parcel.IsRestrictedFromLand(clientAvatar.UUID))
+                }
+                else if (parcel.IsRestrictedFromLand(clientAvatar.UUID))
+                {
+                    //once we've sent the message once, keep going toward the target until we are done
+                    if (forcedPosition.ContainsKey(clientAvatar.ControllingClient.AgentId))
                     {
-                        //once we've sent the message once, keep going toward the target until we are done
-                        if (forcedPosition.ContainsKey(clientAvatar.ControllingClient.AgentId))
-                        {
-                            SendYouAreRestrictedNotice(clientAvatar);
-                            ForceAvatarToPosition(clientAvatar, m_scene.GetNearestAllowedPosition(clientAvatar));
-                        }
+                        SendYouAreRestrictedNotice(clientAvatar);
+                        ForceAvatarToPosition(clientAvatar, m_scene.GetNearestAllowedPosition(clientAvatar));
                     }
-                    else
-                    {
-                        //when we are finally in a safe place, lets release the forced position lock
-                        forcedPosition.Remove(clientAvatar.ControllingClient.AgentId);
-                    }
+                }
+                else
+                {
+                    //when we are finally in a safe place, lets release the forced position lock
+                    forcedPosition.Remove(clientAvatar.ControllingClient.AgentId);
                 }
             }
         }

@@ -165,8 +165,7 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void AvatarEnteringNewParcel(ScenePresence avatar, int localLandID, UUID regionID);
         public event AvatarEnteringNewParcel OnAvatarEnteringNewParcel;
 
-        public delegate void SignificantClientMovement(IClientAPI remote_client);
-        public event SignificantClientMovement OnSignificantClientMovement;
+        public event Action<ScenePresence> OnSignificantClientMovement;
 
         public delegate void IncomingInstantMessage(GridInstantMessage message);
         public event IncomingInstantMessage OnIncomingInstantMessage;
@@ -1592,16 +1591,16 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerSignificantClientMovement(IClientAPI client)
+        public void TriggerSignificantClientMovement(ScenePresence presence)
         {
-            SignificantClientMovement handlerSignificantClientMovement = OnSignificantClientMovement;
+            Action<ScenePresence> handlerSignificantClientMovement = OnSignificantClientMovement;
             if (handlerSignificantClientMovement != null)
             {
-                foreach (SignificantClientMovement d in handlerSignificantClientMovement.GetInvocationList())
+                foreach (Action<ScenePresence> d in handlerSignificantClientMovement.GetInvocationList())
                 {
                     try
                     {
-                        d(client);
+                        d(presence);
                     }
                     catch (Exception e)
                     {

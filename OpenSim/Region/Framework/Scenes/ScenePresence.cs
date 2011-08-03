@@ -211,7 +211,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         //PauPaw:Proper PID Controler for autopilot************
         private bool m_moveToPositionInProgress;
-        private Vector3 m_moveToPositionTarget;
+
+        public Vector3 MoveToPositionTarget { get; private set; }
 
         private bool m_followCamAuto;
 
@@ -1385,7 +1386,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (agentData.UseClientAgentPosition)
                 {
                     m_moveToPositionInProgress = (agentData.ClientAgentPosition - AbsolutePosition).Length() > 0.2f;
-                    m_moveToPositionTarget = agentData.ClientAgentPosition;
+                    MoveToPositionTarget = agentData.ClientAgentPosition;
                 }
 
                 int i = 0;
@@ -1543,16 +1544,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param value="reset">If true, clear the move to position</param>
         /// <param value="allowUpdate">If true, allow the update in principle.</param>
         /// <returns>True if movement has been updated in some way.  False otherwise.</returns>
-        protected bool DoMoveToPositionUpdate(
+        public bool DoMoveToPositionUpdate(
             ref Vector3 agent_control_v3, Quaternion bodyRotation, bool reset, bool allowUpdate)
         {
+//            m_log.DebugFormat("[SCENE PRESENCE]: Called DoMoveToPositionUpdate() for {0}", Name);
+
             bool updated = false;
 
             //Paupaw:Do Proper PID for Autopilot here
             if (reset)
             {
-                m_moveToPositionTarget = Vector3.Zero;
-                m_moveToPositionInProgress = false;
+                ResetMoveToPosition();
                 updated = true;
             }
 
@@ -1562,16 +1564,16 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (allowUpdate && (m_moveToPositionInProgress && !m_autopilotMoving))
             {
-                double distanceToTarget = Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget);
-//                        m_log.DebugFormat(
-//                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
-//                            Name, AbsolutePosition, m_moveToPositionTarget, distanceToTarget);
+                double distanceToTarget = Util.GetDistanceTo(AbsolutePosition, MoveToPositionTarget);
+                        m_log.DebugFormat(
+                            "[SCENE PRESENCE]: Abs pos of {0} is {1}, target {2}, distance {3}",
+                            Name, AbsolutePosition, MoveToPositionTarget, distanceToTarget);
 
                 // Check the error term of the current position in relation to the target position
                 if (distanceToTarget <= 1)
                 {
                     // We are close enough to the target
-                    m_moveToPositionTarget = Vector3.Zero;
+                    MoveToPositionTarget = Vector3.Zero;
                     m_moveToPositionInProgress = false;
                     updated = true;
                 }
@@ -1585,7 +1587,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // unknown forces are acting on the avatar and we need to adaptively respond
                         // to such forces, but the following simple approach seems to works fine.
                         Vector3 LocalVectorToTarget3D =
-                            (m_moveToPositionTarget - AbsolutePosition) // vector from cur. pos to target in global coords
+                            (MoveToPositionTarget - AbsolutePosition) // vector from cur. pos to target in global coords
                             * Matrix4.CreateFromQuaternion(Quaternion.Inverse(bodyRotation)); // change to avatar coords
                         // Ignore z component of vector
 //                        Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
@@ -1718,11 +1720,20 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_moveToPositionInProgress = true;
-            m_moveToPositionTarget = pos;
+            MoveToPositionTarget = pos;
 
             Vector3 agent_control_v3 = new Vector3();
             DoMoveToPositionUpdate(ref agent_control_v3, Rotation, false, true);
             AddNewMovement(agent_control_v3, Rotation);
+        }
+
+        /// <summary>
+        /// Reset the move to position.
+        /// </summary>
+        public void ResetMoveToPosition()
+        {
+            MoveToPositionTarget = Vector3.Zero;
+            m_moveToPositionInProgress = false;
         }
 
         private void CheckAtSitTarget()
@@ -2731,7 +2742,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (Util.GetDistanceTo(AbsolutePosition, posLastSignificantMove) > SIGNIFICANT_MOVEMENT)
             {
                 posLastSignificantMove = AbsolutePosition;
-                m_scene.EventManager.TriggerSignificantClientMovement(m_controllingClient);
+                m_scene.EventManager.TriggerSignificantClientMovement(this);
             }
 
             // Minimum Draw distance is 64 meters, the Radius of the draw distance sphere is 32m
