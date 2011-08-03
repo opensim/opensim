@@ -718,7 +718,6 @@
 
 [NPC]
     ;# {Enabled} {} {Enable Non Player Character (NPC) facilities} {true false} false
-    ;; Enable media on a prim facilities
     ; Enabled = false
 
 
