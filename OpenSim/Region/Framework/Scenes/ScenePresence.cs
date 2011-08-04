@@ -1537,8 +1537,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (update_movementflag
                     && ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) == 0)
                     && (m_parentID == 0)
-                    && !SitGround
-                    && !MovingToTarget)
+                    && !SitGround)
                     Animator.UpdateMovementAnimations();
             }
 
@@ -1711,9 +1710,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (pos.Z - terrainHeight < 0.2)
                 pos.Z = terrainHeight;
 
-//            m_log.DebugFormat(
-//                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
-//                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
+            m_log.DebugFormat(
+                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
+                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
 
             if (pos.Z > terrainHeight)
                 PhysicsActor.Flying = true;

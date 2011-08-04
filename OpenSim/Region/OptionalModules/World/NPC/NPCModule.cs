@@ -72,8 +72,19 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     // Check the error term of the current position in relation to the target position
                     if (distanceToTarget <= ScenePresence.SIGNIFICANT_MOVEMENT)
                     {
-                        m_log.DebugFormat("[NPC MODULE]: Stopping movement of npc {0}", presence.Name);
                         // We are close enough to the target
+                        m_log.DebugFormat("[NPC MODULE]: Stopping movement of npc {0}", presence.Name);
+
+                        if (presence.PhysicsActor.Flying)
+                        {
+                            Vector3 targetPos = presence.MoveToPositionTarget;
+                            float terrainHeight = (float)presence.Scene.Heightmap[(int)targetPos.X, (int)targetPos.Y];
+                            if (targetPos.Z - terrainHeight < 0.2)
+                            {
+                                presence.PhysicsActor.Flying = false;
+                            }
+                        }
+
                         presence.Velocity = Vector3.Zero;
                         presence.AbsolutePosition = presence.MoveToPositionTarget;
                         presence.ResetMoveToTarget();
