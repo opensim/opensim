@@ -89,6 +89,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.1f, 0.0f, 0.3f);
 
+        /// <summary>
+        /// Movement updates for agents in neighboring regions are sent directly to clients.
+        /// This value only affects how often agent positions are sent to neighbor regions
+        /// for things such as distance-based update prioritization
+        /// </summary>
+        public static readonly float SIGNIFICANT_MOVEMENT = 2.0f;
+
         public UUID currentParcelUUID = UUID.Zero;
 
         private ISceneViewer m_sceneViewer;
@@ -2718,11 +2725,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected void CheckForSignificantMovement()
         {
-            // Movement updates for agents in neighboring regions are sent directly to clients.
-            // This value only affects how often agent positions are sent to neighbor regions
-            // for things such as distance-based update prioritization
-            const float SIGNIFICANT_MOVEMENT = 2.0f;
-
             if (Util.GetDistanceTo(AbsolutePosition, posLastSignificantMove) > SIGNIFICANT_MOVEMENT)
             {
                 posLastSignificantMove = AbsolutePosition;

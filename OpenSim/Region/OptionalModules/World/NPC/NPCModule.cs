@@ -70,7 +70,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 //                                presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget, distanceToTarget);
 
                     // Check the error term of the current position in relation to the target position
-                    if (distanceToTarget <= 2)
+                    if (distanceToTarget <= ScenePresence.SIGNIFICANT_MOVEMENT)
                     {
 //                        m_log.DebugFormat("[NPC MODULE]: Stopping movement of npc {0} {1}", presence.Name, presence.UUID);
                         // We are close enough to the target for now
