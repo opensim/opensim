@@ -1484,17 +1484,20 @@ namespace OpenSim.Region.Framework.Scenes
                         i++;
                     }
 
-                    // If the user has pressed a key then we want to cancel any move to target.
-                    if (DCFlagKeyPressed && m_moveToPositionInProgress)
+                    if (m_moveToPositionInProgress)
                     {
-                        ResetMoveToTarget();
-                        update_movementflag = true;
-                    }
-                    else
-                    {
-                        if (HandleMoveToTargetUpdate(
-                            ref agent_control_v3, bodyRotation, bAllowUpdateMoveToPosition))
+                        // If the user has pressed a key then we want to cancel any move to target.
+                        if (DCFlagKeyPressed)
+                        {
+                            ResetMoveToTarget();
                             update_movementflag = true;
+                        }
+                        else
+                        {
+                            if (HandleMoveToTargetUpdate(
+                                ref agent_control_v3, bodyRotation, bAllowUpdateMoveToPosition))
+                                update_movementflag = true;
+                        }
                     }
                 }
 
