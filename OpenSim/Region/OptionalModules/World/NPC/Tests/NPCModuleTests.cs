@@ -130,6 +130,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
 
             double distanceToTarget = Util.GetDistanceTo(npc.AbsolutePosition, targetPos);
             Assert.That(distanceToTarget, Is.LessThan(1), "NPC not within 1 unit of target position on first move");
+            Assert.That(npc.AbsolutePosition, Is.EqualTo(targetPos));
 
             // Try a second movement
             startPos = npc.AbsolutePosition;
@@ -149,6 +150,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
 
             distanceToTarget = Util.GetDistanceTo(npc.AbsolutePosition, targetPos);
             Assert.That(distanceToTarget, Is.LessThan(1), "NPC not within 1 unit of target position on second move");
+            Assert.That(npc.AbsolutePosition, Is.EqualTo(targetPos));
         }
     }
 }

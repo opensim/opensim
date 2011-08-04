@@ -1575,6 +1575,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (distanceToTarget <= 1)
                 {
                     // We are close enough to the target
+                    AbsolutePosition = MoveToPositionTarget;
                     ResetMoveToTarget();
                     updated = true;
                 }
@@ -1713,7 +1714,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ResetMoveToTarget()
         {
-//            m_log.DebugFormat("[SCENE PRESENCE]: Resetting move to target for {0}", Name);
+            m_log.DebugFormat("[SCENE PRESENCE]: Resetting move to target for {0}", Name);
 
             m_moveToPositionInProgress = false;
             MoveToPositionTarget = Vector3.Zero;

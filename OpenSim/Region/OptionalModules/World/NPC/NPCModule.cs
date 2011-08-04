@@ -70,12 +70,13 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 //                                presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget, distanceToTarget);
 
                     // Check the error term of the current position in relation to the target position
-                    if (distanceToTarget <= 1)
+                    if (distanceToTarget <= 2)
                     {
 //                        m_log.DebugFormat("[NPC MODULE]: Stopping movement of npc {0} {1}", presence.Name, presence.UUID);
                         // We are close enough to the target for now
-                        presence.ResetMoveToTarget();
                         presence.Velocity = Vector3.Zero;
+                        presence.AbsolutePosition = presence.MoveToPositionTarget;
+                        presence.ResetMoveToTarget();
 
                         // FIXME: This doesn't work
                         if (presence.PhysicsActor.Flying)
