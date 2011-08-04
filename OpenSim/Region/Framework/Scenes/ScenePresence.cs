@@ -217,8 +217,7 @@ namespace OpenSim.Region.Framework.Scenes
         private string m_nextSitAnimation = String.Empty;
 
         //PauPaw:Proper PID Controler for autopilot************
-        private bool m_moveToPositionInProgress;
-
+        public bool MovingToTarget { get; private set; }
         public Vector3 MoveToPositionTarget { get; private set; }
 
         private bool m_followCamAuto;
@@ -1385,7 +1384,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (agentData.UseClientAgentPosition)
                 {
-                    m_moveToPositionInProgress = (agentData.ClientAgentPosition - AbsolutePosition).Length() > 0.2f;
+                    MovingToTarget = (agentData.ClientAgentPosition - AbsolutePosition).Length() > 0.2f;
                     MoveToPositionTarget = agentData.ClientAgentPosition;
                 }
 
@@ -1484,7 +1483,7 @@ namespace OpenSim.Region.Framework.Scenes
                         i++;
                     }
 
-                    if (m_moveToPositionInProgress)
+                    if (MovingToTarget)
                     {
                         // If the user has pressed a key then we want to cancel any move to target.
                         if (DCFlagKeyPressed)
@@ -1539,7 +1538,7 @@ namespace OpenSim.Region.Framework.Scenes
                     && ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) == 0)
                     && (m_parentID == 0)
                     && !SitGround
-                    && !m_moveToPositionInProgress)
+                    && !MovingToTarget)
                     Animator.UpdateMovementAnimations();
             }
 
@@ -1706,7 +1705,20 @@ namespace OpenSim.Region.Framework.Scenes
             float terrainHeight = (float)m_scene.Heightmap[(int)pos.X, (int)pos.Y];
             pos.Z = Math.Max(terrainHeight, pos.Z);
 
-            m_moveToPositionInProgress = true;
+            // Fudge factor.  It appears that if one clicks "go here" on a piece of ground, the go here request is
+            // always slightly higher than the actual terrain height.
+            // FIXME: This constrains NOC movements as well, so should be somewhere else.
+            if (pos.Z - terrainHeight < 0.2)
+                pos.Z = terrainHeight;
+
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
+//                Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
+
+            if (pos.Z > terrainHeight)
+                PhysicsActor.Flying = true;
+
+            MovingToTarget = true;
             MoveToPositionTarget = pos;
 
             Vector3 agent_control_v3 = new Vector3();
@@ -1721,7 +1733,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_log.DebugFormat("[SCENE PRESENCE]: Resetting move to target for {0}", Name);
 
-            m_moveToPositionInProgress = false;
+            MovingToTarget = false;
             MoveToPositionTarget = Vector3.Zero;
         }
 

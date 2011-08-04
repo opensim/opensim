@@ -62,7 +62,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
             lock (m_avatars)
             {
-                if (m_avatars.ContainsKey(presence.UUID))
+                if (m_avatars.ContainsKey(presence.UUID) && presence.MovingToTarget)
                 {
                     double distanceToTarget = Util.GetDistanceTo(presence.AbsolutePosition, presence.MoveToPositionTarget);
 //                            m_log.DebugFormat(
@@ -72,8 +72,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     // Check the error term of the current position in relation to the target position
                     if (distanceToTarget <= ScenePresence.SIGNIFICANT_MOVEMENT)
                     {
-//                        m_log.DebugFormat("[NPC MODULE]: Stopping movement of npc {0} {1}", presence.Name, presence.UUID);
-                        // We are close enough to the target for now
+                        m_log.DebugFormat("[NPC MODULE]: Stopping movement of npc {0}", presence.Name);
+                        // We are close enough to the target
                         presence.Velocity = Vector3.Zero;
                         presence.AbsolutePosition = presence.MoveToPositionTarget;
                         presence.ResetMoveToTarget();
@@ -86,6 +86,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     }
                     else
                     {
+                        m_log.DebugFormat(
+                            "[NPC MODULE]: Updating npc {0} at {1} for next movement to {2}",
+                            presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget);
+
                         Vector3 agent_control_v3 = new Vector3();
                         presence.HandleMoveToTargetUpdate(ref agent_control_v3, presence.Rotation);
                         presence.AddNewMovement(agent_control_v3, presence.Rotation);
