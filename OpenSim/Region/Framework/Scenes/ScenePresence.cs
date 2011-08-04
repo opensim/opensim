@@ -1890,7 +1890,7 @@ namespace OpenSim.Region.Framework.Scenes
             bool forceMouselook = false;
 
             //SceneObjectPart part =  m_scene.GetSceneObjectPart(targetID);
-            SceneObjectPart part =  FindNextAvailableSitTarget(targetID);
+            SceneObjectPart part = FindNextAvailableSitTarget(targetID);
             if (part != null)
             {
                 // TODO: determine position to sit at based on scene geometry; don't trust offset from client
@@ -1966,14 +1966,23 @@ namespace OpenSim.Region.Framework.Scenes
                 HandleAgentSit(remoteClient, UUID);
         }
 
+        // public void HandleAgentRequestSit(IClientAPI remoteClient, UUID agentID, UUID targetID, Vector3 offset, string sitAnimation)
         public void HandleAgentRequestSit(IClientAPI remoteClient, UUID agentID, UUID targetID, Vector3 offset)
         {
             if (m_parentID != 0)
             {
                 StandUp();
             }
+
+//            if (!String.IsNullOrEmpty(sitAnimation))
+//            {
+//                m_nextSitAnimation = sitAnimation;
+//            }
+//            else
+//            {
             m_nextSitAnimation = "SIT";
-            
+//            }
+
             //SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);
             SceneObjectPart part = FindNextAvailableSitTarget(targetID);
 
@@ -1998,7 +2007,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                
                 m_log.Warn("Sit requested on unknown object: " + targetID.ToString());
             }
 
@@ -2196,44 +2204,7 @@ namespace OpenSim.Region.Framework.Scenes
             SendSitResponse(ControllingClient, m_requestedSitTargetUUID, collisionPoint - m_requestedSitOffset, Quaternion.Identity);
         }
         */
-        public void HandleAgentRequestSit(IClientAPI remoteClient, UUID agentID, UUID targetID, Vector3 offset, string sitAnimation)
-        {
-            if (m_parentID != 0)
-            {
-                StandUp();
-            }
-            if (!String.IsNullOrEmpty(sitAnimation))
-            {
-                m_nextSitAnimation = sitAnimation;
-            }
-            else
-            {
-                m_nextSitAnimation = "SIT";
-            }
 
-            //SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);
-            SceneObjectPart part =  FindNextAvailableSitTarget(targetID);
-            if (part != null)
-            {
-                m_requestedSitTargetID = part.LocalId; 
-                //m_requestedSitOffset = offset;
-                m_requestedSitTargetUUID = targetID;
-
-                m_log.DebugFormat("[SIT]: Client requested Sit Position: {0}", offset);
-
-                if (m_scene.PhysicsScene.SupportsRayCast())
-                {
-                    //SitRayCastAvatarPosition(part);
-                    //return;
-                }
-            }
-            else
-            {
-                m_log.Warn("Sit requested on unknown object: " + targetID);
-            }
-            
-            SendSitResponse(remoteClient, targetID, offset, Quaternion.Identity);
-        }
 
         public void HandleAgentSit(IClientAPI remoteClient, UUID agentID)
         {
