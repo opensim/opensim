@@ -87,7 +87,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     else
                     {
                         Vector3 agent_control_v3 = new Vector3();
-                        presence.HandleMoveToTargetUpdate(ref agent_control_v3, presence.Rotation, false, true);
+                        presence.HandleMoveToTargetUpdate(ref agent_control_v3, presence.Rotation, true);
                         presence.AddNewMovement(agent_control_v3, presence.Rotation);
                     }
 //
