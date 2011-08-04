@@ -1492,10 +1492,9 @@ namespace OpenSim.Region.Framework.Scenes
                             ResetMoveToTarget();
                             update_movementflag = true;
                         }
-                        else
+                        else if (bAllowUpdateMoveToPosition)
                         {
-                            if (HandleMoveToTargetUpdate(
-                                ref agent_control_v3, bodyRotation, bAllowUpdateMoveToPosition))
+                            if (HandleMoveToTargetUpdate(ref agent_control_v3, bodyRotation))
                                 update_movementflag = true;
                         }
                     }
@@ -1557,10 +1556,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </remarks>
         /// <param value="agent_control_v3">Cumulative agent movement that this method will update.</param>
         /// <param value="bodyRotation">New body rotation of the avatar.</param>
-        /// <param value="allowUpdate">If true, allow the update in principle.</param>
         /// <returns>True if movement has been updated in some way.  False otherwise.</returns>
-        public bool HandleMoveToTargetUpdate(
-            ref Vector3 agent_control_v3, Quaternion bodyRotation, bool allowUpdate)
+        public bool HandleMoveToTargetUpdate(ref Vector3 agent_control_v3, Quaternion bodyRotation)
         {
 //            m_log.DebugFormat("[SCENE PRESENCE]: Called HandleMoveToTargetUpdate() for {0}", Name);
 
@@ -1570,7 +1567,7 @@ namespace OpenSim.Region.Framework.Scenes
 //                "[SCENE PRESENCE]: bAllowUpdateMoveToPosition {0}, m_moveToPositionInProgress {1}, m_autopilotMoving {2}",
 //                allowUpdate, m_moveToPositionInProgress, m_autopilotMoving);
 
-            if (allowUpdate && (m_moveToPositionInProgress && !m_autopilotMoving))
+            if (!m_autopilotMoving)
             {
                 double distanceToTarget = Util.GetDistanceTo(AbsolutePosition, MoveToPositionTarget);
 //                        m_log.DebugFormat(
@@ -1711,7 +1708,7 @@ namespace OpenSim.Region.Framework.Scenes
             MoveToPositionTarget = pos;
 
             Vector3 agent_control_v3 = new Vector3();
-            HandleMoveToTargetUpdate(ref agent_control_v3, Rotation, true);
+            HandleMoveToTargetUpdate(ref agent_control_v3, Rotation);
             AddNewMovement(agent_control_v3, Rotation);
         }
 
