@@ -1635,7 +1635,6 @@ namespace OpenSim.Region.Framework.Scenes
                         if (LocalVectorToTarget3D.Y > 0) //MoveLeft
                         {
                             m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
-                            //AgentControlFlags
                             AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
                             updated = true;
                         }
@@ -1703,6 +1702,9 @@ namespace OpenSim.Region.Framework.Scenes
 ////                m_log.DebugFormat("[SCENE PRESENCE]: Adjusting MoveToPosition from {0} to {1}", pos, AbsolutePosition);
 //                pos.Z = AbsolutePosition.Z;
 //            }
+
+            float terrainHeight = (float)m_scene.Heightmap[(int)pos.X, (int)pos.Y];
+            pos.Z = Math.Max(terrainHeight, pos.Z);
 
             m_moveToPositionInProgress = true;
             MoveToPositionTarget = pos;
