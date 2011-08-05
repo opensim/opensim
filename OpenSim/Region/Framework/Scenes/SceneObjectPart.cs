@@ -261,12 +261,9 @@ namespace OpenSim.Region.Framework.Scenes
         }
         protected SceneObjectPartInventory m_inventory;
 
-        
         public bool Undoing;
-
         
         public bool IgnoreUndoUpdate = false;
-
         
         private PrimFlags LocalFlags;
         
@@ -4645,6 +4642,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
+
+//            m_log.DebugFormat("[SCENE OBJECT PART]: Updated PrimFlags on {0} {1} to {2}", Name, LocalId, Flags);
         }
 
         public void UpdateRotation(Quaternion rot)
@@ -4864,7 +4863,7 @@ namespace OpenSim.Region.Framework.Scenes
             //    m_parentGroup.Scene.EventManager.OnScriptTimerEvent -= handleTimerAccounting;
             //}
 
-            LocalFlags=(PrimFlags)objectflagupdate;
+            LocalFlags = (PrimFlags)objectflagupdate;
 
             if (m_parentGroup != null && m_parentGroup.RootPart == this)
             {
