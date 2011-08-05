@@ -32,12 +32,14 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.BulletSPlugin {
 
+[StructLayout(LayoutKind.Sequential)]
 public struct ConvexHull 
 {
 	Vector3 Offset;
 	int VertexCount;
 	Vector3[] Vertices;
 }
+[StructLayout(LayoutKind.Sequential)]
 public struct ShapeData 
 {
     public enum PhysicsShapeType
@@ -49,6 +51,7 @@ public struct ShapeData
 		SHAPE_SPHERE = 4,
 		SHAPE_HULL = 5
     };
+    // note that bools are passed as ints since bool size changes by language
     public const int numericTrue = 1;
     public const int numericFalse = 0;
     public uint ID;
@@ -60,11 +63,12 @@ public struct ShapeData
     public float Mass;
     public float Buoyancy;
     public System.UInt64 MeshKey;
-    public int Collidable;
     public float Friction;
+    public float Restitution;
+    public int Collidable;
     public int Static;  // true if a static object. Otherwise gravity, etc.
-    // note that bools are passed as ints since bool size changes by language
 }
+[StructLayout(LayoutKind.Sequential)]
 public struct SweepHit 
 {
     public uint ID;
@@ -72,12 +76,14 @@ public struct SweepHit
     public Vector3 Normal;
     public Vector3 Point;
 }
+[StructLayout(LayoutKind.Sequential)]
 public struct RaycastHit
 {
     public uint ID;
     public float Fraction;
     public Vector3 Normal;
 }
+[StructLayout(LayoutKind.Sequential)]
 public struct CollisionDesc
 {
     public uint aID;
@@ -85,6 +91,7 @@ public struct CollisionDesc
     public Vector3 point;
     public Vector3 normal;
 }
+[StructLayout(LayoutKind.Sequential)]
 public struct EntityProperties
 {
     public uint ID;
@@ -92,13 +99,42 @@ public struct EntityProperties
     public Quaternion Rotation;
     public Vector3 Velocity;
     public Vector3 Acceleration;
-    public Vector3 AngularVelocity;
+    public Vector3 RotationalVelocity;
+}
+
+// Format of this structure must match the definition in the C++ code
+[StructLayout(LayoutKind.Sequential)]
+public struct ConfigurationParameters
+{
+    public float defaultFriction;
+    public float defaultDensity;
+    public float defaultRestitution;
+    public float collisionMargin;
+    public float gravity;
+
+    public float linearDamping;
+    public float angularDamping;
+    public float deactivationTime;
+    public float linearSleepingThreshold;
+    public float angularSleepingThreshold;
+	public float ccdMotionThreshold;
+	public float ccdSweptSphereRadius;
+
+    public float terrainFriction;
+    public float terrainHitFriction;
+    public float terrainRestitution;
+    public float avatarFriction;
+    public float avatarDensity;
+    public float avatarRestitution;
+    public float avatarCapsuleRadius;
+    public float avatarCapsuleHeight;
 }
 
 static class BulletSimAPI {
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern uint Initialize(Vector3 maxPosition, int maxCollisions, IntPtr collisionArray, 
+public static extern uint Initialize(Vector3 maxPosition, IntPtr parms, 
+                        int maxCollisions, IntPtr collisionArray, 
                         int maxUpdates, IntPtr updateArray);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]

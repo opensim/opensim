@@ -71,11 +71,17 @@ public class BSScene : PhysicsScene
     private uint m_worldID;
     public uint WorldID { get { return m_worldID; } }
 
-    public IMesher mesher;
-    public int meshLOD = 32;
+    private bool m_initialized = false;
 
-    private int m_maxSubSteps = 10;
-    private float m_fixedTimeStep = 1f / 60f;
+    public IMesher mesher;
+    private int m_meshLOD;
+    public int MeshLOD
+    {
+        get { return m_meshLOD; }
+    }
+
+    private int m_maxSubSteps;
+    private float m_fixedTimeStep;
     private long m_simulationStep = 0;
     public long SimulationStep { get { return m_simulationStep; } }
 
@@ -84,67 +90,64 @@ public class BSScene : PhysicsScene
     private int m_simulationNowTime;
     public int SimulationNowTime { get { return m_simulationNowTime; } }
 
-    private int m_maxCollisionsPerFrame = 2048;
+    private int m_maxCollisionsPerFrame;
     private CollisionDesc[] m_collisionArray;
     private GCHandle m_collisionArrayPinnedHandle;
 
-    private int m_maxUpdatesPerFrame = 2048;
+    private int m_maxUpdatesPerFrame;
     private EntityProperties[] m_updateArray;
     private GCHandle m_updateArrayPinnedHandle;
 
     private bool _meshSculptedPrim = true;         // cause scuplted prims to get meshed
     private bool _forceSimplePrimMeshing = false;   // if a cube or sphere, let Bullet do internal shapes
-    public float maximumMassObject = 10000.01f;
 
-    public const uint TERRAIN_ID = 0;
+    public const uint TERRAIN_ID = 0;       // OpenSim senses terrain with a localID of zero
     public const uint GROUNDPLANE_ID = 1;
 
-    public float DefaultFriction = 0.70f;
-    public float DefaultDensity = 10.000006836f; // Aluminum g/cm3;  TODO: compute based on object material
-    public Vector3 DefaultGravity = new Vector3(0, 0, -9.80665f);
+    public ConfigurationParameters Params
+    {
+        get { return m_params[0]; }
+    }
+    public Vector3 DefaultGravity
+    {
+        get { return new Vector3(0f, 0f, Params.gravity); }
+    }
+
+    private float m_maximumObjectMass;
+    public float MaximumObjectMass
+    {
+        get { return m_maximumObjectMass; }
+    }
 
     public delegate void TaintCallback();
     private List<TaintCallback> _taintedObjects;
     private Object _taintLock = new Object();
 
     // A pointer to an instance if this structure is passed to the C++ code
-    // Format of this structure must match the definition in the C++ code
-    private struct ConfigurationParameters
-    {
-        public float defaultFriction;
-        public float defaultDensity;
-        public float collisionMargin;
-        public float gravity;
-
-        public float linearDamping;
-        public float angularDamping;
-        public float deactivationTime;
-        public float linearSleepingThreshold;
-        public float angularSleepingThreshold;
-
-        public float terrainFriction;
-        public float terrainHitFriction;
-        public float terrainRestitution;
-        public float avatarFriction;
-        public float avatarCapsuleRadius;
-        public float avatarCapsuleHeight;
-    }
-    ConfigurationParameters m_params;
+    ConfigurationParameters[] m_params;
     GCHandle m_paramsHandle;
 
     private BulletSimAPI.DebugLogCallback debugLogCallbackHandle;
 
     public BSScene(string identifier)
     {
+        m_initialized = false;
     }
 
     public override void Initialise(IMesher meshmerizer, IConfigSource config)
     {
-        m_params = new ConfigurationParameters();
+        // Allocate pinned memory to pass parameters.
+        m_params = new ConfigurationParameters[1];
         m_paramsHandle = GCHandle.Alloc(m_params, GCHandleType.Pinned);
 
         // Set default values for physics parameters plus any overrides from the ini file
         GetInitialParameterValues(config);
+
+        // allocate more pinned memory close to the above in an attempt to get the memory all together
+        m_collisionArray = new CollisionDesc[m_maxCollisionsPerFrame];
+        m_collisionArrayPinnedHandle = GCHandle.Alloc(m_collisionArray, GCHandleType.Pinned);
+        m_updateArray = new EntityProperties[m_maxUpdatesPerFrame];
+        m_updateArrayPinnedHandle = GCHandle.Alloc(m_updateArray, GCHandleType.Pinned);
 
         // if Debug, enable logging from the unmanaged code
         if (m_log.IsDebugEnabled)
@@ -160,68 +163,95 @@ public class BSScene : PhysicsScene
         // The bounding box for the simulated world
         Vector3 worldExtent = new Vector3(Constants.RegionSize, Constants.RegionSize, 4096f);
 
-        // Allocate pinned memory to pass back object property updates and collisions from simulation step
-        m_collisionArray = new CollisionDesc[m_maxCollisionsPerFrame];
-        m_collisionArrayPinnedHandle = GCHandle.Alloc(m_collisionArray, GCHandleType.Pinned);
-        m_updateArray = new EntityProperties[m_maxUpdatesPerFrame];
-        m_updateArrayPinnedHandle = GCHandle.Alloc(m_updateArray, GCHandleType.Pinned);
-
         // m_log.DebugFormat("{0}: Initialize: Calling BulletSimAPI.Initialize.", LogHeader);
-        m_worldID = BulletSimAPI.Initialize(worldExtent, 
+        m_worldID = BulletSimAPI.Initialize(worldExtent, m_paramsHandle.AddrOfPinnedObject(),
                                         m_maxCollisionsPerFrame, m_collisionArrayPinnedHandle.AddrOfPinnedObject(),
                                         m_maxUpdatesPerFrame, m_updateArrayPinnedHandle.AddrOfPinnedObject());
+
+        m_initialized = true;
     }
 
+    // All default parameter values are set here. There should be no values set in the
+    // variable definitions.
     private void GetInitialParameterValues(IConfigSource config)
     {
+        ConfigurationParameters parms = new ConfigurationParameters();
+
         _meshSculptedPrim = true;           // mesh sculpted prims
         _forceSimplePrimMeshing = false;    // use complex meshing if called for
 
-        // Set the default values for the physics parameters
-        m_params.defaultFriction = 0.70f;
-        m_params.defaultDensity = 10.000006836f; // Aluminum g/cm3
-        m_params.collisionMargin = 0.0f;
-        m_params.gravity = -9.80665f;
+        m_meshLOD = 32;
 
-        m_params.linearDamping = 0.1f;
-        m_params.angularDamping = 0.85f;
-        m_params.deactivationTime = 0.2f;
-        m_params.linearSleepingThreshold = 0.8f;
-        m_params.angularSleepingThreshold = 1.0f;
+        m_maxSubSteps = 10;
+        m_fixedTimeStep = 1f / 60f;
+        m_maxCollisionsPerFrame = 2048;
+        m_maxUpdatesPerFrame = 2048;
+        m_maximumObjectMass = 10000.01f;
 
-        m_params.terrainFriction = 0.85f;
-        m_params.terrainHitFriction = 0.8f;
-        m_params.terrainRestitution = 0.2f;
-        m_params.avatarFriction = 0.85f;
-        m_params.avatarCapsuleRadius = 0.37f;
-        m_params.avatarCapsuleHeight = 1.5f; // 2.140599f
+        parms.defaultFriction = 0.70f;
+        parms.defaultDensity = 10.000006836f; // Aluminum g/cm3
+        parms.defaultRestitution = 0f;
+        parms.collisionMargin = 0.0f;
+        parms.gravity = -9.80665f;
+
+        parms.linearDamping = 0.0f;
+        parms.angularDamping = 0.0f;
+        parms.deactivationTime = 0.2f;
+        parms.linearSleepingThreshold = 0.8f;
+        parms.angularSleepingThreshold = 1.0f;
+        parms.ccdMotionThreshold = 0.5f;    // set to zero to disable
+        parms.ccdSweptSphereRadius = 0.2f;
+
+        parms.terrainFriction = 0.85f;
+        parms.terrainHitFriction = 0.8f;
+        parms.terrainRestitution = 0.2f;
+        parms.avatarFriction = 0.85f;
+        parms.avatarDensity = 60f;
+        parms.avatarCapsuleRadius = 0.37f;
+        parms.avatarCapsuleHeight = 1.5f; // 2.140599f
 
         if (config != null)
         {
             // If there are specifications in the ini file, use those values
+            // WHEN ADDING OR UPDATING THIS SECTION, BE SURE TO ALSO UPDATE OpenSimDefaults.ini
             IConfig pConfig = config.Configs["BulletSim"];
             if (pConfig != null)
             {
-                _meshSculptedPrim = pConfig.GetBoolean("MeshSculptedPrim", true);
-                _forceSimplePrimMeshing = pConfig.GetBoolean("ForceSimplePrimMeshing", false);
+                _meshSculptedPrim = pConfig.GetBoolean("MeshSculptedPrim", _meshSculptedPrim);
+                _forceSimplePrimMeshing = pConfig.GetBoolean("ForceSimplePrimMeshing", _forceSimplePrimMeshing);
 
-                m_params.defaultFriction = pConfig.GetFloat("DefaultFriction", m_params.defaultFriction);
-                m_params.defaultDensity = pConfig.GetFloat("DefaultDensity", m_params.defaultDensity);
-                m_params.collisionMargin = pConfig.GetFloat("CollisionMargin", m_params.collisionMargin);
-                m_params.gravity = pConfig.GetFloat("Gravity", m_params.gravity);
-                m_params.linearDamping = pConfig.GetFloat("LinearDamping", m_params.linearDamping);
-                m_params.angularDamping = pConfig.GetFloat("AngularDamping", m_params.angularDamping);
-                m_params.deactivationTime = pConfig.GetFloat("DeactivationTime", m_params.deactivationTime);
-                m_params.linearSleepingThreshold = pConfig.GetFloat("LinearSleepingThreshold", m_params.linearSleepingThreshold);
-                m_params.angularSleepingThreshold = pConfig.GetFloat("AngularSleepingThreshold", m_params.angularSleepingThreshold);
-                m_params.terrainFriction = pConfig.GetFloat("TerrainFriction", m_params.terrainFriction);
-                m_params.terrainHitFriction = pConfig.GetFloat("TerrainHitFriction", m_params.terrainHitFriction);
-                m_params.terrainRestitution = pConfig.GetFloat("TerrainRestitution", m_params.terrainRestitution);
-                m_params.avatarFriction = pConfig.GetFloat("AvatarFriction", m_params.avatarFriction);
-                m_params.avatarCapsuleRadius = pConfig.GetFloat("AvatarCapsuleRadius", m_params.avatarCapsuleRadius);
-                m_params.avatarCapsuleHeight = pConfig.GetFloat("AvatarCapsuleHeight", m_params.avatarCapsuleHeight);
+                m_meshLOD = pConfig.GetInt("MeshLevelOfDetail", m_meshLOD);
+
+                m_maxSubSteps = pConfig.GetInt("MaxSubSteps", m_maxSubSteps);
+                m_fixedTimeStep = pConfig.GetFloat("FixedTimeStep", m_fixedTimeStep);
+                m_maxCollisionsPerFrame = pConfig.GetInt("MaxCollisionsPerFrame", m_maxCollisionsPerFrame);
+                m_maxUpdatesPerFrame = pConfig.GetInt("MaxUpdatesPerFrame", m_maxUpdatesPerFrame);
+                m_maximumObjectMass = pConfig.GetFloat("MaxObjectMass", m_maximumObjectMass);
+
+                parms.defaultFriction = pConfig.GetFloat("DefaultFriction", parms.defaultFriction);
+                parms.defaultDensity = pConfig.GetFloat("DefaultDensity", parms.defaultDensity);
+                parms.defaultRestitution = pConfig.GetFloat("DefaultRestitution", parms.defaultRestitution);
+                parms.collisionMargin = pConfig.GetFloat("CollisionMargin", parms.collisionMargin);
+                parms.gravity = pConfig.GetFloat("Gravity", parms.gravity);
+
+                parms.linearDamping = pConfig.GetFloat("LinearDamping", parms.linearDamping);
+                parms.angularDamping = pConfig.GetFloat("AngularDamping", parms.angularDamping);
+                parms.deactivationTime = pConfig.GetFloat("DeactivationTime", parms.deactivationTime);
+                parms.linearSleepingThreshold = pConfig.GetFloat("LinearSleepingThreshold", parms.linearSleepingThreshold);
+                parms.angularSleepingThreshold = pConfig.GetFloat("AngularSleepingThreshold", parms.angularSleepingThreshold);
+                parms.ccdMotionThreshold = pConfig.GetFloat("CcdMotionThreshold", parms.ccdMotionThreshold);
+                parms.ccdSweptSphereRadius = pConfig.GetFloat("CcdSweptSphereRadius", parms.ccdSweptSphereRadius);
+
+                parms.terrainFriction = pConfig.GetFloat("TerrainFriction", parms.terrainFriction);
+                parms.terrainHitFriction = pConfig.GetFloat("TerrainHitFriction", parms.terrainHitFriction);
+                parms.terrainRestitution = pConfig.GetFloat("TerrainRestitution", parms.terrainRestitution);
+                parms.avatarFriction = pConfig.GetFloat("AvatarFriction", parms.avatarFriction);
+                parms.avatarDensity = pConfig.GetFloat("AvatarDensity", parms.avatarDensity);
+                parms.avatarCapsuleRadius = pConfig.GetFloat("AvatarCapsuleRadius", parms.avatarCapsuleRadius);
+                parms.avatarCapsuleHeight = pConfig.GetFloat("AvatarCapsuleHeight", parms.avatarCapsuleHeight);
             }
         }
+        m_params[0] = parms;
     }
 
     // Called directly from unmanaged code so don't do much
@@ -282,20 +312,13 @@ public class BSScene : PhysicsScene
                                               Vector3 size, Quaternion rotation, bool isPhysical, uint localID)
     {
         // m_log.DebugFormat("{0}: AddPrimShape2: {1}", LogHeader, primName);
-        IMesh mesh = null;
-        if (NeedsMeshing(pbs))
-        {
-            // if the prim is complex, create the mesh for it.
-            // If simple (box or sphere) leave 'mesh' null and physics will do a native shape.
-            mesh = mesher.CreateMesh(primName, pbs, size, this.meshLOD, isPhysical);
-        }
-        BSPrim prim = new BSPrim(localID, primName, this, position, size, rotation, mesh, pbs, isPhysical);
+        BSPrim prim = new BSPrim(localID, primName, this, position, size, rotation, pbs, isPhysical);
         lock (m_prims) m_prims.Add(localID, prim);
         return prim;
     }
 
     // This is a call from the simulator saying that some physical property has been updated.
-    // The BulletS driver senses the changing of relevant properties so this taint 
+    // The BulletSim driver senses the changing of relevant properties so this taint 
     // information call is not needed.
     public override void AddPhysicsActorTaint(PhysicsActor prim) { }
 
@@ -306,6 +329,9 @@ public class BSScene : PhysicsScene
         IntPtr updatedEntitiesPtr;
         int collidersCount;
         IntPtr collidersPtr;
+
+        // prevent simulation until we've been initialized
+        if (!m_initialized) return 10.0f;
 
         // update the prim states while we know the physics engine is not busy
         ProcessTaints();
@@ -360,7 +386,7 @@ public class BSScene : PhysicsScene
             }
         }
 
-        // fps calculation wrong. This calculation always returns about 1 in normal operation.
+        // FIX THIS: fps calculation wrong. This calculation always returns about 1 in normal operation.
         return timeStep / (numSubSteps * m_fixedTimeStep) * 1000f;
     }
 
@@ -369,8 +395,7 @@ public class BSScene : PhysicsScene
     {
         if (localID == TERRAIN_ID || localID == GROUNDPLANE_ID)
         {
-            // we never send collisions to the terrain
-            return;
+            return;         // don't send collisions to the terrain
         }
 
         ActorTypes type = ActorTypes.Prim;
@@ -381,12 +406,12 @@ public class BSScene : PhysicsScene
 
         BSPrim prim;
         if (m_prims.TryGetValue(localID, out prim)) {
-            prim.Collide(collidingWith, type, collidePoint, collideNormal, 0.01f);
+            prim.Collide(collidingWith, type, collidePoint, collideNormal, penitration);
             return;
         }
         BSCharacter actor;
         if (m_avatars.TryGetValue(localID, out actor)) {
-            actor.Collide(collidingWith, type, collidePoint, collideNormal, 0.01f);
+            actor.Collide(collidingWith, type, collidePoint, collideNormal, penitration);
             return;
         }
         return;
@@ -448,7 +473,7 @@ public class BSScene : PhysicsScene
 
         if (pbs.SculptEntry && !_meshSculptedPrim)
         {
-            // m_log.DebugFormat("{0}: NeedsMeshing: scultpy mesh", LogHeader);
+            // Render sculpties as boxes
             return false;
         }
 

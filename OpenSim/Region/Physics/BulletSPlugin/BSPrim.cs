@@ -71,6 +71,7 @@ public sealed class BSPrim : PhysicsActor
     private bool _isPhysical;
     private bool _flying;
     private float _friction;
+    private float _restitution;
     private bool _setAlwaysRun;
     private bool _throttleUpdates;
     private bool _isColliding;
@@ -101,7 +102,7 @@ public sealed class BSPrim : PhysicsActor
     private float _PIDHoverTao;
 
     public BSPrim(uint localID, String primName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 size,
-                       OMV.Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical)
+                       OMV.Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical)
     {
         // m_log.DebugFormat("{0}: BSPrim creation of {1}, id={2}", LogHeader, primName, localID);
         _localID = localID;
@@ -113,15 +114,16 @@ public sealed class BSPrim : PhysicsActor
         _orientation = rotation;
         _buoyancy = 1f;
         _velocity = OMV.Vector3.Zero;
+        _rotationalVelocity = OMV.Vector3.Zero;
         _angularVelocity = OMV.Vector3.Zero;
-        _mesh = mesh;
         _hullKey = 0;
         _pbs = pbs;
         _isPhysical = pisPhysical;
         _isVolumeDetect = false;
         _subscribedEventsMs = 0;
-        _friction = _scene.DefaultFriction; // TODO: compute based on object material
-        _density = _scene.DefaultDensity; // TODO: compute based on object material
+        _friction = _scene.Params.defaultFriction; // TODO: compute based on object material
+        _density = _scene.Params.defaultDensity; // TODO: compute based on object material
+        _restitution = _scene.Params.defaultRestitution;
         _parentPrim = null;     // not a child or a parent
         _vehicle = new BSDynamics(this);    // add vehicleness
         _childrenPrims = new List<BSPrim>();
@@ -132,8 +134,7 @@ public sealed class BSPrim : PhysicsActor
         // do the actual object creation at taint time
         _scene.TaintedObject(delegate()
         {
-            CreateGeom();
-            CreateObject();
+            RecreateGeomAndObject();
         });
     }
 
@@ -239,6 +240,7 @@ public sealed class BSPrim : PhysicsActor
         return; 
     }
 
+    // I am the root of a linkset and a new child is being added
     public void AddChildToLinkset(BSPrim pchild)
     {
         BSPrim child = pchild;
@@ -254,6 +256,8 @@ public sealed class BSPrim : PhysicsActor
         return;
     }
 
+    // I am the root of a linkset and one of my children is being removed.
+    // Safe to call even if the child is not really in my linkset.
     public void RemoveChildFromLinkset(BSPrim pchild)
     {
         BSPrim child = pchild;
@@ -288,6 +292,17 @@ public sealed class BSPrim : PhysicsActor
     public bool IsRootOfLinkset
     {
         get { return (_parentPrim == null && _childrenPrims.Count != 0); }
+    }
+
+    // Set motion values to zero.
+    // Do it to the properties so the values get set in the physics engine.
+    // Push the setting of the values to the viewer.
+    private void ZeroMotion()
+    {
+        Velocity = OMV.Vector3.Zero;
+        _acceleration = OMV.Vector3.Zero;
+        RotationalVelocity = OMV.Vector3.Zero;
+        base.RequestPhysicsterseUpdate();
     }
 
     public override void LockAngularMotion(OMV.Vector3 axis) { return; }
@@ -390,18 +405,6 @@ public sealed class BSPrim : PhysicsActor
             });
         } 
     }
-    public OMV.Vector3 AngularVelocity
-    {
-        get { return _angularVelocity; }
-        set
-        {
-            _angularVelocity = value;
-            _scene.TaintedObject(delegate()
-            {
-                BulletSimAPI.SetObjectAngularVelocity(_scene.WorldID, LocalID, _angularVelocity);
-            });
-        }
-    }
     public override OMV.Vector3 Torque { 
         get { return _torque; } 
         set { _torque = value; 
@@ -419,11 +422,11 @@ public sealed class BSPrim : PhysicsActor
         get { return _orientation; } 
         set {
             _orientation = value;
+            // m_log.DebugFormat("{0}: set orientation: id={1}, ori={2}", LogHeader, LocalID, _orientation);
             _scene.TaintedObject(delegate()
             {
                 // _position = BulletSimAPI.GetObjectPosition(_scene.WorldID, _localID);
                 BulletSimAPI.SetObjectTranslation(_scene.WorldID, _localID, _position, _orientation);
-                // m_log.DebugFormat("{0}: set orientation: {1}", LogHeader, _orientation);
             });
         } 
     }
@@ -505,7 +508,15 @@ public sealed class BSPrim : PhysicsActor
         get { return _rotationalVelocity; } 
         set { _rotationalVelocity = value; 
             // m_log.DebugFormat("{0}: RotationalVelocity={1}", LogHeader, _rotationalVelocity);
+            _scene.TaintedObject(delegate()
+            {
+                BulletSimAPI.SetObjectAngularVelocity(_scene.WorldID, LocalID, _rotationalVelocity);
+            });
         } 
+    }
+    public OMV.Vector3 AngularVelocity { 
+        get { return _angularVelocity; } 
+        set { _angularVelocity = value; } 
     }
     public override bool Kinematic { 
         get { return _kinematic; } 
@@ -866,9 +877,6 @@ public sealed class BSPrim : PhysicsActor
 
         returnMass = _density * volume;
 
-        if (returnMass <= 0)
-            returnMass = 0.0001f;//ckrinke: Mass must be greater then zero.
-
         if (IsRootOfLinkset)
         {
             foreach (BSPrim prim in _childrenPrims)
@@ -877,8 +885,12 @@ public sealed class BSPrim : PhysicsActor
             }
         }
 
-        if (returnMass > _scene.maximumMassObject)
-            returnMass = _scene.maximumMassObject;
+        if (returnMass <= 0)
+            returnMass = 0.0001f;
+
+        if (returnMass > _scene.MaximumObjectMass)
+            returnMass = _scene.MaximumObjectMass;
+
         return returnMass;
     }// end CalculateMass
     #endregion Mass Calculation
@@ -887,6 +899,15 @@ public sealed class BSPrim : PhysicsActor
     // No locking here because this is done when we know physics is not simulating
     private void CreateGeom()
     {
+        // Since we're recreating new, get rid of any previously generated shape
+        if (_hullKey != 0)
+        {
+            // m_log.DebugFormat("{0}: CreateGeom: deleting old hull. Key={1}", LogHeader, _hullKey);
+            BulletSimAPI.DestroyHull(_scene.WorldID, _hullKey);
+            _hullKey = 0;
+            _hulls.Clear();
+        }
+
         if (_mesh == null)
         {
             // the mesher thought this was too simple to mesh. Use a native Bullet collision shape.
@@ -902,21 +923,13 @@ public sealed class BSPrim : PhysicsActor
             }
             else
             {
-                // m_log.DebugFormat("{0}: CreateGeom: mesh null. Defaulting to box of size {1}", LogHeader, _size);
+                // m_log.DebugFormat("{0}: CreateGeom: mesh null. Defaulting to box. lid={1}, size={2}", LogHeader, LocalID,  _size);
                 _shapeType = ShapeData.PhysicsShapeType.SHAPE_BOX;
                 _scale = _size;
             }
         }
         else
         {
-            if (_hullKey != 0)
-            {
-                // m_log.DebugFormat("{0}: CreateGeom: deleting old hull. Key={1}", LogHeader, _hullKey);
-                BulletSimAPI.DestroyHull(_scene.WorldID, _hullKey);
-                _hullKey = 0;
-                _hulls.Clear();
-            }
-
             int[] indices = _mesh.getIndexListAsInt();
             List<OMV.Vector3> vertices = _mesh.getVertexList();
 
@@ -997,7 +1010,7 @@ public sealed class BSPrim : PhysicsActor
 
             // create the hull definition in Bullet
             _hullKey = (ulong)_pbs.GetHashCode();
-            // m_log.DebugFormat("{0}: CreateGeom: calling CreateHull. lid= {1}, key={2}, hulls={3}", LogHeader, _localID, _hullKey, hullCount);
+            // m_log.DebugFormat("{0}: CreateGeom: calling CreateHull. lid={1}, key={2}, hulls={3}", LogHeader, _localID, _hullKey, hullCount);
             BulletSimAPI.CreateHull(_scene.WorldID, _hullKey, hullCount, convHulls);
             _shapeType = ShapeData.PhysicsShapeType.SHAPE_HULL;
             // meshes are already scaled by the meshmerizer
@@ -1006,6 +1019,8 @@ public sealed class BSPrim : PhysicsActor
         return;
     }
 
+    // Callback from convex hull creater with a newly created hull.
+    // Just add it to the collection of hulls for this shape.
     private void HullReturn(ConvexResult result)
     {
         _hulls.Add(result);
@@ -1019,13 +1034,12 @@ public sealed class BSPrim : PhysicsActor
         if (IsRootOfLinkset)
         {
             // Create a linkset around this object
-            CreateLinksetWithCompoundHull();
-            // CreateLinksetWithConstraints();
+            // CreateLinksetWithCompoundHull();
+            CreateLinksetWithConstraints();
         }
         else
         {
             // simple object
-            // m_log.DebugFormat("{0}: CreateObject. ID={1}", LogHeader, LocalID);
             ShapeData shape;
             FillShapeInfo(out shape);
             BulletSimAPI.CreateObject(_scene.WorldID, shape);
@@ -1034,6 +1048,7 @@ public sealed class BSPrim : PhysicsActor
 
     // Create a linkset by creating a compound hull at the root prim that consists of all
     // the children.
+    // NOTE: This does not allow proper collisions with the children prims so it is not a workable solution
     void CreateLinksetWithCompoundHull()
     {
         // If I am the root prim of a linkset, replace my physical shape with all the
@@ -1055,8 +1070,27 @@ public sealed class BSPrim : PhysicsActor
         BulletSimAPI.CreateLinkset(_scene.WorldID, totalPrimsInLinkset, shapes);
     }
 
+    // Copy prim's info into the BulletSim shape description structure
+    public void FillShapeInfo(out ShapeData shape)
+    {
+        shape.ID = _localID;
+        shape.Type = _shapeType;
+        shape.Position = _position;
+        shape.Rotation = _orientation;
+        shape.Velocity = _velocity;
+        shape.Scale = _scale;
+        shape.Mass = _isPhysical ? _mass : 0f;
+        shape.Buoyancy = _buoyancy;
+        shape.MeshKey = _hullKey;
+        shape.Friction = _friction;
+        shape.Restitution = _restitution;
+        shape.Collidable = (!IsPhantom) ? ShapeData.numericTrue : ShapeData.numericFalse;
+        shape.Static = _isPhysical ? ShapeData.numericFalse : ShapeData.numericTrue;
+    }
+
     // Create the linkset by putting constraints between the objects of the set so they cannot move
     // relative to each other.
+    // TODO: make this more effeicient: a large linkset gets rebuilt over and over and prims are added
     void CreateLinksetWithConstraints()
     {
         // m_log.DebugFormat("{0}: CreateLinkset. Root prim={1}, prims={2}", LogHeader, LocalID, _childrenPrims.Count+1);
@@ -1070,50 +1104,27 @@ public sealed class BSPrim : PhysicsActor
         // create constraints between the root prim and each of the children
         foreach (BSPrim prim in _childrenPrims)
         {
-            // this is a constraint that allows no freedom of movement between the two objects
-            // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
             // m_log.DebugFormat("{0}: CreateObject: AddConstraint between root prim {1} and child prim {2}", LogHeader, LocalID, prim.LocalID);
+
+            // Zero motion for children so they don't interpolate
+            prim.ZeroMotion();
 
             // relative position normalized to the root prim
             OMV.Vector3 childRelativePosition = (prim._position - this._position) * OMV.Quaternion.Inverse(this._orientation);
-            // OMV.Quaternion relativeRotation = OMV.Quaternion.Identity;
 
-            // rotation is pointing up the vector between the object centers
-            OMV.Quaternion relativeRotation = OMV.Quaternion.CreateFromAxisAngle(childRelativePosition, 0f);
+            // relative rotation of the child to the parent
+            OMV.Quaternion relativeRotation = OMV.Quaternion.Inverse(prim._orientation) * this._orientation;
 
-            /* // the logic for relative rotation from http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=6391
-            OMV.Vector3 rrn = childRelativePosition;
-            rrn.Normalize();
-            rrn /= rrn.X;
-            OMV.Matrix4 rotmat = new OMV.Matrix4(rrn.X, rrn.Y, rrn.Z, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-            OMV.Quaternion relativeRotation = OMV.Quaternion.CreateFromRotationMatrix(rotmat);
-             */
-
+            // this is a constraint that allows no freedom of movement between the two objects
+            // http://bulletphysics.org/Bullet/phpBB3/viewtopic.php?t=4818
             BulletSimAPI.AddConstraint(_scene.WorldID, LocalID, prim.LocalID, 
-                childRelativePosition / 2,
+                childRelativePosition,
                 relativeRotation,
-                -childRelativePosition / 2,
-                relativeRotation,
+                OMV.Vector3.Zero,
+                OMV.Quaternion.Identity,
                 OMV.Vector3.Zero, OMV.Vector3.Zero,
                 OMV.Vector3.Zero, OMV.Vector3.Zero);
         }
-    }
-
-    // Copy prim's info into the BulletSim shape description structure
-    public void FillShapeInfo(out ShapeData shape)
-    {
-        shape.ID = _localID;
-        shape.Type = _shapeType;
-        shape.Position = _position;
-        shape.Rotation = _orientation;
-        shape.Velocity = _velocity;
-        shape.Scale = _scale;
-        shape.Mass = _isPhysical ? _mass : 0f;
-        shape.Buoyancy = _buoyancy;
-        shape.MeshKey = _hullKey;
-        shape.Collidable = (!IsPhantom) ? ShapeData.numericTrue : ShapeData.numericFalse;
-        shape.Friction = _friction;
-        shape.Static = _isPhysical ? ShapeData.numericFalse : ShapeData.numericTrue;
     }
 
     // Rebuild the geometry and object.
@@ -1121,25 +1132,20 @@ public sealed class BSPrim : PhysicsActor
     // No locking here because this is done when the physics engine is not simulating
     private void RecreateGeomAndObject()
     {
-        if (_hullKey != 0)
-        {
-            // if a hull already exists, delete the old one
-            BulletSimAPI.DestroyHull(_scene.WorldID, _hullKey);
-            _hullKey = 0;
-        }
         // If this object is complex or we are the root of a linkset, build a mesh.
         // The root of a linkset must be a mesh so we can create the linked compound object.
-        if (_scene.NeedsMeshing(_pbs) || IsRootOfLinkset )
+        // if (_scene.NeedsMeshing(_pbs) || IsRootOfLinkset )
+        if (_scene.NeedsMeshing(_pbs))  // linksets with constraints don't need a root mesh
         {
             // m_log.DebugFormat("{0}: RecreateGeomAndObject: creating mesh", LogHeader);
-            _mesh = _scene.mesher.CreateMesh(_avName, _pbs, _size, _scene.meshLOD, _isPhysical);
+            _mesh = _scene.mesher.CreateMesh(_avName, _pbs, _size, _scene.MeshLOD, _isPhysical);
         }
         else
         {
-            // it's a BulletSim native shape.
+            // implement the shape with a Bullet native shape.
             _mesh = null;
         }
-        CreateGeom();   // create the geometry for this prim
+        CreateGeom();
         CreateObject();
         return;
     }
@@ -1152,48 +1158,82 @@ public sealed class BSPrim : PhysicsActor
         Rotation      = 1 << 1,
         Velocity      = 1 << 2,
         Acceleration  = 1 << 3,
-        AngularVel    = 1 << 4
+        RotationalVel = 1 << 4
     }
+
+    const float ROTATION_TOLERANCE = 0.01f;
+    const float VELOCITY_TOLERANCE = 0.001f;
+    const float POSITION_TOLERANCE = 0.05f;
+    const float ACCELERATION_TOLERANCE = 0.01f;
+    const float ROTATIONAL_VELOCITY_TOLERANCE = 0.01f;
+    const bool SHOULD_DAMP_UPDATES = false;
 
     public void UpdateProperties(EntityProperties entprop)
     {
         UpdatedProperties changed = 0;
-        // assign to the local variables so the normal set action does not happen
-        if (_position != entprop.Position)
+        if (SHOULD_DAMP_UPDATES)
         {
-            _position = entprop.Position;
-            // m_log.DebugFormat("{0}: UpdateProperties: position = {1}", LogHeader, _position);
-            changed |= UpdatedProperties.Position;
+            // assign to the local variables so the normal set action does not happen
+            // if (_position != entprop.Position)
+            if (!_position.ApproxEquals(entprop.Position, POSITION_TOLERANCE))
+            {
+                _position = entprop.Position;
+                // m_log.DebugFormat("{0}: UpdateProperties: id={1}, pos = {2}", LogHeader, LocalID, _position);
+                changed |= UpdatedProperties.Position;
+            }
+            // if (_orientation != entprop.Rotation)
+            if (!_orientation.ApproxEquals(entprop.Rotation, ROTATION_TOLERANCE))
+            {
+                _orientation = entprop.Rotation;
+                // m_log.DebugFormat("{0}: UpdateProperties: id={1}, rot = {2}", LogHeader, LocalID, _orientation);
+                changed |= UpdatedProperties.Rotation;
+            }
+            // if (_velocity != entprop.Velocity)
+            if (!_velocity.ApproxEquals(entprop.Velocity, VELOCITY_TOLERANCE))
+            {
+                _velocity = entprop.Velocity;
+                // m_log.DebugFormat("{0}: UpdateProperties: velocity = {1}", LogHeader, _velocity);
+                changed |= UpdatedProperties.Velocity;
+            }
+            // if (_acceleration != entprop.Acceleration)
+            if (!_acceleration.ApproxEquals(entprop.Acceleration, ACCELERATION_TOLERANCE))
+            {
+                _acceleration = entprop.Acceleration;
+                // m_log.DebugFormat("{0}: UpdateProperties: acceleration = {1}", LogHeader, _acceleration);
+                changed |= UpdatedProperties.Acceleration;
+            }
+            // if (_rotationalVelocity != entprop.RotationalVelocity)
+            if (!_rotationalVelocity.ApproxEquals(entprop.RotationalVelocity, ROTATIONAL_VELOCITY_TOLERANCE))
+            {
+                _rotationalVelocity = entprop.RotationalVelocity;
+                // m_log.DebugFormat("{0}: UpdateProperties: rotationalVelocity = {1}", LogHeader, _rotationalVelocity);
+                changed |= UpdatedProperties.RotationalVel;
+            }
+            if (changed != 0)
+            {
+                // m_log.DebugFormat("{0}: UpdateProperties: id={1}, c={2}, pos={3}, rot={4}", LogHeader, LocalID, changed, _position, _orientation);
+                // Only update the position of single objects and linkset roots
+                if (this._parentPrim == null)
+                {
+                    // m_log.DebugFormat("{0}: RequestTerseUpdate. id={1}, ch={2}, pos={3}, rot={4}", LogHeader, LocalID, changed, _position, _orientation);
+                    base.RequestPhysicsterseUpdate();
+                }
+            }
         }
-        if (_orientation != entprop.Rotation)
+        else
         {
-            _orientation = entprop.Rotation;
-            // m_log.DebugFormat("{0}: UpdateProperties: rotation = {1}", LogHeader, _orientation);
-            changed |= UpdatedProperties.Rotation;
-        }
-        if (_velocity != entprop.Velocity)
-        {
-            _velocity = entprop.Velocity;
-            // m_log.DebugFormat("{0}: UpdateProperties: velocity = {1}", LogHeader, _velocity);
-            changed |= UpdatedProperties.Velocity;
-        }
-        if (_acceleration != entprop.Acceleration)
-        {
-            _acceleration = entprop.Acceleration;
-            // m_log.DebugFormat("{0}: UpdateProperties: acceleration = {1}", LogHeader, _acceleration);
-            changed |= UpdatedProperties.Acceleration;
-        }
-        if (_rotationalVelocity != entprop.AngularVelocity)
-        {
-            _rotationalVelocity = entprop.AngularVelocity;
-            // m_log.DebugFormat("{0}: UpdateProperties: rotationalVelocity = {1}", LogHeader, _rotationalVelocity);
-            changed |= UpdatedProperties.AngularVel;
-        }
-        if (changed != 0)
-        {
-            // m_log.DebugFormat("{0}: UpdateProperties: id={1}, c={2}, pos={3}, rot={4}", LogHeader, LocalID, changed, _position, _orientation);
+            // Don't check for damping here -- it's done in BulletSim and SceneObjectPart.
             if (this._parentPrim == null)
+            {
+                // Assign to the local variables so the normal set action does not happen
+                _position = entprop.Position;
+                _orientation = entprop.Rotation;
+                _velocity = entprop.Velocity;
+                _acceleration = entprop.Acceleration;
+                _rotationalVelocity = entprop.RotationalVelocity;
+                // m_log.DebugFormat("{0}: RequestTerseUpdate. id={1}, ch={2}, pos={3}, rot={4}", LogHeader, LocalID, changed, _position, _orientation);
                 base.RequestPhysicsterseUpdate();
+            }
         }
     }
 
@@ -1201,7 +1241,8 @@ public sealed class BSPrim : PhysicsActor
     public void Collide(uint collidingWith, ActorTypes type, OMV.Vector3 contactPoint, OMV.Vector3 contactNormal, float pentrationDepth)
     {
         // m_log.DebugFormat("{0}: Collide: ms={1}, id={2}, with={3}", LogHeader, _subscribedEventsMs, LocalID, collidingWith);
-        // The following makes IsColliding() and IsCollidingGround() work
+
+        // The following lines make IsColliding() and IsCollidingGround() work
         _collidingStep = _scene.SimulationStep;
         if (collidingWith == BSScene.TERRAIN_ID || collidingWith == BSScene.GROUNDPLANE_ID)
         {

@@ -51,8 +51,6 @@ public class BSCharacter : PhysicsActor
     private Vector3 _position;
     private float _mass = 80f;
     public float _density = 60f;
-    public float CAPSULE_RADIUS = 0.37f;
-    public float CAPSULE_LENGTH = 2.140599f;
     private Vector3 _force;
     private Vector3 _velocity;
     private Vector3 _torque;
@@ -96,7 +94,8 @@ public class BSCharacter : PhysicsActor
         _velocity = Vector3.Zero;
         _buoyancy = 0f; // characters return a buoyancy of zero
         _scale = new Vector3(1f, 1f, 1f);
-        float AVvolume = (float) (Math.PI*Math.Pow(CAPSULE_RADIUS, 2)*CAPSULE_LENGTH);
+        float AVvolume = (float) (Math.PI*Math.Pow(_scene.Params.avatarCapsuleRadius, 2)*_scene.Params.avatarCapsuleHeight);
+        _density = _scene.Params.avatarDensity;
         _mass = _density*AVvolume;
 
         ShapeData shapeData = new ShapeData();
@@ -109,6 +108,8 @@ public class BSCharacter : PhysicsActor
         shapeData.Mass = _mass;
         shapeData.Buoyancy = isFlying ? 1f : 0f;
         shapeData.Static = ShapeData.numericFalse;
+        shapeData.Friction = _scene.Params.avatarFriction;
+        shapeData.Restitution = _scene.Params.defaultRestitution;
 
         // do actual create at taint time
         _scene.TaintedObject(delegate()
@@ -395,9 +396,9 @@ public class BSCharacter : PhysicsActor
             _acceleration = entprop.Acceleration;
             changed = true;
         }
-        if (_rotationalVelocity != entprop.AngularVelocity)
+        if (_rotationalVelocity != entprop.RotationalVelocity)
         {
-            _rotationalVelocity = entprop.AngularVelocity;
+            _rotationalVelocity = entprop.RotationalVelocity;
             changed = true;
         }
         if (changed)
