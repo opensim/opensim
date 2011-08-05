@@ -4514,6 +4514,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 RemFlag(PrimFlags.Phantom);
 
+                if (ParentGroup.Scene == null)
+                    return;
+
                 PhysicsActor pa = PhysActor;
 
                 if (pa == null)

@@ -57,6 +57,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
 //            Console.WriteLine("so.RootPart.Flags [{0}]", so.RootPart.Flags);
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.Phantom));
+
+            so.ScriptSetPhantomStatus(false);
+
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));            
         }
     }
 }
