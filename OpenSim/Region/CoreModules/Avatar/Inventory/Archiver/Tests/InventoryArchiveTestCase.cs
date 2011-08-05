@@ -100,8 +100,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //            log4net.Config.XmlConfigurator.Configure();
             
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
-            Scene scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(scene, archiverModule);            
+            Scene scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, archiverModule);            
             
             UserAccountHelpers.CreateUserWithInventory(scene, m_uaLL1, "hampshire");
 
@@ -109,7 +109,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             // Create scene object asset
             UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
-            SceneObjectGroup object1 = SceneSetupHelpers.CreateSceneObject(1, ownerId, "Ray Gun Object", 0x50);         
+            SceneObjectGroup object1 = SceneHelpers.CreateSceneObject(1, ownerId, "Ray Gun Object", 0x50);         
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
             AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);
@@ -127,10 +127,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             scene.AddInventoryItem(item1);
             
             // Create coalesced objects asset
-            SceneObjectGroup cobj1 = SceneSetupHelpers.CreateSceneObject(1, m_uaLL1.PrincipalID, "Object1", 0x120);
+            SceneObjectGroup cobj1 = SceneHelpers.CreateSceneObject(1, m_uaLL1.PrincipalID, "Object1", 0x120);
             cobj1.AbsolutePosition = new Vector3(15, 30, 45);
             
-            SceneObjectGroup cobj2 = SceneSetupHelpers.CreateSceneObject(1, m_uaLL1.PrincipalID, "Object2", 0x140);
+            SceneObjectGroup cobj2 = SceneHelpers.CreateSceneObject(1, m_uaLL1.PrincipalID, "Object2", 0x140);
             cobj2.AbsolutePosition = new Vector3(25, 50, 75);               
             
             CoalescedSceneObjects coa = new CoalescedSceneObjects(m_uaLL1.PrincipalID, cobj1, cobj2);

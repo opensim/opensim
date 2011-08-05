@@ -58,7 +58,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                         
             UUID userId = UUID.Parse("10000000-0000-0000-0000-000000000001");
             
-            TestScene scene = SceneSetupHelpers.SetupScene();
+            TestScene scene = SceneHelpers.SetupScene();
             IConfigSource configSource = new IniConfigSource();
             
             IConfig startupConfig = configSource.AddConfig("Startup");
@@ -69,13 +69,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             groupsConfig.Set("Module", "GroupsModule");            
             groupsConfig.Set("DebugEnabled", true);            
                        
-            SceneSetupHelpers.SetupSceneModules(
+            SceneHelpers.SetupSceneModules(
                 scene, configSource, new object[] 
                    { new PermissionsModule(), 
                      new GroupsModule(), 
                      new MockGroupsServicesConnector() });
             
-            TestClient client = SceneSetupHelpers.AddClient(scene, userId);            
+            TestClient client = SceneHelpers.AddClient(scene, userId);            
             
             IGroupsModule groupsModule = scene.RequestModuleInterface<IGroupsModule>();     
             

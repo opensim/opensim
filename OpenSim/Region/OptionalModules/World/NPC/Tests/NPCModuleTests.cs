@@ -57,9 +57,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             config.Configs["NPC"].Set("Enabled", "true");
 
             AvatarFactoryModule afm = new AvatarFactoryModule();
-            TestScene scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(scene, config, afm, new NPCModule());
-            TestClient originalClient = SceneSetupHelpers.AddClient(scene, TestHelper.ParseTail(0x1));
+            TestScene scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, config, afm, new NPCModule());
+            TestClient originalClient = SceneHelpers.AddClient(scene, TestHelper.ParseTail(0x1));
 //            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
 
             // 8 is the index of the first baked texture in AvatarAppearance
@@ -94,9 +94,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             config.AddConfig("NPC");
             config.Configs["NPC"].Set("Enabled", "true");
 
-            TestScene scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(scene, config, new NPCModule());
-            TestClient originalClient = SceneSetupHelpers.AddClient(scene, TestHelper.ParseTail(0x1));
+            TestScene scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, config, new NPCModule());
+            TestClient originalClient = SceneHelpers.AddClient(scene, TestHelper.ParseTail(0x1));
 //            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
 
             Vector3 startPos = new Vector3(128, 128, 30);

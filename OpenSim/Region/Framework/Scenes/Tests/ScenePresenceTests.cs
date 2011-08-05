@@ -66,16 +66,16 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelper.InMethod();
             
-            scene = SceneSetupHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
-            scene2 = SceneSetupHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000);
-            scene3 = SceneSetupHelpers.SetupScene("Neighbour x-1", UUID.Random(), 999, 1000);
+            scene = SceneHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
+            scene2 = SceneHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000);
+            scene3 = SceneHelpers.SetupScene("Neighbour x-1", UUID.Random(), 999, 1000);
 
             ISharedRegionModule interregionComms = new LocalSimulationConnectorModule();
             interregionComms.Initialise(new IniConfigSource());
             interregionComms.PostInitialise();
-            SceneSetupHelpers.SetupSceneModules(scene, new IniConfigSource(), interregionComms);
-            SceneSetupHelpers.SetupSceneModules(scene2, new IniConfigSource(), interregionComms);
-            SceneSetupHelpers.SetupSceneModules(scene3, new IniConfigSource(), interregionComms);
+            SceneHelpers.SetupSceneModules(scene, new IniConfigSource(), interregionComms);
+            SceneHelpers.SetupSceneModules(scene2, new IniConfigSource(), interregionComms);
+            SceneHelpers.SetupSceneModules(scene3, new IniConfigSource(), interregionComms);
 
             agent1 = UUID.Random();
             agent2 = UUID.Random();
@@ -203,16 +203,16 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             
             UUID agent1Id = UUID.Parse("00000000-0000-0000-0000-000000000001");
             
-            TestScene myScene1 = SceneSetupHelpers.SetupScene("Neighbour y", UUID.Random(), 1000, 1000);
-            TestScene myScene2 = SceneSetupHelpers.SetupScene("Neighbour y + 1", UUID.Random(), 1001, 1000);            
+            TestScene myScene1 = SceneHelpers.SetupScene("Neighbour y", UUID.Random(), 1000, 1000);
+            TestScene myScene2 = SceneHelpers.SetupScene("Neighbour y + 1", UUID.Random(), 1001, 1000);            
             
             IConfigSource configSource = new IniConfigSource();
             configSource.AddConfig("Modules").Set("EntityTransferModule", "BasicEntityTransferModule");                      
             EntityTransferModule etm = new EntityTransferModule();
             
-            SceneSetupHelpers.SetupSceneModules(myScene1, configSource, etm);            
+            SceneHelpers.SetupSceneModules(myScene1, configSource, etm);            
             
-            SceneSetupHelpers.AddClient(myScene1, agent1Id);
+            SceneHelpers.AddClient(myScene1, agent1Id);
             ScenePresence childPresence = myScene2.GetScenePresence(agent1);
             
             // TODO: Need to do a fair amount of work to allow synchronous establishment of child agents

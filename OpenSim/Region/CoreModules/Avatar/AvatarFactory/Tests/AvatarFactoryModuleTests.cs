@@ -50,9 +50,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             UUID userId = TestHelper.ParseTail(0x1);
 
             AvatarFactoryModule afm = new AvatarFactoryModule();
-            TestScene scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(scene, afm);
-            TestClient tc = SceneSetupHelpers.AddClient(scene, userId);
+            TestScene scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, afm);
+            TestClient tc = SceneHelpers.AddClient(scene, userId);
 
             byte[] visualParams = new byte[AvatarAppearance.VISUALPARAM_COUNT];
             for (byte i = 0; i < visualParams.Length; i++)

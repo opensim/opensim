@@ -61,8 +61,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             SerialiserModule serialiserModule = new SerialiserModule();
             m_archiverModule = new InventoryArchiverModule();
 
-            m_scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(m_scene, serialiserModule, m_archiverModule);            
+            m_scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(m_scene, serialiserModule, m_archiverModule);            
         }
                 
         [Test]
@@ -141,7 +141,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             
             // Create asset
             UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
-            SceneObjectGroup object1 = SceneSetupHelpers.CreateSceneObject(1, ownerId, "My Little Dog Object", 0x50);         
+            SceneObjectGroup object1 = SceneHelpers.CreateSceneObject(1, ownerId, "My Little Dog Object", 0x50);         
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
             AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);
@@ -236,7 +236,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             // Create asset
             UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
-            SceneObjectGroup object1 = SceneSetupHelpers.CreateSceneObject(1, ownerId, "My Little Dog Object", 0x50);
+            SceneObjectGroup object1 = SceneHelpers.CreateSceneObject(1, ownerId, "My Little Dog Object", 0x50);
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
             AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);

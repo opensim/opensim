@@ -58,7 +58,7 @@ namespace OpenSim.Region.Framework.Tests
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            Scene scene = SceneSetupHelpers.SetupScene();
+            Scene scene = SceneHelpers.SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, 1001);
             UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene, 1002);
             InventoryItemBase item1 = UserInventoryHelpers.CreateInventoryItem(scene, "item1", user1.PrincipalID);
@@ -85,7 +85,7 @@ namespace OpenSim.Region.Framework.Tests
             TestHelper.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneSetupHelpers.SetupScene();
+            Scene scene = SceneHelpers.SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, 1001);
             UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene, 1002);
             InventoryFolderBase folder1

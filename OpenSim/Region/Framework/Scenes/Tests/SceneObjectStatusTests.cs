@@ -49,7 +49,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelper.InMethod();
 
 //            Scene scene = SceneSetupHelpers.SetupScene();
-            SceneObjectGroup so = SceneSetupHelpers.CreateSceneObject(1, UUID.Zero);
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, UUID.Zero);
             SceneObjectPart rootPart = so.RootPart;
             Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));
 

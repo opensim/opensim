@@ -74,7 +74,7 @@ namespace OpenSim.Tests.Common
         /// <param name="id"></param>
         public static TaskInventoryItem AddSceneObject(Scene scene, SceneObjectPart sop, string itemName, UUID id)
         {
-            SceneObjectGroup taskSceneObject = SceneSetupHelpers.CreateSceneObject(1, UUID.Zero);
+            SceneObjectGroup taskSceneObject = SceneHelpers.CreateSceneObject(1, UUID.Zero);
             AssetBase taskSceneObjectAsset = AssetHelpers.CreateAsset(0x10, taskSceneObject);
             scene.AssetService.Store(taskSceneObjectAsset);
             TaskInventoryItem taskSceneObjectItem

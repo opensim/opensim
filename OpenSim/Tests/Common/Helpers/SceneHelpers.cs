@@ -54,7 +54,7 @@ namespace OpenSim.Tests.Common
     /// <summary>
     /// Helpers for setting up scenes.
     /// </summary>
-    public class SceneSetupHelpers
+    public class SceneHelpers
     {
         /// <summary>
         /// Set up a test scene

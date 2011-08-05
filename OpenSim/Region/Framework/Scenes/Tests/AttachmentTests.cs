@@ -64,14 +64,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelper.InMethod();
             
-            scene = SceneSetupHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
-            scene2 = SceneSetupHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000);
+            scene = SceneHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
+            scene2 = SceneHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000);
 
             ISharedRegionModule interregionComms = new LocalSimulationConnectorModule();
             interregionComms.Initialise(new IniConfigSource());
             interregionComms.PostInitialise();
-            SceneSetupHelpers.SetupSceneModules(scene, new IniConfigSource(), interregionComms);
-            SceneSetupHelpers.SetupSceneModules(scene2, new IniConfigSource(), interregionComms);
+            SceneHelpers.SetupSceneModules(scene, new IniConfigSource(), interregionComms);
+            SceneHelpers.SetupSceneModules(scene2, new IniConfigSource(), interregionComms);
 
             agent1 = UUID.Random();
             random = new Random();
@@ -83,7 +83,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             region1 = scene.RegionInfo.RegionHandle;
             region2 = scene2.RegionInfo.RegionHandle;
             
-            SceneSetupHelpers.AddClient(scene, agent1);
+            SceneHelpers.AddClient(scene, agent1);
         }     
         
         [Test]
@@ -126,8 +126,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             presence2.AddAttachment(sog2);
 
             ISharedRegionModule serialiser = new SerialiserModule();
-            SceneSetupHelpers.SetupSceneModules(scene, new IniConfigSource(), serialiser);
-            SceneSetupHelpers.SetupSceneModules(scene2, new IniConfigSource(), serialiser);
+            SceneHelpers.SetupSceneModules(scene, new IniConfigSource(), serialiser);
+            SceneHelpers.SetupSceneModules(scene2, new IniConfigSource(), serialiser);
 
             Assert.That(presence.HasAttachments(), Is.False, "Presence has attachments before cross");
 

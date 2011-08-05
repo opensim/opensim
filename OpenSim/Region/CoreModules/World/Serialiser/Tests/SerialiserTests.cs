@@ -236,8 +236,8 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
         public void Init()
         {
             m_serialiserModule = new SerialiserModule();
-            m_scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(m_scene, m_serialiserModule);
+            m_scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(m_scene, m_serialiserModule);
         }
 
         [Test]
