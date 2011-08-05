@@ -600,7 +600,13 @@ namespace Flotsam.RegionModules.AssetCache
                 stream.Close();
 
                 // Now that it's written, rename it so that it can be found.
-                File.Move(tempname, filename);
+                // We're doing this as a file copy operation so that if two threads are competing to cache this asset,
+                // then both suceed instead of one failing when it tries to move the file to a final filename that
+                // already exists.
+                // This assumes that the file copy operation is atomic.  Assuming this holds, then copying also works
+                // if another simulator is using the same cache directory.
+                File.Copy(tempname, filename, true);
+                File.Delete(tempname);
 
                 if (m_LogLevel >= 2)
                     m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Cache Stored :: {0}", asset.ID);
@@ -635,7 +641,6 @@ namespace Flotsam.RegionModules.AssetCache
                     }
 #endif
                 }
-
             }
         }
 
