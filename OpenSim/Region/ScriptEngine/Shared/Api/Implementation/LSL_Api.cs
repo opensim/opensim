@@ -1204,10 +1204,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((status & ScriptBaseClass.STATUS_PHANTOM) == ScriptBaseClass.STATUS_PHANTOM)
             {
-                if (value != 0)
-                    m_host.ScriptSetPhantomStatus(true);
-                else
-                    m_host.ScriptSetPhantomStatus(false);
+                if (m_host.ParentGroup != null)
+                    m_host.ParentGroup.ScriptSetPhantomStatus(value != 0);
             }
 
             if ((status & ScriptBaseClass.STATUS_CAST_SHADOWS) == ScriptBaseClass.STATUS_CAST_SHADOWS)
@@ -6446,9 +6444,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_host.ParentGroup != null)
             {
                 if (!m_host.ParentGroup.IsDeleted)
-                {
-                    m_host.ParentGroup.RootPart.ScriptSetVolumeDetect(detect!=0);
-                }
+                    m_host.ParentGroup.ScriptSetVolumeDetect(detect != 0);
             }
         }
 
@@ -6456,7 +6452,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// This is a depecated function so this just replicates the result of
         /// invoking it in SL
         /// </summary>
-
         public void llRemoteLoadScript(string target, string name, int running, int start_param)
         {
             m_host.AddScriptLPS(1);
@@ -7254,14 +7249,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                              return;
 
                          string ph = rules.Data[idx++].ToString();
-                         bool phantom;
 
-                         if (ph.Equals("1"))
-                             phantom = true;
-                         else
-                             phantom = false;
+                         if (m_host.ParentGroup != null)
+                            m_host.ParentGroup.ScriptSetPhantomStatus(ph.Equals("1"));
 
-                         part.ScriptSetPhantomStatus(phantom);
                          break;
 
                      case (int)ScriptBaseClass.PRIM_PHYSICS:
@@ -7282,14 +7273,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 1)
                             return;
                         string temp = rules.Data[idx++].ToString();
-                        bool tempOnRez;
 
-                        if (temp.Equals("1"))
-                            tempOnRez = true;
-                        else
-                            tempOnRez = false;
+                        if (m_host.ParentGroup != null)
+                            m_host.ParentGroup.ScriptSetTemporaryStatus(temp.Equals("1"));
 
-                        part.ScriptSetTemporaryStatus(tempOnRez);
                         break;
 
                     case (int)ScriptBaseClass.PRIM_TEXGEN:

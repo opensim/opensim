@@ -2967,37 +2967,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void ScriptSetPhantomStatus(bool Phantom)
-        {
-            if (m_parentGroup != null)
-            {
-                m_parentGroup.ScriptSetPhantomStatus(Phantom);
-            }
-        }
-
-        public void ScriptSetTemporaryStatus(bool Temporary)
-        {
-            if (m_parentGroup != null)
-            {
-                m_parentGroup.ScriptSetTemporaryStatus(Temporary);
-            }
-        }
-
         public void ScriptSetPhysicsStatus(bool UsePhysics)
         {
             if (m_parentGroup == null)
                 DoPhysicsPropertyUpdate(UsePhysics, false);
             else
                 m_parentGroup.ScriptSetPhysicsStatus(UsePhysics);
-        }
-
-        public void ScriptSetVolumeDetect(bool SetVD)
-        {
-
-            if (m_parentGroup != null)
-            {
-                m_parentGroup.ScriptSetVolumeDetect(SetVD);
-            }
         }
 
         /// <summary>
