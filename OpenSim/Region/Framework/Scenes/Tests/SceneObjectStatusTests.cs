@@ -46,7 +46,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestSetPhantom()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
 //            Scene scene = SceneSetupHelpers.SetupScene();
             SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, UUID.Zero);

@@ -54,7 +54,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         //[Test, LongRunning]
         public void TestSimpleNotNeighboursTeleport()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             ThreadRunResults results = new ThreadRunResults();
             results.Result = false;
             results.Message = "Test did not run";

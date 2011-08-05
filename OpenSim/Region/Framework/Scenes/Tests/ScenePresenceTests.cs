@@ -64,7 +64,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [TestFixtureSetUp]
         public void Init()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             scene = SceneHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
             scene2 = SceneHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000);
@@ -97,7 +97,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T010_TestAddRootAgent()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
             string firstName = "testfirstname";
 
@@ -135,7 +135,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T011_TestRemoveRootAgent()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
             scene.RemoveClient(agent1);
 
@@ -147,7 +147,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T012_TestAddNeighbourRegion()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
             string reason;
 
@@ -175,7 +175,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T013_TestRemoveNeighbourRegion()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
             ScenePresence presence = scene.GetScenePresence(agent1);
             presence.RemoveNeighbourRegion(region3);
@@ -198,7 +198,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestChildAgentEstablished()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             UUID agent1Id = UUID.Parse("00000000-0000-0000-0000-000000000001");
@@ -230,7 +230,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         //[Test]
         public void T021_TestCrossToNewRegion()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
             scene.RegisterRegionWithGrid();
             scene2.RegisterRegionWithGrid();

@@ -60,7 +60,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap.Tests
         [Test]
         public void TestClearMediaUrl()
         {
-            TestHelper.InMethod();           
+            TestHelpers.InMethod();           
 //            log4net.Config.XmlConfigurator.Configure();
             
             SceneObjectPart part = SceneHelpers.AddSceneObject(m_scene);
@@ -84,7 +84,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap.Tests
         [Test]
         public void TestSetMediaUrl()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             string homeUrl = "opensimulator.org";            
             

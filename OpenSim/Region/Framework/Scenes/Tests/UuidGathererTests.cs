@@ -55,7 +55,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestCorruptAsset()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             UUID corruptAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
             AssetBase corruptAsset 
@@ -75,7 +75,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestMissingAsset()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             UUID missingAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
             IDictionary<UUID, AssetType> foundAssetUuids = new Dictionary<UUID, AssetType>();

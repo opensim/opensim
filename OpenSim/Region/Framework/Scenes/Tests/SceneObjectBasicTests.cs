@@ -49,7 +49,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestAddSceneObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
             Scene scene = SceneHelpers.SetupScene();
 
@@ -76,7 +76,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// </summary>
         public void TestAddExistingSceneObjectUuid()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
             Scene scene = SceneHelpers.SetupScene();
 
@@ -110,7 +110,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDeleteSceneObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             TestScene scene = SceneHelpers.SetupScene();
             SceneObjectPart part = SceneHelpers.AddSceneObject(scene);
@@ -126,7 +126,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDeleteSceneObjectAsync()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");

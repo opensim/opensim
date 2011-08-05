@@ -49,7 +49,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
         [Test]
         public void TestCreate()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             IConfigSource config = new IniConfigSource();
@@ -59,11 +59,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             AvatarFactoryModule afm = new AvatarFactoryModule();
             TestScene scene = SceneHelpers.SetupScene();
             SceneHelpers.SetupSceneModules(scene, config, afm, new NPCModule());
-            TestClient originalClient = SceneHelpers.AddClient(scene, TestHelper.ParseTail(0x1));
+            TestClient originalClient = SceneHelpers.AddClient(scene, TestHelpers.ParseTail(0x1));
 //            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
 
             // 8 is the index of the first baked texture in AvatarAppearance
-            UUID originalFace8TextureId = TestHelper.ParseTail(0x10);
+            UUID originalFace8TextureId = TestHelpers.ParseTail(0x10);
             Primitive.TextureEntry originalTe = new Primitive.TextureEntry(UUID.Zero);
             Primitive.TextureEntryFace originalTef = originalTe.CreateFace(8);
             originalTef.TextureID = originalFace8TextureId;
@@ -86,7 +86,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
         [Test]
         public void TestMove()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             IConfigSource config = new IniConfigSource();
@@ -96,7 +96,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
 
             TestScene scene = SceneHelpers.SetupScene();
             SceneHelpers.SetupSceneModules(scene, config, new NPCModule());
-            TestClient originalClient = SceneHelpers.AddClient(scene, TestHelper.ParseTail(0x1));
+            TestClient originalClient = SceneHelpers.AddClient(scene, TestHelpers.ParseTail(0x1));
 //            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
 
             Vector3 startPos = new Vector3(128, 128, 30);

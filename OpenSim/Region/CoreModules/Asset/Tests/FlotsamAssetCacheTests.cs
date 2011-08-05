@@ -72,11 +72,11 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
         [Test]
         public void TestCacheAsset()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             AssetBase asset = AssetHelpers.CreateAsset();
-            asset.ID = TestHelper.ParseTail(0x1).ToString();
+            asset.ID = TestHelpers.ParseTail(0x1).ToString();
 
             // Check we don't get anything before the asset is put in the cache
             AssetBase retrievedAsset = m_cache.Get(asset.ID.ToString());
@@ -93,11 +93,11 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
         [Test]
         public void TestExpireAsset()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             AssetBase asset = AssetHelpers.CreateAsset();
-            asset.ID = TestHelper.ParseTail(0x2).ToString();
+            asset.ID = TestHelpers.ParseTail(0x2).ToString();
 
             m_cache.Store(asset);
 
@@ -110,11 +110,11 @@ namespace OpenSim.Region.CoreModules.Asset.Tests
         [Test]
         public void TestClearCache()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             AssetBase asset = AssetHelpers.CreateAsset();
-            asset.ID = TestHelper.ParseTail(0x2).ToString();
+            asset.ID = TestHelpers.ParseTail(0x2).ToString();
 
             m_cache.Store(asset);
 

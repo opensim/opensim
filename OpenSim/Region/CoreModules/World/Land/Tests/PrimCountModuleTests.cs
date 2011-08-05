@@ -106,7 +106,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestAddOwnerObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();                                  
                   
             IPrimCounts pc = m_lo.PrimCounts;         
@@ -143,7 +143,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestCopyOwnerObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();                                  
                   
             IPrimCounts pc = m_lo.PrimCounts;
@@ -169,7 +169,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestMoveOwnerObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();                                  
                                           
             SceneObjectGroup sog = SceneHelpers.CreateSceneObject(3, m_userId, "a", 0x01);             
@@ -230,7 +230,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestRemoveOwnerObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             IPrimCounts pc = m_lo.PrimCounts;
@@ -253,7 +253,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestAddGroupObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();                                  
             
             m_lo.DeedToGroup(m_groupId);
@@ -284,7 +284,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestRemoveGroupObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             m_lo.DeedToGroup(m_groupId);
@@ -313,7 +313,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]        
         public void TestAddOthersObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();                                  
                   
             IPrimCounts pc = m_lo.PrimCounts;       
@@ -334,7 +334,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestRemoveOthersObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             IPrimCounts pc = m_lo.PrimCounts;
@@ -360,7 +360,7 @@ namespace OpenSim.Region.CoreModules.World.Land.Tests
         [Test]
         public void TestTaint()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             IPrimCounts pc = m_lo.PrimCounts;
             
             SceneObjectGroup sog = SceneHelpers.CreateSceneObject(3, m_userId, "a", 0x01);             

@@ -47,7 +47,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.Tests
         [Test]
         public void TestBasic()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             TestScene scene = SceneHelpers.SetupScene();

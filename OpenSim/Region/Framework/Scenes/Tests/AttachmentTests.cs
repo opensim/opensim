@@ -62,7 +62,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [TestFixtureSetUp]
         public void Init()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             scene = SceneHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
             scene2 = SceneHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000);
@@ -89,7 +89,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T030_TestAddAttachments()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
             ScenePresence presence = scene.GetScenePresence(agent1);
 
@@ -104,7 +104,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void T031_RemoveAttachments()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
             ScenePresence presence = scene.GetScenePresence(agent1);
             presence.RemoveAttachment(sog1);
@@ -118,7 +118,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         //[Test]
         public void T032_CrossAttachments()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
             ScenePresence presence = scene.GetScenePresence(agent1);
             ScenePresence presence2 = scene2.GetScenePresence(agent1);

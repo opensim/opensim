@@ -56,7 +56,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDeRezSceneObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
                         
             UUID userId = UUID.Parse("10000000-0000-0000-0000-000000000001");
@@ -94,7 +94,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDeRezSceneObjectNotOwner()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
                         
             UUID userId = UUID.Parse("10000000-0000-0000-0000-000000000001");

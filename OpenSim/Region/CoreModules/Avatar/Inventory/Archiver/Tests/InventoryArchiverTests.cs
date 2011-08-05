@@ -68,7 +68,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadCoalesecedItem()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaLL1, "password");
@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestOrder()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();            
             
             MemoryStream archiveReadStream = new MemoryStream(m_iarStreamBytes);
@@ -129,7 +129,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestSaveItemToIar()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             // Create user
@@ -224,7 +224,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestSaveItemToIarNoAssets()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             // Create user
@@ -325,7 +325,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarCreatorAccountPresent()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaLL1, "meowfood");
@@ -357,7 +357,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarV0_1SameNameCreator()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaMT, "meowfood");
@@ -390,7 +390,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarV0_1AbsentCreator()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             UserAccountHelpers.CreateUserWithInventory(m_scene, m_uaMT, "password");

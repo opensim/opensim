@@ -55,7 +55,7 @@ namespace OpenSim.Region.Framework.Tests
         [Test]
         public void TestGiveInventoryItem()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             Scene scene = SceneHelpers.SetupScene();
@@ -82,7 +82,7 @@ namespace OpenSim.Region.Framework.Tests
         [Test]
         public void TestGiveInventoryFolder()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneHelpers.SetupScene();

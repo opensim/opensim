@@ -32,7 +32,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Tests.Common
 {
-    public class TestHelper
+    public class TestHelpers
     {
         public static bool AssertThisDelegateCausesArgumentException(TestDelegate d)
         {

@@ -82,7 +82,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
         [Test]
         public void TestRezCoalescedObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             // Create asset
@@ -138,7 +138,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess.Tests
         [Test]
         public void TestRezObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             // Create asset

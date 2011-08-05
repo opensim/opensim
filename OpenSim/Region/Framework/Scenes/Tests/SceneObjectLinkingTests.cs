@@ -50,7 +50,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestLinkDelink2SceneObjects()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             bool debugtest = false; 
 
@@ -132,7 +132,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestLinkDelink2groups4SceneObjects()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             bool debugtest = false;
 
@@ -266,7 +266,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestNewSceneObjectLinkPersistence()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
             
             TestScene scene = SceneHelpers.SetupScene();
@@ -305,7 +305,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDelinkPersistence()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
             
             TestScene scene = SceneHelpers.SetupScene();

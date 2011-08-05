@@ -57,7 +57,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestSavePathToIarV0_1()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
@@ -172,7 +172,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarToInventoryPaths()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             SerialiserModule serialiserModule = new SerialiserModule();
@@ -217,7 +217,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarPathStartsWithSlash()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             SerialiserModule serialiserModule = new SerialiserModule();
@@ -238,7 +238,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarPathWithEscapedChars()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             string itemName = "You & you are a mean/man/";
@@ -323,7 +323,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestNewIarPath()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneHelpers.SetupScene();
@@ -390,7 +390,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestPartExistingIarPath()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneHelpers.SetupScene();
@@ -441,7 +441,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestMergeIarPath()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneHelpers.SetupScene();

@@ -55,7 +55,7 @@ namespace OpenSim.Region.Framework.Tests
         [Test]
         public void TestRezObjectFromInventoryItem()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneHelpers.SetupScene();
@@ -98,7 +98,7 @@ namespace OpenSim.Region.Framework.Tests
         [Test]
         public void TestMoveTaskInventoryItem()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneHelpers.SetupScene();
@@ -125,7 +125,7 @@ namespace OpenSim.Region.Framework.Tests
         [Test]
         public void TestMoveTaskInventoryItemNoParent()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneHelpers.SetupScene();
