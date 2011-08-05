@@ -785,7 +785,7 @@ namespace OpenSim.Services.LLLoginService
             if (avatar != null)
                 aCircuit.Appearance = new AvatarAppearance(avatar);
             else
-                aCircuit.Appearance = new AvatarAppearance(account.PrincipalID);
+                aCircuit.Appearance = new AvatarAppearance();
 
             //aCircuit.BaseFolder = irrelevant
             aCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();

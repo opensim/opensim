@@ -296,11 +296,12 @@ namespace OpenSim.Framework
             if (args["start_pos"] != null)
                 Vector3.TryParse(args["start_pos"].AsString(), out startpos);
 
-            m_log.InfoFormat("[AGENTCIRCUITDATA] agentid={0}, child={1}, startpos={2}",AgentID,child,startpos.ToString());
+            m_log.InfoFormat("[AGENTCIRCUITDATA]: agentid={0}, child={1}, startpos={2}", AgentID, child, startpos);
             
-            try {
+            try
+            {
                 // Unpack various appearance elements
-                Appearance = new AvatarAppearance(AgentID);
+                Appearance = new AvatarAppearance();
 
                 // Eventually this code should be deprecated, use full appearance
                 // packing in packed_appearance
@@ -313,7 +314,9 @@ namespace OpenSim.Framework
                     m_log.InfoFormat("[AGENTCIRCUITDATA] unpacked appearance");
                 }
                 else
-                    m_log.Warn("[AGENTCIRCUITDATA] failed to find a valid packed_appearance");
+                {
+                    m_log.Warn("[AGENTCIRCUITDATA]: failed to find a valid packed_appearance");
+                }
             }
             catch (Exception e)
             {

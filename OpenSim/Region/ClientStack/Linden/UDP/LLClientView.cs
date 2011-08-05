@@ -231,7 +231,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ScriptReset OnScriptReset;
         public event GetScriptRunning OnGetScriptRunning;
         public event SetScriptRunning OnSetScriptRunning;
-        public event UpdateVector OnAutoPilotGo;
+        public event Action<Vector3> OnAutoPilotGo;
         public event TerrainUnacked OnUnackedTerrain;
         public event ActivateGesture OnActivateGesture;
         public event DeactivateGesture OnDeactivateGesture;
@@ -5266,6 +5266,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.GroupVoteHistoryRequest, HandleGroupVoteHistoryRequest);
             AddLocalPacketHandler(PacketType.SimWideDeletes, HandleSimWideDeletes);
             AddLocalPacketHandler(PacketType.SendPostcard, HandleSendPostcard);
+
+            AddGenericPacketHandler("autopilot", HandleAutopilot);
         }
 
         #region Packet Handlers
@@ -5308,7 +5310,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                        );
                 }
                 else
+                {
                     update = true;
+                }
 
                 // These should be ordered from most-likely to
                 // least likely to change. I've made an initial
@@ -5316,6 +5320,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (update)
                 {
+//                    m_log.DebugFormat("[LLCLIENTVIEW]: Triggered AgentUpdate for {0}", sener.Name);
+
                     AgentUpdateArgs arg = new AgentUpdateArgs();
                     arg.AgentID = x.AgentID;
                     arg.BodyRotation = x.BodyRotation;
@@ -11609,55 +11615,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return false;
         }
 
-        /// <summary>
-        /// Breaks down the genericMessagePacket into specific events
-        /// </summary>
-        /// <param name="gmMethod"></param>
-        /// <param name="gmInvoice"></param>
-        /// <param name="gmParams"></param>
-        public void DecipherGenericMessage(string gmMethod, UUID gmInvoice, GenericMessagePacket.ParamListBlock[] gmParams)
+        protected void HandleAutopilot(Object sender, string method, List<String> args)
         {
-            switch (gmMethod)
-            {
-                case "autopilot":
-                    float locx;
-                    float locy;
-                    float locz;
+            float locx = 0;
+            float locy = 0;
+            float locz = 0;
+            uint regionX = 0;
+            uint regionY = 0;
 
-                    try
-                    {
-                        uint regionX;
-                        uint regionY;
-                        Utils.LongToUInts(Scene.RegionInfo.RegionHandle, out regionX, out regionY);
-                        locx = Convert.ToSingle(Utils.BytesToString(gmParams[0].Parameter)) - regionX;
-                        locy = Convert.ToSingle(Utils.BytesToString(gmParams[1].Parameter)) - regionY;
-                        locz = Convert.ToSingle(Utils.BytesToString(gmParams[2].Parameter));
-                    }
-                    catch (InvalidCastException)
-                    {
-                        m_log.Error("[CLIENT]: Invalid autopilot request");
-                        return;
-                    }
+            Utils.LongToUInts(m_scene.RegionInfo.RegionHandle, out regionX, out regionY);
+            locx = Convert.ToSingle(args[0]) - (float)regionX;
+            locy = Convert.ToSingle(args[1]) - (float)regionY;
+            locz = Convert.ToSingle(args[2]);
 
-                    UpdateVector handlerAutoPilotGo = OnAutoPilotGo;
-                    if (handlerAutoPilotGo != null)
-                    {
-                        handlerAutoPilotGo(0, new Vector3(locx, locy, locz), this);
-                    }
-                    m_log.InfoFormat("[CLIENT]: Client Requests autopilot to position <{0},{1},{2}>", locx, locy, locz);
-
-
-                    break;
-                default:
-                    m_log.Debug("[CLIENT]: Unknown Generic Message, Method: " + gmMethod + ". Invoice: " + gmInvoice + ".  Dumping Params:");
-                    for (int hi = 0; hi < gmParams.Length; hi++)
-                    {
-                        Console.WriteLine(gmParams[hi].ToString());
-                    }
-                    //gmpack.MethodData.
-                    break;
-
-            }
+            Action<Vector3> handlerAutoPilotGo = OnAutoPilotGo;
+            if (handlerAutoPilotGo != null)
+                handlerAutoPilotGo(new Vector3(locx, locy, locz));
         }
 
         /// <summary>
@@ -12083,7 +12056,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
-        public void SendTextBoxRequest(string message, int chatChannel, string objectname, string ownerFirstName, string ownerLastName, UUID objectId)
+        public void SendTextBoxRequest(string message, int chatChannel, string objectname, UUID ownerID, string ownerFirstName, string ownerLastName, UUID objectId)
         {
             ScriptDialogPacket dialog = (ScriptDialogPacket)PacketPool.Instance.GetPacket(PacketType.ScriptDialog);
             dialog.Data.ObjectID = objectId;
@@ -12099,6 +12072,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             buttons[0] = new ScriptDialogPacket.ButtonsBlock();
             buttons[0].ButtonLabel = Util.StringToBytes256("!!llTextBox!!");
             dialog.Buttons = buttons;
+
+            dialog.OwnerData = new ScriptDialogPacket.OwnerDataBlock[1];
+            dialog.OwnerData[0] = new ScriptDialogPacket.OwnerDataBlock();
+            dialog.OwnerData[0].OwnerID = ownerID;
+
             OutPacket(dialog, ThrottleOutPacketType.Task);
         }
 

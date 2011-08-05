@@ -1499,25 +1499,30 @@ namespace OpenSim.Framework
 
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
+            // When OpenSim interacts with a database or sends data over the wire, it must send this in en_US culture
+            // so that we don't encounter problems where, for instance, data is saved with a culture that uses commas
+            // for decimals places but is read by a culture that treats commas as number seperators.
+            WaitCallback realCallback = delegate(object o) { Culture.SetCurrentCulture(); callback(o); };
+
             switch (FireAndForgetMethod)
             {
                 case FireAndForgetMethod.UnsafeQueueUserWorkItem:
-                    ThreadPool.UnsafeQueueUserWorkItem(callback, obj);
+                    ThreadPool.UnsafeQueueUserWorkItem(realCallback, obj);
                     break;
                 case FireAndForgetMethod.QueueUserWorkItem:
-                    ThreadPool.QueueUserWorkItem(callback, obj);
+                    ThreadPool.QueueUserWorkItem(realCallback, obj);
                     break;
                 case FireAndForgetMethod.BeginInvoke:
                     FireAndForgetWrapper wrapper = FireAndForgetWrapper.Instance;
-                    wrapper.FireAndForget(callback, obj);
+                    wrapper.FireAndForget(realCallback, obj);
                     break;
                 case FireAndForgetMethod.SmartThreadPool:
                     if (m_ThreadPool == null)
                         m_ThreadPool = new SmartThreadPool(2000, 15, 2);
-                    m_ThreadPool.QueueWorkItem(SmartThreadPoolCallback, new object[] { callback, obj });
+                    m_ThreadPool.QueueWorkItem(SmartThreadPoolCallback, new object[] { realCallback, obj });
                     break;
                 case FireAndForgetMethod.Thread:
-                    Thread thread = new Thread(delegate(object o) { callback(o); });
+                    Thread thread = new Thread(delegate(object o) { realCallback(o); });
                     thread.Start(obj);
                     break;
                 default:

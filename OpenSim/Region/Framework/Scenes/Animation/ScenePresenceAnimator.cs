@@ -27,6 +27,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -40,6 +42,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
     /// </summary>
     public class ScenePresenceAnimator
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public AnimationSet Animations
         {
             get { return m_animations;  }
@@ -262,7 +266,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
             m_animTickFall = 0;
 
-            if (move.Z > 0f)
+            if (move.Z > 0.2f)
             {
                 // Jumping
                 if (!jumping)
@@ -295,7 +299,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 if (move.X != 0f || move.Y != 0f)
                 {
                     // Walking / crouchwalking / running
-                    if (move.Z < 0f)
+                    if (move.Z < 0)
                         return "CROUCHWALK";
                     else if (m_scenePresence.SetAlwaysRun)
                         return "RUN";
@@ -305,7 +309,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 else
                 {
                     // Not walking
-                    if (move.Z < 0f)
+                    if (move.Z < 0)
                         return "CROUCH";
                     else
                         return "STAND";
@@ -323,6 +327,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         public void UpdateMovementAnimations()
         {
             m_movementAnimation = GetMovementAnimation();
+//            m_log.DebugFormat(
+//                "[SCENE PRESENCE ANIMATOR]: Got animation {0} for {1}", m_movementAnimation, m_scenePresence.Name);
             TrySetMovementAnimation(m_movementAnimation);
         }
 

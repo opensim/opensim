@@ -193,10 +193,11 @@ namespace OpenSim.Services.InventoryService
             item.Description = config.GetString("description", item.Name);
             item.InvType = config.GetInt("inventoryType", 0);
             item.AssetType = config.GetInt("assetType", item.InvType);
-            item.CurrentPermissions = (uint)config.GetLong("currentPermissions", 0x7FFFFFFF);
-            item.NextPermissions = (uint)config.GetLong("nextPermissions", 0x7FFFFFFF);
-            item.EveryOnePermissions = (uint)config.GetLong("everyonePermissions", 0x7FFFFFFF);
-            item.BasePermissions = (uint)config.GetLong("basePermissions", 0x7FFFFFFF);
+            item.CurrentPermissions = (uint)config.GetLong("currentPermissions", (uint)PermissionMask.All);
+            item.NextPermissions = (uint)config.GetLong("nextPermissions", (uint)PermissionMask.All);
+            item.EveryOnePermissions
+                = (uint)config.GetLong("everyonePermissions", (uint)PermissionMask.All - (uint)PermissionMask.Modify);
+            item.BasePermissions = (uint)config.GetLong("basePermissions", (uint)PermissionMask.All);
             item.Flags = (uint)config.GetInt("flags", 0);
 
             if (libraryFolders.ContainsKey(item.Folder))

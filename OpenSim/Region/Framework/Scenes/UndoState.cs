@@ -35,7 +35,7 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public class UndoState
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public Vector3 Position = Vector3.Zero;
         public Vector3 Scale = Vector3.Zero;

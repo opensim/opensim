@@ -146,7 +146,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 = ParseUserSetConfigSetting(myConfig, "allowed_script_editors", m_allowedScriptEditors);
 
             if (m_bypassPermissions)
-                m_log.Info("[PERMISSIONS]: serviceside_object_permissions = false in ini file so disabling all region service permission checks");
+                m_log.Info("[PERMISSIONS]: serverside_object_permissions = false in ini file so disabling all region service permission checks");
             else
                 m_log.Debug("[PERMISSIONS]: Enabling all region service permission checks");
 

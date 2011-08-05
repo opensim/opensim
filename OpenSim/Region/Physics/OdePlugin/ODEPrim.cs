@@ -61,6 +61,22 @@ namespace OpenSim.Region.Physics.OdePlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private bool m_isphysical;
+
+        /// <summary>
+        /// Is this prim subject to physics?  Even if not, it's still solid for collision purposes.
+        /// </summary>
+        public override bool IsPhysical
+        {
+            get { return m_isphysical; }
+            set
+            {
+                m_isphysical = value;
+                if (!m_isphysical) // Zero the remembered last velocity
+                    m_lastVelocity = Vector3.Zero;
+            }
+        }
+
         private Vector3 _position;
         private Vector3 _velocity;
         private Vector3 _torque;
@@ -138,12 +154,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         private List<Vector3> m_forcelist = new List<Vector3>();
         private List<Vector3> m_angularforcelist = new List<Vector3>();
 
-        private IMesh _mesh;
         private PrimitiveBaseShape _pbs;
         private OdeScene _parent_scene;
+
+        /// <summary>
+        /// The physics space which contains prim geometries
+        /// </summary>
         public IntPtr m_targetSpace = IntPtr.Zero;
+
         public IntPtr prim_geom;
-        public IntPtr prev_geom;
         public IntPtr _triMeshData;
 
         private IntPtr _linkJointGroup = IntPtr.Zero;
@@ -153,7 +172,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private List<OdePrim> childrenPrim = new List<OdePrim>();
 
         private bool iscolliding;
-        private bool m_isphysical;
         private bool m_isSelected;
 
         internal bool m_isVolumeDetect; // If true, this prim only detects collisions but doesn't collide actively
@@ -188,7 +206,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         internal int m_material = (int)Material.Wood;
 
         public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
-                       Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
+                       Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
         {
             Name = primName;
             m_vehicle = new ODEDynamics();
@@ -208,9 +226,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // m_tensor = parent_scene.bodyMotorJointMaxforceTensor;
             body_autodisable_frames = parent_scene.bodyFramesAutoDisable;
 
-
             prim_geom = IntPtr.Zero;
-            prev_geom = IntPtr.Zero;
 
             if (!pos.IsFinite())
             {
@@ -233,20 +249,21 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _orientation = rotation;
             m_taintrot = _orientation;
-            _mesh = mesh;
             _pbs = pbs;
 
             _parent_scene = parent_scene;
             m_targetSpace = (IntPtr)0;
 
             if (pos.Z < 0)
-                m_isphysical = false;
+            {
+                IsPhysical = false;
+            }
             else
             {
-                m_isphysical = pisPhysical;
+                IsPhysical = pisPhysical;
                 // If we're physical, we need to be in the master space for now.
                 // linksets *should* be in a space together..  but are not currently
-                if (m_isphysical)
+                if (IsPhysical)
                     m_targetSpace = _parent_scene.space;
             }
 
@@ -289,7 +306,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // through it while it's selected
                 m_collisionscore = 0;
 
-                if ((m_isphysical && !_zeroFlag) || !value)
+                if ((IsPhysical && !_zeroFlag) || !value)
                 {
                     m_taintselected = value;
                     _parent_scene.AddPhysicsActorTaint(this);
@@ -305,15 +322,21 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        /// <summary>
+        /// Set a new geometry for this prim.
+        /// </summary>
+        /// <param name="geom"></param>
         public void SetGeom(IntPtr geom)
         {
-            prev_geom = prim_geom;
             prim_geom = geom;
 //Console.WriteLine("SetGeom to " + prim_geom + " for " + Name);
             if (prim_geom != IntPtr.Zero)
             {
                 d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                 d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
+
+                _parent_scene.geom_name_map[prim_geom] = Name;
+                _parent_scene.actor_name_map[prim_geom] = this;
             }
 
             if (childPrim)
@@ -332,7 +355,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (!childPrim)
             {
-                if (m_isphysical && Body != IntPtr.Zero)
+                if (IsPhysical && Body != IntPtr.Zero)
                 {
                     d.BodyEnable(Body);
                     if (m_vehicle.Type != Vehicle.TYPE_NONE)
@@ -347,12 +370,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             m_disabled = true;
 
-            if (m_isphysical && Body != IntPtr.Zero)
+            if (IsPhysical && Body != IntPtr.Zero)
             {
                 d.BodyDisable(Body);
             }
         }
 
+        /// <summary>
+        /// Make a prim subject to physics.
+        /// </summary>
         public void enableBody()
         {
             // Don't enable this body if we're a child prim
@@ -728,6 +754,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
         }
 
+        /// <summary>
+        /// Stop a prim from being subject to physics.
+        /// </summary>
         public void disableBody()
         {
             //this kills the body so things like 'mesh' can re-create it.
@@ -778,6 +807,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     Body = IntPtr.Zero;
                 }
             }
+
             m_disabled = true;
             m_collisionscore = 0;
         }
@@ -886,7 +916,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     }
                 }
             
-                if (m_taintPhysics != m_isphysical && !(m_taintparent != _parent))
+                if (m_taintPhysics != IsPhysical && !(m_taintparent != _parent))
                     changePhysicsStatus(timestep);
 
                 if (!_size.ApproxEquals(m_taintsize, 0f))
@@ -968,7 +998,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     OdePrim obj = (OdePrim)m_taintparent;
                     //obj.disableBody();
 //Console.WriteLine("changelink calls ParentPrim");
-                    obj.ParentPrim(this);
+                    obj.AddChildPrim(this);
 
                     /*
                     if (obj.Body != (IntPtr)0 && Body != (IntPtr)0 && obj.Body != Body)
@@ -1005,14 +1035,16 @@ Console.WriteLine("ZProcessTaints for " + Name);
             }
  
             _parent = m_taintparent;
-            m_taintPhysics = m_isphysical;
+            m_taintPhysics = IsPhysical;
         }
 
-        // I'm the parent
-        // prim is the child
-        public void ParentPrim(OdePrim prim)
+        /// <summary>
+        /// Add a child prim to this parent prim.
+        /// </summary>
+        /// <param name="prim">Child prim</param>
+        public void AddChildPrim(OdePrim prim)
         {
-//Console.WriteLine("ParentPrim  " + Name);
+//Console.WriteLine("AddChildPrim  " + Name);
             if (this.m_localID != prim.m_localID)
             {
                 if (Body == IntPtr.Zero)
@@ -1034,7 +1066,6 @@ Console.WriteLine("ZProcessTaints for " + Name);
                                 d.Mass m2;
                                 d.MassSetZero(out m2);
                                 d.MassSetBoxTotal(out m2, prim.CalculateMass(), prm._size.X, prm._size.Y, prm._size.Z);
-
 
                                 d.Quaternion quat = new d.Quaternion();
                                 quat.W = prm._orientation.W;
@@ -1105,6 +1136,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                                 prm.Body = Body;
                                 _parent_scene.addActivePrim(prm);
                             }
+
                             m_collisionCategories |= CollisionCategories.Body;
                             m_collisionFlags |= (CollisionCategories.Land | CollisionCategories.Wind);
 
@@ -1112,7 +1144,6 @@ Console.WriteLine("ZProcessTaints for " + Name);
                             d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
 //Console.WriteLine(" Post GeomSetCategoryBits 2");
                             d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
-
 
                             d.Quaternion quat2 = new d.Quaternion();
                             quat2.W = _orientation.W;
@@ -1135,7 +1166,6 @@ Console.WriteLine("ZProcessTaints for " + Name);
                             d.BodySetAutoDisableFlag(Body, true);
                             d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
 
-
                             m_interpenetrationcount = 0;
                             m_collisionscore = 0;
                             m_disabled = false;
@@ -1146,7 +1176,9 @@ Console.WriteLine("ZProcessTaints for " + Name);
                                 createAMotor(m_angularlock);
                             }
                             d.BodySetPosition(Body, Position.X, Position.Y, Position.Z);
-                            if (m_vehicle.Type != Vehicle.TYPE_NONE) m_vehicle.Enable(Body, _parent_scene);
+                            if (m_vehicle.Type != Vehicle.TYPE_NONE)
+                                m_vehicle.Enable(Body, _parent_scene);
+
                             _parent_scene.addActivePrim(this);
                         }
                     }
@@ -1156,7 +1188,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
 
         private void ChildSetGeom(OdePrim odePrim)
         {
-            //if (m_isphysical && Body != IntPtr.Zero)
+            //if (IsPhysical && Body != IntPtr.Zero)
             lock (childrenPrim)
             {
                 foreach (OdePrim prm in childrenPrim)
@@ -1172,7 +1204,6 @@ Console.WriteLine("ZProcessTaints for " + Name);
             }
             disableBody();
 
-
             if (Body != IntPtr.Zero)
             {
                 _parent_scene.remActivePrim(this);
@@ -1183,10 +1214,9 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 foreach (OdePrim prm in childrenPrim)
                 {
 //Console.WriteLine("ChildSetGeom calls ParentPrim");
-                    ParentPrim(prm);
+                    AddChildPrim(prm);
                 }
             }
-            
         }
 
         private void ChildDelink(OdePrim odePrim)
@@ -1223,7 +1253,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 foreach (OdePrim prm in childrenPrim)
                 {
 //Console.WriteLine("ChildDelink calls ParentPrim");
-                    ParentPrim(prm);
+                    AddChildPrim(prm);
                 }
             }
         }
@@ -1257,7 +1287,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                 // first 50 again. then the last 50 are disabled. then the first 50, which were just woken
                 // up, start simulating again, which in turn wakes up the last 50.
 
-                if (m_isphysical)
+                if (IsPhysical)
                 {
                     disableBodySoft();
                 }
@@ -1268,7 +1298,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
                 }
 
-                if (m_isphysical)
+                if (IsPhysical)
                 {
                     disableBodySoft();
                 }
@@ -1277,7 +1307,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
             {
                 m_collisionCategories = CollisionCategories.Geom;
 
-                if (m_isphysical)
+                if (IsPhysical)
                     m_collisionCategories |= CollisionCategories.Body;
 
                 m_collisionFlags = m_default_collisionFlags;
@@ -1292,7 +1322,8 @@ Console.WriteLine("ZProcessTaints for " + Name);
                     d.GeomSetCategoryBits(prim_geom, (int)m_collisionCategories);
                     d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
                 }
-                if (m_isphysical)
+
+                if (IsPhysical)
                 {
                     if (Body != IntPtr.Zero)
                     {
@@ -1311,7 +1342,7 @@ Console.WriteLine("ZProcessTaints for " + Name);
         {
             m_taintposition = _position;
             m_taintrot = _orientation;
-            m_taintPhysics = m_isphysical;
+            m_taintPhysics = IsPhysical;
             m_taintselected = m_isSelected;
             m_taintsize = _size;
             m_taintshape = false;
@@ -1320,14 +1351,19 @@ Console.WriteLine("ZProcessTaints for " + Name);
             m_taintVelocity = Vector3.Zero;
         }
 
-        public void CreateGeom(IntPtr m_targetSpace, IMesh _mesh)
+        /// <summary>
+        /// Create a geometry for the given mesh in the given target space.
+        /// </summary>
+        /// <param name="m_targetSpace"></param>
+        /// <param name="mesh">If null, then a mesh is used that is based on the profile shape data.</param>
+        public void CreateGeom(IntPtr m_targetSpace, IMesh mesh)
         {
 #if SPAM
 Console.WriteLine("CreateGeom:");
 #endif
-            if (_mesh != null)
+            if (mesh != null)
             {
-                setMesh(_parent_scene, _mesh);
+                setMesh(_parent_scene, mesh);
             }
             else
             {
@@ -1400,6 +1436,39 @@ Console.WriteLine("CreateGeom:");
             }
         }
 
+        /// <summary>
+        /// Remove the existing geom from this prim.
+        /// </summary>
+        /// <param name="m_targetSpace"></param>
+        /// <param name="mesh">If null, then a mesh is used that is based on the profile shape data.</param>
+        /// <returns>true if the geom was successfully removed, false if it was already gone or the remove failed.</returns>
+        public bool RemoveGeom()
+        {
+            if (prim_geom != IntPtr.Zero)
+            {
+                try
+                {
+                    _parent_scene.geom_name_map.Remove(prim_geom);
+                    _parent_scene.actor_name_map.Remove(prim_geom);
+                    d.GeomDestroy(prim_geom);
+                    prim_geom = IntPtr.Zero;
+                }
+                catch (System.AccessViolationException)
+                {
+                    prim_geom = IntPtr.Zero;
+                    m_log.ErrorFormat("[PHYSICS]: PrimGeom dead for {0}", Name);
+
+                    return false;
+                }
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public void changeadd(float timestep)
         {
             int[] iprimspaceArrItem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
@@ -1410,15 +1479,14 @@ Console.WriteLine("CreateGeom:");
 
             m_targetSpace = targetspace;
 
-            if (_mesh == null)
+            IMesh mesh = null;
+
+            if (_parent_scene.needsMeshing(_pbs))
             {
-                if (_parent_scene.needsMeshing(_pbs))
-                {
-                    // Don't need to re-enable body..   it's done in SetMesh
-                    _mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
-                    // createmesh returns null when it's a shape that isn't a cube.
-                   // m_log.Debug(m_localID);
-                }
+                // Don't need to re-enable body..   it's done in SetMesh
+                mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
+                // createmesh returns null when it's a shape that isn't a cube.
+               // m_log.Debug(m_localID);
             }
 
             lock (_parent_scene.OdeLock)
@@ -1426,7 +1494,7 @@ Console.WriteLine("CreateGeom:");
 #if SPAM
 Console.WriteLine("changeadd 1");
 #endif
-                CreateGeom(m_targetSpace, _mesh);
+                CreateGeom(m_targetSpace, mesh);
 
                 if (prim_geom != IntPtr.Zero)
                 {
@@ -1439,14 +1507,11 @@ Console.WriteLine("changeadd 1");
                     d.GeomSetQuaternion(prim_geom, ref myrot);
                 }
 
-                if (m_isphysical && Body == IntPtr.Zero)
+                if (IsPhysical && Body == IntPtr.Zero)
                 {
                     enableBody();
                 }
             }
-
-            _parent_scene.geom_name_map[prim_geom] = this.Name;
-            _parent_scene.actor_name_map[prim_geom] = (PhysicsActor)this;
 
             changeSelectedStatus(timestep);
 
@@ -1455,9 +1520,8 @@ Console.WriteLine("changeadd 1");
 
         public void changemove(float timestep)
         {
-            if (m_isphysical)
+            if (IsPhysical)
             {
-                
                 if (!m_disabled && !m_taintremove && !childPrim)
                 {
                     if (Body == IntPtr.Zero)
@@ -1789,7 +1853,7 @@ Console.WriteLine(" JointCreateFixed");
             {
                 // KF: If this is a root prim do BodySet
                 d.BodySetQuaternion(Body, ref myrot);
-                if (m_isphysical)
+                if (IsPhysical)
                 {
                     if (!m_angularlock.ApproxEquals(Vector3.One, 0f))
                         createAMotor(m_angularlock);
@@ -1826,7 +1890,7 @@ Console.WriteLine(" JointCreateFixed");
 
         public void changePhysicsStatus(float timestep)
         {
-            if (m_isphysical == true)
+            if (IsPhysical)
             {
                 if (Body == IntPtr.Zero)
                 {
@@ -1846,25 +1910,12 @@ Console.WriteLine(" JointCreateFixed");
                 {
                     if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
                     {
-                        
+                        RemoveGeom();
 
-                        if (prim_geom != IntPtr.Zero)
-                        {
-                            try
-                            {
-                                d.GeomDestroy(prim_geom);
-                                prim_geom = IntPtr.Zero;
-                                _mesh = null;
-                            }
-                            catch (System.AccessViolationException)
-                            {
-                                prim_geom = IntPtr.Zero;
-                                m_log.ErrorFormat("[PHYSICS]: PrimGeom dead for {0}", Name);
-                            }
-                        }
 //Console.WriteLine("changePhysicsStatus for " + Name);
                         changeadd(2f);
                     }
+
                     if (childPrim)
                     {
                         if (_parent != null)
@@ -1883,7 +1934,7 @@ Console.WriteLine(" JointCreateFixed");
             changeSelectedStatus(timestep);
 
             resetCollisionAccounting();
-            m_taintPhysics = m_isphysical;
+            m_taintPhysics = IsPhysical;
         }
 
         public void changesize(float timestamp)
@@ -1892,17 +1943,9 @@ Console.WriteLine(" JointCreateFixed");
             m_log.DebugFormat("[ODE PRIM]: Called changesize");
 #endif
 
-            string oldname = _parent_scene.geom_name_map[prim_geom];
-
             if (_size.X <= 0) _size.X = 0.01f;
             if (_size.Y <= 0) _size.Y = 0.01f;
             if (_size.Z <= 0) _size.Z = 0.01f;
-
-            // Cleanup of old prim geometry
-            if (_mesh != null)
-            {
-                // TODO: Cleanup meshing here
-            }
 
             //kill body to rebuild
             if (IsPhysical && Body != IntPtr.Zero)
@@ -1927,9 +1970,11 @@ Console.WriteLine(" JointCreateFixed");
                 d.SpaceRemove(m_targetSpace, prim_geom);
             }
 
-            d.GeomDestroy(prim_geom);
-            prim_geom = IntPtr.Zero;
+            RemoveGeom();
+
             // we don't need to do space calculation because the client sends a position update also.
+
+            IMesh mesh = null;
 
             // Construction of new prim
             if (_parent_scene.needsMeshing(_pbs))
@@ -1940,27 +1985,11 @@ Console.WriteLine(" JointCreateFixed");
                     meshlod = _parent_scene.MeshSculptphysicalLOD;
                 // Don't need to re-enable body..   it's done in SetMesh
 
-                IMesh mesh = null;
-
                 if (_parent_scene.needsMeshing(_pbs))
-                    mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
-
-#if SPAM
-Console.WriteLine("changesize 1");
-#endif
-                CreateGeom(m_targetSpace, mesh);
-            }
-            else
-            {
-                _mesh = null;
-
-#if SPAM
-Console.WriteLine("changesize 2");
-#endif
-
-                CreateGeom(m_targetSpace, _mesh);
+                    mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, meshlod, IsPhysical);
             }
 
+            CreateGeom(m_targetSpace, mesh);
             d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
             d.Quaternion myrot = new d.Quaternion();
             myrot.X = _orientation.X;
@@ -1977,8 +2006,6 @@ Console.WriteLine("changesize 2");
                 enableBody();
                 d.BodyEnable(Body);
             }
-
-            _parent_scene.geom_name_map[prim_geom] = oldname;
 
             changeSelectedStatus(timestamp);
             if (childPrim)
@@ -2013,8 +2040,6 @@ Console.WriteLine("changesize 2");
 
         public void changeshape(float timestamp)
         {
-            string oldname = _parent_scene.geom_name_map[prim_geom];
-
             // Cleanup of old prim geometry and Bodies
             if (IsPhysical && Body != IntPtr.Zero)
             {
@@ -2031,22 +2056,16 @@ Console.WriteLine("changesize 2");
                     disableBody();
                 }
             }
-            try
-            {
-                d.GeomDestroy(prim_geom);
-            }
-            catch (System.AccessViolationException)
-            {
-                prim_geom = IntPtr.Zero;
-                m_log.ErrorFormat("[PHYSICS]: PrimGeom dead for {0}", Name);
-            }
 
-            prim_geom = IntPtr.Zero;
+            RemoveGeom();
+
             // we don't need to do space calculation because the client sends a position update also.
             if (_size.X <= 0) _size.X = 0.01f;
             if (_size.Y <= 0) _size.Y = 0.01f;
             if (_size.Z <= 0) _size.Z = 0.01f;
             // Construction of new prim
+
+            IMesh mesh = null;
 
             if (_parent_scene.needsMeshing(_pbs))
             {
@@ -2057,22 +2076,10 @@ Console.WriteLine("changesize 2");
                     meshlod = _parent_scene.MeshSculptphysicalLOD;
 
                 // createmesh returns null when it doesn't mesh.
-                IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod, IsPhysical);
-#if SPAM
-Console.WriteLine("changeshape needed meshing");
-#endif
-                CreateGeom(m_targetSpace, mesh);
-            }
-            else
-            {
-                _mesh = null;
-
-#if SPAM
-Console.WriteLine("changeshape not need meshing");
-#endif
-                CreateGeom(m_targetSpace, null);
+                mesh = _parent_scene.mesher.CreateMesh(Name, _pbs, _size, meshlod, IsPhysical);
             }
 
+            CreateGeom(m_targetSpace, mesh);
             d.GeomSetPosition(prim_geom, _position.X, _position.Y, _position.Z);
             d.Quaternion myrot = new d.Quaternion();
             //myrot.W = _orientation.w;
@@ -2093,7 +2100,6 @@ Console.WriteLine("changeshape not need meshing");
                     d.BodyEnable(Body);
                 }
             }
-            _parent_scene.geom_name_map[prim_geom] = oldname;
 
             changeSelectedStatus(timestamp);
             if (childPrim)
@@ -2214,16 +2220,6 @@ Console.WriteLine("changeshape not need meshing");
                 //resetCollisionAccounting();
             }
             m_taintVelocity = Vector3.Zero;
-        }
-
-        public override bool IsPhysical
-        {
-            get { return m_isphysical; }
-            set { 
-                  m_isphysical = value;
-                  if (!m_isphysical) // Zero the remembered last velocity
-                      m_lastVelocity = Vector3.Zero;
-                }
         }
 
         public void setPrimForRemoval()
@@ -2404,7 +2400,7 @@ Console.WriteLine("changeshape not need meshing");
         {
             get
             {
-                if (!m_isphysical || Body == IntPtr.Zero)
+                if (!IsPhysical || Body == IntPtr.Zero)
                     return Vector3.Zero;
 
                 return _torque;
@@ -2986,12 +2982,12 @@ Console.WriteLine("changeshape not need meshing");
         public override void SubscribeEvents(int ms)
         {
             m_eventsubscription = ms;
-            _parent_scene.addCollisionEventReporting(this);
+            _parent_scene.AddCollisionEventReporting(this);
         }
 
         public override void UnSubscribeEvents()
         {
-            _parent_scene.remCollisionEventReporting(this);
+            _parent_scene.RemoveCollisionEventReporting(this);
             m_eventsubscription = 0;
         }
 
@@ -2999,6 +2995,7 @@ Console.WriteLine("changeshape not need meshing");
         {
             if (CollisionEventsThisFrame == null)
                 CollisionEventsThisFrame = new CollisionEventUpdate();
+
             CollisionEventsThisFrame.addCollider(CollidedWith, contact);
         }
 

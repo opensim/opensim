@@ -488,11 +488,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                                     rdata.userAppearance.AvatarHeight = (float) Convert.ToDouble(xml.Value);
                                     indata = true;
                                 }
-                                if (xml.MoveToAttribute("Owner"))
-                                {
-                                    rdata.userAppearance.Owner = (UUID)xml.Value;
-                                    indata = true;
-                                }
+//                                if (xml.MoveToAttribute("Owner"))
+//                                {
+//                                    rdata.userAppearance.Owner = (UUID)xml.Value;
+//                                    indata = true;
+//                                }
                                 if (xml.MoveToAttribute("Serial"))
                                 {
                                     rdata.userAppearance.Serial = Convert.ToInt32(xml.Value);
@@ -747,8 +747,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 rdata.writer.WriteStartElement("Appearance");
 
                 rdata.writer.WriteAttributeString("Height", rdata.userAppearance.AvatarHeight.ToString());
-                if (rdata.userAppearance.Owner != UUID.Zero)
-                    rdata.writer.WriteAttributeString("Owner", rdata.userAppearance.Owner.ToString());
+//                if (rdata.userAppearance.Owner != UUID.Zero)
+//                    rdata.writer.WriteAttributeString("Owner", rdata.userAppearance.Owner.ToString());
                 rdata.writer.WriteAttributeString("Serial", rdata.userAppearance.Serial.ToString());
 
 /*

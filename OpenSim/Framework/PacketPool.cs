@@ -144,6 +144,7 @@ namespace OpenSim.Framework
                 m_log.WarnFormat("[PACKETPOOL]: Failed to get packet of type {0}", type);
             else
                 packet.FromBytes(bytes, ref i, ref packetEnd, zeroBuffer);
+
             return packet;
         }
 
@@ -160,19 +161,18 @@ namespace OpenSim.Framework
                     case PacketType.ObjectUpdate:
                         ObjectUpdatePacket oup = (ObjectUpdatePacket)packet;
 
-                        foreach (ObjectUpdatePacket.ObjectDataBlock oupod in
-                                oup.ObjectData)
+                        foreach (ObjectUpdatePacket.ObjectDataBlock oupod in oup.ObjectData)
                             ReturnDataBlock<ObjectUpdatePacket.ObjectDataBlock>(oupod);
+
                         oup.ObjectData = null;
                         break;
 
                     case PacketType.ImprovedTerseObjectUpdate:
-                        ImprovedTerseObjectUpdatePacket itoup =
-                                (ImprovedTerseObjectUpdatePacket)packet;
+                        ImprovedTerseObjectUpdatePacket itoup = (ImprovedTerseObjectUpdatePacket)packet;
 
-                        foreach (ImprovedTerseObjectUpdatePacket.ObjectDataBlock
-                                itoupod in itoup.ObjectData)
+                        foreach (ImprovedTerseObjectUpdatePacket.ObjectDataBlock itoupod in itoup.ObjectData)
                             ReturnDataBlock<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>(itoupod);
+
                         itoup.ObjectData = null;
                         break;
                 }
@@ -194,6 +194,7 @@ namespace OpenSim.Framework
                             {
                                 pool[type] = new Stack<Packet>();
                             }
+
                             if ((pool[type]).Count < 50)
                             {
                                 (pool[type]).Push(packet);
@@ -223,6 +224,7 @@ namespace OpenSim.Framework
                 {
                     DataBlocks[typeof(T)] = new Stack<Object>();
                 }
+                
                 return new T();
             }
         }
@@ -234,6 +236,9 @@ namespace OpenSim.Framework
 
             lock (DataBlocks)
             {
+                if (!DataBlocks.ContainsKey(typeof(T)))
+                    DataBlocks[typeof(T)] = new Stack<Object>();
+
                 if (DataBlocks[typeof(T)].Count < 50)
                     DataBlocks[typeof(T)].Push(block);
             }

@@ -73,6 +73,7 @@ namespace OpenSim
             AppDomain.CurrentDomain.UnhandledException +=
                 new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
+
             // Add the arguments supplied when running the application to the configuration
             ArgvConfigSource configSource = new ArgvConfigSource(args);
 
@@ -90,6 +91,9 @@ namespace OpenSim
                 XmlConfigurator.Configure();
                 m_log.Info("[OPENSIM MAIN]: configured log4net using default OpenSim.exe.config");
             }
+
+            m_log.DebugFormat(
+                "[OPENSIM MAIN]: System Locale is {0}", System.Threading.Thread.CurrentThread.CurrentCulture);
 
             // Increase the number of IOCP threads available. Mono defaults to a tragically low number
             int workerThreads, iocpThreads;

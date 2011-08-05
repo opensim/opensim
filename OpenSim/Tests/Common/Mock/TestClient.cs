@@ -234,7 +234,7 @@ namespace OpenSim.Tests.Common.Mock
         public event ScriptReset OnScriptReset;
         public event GetScriptRunning OnGetScriptRunning;
         public event SetScriptRunning OnSetScriptRunning;
-        public event UpdateVector OnAutoPilotGo;
+        public event Action<Vector3> OnAutoPilotGo;
 
         public event TerrainUnacked OnUnackedTerrain;
 
@@ -1214,7 +1214,7 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public void SendTextBoxRequest(string message, int chatChannel, string objectname, string ownerFirstName, string ownerLastName, UUID objectId)
+        public void SendTextBoxRequest(string message, int chatChannel, string objectname, UUID ownerID, string ownerFirstName, string ownerLastName, UUID objectId)
         {
         }
 

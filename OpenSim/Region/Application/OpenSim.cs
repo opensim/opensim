@@ -130,7 +130,9 @@ namespace OpenSim
             //m_log.InfoFormat("[OPENSIM MAIN]: GC Latency Mode: {0}", GCSettings.LatencyMode.ToString());
 
             if (m_gui) // Driven by external GUI
+            {
                 m_console = new CommandConsole("Region");
+            }
             else
             {
                 switch (m_consoleType)

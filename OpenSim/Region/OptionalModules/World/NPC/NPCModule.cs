@@ -44,14 +44,75 @@ namespace OpenSim.Region.OptionalModules.World.NPC
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        // private const bool m_enabled = false;
-
-        private Dictionary<UUID,NPCAvatar> m_avatars = new Dictionary<UUID, NPCAvatar>();
-        private Dictionary<UUID,AvatarAppearance> m_appearanceCache = new Dictionary<UUID, AvatarAppearance>();
+        private Dictionary<UUID, NPCAvatar> m_avatars = new Dictionary<UUID, NPCAvatar>();
+        private Dictionary<UUID, AvatarAppearance> m_appearanceCache = new Dictionary<UUID, AvatarAppearance>();
 
         public void Initialise(Scene scene, IConfigSource source)
         {
-            scene.RegisterModuleInterface<INPCModule>(this);
+            IConfig config = source.Configs["NPC"];
+
+            if (config != null && config.GetBoolean("Enabled", false))
+            {
+                scene.RegisterModuleInterface<INPCModule>(this);
+                scene.EventManager.OnSignificantClientMovement += HandleOnSignificantClientMovement;
+            }
+        }
+
+        public void HandleOnSignificantClientMovement(ScenePresence presence)
+        {
+            lock (m_avatars)
+            {
+                if (m_avatars.ContainsKey(presence.UUID) && presence.MovingToTarget)
+                {
+                    double distanceToTarget = Util.GetDistanceTo(presence.AbsolutePosition, presence.MoveToPositionTarget);
+//                            m_log.DebugFormat(
+//                                "[NPC MODULE]: Abs pos of {0} is {1}, target {2}, distance {3}",
+//                                presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget, distanceToTarget);
+
+                    // Check the error term of the current position in relation to the target position
+                    if (distanceToTarget <= ScenePresence.SIGNIFICANT_MOVEMENT)
+                    {
+                        // We are close enough to the target
+                        m_log.DebugFormat("[NPC MODULE]: Stopping movement of npc {0}", presence.Name);
+
+                        if (presence.PhysicsActor.Flying)
+                        {
+                            Vector3 targetPos = presence.MoveToPositionTarget;
+                            float terrainHeight = (float)presence.Scene.Heightmap[(int)targetPos.X, (int)targetPos.Y];
+                            if (targetPos.Z - terrainHeight < 0.2)
+                            {
+                                presence.PhysicsActor.Flying = false;
+                            }
+                        }
+
+                        presence.Velocity = Vector3.Zero;
+                        presence.AbsolutePosition = presence.MoveToPositionTarget;
+                        presence.ResetMoveToTarget();
+
+                        // FIXME: This doesn't work
+                        if (presence.PhysicsActor.Flying)
+                            presence.Animator.TrySetMovementAnimation("HOVER");
+                        else
+                            presence.Animator.TrySetMovementAnimation("STAND");
+                    }
+                    else
+                    {
+                        m_log.DebugFormat(
+                            "[NPC MODULE]: Updating npc {0} at {1} for next movement to {2}",
+                            presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget);
+
+                        Vector3 agent_control_v3 = new Vector3();
+                        presence.HandleMoveToTargetUpdate(ref agent_control_v3, presence.Rotation);
+                        presence.AddNewMovement(agent_control_v3, presence.Rotation);
+                    }
+//
+////                    presence.DoMoveToPositionUpdate((0, presence.MoveToPositionTarget, null);
+
+//
+//
+
+                }
+            }
         }
 
         private AvatarAppearance GetAppearance(UUID target, Scene scene)
@@ -59,14 +120,21 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             if (m_appearanceCache.ContainsKey(target))
                 return m_appearanceCache[target];
 
-            AvatarAppearance appearance = scene.AvatarService.GetAppearance(target);
-            if (appearance != null)
-            {
-                m_appearanceCache.Add(target, appearance);
-                return appearance;
-            }
+            ScenePresence originalPresence = scene.GetScenePresence(target);
 
-            return new AvatarAppearance();
+            if (originalPresence != null)
+            {
+                AvatarAppearance originalAppearance = originalPresence.Appearance;
+                m_appearanceCache.Add(target, originalAppearance);
+                return originalAppearance;
+            }
+            else
+            {
+                m_log.DebugFormat(
+                    "[NPC MODULE]: Avatar {0} is not in the scene for us to grab baked textures from them.  Using defaults.", target);
+
+                return new AvatarAppearance();
+            }
         }
 
         public UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, UUID cloneAppearanceFrom)
@@ -87,6 +155,13 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             AvatarAppearance originalAppearance = GetAppearance(cloneAppearanceFrom, scene);
             AvatarAppearance npcAppearance = new AvatarAppearance(originalAppearance, true);
             acd.Appearance = npcAppearance;
+
+//            for (int i = 0; i < acd.Appearance.Texture.FaceTextures.Length; i++)
+//            {
+//                m_log.DebugFormat(
+//                    "[NPC MODULE]: NPC avatar {0} has texture id {1} : {2}",
+//                    acd.AgentID, i, acd.Appearance.Texture.FaceTextures[i]);
+//            }
 
             scene.AuthenticateHandler.AddNewCircuit(npcAvatar.CircuitCode, acd);
             scene.AddNewClient(npcAvatar);
@@ -118,7 +193,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return npcAvatar.AgentId;
         }
 
-        public void Autopilot(UUID agentID, Scene scene, Vector3 pos)
+        public void MoveToTarget(UUID agentID, Scene scene, Vector3 pos)
         {
             lock (m_avatars)
             {
@@ -126,7 +201,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 {
                     ScenePresence sp;
                     scene.TryGetScenePresence(agentID, out sp);
-                    sp.DoAutoPilot(0, pos, m_avatars[agentID]);
+
+                    m_log.DebugFormat(
+                        "[NPC MODULE]: Moving {0} to {1} in {2}", sp.Name, pos, scene.RegionInfo.RegionName);
+
+                    sp.MoveToTarget(pos);
                 }
             }
         }

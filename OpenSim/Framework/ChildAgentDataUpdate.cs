@@ -593,7 +593,7 @@ namespace OpenSim.Framework
             //        AgentTextures[i++] = o.AsUUID();
             //}
 
-            Appearance = new AvatarAppearance(AgentID);
+            Appearance = new AvatarAppearance();
 
             // The code to unpack textures, visuals, wearables and attachments
             // should be removed; packed appearance contains the full appearance
@@ -635,7 +635,7 @@ namespace OpenSim.Framework
             // end of code to remove
 
             if (args.ContainsKey("packed_appearance") && (args["packed_appearance"]).Type == OSDType.Map)
-                Appearance = new AvatarAppearance(AgentID,(OSDMap)args["packed_appearance"]);
+                Appearance = new AvatarAppearance((OSDMap)args["packed_appearance"]);
             else
                 m_log.WarnFormat("[CHILDAGENTDATAUPDATE] No packed appearance");
 

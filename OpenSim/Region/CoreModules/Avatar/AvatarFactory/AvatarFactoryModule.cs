@@ -151,6 +151,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 if (face == null)
                     continue;
 
+//                m_log.DebugFormat(
+//                    "[AVFACTORY]: Looking for texture {0}, id {1} for {2} {3}",
+//                    face.TextureID, idx, client.Name, client.AgentId);
+
                 // if the texture is one of the "defaults" then skip it
                 // this should probably be more intelligent (skirt texture doesnt matter
                 // if the avatar isnt wearing a skirt) but if any of the main baked 
@@ -305,6 +309,11 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         private void HandleAppearanceSave(UUID agentid)
         {
+            // We must set appearance parameters in the en_US culture in order to avoid issues where values are saved
+            // in a culture where decimal points are commas and then reloaded in a culture which just treats them as
+            // number seperators.
+            Culture.SetCurrentCulture();
+
             ScenePresence sp = m_scene.GetScenePresence(agentid);
             if (sp == null)
             {

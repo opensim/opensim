@@ -59,7 +59,7 @@ namespace OpenSim.Framework
                     clone.Add(uuid, (TaskInventoryItem) this[uuid].Clone());
                 }
             }
-
+            
             return clone;
         }
 

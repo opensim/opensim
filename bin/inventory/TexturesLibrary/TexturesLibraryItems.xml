@@ -9,10 +9,6 @@
     <Key Name="name" Value="Example Library Item" />
     <Key Name="assetType" Value="7" />
     <Key Name="inventoryType" Value="7" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
 --> 
 
@@ -24,11 +20,8 @@
     <Key Name="name" Value="4-tile2" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="4-tile3 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001001" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001001" />
@@ -37,11 +30,8 @@
     <Key Name="name" Value="4-tile3" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="brick1_256 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001002" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001002" />
@@ -50,11 +40,8 @@
     <Key Name="name" Value="brick1_256" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="brick2_256 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001003" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001003" />
@@ -63,11 +50,8 @@
     <Key Name="name" Value="brick2_256" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="brick_mono Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001004" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001004" />
@@ -76,11 +60,8 @@
     <Key Name="name" Value="brick_mono" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="cedar Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001005" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001005" />
@@ -89,11 +70,8 @@
     <Key Name="name" Value="cedar" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="cement_block Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001006" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001006" />
@@ -102,11 +80,8 @@
     <Key Name="name" Value="cement_block" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="clear Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001007" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001007" />
@@ -115,11 +90,8 @@
     <Key Name="name" Value="clear" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="cobbles Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001008" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001008" />
@@ -128,11 +100,8 @@
     <Key Name="name" Value="cobbles" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="creambrick Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001009" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001009" />
@@ -141,11 +110,8 @@
     <Key Name="name" Value="creambrick" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="fgrass Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001010" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001010" />
@@ -154,11 +120,8 @@
     <Key Name="name" Value="fgrass" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="glasstile2 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001011" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001011" />
@@ -167,11 +130,8 @@
     <Key Name="name" Value="glasstile2" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="graniteblock Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001012" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001012" />
@@ -180,11 +140,8 @@
     <Key Name="name" Value="graniteblock" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="grass Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001013" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001013" />
@@ -193,11 +150,8 @@
     <Key Name="name" Value="grass" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="gravel Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001014" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001014" />
@@ -206,11 +160,8 @@
     <Key Name="name" Value="gravel" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="greybrick Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001015" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001015" />
@@ -219,11 +170,8 @@
     <Key Name="name" Value="greybrick" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="ivy Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001016" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001016" />
@@ -232,11 +180,8 @@
     <Key Name="name" Value="ivy" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="mahogany Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001017" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001017" />
@@ -245,11 +190,8 @@
     <Key Name="name" Value="mahogany" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="maple Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001018" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001018" />
@@ -258,11 +200,8 @@
     <Key Name="name" Value="maple" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="mosaic02 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001019" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001019" />
@@ -271,11 +210,8 @@
     <Key Name="name" Value="mosaic02" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="palm1 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001020" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001020" />
@@ -284,11 +220,8 @@
     <Key Name="name" Value="palm1" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="papaya Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001021" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001021" />
@@ -297,11 +230,8 @@
     <Key Name="name" Value="papaya" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="papaya_bark Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001022" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001022" />
@@ -310,11 +240,8 @@
     <Key Name="name" Value="papaya_bark" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="pastelbrick Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001023" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001023" />
@@ -323,11 +250,8 @@
     <Key Name="name" Value="pastelbrick" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="pine1_10m Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001024" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001024" />
@@ -336,11 +260,8 @@
     <Key Name="name" Value="pine1_10m" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="poplar Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001025" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001025" />
@@ -349,11 +270,8 @@
     <Key Name="name" Value="poplar" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="redtri_tile Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001026" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001026" />
@@ -362,11 +280,8 @@
     <Key Name="name" Value="redtri_tile" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="rockbuilding Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001027" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001027" />
@@ -375,11 +290,8 @@
     <Key Name="name" Value="rockbuilding" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="rockwallbig Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001028" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001028" />
@@ -388,11 +300,8 @@
     <Key Name="name" Value="rockwallbig" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="roof01 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001029" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001029" />
@@ -401,11 +310,8 @@
     <Key Name="name" Value="roof01" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="rooftiles1 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001030" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001030" />
@@ -414,11 +320,8 @@
     <Key Name="name" Value="rooftiles1" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="rooftiles2_peach Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001031" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001031" />
@@ -427,11 +330,8 @@
     <Key Name="name" Value="rooftiles2_peach" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="rooftiles2_roy Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001032" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001032" />
@@ -440,11 +340,8 @@
     <Key Name="name" Value="rooftiles2_roy" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="saguaro_8m Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001033" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001033" />
@@ -453,11 +350,8 @@
     <Key Name="name" Value="saguaro_8m" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="seawater Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001034" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001034" />
@@ -466,11 +360,8 @@
     <Key Name="name" Value="seawater" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="snow1 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001035" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001035" />
@@ -479,11 +370,8 @@
     <Key Name="name" Value="snow1" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="steel Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001036" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001036" />
@@ -492,11 +380,8 @@
     <Key Name="name" Value="steel" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="stone1wall Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001037" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001037" />
@@ -505,11 +390,8 @@
     <Key Name="name" Value="stone1wall" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="stonetile Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001038" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001038" />
@@ -518,11 +400,8 @@
     <Key Name="name" Value="stonetile" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="street2 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001039" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001039" />
@@ -531,11 +410,8 @@
     <Key Name="name" Value="street2" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="thatch Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001040" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001040" />
@@ -544,11 +420,8 @@
     <Key Name="name" Value="thatch" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="water1 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001041" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001041" />
@@ -557,11 +430,8 @@
     <Key Name="name" Value="water1" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="water3 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001042" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001042" />
@@ -570,11 +440,8 @@
     <Key Name="name" Value="water3" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="wood1 Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-4444-100000001043" />
     <Key Name="assetID" Value="00000000-0000-2222-3333-100000001043" />
@@ -583,11 +450,8 @@
     <Key Name="name" Value="wood1" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="bricks Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000001"/>
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000001"/>
@@ -596,11 +460,8 @@
     <Key Name="name" Value="bricks" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="granite Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000004"/>
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000004"/>
@@ -609,11 +470,8 @@
     <Key Name="name" Value="granite" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="hardwood Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000005"/>
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000005"/>
@@ -622,11 +480,8 @@
     <Key Name="name" Value="hardwood" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="rocks Texture">
     <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000003"/>
     <Key Name="assetID" Value="00000000-0000-1111-9999-000000000003"/>
@@ -635,10 +490,6 @@
     <Key Name="name" Value="rocks" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
 
   <Section Name="Terrain Dirt">
@@ -649,11 +500,8 @@
     <Key Name="name" Value="Terrain Dirt" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="Terrain Grass">
     <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000007"/>
     <Key Name="assetID" Value="abb783e6-3e93-26c0-248a-247666855da3"/>
@@ -662,11 +510,8 @@
     <Key Name="name" Value="Terrain Grass" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="Terrain Mountain">
     <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000008"/>
     <Key Name="assetID" Value="179cdabd-398a-9b6b-1391-4dc333ba321f"/>
@@ -675,11 +520,8 @@
     <Key Name="name" Value="Terrain Mountain" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
+
   <Section Name="Terrain Rock">
     <Key Name="inventoryID" Value="00000000-0000-2222-9999-000000000009"/>
     <Key Name="assetID" Value="beb169c7-11ea-fff2-efe5-0f24dc881df2"/>
@@ -688,10 +530,6 @@
     <Key Name="name" Value="Terrain Rock" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
 
   <Section Name="Blank Texture">
@@ -702,10 +540,6 @@
     <Key Name="name" Value="Blank Texture" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
 
   <Section Name="Default Media Texture">
@@ -716,10 +550,6 @@
     <Key Name="name" Value="Default Media Texture" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
 
   <Section Name="Default Transparent Texture">
@@ -730,9 +560,5 @@
     <Key Name="name" Value="Default Transparent Texture" />
     <Key Name="assetType" Value="0" />
     <Key Name="inventoryType" Value="0" />
-    <Key Name="currentPermissions" Value="2147483647" />
-    <Key Name="nextPermissions" Value="2147483647" />
-    <Key Name="everyonePermissions" Value="2147483647" />
-    <Key Name="basePermissions" Value="2147483647" />
   </Section>
 </Nini>

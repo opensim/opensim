@@ -64,10 +64,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
         }
 
         /// <summary>
-        /// Test saving a V0.2 OpenSim Region Archive.
+        /// Test region registration.
         /// </summary>
         [Test]
-        public void TestRegisterRegionV0_2()
+        public void TestRegisterRegion()
         {
             SetUp();
 
@@ -123,6 +123,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             m_LocalConnector.RegisterRegion(UUID.Zero, r1);
 
             GridRegion result = m_LocalConnector.GetRegionByName(UUID.Zero, "Test");
+            Assert.IsNull(result, "Retrieved GetRegionByName \"Test\" is not null");
+
+            result = m_LocalConnector.GetRegionByName(UUID.Zero, "Test Region 1");
             Assert.IsNotNull(result, "Retrieved GetRegionByName is null");
             Assert.That(result.RegionName, Is.EqualTo("Test Region 1"), "Retrieved region's name does not match");
 

@@ -68,7 +68,7 @@ namespace OpenSim.Framework.Tests
 
             m_agentCircuitData1 = new AgentCircuitData();
             m_agentCircuitData1.AgentID = AgentId1;
-            m_agentCircuitData1.Appearance = new AvatarAppearance(AgentId1);
+            m_agentCircuitData1.Appearance = new AvatarAppearance();
             m_agentCircuitData1.BaseFolder = BaseFolder;
             m_agentCircuitData1.CapsPath = CapsPath;
             m_agentCircuitData1.child = false;
@@ -83,7 +83,7 @@ namespace OpenSim.Framework.Tests
 
             m_agentCircuitData2 = new AgentCircuitData();
             m_agentCircuitData2.AgentID = AgentId2;
-            m_agentCircuitData2.Appearance = new AvatarAppearance(AgentId2);
+            m_agentCircuitData2.Appearance = new AvatarAppearance();
             m_agentCircuitData2.BaseFolder = BaseFolder;
             m_agentCircuitData2.CapsPath = CapsPath;
             m_agentCircuitData2.child = false;

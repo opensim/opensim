@@ -320,18 +320,25 @@ namespace OpenSim.Services.GridService
             return null;
         }
 
-        public GridRegion GetRegionByName(UUID scopeID, string regionName)
+        public GridRegion GetRegionByName(UUID scopeID, string name)
         {
-            List<RegionData> rdatas = m_Database.Get(regionName + "%", scopeID);
+            List<RegionData> rdatas = m_Database.Get(name, scopeID);
             if ((rdatas != null) && (rdatas.Count > 0))
                 return RegionData2RegionInfo(rdatas[0]); // get the first
+
+            if (m_AllowHypergridMapSearch)
+            {
+                GridRegion r = GetHypergridRegionByName(scopeID, name);
+                if (r != null)
+                    return r;
+            }
 
             return null;
         }
 
         public List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
         {
-            m_log.DebugFormat("[GRID SERVICE]: GetRegionsByName {0}", name);
+//            m_log.DebugFormat("[GRID SERVICE]: GetRegionsByName {0}", name);
 
             List<RegionData> rdatas = m_Database.Get(name + "%", scopeID);
 
@@ -340,7 +347,7 @@ namespace OpenSim.Services.GridService
 
             if (rdatas != null)
             {
-                m_log.DebugFormat("[GRID SERVICE]: Found {0} regions", rdatas.Count);
+//                m_log.DebugFormat("[GRID SERVICE]: Found {0} regions", rdatas.Count);
                 foreach (RegionData rdata in rdatas)
                 {
                     if (count++ < maxNumber)
@@ -348,14 +355,28 @@ namespace OpenSim.Services.GridService
                 }
             }
 
-            if (m_AllowHypergridMapSearch && (rdatas == null || (rdatas != null && rdatas.Count == 0)) && name.Contains("."))
+            if (m_AllowHypergridMapSearch && (rdatas == null || (rdatas != null && rdatas.Count == 0)))
             {
-                GridRegion r = m_HypergridLinker.LinkRegion(scopeID, name);
+                GridRegion r = GetHypergridRegionByName(scopeID, name);
                 if (r != null)
                     rinfos.Add(r);
             }
 
             return rinfos;
+        }
+
+        /// <summary>
+        /// Get a hypergrid region.
+        /// </summary>
+        /// <param name="scopeID"></param>
+        /// <param name="name"></param>
+        /// <returns>null if no hypergrid region could be found.</returns>
+        protected GridRegion GetHypergridRegionByName(UUID scopeID, string name)
+        {
+            if (name.Contains("."))
+                return m_HypergridLinker.LinkRegion(scopeID, name);
+            else
+                return null;
         }
 
         public List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)

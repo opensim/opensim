@@ -1650,16 +1650,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
                     if (avatar != null)
                     {
-                        List<string> coords = new List<string>();
-                        uint regionX = 0;
-                        uint regionY = 0;
-                        Utils.LongToUInts(Scene.RegionInfo.RegionHandle, out regionX, out regionY);
-                        target.X += regionX;
-                        target.Y += regionY;
-                        coords.Add(target.X.ToString());
-                        coords.Add(target.Y.ToString());
-                        coords.Add(target.Z.ToString());
-                        avatar.DoMoveToPosition(avatar, "", coords);
+                        avatar.MoveToTarget(target);
                     }
                 }
                 else
