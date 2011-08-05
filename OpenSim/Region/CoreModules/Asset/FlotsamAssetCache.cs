@@ -635,10 +635,7 @@ namespace Flotsam.RegionModules.AssetCache
                         waitEvent.Set();
                     }
 #else
-                    if (m_CurrentlyWriting.Contains(filename))
-                    {
-                        m_CurrentlyWriting.Remove(filename);
-                    }
+                    m_CurrentlyWriting.Remove(filename);
 #endif
                 }
             }
