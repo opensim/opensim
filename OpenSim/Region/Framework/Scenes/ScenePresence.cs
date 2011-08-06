@@ -2298,13 +2298,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rotation">The direction in which this avatar should now face.
         public void AddNewMovement(Vector3 vec, Quaternion rotation)
         {
-            if (m_isChildAgent)
-            {
-                // WHAT???
-                m_log.Debug("[SCENEPRESENCE]: AddNewMovement() called on child agent, making root agent!");
-                return;
-            }
-
             m_perfMonMS = Util.EnvironmentTickCount();
 
             Rotation = rotation;
