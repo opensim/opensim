@@ -51,7 +51,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// Scene presence tests
     /// </summary>
     [TestFixture]
-    public class ScenePresenceTests
+    public class ScenePresenceAgentTests
     {
         public Scene scene, scene2, scene3;
         public UUID agent1, agent2, agent3;
@@ -81,11 +81,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             agent2 = UUID.Random();
             agent3 = UUID.Random();
             random = new Random();
-            sog1 = NewSOG(UUID.Random(), scene, agent1);
-            sog2 = NewSOG(UUID.Random(), scene, agent1);
-            sog3 = NewSOG(UUID.Random(), scene, agent1);
+            sog1 = SceneHelpers.CreateSceneObject(1, agent1);
+            scene.AddSceneObject(sog1);
+            sog2 = SceneHelpers.CreateSceneObject(1, agent1);
+            scene.AddSceneObject(sog2);
+            sog3 = SceneHelpers.CreateSceneObject(1, agent1);
+            scene.AddSceneObject(sog3);
 
-            //ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
             region1 = scene.RegionInfo.RegionHandle;
             region2 = scene2.RegionInfo.RegionHandle;
             region3 = scene3.RegionInfo.RegionHandle;
@@ -348,38 +350,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             string capsPath = caps.ToString();
             capsPath = capsPath.Remove(capsPath.Length - 4, 4);
             return capsPath;
-        }
-
-        private SceneObjectGroup NewSOG(UUID uuid, Scene scene, UUID agent)
-        {
-            SceneObjectPart sop = new SceneObjectPart();
-            sop.Name = RandomName();
-            sop.Description = RandomName();
-            sop.Text = RandomName();
-            sop.SitName = RandomName();
-            sop.TouchName = RandomName();
-            sop.UUID = uuid;
-            sop.Shape = PrimitiveBaseShape.Default;
-            sop.Shape.State = 1;
-            sop.OwnerID = agent;
-
-            SceneObjectGroup sog = new SceneObjectGroup(sop);
-            sog.SetScene(scene);
-
-            return sog;
-        }
-
-        private static string RandomName()
-        {
-            StringBuilder name = new StringBuilder();
-            int size = random.Next(5,12);
-            char ch ;
-            for (int i=0; i<size; i++)
-            {
-                ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65))) ;
-                name.Append(ch);
-            }
-            return name.ToString();
         }
     }
 }

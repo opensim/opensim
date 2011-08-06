@@ -44,7 +44,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// Teleport tests in a standalone OpenSim
     /// </summary>
     [TestFixture]
-    public class StandaloneTeleportTests
+    public class ScenePresenceTeleportTests
     {
         /// <summary>
         /// Test a teleport between two regions that are not neighbours and do not share any neighbours in common.
