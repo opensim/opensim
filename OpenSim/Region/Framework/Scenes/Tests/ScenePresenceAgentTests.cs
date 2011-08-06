@@ -135,64 +135,64 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             
             SceneHelpers.AddScenePresence(myScene1, agent1Id);
 //            ScenePresence childPresence = myScene2.GetScenePresence(agent1);
-            
+
             // TODO: Need to do a fair amount of work to allow synchronous establishment of child agents
 //            Assert.That(childPresence, Is.Not.Null);
 //            Assert.That(childPresence.IsChildAgent, Is.True);
         }
 
-        /// <summary>
-        /// Test adding a root agent to a scene.  Doesn't yet actually complete crossing the agent into the scene.
-        /// </summary>
-        [Test]
-        public void T010_TestAddRootAgent()
-        {
-            TestHelpers.InMethod();
-
-            string firstName = "testfirstname";
-
-            AgentCircuitData agent = new AgentCircuitData();
-            agent.AgentID = agent1;
-            agent.firstname = firstName;
-            agent.lastname = "testlastname";
-            agent.SessionID = UUID.Random();
-            agent.SecureSessionID = UUID.Random();
-            agent.circuitcode = 123;
-            agent.BaseFolder = UUID.Zero;
-            agent.InventoryFolder = UUID.Zero;
-            agent.startpos = Vector3.Zero;
-            agent.CapsPath = GetRandomCapsObjectPath();
-            agent.ChildrenCapSeeds = new Dictionary<ulong, string>();
-            agent.child = true;
-
-            scene.PresenceService.LoginAgent(agent.AgentID.ToString(), agent.SessionID, agent.SecureSessionID);
-
-            string reason;
-            scene.NewUserConnection(agent, (uint)TeleportFlags.ViaLogin, out reason);
-            testclient = new TestClient(agent, scene);
-            scene.AddNewClient(testclient);
-
-            ScenePresence presence = scene.GetScenePresence(agent1);
-
-            Assert.That(presence, Is.Not.Null, "presence is null");
-            Assert.That(presence.Firstname, Is.EqualTo(firstName), "First name not same");
-            acd1 = agent;
-        }
-
-        /// <summary>
-        /// Test removing an uncrossed root agent from a scene.
-        /// </summary>
-        [Test]
-        public void T011_TestRemoveRootAgent()
-        {
-            TestHelpers.InMethod();
-
-            scene.RemoveClient(agent1);
-
-            ScenePresence presence = scene.GetScenePresence(agent1);
-
-            Assert.That(presence, Is.Null, "presence is not null");
-        }
+//        /// <summary>
+//        /// Test adding a root agent to a scene.  Doesn't yet actually complete crossing the agent into the scene.
+//        /// </summary>
+//        [Test]
+//        public void T010_TestAddRootAgent()
+//        {
+//            TestHelpers.InMethod();
+//
+//            string firstName = "testfirstname";
+//
+//            AgentCircuitData agent = new AgentCircuitData();
+//            agent.AgentID = agent1;
+//            agent.firstname = firstName;
+//            agent.lastname = "testlastname";
+//            agent.SessionID = UUID.Random();
+//            agent.SecureSessionID = UUID.Random();
+//            agent.circuitcode = 123;
+//            agent.BaseFolder = UUID.Zero;
+//            agent.InventoryFolder = UUID.Zero;
+//            agent.startpos = Vector3.Zero;
+//            agent.CapsPath = GetRandomCapsObjectPath();
+//            agent.ChildrenCapSeeds = new Dictionary<ulong, string>();
+//            agent.child = true;
+//
+//            scene.PresenceService.LoginAgent(agent.AgentID.ToString(), agent.SessionID, agent.SecureSessionID);
+//
+//            string reason;
+//            scene.NewUserConnection(agent, (uint)TeleportFlags.ViaLogin, out reason);
+//            testclient = new TestClient(agent, scene);
+//            scene.AddNewClient(testclient);
+//
+//            ScenePresence presence = scene.GetScenePresence(agent1);
+//
+//            Assert.That(presence, Is.Not.Null, "presence is null");
+//            Assert.That(presence.Firstname, Is.EqualTo(firstName), "First name not same");
+//            acd1 = agent;
+//        }
+//
+//        /// <summary>
+//        /// Test removing an uncrossed root agent from a scene.
+//        /// </summary>
+//        [Test]
+//        public void T011_TestRemoveRootAgent()
+//        {
+//            TestHelpers.InMethod();
+//
+//            scene.RemoveClient(agent1);
+//
+//            ScenePresence presence = scene.GetScenePresence(agent1);
+//
+//            Assert.That(presence, Is.Null, "presence is not null");
+//        }
 
         [Test]
         public void T012_TestAddNeighbourRegion()
