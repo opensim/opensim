@@ -93,15 +93,22 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             region3 = scene3.RegionInfo.RegionHandle;
         }
 
-//        [Test]
-//        public void TestLogout()
-//        {
-//            TestHelpers.InMethod();
-////            log4net.Config.XmlConfigurator.Configure();
-//
-//            TestScene scene = SceneHelpers.SetupScene();
-//            SceneHelpers.
-//        }
+        [Test]
+        public void TestCloseAgent()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            TestScene scene = SceneHelpers.SetupScene();
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
+
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(sp.UUID), Is.Not.Null);
+
+            scene.IncomingCloseAgent(sp.UUID);
+
+            Assert.That(scene.GetScenePresence(sp.UUID), Is.Null);
+            Assert.That(scene.AuthenticateHandler.GetAgentCircuitData(sp.UUID), Is.Null);
+        }
 
         /// <summary>
         /// Test that if a root agent logs into a region, a child agent is also established in the neighbouring region
@@ -118,7 +125,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             UUID agent1Id = UUID.Parse("00000000-0000-0000-0000-000000000001");
             
             TestScene myScene1 = SceneHelpers.SetupScene("Neighbour y", UUID.Random(), 1000, 1000);
-//            TestScene myScene2 = SceneHelpers.SetupScene("Neighbour y + 1", UUID.Random(), 1001, 1000);            
+//            TestScene myScene2 = SceneHelpers.SetupScene("Neighbour y + 1", UUID.Random(), 1001, 1000);
             
             IConfigSource configSource = new IniConfigSource();
             configSource.AddConfig("Modules").Set("EntityTransferModule", "BasicEntityTransferModule");                      
