@@ -95,7 +95,6 @@ namespace OpenSim.Services.HypergridService
                 m_InGatekeeper = serverConfig.GetBoolean("InGatekeeper", false);
                 m_log.DebugFormat("[HG IM SERVICE]: Starting... InRobust? {0}", m_InGatekeeper);
 
-
                 if (gridService == string.Empty || presenceService == string.Empty)
                     throw new Exception(String.Format("Incomplete specifications, InstantMessage Service cannot function."));
 
@@ -120,7 +119,7 @@ namespace OpenSim.Services.HypergridService
 
         public bool IncomingInstantMessage(GridInstantMessage im)
         {
-            m_log.DebugFormat("[HG IM SERVICE]: Received message from {0} to {1}", im.fromAgentID, im.toAgentID);
+//            m_log.DebugFormat("[HG IM SERVICE]: Received message from {0} to {1}", im.fromAgentID, im.toAgentID);
             UUID toAgentID = new UUID(im.toAgentID);
 
             bool success = false;
@@ -142,7 +141,7 @@ namespace OpenSim.Services.HypergridService
 
         public bool OutgoingInstantMessage(GridInstantMessage im, string url, bool foreigner)
         {
-            m_log.DebugFormat("[HG IM SERVICE]: Sending message from {0} to {1}@{2}", im.fromAgentID, im.toAgentID, url);
+//            m_log.DebugFormat("[HG IM SERVICE]: Sending message from {0} to {1}@{2}", im.fromAgentID, im.toAgentID, url);
             if (url != string.Empty)
                 return TrySendInstantMessage(im, url, true, foreigner);
             else
@@ -333,7 +332,7 @@ namespace OpenSim.Services.HypergridService
             if (m_RestURL != string.Empty && (im.offline != 0)
                 && (!im.fromGroup || (im.fromGroup && m_ForwardOfflineGroupMessages)))
             {
-                m_log.DebugFormat("[HG IM SERVICE]: Message saved");
+//                m_log.DebugFormat("[HG IM SERVICE]: Message saved");
 
                 return SynchronousRestObjectRequester.MakeRequest<GridInstantMessage, bool>(
                          "POST", m_RestURL + "/SaveMessage/", im);
