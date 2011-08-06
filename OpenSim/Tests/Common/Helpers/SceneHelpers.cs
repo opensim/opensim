@@ -341,9 +341,9 @@ namespace OpenSim.Tests.Common
         /// <param name="scene"></param>
         /// <param name="agentId"></param>
         /// <returns></returns>
-        public static TestClient AddClient(Scene scene, UUID agentId)
+        public static ScenePresence AddScenePresence(Scene scene, UUID agentId)
         {
-            return AddClient(scene, GenerateAgentData(agentId));
+            return AddScenePresence(scene, GenerateAgentData(agentId));
         }
 
         /// <summary>
@@ -364,7 +364,7 @@ namespace OpenSim.Tests.Common
         /// <param name="scene"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
-        public static TestClient AddClient(Scene scene, AgentCircuitData agentData)
+        public static ScenePresence AddScenePresence(Scene scene, AgentCircuitData agentData)
         {
             string reason;
 
@@ -386,7 +386,7 @@ namespace OpenSim.Tests.Common
             scp.CompleteMovement(client);
             //scp.MakeRootAgent(new Vector3(90, 90, 90), true);
 
-            return client;
+            return scp;
         }
 
         /// <summary>

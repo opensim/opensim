@@ -93,6 +93,47 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             region3 = scene3.RegionInfo.RegionHandle;
         }
 
+//        [Test]
+//        public void TestLogout()
+//        {
+//            TestHelpers.InMethod();
+////            log4net.Config.XmlConfigurator.Configure();
+//
+//            TestScene scene = SceneHelpers.SetupScene();
+//            SceneHelpers.
+//        }
+
+        /// <summary>
+        /// Test that if a root agent logs into a region, a child agent is also established in the neighbouring region
+        /// </summary>
+        /// <remarks>
+        /// Please note that unlike the other tests here, this doesn't rely on structures
+        /// </remarks>
+        [Test]
+        public void TestChildAgentEstablished()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+            
+            UUID agent1Id = UUID.Parse("00000000-0000-0000-0000-000000000001");
+            
+            TestScene myScene1 = SceneHelpers.SetupScene("Neighbour y", UUID.Random(), 1000, 1000);
+//            TestScene myScene2 = SceneHelpers.SetupScene("Neighbour y + 1", UUID.Random(), 1001, 1000);            
+            
+            IConfigSource configSource = new IniConfigSource();
+            configSource.AddConfig("Modules").Set("EntityTransferModule", "BasicEntityTransferModule");                      
+            EntityTransferModule etm = new EntityTransferModule();
+            
+            SceneHelpers.SetupSceneModules(myScene1, configSource, etm);            
+            
+            SceneHelpers.AddScenePresence(myScene1, agent1Id);
+//            ScenePresence childPresence = myScene2.GetScenePresence(agent1);
+            
+            // TODO: Need to do a fair amount of work to allow synchronous establishment of child agents
+//            Assert.That(childPresence, Is.Not.Null);
+//            Assert.That(childPresence.IsChildAgent, Is.True);
+        }
+
         /// <summary>
         /// Test adding a root agent to a scene.  Doesn't yet actually complete crossing the agent into the scene.
         /// </summary>
@@ -189,37 +230,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             presence.MakeRootAgent;
             CompleteAvatarMovement
             */
-        }
-        
-        /// <summary>
-        /// Test that if a root agent logs into a region, a child agent is also established in the neighbouring region
-        /// </summary>
-        /// <remarks>
-        /// Please note that unlike the other tests here, this doesn't rely on structures
-        /// </remarks>
-        [Test]
-        public void TestChildAgentEstablished()
-        {
-            TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
-            
-            UUID agent1Id = UUID.Parse("00000000-0000-0000-0000-000000000001");
-            
-            TestScene myScene1 = SceneHelpers.SetupScene("Neighbour y", UUID.Random(), 1000, 1000);
-            TestScene myScene2 = SceneHelpers.SetupScene("Neighbour y + 1", UUID.Random(), 1001, 1000);            
-            
-            IConfigSource configSource = new IniConfigSource();
-            configSource.AddConfig("Modules").Set("EntityTransferModule", "BasicEntityTransferModule");                      
-            EntityTransferModule etm = new EntityTransferModule();
-            
-            SceneHelpers.SetupSceneModules(myScene1, configSource, etm);            
-            
-            SceneHelpers.AddClient(myScene1, agent1Id);
-            ScenePresence childPresence = myScene2.GetScenePresence(agent1);
-            
-            // TODO: Need to do a fair amount of work to allow synchronous establishment of child agents
-//            Assert.That(childPresence, Is.Not.Null);
-//            Assert.That(childPresence.IsChildAgent, Is.True);
         }
 
         // I'm commenting this test because it does not represent

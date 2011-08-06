@@ -83,7 +83,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             region1 = scene.RegionInfo.RegionHandle;
             region2 = scene2.RegionInfo.RegionHandle;
             
-            SceneHelpers.AddClient(scene, agent1);
+            SceneHelpers.AddScenePresence(scene, agent1);
         }     
         
         [Test]

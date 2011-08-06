@@ -125,7 +125,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             sceneA.RegisterRegionWithGrid();
 
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000041");
-            TestClient client = SceneHelpers.AddClient(sceneA, agentId);
+            TestClient client = (TestClient)SceneHelpers.AddScenePresence(sceneA, agentId).ControllingClient;
 
             ICapabilitiesModule sceneACapsModule = sceneA.RequestModuleInterface<ICapabilitiesModule>();
 

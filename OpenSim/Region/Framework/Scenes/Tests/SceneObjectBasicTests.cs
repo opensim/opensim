@@ -139,7 +139,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             SceneObjectPart part = SceneHelpers.AddSceneObject(scene);
 
-            IClientAPI client = SceneHelpers.AddClient(scene, agentId);
+            IClientAPI client = SceneHelpers.AddScenePresence(scene, agentId).ControllingClient;
             scene.DeRezObjects(client, new System.Collections.Generic.List<uint>() { part.LocalId }, UUID.Zero, DeRezAction.Delete, UUID.Zero);
 
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
