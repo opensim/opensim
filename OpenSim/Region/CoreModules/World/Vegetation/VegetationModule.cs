@@ -100,15 +100,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Vegetation
             {
                 case Tree.Cypress1:
                 case Tree.Cypress2:
-                    tree.Scale = new Vector3(4, 4, 10);
+                    tree.Scale *= new Vector3(8, 8, 20);
                     break;
 
                 // case... other tree types
-                // tree.Scale = new Vector3(?, ?, ?);
+                // tree.Scale *= new Vector3(?, ?, ?);
                 // break;
 
                 default:
-                    tree.Scale = new Vector3(4, 4, 4);
+                    tree.Scale *= new Vector3(8, 8, 8);
                     break;
             }
         }
