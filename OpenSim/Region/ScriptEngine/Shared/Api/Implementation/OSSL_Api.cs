@@ -348,20 +348,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             System.Threading.Thread.Sleep(delay);
         }
 
-        //
-        // OpenSim functions
-        //
         public LSL_Integer osSetTerrainHeight(int x, int y, double val)
         {
             CheckThreatLevel(ThreatLevel.High, "osSetTerrainHeight");
             return SetTerrainHeight(x, y, val);
         }
+
         public LSL_Integer osTerrainSetHeight(int x, int y, double val)
         {
             CheckThreatLevel(ThreatLevel.High, "osTerrainSetHeight");
             OSSLDeprecated("osTerrainSetHeight", "osSetTerrainHeight");
             return SetTerrainHeight(x, y, val);
         }
+
         private LSL_Integer SetTerrainHeight(int x, int y, double val)
         {
             m_host.AddScriptLPS(1);
@@ -384,12 +383,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.None, "osGetTerrainHeight");
             return GetTerrainHeight(x, y);
         }
+
         public LSL_Float osTerrainGetHeight(int x, int y)
         {
             CheckThreatLevel(ThreatLevel.None, "osTerrainGetHeight");
             OSSLDeprecated("osTerrainGetHeight", "osGetTerrainHeight");
             return GetTerrainHeight(x, y);
         }
+
         private LSL_Float GetTerrainHeight(int x, int y)
         {
             m_host.AddScriptLPS(1);
@@ -1021,6 +1022,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             drawList += "PenColor " + color + "; ";
             return drawList;
         }
+
         // Deprecated
         public string osSetPenColour(string drawList, string colour)
         {
@@ -1182,11 +1184,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             OSSLDeprecated("osSunGetParam", "osGetSunParam");
             return GetSunParam(param);
         }
+
         public double osGetSunParam(string param)
         {
             CheckThreatLevel(ThreatLevel.None, "osGetSunParam");
             return GetSunParam(param);
         }
+
         private double GetSunParam(string param)
         {
             m_host.AddScriptLPS(1);
@@ -1208,11 +1212,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             OSSLDeprecated("osSunSetParam", "osSetSunParam");
             SetSunParam(param, value);
         }
+
         public void osSetSunParam(string param, double value)
         {
             CheckThreatLevel(ThreatLevel.None, "osSetSunParam");
             SetSunParam(param, value);
         }
+
         private void SetSunParam(string param, double value)
         {
             m_host.AddScriptLPS(1);
@@ -1222,9 +1228,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 module.SetSunParameter(param, value);
             }
-
         }
-
 
         public string osWindActiveModelPluginName()
         {
@@ -1304,12 +1308,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             OSSLDeprecated(functionName, "osSetParcelDetails");
             SetParcelDetails(pos, rules, functionName);
         }
+
         public void osSetParcelDetails(LSL_Vector pos, LSL_List rules)
         {
             const string functionName = "osSetParcelDetails";
             CheckThreatLevel(ThreatLevel.High, functionName);
             SetParcelDetails(pos, rules, functionName);
         }
+
         private void SetParcelDetails(LSL_Vector pos, LSL_List rules, string functionName)
         {
             m_host.AddScriptLPS(1);
@@ -1429,8 +1435,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 voiceModule.setLandSIPAddress(SIPAddress,land.LandData.GlobalID);
             else
                 OSSLError("osSetParcelSIPAddress: No voice module enabled for this land");
-
-
         }
 
         public string osGetScriptEngineName()
@@ -1683,8 +1687,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return jsondata;
         }
 
-        // send a message to to object identified by the given UUID, a script in the object must implement the dataserver function
-        // the dataserver function is passed the ID of the calling function and a string message
+        /// <summary>
+        /// Send a message to to object identified by the given UUID
+        /// </summary>
+        /// <remarks>
+        /// A script in the object must implement the dataserver function
+        /// the dataserver function is passed the ID of the calling function and a string message
+        /// </remarks>
+        /// <param name="objectUUID"></param>
+        /// <param name="message"></param>
         public void osMessageObject(LSL_Key objectUUID, string message)
         {
             CheckThreatLevel(ThreatLevel.Low, "osMessageObject");
@@ -1699,24 +1710,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     "dataserver", resobj, new DetectParams[0]));
         }
 
-
-        // This needs ThreatLevel high. It is an excellent griefer tool,
-        // In a loop, it can cause asset bloat and DOS levels of asset
-        // writes.
-        //
+        /// <summary>
+        /// Write a notecard directly to the prim's inventory.
+        /// </summary>
+        /// <remarks>
+        /// This needs ThreatLevel high. It is an excellent griefer tool,
+        /// In a loop, it can cause asset bloat and DOS levels of asset
+        /// writes.
+        /// </remarks>
+        /// <param name="notecardName">The name of the notecard to write.</param>
+        /// <param name="contents">The contents of the notecard.</param>
         public void osMakeNotecard(string notecardName, LSL_Types.list contents)
         {
             CheckThreatLevel(ThreatLevel.High, "osMakeNotecard");
             m_host.AddScriptLPS(1);
 
+            StringBuilder notecardData = new StringBuilder();
+
+            for (int i = 0; i < contents.Length; i++)
+                notecardData.Append((string)(contents.GetLSLStringItem(i) + "\n"));
+
+            SaveNotecard(notecardName, notecardData.ToString());
+        }
+
+        protected void SaveNotecard(string notecardName, string notecardData)
+        {
             // Create new asset
             AssetBase asset = new AssetBase(UUID.Random(), notecardName, (sbyte)AssetType.Notecard, m_host.OwnerID.ToString());
             asset.Description = "Script Generated Notecard";
-            string notecardData = String.Empty;
-
-            for (int i = 0; i < contents.Length; i++) {
-                notecardData += contents.GetLSLStringItem(i) + "\n";
-            }
 
             int textLength = notecardData.Length;
             notecardData = "Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length "
@@ -1726,7 +1747,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             World.AssetService.Store(asset);
 
             // Create Task Entry
-            TaskInventoryItem taskItem=new TaskInventoryItem();
+            TaskInventoryItem taskItem = new TaskInventoryItem();
 
             taskItem.ResetIDs(m_host.UUID);
             taskItem.ParentID = m_host.UUID;
@@ -1751,13 +1772,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.Inventory.AddInventoryItem(taskItem, false);
         }
 
-
-        /*Instead of using the LSL Dataserver event to pull notecard data,
-                 this will simply read the requested line and return its data as a string.
-
-                 Warning - due to the synchronous method this function uses to fetch assets, its use
-                           may be dangerous and unreliable while running in grid mode.
-                */
+        /// <summary>
+        /// Directly get an entire notecard at once.
+        /// </summary>
+        /// <remarks>
+        /// Instead of using the LSL Dataserver event to pull notecard data
+        /// this will simply read the entire notecard and return its data as a string.
+        ///
+        /// Warning - due to the synchronous method this function uses to fetch assets, its use
+        ///            may be dangerous and unreliable while running in grid mode.
+        /// </remarks>
+        /// <param name="name">Name of the notecard or its asset id</param>
+        /// <param name="line">The line number to read.  The first line is line 0</param>
+        /// <returns>Notecard line</returns>
         public string osGetNotecardLine(string name, int line)
         {
             CheckThreatLevel(ThreatLevel.VeryHigh, "osGetNotecardLine");
@@ -1799,17 +1826,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             };
 
             return NotecardCache.GetLine(assetID, line, 255);
-
-
         }
 
-        /*Instead of using the LSL Dataserver event to pull notecard data line by line,
-          this will simply read the entire notecard and return its data as a string.
-
-          Warning - due to the synchronous method this function uses to fetch assets, its use
-                    may be dangerous and unreliable while running in grid mode.
-         */
-
+        /// <summary>
+        /// Get an entire notecard at once.
+        /// </summary>
+        /// <remarks>
+        /// Instead of using the LSL Dataserver event to pull notecard data line by line,
+        /// this will simply read the entire notecard and return its data as a string.
+        ///
+        /// Warning - due to the synchronous method this function uses to fetch assets, its use
+        ///            may be dangerous and unreliable while running in grid mode.
+        /// </remarks>
+        /// <param name="name">Name of the notecard or its asset id</param>
+        /// <returns>Notecard text</returns>
         public string osGetNotecard(string name)
         {
             CheckThreatLevel(ThreatLevel.VeryHigh, "osGetNotecard");
@@ -1857,17 +1887,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             return NotecardData;
-
-
         }
 
-        /*Instead of using the LSL Dataserver event to pull notecard data,
-          this will simply read the number of note card lines and return this data as an integer.
-
-          Warning - due to the synchronous method this function uses to fetch assets, its use
-                    may be dangerous and unreliable while running in grid mode.
-         */
-
+        /// <summary>
+        /// Get the number of lines in the given notecard.
+        /// </summary>
+        /// <remarks>
+        /// Instead of using the LSL Dataserver event to pull notecard data,
+        /// this will simply read the number of note card lines and return this data as an integer.
+        ///
+        /// Warning - due to the synchronous method this function uses to fetch assets, its use
+        ///            may be dangerous and unreliable while running in grid mode.
+        /// </remarks>
+        /// <param name="name">Name of the notecard or its asset id</param>
+        /// <returns></returns>
         public int osGetNumberOfNotecardLines(string name)
         {
             CheckThreatLevel(ThreatLevel.VeryHigh, "osGetNumberOfNotecardLines");
@@ -1947,15 +1980,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return "";
             }
-
         }
 
+        /// <summary>
+        /// Get the nickname of this grid, as set in the [GridInfo] config section.
+        /// </summary>
+        /// <remarks>
         /// Threat level is Moderate because intentional abuse, for instance
         /// scripts that are written to be malicious only on one grid,
         /// for instance in a HG scenario, are a distinct possibility.
-        ///
-        /// Use value from the config file and return it.
-        ///
+        /// </remarks>
+        /// <returns></returns>
         public string osGetGridNick()
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridNick");
@@ -2063,12 +2098,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return World.RegionInfo.RegionSettings.LoadedCreationID;
         }
 
-        // Threat level is 'Low' because certain users could possibly be tricked into
-        // dropping an unverified script into one of their own objects, which could
-        // then gather the physical construction details of the object and transmit it
-        // to an unscrupulous third party, thus permitting unauthorized duplication of
-        // the object's form.
-        //
+        /// <summary>
+        /// Get the primitive parameters of a linked prim.
+        /// </summary>
+        /// <remarks>
+        /// Threat level is 'Low' because certain users could possibly be tricked into
+        /// dropping an unverified script into one of their own objects, which could
+        /// then gather the physical construction details of the object and transmit it
+        /// to an unscrupulous third party, thus permitting unauthorized duplication of
+        /// the object's form.
+        /// </remarks>
+        /// <param name="linknumber"></param>
+        /// <param name="rules"></param>
+        /// <returns></returns>
         public LSL_List osGetLinkPrimitiveParams(int linknumber, LSL_List rules)
         {
             CheckThreatLevel(ThreatLevel.High, "osGetLinkPrimitiveParams");
@@ -2344,10 +2386,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             obj.Shape.ProjectionFocus = (float)focus;
             obj.Shape.ProjectionAmbiance = (float)amb;
 
-
             obj.ParentGroup.HasGroupChanged = true;
             obj.ScheduleFullUpdate();
-
         }
 
         /// <summary>
@@ -2372,6 +2412,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
             });
+            
             return result;
         }
 
