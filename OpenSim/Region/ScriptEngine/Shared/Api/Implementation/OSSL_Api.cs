@@ -1733,7 +1733,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             SaveNotecard(notecardName, notecardData.ToString());
         }
 
-        protected void SaveNotecard(string notecardName, string notecardData)
+        /// <summary>
+        /// Save a notecard to prim inventory.
+        /// </summary>
+        /// <param name="notecardName"></param>
+        /// <param name="notecardData"></param>
+        /// <returns>Prim inventory item created.</returns>
+        protected TaskInventoryItem SaveNotecard(string notecardName, string notecardData)
         {
             // Create new asset
             AssetBase asset = new AssetBase(UUID.Random(), notecardName, (sbyte)AssetType.Notecard, m_host.OwnerID.ToString());
@@ -1770,6 +1776,66 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             taskItem.AssetID = asset.FullID;
 
             m_host.Inventory.AddInventoryItem(taskItem, false);
+
+            return taskItem;
+        }
+
+        /// <summary>
+        /// Load the notecard data found at the given prim inventory item name or asset uuid.
+        /// </summary>
+        /// <param name="notecardNameOrUuid"></param>
+        /// <returns>The text loaded.  Null if no notecard was found.</returns>
+        protected string LoadNotecard(string notecardNameOrUuid)
+        {
+            UUID assetID = CacheNotecard(notecardNameOrUuid);
+            StringBuilder notecardData = new StringBuilder();
+
+            for (int count = 0; count < NotecardCache.GetLines(assetID); count++)
+                notecardData.Append(NotecardCache.GetLine(assetID, count, 255) + "\n");
+
+            return notecardData.ToString();
+        }
+
+        /// <summary>
+        /// Cache a notecard's contents.
+        /// </summary>
+        /// <param name="notecardNameOrUuid"></param>
+        /// <returns>
+        /// The asset id of the notecard, which is used for retrieving the cached data.
+        /// UUID.Zero if no asset could be found.
+        /// </returns>
+        protected UUID CacheNotecard(string notecardNameOrUuid)
+        {
+            UUID assetID = UUID.Zero;
+            StringBuilder notecardData = new StringBuilder();
+
+            if (!UUID.TryParse(notecardNameOrUuid, out assetID))
+            {
+                foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
+                {
+                    if (item.Type == 7 && item.Name == notecardNameOrUuid)
+                    {
+                        assetID = item.AssetID;
+                    }
+                }
+            }
+
+            if (assetID == UUID.Zero)
+                return UUID.Zero;
+
+            if (!NotecardCache.IsCached(assetID))
+            {
+                AssetBase a = World.AssetService.Get(assetID.ToString());
+
+                if (a == null)
+                    return UUID.Zero;
+
+                System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
+                string data = enc.GetString(a.Data);
+                NotecardCache.Cache(assetID, data);
+            };
+
+            return assetID;
         }
 
         /// <summary>
@@ -1790,40 +1856,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.VeryHigh, "osGetNotecardLine");
             m_host.AddScriptLPS(1);
 
-            UUID assetID = UUID.Zero;
-
-            if (!UUID.TryParse(name, out assetID))
-            {
-                foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-                {
-                    if (item.Type == 7 && item.Name == name)
-                    {
-                        assetID = item.AssetID;
-                    }
-                }
-            }
+            UUID assetID = CacheNotecard(name);
 
             if (assetID == UUID.Zero)
             {
                 OSSLShoutError("Notecard '" + name + "' could not be found.");
                 return "ERROR!";
             }
-
-            if (!NotecardCache.IsCached(assetID))
-            {
-                AssetBase a = World.AssetService.Get(assetID.ToString());
-                if (a != null)
-                {
-                    System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
-                    string data = enc.GetString(a.Data);
-                    NotecardCache.Cache(assetID, data);
-                }
-                else
-                {
-                    OSSLShoutError("Notecard '" + name + "' could not be found.");
-                    return "ERROR!";
-                }
-            };
 
             return NotecardCache.GetLine(assetID, line, 255);
         }
@@ -1845,48 +1884,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.VeryHigh, "osGetNotecard");
             m_host.AddScriptLPS(1);
 
-            UUID assetID = UUID.Zero;
-            string NotecardData = "";
+            string text = LoadNotecard(name);
 
-            if (!UUID.TryParse(name, out assetID))
-            {
-                foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-                {
-                    if (item.Type == 7 && item.Name == name)
-                    {
-                        assetID = item.AssetID;
-                    }
-                }
-            }
-
-            if (assetID == UUID.Zero)
+            if (text == null)
             {
                 OSSLShoutError("Notecard '" + name + "' could not be found.");
                 return "ERROR!";
             }
-
-            if (!NotecardCache.IsCached(assetID))
+            else
             {
-                AssetBase a = World.AssetService.Get(assetID.ToString());
-                if (a != null)
-                {
-                    System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
-                    string data = enc.GetString(a.Data);
-                    NotecardCache.Cache(assetID, data);
-                }
-                else
-                {
-                    OSSLShoutError("Notecard '" + name + "' could not be found.");
-                    return "ERROR!";
-                }
-            };
-
-            for (int count = 0; count < NotecardCache.GetLines(assetID); count++)
-            {
-                NotecardData += NotecardCache.GetLine(assetID, count, 255) + "\n";
+                return text;
             }
-
-            return NotecardData;
         }
 
         /// <summary>
@@ -1906,40 +1914,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.VeryHigh, "osGetNumberOfNotecardLines");
             m_host.AddScriptLPS(1);
 
-            UUID assetID = UUID.Zero;
-
-            if (!UUID.TryParse(name, out assetID))
-            {
-                foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
-                {
-                    if (item.Type == 7 && item.Name == name)
-                    {
-                        assetID = item.AssetID;
-                    }
-                }
-            }
+            UUID assetID = CacheNotecard(name);
 
             if (assetID == UUID.Zero)
             {
                 OSSLShoutError("Notecard '" + name + "' could not be found.");
                 return -1;
             }
-
-            if (!NotecardCache.IsCached(assetID))
-            {
-                AssetBase a = World.AssetService.Get(assetID.ToString());
-                if (a != null)
-                {
-                    System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
-                    string data = enc.GetString(a.Data);
-                    NotecardCache.Cache(assetID, data);
-                }
-                else
-                {
-                    OSSLShoutError("Notecard '" + name + "' could not be found.");
-                    return -1;
-                }
-            };
 
             return NotecardCache.GetLines(assetID);
         }
@@ -2412,7 +2393,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
             });
-            
+
             return result;
         }
 
