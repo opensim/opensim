@@ -58,7 +58,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="agentID"></param>
         /// <param name="appearance"></param>
         /// <param name="scene"></param>
-        /// <returns></returns>
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
         bool SetNPCAppearance(UUID agentID, AvatarAppearance appearance, Scene scene);
 
         /// <summary>
@@ -67,7 +67,16 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="agentID">The UUID of the NPC</param>
         /// <param name="scene"></param>
         /// <param name="pos"></param>
-        void MoveToTarget(UUID agentID, Scene scene, Vector3 pos);
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
+        bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos);
+
+        /// <summary>
+        /// Stop the NPC's current movement.
+        /// </summary>
+        /// <param name="agentID">The UUID of the NPC</param>
+        /// <param name="scene"></param>
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
+        bool StopMoveToTarget(UUID agentID, Scene scene);
 
         /// <summary>
         /// Get the NPC to say something.
@@ -75,13 +84,15 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="agentID">The UUID of the NPC</param>
         /// <param name="scene"></param>
         /// <param name="text"></param>
-        void Say(UUID agentID, Scene scene, string text);
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
+        bool Say(UUID agentID, Scene scene, string text);
 
         /// <summary>
         /// Delete an NPC.
         /// </summary>
         /// <param name="agentID">The UUID of the NPC</param>
         /// <param name="scene"></param>
-        void DeleteNPC(UUID agentID, Scene scene);
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
+        bool DeleteNPC(UUID agentID, Scene scene);
     }
 }

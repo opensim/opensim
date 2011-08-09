@@ -498,6 +498,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcMoveTo(npc, position);
         }
 
+        public void osNpcStopMoveTo(LSL_Key npc)
+        {
+            m_OSSL_Functions.osNpcStopMoveTo(npc);
+        }
+
         public void osNpcSay(key npc, string message)
         {
             m_OSSL_Functions.osNpcSay(npc, message);

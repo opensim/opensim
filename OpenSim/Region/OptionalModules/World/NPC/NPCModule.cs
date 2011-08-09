@@ -217,7 +217,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return npcAvatar.AgentId;
         }
 
-        public void MoveToTarget(UUID agentID, Scene scene, Vector3 pos)
+        public bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos)
         {
             lock (m_avatars)
             {
@@ -230,22 +230,49 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                         "[NPC MODULE]: Moving {0} to {1} in {2}", sp.Name, pos, scene.RegionInfo.RegionName);
 
                     sp.MoveToTarget(pos);
+
+                    return true;
                 }
             }
+
+            return false;
         }
 
-        public void Say(UUID agentID, Scene scene, string text)
+        public bool StopMoveToTarget(UUID agentID, Scene scene)
+        {
+            lock (m_avatars)
+            {
+                if (m_avatars.ContainsKey(agentID))
+                {
+                    ScenePresence sp;
+                    scene.TryGetScenePresence(agentID, out sp);
+
+                    sp.Velocity = Vector3.Zero;
+                    sp.ResetMoveToTarget();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool Say(UUID agentID, Scene scene, string text)
         {
             lock (m_avatars)
             {
                 if (m_avatars.ContainsKey(agentID))
                 {
                     m_avatars[agentID].Say(text);
+
+                    return true;
                 }
             }
+
+            return false;
         }
 
-        public void DeleteNPC(UUID agentID, Scene scene)
+        public bool DeleteNPC(UUID agentID, Scene scene)
         {
             lock (m_avatars)
             {
@@ -253,8 +280,12 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 {
                     scene.RemoveClient(agentID);
                     m_avatars.Remove(agentID);
+
+                    return true;
                 }
             }
+
+            return false;
         }
 
         public void PostInitialise()

@@ -2213,6 +2213,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public void osNpcStopMoveTo(LSL_Key npc)
+        {
+            CheckThreatLevel(ThreatLevel.VeryLow, "osNpcStopMoveTo");
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+                module.StopMoveToTarget(new UUID(npc.m_string), World);
+        }
+
         public void osNpcSay(LSL_Key npc, string message)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcSay");
