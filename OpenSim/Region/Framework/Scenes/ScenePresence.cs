@@ -1146,12 +1146,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// Complete Avatar's movement into the region.
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="enableNeighbourChildAgents">
+        /// <param name="openChildAgents">
         /// If true, send notification to neighbour regions to expect
         /// a child agent from the client.  These neighbours can be some distance away, depending right now on the
         /// configuration of DefaultDrawDistance in the [Startup] section of config
         /// </param>
-        public void CompleteMovement(IClientAPI client, bool enableNeighbourChildAgents)
+        public void CompleteMovement(IClientAPI client, bool openChildAgents)
         {
 //            DateTime startTime = DateTime.Now;
             
@@ -1192,7 +1192,7 @@ namespace OpenSim.Region.Framework.Scenes
             SendInitialData();
 
             // Create child agents in neighbouring regions
-            if (enableNeighbourChildAgents && !m_isChildAgent)
+            if (openChildAgents && !m_isChildAgent)
             {
                 IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                 if (m_agentTransfer != null)

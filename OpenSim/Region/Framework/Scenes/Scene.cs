@@ -3091,11 +3091,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        /// <summary>
-        /// Remove the given client from the scene.
-        /// </summary>
-        /// <param name="agentID"></param>
-        public override void RemoveClient(UUID agentID)
+        public override void RemoveClient(UUID agentID, bool closeChildAgents)
         {
             CheckHeartbeat();
             bool childagentYN = false;
@@ -3116,15 +3112,17 @@ namespace OpenSim.Region.Framework.Scenes
                         (childagentYN ? "child" : "root"), agentID, RegionInfo.RegionName);
 
                     m_sceneGraph.removeUserCount(!childagentYN);
-                    
-                    if (CapsModule != null)
+
+                    // TODO: We shouldn't use closeChildAgents here - it's being used by the NPC module to stop
+                    // unnecessary operations.  This should go away once NPCs have no accompanying IClientAPI
+                    if (closeChildAgents && CapsModule != null)
                         CapsModule.RemoveCaps(agentID);
 
                     // REFACTORING PROBLEM -- well not really a problem, but just to point out that whatever
                     // this method is doing is HORRIBLE!!!
                     avatar.Scene.NeedSceneCacheClear(avatar.UUID);
 
-                    if (!avatar.IsChildAgent)
+                    if (closeChildAgents && !avatar.IsChildAgent)
                     {
                         //List<ulong> childknownRegions = new List<ulong>();
                         //List<ulong> ckn = avatar.KnownChildRegionHandles;
@@ -3136,6 +3134,7 @@ namespace OpenSim.Region.Framework.Scenes
                         regions.Remove(RegionInfo.RegionHandle);
                         m_sceneGridService.SendCloseChildAgentConnections(agentID, regions);
                     }
+
                     m_eventManager.TriggerClientClosed(agentID, this);
                 }
                 catch (NullReferenceException)

@@ -70,8 +70,19 @@ namespace OpenSim.Framework
 
         event restart OnRestart;
 
+        /// <summary>
+        /// Register the new client with the scene.  The client starts off as a child agent - the later agent crossing
+        /// will promote it to a root agent during login.
+        /// </summary>
+        /// <param name="client"></param        
         void AddNewClient(IClientAPI client);
-        void RemoveClient(UUID agentID);
+
+        /// <summary>
+        /// Remove the given client from the scene.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="closeChildAgents">Close the neighbour child agents associated with this client.</param>
+        void RemoveClient(UUID agentID, bool closeChildAgents);
 
         void Restart();
         //RegionInfo OtherRegionUp(RegionInfo thisRegion);

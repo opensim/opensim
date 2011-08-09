@@ -887,7 +887,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public void Close()
         {
-            m_scene.RemoveClient(AgentId);
+            m_scene.RemoveClient(AgentId, true);
         }
 
         public void Start()

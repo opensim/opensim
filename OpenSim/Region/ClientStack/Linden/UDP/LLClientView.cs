@@ -512,7 +512,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_udpServer.Flush(m_udpClient);
 
             // Remove ourselves from the scene
-            m_scene.RemoveClient(AgentId);
+            m_scene.RemoveClient(AgentId, true);
 
             // We can't reach into other scenes and close the connection
             // We need to do this over grid communications
