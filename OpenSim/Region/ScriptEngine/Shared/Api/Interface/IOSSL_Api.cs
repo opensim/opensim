@@ -176,6 +176,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osNpcSay(key npc, string message);
         void osNpcRemove(key npc);
 
+        LSL_Key osOwnerSaveAppearance(string notecardName);
+
         key osGetMapTexture();
         key osGetRegionMapTexture(string regionName);
         LSL_List osGetRegionStats();

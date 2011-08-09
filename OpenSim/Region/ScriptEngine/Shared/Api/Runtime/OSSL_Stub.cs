@@ -508,6 +508,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcRemove(npc);
         }
 
+        public LSL_Key osOwnerSaveAppearance(string notecardName)
+        {
+            return m_OSSL_Functions.osOwnerSaveAppearance(notecardName);
+        }
+
         public OSSLPrim Prim;
 
         [Serializable]

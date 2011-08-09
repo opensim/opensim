@@ -2147,14 +2147,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Key(UUID.Zero.ToString());
         }
 
+        /// <summary>
+        /// Save the current appearance of the NPC permanently to the named notecard.
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <param name="notecardName">The name of the notecard to which to save the appearance.</param>
+        /// <returns>The asset ID of the notecard saved.</returns>
         public LSL_Key osNpcSaveAppearance(string avatar, string notecardName)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcSaveAppearance");
 
             INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
-            IAvatarFactory appearanceModule = World.RequestModuleInterface<IAvatarFactory>();
 
-            if (npcModule != null && appearanceModule != null)
+            if (npcModule != null)
             {
                 UUID avatarId = UUID.Zero;
                 if (!UUID.TryParse(avatar, out avatarId))
@@ -2163,14 +2168,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!npcModule.IsNPC(avatarId, m_host.ParentGroup.Scene))
                     return new LSL_Key(UUID.Zero.ToString());
 
-                appearanceModule.SaveBakedTextures(avatarId);
-                ScenePresence sp = m_host.ParentGroup.Scene.GetScenePresence(avatarId);
-                OSDMap appearancePacked = sp.Appearance.Pack();
-
-                TaskInventoryItem item
-                    = SaveNotecard(notecardName, "Avatar Appearance", Util.GetFormattedXml(appearancePacked as OSD), true);
-
-                return new LSL_Key(item.AssetID.ToString());
+                return SaveAppearanceToNotecard(avatarId, notecardName);
             }
 
             return new LSL_Key(UUID.Zero.ToString());
@@ -2234,6 +2232,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (module != null)
             {
                 module.DeleteNPC(new UUID(npc.m_string), World);
+            }
+        }
+
+        /// <summary>
+        /// Save the current appearance of the script owner permanently to the named notecard.
+        /// </summary>
+        /// <param name="notecardName">The name of the notecard to which to save the appearance.</param>
+        /// <returns>The asset ID of the notecard saved.</returns>
+        public LSL_Key osOwnerSaveAppearance(string notecardName)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osOwnerSaveAppearance");
+
+            return SaveAppearanceToNotecard(m_host.OwnerID, notecardName);
+        }
+
+        protected LSL_Key SaveAppearanceToNotecard(UUID avatarId, string notecardName)
+        {
+            IAvatarFactory appearanceModule = World.RequestModuleInterface<IAvatarFactory>();
+
+            if (appearanceModule != null)
+            {
+                appearanceModule.SaveBakedTextures(m_host.OwnerID);
+                ScenePresence sp = m_host.ParentGroup.Scene.GetScenePresence(m_host.OwnerID);
+                OSDMap appearancePacked = sp.Appearance.Pack();
+
+                TaskInventoryItem item
+                    = SaveNotecard(notecardName, "Avatar Appearance", Util.GetFormattedXml(appearancePacked as OSD), true);
+
+                return new LSL_Key(item.AssetID.ToString());
+            }
+            else
+            {
+                return new LSL_Key(UUID.Zero.ToString());
             }
         }
         
