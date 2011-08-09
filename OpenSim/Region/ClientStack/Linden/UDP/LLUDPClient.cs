@@ -521,7 +521,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // No dequeued packet waiting to be sent, try to pull one off
                     // this queue
                     queue = m_packetOutboxes[i];
-                    if (queue.Dequeue(out packet))
+                    if (queue != null && queue.Dequeue(out packet))
                     {
                         // A packet was pulled off the queue. See if we have
                         // enough tokens in the bucket to send it out
