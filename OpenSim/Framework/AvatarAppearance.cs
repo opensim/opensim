@@ -539,7 +539,7 @@ namespace OpenSim.Framework
         /// </summary>
         public void Unpack(OSDMap data)
         {
-            if ((data != null) &&  (data["serial"] != null))
+            if ((data != null) && (data["serial"] != null))
                 m_serial = data["serial"].AsInteger();
             if ((data != null) && (data["height"] != null))
                 m_avatarHeight = (float)data["height"].AsReal();

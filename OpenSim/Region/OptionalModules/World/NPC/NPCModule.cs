@@ -137,6 +137,35 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             }
         }
 
+        public bool IsNPC(UUID agentId, Scene scene)
+        {
+            ScenePresence sp = scene.GetScenePresence(agentId);
+            if (sp == null || sp.IsChildAgent)
+                return false;
+
+            lock (m_avatars)
+                return m_avatars.ContainsKey(agentId);
+        }
+
+        public bool SetNPCAppearance(UUID agentId, AvatarAppearance appearance, Scene scene)
+        {
+            ScenePresence sp = scene.GetScenePresence(agentId);
+            if (sp == null || sp.IsChildAgent)
+                return false;
+
+            lock (m_avatars)
+                if (!m_avatars.ContainsKey(agentId))
+                    return false;
+
+            AvatarAppearance npcAppearance = new AvatarAppearance(appearance, true);
+            sp.Appearance = npcAppearance;
+
+            IAvatarFactory module = scene.RequestModuleInterface<IAvatarFactory>();
+            module.SendAppearance(sp.UUID);
+
+            return true;
+        }
+
         public UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, UUID cloneAppearanceFrom)
         {
             NPCAvatar npcAvatar = new NPCAvatar(firstname, lastname, position, scene);

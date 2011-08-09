@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         public void NewClient(IClientAPI client)
         {
             client.OnRequestWearables += SendWearables;
-            client.OnSetAppearance += SetAppearance;
+            client.OnSetAppearance += SetAppearanceFromClient;
             client.OnAvatarNowWearing += AvatarIsWearing;
         }
 
@@ -189,7 +189,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         /// <param name="client"></param>
         /// <param name="texture"></param>
         /// <param name="visualParam"></param>
-        public void SetAppearance(IClientAPI client, Primitive.TextureEntry textureEntry, byte[] visualParams)
+        public void SetAppearanceFromClient(IClientAPI client, Primitive.TextureEntry textureEntry, byte[] visualParams)
         {
             ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
             if (sp == null)
@@ -257,6 +257,47 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             return true;
         }
 
+        public bool SaveBakedTextures(UUID agentId)
+        {
+            ScenePresence sp = m_scene.GetScenePresence(agentId);
+
+            if (sp == null || sp.IsChildAgent)
+                return false;
+
+            AvatarAppearance appearance = sp.Appearance;
+            Primitive.TextureEntryFace[] faceTextures = appearance.Texture.FaceTextures;
+
+            m_log.DebugFormat(
+                "[AV FACTORY]: Permanently saving baked textures for {0} in {1}",
+                sp.Name, m_scene.RegionInfo.RegionName);
+
+            for (int i = 0; i < faceTextures.Length; i++)
+            {
+//                m_log.DebugFormat(
+//                    "[AVFACTORY]: NPC avatar {0} has texture id {1} : {2}",
+//                    acd.AgentID, i, acd.Appearance.Texture.FaceTextures[i]);
+
+                if (faceTextures[i] == null)
+                    continue;
+
+                AssetBase asset = m_scene.AssetService.Get(faceTextures[i].TextureID.ToString());
+
+                if (asset != null)
+                {
+                    asset.Temporary = false;
+                    m_scene.AssetService.Store(asset);
+                }
+                else
+                {
+                    m_log.WarnFormat(
+                        "[AV FACTORY]: Baked texture {0} for {1} in {2} unexpectedly not found when trying to save permanently",
+                        faceTextures[i].TextureID, sp.Name, m_scene.RegionInfo.RegionName);
+                }
+            }
+
+            return true;
+        }
+
         #region UpdateAppearanceTimer
 
         /// <summary>
@@ -289,25 +330,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
         }
 
-        private void HandleAppearanceSend(UUID agentid)
-        {
-            ScenePresence sp = m_scene.GetScenePresence(agentid);
-            if (sp == null)
-            {
-                m_log.WarnFormat("[AVFACTORY]: Agent {0} no longer in the scene", agentid);
-                return;
-            }
-
-            // m_log.WarnFormat("[AVFACTORY]: Handle appearance send for {0}", agentid);
-
-            // Send the appearance to everyone in the scene
-            sp.SendAppearanceToAllOtherAgents();
-
-            // Send animations back to the avatar as well
-            sp.Animator.SendAnimPack();
-        }
-
-        private void HandleAppearanceSave(UUID agentid)
+        private void SaveAppearance(UUID agentid)
         {
             // We must set appearance parameters in the en_US culture in order to avoid issues where values are saved
             // in a culture where decimal points are commas and then reloaded in a culture which just treats them as
@@ -337,7 +360,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     if (kvp.Value < now)
                     {
-                        Util.FireAndForget(delegate(object o) { HandleAppearanceSend(kvp.Key); });
+                        Util.FireAndForget(delegate(object o) { SendAppearance(kvp.Key); });
                         m_sendqueue.Remove(kvp.Key);
                     }
                 }
@@ -350,7 +373,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 {
                     if (kvp.Value < now)
                     {
-                        Util.FireAndForget(delegate(object o) { HandleAppearanceSave(kvp.Key); });
+                        Util.FireAndForget(delegate(object o) { SaveAppearance(kvp.Key); });
                         m_savequeue.Remove(kvp.Key);
                     }
                 }
@@ -425,6 +448,24 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
                 QueueAppearanceSave(client.AgentId);
             }
+        }
+
+        public bool SendAppearance(UUID agentId)
+        {
+            ScenePresence sp = m_scene.GetScenePresence(agentId);
+            if (sp == null)
+            {
+                m_log.WarnFormat("[AVFACTORY]: Agent {0} no longer in the scene", agentId);
+                return false;
+            }
+
+            // Send the appearance to everyone in the scene
+            sp.SendAppearanceToAllOtherAgents();
+
+            // Send animations back to the avatar as well
+            sp.Animator.SendAnimPack();
+
+            return true;
         }
 
         private void SetAppearanceAssets(UUID userID, ref AvatarAppearance appearance)

@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             for (byte i = 0; i < visualParams.Length; i++)
                 visualParams[i] = i;
 
-            afm.SetAppearance(tc, new Primitive.TextureEntry(TestHelpers.ParseTail(0x10)), visualParams);
+            afm.SetAppearanceFromClient(tc, new Primitive.TextureEntry(TestHelpers.ParseTail(0x10)), visualParams);
 
             ScenePresence sp = scene.GetScenePresence(userId);
 

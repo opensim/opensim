@@ -10565,9 +10565,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public static string GetLine(UUID assetID, int line, int maxLength)
+        /// <summary>
+        /// Get a notecard line.
+        /// </summary>
+        /// <param name="assetID"></param>
+        /// <param name="line">Lines start at index 0</param>
+        /// <returns></returns>
+        public static string GetLine(UUID assetID, int lineNumber)
         {
-            if (line < 0)
+            if (lineNumber < 0)
                 return "";
 
             string data;
@@ -10579,15 +10585,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 m_Notecards[assetID].lastRef = DateTime.Now;
 
-                if (line >= m_Notecards[assetID].text.Length)
+                if (lineNumber >= m_Notecards[assetID].text.Length)
                     return "\n\n\n";
 
-                data = m_Notecards[assetID].text[line];
-                if (data.Length > maxLength)
-                    data = data.Substring(0, maxLength);
+                data = m_Notecards[assetID].text[lineNumber];
 
                 return data;
             }
+        }
+
+        /// <summary>
+        /// Get a notecard line.
+        /// </summary>
+        /// <param name="assetID"></param>
+        /// <param name="line">Lines start at index 0</param>
+        /// <param name="maxLength">Maximum length of the returned line.  Longer lines will be truncated</para>
+        /// <returns></returns>
+        public static string GetLine(UUID assetID, int lineNumber, int maxLength)
+        {
+            string line = GetLine(assetID, lineNumber);
+
+            if (line.Length > maxLength)
+                line = line.Substring(0, maxLength);
+
+            return line;
         }
 
         public static void CacheCheck()

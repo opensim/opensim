@@ -28,11 +28,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Net;
 using System.Threading;
+using System.Xml;
+using log4net;
 using OpenMetaverse;
+using OpenMetaverse.StructuredData;
 using Nini.Config;
 using OpenSim;
 using OpenSim.Framework;
@@ -119,6 +124,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     [Serializable]
     public class OSSL_Api : MarshalByRefObject, IOSSL_Api, IScriptApi
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         internal IScriptEngine m_ScriptEngine;
         internal ILSL_Api m_LSL_Api = null; // get a reference to the LSL API so we can call methods housed there
         internal SceneObjectPart m_host;
@@ -1730,26 +1737,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             for (int i = 0; i < contents.Length; i++)
                 notecardData.Append((string)(contents.GetLSLStringItem(i) + "\n"));
 
-            SaveNotecard(notecardName, notecardData.ToString());
+            SaveNotecard(notecardName, "Script generated notecard", notecardData.ToString(), false);
         }
 
         /// <summary>
         /// Save a notecard to prim inventory.
         /// </summary>
-        /// <param name="notecardName"></param>
+        /// <param name="name"></param>
+        /// <param name="description">Description of notecard</param>
         /// <param name="notecardData"></param>
+        /// <param name="forceSameName">
+        /// If true, then if an item exists with the same name, it is replaced.
+        /// If false, then a new item is created witha slightly different name (e.g. name 1)
+        /// </param>
         /// <returns>Prim inventory item created.</returns>
-        protected TaskInventoryItem SaveNotecard(string notecardName, string notecardData)
+        protected TaskInventoryItem SaveNotecard(string name, string description, string data, bool forceSameName)
         {
             // Create new asset
-            AssetBase asset = new AssetBase(UUID.Random(), notecardName, (sbyte)AssetType.Notecard, m_host.OwnerID.ToString());
-            asset.Description = "Script Generated Notecard";
+            AssetBase asset = new AssetBase(UUID.Random(), name, (sbyte)AssetType.Notecard, m_host.OwnerID.ToString());
+            asset.Description = description;
 
-            int textLength = notecardData.Length;
-            notecardData = "Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length "
-            + textLength.ToString() + "\n" + notecardData + "}\n";
+            int textLength = data.Length;
+            data
+                = "Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length "
+                    + textLength.ToString() + "\n" + data + "}\n";
 
-            asset.Data = Util.UTF8.GetBytes(notecardData);
+            asset.Data = Util.UTF8.GetBytes(data);
             World.AssetService.Store(asset);
 
             // Create Task Entry
@@ -1775,7 +1788,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             taskItem.PermsMask = 0;
             taskItem.AssetID = asset.FullID;
 
-            m_host.Inventory.AddInventoryItem(taskItem, false);
+            if (forceSameName)
+                m_host.Inventory.AddInventoryItemExclusive(taskItem, false);
+            else
+                m_host.Inventory.AddInventoryItem(taskItem, false);
 
             return taskItem;
         }
@@ -1791,7 +1807,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             StringBuilder notecardData = new StringBuilder();
 
             for (int count = 0; count < NotecardCache.GetLines(assetID); count++)
-                notecardData.Append(NotecardCache.GetLine(assetID, count, 255) + "\n");
+            {
+                string line = NotecardCache.GetLine(assetID, count) + "\n";
+
+//                m_log.DebugFormat("[OSSL]: From notecard {0} loading line {1}", notecardNameOrUuid, line);
+
+                notecardData.Append(line);
+            }
 
             return notecardData.ToString();
         }
@@ -1807,7 +1829,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected UUID CacheNotecard(string notecardNameOrUuid)
         {
             UUID assetID = UUID.Zero;
-            StringBuilder notecardData = new StringBuilder();
 
             if (!UUID.TryParse(notecardNameOrUuid, out assetID))
             {
@@ -1864,7 +1885,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return "ERROR!";
             }
 
-            return NotecardCache.GetLine(assetID, line, 255);
+            return NotecardCache.GetLine(assetID, line);
         }
 
         /// <summary>
@@ -2122,7 +2143,64 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 return new LSL_Key(x.ToString());
             }
+
             return new LSL_Key(UUID.Zero.ToString());
+        }
+
+        public LSL_Key osNpcSaveAppearance(string avatar, string notecardName)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcSaveAppearance");
+
+            INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
+            IAvatarFactory appearanceModule = World.RequestModuleInterface<IAvatarFactory>();
+
+            if (npcModule != null && appearanceModule != null)
+            {
+                UUID avatarId = UUID.Zero;
+                if (!UUID.TryParse(avatar, out avatarId))
+                    return new LSL_Key(UUID.Zero.ToString());
+
+                if (!npcModule.IsNPC(avatarId, m_host.ParentGroup.Scene))
+                    return new LSL_Key(UUID.Zero.ToString());
+
+                appearanceModule.SaveBakedTextures(avatarId);
+                ScenePresence sp = m_host.ParentGroup.Scene.GetScenePresence(avatarId);
+                OSDMap appearancePacked = sp.Appearance.Pack();
+
+                TaskInventoryItem item
+                    = SaveNotecard(notecardName, "Avatar Appearance", Util.GetFormattedXml(appearancePacked as OSD), true);
+
+                return new LSL_Key(item.AssetID.ToString());
+            }
+
+            return new LSL_Key(UUID.Zero.ToString());
+        }
+
+        public void osNpcLoadAppearance(string avatar, string notecardNameOrUuid)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcLoadAppearance");
+
+            INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
+
+            if (npcModule != null)
+            {
+                UUID avatarId = UUID.Zero;
+                if (!UUID.TryParse(avatar, out avatarId))
+                    return;
+
+                if (!npcModule.IsNPC(avatarId, m_host.ParentGroup.Scene))
+                    return;
+
+                string appearanceSerialized = LoadNotecard(notecardNameOrUuid);
+                OSDMap appearanceOsd = (OSDMap)OSDParser.DeserializeLLSDXml(appearanceSerialized);
+//                OSD a = OSDParser.DeserializeLLSDXml(appearanceSerialized);
+//                Console.WriteLine("appearanceSerialized {0}", appearanceSerialized);
+//                Console.WriteLine("a.Type {0}, a.ToString() {1}", a.Type, a);
+                AvatarAppearance appearance = new AvatarAppearance();
+                appearance.Unpack(appearanceOsd);
+
+                npcModule.SetNPCAppearance(avatarId, appearance, m_host.ParentGroup.Scene);
+            }
         }
 
         public void osNpcMoveTo(LSL_Key npc, LSL_Vector position)

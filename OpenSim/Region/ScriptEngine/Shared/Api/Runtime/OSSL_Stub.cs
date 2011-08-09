@@ -483,6 +483,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osNpcCreate(user, name, position, cloneFrom);
         }
 
+        public key osNpcSaveAppearance(string avatar, string notecardName)
+        {
+            return m_OSSL_Functions.osNpcSaveAppearance(avatar, notecardName);
+        }
+
+        public void osNpcLoadAppearance(string avatar, string notecardNameOrUuid)
+        {
+            m_OSSL_Functions.osNpcLoadAppearance(avatar, notecardNameOrUuid);
+        }
+
         public void osNpcMoveTo(key npc, vector position)
         {
             m_OSSL_Functions.osNpcMoveTo(npc, position);

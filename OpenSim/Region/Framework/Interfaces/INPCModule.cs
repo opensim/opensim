@@ -26,6 +26,7 @@
  */
 
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
@@ -44,6 +45,23 @@ namespace OpenSim.Region.Framework.Interfaces
         UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, UUID cloneAppearanceFrom);
 
         /// <summary>
+        /// Check if the agent is an NPC.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="scene"></param>
+        /// <returns>True if the agent is an NPC in the given scene.  False otherwise.</returns>
+        bool IsNPC(UUID agentID, Scene scene);
+
+        /// <summary>
+        /// Set the appearance for an NPC.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="appearance"></param>
+        /// <param name="scene"></param>
+        /// <returns></returns>
+        bool SetNPCAppearance(UUID agentID, AvatarAppearance appearance, Scene scene);
+
+        /// <summary>
         /// Move an NPC to a target over time.
         /// </summary>
         /// <param name="agentID">The UUID of the NPC</param>
@@ -58,7 +76,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="scene"></param>
         /// <param name="text"></param>
         void Say(UUID agentID, Scene scene, string text);
-
 
         /// <summary>
         /// Delete an NPC.

@@ -32,6 +32,14 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public interface IAvatarFactory
     {
+        /// <summary>
+        /// Send the appearance of an avatar to others in the scene.
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <returns></returns>
+        bool SendAppearance(UUID agentId);
+
+        bool SaveBakedTextures(UUID agentId);
         bool ValidateBakedTextureCache(IClientAPI client);
         void QueueAppearanceSend(UUID agentid);
         void QueueAppearanceSave(UUID agentid);
