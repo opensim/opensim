@@ -90,7 +90,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ObjectAttach OnObjectAttach;
         public event ObjectDeselect OnObjectDetach;
         public event ObjectDrop OnObjectDrop;
-        public event GenericCall1 OnCompleteMovementToRegion;
+        public event Action<IClientAPI, bool> OnCompleteMovementToRegion;
         public event UpdateAgent OnPreAgentUpdate;
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
@@ -6195,10 +6195,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool HandleCompleteAgentMovement(IClientAPI sender, Packet Pack)
         {
-            GenericCall1 handlerCompleteMovementToRegion = OnCompleteMovementToRegion;
+            Action<IClientAPI, bool> handlerCompleteMovementToRegion = OnCompleteMovementToRegion;
             if (handlerCompleteMovementToRegion != null)
             {
-                handlerCompleteMovementToRegion(sender);
+                handlerCompleteMovementToRegion(sender, true);
             }
             handlerCompleteMovementToRegion = null;
 

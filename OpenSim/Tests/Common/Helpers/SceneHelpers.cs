@@ -383,7 +383,7 @@ namespace OpenSim.Tests.Common
 
             // Stage 3: Complete the entrance into the region.  This converts the child agent into a root agent.
             ScenePresence scp = scene.GetScenePresence(agentData.AgentID);
-            scp.CompleteMovement(client);
+            scp.CompleteMovement(client, true);
             //scp.MakeRootAgent(new Vector3(90, 90, 90), true);
 
             return scp;

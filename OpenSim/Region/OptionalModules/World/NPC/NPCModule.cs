@@ -201,13 +201,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 m_log.DebugFormat(
                     "[NPC MODULE]: Successfully retrieved scene presence for NPC {0} {1}", sp.Name, sp.UUID);
 
-                // Shouldn't call this - temporary.
-                sp.CompleteMovement(npcAvatar);
-
-//                        sp.SendAppearanceToAllOtherAgents();
-//
-//                        // Send animations back to the avatar as well
-//                        sp.Animator.SendAnimPack();
+                sp.CompleteMovement(npcAvatar, false);
             }
             else
             {

@@ -95,7 +95,7 @@ namespace OpenSim.Tests.Common.Mock
         public event DeRezObject OnDeRezObject;
         public event Action<IClientAPI> OnRegionHandShakeReply;
         public event GenericCall1 OnRequestWearables;
-        public event GenericCall1 OnCompleteMovementToRegion;
+        public event Action<IClientAPI, bool> OnCompleteMovementToRegion;
         public event UpdateAgent OnPreAgentUpdate;
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
@@ -455,7 +455,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public void CompleteMovement()
         {
-            OnCompleteMovementToRegion(this);
+            OnCompleteMovementToRegion(this, true);
         }
 
         public virtual void ActivateGesture(UUID assetId, UUID gestureId)
@@ -759,9 +759,10 @@ namespace OpenSim.Tests.Common.Mock
 
             if (OnCompleteMovementToRegion != null)
             {
-                OnCompleteMovementToRegion(this);
+                OnCompleteMovementToRegion(this, true);
             }
         }
+        
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)
         {
         }

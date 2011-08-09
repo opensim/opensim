@@ -1065,10 +1065,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         #endregion
 
         #region Enable Child Agent
+
         /// <summary>
         /// This informs a single neighbouring region about agent "avatar".
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>
+        /// <param name="sp"></param>
+        /// <param name="region"></param>
         public void EnableChildAgent(ScenePresence sp, GridRegion region)
         {
             m_log.DebugFormat("[ENTITY TRANSFER]: Enabling child agent in new neighbour {0}", region.RegionName);
@@ -1126,6 +1129,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// This informs all neighbouring regions about agent "avatar".
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>
+        /// <param name="sp"></param>
         public void EnableChildAgents(ScenePresence sp)
         {
             List<GridRegion> neighbours = new List<GridRegion>();
@@ -1312,7 +1316,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             Utils.LongToUInts(reg.RegionHandle, out x, out y);
             x = x / Constants.RegionSize;
             y = y / Constants.RegionSize;
-            m_log.Debug("[ENTITY TRANSFER MODULE]: Starting to inform client about neighbour " + x + ", " + y + "(" + endPoint.ToString() + ")");
+            m_log.Debug("[ENTITY TRANSFER MODULE]: Starting to inform client about neighbour " + x + ", " + y + "(" + endPoint + ")");
 
             string capsPath = reg.ServerURI + CapsUtil.GetCapsSeedPath(a.CapsPath);
 
