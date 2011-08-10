@@ -1723,7 +1723,9 @@ namespace OpenSim.Region.Framework.Scenes
                 "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
                 Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
 
-            if (!noFly && pos.Z > terrainHeight)
+            if (noFly)
+                PhysicsActor.Flying = false;
+            else if (pos.Z > terrainHeight)
                 PhysicsActor.Flying = true;
 
             MovingToTarget = true;

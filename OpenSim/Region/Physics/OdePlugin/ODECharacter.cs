@@ -258,7 +258,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override bool Flying
         {
             get { return flying; }
-            set { flying = value; }
+            set
+            {
+                flying = value;
+//                m_log.DebugFormat("[PHYSICS]: Set OdeCharacter Flying to {0}", flying);
+            }
         }
 
         /// <summary>
