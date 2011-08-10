@@ -498,6 +498,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcMoveTo(npc, position);
         }
 
+        public void osNpcMoveToTarget(key npc, vector position, int noFly)
+        {
+            m_OSSL_Functions.osNpcMoveToTarget(npc, position, noFly);
+        }
+
         public void osNpcStopMoveTo(LSL_Key npc)
         {
             m_OSSL_Functions.osNpcStopMoveTo(npc);

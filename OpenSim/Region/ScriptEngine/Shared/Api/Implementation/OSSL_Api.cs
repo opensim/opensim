@@ -2209,7 +2209,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (module != null)
             {
                 Vector3 pos = new Vector3((float) position.x, (float) position.y, (float) position.z);
-                module.MoveToTarget(new UUID(npc.m_string), World, pos);
+                module.MoveToTarget(new UUID(npc.m_string), World, pos, false);
+            }
+        }
+
+        public void osNpcMoveToTarget(LSL_Key npc, LSL_Vector position, int noFly)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcMoveToTarget");
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                Vector3 pos = new Vector3((float) position.x, (float) position.y, (float) position.z);
+                module.MoveToTarget(new UUID(npc.m_string), World, pos, noFly != 0);
             }
         }
 

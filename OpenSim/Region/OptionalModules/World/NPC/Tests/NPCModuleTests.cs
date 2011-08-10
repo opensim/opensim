@@ -113,7 +113,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
 
             Vector3 targetPos = startPos + new Vector3(0, 0, 10);
-            npcModule.MoveToTarget(npc.UUID, scene, targetPos);
+            npcModule.MoveToTarget(npc.UUID, scene, targetPos, false);
 
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
 
@@ -135,7 +135,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             // Try a second movement
             startPos = npc.AbsolutePosition;
             targetPos = startPos + new Vector3(10, 0, 0);
-            npcModule.MoveToTarget(npc.UUID, scene, targetPos);
+            npcModule.MoveToTarget(npc.UUID, scene, targetPos, false);
 
             scene.Update();
 

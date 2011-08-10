@@ -67,8 +67,12 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="agentID">The UUID of the NPC</param>
         /// <param name="scene"></param>
         /// <param name="pos"></param>
+        /// <param name="noFly">
+        /// If true, then the avatar will attempt to walk to the location even if it's up in the air.
+        /// This is to allow walking on prims.
+        /// </param>
         /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
-        bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos);
+        bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly);
 
         /// <summary>
         /// Stop the NPC's current movement.

@@ -1684,7 +1684,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// Move to the given target over time.
         /// </summary>
         /// <param name="pos"></param>
-        public void MoveToTarget(Vector3 pos)
+        /// <param name="noFly">
+        /// If true, then don't allow the avatar to fly to the target, even if it's up in the air.
+        /// This is to allow movement to targets that are known to be on an elevated platform with a continuous path
+        /// from start to finish.
+        /// </param>
+        public void MoveToTarget(Vector3 pos, bool noFly)
         {
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
@@ -1718,7 +1723,7 @@ namespace OpenSim.Region.Framework.Scenes
                 "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
                 Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
 
-            if (pos.Z > terrainHeight)
+            if (!noFly && pos.Z > terrainHeight)
                 PhysicsActor.Flying = true;
 
             MovingToTarget = true;

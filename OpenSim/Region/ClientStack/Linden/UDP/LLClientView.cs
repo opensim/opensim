@@ -231,7 +231,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ScriptReset OnScriptReset;
         public event GetScriptRunning OnGetScriptRunning;
         public event SetScriptRunning OnSetScriptRunning;
-        public event Action<Vector3> OnAutoPilotGo;
+        public event Action<Vector3, bool> OnAutoPilotGo;
         public event TerrainUnacked OnUnackedTerrain;
         public event ActivateGesture OnActivateGesture;
         public event DeactivateGesture OnDeactivateGesture;
@@ -11628,9 +11628,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             locy = Convert.ToSingle(args[1]) - (float)regionY;
             locz = Convert.ToSingle(args[2]);
 
-            Action<Vector3> handlerAutoPilotGo = OnAutoPilotGo;
+            Action<Vector3, bool> handlerAutoPilotGo = OnAutoPilotGo;
             if (handlerAutoPilotGo != null)
-                handlerAutoPilotGo(new Vector3(locx, locy, locz));
+                handlerAutoPilotGo(new Vector3(locx, locy, locz), false);
         }
 
         /// <summary>

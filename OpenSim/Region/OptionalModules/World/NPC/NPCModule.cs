@@ -217,7 +217,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return npcAvatar.AgentId;
         }
 
-        public bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos)
+        public bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly)
         {
             lock (m_avatars)
             {
@@ -229,7 +229,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     m_log.DebugFormat(
                         "[NPC MODULE]: Moving {0} to {1} in {2}", sp.Name, pos, scene.RegionInfo.RegionName);
 
-                    sp.MoveToTarget(pos);
+                    sp.MoveToTarget(pos, noFly);
 
                     return true;
                 }
