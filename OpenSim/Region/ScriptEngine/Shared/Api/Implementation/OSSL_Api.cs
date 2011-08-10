@@ -2209,11 +2209,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (module != null)
             {
                 Vector3 pos = new Vector3((float) position.x, (float) position.y, (float) position.z);
-                module.MoveToTarget(new UUID(npc.m_string), World, pos, false);
+                module.MoveToTarget(new UUID(npc.m_string), World, pos, false, true);
             }
         }
 
-        public void osNpcMoveToTarget(LSL_Key npc, LSL_Vector position, int noFly)
+        public void osNpcMoveToTarget(LSL_Key npc, LSL_Vector position, int moveParams)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcMoveToTarget");
 
@@ -2221,7 +2221,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (module != null)
             {
                 Vector3 pos = new Vector3((float)position.x, (float)position.y, (float)position.z);
-                module.MoveToTarget(new UUID(npc.m_string), World, pos, noFly != 0);
+                module.MoveToTarget(
+                    new UUID(npc.m_string),
+                    World,
+                    pos,
+                    (moveParams & ScriptBaseClass.OS_NPC_NO_FLY) != 0,
+                    (moveParams & ScriptBaseClass.OS_NPC_LAND_AT_TARGET) != 0);
             }
         }
 

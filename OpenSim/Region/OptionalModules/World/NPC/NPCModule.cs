@@ -75,19 +75,25 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                         // We are close enough to the target
                         m_log.DebugFormat("[NPC MODULE]: Stopping movement of npc {0}", presence.Name);
 
-                        if (presence.PhysicsActor.Flying)
-                        {
-                            Vector3 targetPos = presence.MoveToPositionTarget;
-                            float terrainHeight = (float)presence.Scene.Heightmap[(int)targetPos.X, (int)targetPos.Y];
-                            if (targetPos.Z - terrainHeight < 0.2)
-                            {
-                                presence.PhysicsActor.Flying = false;
-                            }
-                        }
-
                         presence.Velocity = Vector3.Zero;
                         presence.AbsolutePosition = presence.MoveToPositionTarget;
                         presence.ResetMoveToTarget();
+
+                        if (presence.PhysicsActor.Flying)
+                        {
+                            for (int i = 0; i < 5; i++)
+                                presence.PhysicsActor.IsColliding = true;
+
+//                            Vector3 targetPos = presence.MoveToPositionTarget;
+                            if (m_avatars[presence.UUID].LandAtTarget)
+                                presence.PhysicsActor.Flying = false;
+
+//                            float terrainHeight = (float)presence.Scene.Heightmap[(int)targetPos.X, (int)targetPos.Y];
+//                            if (targetPos.Z - terrainHeight < 0.2)
+//                            {
+//                                presence.PhysicsActor.Flying = false;
+//                            }
+                        }
 
                         // FIXME: This doesn't work
                         if (presence.PhysicsActor.Flying)
@@ -217,7 +223,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return npcAvatar.AgentId;
         }
 
-        public bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly)
+        public bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly, bool landAtTarget)
         {
             lock (m_avatars)
             {
@@ -227,8 +233,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     scene.TryGetScenePresence(agentID, out sp);
 
                     m_log.DebugFormat(
-                        "[NPC MODULE]: Moving {0} to {1} in {2}", sp.Name, pos, scene.RegionInfo.RegionName);
+                        "[NPC MODULE]: Moving {0} to {1} in {2}, noFly {3}, landAtTarget {4}",
+                        sp.Name, pos, scene.RegionInfo.RegionName, noFly, landAtTarget);
 
+                    m_avatars[agentID].LandAtTarget = landAtTarget;
                     sp.MoveToTarget(pos, noFly);
 
                     return true;
@@ -263,6 +271,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             {
                 if (m_avatars.ContainsKey(agentID))
                 {
+                    ScenePresence sp;
+                    scene.TryGetScenePresence(agentID, out sp);
+
                     m_avatars[agentID].Say(text);
 
                     return true;

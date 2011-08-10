@@ -305,10 +305,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     m_iscolliding = true;
                 }
+
                 if (m_wascolliding != m_iscolliding)
                 {
                     //base.SendCollisionUpdate(new CollisionEventUpdate());
                 }
+
                 m_wascolliding = m_iscolliding;
             }
         }

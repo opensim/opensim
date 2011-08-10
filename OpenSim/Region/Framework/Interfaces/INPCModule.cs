@@ -71,8 +71,11 @@ namespace OpenSim.Region.Framework.Interfaces
         /// If true, then the avatar will attempt to walk to the location even if it's up in the air.
         /// This is to allow walking on prims.
         /// </param>
+        /// <param name="landAtTarget">
+        /// If true and the avatar is flying when it reaches the target, land.
+        /// </param>
         /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
-        bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly);
+        bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly, bool landAtTarget);
 
         /// <summary>
         /// Stop the NPC's current movement.
