@@ -1537,10 +1537,7 @@ namespace OpenSim.Region.Framework.Scenes
                     AddNewMovement(agent_control_v3);
                 }
 
-                if (update_movementflag
-                    && ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) == 0)
-                    && (m_parentID == 0)
-                    && !SitGround)
+                if (update_movementflag && m_parentID == 0)
                     Animator.UpdateMovementAnimations();
             }
 
