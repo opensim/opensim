@@ -81,6 +81,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
                         if (presence.PhysicsActor.Flying)
                         {
+                            // A horrible hack to stop the NPC dead in its tracks rather than having them overshoot
+                            // the target if flying.
+                            // We really need to be more subtle (slow the avatar as it approaches the target) or at
+                            // least be able to set collision status once, rather than 5 times to give it enough
+                            // weighting so that that PhysicsActor thinks it really is colliding.
                             for (int i = 0; i < 5; i++)
                                 presence.PhysicsActor.IsColliding = true;
 
@@ -106,7 +111,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                             presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget);
 
                         Vector3 agent_control_v3 = new Vector3();
-                        presence.HandleMoveToTargetUpdate(ref agent_control_v3, presence.Rotation);
+                        presence.HandleMoveToTargetUpdate(ref agent_control_v3);
                         presence.AddNewMovement(agent_control_v3);
                     }
 //

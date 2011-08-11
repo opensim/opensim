@@ -1496,7 +1496,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else if (bAllowUpdateMoveToPosition)
                         {
-                            if (HandleMoveToTargetUpdate(ref agent_control_v3, bodyRotation))
+                            if (HandleMoveToTargetUpdate(ref agent_control_v3))
                                 update_movementflag = true;
                         }
                     }
@@ -1556,9 +1556,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// This doesn't actually perform the movement.  Instead, it adds its vector to agent_control_v3.
         /// </remarks>
         /// <param value="agent_control_v3">Cumulative agent movement that this method will update.</param>
-        /// <param value="bodyRotation">New body rotation of the avatar.</param>
         /// <returns>True if movement has been updated in some way.  False otherwise.</returns>
-        public bool HandleMoveToTargetUpdate(ref Vector3 agent_control_v3, Quaternion bodyRotation)
+        public bool HandleMoveToTargetUpdate(ref Vector3 agent_control_v3)
         {
 //            m_log.DebugFormat("[SCENE PRESENCE]: Called HandleMoveToTargetUpdate() for {0}", Name);
 
@@ -1594,7 +1593,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // to such forces, but the following simple approach seems to works fine.
                         Vector3 LocalVectorToTarget3D =
                             (MoveToPositionTarget - AbsolutePosition) // vector from cur. pos to target in global coords
-                            * Matrix4.CreateFromQuaternion(Quaternion.Inverse(bodyRotation)); // change to avatar coords
+                            * Matrix4.CreateFromQuaternion(Quaternion.Inverse(Rotation)); // change to avatar coords
                         // Ignore z component of vector
 //                        Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
                         LocalVectorToTarget3D.Normalize();
@@ -1731,7 +1730,7 @@ namespace OpenSim.Region.Framework.Scenes
             MoveToPositionTarget = pos;
 
             Vector3 agent_control_v3 = new Vector3();
-            HandleMoveToTargetUpdate(ref agent_control_v3, Rotation);
+            HandleMoveToTargetUpdate(ref agent_control_v3);
             AddNewMovement(agent_control_v3);
         }
 
