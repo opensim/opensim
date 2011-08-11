@@ -170,10 +170,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
 
         key osNpcCreate(string user, string name, vector position, key cloneFrom);
-        LSL_Key osNpcSaveAppearance(string avatar, string notecardName);
-        void osNpcLoadAppearance(string avatar, string notecardNameOrUuid);
+        LSL_Key osNpcSaveAppearance(key npc, string notecardName);
+        void osNpcLoadAppearance(key npc, string notecardNameOrUuid);
         void osNpcMoveTo(key npc, vector position);
-        void osNpcMoveToTarget(key npc, vector position, int noFly);
+        void osNpcMoveToTarget(key npc, vector position, int options);
         void osNpcStopMoveTo(LSL_Key npc);
         void osNpcSay(key npc, string message);
         void osNpcRemove(key npc);

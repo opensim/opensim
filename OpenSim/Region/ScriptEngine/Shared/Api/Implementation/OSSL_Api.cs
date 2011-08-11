@@ -2153,7 +2153,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="avatar"></param>
         /// <param name="notecardName">The name of the notecard to which to save the appearance.</param>
         /// <returns>The asset ID of the notecard saved.</returns>
-        public LSL_Key osNpcSaveAppearance(string avatar, string notecardName)
+        public LSL_Key osNpcSaveAppearance(LSL_Key npc, string notecardName)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcSaveAppearance");
 
@@ -2161,20 +2161,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (npcModule != null)
             {
-                UUID avatarId = UUID.Zero;
-                if (!UUID.TryParse(avatar, out avatarId))
+                UUID npcId = new UUID(npc.m_string);
+
+                if (!npcModule.IsNPC(npcId, m_host.ParentGroup.Scene))
                     return new LSL_Key(UUID.Zero.ToString());
 
-                if (!npcModule.IsNPC(avatarId, m_host.ParentGroup.Scene))
-                    return new LSL_Key(UUID.Zero.ToString());
-
-                return SaveAppearanceToNotecard(avatarId, notecardName);
+                return SaveAppearanceToNotecard(npcId, notecardName);
             }
 
             return new LSL_Key(UUID.Zero.ToString());
         }
 
-        public void osNpcLoadAppearance(string avatar, string notecardNameOrUuid)
+        public void osNpcLoadAppearance(LSL_Key npc, string notecardNameOrUuid)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcLoadAppearance");
 
@@ -2182,11 +2180,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (npcModule != null)
             {
-                UUID avatarId = UUID.Zero;
-                if (!UUID.TryParse(avatar, out avatarId))
-                    return;
+                UUID npcId = new UUID(npc.m_string);
 
-                if (!npcModule.IsNPC(avatarId, m_host.ParentGroup.Scene))
+                if (!npcModule.IsNPC(npcId, m_host.ParentGroup.Scene))
                     return;
 
                 string appearanceSerialized = LoadNotecard(notecardNameOrUuid);
@@ -2197,7 +2193,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 AvatarAppearance appearance = new AvatarAppearance();
                 appearance.Unpack(appearanceOsd);
 
-                npcModule.SetNPCAppearance(avatarId, appearance, m_host.ParentGroup.Scene);
+                npcModule.SetNPCAppearance(npcId, appearance, m_host.ParentGroup.Scene);
             }
         }
 
@@ -2213,7 +2209,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public void osNpcMoveToTarget(LSL_Key npc, LSL_Vector position, int moveParams)
+        public void osNpcMoveToTarget(LSL_Key npc, LSL_Vector position, int options)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcMoveToTarget");
 
@@ -2225,8 +2221,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     new UUID(npc.m_string),
                     World,
                     pos,
-                    (moveParams & ScriptBaseClass.OS_NPC_NO_FLY) != 0,
-                    (moveParams & ScriptBaseClass.OS_NPC_LAND_AT_TARGET) != 0);
+                    (options & ScriptBaseClass.OS_NPC_NO_FLY) != 0,
+                    (options & ScriptBaseClass.OS_NPC_LAND_AT_TARGET) != 0);
             }
         }
 

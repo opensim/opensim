@@ -483,14 +483,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osNpcCreate(user, name, position, cloneFrom);
         }
 
-        public key osNpcSaveAppearance(string avatar, string notecardName)
+        public key osNpcSaveAppearance(key npc, string notecardName)
         {
-            return m_OSSL_Functions.osNpcSaveAppearance(avatar, notecardName);
+            return m_OSSL_Functions.osNpcSaveAppearance(npc, notecardName);
         }
 
-        public void osNpcLoadAppearance(string avatar, string notecardNameOrUuid)
+        public void osNpcLoadAppearance(key npc, string notecardNameOrUuid)
         {
-            m_OSSL_Functions.osNpcLoadAppearance(avatar, notecardNameOrUuid);
+            m_OSSL_Functions.osNpcLoadAppearance(npc, notecardNameOrUuid);
         }
 
         public void osNpcMoveTo(key npc, vector position)
@@ -498,9 +498,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcMoveTo(npc, position);
         }
 
-        public void osNpcMoveToTarget(key npc, vector position, int noFly)
+        public void osNpcMoveToTarget(key npc, vector position, int options)
         {
-            m_OSSL_Functions.osNpcMoveToTarget(npc, position, noFly);
+            m_OSSL_Functions.osNpcMoveToTarget(npc, position, options);
         }
 
         public void osNpcStopMoveTo(LSL_Key npc)
