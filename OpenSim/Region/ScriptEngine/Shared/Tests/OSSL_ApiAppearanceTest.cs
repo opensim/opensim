@@ -27,7 +27,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
+using log4net;
 using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
@@ -35,6 +37,7 @@ using OpenMetaverse.Assets;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Avatar.AvatarFactory;
+using OpenSim.Region.OptionalModules.World.NPC;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
@@ -61,9 +64,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             config.Set("Enabled", "true");
             config.Set("AllowOSFunctions", "true");
             config.Set("OSFunctionThreatLevel", "Severe");
+            config = initConfigSource.AddConfig("NPC");
+            config.Set("Enabled", "true");
 
             m_scene = SceneHelpers.SetupScene();
-            SceneHelpers.SetupSceneModules(m_scene, new AvatarFactoryModule());
+            SceneHelpers.SetupSceneModules(m_scene, initConfigSource, new AvatarFactoryModule(), new NPCModule());
 
             m_engine = new XEngine.XEngine();
             m_engine.Initialise(initConfigSource);
@@ -73,12 +78,72 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         /// <summary>
         /// Test creation of an NPC where the appearance data comes from a notecard
         /// </summary>
-//        [Test]
-//        public void TestOsNpcCreateFromNotecard()
-//        {
-//            TestHelpers.InMethod();
-////            log4net.Config.XmlConfigurator.Configure();
-//        }
+        //[Test]
+        public void TestOsNpcCreateFromNotecard()
+        {
+            TestHelpers.InMethod();
+            log4net.Config.XmlConfigurator.Configure();
+
+            // Store an avatar with a different height from default in a notecard.
+            UUID userId = TestHelpers.ParseTail(0x1);
+            float newHeight = 1.9f;
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
+            sp.Appearance.AvatarHeight = newHeight;
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId);
+            SceneObjectPart part = so.RootPart;
+            m_scene.AddSceneObject(so);
+
+            OSSL_Api osslApi = new OSSL_Api();
+            osslApi.Initialize(m_engine, part, part.LocalId, part.UUID);
+
+            string notecardName = "appearanceNc";
+            osslApi.osOwnerSaveAppearance(notecardName);
+
+            // Try creating a bot using the appearance in the notecard.
+            string npcRaw = osslApi.osNpcCreate("Jane", "Doe", new LSL_Types.Vector3(128, 128, 128), notecardName);
+            Assert.That(npcRaw, Is.Not.Null);
+
+            UUID npcId = new UUID(npcRaw);
+            ScenePresence npc = m_scene.GetScenePresence(npcId);
+            Assert.That(npc, Is.Not.Null);
+            Assert.That(npc.Appearance.AvatarHeight, Is.EqualTo(newHeight));
+        }
+
+        /// <summary>
+        /// Test creation of an NPC where the appearance data comes from an avatar already in the region.
+        /// </summary>
+        [Test]
+        public void TestOsNpcCreateFromAvatar()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            // Store an avatar with a different height from default in a notecard.
+            UUID userId = TestHelpers.ParseTail(0x1);
+            float newHeight = 1.9f;
+
+            ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
+            sp.Appearance.AvatarHeight = newHeight;
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId);
+            SceneObjectPart part = so.RootPart;
+            m_scene.AddSceneObject(so);
+
+            OSSL_Api osslApi = new OSSL_Api();
+            osslApi.Initialize(m_engine, part, part.LocalId, part.UUID);
+
+            string notecardName = "appearanceNc";
+            osslApi.osOwnerSaveAppearance(notecardName);
+
+            // Try creating a bot using the existing avatar's appearance
+            string npcRaw = osslApi.osNpcCreate("Jane", "Doe", new LSL_Types.Vector3(128, 128, 128), sp.UUID.ToString());
+            Assert.That(npcRaw, Is.Not.Null);
+
+            UUID npcId = new UUID(npcRaw);
+            ScenePresence npc = m_scene.GetScenePresence(npcId);
+            Assert.That(npc, Is.Not.Null);
+            Assert.That(npc.Appearance.AvatarHeight, Is.EqualTo(newHeight));
+        }
 
         [Test]
         public void TestOsOwnerSaveAppearance()

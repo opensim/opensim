@@ -45,7 +45,6 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Dictionary<UUID, NPCAvatar> m_avatars = new Dictionary<UUID, NPCAvatar>();
-        private Dictionary<UUID, AvatarAppearance> m_appearanceCache = new Dictionary<UUID, AvatarAppearance>();
 
         public void Initialise(Scene scene, IConfigSource source)
         {
@@ -124,28 +123,6 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             }
         }
 
-        private AvatarAppearance GetAppearance(UUID target, Scene scene)
-        {
-            if (m_appearanceCache.ContainsKey(target))
-                return m_appearanceCache[target];
-
-            ScenePresence originalPresence = scene.GetScenePresence(target);
-
-            if (originalPresence != null)
-            {
-                AvatarAppearance originalAppearance = originalPresence.Appearance;
-                m_appearanceCache.Add(target, originalAppearance);
-                return originalAppearance;
-            }
-            else
-            {
-                m_log.DebugFormat(
-                    "[NPC MODULE]: Avatar {0} is not in the scene for us to grab baked textures from them.  Using defaults.", target);
-
-                return new AvatarAppearance();
-            }
-        }
-
         public bool IsNPC(UUID agentId, Scene scene)
         {
             ScenePresence sp = scene.GetScenePresence(agentId);
@@ -176,7 +153,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             return true;
         }
 
-        public UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, UUID cloneAppearanceFrom)
+        public UUID CreateNPC(
+            string firstname, string lastname, Vector3 position, Scene scene, AvatarAppearance appearance)
         {
             NPCAvatar npcAvatar = new NPCAvatar(firstname, lastname, position, scene);
             npcAvatar.CircuitCode = (uint)Util.RandomClass.Next(0, int.MaxValue);
@@ -191,8 +169,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             acd.lastname = lastname;
             acd.ServiceURLs = new Dictionary<string, object>();
 
-            AvatarAppearance originalAppearance = GetAppearance(cloneAppearanceFrom, scene);
-            AvatarAppearance npcAppearance = new AvatarAppearance(originalAppearance, true);
+            AvatarAppearance npcAppearance = new AvatarAppearance(appearance, true);
             acd.Appearance = npcAppearance;
 
 //            for (int i = 0; i < acd.Appearance.Texture.FaceTextures.Length; i++)

@@ -59,7 +59,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             AvatarFactoryModule afm = new AvatarFactoryModule();
             TestScene scene = SceneHelpers.SetupScene();
             SceneHelpers.SetupSceneModules(scene, config, afm, new NPCModule());
-            IClientAPI originalClient = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1)).ControllingClient;
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
 //            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
 
             // 8 is the index of the first baked texture in AvatarAppearance
@@ -72,10 +72,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             // ScenePresence.SendInitialData() to reset our entire appearance.
             scene.AssetService.Store(AssetHelpers.CreateAsset(originalFace8TextureId));
 
-            afm.SetAppearanceFromClient(originalClient, originalTe, null);
+            afm.SetAppearanceFromClient(sp.ControllingClient, originalTe, null);
 
             INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
-            UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), scene, originalClient.AgentId);
+            UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), scene, sp.Appearance);
 
             ScenePresence npc = scene.GetScenePresence(npcId);
 
@@ -96,12 +96,12 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
 
             TestScene scene = SceneHelpers.SetupScene();
             SceneHelpers.SetupSceneModules(scene, config, new NPCModule());
-            IClientAPI originalClient = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1)).ControllingClient;
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
 //            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
 
             Vector3 startPos = new Vector3(128, 128, 30);
             INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
-            UUID npcId = npcModule.CreateNPC("John", "Smith", startPos, scene, originalClient.AgentId);
+            UUID npcId = npcModule.CreateNPC("John", "Smith", startPos, scene, sp.Appearance);
 
             ScenePresence npc = scene.GetScenePresence(npcId);
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));

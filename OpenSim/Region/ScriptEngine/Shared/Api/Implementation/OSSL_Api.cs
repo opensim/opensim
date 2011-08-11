@@ -2135,11 +2135,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
             {
+                ScenePresence clonePresence = World.GetScenePresence(new UUID(cloneFrom.m_string));
+                if (clonePresence == null)
+                    return new LSL_Key(UUID.Zero.ToString());
+
                 UUID x = module.CreateNPC(firstname,
                                           lastname,
                                           new Vector3((float) position.x, (float) position.y, (float) position.z),
                                           World,
-                                          new UUID(cloneFrom));
+                                          clonePresence.Appearance);
 
                 return new LSL_Key(x.ToString());
             }

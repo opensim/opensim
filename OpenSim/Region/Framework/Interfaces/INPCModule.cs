@@ -40,9 +40,9 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="lastname"></param>
         /// <param name="position"></param>
         /// <param name="scene"></param>
-        /// <param name="cloneAppearanceFrom">The UUID of the avatar from which to clone the NPC's appearance from.</param>
+        /// <param name="appearance">The avatar appearance to use for the new NPC.</param>
         /// <returns>The UUID of the ScenePresence created.</returns>
-        UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, UUID cloneAppearanceFrom);
+        UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, AvatarAppearance appearance);
 
         /// <summary>
         /// Check if the agent is an NPC.
