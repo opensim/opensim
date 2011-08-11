@@ -50,35 +50,53 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
     [TestFixture]
     public class OSSL_ApiAppearanceTest
     {
-        [Test]
-        public void TestOsOwnerSaveAppearance()
-        {
-            TestHelpers.InMethod();
-//            log4net.Config.XmlConfigurator.Configure();
+        protected Scene m_scene;
+        protected XEngine.XEngine m_engine;
 
+        [SetUp]
+        public void SetUp()
+        {
             IConfigSource initConfigSource = new IniConfigSource();
             IConfig config = initConfigSource.AddConfig("XEngine");
             config.Set("Enabled", "true");
             config.Set("AllowOSFunctions", "true");
             config.Set("OSFunctionThreatLevel", "Severe");
 
+            m_scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(m_scene, new AvatarFactoryModule());
+
+            m_engine = new XEngine.XEngine();
+            m_engine.Initialise(initConfigSource);
+            m_engine.AddRegion(m_scene);
+        }
+
+        /// <summary>
+        /// Test creation of an NPC where the appearance data comes from a notecard
+        /// </summary>
+//        [Test]
+//        public void TestOsNpcCreateFromNotecard()
+//        {
+//            TestHelpers.InMethod();
+////            log4net.Config.XmlConfigurator.Configure();
+//        }
+
+        [Test]
+        public void TestOsOwnerSaveAppearance()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
             UUID userId = TestHelpers.ParseTail(0x1);
             float newHeight = 1.9f;
 
-            Scene scene = SceneHelpers.SetupScene();
-            SceneHelpers.SetupSceneModules(scene, new AvatarFactoryModule());
-            ScenePresence sp = SceneHelpers.AddScenePresence(scene, userId);
+            ScenePresence sp = SceneHelpers.AddScenePresence(m_scene, userId);
             sp.Appearance.AvatarHeight = newHeight;
             SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, userId);
             SceneObjectPart part = so.RootPart;
-            scene.AddSceneObject(so);
-
-            XEngine.XEngine engine = new XEngine.XEngine();
-            engine.Initialise(initConfigSource);
-            engine.AddRegion(scene);
+            m_scene.AddSceneObject(so);
 
             OSSL_Api osslApi = new OSSL_Api();
-            osslApi.Initialize(engine, part, part.LocalId, part.UUID);
+            osslApi.Initialize(m_engine, part, part.LocalId, part.UUID);
 
             string notecardName = "appearanceNc";
 
@@ -90,7 +108,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             TaskInventoryItem ncItem = items[0];
             Assert.That(ncItem.Name, Is.EqualTo(notecardName));
 
-            AssetBase ncAsset = scene.AssetService.Get(ncItem.AssetID.ToString());
+            AssetBase ncAsset = m_scene.AssetService.Get(ncItem.AssetID.ToString());
             Assert.That(ncAsset, Is.Not.Null);
 
             AssetNotecard anc = new AssetNotecard(UUID.Zero, ncAsset.Data);
