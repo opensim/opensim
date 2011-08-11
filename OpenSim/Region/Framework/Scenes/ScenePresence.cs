@@ -1745,6 +1745,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             MovingToTarget = false;
             MoveToPositionTarget = Vector3.Zero;
+
+            // We need to reset the control flag as the ScenePresenceAnimator uses this to determine the correct
+            // resting animation (e.g. hover or stand).  NPCs don't have a client that will quickly reset this flag.
+            // However, the line is here rather than in the NPC module since it also appears necessary to stop a
+            // viewer that uses "go here" from juddering on all subsequent avatar movements.
+            AgentControlFlags = (uint)AgentManager.ControlFlags.NONE;
         }
 
         private void CheckAtSitTarget()

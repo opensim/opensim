@@ -870,7 +870,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence target = (ScenePresence)World.Entities[avatarID];
                 if (target != null)
                 {
-                    UUID animID=UUID.Zero;
+                    UUID animID = UUID.Zero;
                     lock (m_host.TaskInventory)
                     {
                         foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)

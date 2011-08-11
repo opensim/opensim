@@ -95,11 +95,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 //                            }
                         }
 
-                        // FIXME: This doesn't work
-                        if (presence.PhysicsActor.Flying)
-                            presence.Animator.TrySetMovementAnimation("HOVER");
-                        else
-                            presence.Animator.TrySetMovementAnimation("STAND");
+//                        m_log.DebugFormat(
+//                            "[NPC MODULE]: AgentControlFlags {0}, MovementFlag {1} for {2}",
+//                            presence.AgentControlFlags, presence.MovementFlag, presence.Name);
                     }
                     else
                     {
