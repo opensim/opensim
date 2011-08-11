@@ -2130,20 +2130,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, LSL_Key cloneFrom)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
-            //QueueUserWorkItem
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
             {
-                ScenePresence clonePresence = World.GetScenePresence(new UUID(cloneFrom.m_string));
-                if (clonePresence == null)
+                AvatarAppearance appearance = null;
+
+                UUID cloneId;
+                if (UUID.TryParse(cloneFrom, out cloneId))
+                {
+                    ScenePresence clonePresence = World.GetScenePresence(new UUID(cloneFrom.m_string));
+                    if (clonePresence != null)
+                        appearance = clonePresence.Appearance;
+                }
+
+                if (appearance == null)
+                {
+                    string appearanceSerialized = LoadNotecard(cloneFrom.m_string);
+
+                    if (appearanceSerialized != null)
+                    {
+                        OSDMap appearanceOsd = (OSDMap)OSDParser.DeserializeLLSDXml(appearanceSerialized);
+                        appearance = new AvatarAppearance();
+                        appearance.Unpack(appearanceOsd);
+                    }
+                }
+
+                if (appearance == null)
                     return new LSL_Key(UUID.Zero.ToString());
 
                 UUID x = module.CreateNPC(firstname,
                                           lastname,
                                           new Vector3((float) position.x, (float) position.y, (float) position.z),
                                           World,
-                                          clonePresence.Appearance);
+                                          appearance);
 
                 return new LSL_Key(x.ToString());
             }

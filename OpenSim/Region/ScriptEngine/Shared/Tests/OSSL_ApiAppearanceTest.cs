@@ -78,11 +78,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         /// <summary>
         /// Test creation of an NPC where the appearance data comes from a notecard
         /// </summary>
-        //[Test]
+        [Test]
         public void TestOsNpcCreateFromNotecard()
         {
             TestHelpers.InMethod();
-            log4net.Config.XmlConfigurator.Configure();
+//            log4net.Config.XmlConfigurator.Configure();
 
             // Store an avatar with a different height from default in a notecard.
             UUID userId = TestHelpers.ParseTail(0x1);
