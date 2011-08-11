@@ -173,7 +173,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         private Bitmap fetchTexture(UUID id)
         {
             AssetBase asset = m_scene.AssetService.Get(id.ToString());
-            m_log.DebugFormat("Fetched texture {0}, found: {1}", id, asset != null);
+            m_log.DebugFormat("[TexturedMapTileRenderer]: Fetched texture {0}, found: {1}", id, asset != null);
             if (asset == null) return null;
 
             ManagedImage managedImage;
