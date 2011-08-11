@@ -523,6 +523,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osOwnerSaveAppearance(notecardName);
         }
 
+        public LSL_Key osAgentSaveAppearance(LSL_Key agentId, string notecardName)
+        {
+            return m_OSSL_Functions.osAgentSaveAppearance(agentId, notecardName);
+        }
+
         public OSSLPrim Prim;
 
         [Serializable]

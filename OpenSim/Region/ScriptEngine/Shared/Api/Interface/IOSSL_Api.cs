@@ -168,7 +168,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         LSL_List osGetLinkPrimitiveParams(int linknumber, LSL_List rules);
 
-
         key osNpcCreate(string user, string name, vector position, key cloneFrom);
         LSL_Key osNpcSaveAppearance(key npc, string notecardName);
         void osNpcLoadAppearance(key npc, string notecardNameOrUuid);
@@ -179,6 +178,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osNpcRemove(key npc);
 
         LSL_Key osOwnerSaveAppearance(string notecardName);
+        LSL_Key osAgentSaveAppearance(key agentId, string notecardName);
 
         key osGetMapTexture();
         key osGetRegionMapTexture(string regionName);
