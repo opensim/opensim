@@ -97,7 +97,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     }
                 }
 
-                m_log.DebugFormat("[SIMIAN ACTIVITY DETECTOR]: Detected client logout {0} in {1}", client.AgentId, client.Scene.RegionInfo.RegionName);
+//                m_log.DebugFormat("[SIMIAN ACTIVITY DETECTOR]: Detected client logout {0} in {1}", client.AgentId, client.Scene.RegionInfo.RegionName);
                 m_GridUserService.LoggedOut(client.AgentId.ToString(), client.SessionId, client.Scene.RegionInfo.RegionID, position, lookat);
             }
         }
