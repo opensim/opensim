@@ -1298,7 +1298,6 @@ namespace OpenSim.Region.Framework.Scenes
             #region Inputs
 
             AgentManager.ControlFlags flags = (AgentManager.ControlFlags)agentData.ControlFlags;
-            Quaternion bodyRotation = agentData.BodyRotation;
 
             // Camera location in world.  We'll need to raytrace
             // from this location from time to time.
@@ -1384,6 +1383,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_allowMovement && !SitGround)
             {
+                Quaternion bodyRotation = agentData.BodyRotation;
+                bool update_rotation = false;
+
+                if (bodyRotation != m_bodyRot)
+                {
+                    Rotation = bodyRotation;
+                    update_rotation = true;
+                }
+
                 bool update_movementflag = false;
 
                 if (agentData.UseClientAgentPosition)
@@ -1393,8 +1401,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 int i = 0;
-                
-                bool update_rotation = false;
                 bool DCFlagKeyPressed = false;
                 Vector3 agent_control_v3 = Vector3.Zero;
 
@@ -1409,12 +1415,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (actor.Flying != oldflying)
                     update_movementflag = true;
-
-                if (bodyRotation != m_bodyRot)
-                {
-                    m_bodyRot = bodyRotation;
-                    update_rotation = true;
-                }
 
                 if (m_parentID == 0)
                 {
@@ -1467,8 +1467,8 @@ namespace OpenSim.Region.Framework.Scenes
                                 ) // This or is for Nudge forward
                             {
                                 m_movementflag -= ((byte)(uint)DCF);
-
                                 update_movementflag = true;
+
                                 /*
                                     if ((DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACKWARD_NUDGE)
                                     && ((m_movementflag & (byte)nudgehack) == nudgehack))
@@ -1534,7 +1534,7 @@ namespace OpenSim.Region.Framework.Scenes
                     //                    m_log.DebugFormat(
                     //                        "In {0} adding velocity to {1} of {2}", m_scene.RegionInfo.RegionName, Name, agent_control_v3);
 
-                    AddNewMovement(agent_control_v3, bodyRotation);
+                    AddNewMovement(agent_control_v3);
                 }
 
                 if (update_movementflag
@@ -1732,7 +1732,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 agent_control_v3 = new Vector3();
             HandleMoveToTargetUpdate(ref agent_control_v3, Rotation);
-            AddNewMovement(agent_control_v3, Rotation);
+            AddNewMovement(agent_control_v3);
         }
 
         /// <summary>
@@ -2311,13 +2311,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// Rotate the avatar to the given rotation and apply a movement in the given relative vector
         /// </summary>
         /// <param name="vec">The vector in which to move.  This is relative to the rotation argument</param>
-        /// <param name="rotation">The direction in which this avatar should now face.
-        public void AddNewMovement(Vector3 vec, Quaternion rotation)
+        public void AddNewMovement(Vector3 vec)
         {
             m_perfMonMS = Util.EnvironmentTickCount();
 
-            Rotation = rotation;
-            Vector3 direc = vec * rotation;
+            Vector3 direc = vec * Rotation;
             direc.Normalize();
 
             direc *= 0.03f * 128f * m_speedModifier;
