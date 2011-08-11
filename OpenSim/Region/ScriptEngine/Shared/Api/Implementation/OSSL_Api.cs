@@ -2202,6 +2202,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        public LSL_Vector osNpcGetPos(LSL_Key npc)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcGetPos");
+
+            INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
+            if (npcModule != null)
+            {
+                UUID npcId;
+                if (!UUID.TryParse(npc.m_string, out npcId))
+                    return new LSL_Vector(0, 0, 0);
+
+                if (!npcModule.IsNPC(npcId, m_host.ParentGroup.Scene))
+                    return new LSL_Vector(0, 0, 0);
+
+                Vector3 pos = World.GetScenePresence(npcId).AbsolutePosition;
+                return new LSL_Vector(pos.X, pos.Y, pos.Z);
+            }
+
+            return new LSL_Vector(0, 0, 0);
+        }
+
         public void osNpcMoveTo(LSL_Key npc, LSL_Vector position)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcMoveTo");

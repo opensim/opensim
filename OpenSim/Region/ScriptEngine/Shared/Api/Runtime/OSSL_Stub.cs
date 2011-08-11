@@ -493,6 +493,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcLoadAppearance(npc, notecardNameOrUuid);
         }
 
+        public vector osNpcGetPos(LSL_Key npc)
+        {
+            return m_OSSL_Functions.osNpcGetPos(npc);
+        }
+
         public void osNpcMoveTo(key npc, vector position)
         {
             m_OSSL_Functions.osNpcMoveTo(npc, position);
