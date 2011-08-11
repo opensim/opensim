@@ -503,6 +503,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcMoveToTarget(npc, position, options);
         }
 
+        public rotation osNpcGetRot(key npc)
+        {
+            return m_OSSL_Functions.osNpcGetRot(npc);
+        }
+
+        public void osNpcSetRot(key npc, rotation rot)
+        {
+            m_OSSL_Functions.osNpcSetRot(npc, rot);
+        }
+
         public void osNpcStopMoveTo(LSL_Key npc)
         {
             m_OSSL_Functions.osNpcStopMoveTo(npc);

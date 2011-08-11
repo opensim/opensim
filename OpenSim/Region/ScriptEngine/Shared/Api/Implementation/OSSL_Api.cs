@@ -2186,9 +2186,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (npcModule != null)
             {
-                UUID npcId = new UUID(npc.m_string);
-
-                if (!npcModule.IsNPC(npcId, m_host.ParentGroup.Scene))
+                UUID npcId;
+                if (!UUID.TryParse(npc.m_string, out npcId))
                     return;
 
                 string appearanceSerialized = LoadNotecard(notecardNameOrUuid);
@@ -2210,8 +2209,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
             {
+                UUID npcId;
+                if (!UUID.TryParse(npc.m_string, out npcId))
+                    return;
+                
                 Vector3 pos = new Vector3((float) position.x, (float) position.y, (float) position.z);
-                module.MoveToTarget(new UUID(npc.m_string), World, pos, false, true);
+                module.MoveToTarget(npcId, World, pos, false, true);
             }
         }
 
@@ -2222,6 +2225,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
             {
+                UUID npcId;
+                if (!UUID.TryParse(npc.m_string, out npcId))
+                    return;
+
                 Vector3 pos = new Vector3((float)position.x, (float)position.y, (float)position.z);
                 module.MoveToTarget(
                     new UUID(npc.m_string),
@@ -2229,6 +2236,48 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     pos,
                     (options & ScriptBaseClass.OS_NPC_NO_FLY) != 0,
                     (options & ScriptBaseClass.OS_NPC_LAND_AT_TARGET) != 0);
+            }
+        }
+
+        public LSL_Rotation osNpcGetRot(LSL_Key npc)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcGetRot");
+
+            INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
+            if (npcModule != null)
+            {
+                UUID npcId;
+                if (!UUID.TryParse(npc.m_string, out npcId))
+                    return new LSL_Rotation(Quaternion.Identity.X, Quaternion.Identity.Y, Quaternion.Identity.Z, Quaternion.Identity.W);
+
+                if (!npcModule.IsNPC(npcId, m_host.ParentGroup.Scene))
+                    return new LSL_Rotation(Quaternion.Identity.X, Quaternion.Identity.Y, Quaternion.Identity.Z, Quaternion.Identity.W);
+
+                ScenePresence sp = World.GetScenePresence(npcId);
+                Quaternion rot = sp.Rotation;
+
+                return new LSL_Rotation(rot.X, rot.Y, rot.Z, rot.W);
+            }
+
+            return new LSL_Rotation(Quaternion.Identity.X, Quaternion.Identity.Y, Quaternion.Identity.Z, Quaternion.Identity.W);
+        }
+
+        public void osNpcSetRot(LSL_Key npc, LSL_Rotation rotation)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcSetRot");
+
+            INPCModule npcModule = World.RequestModuleInterface<INPCModule>();
+            if (npcModule != null)
+            {
+                UUID npcId;
+                if (!UUID.TryParse(npc.m_string, out npcId))
+                    return;
+
+                if (!npcModule.IsNPC(npcId, m_host.ParentGroup.Scene))
+                    return;
+
+                ScenePresence sp = World.GetScenePresence(npcId);
+                sp.Rotation = LSL_Api.Rot2Quaternion(rotation);
             }
         }
 

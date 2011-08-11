@@ -173,6 +173,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osNpcLoadAppearance(key npc, string notecardNameOrUuid);
         void osNpcMoveTo(key npc, vector position);
         void osNpcMoveToTarget(key npc, vector position, int options);
+        rotation osNpcGetRot(key npc);
+        void osNpcSetRot(LSL_Key npc, rotation rot);
         void osNpcStopMoveTo(LSL_Key npc);
         void osNpcSay(key npc, string message);
         void osNpcRemove(key npc);

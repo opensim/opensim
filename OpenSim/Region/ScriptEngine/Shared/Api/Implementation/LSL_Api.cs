@@ -369,7 +369,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         // convert a LSL_Rotation to a Quaternion
-        protected Quaternion Rot2Quaternion(LSL_Rotation r)
+        public static Quaternion Rot2Quaternion(LSL_Rotation r)
         {
             Quaternion q = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
             q.Normalize();
@@ -2061,6 +2061,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return llGetRootRotation();
             }
+            
             m_host.AddScriptLPS(1);
             Quaternion q = m_host.GetWorldRotation();
             return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
