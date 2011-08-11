@@ -173,7 +173,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private float m_speedModifier = 1.0f;
 
-        private Quaternion m_bodyRot= Quaternion.Identity;
+        private Quaternion m_bodyRot = Quaternion.Identity;
 
         private Quaternion m_bodyRotPrevious = Quaternion.Identity;
 
@@ -1397,7 +1397,6 @@ namespace OpenSim.Region.Framework.Scenes
                 bool update_rotation = false;
                 bool DCFlagKeyPressed = false;
                 Vector3 agent_control_v3 = Vector3.Zero;
-                Quaternion q = bodyRotation;
 
                 bool oldflying = PhysicsActor.Flying;
 
@@ -1411,9 +1410,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (actor.Flying != oldflying)
                     update_movementflag = true;
 
-                if (q != m_bodyRot)
+                if (bodyRotation != m_bodyRot)
                 {
-                    m_bodyRot = q;
+                    m_bodyRot = bodyRotation;
                     update_rotation = true;
                 }
 
@@ -1535,7 +1534,7 @@ namespace OpenSim.Region.Framework.Scenes
                     //                    m_log.DebugFormat(
                     //                        "In {0} adding velocity to {1} of {2}", m_scene.RegionInfo.RegionName, Name, agent_control_v3);
 
-                    AddNewMovement(agent_control_v3, q);
+                    AddNewMovement(agent_control_v3, bodyRotation);
                 }
 
                 if (update_movementflag
