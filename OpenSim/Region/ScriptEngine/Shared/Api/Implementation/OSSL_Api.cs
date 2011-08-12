@@ -2322,7 +2322,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public void osNpcStopMoveTo(LSL_Key npc)
+        public void osNpcStopMoveToTarget(LSL_Key npc)
         {
             CheckThreatLevel(ThreatLevel.VeryLow, "osNpcStopMoveTo");
 

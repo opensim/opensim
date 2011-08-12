@@ -518,9 +518,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcSetRot(npc, rot);
         }
 
-        public void osNpcStopMoveTo(LSL_Key npc)
+        public void osNpcStopMoveToTarget(LSL_Key npc)
         {
-            m_OSSL_Functions.osNpcStopMoveTo(npc);
+            m_OSSL_Functions.osNpcStopMoveToTarget(npc);
         }
 
         public void osNpcSay(key npc, string message)

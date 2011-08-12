@@ -176,7 +176,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osNpcMoveToTarget(key npc, vector position, int options);
         rotation osNpcGetRot(key npc);
         void osNpcSetRot(LSL_Key npc, rotation rot);
-        void osNpcStopMoveTo(LSL_Key npc);
+        void osNpcStopMoveToTarget(LSL_Key npc);
         void osNpcSay(key npc, string message);
         void osNpcRemove(key npc);
 
