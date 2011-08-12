@@ -682,7 +682,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 mapitemsrequest.ContentLength = buffer.Length;   //Count bytes to send
                 os = mapitemsrequest.GetRequestStream();
                 os.Write(buffer, 0, buffer.Length);         //Send it
-                os.Close();
                 //m_log.DebugFormat("[WORLD MAP]: Getting MapItems from {0}", httpserver);
             }
             catch (WebException ex)
@@ -704,6 +703,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 m_log.DebugFormat("[WORLD MAP]: RequestMapItems failed for {0}", httpserver);
                 responseMap["connect"] = OSD.FromBoolean(false);
                 return responseMap;
+            }
+            finally
+            {
+                if (os != null)
+                    os.Close();                    
             }
 
             string response_mapItems_reply = null;
