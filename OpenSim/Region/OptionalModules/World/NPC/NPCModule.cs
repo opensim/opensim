@@ -105,9 +105,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     }
                     else
                     {
-                        m_log.DebugFormat(
-                            "[NPC MODULE]: Updating npc {0} at {1} for next movement to {2}",
-                            presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget);
+//                        m_log.DebugFormat(
+//                            "[NPC MODULE]: Updating npc {0} at {1} for next movement to {2}",
+//                            presence.Name, presence.AbsolutePosition, presence.MoveToPositionTarget);
 
                         Vector3 agent_control_v3 = new Vector3();
                         presence.HandleMoveToTargetUpdate(ref agent_control_v3);
