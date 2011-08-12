@@ -271,16 +271,30 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 "[AV FACTORY]: Permanently saving baked textures for {0} in {1}",
                 sp.Name, m_scene.RegionInfo.RegionName);
 
-            for (int i = 0; i < faceTextures.Length; i++)
+            foreach (int i in Enum.GetValues(typeof(BakeType)))
             {
+                BakeType bakeType = (BakeType)i;
+
+                if (bakeType == BakeType.Unknown)
+                    continue;
+
 //                m_log.DebugFormat(
 //                    "[AVFACTORY]: NPC avatar {0} has texture id {1} : {2}",
 //                    acd.AgentID, i, acd.Appearance.Texture.FaceTextures[i]);
 
-                if (faceTextures[i] == null)
-                    continue;
+                int ftIndex = (int)AppearanceManager.BakeTypeToAgentTextureIndex(bakeType);
+                Primitive.TextureEntryFace bakedTextureFace = faceTextures[ftIndex];
 
-                AssetBase asset = m_scene.AssetService.Get(faceTextures[i].TextureID.ToString());
+                if (bakedTextureFace == null)
+                {
+                    m_log.WarnFormat(
+                        "[AV FACTORY]: No texture ID set for {0} for {1} in {2} not found when trying to save permanently",
+                        bakeType, sp.Name, m_scene.RegionInfo.RegionName);
+
+                    continue;
+                }
+
+                AssetBase asset = m_scene.AssetService.Get(bakedTextureFace.TextureID.ToString());
 
                 if (asset != null)
                 {
@@ -290,10 +304,34 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 else
                 {
                     m_log.WarnFormat(
-                        "[AV FACTORY]: Baked texture {0} for {1} in {2} unexpectedly not found when trying to save permanently",
-                        faceTextures[i].TextureID, sp.Name, m_scene.RegionInfo.RegionName);
+                        "[AV FACTORY]: Baked texture id {0} not found for bake {1} for avatar {2} in {3} when trying to save permanently",
+                        bakedTextureFace.TextureID, bakeType, sp.Name, m_scene.RegionInfo.RegionName);
                 }
             }
+
+//            for (int i = 0; i < faceTextures.Length; i++)
+//            {
+////                m_log.DebugFormat(
+////                    "[AVFACTORY]: NPC avatar {0} has texture id {1} : {2}",
+////                    acd.AgentID, i, acd.Appearance.Texture.FaceTextures[i]);
+//
+//                if (faceTextures[i] == null)
+//                    continue;
+//
+//                AssetBase asset = m_scene.AssetService.Get(faceTextures[i].TextureID.ToString());
+//
+//                if (asset != null)
+//                {
+//                    asset.Temporary = false;
+//                    m_scene.AssetService.Store(asset);
+//                }
+//                else
+//                {
+//                    m_log.WarnFormat(
+//                        "[AV FACTORY]: Baked texture {0} for {1} in {2} not found when trying to save permanently",
+//                        faceTextures[i].TextureID, sp.Name, m_scene.RegionInfo.RegionName);
+//                }
+//            }
 
             return true;
         }
