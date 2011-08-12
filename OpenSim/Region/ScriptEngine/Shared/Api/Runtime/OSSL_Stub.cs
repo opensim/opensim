@@ -503,9 +503,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcMoveTo(npc, position);
         }
 
-        public void osNpcMoveToTarget(key npc, vector position, int options)
+        public void osNpcMoveToTarget(key npc, vector target, int options)
         {
-            m_OSSL_Functions.osNpcMoveToTarget(npc, position, options);
+            m_OSSL_Functions.osNpcMoveToTarget(npc, target, options);
         }
 
         public rotation osNpcGetRot(key npc)
