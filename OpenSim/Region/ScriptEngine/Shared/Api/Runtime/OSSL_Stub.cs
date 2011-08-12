@@ -483,14 +483,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osNpcCreate(user, name, position, cloneFrom);
         }
 
-        public key osNpcSaveAppearance(key npc, string notecardName)
+        public key osNpcSaveAppearance(key npc, string notecard)
         {
-            return m_OSSL_Functions.osNpcSaveAppearance(npc, notecardName);
+            return m_OSSL_Functions.osNpcSaveAppearance(npc, notecard);
         }
 
-        public void osNpcLoadAppearance(key npc, string notecardNameOrUuid)
+        public void osNpcLoadAppearance(key npc, string notecard)
         {
-            m_OSSL_Functions.osNpcLoadAppearance(npc, notecardNameOrUuid);
+            m_OSSL_Functions.osNpcLoadAppearance(npc, notecard);
         }
 
         public vector osNpcGetPos(LSL_Key npc)
@@ -533,14 +533,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osNpcRemove(npc);
         }
 
-        public LSL_Key osOwnerSaveAppearance(string notecardName)
+        public LSL_Key osOwnerSaveAppearance(string notecard)
         {
-            return m_OSSL_Functions.osOwnerSaveAppearance(notecardName);
+            return m_OSSL_Functions.osOwnerSaveAppearance(notecard);
         }
 
-        public LSL_Key osAgentSaveAppearance(LSL_Key agentId, string notecardName)
+        public LSL_Key osAgentSaveAppearance(LSL_Key agentId, string notecard)
         {
-            return m_OSSL_Functions.osAgentSaveAppearance(agentId, notecardName);
+            return m_OSSL_Functions.osAgentSaveAppearance(agentId, notecard);
         }
 
         public OSSLPrim Prim;
