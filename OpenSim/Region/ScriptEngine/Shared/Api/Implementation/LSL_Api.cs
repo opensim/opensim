@@ -7650,7 +7650,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.PRIM_TYPE_BOX:
                             case ScriptBaseClass.PRIM_TYPE_CYLINDER:
                             case ScriptBaseClass.PRIM_TYPE_PRISM:
-                                res.Add(new LSL_Integer(Shape.ProfileCurve));
+                                res.Add(new LSL_Integer(Shape.ProfileCurve) & 0xf0);    // Isolate hole shape nibble.
                                 res.Add(new LSL_Vector(Shape.ProfileBegin / 50000.0, 1 - Shape.ProfileEnd / 50000.0, 0));
                                 res.Add(new LSL_Float(Shape.ProfileHollow / 50000.0));
                                 res.Add(new LSL_Vector(Shape.PathTwistBegin / 100.0, Shape.PathTwist / 100.0, 0));
@@ -7659,7 +7659,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 break;
 
                             case ScriptBaseClass.PRIM_TYPE_SPHERE:
-                                res.Add(new LSL_Integer(Shape.ProfileCurve));
+                                res.Add(new LSL_Integer(Shape.ProfileCurve) & 0xf0);    // Isolate hole shape nibble.
                                 res.Add(new LSL_Vector(Shape.PathBegin / 50000.0, 1 - Shape.PathEnd / 50000.0, 0));
                                 res.Add(new LSL_Float(Shape.ProfileHollow / 50000.0));
                                 res.Add(new LSL_Vector(Shape.PathTwistBegin / 100.0, Shape.PathTwist / 100.0, 0));
@@ -7675,7 +7675,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.PRIM_TYPE_TUBE:
                             case ScriptBaseClass.PRIM_TYPE_TORUS:
                                 // holeshape
-                                res.Add(new LSL_Integer(Shape.ProfileCurve));
+                                res.Add(new LSL_Integer(Shape.ProfileCurve) & 0xf0);    // Isolate hole shape nibble.
 
                                 // cut
                                 res.Add(new LSL_Vector(Shape.PathBegin / 50000.0, 1 - Shape.PathEnd / 50000.0, 0));
