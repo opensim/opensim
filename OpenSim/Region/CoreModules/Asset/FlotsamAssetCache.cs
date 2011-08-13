@@ -357,8 +357,6 @@ namespace Flotsam.RegionModules.AssetCache
 
                     asset = (AssetBase)bformatter.Deserialize(stream);
 
-                    UpdateMemoryCache(id, asset);
-
                     m_DiskHits++;
                 }
                 catch (System.Runtime.Serialization.SerializationException e)
@@ -419,8 +417,14 @@ namespace Flotsam.RegionModules.AssetCache
 
             if (m_MemoryCacheEnabled)
                 asset = GetFromMemoryCache(id);
+
             if (asset == null && m_FileCacheEnabled)
+            {
                 asset = GetFromFileCache(id);
+
+                if (m_MemoryCacheEnabled && asset != null)
+                    UpdateMemoryCache(id, asset);
+            }
 
             if (((m_LogLevel >= 1)) && (m_HitRateDisplay != 0) && (m_Requests % m_HitRateDisplay == 0))
             {
