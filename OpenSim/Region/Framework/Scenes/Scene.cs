@@ -611,6 +611,10 @@ namespace OpenSim.Region.Framework.Scenes
                                           "delete object name <name>",
                                           "Delete object by name", HandleDeleteObject);
 
+            MainConsole.Instance.Commands.AddCommand("region", false, "delete object outside",
+                                          "delete object outside",
+                                          "Delete all objects outside boundaries", HandleDeleteObject);
+
             //Bind Storage Manager functions to some land manager functions for this scene
             EventManager.OnLandObjectAdded +=
                 new EventManager.LandObjectAdded(simDataService.StoreLandObject);
@@ -4941,11 +4945,19 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void HandleDeleteObject(string module, string[] cmd)
         {
-            if (cmd.Length < 4)
+            if (cmd.Length < 3)
                 return;
 
             string mode = cmd[2];
-            string o = cmd[3];
+            string o = "";
+
+            if (mode != "outside")
+            {
+                if (cmd.Length < 4)
+                    return;
+
+                o = cmd[3];
+            }
 
             List<SceneObjectGroup> deletes = new List<SceneObjectGroup>();
 
@@ -4987,10 +4999,33 @@ namespace OpenSim.Region.Framework.Scenes
                                 deletes.Add(g);
                         });
                 break;
+            case "outside":
+                ForEachSOG(delegate (SceneObjectGroup g)
+                        {
+                            SceneObjectPart rootPart = g.RootPart;
+                            bool delete = false;
+
+                            if (rootPart.GroupPosition.Z < 0.0 || rootPart.GroupPosition.Z > 10000.0)
+                            {
+                                delete = true;
+                            } else {
+                                ILandObject parcel = LandChannel.GetLandObject(rootPart.GroupPosition.X, rootPart.GroupPosition.Y);
+
+                                if (parcel == null || parcel.LandData.Name == "NO LAND")
+                                    delete = true;
+                            }
+
+                            if (delete && !rootPart.IsAttachment && !deletes.Contains(g))
+                                deletes.Add(g);
+                        });
+                break;
             }
 
             foreach (SceneObjectGroup g in deletes)
+            {
+                m_log.InfoFormat("[SCENE]: Deleting object {0}", g.UUID);
                 DeleteSceneObject(g, false);
+            }
         }
 
         private void HandleReloadEstate(string module, string[] cmd)
