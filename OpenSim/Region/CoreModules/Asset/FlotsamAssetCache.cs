@@ -625,11 +625,10 @@ namespace Flotsam.RegionModules.AssetCache
     //                File.Copy(tempname, filename, true);
     //                File.Delete(tempname);
                     //
-                    // For a brief period, this was done as a separate copy and then temporary file delete operation.
+                    // For a brief period, this was done as a separate copy and then temporary file delete operation to
+                    // avoid an IOException caused by move if some competing thread had already written the file.
                     // However, this causes exceptions on Windows when other threads attempt to read a file
-                    // which is still being copied.  So instead, go back to moving the file and swallowing any IOException
-                    // that occurs because two threads race to cache the same data (and the second fails because the file
-                    // already exists).
+                    // which is still being copied.  So instead, go back to moving the file and swallow any IOException.
                     //
                     // This situation occurs fairly rarely anyway.  We assume in this that moves are atomic on the
                     // filesystem.
