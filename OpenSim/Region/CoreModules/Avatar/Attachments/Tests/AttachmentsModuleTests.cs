@@ -52,10 +52,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
     [TestFixture]
     public class AttachmentsModuleTests
     {
-        public Scene scene, scene2;
+        public Scene scene;
         public UUID agent1;
         public static Random random;
-        public ulong region1, region2;
+        public ulong region1;
         public AgentCircuitData acd1;
         public SceneObjectGroup sog1, sog2, sog3;
 
@@ -65,13 +65,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             TestHelpers.InMethod();
             
             scene = SceneHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
-            scene2 = SceneHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000);
 
             ISharedRegionModule interregionComms = new LocalSimulationConnectorModule();
             interregionComms.Initialise(new IniConfigSource());
             interregionComms.PostInitialise();
             SceneHelpers.SetupSceneModules(scene, new IniConfigSource(), interregionComms);
-            SceneHelpers.SetupSceneModules(scene2, new IniConfigSource(), interregionComms);
 
             agent1 = UUID.Random();
             random = new Random();
@@ -81,7 +79,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             //ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
             region1 = scene.RegionInfo.RegionHandle;
-            region2 = scene2.RegionInfo.RegionHandle;
             
             SceneHelpers.AddScenePresence(scene, agent1);
         }     
@@ -116,25 +113,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         // I'm commenting this test because scene setup NEEDS InventoryService to 
         // be non-null
         //[Test]
-        public void T032_CrossAttachments()
-        {
-            TestHelpers.InMethod();
-
-            ScenePresence presence = scene.GetScenePresence(agent1);
-            ScenePresence presence2 = scene2.GetScenePresence(agent1);
-            presence2.AddAttachment(sog1);
-            presence2.AddAttachment(sog2);
-
-            ISharedRegionModule serialiser = new SerialiserModule();
-            SceneHelpers.SetupSceneModules(scene, new IniConfigSource(), serialiser);
-            SceneHelpers.SetupSceneModules(scene2, new IniConfigSource(), serialiser);
-
-            Assert.That(presence.HasAttachments(), Is.False, "Presence has attachments before cross");
-
-            //Assert.That(presence2.CrossAttachmentsIntoNewRegion(region1, true), Is.True, "Cross was not successful");
-            Assert.That(presence2.HasAttachments(), Is.False, "Presence2 objects were not deleted");
-            Assert.That(presence.HasAttachments(), Is.True, "Presence has not received new objects");
-        }   
+//        public void T032_CrossAttachments()
+//        {
+//            TestHelpers.InMethod();
+//
+//            ScenePresence presence = scene.GetScenePresence(agent1);
+//            ScenePresence presence2 = scene2.GetScenePresence(agent1);
+//            presence2.AddAttachment(sog1);
+//            presence2.AddAttachment(sog2);
+//
+//            ISharedRegionModule serialiser = new SerialiserModule();
+//            SceneHelpers.SetupSceneModules(scene, new IniConfigSource(), serialiser);
+//            SceneHelpers.SetupSceneModules(scene2, new IniConfigSource(), serialiser);
+//
+//            Assert.That(presence.HasAttachments(), Is.False, "Presence has attachments before cross");
+//
+//            //Assert.That(presence2.CrossAttachmentsIntoNewRegion(region1, true), Is.True, "Cross was not successful");
+//            Assert.That(presence2.HasAttachments(), Is.False, "Presence2 objects were not deleted");
+//            Assert.That(presence.HasAttachments(), Is.True, "Presence has not received new objects");
+//        }   
         
         private SceneObjectGroup NewSOG(UUID uuid, Scene scene, UUID agent)
         {
