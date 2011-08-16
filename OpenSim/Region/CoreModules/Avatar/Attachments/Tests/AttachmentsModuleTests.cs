@@ -59,11 +59,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         public AgentCircuitData acd1;
         public SceneObjectGroup sog1, sog2;
 
-        [TestFixtureSetUp]
+        [SetUp]
         public void Init()
         {
-            TestHelpers.InMethod();
-            
             scene = SceneHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
 
             ISharedRegionModule interregionComms = new LocalSimulationConnectorModule();
@@ -83,7 +81,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         }     
         
         [Test]
-        public void T030_TestAddAttachments()
+        public void TestAddAttachments()
         {
             TestHelpers.InMethod();
 
@@ -97,11 +95,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         }
 
         [Test]
-        public void T031_RemoveAttachments()
+        public void TestRemoveAttachments()
         {
             TestHelpers.InMethod();
 
             ScenePresence presence = scene.GetScenePresence(agent1);
+            presence.AddAttachment(sog1);
+            presence.AddAttachment(sog2);            
             presence.RemoveAttachment(sog1);
             presence.RemoveAttachment(sog2);
             Assert.That(presence.HasAttachments(), Is.False);
