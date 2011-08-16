@@ -54,8 +54,9 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class GetTextureModule : INonSharedRegionModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private Scene m_scene;
         private IAssetService m_assetService;
 

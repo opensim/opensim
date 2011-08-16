@@ -50,8 +50,8 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class GetMeshModule : INonSharedRegionModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private Scene m_scene;
         private IAssetService m_AssetService;
@@ -113,7 +113,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            UUID capID = UUID.Random();
+//            UUID capID = UUID.Random();
 
             //caps.RegisterHandler("GetTexture", new StreamHandler("GET", "/CAPS/" + capID, ProcessGetTexture));
             if (m_URL == "localhost")
