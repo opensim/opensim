@@ -55,7 +55,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         public Scene scene;
         public UUID agent1;
         public static Random random;
-        public ulong region1;
         public AgentCircuitData acd1;
         public SceneObjectGroup sog1, sog2;
 
@@ -73,11 +72,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             random = new Random();
             sog1 = NewSOG(UUID.Random(), scene, agent1);
             sog2 = NewSOG(UUID.Random(), scene, agent1);
-
-            //ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
-            region1 = scene.RegionInfo.RegionHandle;
-            
-            SceneHelpers.AddScenePresence(scene, agent1);
         }     
         
         [Test]
@@ -85,8 +79,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         {
             TestHelpers.InMethod();
 
-            ScenePresence presence = scene.GetScenePresence(agent1);
-
+            ScenePresence presence = SceneHelpers.AddScenePresence(scene, agent1);
             presence.AddAttachment(sog1);
             presence.AddAttachment(sog2);
 
@@ -99,13 +92,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         {
             TestHelpers.InMethod();
 
-            ScenePresence presence = scene.GetScenePresence(agent1);
+            ScenePresence presence = SceneHelpers.AddScenePresence(scene, agent1);
             presence.AddAttachment(sog1);
-            presence.AddAttachment(sog2);            
+            presence.AddAttachment(sog2);
             presence.RemoveAttachment(sog1);
             presence.RemoveAttachment(sog2);
             Assert.That(presence.HasAttachments(), Is.False);
         }
+
+//        [Test]
+//        public void TestRezAttachmentsOnAvatarEntrance()
+//        {
+//            ScenePresence presence = scene.GetScenePresence(agent1);
+//        }
 
         // I'm commenting this test because scene setup NEEDS InventoryService to 
         // be non-null
