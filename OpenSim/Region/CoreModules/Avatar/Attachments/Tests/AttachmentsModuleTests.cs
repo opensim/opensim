@@ -38,6 +38,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.CoreModules.Avatar.Attachments;
+using OpenSim.Region.CoreModules.Framework.InventoryAccess;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Region.Framework.Scenes;
@@ -65,8 +66,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
             Util.FireAndForgetMethod = FireAndForgetMethod.None;
 
-            scene = SceneHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
-            SceneHelpers.SetupSceneModules(scene, new AttachmentsModule());
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("Modules");
+            config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
+
+            scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, config, new AttachmentsModule(), new BasicInventoryAccessModule());
 
             agent1 = UUID.Random();
             random = new Random();
@@ -114,16 +119,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            UUID spId = TestHelpers.ParseTail(0x1);
+            UUID userId = TestHelpers.ParseTail(0x1);
             UUID attItemId = TestHelpers.ParseTail(0x2);
             UUID attAssetId = TestHelpers.ParseTail(0x3);
 
-            AgentCircuitData acd = SceneHelpers.GenerateAgentData(spId);
+            UserAccountHelpers.CreateUserWithInventory(scene, userId);
+            InventoryItemBase attItem
+                = UserInventoryHelpers.CreateInventoryItem(
+                    scene, "att", attItemId, attAssetId, userId, InventoryType.Object);
+
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(userId);
             acd.Appearance = new AvatarAppearance();
-            acd.Appearance.SetAttachment((int)AttachmentPoint.Chest, attItemId, attAssetId);
+            acd.Appearance.SetAttachment((int)AttachmentPoint.Chest, attItem.ID, attItem.AssetID);
             ScenePresence presence = SceneHelpers.AddScenePresence(scene, acd);
 
-//            Assert.That(presence.HasAttachments(), Is.True);
+            Assert.That(presence.HasAttachments(), Is.True);
         }
 
         // I'm commenting this test because scene setup NEEDS InventoryService to 

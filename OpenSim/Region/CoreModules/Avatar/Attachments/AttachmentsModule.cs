@@ -261,7 +261,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     false, false, remoteClient.AgentId, true);
 
 //                m_log.DebugFormat(
-//                    "[ATTACHMENTS MODULE]: Retrieved single object {0} for attachment to {1} on point {2}", 
+//                    "[ATTACHMENTS MODULE]: Retrieved single object {0} for attachment to {1} on point {2}",
 //                    objatt.Name, remoteClient.Name, AttachmentPt);
                 
                 if (objatt != null)

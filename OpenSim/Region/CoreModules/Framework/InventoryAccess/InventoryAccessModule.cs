@@ -964,7 +964,19 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         }
                     }
                 }
+                else
+                {
+                    m_log.WarnFormat(
+                        "[InventoryAccessModule]: Could not find asset {0} for item {1} {2} for {3} in RezObject()", item.AssetID, item.Name, item.ID, remoteClient.Name);
+                }
+
                 return group;
+            }
+            else
+            {
+                m_log.WarnFormat(
+                    "[InventoryAccessModule]: Could not find item {0} for {1} in RezObject()",
+                    itemID, remoteClient.Name);
             }
 
             return null;
