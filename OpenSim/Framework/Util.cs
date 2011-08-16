@@ -56,8 +56,13 @@ namespace OpenSim.Framework
     /// <summary>
     /// The method used by Util.FireAndForget for asynchronously firing events
     /// </summary>
+    /// <remarks>
+    /// None is used to execute the method in the same thread that made the call.  It should only be used by regression
+    /// test code that relies on predictable event ordering.
+    /// </remarks>
     public enum FireAndForgetMethod
     {
+        None,
         UnsafeQueueUserWorkItem,
         QueueUserWorkItem,
         BeginInvoke,
@@ -89,7 +94,8 @@ namespace OpenSim.Framework
         public static readonly Regex UUIDPattern 
             = new Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
-        public static FireAndForgetMethod FireAndForgetMethod = FireAndForgetMethod.SmartThreadPool;
+        public static FireAndForgetMethod DefaultFireAndForgetMethod = FireAndForgetMethod.SmartThreadPool;
+        public static FireAndForgetMethod FireAndForgetMethod = DefaultFireAndForgetMethod;
 
         /// <summary>
         /// Gets the name of the directory where the current running executable
@@ -1506,6 +1512,9 @@ namespace OpenSim.Framework
 
             switch (FireAndForgetMethod)
             {
+                case FireAndForgetMethod.None:
+                    realCallback.Invoke(obj);
+                    break;
                 case FireAndForgetMethod.UnsafeQueueUserWorkItem:
                     ThreadPool.UnsafeQueueUserWorkItem(realCallback, obj);
                     break;

@@ -37,10 +37,11 @@ using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.CoreModules.Avatar.Attachments;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
@@ -61,18 +62,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         [SetUp]
         public void Init()
         {
-            scene = SceneHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
+            // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
+            Util.FireAndForgetMethod = FireAndForgetMethod.None;
 
-            ISharedRegionModule interregionComms = new LocalSimulationConnectorModule();
-            interregionComms.Initialise(new IniConfigSource());
-            interregionComms.PostInitialise();
-            SceneHelpers.SetupSceneModules(scene, new IniConfigSource(), interregionComms);
+            scene = SceneHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
+            SceneHelpers.SetupSceneModules(scene, new AttachmentsModule());
 
             agent1 = UUID.Random();
             random = new Random();
             sog1 = NewSOG(UUID.Random(), scene, agent1);
             sog2 = NewSOG(UUID.Random(), scene, agent1);
-        }     
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple
+            // threads.  Possibly, later tests should be rewritten not to worry about such things.
+            Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
+        }
         
         [Test]
         public void TestAddAttachments()
@@ -100,11 +108,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(presence.HasAttachments(), Is.False);
         }
 
-//        [Test]
-//        public void TestRezAttachmentsOnAvatarEntrance()
-//        {
-//            ScenePresence presence = scene.GetScenePresence(agent1);
-//        }
+        [Test]
+        public void TestRezAttachmentsOnAvatarEntrance()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID spId = TestHelpers.ParseTail(0x1);
+            UUID attItemId = TestHelpers.ParseTail(0x2);
+            UUID attAssetId = TestHelpers.ParseTail(0x3);
+
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(spId);
+            acd.Appearance = new AvatarAppearance();
+            acd.Appearance.SetAttachment((int)AttachmentPoint.Chest, attItemId, attAssetId);
+            ScenePresence presence = SceneHelpers.AddScenePresence(scene, acd);
+
+//            Assert.That(presence.HasAttachments(), Is.True);
+        }
 
         // I'm commenting this test because scene setup NEEDS InventoryService to 
         // be non-null
