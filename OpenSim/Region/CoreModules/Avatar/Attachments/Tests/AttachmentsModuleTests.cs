@@ -122,11 +122,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             UUID userId = TestHelpers.ParseTail(0x1);
             UUID attItemId = TestHelpers.ParseTail(0x2);
             UUID attAssetId = TestHelpers.ParseTail(0x3);
+            string attName = "att";
 
             UserAccountHelpers.CreateUserWithInventory(scene, userId);
             InventoryItemBase attItem
                 = UserInventoryHelpers.CreateInventoryItem(
-                    scene, "att", attItemId, attAssetId, userId, InventoryType.Object);
+                    scene, attName, attItemId, attAssetId, userId, InventoryType.Object);
 
             AgentCircuitData acd = SceneHelpers.GenerateAgentData(userId);
             acd.Appearance = new AvatarAppearance();
@@ -134,6 +135,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             ScenePresence presence = SceneHelpers.AddScenePresence(scene, acd);
 
             Assert.That(presence.HasAttachments(), Is.True);
+            List<SceneObjectGroup> attachments = presence.Attachments;
+
+            Assert.That(attachments.Count, Is.EqualTo(1));
+            Assert.That(attachments[0].Name, Is.EqualTo(attName));
         }
 
         // I'm commenting this test because scene setup NEEDS InventoryService to 
