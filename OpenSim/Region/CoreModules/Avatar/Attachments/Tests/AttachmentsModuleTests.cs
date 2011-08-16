@@ -44,13 +44,13 @@ using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Region.Framework.Scenes.Tests
+namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 {
     /// <summary>
     /// Attachment tests
     /// </summary>
     [TestFixture]
-    public class AttachmentTests
+    public class AttachmentsModuleTests
     {
         public Scene scene, scene2;
         public UUID agent1;
