@@ -151,6 +151,7 @@
     ;; OpenDynamicsEngine is by some distance the most developed physics engine
     ;; basicphysics effectively does not model physics at all, making all
     ;; objects phantom
+    ;; The Bullet plugins do not work properly right now.  A better Bullet plugin is on the way.
     ;; Default is OpenDynamicsEngine
     ; physics = OpenDynamicsEngine
     ; physics = basicphysics
