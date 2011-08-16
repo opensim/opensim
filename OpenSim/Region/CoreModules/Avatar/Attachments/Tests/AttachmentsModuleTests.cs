@@ -57,7 +57,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         public static Random random;
         public ulong region1;
         public AgentCircuitData acd1;
-        public SceneObjectGroup sog1, sog2, sog3;
+        public SceneObjectGroup sog1, sog2;
 
         [TestFixtureSetUp]
         public void Init()
@@ -75,7 +75,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             random = new Random();
             sog1 = NewSOG(UUID.Random(), scene, agent1);
             sog2 = NewSOG(UUID.Random(), scene, agent1);
-            sog3 = NewSOG(UUID.Random(), scene, agent1);
 
             //ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
             region1 = scene.RegionInfo.RegionHandle;
@@ -92,7 +91,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             presence.AddAttachment(sog1);
             presence.AddAttachment(sog2);
-            presence.AddAttachment(sog3);
 
             Assert.That(presence.HasAttachments(), Is.True);
             Assert.That(presence.ValidateAttachments(), Is.True);
@@ -106,7 +104,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             ScenePresence presence = scene.GetScenePresence(agent1);
             presence.RemoveAttachment(sog1);
             presence.RemoveAttachment(sog2);
-            presence.RemoveAttachment(sog3);
             Assert.That(presence.HasAttachments(), Is.False);
         }
 
