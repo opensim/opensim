@@ -1197,10 +1197,6 @@ namespace OpenSim.Region.Framework.Scenes
                 IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                 if (m_agentTransfer != null)
                     m_agentTransfer.EnableChildAgents(this);
-                else
-                    m_log.DebugFormat(
-                        "[SCENE PRESENCE]: Unable to create child agents in neighbours, because AgentTransferModule is not active for region {0}", 
-                        m_scene.RegionInfo.RegionName);
 
                 IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
                 if (friendsModule != null)
@@ -2516,13 +2512,7 @@ namespace OpenSim.Region.Framework.Scenes
             // We have an appearance but we may not have the baked textures. Check the asset cache 
             // to see if all the baked textures are already here. 
             if (m_scene.AvatarFactory != null)
-            {
                 cachedappearance = m_scene.AvatarFactory.ValidateBakedTextureCache(m_controllingClient);
-            }
-            else
-            {
-                m_log.WarnFormat("[SCENEPRESENCE]: AvatarFactory not set for {0}", Name);
-            }
             
             // If we aren't using a cached appearance, then clear out the baked textures
             if (!cachedappearance)
