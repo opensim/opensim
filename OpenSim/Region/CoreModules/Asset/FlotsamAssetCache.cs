@@ -593,39 +593,60 @@ namespace Flotsam.RegionModules.AssetCache
 
             try
             {
-                if (!Directory.Exists(directory))
+                try
                 {
-                    Directory.CreateDirectory(directory);
+                    if (!Directory.Exists(directory))
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
+    
+                    stream = File.Open(tempname, FileMode.Create);
+                    BinaryFormatter bformatter = new BinaryFormatter();
+                    bformatter.Serialize(stream, asset);
+                }
+                catch (IOException e)
+                {
+                    m_log.ErrorFormat(
+                        "[FLOTSAM ASSET CACHE]: Failed to write asset {0} to temporary location {1} (final {2}) on cache in {3}.  Exception {4} {5}.",
+                        asset.ID, tempname, filename, directory, e.Message, e.StackTrace);
+
+                    return;
+                }
+                finally
+                {
+                    if (stream != null)
+                        stream.Close();
                 }
 
-                stream = File.Open(tempname, FileMode.Create);
-                BinaryFormatter bformatter = new BinaryFormatter();
-                bformatter.Serialize(stream, asset);
-                stream.Close();
-
-                // Now that it's written, rename it so that it can be found.
-                // We're doing this as a file copy operation so that if two threads are competing to cache this asset,
-                // then both suceed instead of one failing when it tries to move the file to a final filename that
-                // already exists.
-                // This assumes that the file copy operation is atomic.  Assuming this holds, then copying also works
-                // if another simulator is using the same cache directory.
-                File.Copy(tempname, filename, true);
-                File.Delete(tempname);
-
-                if (m_LogLevel >= 2)
-                    m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Cache Stored :: {0}", asset.ID);
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat(
-                    "[FLOTSAM ASSET CACHE]: Failed to write asset {0} to cache.  Directory {1}, tempname {2}, filename {3}.  Exception {4} {5}.",
-                    asset.ID, directory, tempname, filename, e.Message, e.StackTrace);
+                try
+                {
+                    // Now that it's written, rename it so that it can be found.
+                    //
+    //                File.Copy(tempname, filename, true);
+    //                File.Delete(tempname);
+                    //
+                    // For a brief period, this was done as a separate copy and then temporary file delete operation.
+                    // However, this causes exceptions on Windows when other threads attempt to read a file
+                    // which is still being copied.  So instead, go back to moving the file and swallowing any IOException
+                    // that occurs because two threads race to cache the same data (and the second fails because the file
+                    // already exists).
+                    //
+                    // This situation occurs fairly rarely anyway.  We assume in this that moves are atomic on the
+                    // filesystem.
+                    File.Move(tempname, filename);
+    
+                    if (m_LogLevel >= 2)
+                        m_log.DebugFormat("[FLOTSAM ASSET CACHE]: Cache Stored :: {0}", asset.ID);
+                }
+                catch (IOException)
+                {
+                    // If we see an IOException here it's likely that some other competing thread has written the
+                    // cache file first, so ignore.  Other IOException errors (e.g. filesystem full) should be
+                    // signally by the earlier temporary file writing code.
+                }
             }
             finally
             {
-                if (stream != null)
-                    stream.Close();
-
                 // Even if the write fails with an exception, we need to make sure
                 // that we release the lock on that file, otherwise it'll never get
                 // cached
