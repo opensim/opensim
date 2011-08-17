@@ -226,9 +226,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         public UUID RezSingleAttachmentFromInventory(
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus)
         {
-            m_log.DebugFormat(
-                "[ATTACHMENTS MODULE]: Rezzing attachment to point {0} from item {1} for {2}", 
-                (AttachmentPoint)AttachmentPt, itemID, remoteClient.Name);
+//            m_log.DebugFormat(
+//                "[ATTACHMENTS MODULE]: Rezzing attachment to point {0} from item {1} for {2}", 
+//                (AttachmentPoint)AttachmentPt, itemID, remoteClient.Name);
             
             // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
             // be removed when that functionality is implemented in opensim
@@ -566,8 +566,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="silent"></param>
         protected void AttachToAgent(ScenePresence avatar, SceneObjectGroup so, uint attachmentpoint, Vector3 attachOffset, bool silent)
         {
-            m_log.DebugFormat("[ATTACHMENTS MODULE]: Adding attachment {0} to avatar {1} in pt {2} pos {3} {4}",
-                so.Name, avatar.Name, attachmentpoint, attachOffset, so.RootPart.AttachedPos);
+//            m_log.DebugFormat("[ATTACHMENTS MODULE]: Adding attachment {0} to avatar {1} in pt {2} pos {3} {4}",
+//                so.Name, avatar.Name, attachmentpoint, attachOffset, so.RootPart.AttachedPos);
                               
             so.DetachFromBackup();
 
