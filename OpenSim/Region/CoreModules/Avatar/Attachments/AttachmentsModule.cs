@@ -101,7 +101,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="silent"></param>
         public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, bool silent)
         {
-            m_log.Debug("[ATTACHMENTS MODULE]: Invoking AttachObject");
+//            m_log.Debug("[ATTACHMENTS MODULE]: Invoking AttachObject");
 
             try
             {
@@ -466,7 +466,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     {
                         m_scene.EventManager.TriggerOnAttach(group.LocalId, itemID, UUID.Zero);
                         group.DetachToInventoryPrep();
-                        m_log.Debug("[ATTACHMENTS MODULE]: Saving attachpoint: " + ((uint)group.GetAttachmentPoint()).ToString());
+//                        m_log.Debug("[ATTACHMENTS MODULE]: Saving attachpoint: " + ((uint)group.GetAttachmentPoint()).ToString());
 
                         // If an item contains scripts, it's always changed.
                         // This ensures script state is saved on detach
