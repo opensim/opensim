@@ -501,10 +501,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <summary>
         /// Update the attachment asset for the new sog details if they have changed.
         /// </summary>
-        /// 
+        /// <remarks>
         /// This is essential for preserving attachment attributes such as permission.  Unlike normal scene objects,
         /// these details are not stored on the region.
-        /// 
+        /// </remarks>
         /// <param name="remoteClient"></param>
         /// <param name="grp"></param>
         /// <param name="itemID"></param>

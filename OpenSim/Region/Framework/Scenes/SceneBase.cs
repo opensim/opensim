@@ -175,7 +175,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Add/Remove Agent/Avatar
 
-        public abstract void AddNewClient(IClientAPI client);
+        public abstract void AddNewClient(IClientAPI client, PresenceType type);
         public abstract void RemoveClient(UUID agentID, bool closeChildAgents);
 
         public bool TryGetScenePresence(UUID agentID, out object scenePresence)

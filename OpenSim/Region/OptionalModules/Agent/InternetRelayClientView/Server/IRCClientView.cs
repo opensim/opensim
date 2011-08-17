@@ -893,7 +893,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public void Start()
         {
-            Scene.AddNewClient(this);
+            Scene.AddNewClient(this, PresenceType.User);
 
             // Mimicking LLClientView which gets always set appearance from client.
             Scene scene = (Scene)Scene;

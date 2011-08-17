@@ -72,10 +72,11 @@ namespace OpenSim.Framework
 
         /// <summary>
         /// Register the new client with the scene.  The client starts off as a child agent - the later agent crossing
-        /// will promote it to a root agent during login.
+        /// will promote it to a root agent.
         /// </summary>
-        /// <param name="client"></param        
-        void AddNewClient(IClientAPI client);
+        /// <param name="client"></param>
+        /// <param name="type">The type of agent to add.</param>
+        void AddNewClient(IClientAPI client, PresenceType type);
 
         /// <summary>
         /// Remove the given client from the scene.

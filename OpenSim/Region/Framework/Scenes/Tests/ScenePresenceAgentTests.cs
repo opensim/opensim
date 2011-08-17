@@ -207,7 +207,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             scene.NewUserConnection(acd1, 0, out reason);
             if (testclient == null)
                 testclient = new TestClient(acd1, scene);
-            scene.AddNewClient(testclient);
+            scene.AddNewClient(testclient, PresenceType.User);
 
             ScenePresence presence = scene.GetScenePresence(agent1);
             presence.MakeRootAgent(new Vector3(90,90,90),false);
@@ -257,7 +257,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Adding child agent to region 1001
             string reason;
             scene2.NewUserConnection(acd1,0, out reason);
-            scene2.AddNewClient(testclient);
+            scene2.AddNewClient(testclient, PresenceType.User);
 
             ScenePresence presence = scene.GetScenePresence(agent1);
             presence.MakeRootAgent(new Vector3(0,unchecked(Constants.RegionSize-1),0), true);

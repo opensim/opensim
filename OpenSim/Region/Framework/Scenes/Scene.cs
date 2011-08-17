@@ -2543,10 +2543,11 @@ namespace OpenSim.Region.Framework.Scenes
         #region Add/Remove Avatar Methods
 
         /// <summary>
-        /// Adding a New Client and Create a Presence for it.
+        /// Add a new client and create a child agent for it.
         /// </summary>
         /// <param name="client"></param>
-        public override void AddNewClient(IClientAPI client)
+        /// <param name="type">The type of agent to add.</param>
+        public override void AddNewClient(IClientAPI client, PresenceType type)
         {
             AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(client.CircuitCode);
             bool vialogin = false;
@@ -2566,7 +2567,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_clientManager.Add(client);
                 SubscribeToClientEvents(client);
 
-                ScenePresence sp = m_sceneGraph.CreateAndAddChildScenePresence(client, aCircuit.Appearance);
+                ScenePresence sp = m_sceneGraph.CreateAndAddChildScenePresence(client, aCircuit.Appearance, type);
                 m_eventManager.TriggerOnNewPresence(sp);
 
                 sp.TeleportFlags = (TeleportFlags)aCircuit.teleportFlags;
@@ -3149,7 +3150,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_eventManager.TriggerOnRemovePresence(agentID);
 
-                if (avatar != null && (!avatar.IsChildAgent))
+                if (avatar != null && (!avatar.IsChildAgent) && avatar.PresenceType != PresenceType.Npc)
                     avatar.SaveChangedAttachments();
 
                 ForEachClient(

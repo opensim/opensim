@@ -379,7 +379,7 @@ namespace OpenSim.Tests.Common
 
             // Stage 2: add the new client as a child agent to the scene
             TestClient client = new TestClient(agentData, scene);
-            scene.AddNewClient(client);
+            scene.AddNewClient(client, PresenceType.User);
 
             // Stage 3: Complete the entrance into the region.  This converts the child agent into a root agent.
             ScenePresence scp = scene.GetScenePresence(agentData.AgentID);

@@ -75,6 +75,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// What type of presence is this?  User, NPC, etc.
+        /// </summary>
+        public PresenceType PresenceType { get; private set; }
+
 //        private static readonly byte[] DEFAULT_TEXTURE = AvatarAppearance.GetDefaultTexture().GetBytes();
         private static readonly Array DIR_CONTROL_FLAGS = Enum.GetValues(typeof(Dir_ControlFlags));
         private static readonly Vector3 HEAD_ADJUSTMENT = new Vector3(0f, 0f, 0.3f);
@@ -715,8 +720,9 @@ namespace OpenSim.Region.Framework.Scenes
             m_animator = new ScenePresenceAnimator(this);
         }
         
-        private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo) : this()
+        private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, PresenceType type) : this()
         {
+            PresenceType = type;
             m_DrawDistance = world.DefaultDrawDistance;
             m_rootRegionHandle = reginfo.RegionHandle;
             m_controllingClient = client;
@@ -764,8 +770,8 @@ namespace OpenSim.Region.Framework.Scenes
             SetDirectionVectors();
         }
 
-        public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance)
-            : this(client, world, reginfo)
+        public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance, PresenceType type)
+            : this(client, world, reginfo, type)
         {
             m_appearance = appearance;
         }

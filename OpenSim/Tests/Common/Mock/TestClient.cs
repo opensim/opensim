@@ -579,7 +579,7 @@ namespace OpenSim.Tests.Common.Mock
 
             // Stage 2: add the new client as a child agent to the scene
             TeleportSceneClient = new TestClient(newAgent, TeleportTargetScene);
-            TeleportTargetScene.AddNewClient(TeleportSceneClient);
+            TeleportTargetScene.AddNewClient(TeleportSceneClient, PresenceType.User);
         }
 
         public virtual void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint,
