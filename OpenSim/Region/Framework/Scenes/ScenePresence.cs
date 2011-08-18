@@ -713,15 +713,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Constructor(s)
         
-        public ScenePresence()
+        public ScenePresence(
+            IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance, PresenceType type)
         {
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             CreateSceneViewer();
             m_animator = new ScenePresenceAnimator(this);
-        }
-        
-        private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, PresenceType type) : this()
-        {
             PresenceType = type;
             m_DrawDistance = world.DefaultDrawDistance;
             m_rootRegionHandle = reginfo.RegionHandle;
@@ -768,11 +765,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             RegisterToEvents();
             SetDirectionVectors();
-        }
 
-        public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance, PresenceType type)
-            : this(client, world, reginfo, type)
-        {
             m_appearance = appearance;
         }
 
