@@ -1603,7 +1603,6 @@ namespace OpenSim.Region.Framework.Scenes
                                 RotationOffset,
                                 RigidBody,
                                 m_localId);
-                        PhysActor.SetMaterial(Material);
                     }
                     catch
                     {
@@ -1615,6 +1614,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         PhysActor.SOPName = this.Name; // save object name and desc into the PhysActor so ODE internals know the joint/body info
                         PhysActor.SOPDescription = this.Description;
+                        PhysActor.SetMaterial(Material);
                         DoPhysicsPropertyUpdate(RigidBody, true);
                         PhysActor.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
                     }
@@ -4530,11 +4530,11 @@ namespace OpenSim.Region.Framework.Scenes
                         RotationOffset,
                         UsePhysics,
                         m_localId);
-                    PhysActor.SetMaterial(Material);
 
                     pa = PhysActor;
                     if (pa != null)
                     {
+                        PhysActor.SetMaterial(Material);
                         DoPhysicsPropertyUpdate(UsePhysics, true);
 
                         if (m_parentGroup != null)
