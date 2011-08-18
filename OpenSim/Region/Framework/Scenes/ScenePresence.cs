@@ -717,7 +717,7 @@ namespace OpenSim.Region.Framework.Scenes
             IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance, PresenceType type)
         {
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
-            CreateSceneViewer();
+            m_sceneViewer = new SceneViewer(this);
             m_animator = new ScenePresenceAnimator(this);
             PresenceType = type;
             m_DrawDistance = world.DefaultDrawDistance;
@@ -767,11 +767,6 @@ namespace OpenSim.Region.Framework.Scenes
             SetDirectionVectors();
 
             m_appearance = appearance;
-        }
-
-        private void CreateSceneViewer()
-        {
-            m_sceneViewer = new SceneViewer(this);
         }
 
         public void RegisterToEvents()
