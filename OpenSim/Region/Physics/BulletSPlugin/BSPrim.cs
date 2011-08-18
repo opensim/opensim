@@ -1013,8 +1013,8 @@ public sealed class BSPrim : PhysicsActor
             // m_log.DebugFormat("{0}: CreateGeom: calling CreateHull. lid={1}, key={2}, hulls={3}", LogHeader, _localID, _hullKey, hullCount);
             BulletSimAPI.CreateHull(_scene.WorldID, _hullKey, hullCount, convHulls);
             _shapeType = ShapeData.PhysicsShapeType.SHAPE_HULL;
-            // Let the object be scaled by Bullet (the mesh was created as a unit mesh)
-            _scale = _size;
+            // meshes are already scaled by the meshmerizer
+            _scale = new OMV.Vector3(1f, 1f, 1f);
         }
         return;
     }
@@ -1138,9 +1138,7 @@ public sealed class BSPrim : PhysicsActor
         if (_scene.NeedsMeshing(_pbs))  // linksets with constraints don't need a root mesh
         {
             // m_log.DebugFormat("{0}: RecreateGeomAndObject: creating mesh", LogHeader);
-            // Make the mesh scaled to 1 and use Bullet's scaling feature to scale it in world
-            OMV.Vector3 scaleFactor = new OMV.Vector3(1.0f, 1.0f, 1.0f);
-            _mesh = _scene.mesher.CreateMesh(_avName, _pbs, scaleFactor, _scene.MeshLOD, _isPhysical);
+            _mesh = _scene.mesher.CreateMesh(_avName, _pbs, _size, _scene.MeshLOD, _isPhysical);
         }
         else
         {
@@ -1225,6 +1223,8 @@ public sealed class BSPrim : PhysicsActor
         else
         {
             // Don't check for damping here -- it's done in BulletSim and SceneObjectPart.
+
+            // Only updates only for individual prims and for the root object of a linkset.
             if (this._parentPrim == null)
             {
                 // Assign to the local variables so the normal set action does not happen

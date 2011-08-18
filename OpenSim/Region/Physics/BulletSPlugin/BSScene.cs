@@ -58,10 +58,12 @@ using OpenSim.Region.Framework;
 // 
 namespace OpenSim.Region.Physics.BulletSPlugin
 {
-public class BSScene : PhysicsScene
+public class BSScene : PhysicsScene, IPhysicsParameters
 {
     private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
     private static readonly string LogHeader = "[BULLETS SCENE]";
+
+    public string BulletSimVersion = "?";
 
     private Dictionary<uint, BSCharacter> m_avatars = new Dictionary<uint, BSCharacter>();
     private Dictionary<uint, BSPrim> m_prims = new Dictionary<uint, BSPrim>();
@@ -127,7 +129,7 @@ public class BSScene : PhysicsScene
     ConfigurationParameters[] m_params;
     GCHandle m_paramsHandle;
 
-    private BulletSimAPI.DebugLogCallback debugLogCallbackHandle;
+    private BulletSimAPI.DebugLogCallback m_DebugLogCallbackHandle;
 
     public BSScene(string identifier)
     {
@@ -149,12 +151,17 @@ public class BSScene : PhysicsScene
         m_updateArray = new EntityProperties[m_maxUpdatesPerFrame];
         m_updateArrayPinnedHandle = GCHandle.Alloc(m_updateArray, GCHandleType.Pinned);
 
+        // Get the version of the DLL
+        // TODO: this doesn't work yet. Something wrong with marshaling the returned string.
+        // BulletSimVersion = BulletSimAPI.GetVersion();
+        // m_log.WarnFormat("{0}: BulletSim.dll version='{1}'", LogHeader, BulletSimVersion);
+
         // if Debug, enable logging from the unmanaged code
         if (m_log.IsDebugEnabled)
         {
             m_log.DebugFormat("{0}: Initialize: Setting debug callback for unmanaged code", LogHeader);
-            debugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLogger);
-            BulletSimAPI.SetDebugLogCallback(debugLogCallbackHandle);
+            m_DebugLogCallbackHandle = new BulletSimAPI.DebugLogCallback(BulletLogger);
+            BulletSimAPI.SetDebugLogCallback(m_DebugLogCallbackHandle);
         }
 
         _taintedObjects = new List<TaintCallback>();
@@ -188,7 +195,7 @@ public class BSScene : PhysicsScene
         m_maxUpdatesPerFrame = 2048;
         m_maximumObjectMass = 10000.01f;
 
-        parms.defaultFriction = 0.70f;
+        parms.defaultFriction = 0.5f;
         parms.defaultDensity = 10.000006836f; // Aluminum g/cm3
         parms.defaultRestitution = 0f;
         parms.collisionMargin = 0.0f;
@@ -202,10 +209,10 @@ public class BSScene : PhysicsScene
         parms.ccdMotionThreshold = 0.5f;    // set to zero to disable
         parms.ccdSweptSphereRadius = 0.2f;
 
-        parms.terrainFriction = 0.85f;
-        parms.terrainHitFriction = 0.8f;
-        parms.terrainRestitution = 0.2f;
-        parms.avatarFriction = 0.85f;
+        parms.terrainFriction = 0.5f;
+        parms.terrainHitFraction = 0.8f;
+        parms.terrainRestitution = 0f;
+        parms.avatarFriction = 0.0f;
         parms.avatarDensity = 60f;
         parms.avatarCapsuleRadius = 0.37f;
         parms.avatarCapsuleHeight = 1.5f; // 2.140599f
@@ -213,7 +220,8 @@ public class BSScene : PhysicsScene
         if (config != null)
         {
             // If there are specifications in the ini file, use those values
-            // WHEN ADDING OR UPDATING THIS SECTION, BE SURE TO ALSO UPDATE OpenSimDefaults.ini
+            // WHEN ADDING OR UPDATING THIS SECTION, BE SURE TO UPDATE OpenSimDefaults.ini
+            // ALSO REMEMBER TO UPDATE THE RUNTIME SETTING OF THE PARAMETERS.
             IConfig pConfig = config.Configs["BulletSim"];
             if (pConfig != null)
             {
@@ -243,7 +251,7 @@ public class BSScene : PhysicsScene
                 parms.ccdSweptSphereRadius = pConfig.GetFloat("CcdSweptSphereRadius", parms.ccdSweptSphereRadius);
 
                 parms.terrainFriction = pConfig.GetFloat("TerrainFriction", parms.terrainFriction);
-                parms.terrainHitFriction = pConfig.GetFloat("TerrainHitFriction", parms.terrainHitFriction);
+                parms.terrainHitFraction = pConfig.GetFloat("TerrainHitFraction", parms.terrainHitFraction);
                 parms.terrainRestitution = pConfig.GetFloat("TerrainRestitution", parms.terrainRestitution);
                 parms.avatarFriction = pConfig.GetFloat("AvatarFriction", parms.avatarFriction);
                 parms.avatarDensity = pConfig.GetFloat("AvatarDensity", parms.avatarDensity);
@@ -386,7 +394,7 @@ public class BSScene : PhysicsScene
             }
         }
 
-        // FIX THIS: fps calculation wrong. This calculation always returns about 1 in normal operation.
+        // TODO: FIX THIS: fps calculation wrong. This calculation always returns about 1 in normal operation.
         return timeStep / (numSubSteps * m_fixedTimeStep) * 1000f;
     }
 
@@ -651,5 +659,196 @@ public class BSScene : PhysicsScene
         }
     }
     #endregion Vehicles
+
+    #region Runtime settable parameters
+    public static PhysParameterEntry[] SettableParameters = new PhysParameterEntry[]
+    {
+        new PhysParameterEntry("MeshLOD", "Level of detail to render meshes (Power of two. Default 32)"),
+        new PhysParameterEntry("MaxSubStep", "In simulation step, maximum number of substeps"),
+        new PhysParameterEntry("FixedTimeStep", "In simulation step, seconds of one substep (1/60)"),
+        new PhysParameterEntry("MaxObjectMass", "Maximum object mass (10000.01)"),
+
+        new PhysParameterEntry("DefaultFriction", "Friction factor used on new objects"),
+        new PhysParameterEntry("DefaultDensity", "Density for new objects" ),
+        new PhysParameterEntry("DefaultRestitution", "Bouncyness of an object" ),
+        // new PhysParameterEntry("CollisionMargin", "Margin around objects before collisions are calculated (must be zero!!)" ),
+        new PhysParameterEntry("Gravity", "Vertical force of gravity (negative means down)" ),
+
+        new PhysParameterEntry("LinearDamping", "Factor to damp linear movement per second (0.0 - 1.0)" ),
+        new PhysParameterEntry("AngularDamping", "Factor to damp angular movement per second (0.0 - 1.0)" ),
+        new PhysParameterEntry("DeactivationTime", "Seconds before considering an object potentially static" ),
+        new PhysParameterEntry("LinearSleepingThreshold", "Seconds to measure linear movement before considering static" ),
+        new PhysParameterEntry("AngularSleepingThreshold", "Seconds to measure angular movement before considering static" ),
+        // new PhysParameterEntry("CcdMotionThreshold", "" ),
+        // new PhysParameterEntry("CcdSweptSphereRadius", "" ),
+
+        new PhysParameterEntry("TerrainFriction", "Factor to reduce movement against terrain surface" ),
+        new PhysParameterEntry("TerrainHitFraction", "Distance to measure hit collisions" ),
+        new PhysParameterEntry("TerrainRestitution", "Bouncyness" ),
+        new PhysParameterEntry("AvatarFriction", "Factor to reduce movement against an avatar. Changed on avatar recreation." ),
+        new PhysParameterEntry("AvatarDensity", "Density of an avatar. Changed on avatar recreation." ),
+        new PhysParameterEntry("AvatarRestitution", "Bouncyness. Changed on avatar recreation." ),
+        new PhysParameterEntry("AvatarCapsuleRadius", "Radius of space around an avatar" ),
+        new PhysParameterEntry("AvatarCapsuleHeight", "Default height of space around avatar" )
+    };
+
+    #region IPhysicsParameters
+    // Get the list of parameters this physics engine supports
+    public PhysParameterEntry[] GetParameterList()
+    {
+        return SettableParameters;
+    }
+
+    // Set parameter on a specific or all instances.
+    // Return 'false' if not able to set the parameter.
+    // Setting the value in the m_params block will change the value the physics engine
+    //   will use the next time since it's pinned and shared memory.
+    // Some of the values require calling into the physics engine to get the new
+    //   value activated ('terrainFriction' for instance).
+    public bool SetPhysicsParameter(string parm, float val, uint localID)
+    {
+        bool ret = true;
+        string lparm = parm.ToLower();
+        switch (lparm)
+        {
+            case "meshlod": m_meshLOD = (int)val; break;
+            case "maxsubstep": m_maxSubSteps = (int)val; break;
+            case "fixedtimestep": m_fixedTimeStep = val; break;
+            case "maxobjectmass": m_maximumObjectMass = val; break;
+
+            case "defaultfriction": m_params[0].defaultFriction = val; break;
+            case "defaultdensity": m_params[0].defaultDensity = val; break;
+            case "defaultrestitution": m_params[0].defaultRestitution = val; break;
+            case "collisionmargin": m_params[0].collisionMargin = val; break;
+            case "gravity": m_params[0].gravity = val;  TaintedUpdateParameter(lparm, PhysParameterEntry.APPLY_TO_NONE, val); break;
+
+            case "lineardamping": UpdateParameterPrims(ref m_params[0].linearDamping, lparm, localID, val); break;
+            case "angulardamping": UpdateParameterPrims(ref m_params[0].angularDamping, lparm, localID, val); break;
+            case "deactivationtime": UpdateParameterPrims(ref m_params[0].deactivationTime, lparm, localID, val); break;
+            case "linearsleepingthreshold": UpdateParameterPrims(ref m_params[0].linearSleepingThreshold, lparm, localID, val); break;
+            case "angularsleepingthreshold": UpdateParameterPrims(ref m_params[0].angularDamping, lparm, localID, val); break;
+            case "ccdmotionthreshold": UpdateParameterPrims(ref m_params[0].ccdMotionThreshold, lparm, localID, val); break;
+            case "ccdsweptsphereradius": UpdateParameterPrims(ref m_params[0].ccdSweptSphereRadius, lparm, localID, val); break;
+
+            // set a terrain physical feature and cause terrain to be recalculated
+            case "terrainfriction": m_params[0].terrainFriction = val; TaintedUpdateParameter("terrain", 0, val); break;
+            case "terrainhitfraction": m_params[0].terrainHitFraction = val; TaintedUpdateParameter("terrain", 0, val); break;
+            case "terrainrestitution": m_params[0].terrainRestitution = val; TaintedUpdateParameter("terrain", 0, val); break;
+            // set an avatar physical feature and cause avatar(s) to be recalculated
+            case "avatarfriction": UpdateParameterAvatars(ref m_params[0].avatarFriction, "avatar", localID, val); break;
+            case "avatardensity": UpdateParameterAvatars(ref m_params[0].avatarDensity, "avatar", localID, val);  break;
+            case "avatarrestitution": UpdateParameterAvatars(ref m_params[0].avatarRestitution, "avatar", localID, val); break;
+            case "avatarcapsuleradius": UpdateParameterAvatars(ref m_params[0].avatarCapsuleRadius, "avatar", localID, val);  break;
+            case "avatarcapsuleheight": UpdateParameterAvatars(ref m_params[0].avatarCapsuleHeight, "avatar", localID, val);  break;
+
+            default: ret = false; break;
+        }
+        return ret;
+    }
+
+    // check to see if we are updating a parameter for a particular or all of the prims
+    private void UpdateParameterPrims(ref float loc, string parm, uint localID, float val)
+    {
+        List<uint> operateOn;
+        lock (m_prims) operateOn = new List<uint>(m_prims.Keys);
+        UpdateParameterSet(operateOn, ref loc, parm, localID, val);
+    }
+
+    // check to see if we are updating a parameter for a particular or all of the avatars
+    private void UpdateParameterAvatars(ref float loc, string parm, uint localID, float val)
+    {
+        List<uint> operateOn;
+        lock (m_avatars) operateOn = new List<uint>(m_avatars.Keys);
+        UpdateParameterSet(operateOn, ref loc, parm, localID, val);
+    }
+
+    // update all the localIDs specified
+    // If the local ID is APPLY_TO_NONE, just change the default value
+    // If the localID is APPLY_TO_ALL change the default value and apply the new value to all the lIDs
+    // If the localID is a specific object, apply the parameter change to only that object
+    private void UpdateParameterSet(List<uint> lIDs, ref float defaultLoc, string parm, uint localID, float val)
+    {
+        switch (localID)
+        {
+            case PhysParameterEntry.APPLY_TO_NONE:
+                defaultLoc = val;   // setting only the default value
+                break;
+            case PhysParameterEntry.APPLY_TO_ALL:
+                defaultLoc = val;  // setting ALL also sets the default value
+                List<uint> objectIDs = lIDs;
+                string xparm = parm.ToLower();
+                float xval = val;
+                TaintedObject(delegate() {
+                    foreach (uint lID in objectIDs)
+                    {
+                        BulletSimAPI.UpdateParameter(m_worldID, lID, xparm, xval);
+                    }
+                });
+                break;
+            default: 
+                // setting only one localID
+                TaintedUpdateParameter(parm, localID, val);
+                break;
+        }
+    }
+
+    // schedule the actual updating of the paramter to when the phys engine is not busy
+    private void TaintedUpdateParameter(string parm, uint localID, float val)
+    {
+        uint xlocalID = localID;
+        string xparm = parm.ToLower();
+        float xval = val;
+        TaintedObject(delegate() {
+            BulletSimAPI.UpdateParameter(m_worldID, xlocalID, xparm, xval);
+        });
+    }
+
+    // Get parameter.
+    // Return 'false' if not able to get the parameter.
+    public bool GetPhysicsParameter(string parm, out float value)
+    {
+        float val = 0f;
+        bool ret = true;
+        switch (parm.ToLower())
+        {
+            case "meshlod": val = (float)m_meshLOD; break;
+            case "maxsubstep": val = (float)m_maxSubSteps; break;
+            case "fixedtimestep": val = m_fixedTimeStep; break;
+            case "maxobjectmass": val = m_maximumObjectMass; break;
+
+            case "defaultfriction": val = m_params[0].defaultFriction; break;
+            case "defaultdensity": val = m_params[0].defaultDensity; break;
+            case "defaultrestitution": val = m_params[0].defaultRestitution; break;
+            case "collisionmargin": val = m_params[0].collisionMargin; break;
+            case "gravity": val = m_params[0].gravity; break;
+
+            case "lineardamping": val = m_params[0].linearDamping; break;
+            case "angulardamping": val = m_params[0].angularDamping; break;
+            case "deactivationtime": val = m_params[0].deactivationTime; break;
+            case "linearsleepingthreshold": val = m_params[0].linearSleepingThreshold; break;
+            case "angularsleepingthreshold": val = m_params[0].angularDamping; break;
+            case "ccdmotionthreshold": val = m_params[0].ccdMotionThreshold; break;
+            case "ccdsweptsphereradius": val = m_params[0].ccdSweptSphereRadius; break;
+
+            case "terrainfriction": val = m_params[0].terrainFriction; break;
+            case "terrainhitfraction": val = m_params[0].terrainHitFraction; break;
+            case "terrainrestitution": val = m_params[0].terrainRestitution; break;
+
+            case "avatarfriction": val = m_params[0].avatarFriction; break;
+            case "avatardensity": val = m_params[0].avatarDensity; break;
+            case "avatarrestitution": val = m_params[0].avatarRestitution; break;
+            case "avatarcapsuleradius": val = m_params[0].avatarCapsuleRadius; break;
+            case "avatarcapsuleheight": val = m_params[0].avatarCapsuleHeight; break;
+            default: ret = false; break;
+
+        }
+        value = val;
+        return ret;
+    }
+
+    #endregion IPhysicsParameters
+
+    #endregion Runtime settable parameters
+
 }
 }

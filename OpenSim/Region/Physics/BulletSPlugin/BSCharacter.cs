@@ -49,8 +49,9 @@ public class BSCharacter : PhysicsActor
     private bool _grabbed;
     private bool _selected;
     private Vector3 _position;
-    private float _mass = 80f;
-    public float _density = 60f;
+    private float _mass;
+    public float _density;
+    public float _avatarVolume;
     private Vector3 _force;
     private Vector3 _velocity;
     private Vector3 _torque;
@@ -90,13 +91,13 @@ public class BSCharacter : PhysicsActor
         _scene = parent_scene;
         _position = pos;
         _size = size;
+        _flying = isFlying;
         _orientation = Quaternion.Identity;
         _velocity = Vector3.Zero;
-        _buoyancy = 0f; // characters return a buoyancy of zero
+        _buoyancy = isFlying ? 1f : 0f;
         _scale = new Vector3(1f, 1f, 1f);
-        float AVvolume = (float) (Math.PI*Math.Pow(_scene.Params.avatarCapsuleRadius, 2)*_scene.Params.avatarCapsuleHeight);
         _density = _scene.Params.avatarDensity;
-        _mass = _density*AVvolume;
+        ComputeAvatarVolumeAndMass();   // set _avatarVolume and _mass based on capsule size, _density and _scale
 
         ShapeData shapeData = new ShapeData();
         shapeData.ID = _localID;
@@ -106,7 +107,7 @@ public class BSCharacter : PhysicsActor
         shapeData.Velocity = _velocity;
         shapeData.Scale = _scale;
         shapeData.Mass = _mass;
-        shapeData.Buoyancy = isFlying ? 1f : 0f;
+        shapeData.Buoyancy = _buoyancy;
         shapeData.Static = ShapeData.numericFalse;
         shapeData.Friction = _scene.Params.avatarFriction;
         shapeData.Restitution = _scene.Params.defaultRestitution;
@@ -212,6 +213,7 @@ public class BSCharacter : PhysicsActor
         get { return _velocity; } 
         set {
             _velocity = value;
+            // m_log.DebugFormat("{0}: set velocity = {1}", LogHeader, _velocity);
             _scene.TaintedObject(delegate()
             {
                 BulletSimAPI.SetObjectVelocity(_scene.WorldID, _localID, _velocity);
@@ -235,6 +237,7 @@ public class BSCharacter : PhysicsActor
         get { return _orientation; } 
         set {
             _orientation = value;
+            // m_log.DebugFormat("{0}: set orientation to {1}", LogHeader, _orientation);
             _scene.TaintedObject(delegate()
             {
                 // _position = BulletSimAPI.GetObjectPosition(_scene.WorldID, _localID);
@@ -300,7 +303,6 @@ public class BSCharacter : PhysicsActor
         set { _buoyancy = value; 
             _scene.TaintedObject(delegate()
             {
-                // simulate flying by changing the effect of gravity
                 BulletSimAPI.SetObjectBuoyancy(_scene.WorldID, LocalID, _buoyancy);
             });
         } 
@@ -344,6 +346,7 @@ public class BSCharacter : PhysicsActor
             _force.X += force.X;
             _force.Y += force.Y;
             _force.Z += force.Z;
+            // m_log.DebugFormat("{0}: AddForce. adding={1}, newForce={2}", LogHeader, force, _force);
             _scene.TaintedObject(delegate()
             {
                 BulletSimAPI.SetObjectForce(_scene.WorldID, _localID, _force);
@@ -368,6 +371,17 @@ public class BSCharacter : PhysicsActor
     }
     public override bool SubscribedEvents() {
         return (_subscribedEventsMs > 0);
+    }
+
+    // set _avatarVolume and _mass based on capsule size, _density and _scale
+    private void ComputeAvatarVolumeAndMass()
+    {
+        _avatarVolume = (float)(
+                        Math.PI
+                        * _scene.Params.avatarCapsuleRadius * _scale.X
+                        * _scene.Params.avatarCapsuleRadius * _scale.Y
+                        * _scene.Params.avatarCapsuleHeight * _scale.Z);
+        _mass = _density * _avatarVolume;
     }
 
     // The physics engine says that properties have updated. Update same and inform
@@ -403,6 +417,9 @@ public class BSCharacter : PhysicsActor
         }
         if (changed)
         {
+            // m_log.DebugFormat("{0}: UpdateProperties: id={1}, c={2}, pos={3}, rot={4}", LogHeader, LocalID, changed, _position, _orientation);
+            // Avatar movement is not done by generating this event. There is a system that
+            //  checks for avatar updates each heartbeat loop.
             // base.RequestPhysicsterseUpdate();
         }
     }

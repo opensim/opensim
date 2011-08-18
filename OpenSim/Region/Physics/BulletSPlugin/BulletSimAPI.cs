@@ -51,9 +51,6 @@ public struct ShapeData
 		SHAPE_SPHERE = 4,
 		SHAPE_HULL = 5
     };
-    // note that bools are passed as ints since bool size changes by language
-    public const int numericTrue = 1;
-    public const int numericFalse = 0;
     public uint ID;
     public PhysicsShapeType Type;
     public Vector3 Position;
@@ -67,6 +64,10 @@ public struct ShapeData
     public float Restitution;
     public int Collidable;
     public int Static;  // true if a static object. Otherwise gravity, etc.
+
+    // note that bools are passed as ints since bool size changes by language and architecture
+    public const int numericTrue = 1;
+    public const int numericFalse = 0;
 }
 [StructLayout(LayoutKind.Sequential)]
 public struct SweepHit 
@@ -121,21 +122,32 @@ public struct ConfigurationParameters
 	public float ccdSweptSphereRadius;
 
     public float terrainFriction;
-    public float terrainHitFriction;
+    public float terrainHitFraction;
     public float terrainRestitution;
     public float avatarFriction;
     public float avatarDensity;
     public float avatarRestitution;
     public float avatarCapsuleRadius;
     public float avatarCapsuleHeight;
+
+    public const float numericTrue = 1f;
+    public const float numericFalse = 0f;
 }
 
 static class BulletSimAPI {
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+[return: MarshalAs(UnmanagedType.LPStr)]
+public static extern string GetVersion();
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern uint Initialize(Vector3 maxPosition, IntPtr parms, 
                         int maxCollisions, IntPtr collisionArray, 
                         int maxUpdates, IntPtr updateArray);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool UpdateParameter(uint worldID, uint localID,
+                        [MarshalAs(UnmanagedType.LPStr)]string paramCode, float value);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void SetHeightmap(uint worldID, [MarshalAs(UnmanagedType.LPArray)] float[] heightMap);

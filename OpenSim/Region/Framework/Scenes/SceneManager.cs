@@ -47,6 +47,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event RestartSim OnRestartSim;
 
+        private static SceneManager m_instance = null;
+        public static SceneManager Instance
+        { 
+            get { return m_instance; } 
+        }
+
         private readonly List<Scene> m_localScenes;
         private Scene m_currentScene = null;
 
@@ -84,6 +90,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public SceneManager()
         {
+            m_instance = this;
             m_localScenes = new List<Scene>();
         }
 
