@@ -2582,12 +2582,13 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (GetScenePresence(client.AgentId) != null)
+            ScenePresence createdSp = GetScenePresence(client.AgentId);
+            if (createdSp != null)
             {
                 m_LastLogin = Util.EnvironmentTickCount();
 
                 // Cache the user's name
-                CacheUserName(aCircuit);
+                CacheUserName(createdSp, aCircuit);
 
                 EventManager.TriggerOnNewClient(client);
                 if (vialogin)
@@ -2595,28 +2596,41 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private void CacheUserName(AgentCircuitData aCircuit)
+        /// <summary>
+        /// Cache the user name for later use.
+        /// </summary>
+        /// <param name="sp"></param>
+        /// <param name="aCircuit"></param>
+        private void CacheUserName(ScenePresence sp, AgentCircuitData aCircuit)
         {
             IUserManagement uMan = RequestModuleInterface<IUserManagement>();
             if (uMan != null)
             {
-                string homeURL = string.Empty;
                 string first = aCircuit.firstname, last = aCircuit.lastname;
 
-                if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
-                    homeURL = aCircuit.ServiceURLs["HomeURI"].ToString();
-
-                if (aCircuit.lastname.StartsWith("@"))
+                if (sp.PresenceType == PresenceType.Npc)
                 {
-                    string[] parts = aCircuit.firstname.Split('.');
-                    if (parts.Length >= 2)
-                    {
-                        first = parts[0];
-                        last = parts[1];
-                    }
+                    uMan.AddUser(aCircuit.AgentID, first, last);
                 }
+                else
+                {
+                    string homeURL = string.Empty;
 
-                uMan.AddUser(aCircuit.AgentID, first, last, homeURL);
+                    if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
+                        homeURL = aCircuit.ServiceURLs["HomeURI"].ToString();
+
+                    if (aCircuit.lastname.StartsWith("@"))
+                    {
+                        string[] parts = aCircuit.firstname.Split('.');
+                        if (parts.Length >= 2)
+                        {
+                            first = parts[0];
+                            last = parts[1];
+                        }
+                    }
+
+                    uMan.AddUser(aCircuit.AgentID, first, last, homeURL);
+                }
             }
         }
 

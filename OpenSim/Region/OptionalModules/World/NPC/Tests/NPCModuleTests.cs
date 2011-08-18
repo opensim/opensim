@@ -34,6 +34,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.CoreModules.Avatar.AvatarFactory;
+using OpenSim.Region.CoreModules.Framework.UserManagement;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -57,8 +58,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             config.Configs["NPC"].Set("Enabled", "true");
 
             AvatarFactoryModule afm = new AvatarFactoryModule();
+            UserManagementModule umm = new UserManagementModule();
+
             TestScene scene = SceneHelpers.SetupScene();
-            SceneHelpers.SetupSceneModules(scene, config, afm, new NPCModule());
+            SceneHelpers.SetupSceneModules(scene, config, afm, umm, new NPCModule());
             ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
 //            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
 
@@ -81,6 +84,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
 
             Assert.That(npc, Is.Not.Null);
             Assert.That(npc.Appearance.Texture.FaceTextures[8].TextureID, Is.EqualTo(originalFace8TextureId));
+            Assert.That(umm.GetUserName(npc.UUID), Is.EqualTo(string.Format("{0} {1}", npc.Firstname, npc.Lastname)));
         }
 
         [Test]

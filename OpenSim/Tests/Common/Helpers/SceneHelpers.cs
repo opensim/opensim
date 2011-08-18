@@ -331,6 +331,7 @@ namespace OpenSim.Tests.Common
             agentData.InventoryFolder = UUID.Zero;
             agentData.startpos = Vector3.Zero;
             agentData.CapsPath = "http://wibble.com";
+            agentData.ServiceURLs = new Dictionary<string, object>();
 
             return agentData;
         }
