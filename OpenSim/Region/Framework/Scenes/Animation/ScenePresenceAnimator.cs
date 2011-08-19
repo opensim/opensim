@@ -77,6 +77,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (m_scenePresence.IsChildAgent)
                 return;
 
+//            m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Adding animation {0} for {1}", animID, m_scenePresence.Name);
+
             if (m_animations.Add(animID, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, objectID))
                 SendAnimPack();
         }
@@ -90,6 +92,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             UUID animID = m_scenePresence.ControllingClient.GetDefaultAnimation(name);
             if (animID == UUID.Zero)
                 return;
+
+//            m_log.DebugFormat("[SCENE PRESENCE ANIMATOR]: Adding animation {0} {1} for {2}", animID, name, m_scenePresence.Name);
 
             AddAnimation(animID, objectID);
         }
@@ -127,13 +131,15 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// </summary>
         public void TrySetMovementAnimation(string anim)
         {
-            //m_log.DebugFormat("Updating movement animation to {0}", anim);
-
             if (!m_scenePresence.IsChildAgent)
             {
                 if (m_animations.TrySetDefaultAnimation(
                     anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID))
                 {
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE ANIMATOR]: Updating movement animation to {0} for {1}",
+//                        anim, m_scenePresence.Name);
+
                     // 16384 is CHANGED_ANIMATION
                     m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { (int)Changed.ANIMATION});
                     SendAnimPack();

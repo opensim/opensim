@@ -90,7 +90,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ObjectAttach OnObjectAttach;
         public event ObjectDeselect OnObjectDetach;
         public event ObjectDrop OnObjectDrop;
-        public event GenericCall1 OnCompleteMovementToRegion;
+        public event Action<IClientAPI, bool> OnCompleteMovementToRegion;
         public event UpdateAgent OnPreAgentUpdate;
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
@@ -231,7 +231,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ScriptReset OnScriptReset;
         public event GetScriptRunning OnGetScriptRunning;
         public event SetScriptRunning OnSetScriptRunning;
-        public event Action<Vector3> OnAutoPilotGo;
+        public event Action<Vector3, bool> OnAutoPilotGo;
         public event TerrainUnacked OnUnackedTerrain;
         public event ActivateGesture OnActivateGesture;
         public event DeactivateGesture OnDeactivateGesture;
@@ -512,7 +512,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_udpServer.Flush(m_udpClient);
 
             // Remove ourselves from the scene
-            m_scene.RemoveClient(AgentId);
+            m_scene.RemoveClient(AgentId, true);
 
             // We can't reach into other scenes and close the connection
             // We need to do this over grid communications
@@ -692,7 +692,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public virtual void Start()
         {
-            m_scene.AddNewClient(this);
+            m_scene.AddNewClient(this, PresenceType.User);
 
             RefreshGroupMembership();
         }
@@ -6195,10 +6195,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool HandleCompleteAgentMovement(IClientAPI sender, Packet Pack)
         {
-            GenericCall1 handlerCompleteMovementToRegion = OnCompleteMovementToRegion;
+            Action<IClientAPI, bool> handlerCompleteMovementToRegion = OnCompleteMovementToRegion;
             if (handlerCompleteMovementToRegion != null)
             {
-                handlerCompleteMovementToRegion(sender);
+                handlerCompleteMovementToRegion(sender, true);
             }
             handlerCompleteMovementToRegion = null;
 
@@ -11628,9 +11628,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             locy = Convert.ToSingle(args[1]) - (float)regionY;
             locz = Convert.ToSingle(args[2]);
 
-            Action<Vector3> handlerAutoPilotGo = OnAutoPilotGo;
+            Action<Vector3, bool> handlerAutoPilotGo = OnAutoPilotGo;
             if (handlerAutoPilotGo != null)
-                handlerAutoPilotGo(new Vector3(locx, locy, locz));
+                handlerAutoPilotGo(new Vector3(locx, locy, locz), false);
         }
 
         /// <summary>

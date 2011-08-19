@@ -55,12 +55,12 @@ namespace OpenSim.Region.Framework.Tests
         [Test]
         public void TestGiveInventoryItem()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            Scene scene = SceneSetupHelpers.SetupScene();
-            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, 1001);
-            UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene, 1002);
+            Scene scene = SceneHelpers.SetupScene();
+            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1001));
+            UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1002));
             InventoryItemBase item1 = UserInventoryHelpers.CreateInventoryItem(scene, "item1", user1.PrincipalID);
 
             scene.GiveInventoryItem(user2.PrincipalID, user1.PrincipalID, item1.ID);
@@ -82,12 +82,12 @@ namespace OpenSim.Region.Framework.Tests
         [Test]
         public void TestGiveInventoryFolder()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneSetupHelpers.SetupScene();
-            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, 1001);
-            UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene, 1002);
+            Scene scene = SceneHelpers.SetupScene();
+            UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1001));
+            UserAccount user2 = UserAccountHelpers.CreateUserWithInventory(scene, TestHelpers.ParseTail(1002));
             InventoryFolderBase folder1
                 = UserInventoryHelpers.CreateInventoryFolder(scene.InventoryService, user1.PrincipalID, "folder1");
 

@@ -24,24 +24,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+using System;
 
-using OpenMetaverse;
-using OpenSim.Framework;
-
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Framework
 {
-    public interface IAvatarFactory
+    /// <summary>
+    /// Indicate the type of ScenePresence.
+    /// </summary>
+    public enum PresenceType
     {
-        /// <summary>
-        /// Send the appearance of an avatar to others in the scene.
-        /// </summary>
-        /// <param name="agentId"></param>
-        /// <returns></returns>
-        bool SendAppearance(UUID agentId);
-
-        bool SaveBakedTextures(UUID agentId);
-        bool ValidateBakedTextureCache(IClientAPI client);
-        void QueueAppearanceSend(UUID agentid);
-        void QueueAppearanceSave(UUID agentid);
+        User,
+        Npc
     }
 }

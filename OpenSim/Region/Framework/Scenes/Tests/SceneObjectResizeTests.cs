@@ -49,11 +49,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestResizeSceneObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            Scene scene = SceneSetupHelpers.SetupScene();
-            SceneObjectGroup g1 = SceneSetupHelpers.AddSceneObject(scene).ParentGroup;
+            Scene scene = SceneHelpers.SetupScene();
+            SceneObjectGroup g1 = SceneHelpers.AddSceneObject(scene).ParentGroup;
 
             g1.GroupResize(new Vector3(2, 3, 4));
 
@@ -72,12 +72,12 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestResizeSceneObjectPart()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
-            Scene scene = SceneSetupHelpers.SetupScene();
+            Scene scene = SceneHelpers.SetupScene();
 
-            SceneObjectGroup g1 = SceneSetupHelpers.CreateSceneObject(2, UUID.Zero);
+            SceneObjectGroup g1 = SceneHelpers.CreateSceneObject(2, UUID.Zero);
             g1.RootPart.Scale = new Vector3(2, 3, 4);
             g1.Parts[1].Scale = new Vector3(5, 6, 7);
 

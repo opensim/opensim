@@ -37,6 +37,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 {
     public class NPCAvatar : IClientAPI
     {
+        /// <summary>
+        /// Signal whether the avatar should land when it reaches a move target
+        /// </summary>
+        public bool LandAtTarget { get; set; }
+
         private readonly string m_firstname;
         private readonly string m_lastname;
         private readonly Vector3 m_startPos;
@@ -190,7 +195,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event DeRezObject OnDeRezObject;
         public event Action<IClientAPI> OnRegionHandShakeReply;
         public event GenericCall1 OnRequestWearables;
-        public event GenericCall1 OnCompleteMovementToRegion;
+        public event Action<IClientAPI, bool> OnCompleteMovementToRegion;
         public event UpdateAgent OnPreAgentUpdate;
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
@@ -328,7 +333,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event ScriptReset OnScriptReset;
         public event GetScriptRunning OnGetScriptRunning;
         public event SetScriptRunning OnSetScriptRunning;
-        public event Action<Vector3> OnAutoPilotGo;
+        public event Action<Vector3, bool> OnAutoPilotGo;
 
         public event TerrainUnacked OnUnackedTerrain;
 
@@ -745,12 +750,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             {
                 OnRegionHandShakeReply(this);
             }
-
-            if (OnCompleteMovementToRegion != null)
-            {
-                OnCompleteMovementToRegion(this);
-            }
         }
+        
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)
         {
         }
@@ -841,6 +842,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public void Close()
         {
+            // Remove ourselves from the scene
+            m_scene.RemoveClient(AgentId, false);
         }
 
         public void Start()

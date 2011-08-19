@@ -56,7 +56,7 @@ namespace OpenSim.Services.Interfaces
         byte[] GetData(string id);
 
         /// <summary>
-        /// Synchronously fetches an asset from the local cache only
+        /// Synchronously fetches an asset from the local cache only.
         /// </summary>
         /// <param name="id">Asset ID</param>
         /// <returns>The fetched asset, or null if it did not exist in the local cache</returns>
@@ -75,7 +75,9 @@ namespace OpenSim.Services.Interfaces
         /// <summary>
         /// Creates a new asset
         /// </summary>
-        /// Returns a random ID if none is passed into it
+        /// <remarks>
+        /// Returns a random ID if none is passed via the asset argument.
+        /// </remarks>
         /// <param name="asset"></param>
         /// <returns></returns>
         string Store(AssetBase asset);
@@ -83,7 +85,9 @@ namespace OpenSim.Services.Interfaces
         /// <summary>
         /// Update an asset's content
         /// </summary>
+        /// <remarks>
         /// Attachments and bare scripts need this!!
+        /// </remarks>
         /// <param name="id"> </param>
         /// <param name="data"></param>
         /// <returns></returns>

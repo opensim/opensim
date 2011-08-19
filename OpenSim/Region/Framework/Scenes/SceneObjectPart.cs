@@ -261,12 +261,9 @@ namespace OpenSim.Region.Framework.Scenes
         }
         protected SceneObjectPartInventory m_inventory;
 
-        
         public bool Undoing;
-
         
         public bool IgnoreUndoUpdate = false;
-
         
         private PrimFlags LocalFlags;
         
@@ -1606,7 +1603,6 @@ namespace OpenSim.Region.Framework.Scenes
                                 RotationOffset,
                                 RigidBody,
                                 m_localId);
-                        PhysActor.SetMaterial(Material);
                     }
                     catch
                     {
@@ -1618,6 +1614,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         PhysActor.SOPName = this.Name; // save object name and desc into the PhysActor so ODE internals know the joint/body info
                         PhysActor.SOPDescription = this.Description;
+                        PhysActor.SetMaterial(Material);
                         DoPhysicsPropertyUpdate(RigidBody, true);
                         PhysActor.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
                     }
@@ -2970,37 +2967,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void ScriptSetPhantomStatus(bool Phantom)
-        {
-            if (m_parentGroup != null)
-            {
-                m_parentGroup.ScriptSetPhantomStatus(Phantom);
-            }
-        }
-
-        public void ScriptSetTemporaryStatus(bool Temporary)
-        {
-            if (m_parentGroup != null)
-            {
-                m_parentGroup.ScriptSetTemporaryStatus(Temporary);
-            }
-        }
-
         public void ScriptSetPhysicsStatus(bool UsePhysics)
         {
             if (m_parentGroup == null)
                 DoPhysicsPropertyUpdate(UsePhysics, false);
             else
                 m_parentGroup.ScriptSetPhysicsStatus(UsePhysics);
-        }
-
-        public void ScriptSetVolumeDetect(bool SetVD)
-        {
-
-            if (m_parentGroup != null)
-            {
-                m_parentGroup.ScriptSetVolumeDetect(SetVD);
-            }
         }
 
         /// <summary>
@@ -4542,6 +4514,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 RemFlag(PrimFlags.Phantom);
 
+                if (ParentGroup.Scene == null)
+                    return;
+
                 PhysicsActor pa = PhysActor;
 
                 if (pa == null)
@@ -4555,11 +4530,11 @@ namespace OpenSim.Region.Framework.Scenes
                         RotationOffset,
                         UsePhysics,
                         m_localId);
-                    PhysActor.SetMaterial(Material);
 
                     pa = PhysActor;
                     if (pa != null)
                     {
+                        PhysActor.SetMaterial(Material);
                         DoPhysicsPropertyUpdate(UsePhysics, true);
 
                         if (m_parentGroup != null)
@@ -4645,6 +4620,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
+
+//            m_log.DebugFormat("[SCENE OBJECT PART]: Updated PrimFlags on {0} {1} to {2}", Name, LocalId, Flags);
         }
 
         public void UpdateRotation(Quaternion rot)
@@ -4864,7 +4841,7 @@ namespace OpenSim.Region.Framework.Scenes
             //    m_parentGroup.Scene.EventManager.OnScriptTimerEvent -= handleTimerAccounting;
             //}
 
-            LocalFlags=(PrimFlags)objectflagupdate;
+            LocalFlags = (PrimFlags)objectflagupdate;
 
             if (m_parentGroup != null && m_parentGroup.RootPart == this)
             {

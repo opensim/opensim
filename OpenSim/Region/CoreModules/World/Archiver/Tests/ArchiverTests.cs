@@ -68,8 +68,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             SerialiserModule serialiserModule = new SerialiserModule();
             TerrainModule terrainModule = new TerrainModule();
 
-            m_scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(m_scene, m_archiverModule, serialiserModule, terrainModule);
+            m_scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(m_scene, m_archiverModule, serialiserModule, terrainModule);
         }
         
         private void LoadCompleted(Guid requestId, string errorMessage)
@@ -125,7 +125,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         [Test]
         public void TestSaveOar()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             SceneObjectPart part1 = CreateSceneObjectPart1();
@@ -217,7 +217,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         [Test]
         public void TestSaveOarNoAssets()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             SceneObjectPart part1 = CreateSceneObjectPart1();
@@ -300,7 +300,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         [Test]
         public void TestLoadOar()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             MemoryStream archiveWriteStream = new MemoryStream();
@@ -409,7 +409,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         [Test]
         public void TestLoadOarRegionSettings()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
             MemoryStream archiveWriteStream = new MemoryStream();
@@ -505,7 +505,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         //[Test]
         public void TestMergeOar()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             //XmlConfigurator.Configure();
 
             MemoryStream archiveWriteStream = new MemoryStream();
@@ -524,8 +524,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 SerialiserModule serialiserModule = new SerialiserModule();
                 TerrainModule terrainModule = new TerrainModule();
 
-                Scene scene = SceneSetupHelpers.SetupScene();
-                SceneSetupHelpers.SetupSceneModules(scene, archiverModule, serialiserModule, terrainModule);
+                Scene scene = SceneHelpers.SetupScene();
+                SceneHelpers.SetupSceneModules(scene, archiverModule, serialiserModule, terrainModule);
 
                 m_scene.AddNewSceneObject(new SceneObjectGroup(part2), false);
 

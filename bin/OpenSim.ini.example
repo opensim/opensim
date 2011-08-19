@@ -151,6 +151,7 @@
     ;; OpenDynamicsEngine is by some distance the most developed physics engine
     ;; basicphysics effectively does not model physics at all, making all
     ;; objects phantom
+    ;; The Bullet plugins do not work properly right now.  A better Bullet plugin is on the way.
     ;; Default is OpenDynamicsEngine
     ; physics = OpenDynamicsEngine
     ; physics = basicphysics
@@ -318,8 +319,8 @@
     ; meant to override the MapImage and search server url given at login, and varying 
     ; on a sim-basis.
     ; Viewers that don't understand it, will ignore it
-    ;MapImageServerURI = "http://127.0.0.1:9000/
-    ;SearchServerURI = "http://127.0.0.1:9000/
+    ;MapImageServerURI = "http://127.0.0.1:9000/"
+    ;SearchServerURI = "http://127.0.0.1:9000/"
 
 
 [Chat]

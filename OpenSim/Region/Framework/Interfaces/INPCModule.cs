@@ -26,6 +26,7 @@
  */
 
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
@@ -39,9 +40,26 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="lastname"></param>
         /// <param name="position"></param>
         /// <param name="scene"></param>
-        /// <param name="cloneAppearanceFrom">The UUID of the avatar from which to clone the NPC's appearance from.</param>
+        /// <param name="appearance">The avatar appearance to use for the new NPC.</param>
         /// <returns>The UUID of the ScenePresence created.</returns>
-        UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, UUID cloneAppearanceFrom);
+        UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, AvatarAppearance appearance);
+
+        /// <summary>
+        /// Check if the agent is an NPC.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="scene"></param>
+        /// <returns>True if the agent is an NPC in the given scene.  False otherwise.</returns>
+        bool IsNPC(UUID agentID, Scene scene);
+
+        /// <summary>
+        /// Set the appearance for an NPC.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="appearance"></param>
+        /// <param name="scene"></param>
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
+        bool SetNPCAppearance(UUID agentID, AvatarAppearance appearance, Scene scene);
 
         /// <summary>
         /// Move an NPC to a target over time.
@@ -49,7 +67,23 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="agentID">The UUID of the NPC</param>
         /// <param name="scene"></param>
         /// <param name="pos"></param>
-        void MoveToTarget(UUID agentID, Scene scene, Vector3 pos);
+        /// <param name="noFly">
+        /// If true, then the avatar will attempt to walk to the location even if it's up in the air.
+        /// This is to allow walking on prims.
+        /// </param>
+        /// <param name="landAtTarget">
+        /// If true and the avatar is flying when it reaches the target, land.
+        /// </param>
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
+        bool MoveToTarget(UUID agentID, Scene scene, Vector3 pos, bool noFly, bool landAtTarget);
+
+        /// <summary>
+        /// Stop the NPC's current movement.
+        /// </summary>
+        /// <param name="agentID">The UUID of the NPC</param>
+        /// <param name="scene"></param>
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
+        bool StopMoveToTarget(UUID agentID, Scene scene);
 
         /// <summary>
         /// Get the NPC to say something.
@@ -57,14 +91,15 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="agentID">The UUID of the NPC</param>
         /// <param name="scene"></param>
         /// <param name="text"></param>
-        void Say(UUID agentID, Scene scene, string text);
-
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
+        bool Say(UUID agentID, Scene scene, string text);
 
         /// <summary>
         /// Delete an NPC.
         /// </summary>
         /// <param name="agentID">The UUID of the NPC</param>
         /// <param name="scene"></param>
-        void DeleteNPC(UUID agentID, Scene scene);
+        /// <returns>True if the operation succeeded, false if there was no such agent or the agent was not an NPC</returns>
+        bool DeleteNPC(UUID agentID, Scene scene);
     }
 }

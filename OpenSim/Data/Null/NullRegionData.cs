@@ -97,7 +97,7 @@ namespace OpenSim.Data.Null
 
             foreach (RegionData r in m_regionData.Values)
             {
-                    m_log.DebugFormat("[NULL REGION DATA]: comparing {0} to {1}", cleanName, r.RegionName.ToLower());
+//                    m_log.DebugFormat("[NULL REGION DATA]: comparing {0} to {1}", cleanName, r.RegionName.ToLower());
                     if (queryMatch(r.RegionName.ToLower()))
                         ret.Add(r);
             }

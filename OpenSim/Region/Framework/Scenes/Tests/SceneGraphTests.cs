@@ -43,8 +43,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDuplicateObject()
         {
-            TestHelper.InMethod();
-            Scene scene = SceneSetupHelpers.SetupScene();
+            TestHelpers.InMethod();
+            Scene scene = SceneHelpers.SetupScene();
 
             UUID ownerId = new UUID("00000000-0000-0000-0000-000000000010");
             string part1Name = "part1";

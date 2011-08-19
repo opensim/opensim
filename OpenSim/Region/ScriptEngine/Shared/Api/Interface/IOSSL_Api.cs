@@ -168,11 +168,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         LSL_List osGetLinkPrimitiveParams(int linknumber, LSL_List rules);
 
-
-        key osNpcCreate(string user, string name, vector position, key cloneFrom);
+        key osNpcCreate(string user, string name, vector position, string notecard);
+        LSL_Key osNpcSaveAppearance(key npc, string notecard);
+        void osNpcLoadAppearance(key npc, string notecard);
+        vector osNpcGetPos(key npc);
         void osNpcMoveTo(key npc, vector position);
+        void osNpcMoveToTarget(key npc, vector target, int options);
+        rotation osNpcGetRot(key npc);
+        void osNpcSetRot(LSL_Key npc, rotation rot);
+        void osNpcStopMoveToTarget(LSL_Key npc);
         void osNpcSay(key npc, string message);
         void osNpcRemove(key npc);
+
+        LSL_Key osOwnerSaveAppearance(string notecard);
+        LSL_Key osAgentSaveAppearance(key agentId, string notecard);
 
         key osGetMapTexture();
         key osGetRegionMapTexture(string regionName);

@@ -369,7 +369,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         // convert a LSL_Rotation to a Quaternion
-        protected Quaternion Rot2Quaternion(LSL_Rotation r)
+        public static Quaternion Rot2Quaternion(LSL_Rotation r)
         {
             Quaternion q = new Quaternion((float)r.x, (float)r.y, (float)r.z, (float)r.s);
             q.Normalize();
@@ -1204,10 +1204,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((status & ScriptBaseClass.STATUS_PHANTOM) == ScriptBaseClass.STATUS_PHANTOM)
             {
-                if (value != 0)
-                    m_host.ScriptSetPhantomStatus(true);
-                else
-                    m_host.ScriptSetPhantomStatus(false);
+                if (m_host.ParentGroup != null)
+                    m_host.ParentGroup.ScriptSetPhantomStatus(value != 0);
             }
 
             if ((status & ScriptBaseClass.STATUS_CAST_SHADOWS) == ScriptBaseClass.STATUS_CAST_SHADOWS)
@@ -2063,6 +2061,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 return llGetRootRotation();
             }
+            
             m_host.AddScriptLPS(1);
             Quaternion q = m_host.GetWorldRotation();
             return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
@@ -6446,9 +6445,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m_host.ParentGroup != null)
             {
                 if (!m_host.ParentGroup.IsDeleted)
-                {
-                    m_host.ParentGroup.RootPart.ScriptSetVolumeDetect(detect!=0);
-                }
+                    m_host.ParentGroup.ScriptSetVolumeDetect(detect != 0);
             }
         }
 
@@ -6456,7 +6453,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// This is a depecated function so this just replicates the result of
         /// invoking it in SL
         /// </summary>
-
         public void llRemoteLoadScript(string target, string name, int running, int start_param)
         {
             m_host.AddScriptLPS(1);
@@ -7254,14 +7250,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                              return;
 
                          string ph = rules.Data[idx++].ToString();
-                         bool phantom;
 
-                         if (ph.Equals("1"))
-                             phantom = true;
-                         else
-                             phantom = false;
+                         if (m_host.ParentGroup != null)
+                            m_host.ParentGroup.ScriptSetPhantomStatus(ph.Equals("1"));
 
-                         part.ScriptSetPhantomStatus(phantom);
                          break;
 
                      case (int)ScriptBaseClass.PRIM_PHYSICS:
@@ -7282,14 +7274,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (remain < 1)
                             return;
                         string temp = rules.Data[idx++].ToString();
-                        bool tempOnRez;
 
-                        if (temp.Equals("1"))
-                            tempOnRez = true;
-                        else
-                            tempOnRez = false;
+                        if (m_host.ParentGroup != null)
+                            m_host.ParentGroup.ScriptSetTemporaryStatus(temp.Equals("1"));
 
-                        part.ScriptSetTemporaryStatus(tempOnRez);
                         break;
 
                     case (int)ScriptBaseClass.PRIM_TEXGEN:
@@ -7662,7 +7650,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.PRIM_TYPE_BOX:
                             case ScriptBaseClass.PRIM_TYPE_CYLINDER:
                             case ScriptBaseClass.PRIM_TYPE_PRISM:
-                                res.Add(new LSL_Integer(Shape.ProfileCurve));
+                                res.Add(new LSL_Integer(Shape.ProfileCurve) & 0xf0);    // Isolate hole shape nibble.
                                 res.Add(new LSL_Vector(Shape.ProfileBegin / 50000.0, 1 - Shape.ProfileEnd / 50000.0, 0));
                                 res.Add(new LSL_Float(Shape.ProfileHollow / 50000.0));
                                 res.Add(new LSL_Vector(Shape.PathTwistBegin / 100.0, Shape.PathTwist / 100.0, 0));
@@ -7671,7 +7659,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 break;
 
                             case ScriptBaseClass.PRIM_TYPE_SPHERE:
-                                res.Add(new LSL_Integer(Shape.ProfileCurve));
+                                res.Add(new LSL_Integer(Shape.ProfileCurve) & 0xf0);    // Isolate hole shape nibble.
                                 res.Add(new LSL_Vector(Shape.PathBegin / 50000.0, 1 - Shape.PathEnd / 50000.0, 0));
                                 res.Add(new LSL_Float(Shape.ProfileHollow / 50000.0));
                                 res.Add(new LSL_Vector(Shape.PathTwistBegin / 100.0, Shape.PathTwist / 100.0, 0));
@@ -7687,7 +7675,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             case ScriptBaseClass.PRIM_TYPE_TUBE:
                             case ScriptBaseClass.PRIM_TYPE_TORUS:
                                 // holeshape
-                                res.Add(new LSL_Integer(Shape.ProfileCurve));
+                                res.Add(new LSL_Integer(Shape.ProfileCurve) & 0xf0);    // Isolate hole shape nibble.
 
                                 // cut
                                 res.Add(new LSL_Vector(Shape.PathBegin / 50000.0, 1 - Shape.PathEnd / 50000.0, 0));
@@ -10578,9 +10566,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        public static string GetLine(UUID assetID, int line, int maxLength)
+        /// <summary>
+        /// Get a notecard line.
+        /// </summary>
+        /// <param name="assetID"></param>
+        /// <param name="line">Lines start at index 0</param>
+        /// <returns></returns>
+        public static string GetLine(UUID assetID, int lineNumber)
         {
-            if (line < 0)
+            if (lineNumber < 0)
                 return "";
 
             string data;
@@ -10592,15 +10586,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 m_Notecards[assetID].lastRef = DateTime.Now;
 
-                if (line >= m_Notecards[assetID].text.Length)
+                if (lineNumber >= m_Notecards[assetID].text.Length)
                     return "\n\n\n";
 
-                data = m_Notecards[assetID].text[line];
-                if (data.Length > maxLength)
-                    data = data.Substring(0, maxLength);
+                data = m_Notecards[assetID].text[lineNumber];
 
                 return data;
             }
+        }
+
+        /// <summary>
+        /// Get a notecard line.
+        /// </summary>
+        /// <param name="assetID"></param>
+        /// <param name="line">Lines start at index 0</param>
+        /// <param name="maxLength">Maximum length of the returned line.  Longer lines will be truncated</para>
+        /// <returns></returns>
+        public static string GetLine(UUID assetID, int lineNumber, int maxLength)
+        {
+            string line = GetLine(assetID, lineNumber);
+
+            if (line.Length > maxLength)
+                line = line.Substring(0, maxLength);
+
+            return line;
         }
 
         public static void CacheCheck()

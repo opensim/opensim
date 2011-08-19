@@ -549,6 +549,7 @@ namespace OpenSim
         {
             string regionName = string.Empty;
             string regionFile = string.Empty;
+
             if (cmd.Length == 3)
             {
                 regionFile = cmd[2];
@@ -558,14 +559,17 @@ namespace OpenSim
                 regionName = cmd[2];
                 regionFile = cmd[3];
             }
+
             string extension = Path.GetExtension(regionFile).ToLower();
             bool isXml = extension.Equals(".xml");
             bool isIni = extension.Equals(".ini");
+
             if (!isXml && !isIni)
             {
                 MainConsole.Instance.Output("Usage: create region [\"region name\"] <region_file.ini>");
                 return;
             }
+
             if (!Path.IsPathRooted(regionFile))
             {
                 string regionsDir = ConfigSource.Source.Configs["Startup"].GetString("regionload_regionsdir", "Regions").Trim();
@@ -582,8 +586,18 @@ namespace OpenSim
                 regInfo = new RegionInfo(regionName, regionFile, false, ConfigSource.Source, regionName);
             }
 
-            IScene scene;
+            Scene existingScene;
+            if (SceneManager.TryGetScene(regInfo.RegionID, out existingScene))
+            {
+                MainConsole.Instance.OutputFormat(
+                    "ERROR: Cannot create region {0} with ID {1}, this ID is already assigned to region {2}",
+                    regInfo.RegionName, regInfo.RegionID, existingScene.RegionInfo.RegionName);
+
+                return;
+            }
+
             PopulateRegionEstateInfo(regInfo);
+            IScene scene;
             CreateRegion(regInfo, true, out scene);
             regInfo.EstateSettings.Save();
         }

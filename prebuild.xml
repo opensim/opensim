@@ -1738,6 +1738,7 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Core"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Web"/>
@@ -2121,6 +2122,7 @@
       <Reference name="OpenMetaverseTypes" path="../../../../bin/"/>
       <Reference name="OpenMetaverse" path="../../../../bin/"/>
       <Reference name="System"/>
+      <Reference name="System.Core"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="Nini" path="../../../../bin/"/>
@@ -2366,6 +2368,7 @@
       <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes" path="../../../../../../bin/"/>
       <Reference name="OpenMetaverse" path="../../../../../../bin/"/>
+      <Reference name="OpenMetaverse.StructuredData" path="../../../../../../bin/"/>
       <Reference name="OpenSim"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -2774,6 +2777,7 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Core"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
@@ -3012,6 +3016,7 @@
         <!-- SADLY the way this works means you need to keep adding these paths -->
         <Match path="Agent/TextureSender/Tests" pattern="*.cs" recurse="true"/>
         <Match path="Asset/Tests" pattern="*.cs" recurse="true"/>
+        <Match path="Avatar/Attachments/Tests" pattern="*.cs" recurse="true"/>
         <Match path="Avatar/AvatarFactory/Tests" pattern="*.cs" recurse="true"/>
         <Match path="Avatar/Inventory/Archiver/Tests" pattern="*.cs" recurse="true"/>
         <Match path="Framework/InventoryAccess/Tests" pattern="*.cs" recurse="true"/>
@@ -3192,15 +3197,23 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.Framework"/>
+      <Reference name="OpenSim.Region.OptionalModules"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.Api"/>
+      <Reference name="OpenSim.Region.ScriptEngine.Shared.Api.Runtime"/>
       <Reference name="OpenSim.Region.ScriptEngine.XEngine"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenSim.Tests.Common"/>
+      <Reference name="log4net" path="../../../bin/"/>
       <Reference name="nunit.framework" path="../../../bin/"/>
       <Reference name="Nini" path="../../../bin/"/>
+      <Reference name="OpenMetaverse" path="../../../bin/"/>
+      <Reference name="OpenMetaverse.StructuredData" path="../../../bin/"/>
       <Reference name="OpenMetaverseTypes" path="../../../bin/"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.CodeTools"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared"/>

@@ -75,6 +75,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// What type of presence is this?  User, NPC, etc.
+        /// </summary>
+        public PresenceType PresenceType { get; private set; }
+
 //        private static readonly byte[] DEFAULT_TEXTURE = AvatarAppearance.GetDefaultTexture().GetBytes();
         private static readonly Array DIR_CONTROL_FLAGS = Enum.GetValues(typeof(Dir_ControlFlags));
         private static readonly Vector3 HEAD_ADJUSTMENT = new Vector3(0f, 0f, 0.3f);
@@ -173,7 +178,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private float m_speedModifier = 1.0f;
 
-        private Quaternion m_bodyRot= Quaternion.Identity;
+        private Quaternion m_bodyRot = Quaternion.Identity;
 
         private Quaternion m_bodyRotPrevious = Quaternion.Identity;
 
@@ -708,15 +713,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Constructor(s)
         
-        public ScenePresence()
+        public ScenePresence(
+            IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance, PresenceType type)
         {
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
-            CreateSceneViewer();
+            m_sceneViewer = new SceneViewer(this);
             m_animator = new ScenePresenceAnimator(this);
-        }
-        
-        private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo) : this()
-        {
+            PresenceType = type;
             m_DrawDistance = world.DefaultDrawDistance;
             m_rootRegionHandle = reginfo.RegionHandle;
             m_controllingClient = client;
@@ -762,17 +765,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             RegisterToEvents();
             SetDirectionVectors();
-        }
 
-        public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance)
-            : this(client, world, reginfo)
-        {
             m_appearance = appearance;
-        }
-
-        private void CreateSceneViewer()
-        {
-            m_sceneViewer = new SceneViewer(this);
         }
 
         public void RegisterToEvents()
@@ -1144,10 +1138,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Complete Avatar's movement into the region.
-        /// This is called upon a very important packet sent from the client,
-        /// so it's client-controlled. Never call this method directly.
         /// </summary>
-        public void CompleteMovement(IClientAPI client)
+        /// <param name="client"></param>
+        /// <param name="openChildAgents">
+        /// If true, send notification to neighbour regions to expect
+        /// a child agent from the client.  These neighbours can be some distance away, depending right now on the
+        /// configuration of DefaultDrawDistance in the [Startup] section of config
+        /// </param>
+        public void CompleteMovement(IClientAPI client, bool openChildAgents)
         {
 //            DateTime startTime = DateTime.Now;
             
@@ -1188,15 +1186,11 @@ namespace OpenSim.Region.Framework.Scenes
             SendInitialData();
 
             // Create child agents in neighbouring regions
-            if (!m_isChildAgent)
+            if (openChildAgents && !m_isChildAgent)
             {
                 IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                 if (m_agentTransfer != null)
                     m_agentTransfer.EnableChildAgents(this);
-                else
-                    m_log.DebugFormat(
-                        "[SCENE PRESENCE]: Unable to create child agents in neighbours, because AgentTransferModule is not active for region {0}", 
-                        m_scene.RegionInfo.RegionName);
 
                 IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
                 if (friendsModule != null)
@@ -1294,7 +1288,6 @@ namespace OpenSim.Region.Framework.Scenes
             #region Inputs
 
             AgentManager.ControlFlags flags = (AgentManager.ControlFlags)agentData.ControlFlags;
-            Quaternion bodyRotation = agentData.BodyRotation;
 
             // Camera location in world.  We'll need to raytrace
             // from this location from time to time.
@@ -1380,6 +1373,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_allowMovement && !SitGround)
             {
+                Quaternion bodyRotation = agentData.BodyRotation;
+                bool update_rotation = false;
+
+                if (bodyRotation != m_bodyRot)
+                {
+                    Rotation = bodyRotation;
+                    update_rotation = true;
+                }
+
                 bool update_movementflag = false;
 
                 if (agentData.UseClientAgentPosition)
@@ -1389,11 +1391,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 int i = 0;
-                
-                bool update_rotation = false;
                 bool DCFlagKeyPressed = false;
                 Vector3 agent_control_v3 = Vector3.Zero;
-                Quaternion q = bodyRotation;
 
                 bool oldflying = PhysicsActor.Flying;
 
@@ -1406,12 +1405,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (actor.Flying != oldflying)
                     update_movementflag = true;
-
-                if (q != m_bodyRot)
-                {
-                    m_bodyRot = q;
-                    update_rotation = true;
-                }
 
                 if (m_parentID == 0)
                 {
@@ -1464,8 +1457,8 @@ namespace OpenSim.Region.Framework.Scenes
                                 ) // This or is for Nudge forward
                             {
                                 m_movementflag -= ((byte)(uint)DCF);
-
                                 update_movementflag = true;
+
                                 /*
                                     if ((DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD_NUDGE || DCF == Dir_ControlFlags.DIR_CONTROL_FLAG_BACKWARD_NUDGE)
                                     && ((m_movementflag & (byte)nudgehack) == nudgehack))
@@ -1493,7 +1486,7 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                         else if (bAllowUpdateMoveToPosition)
                         {
-                            if (HandleMoveToTargetUpdate(ref agent_control_v3, bodyRotation))
+                            if (HandleMoveToTargetUpdate(ref agent_control_v3))
                                 update_movementflag = true;
                         }
                     }
@@ -1531,13 +1524,10 @@ namespace OpenSim.Region.Framework.Scenes
                     //                    m_log.DebugFormat(
                     //                        "In {0} adding velocity to {1} of {2}", m_scene.RegionInfo.RegionName, Name, agent_control_v3);
 
-                    AddNewMovement(agent_control_v3, q);
+                    AddNewMovement(agent_control_v3);
                 }
 
-                if (update_movementflag
-                    && ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) == 0)
-                    && (m_parentID == 0)
-                    && !SitGround)
+                if (update_movementflag && m_parentID == 0)
                     Animator.UpdateMovementAnimations();
             }
 
@@ -1553,9 +1543,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// This doesn't actually perform the movement.  Instead, it adds its vector to agent_control_v3.
         /// </remarks>
         /// <param value="agent_control_v3">Cumulative agent movement that this method will update.</param>
-        /// <param value="bodyRotation">New body rotation of the avatar.</param>
         /// <returns>True if movement has been updated in some way.  False otherwise.</returns>
-        public bool HandleMoveToTargetUpdate(ref Vector3 agent_control_v3, Quaternion bodyRotation)
+        public bool HandleMoveToTargetUpdate(ref Vector3 agent_control_v3)
         {
 //            m_log.DebugFormat("[SCENE PRESENCE]: Called HandleMoveToTargetUpdate() for {0}", Name);
 
@@ -1591,7 +1580,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // to such forces, but the following simple approach seems to works fine.
                         Vector3 LocalVectorToTarget3D =
                             (MoveToPositionTarget - AbsolutePosition) // vector from cur. pos to target in global coords
-                            * Matrix4.CreateFromQuaternion(Quaternion.Inverse(bodyRotation)); // change to avatar coords
+                            * Matrix4.CreateFromQuaternion(Quaternion.Inverse(Rotation)); // change to avatar coords
                         // Ignore z component of vector
 //                        Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
                         LocalVectorToTarget3D.Normalize();
@@ -1680,7 +1669,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// Move to the given target over time.
         /// </summary>
         /// <param name="pos"></param>
-        public void MoveToTarget(Vector3 pos)
+        /// <param name="noFly">
+        /// If true, then don't allow the avatar to fly to the target, even if it's up in the air.
+        /// This is to allow movement to targets that are known to be on an elevated platform with a continuous path
+        /// from start to finish.
+        /// </param>
+        public void MoveToTarget(Vector3 pos, bool noFly)
         {
 //            m_log.DebugFormat(
 //                "[SCENE PRESENCE]: Avatar {0} received request to move to position {1} in {2}",
@@ -1714,15 +1708,17 @@ namespace OpenSim.Region.Framework.Scenes
                 "[SCENE PRESENCE]: Avatar {0} set move to target {1} (terrain height {2}) in {3}",
                 Name, pos, terrainHeight, m_scene.RegionInfo.RegionName);
 
-            if (pos.Z > terrainHeight)
+            if (noFly)
+                PhysicsActor.Flying = false;
+            else if (pos.Z > terrainHeight)
                 PhysicsActor.Flying = true;
 
             MovingToTarget = true;
             MoveToPositionTarget = pos;
 
             Vector3 agent_control_v3 = new Vector3();
-            HandleMoveToTargetUpdate(ref agent_control_v3, Rotation);
-            AddNewMovement(agent_control_v3, Rotation);
+            HandleMoveToTargetUpdate(ref agent_control_v3);
+            AddNewMovement(agent_control_v3);
         }
 
         /// <summary>
@@ -1734,6 +1730,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             MovingToTarget = false;
             MoveToPositionTarget = Vector3.Zero;
+
+            // We need to reset the control flag as the ScenePresenceAnimator uses this to determine the correct
+            // resting animation (e.g. hover or stand).  NPCs don't have a client that will quickly reset this flag.
+            // However, the line is here rather than in the NPC module since it also appears necessary to stop a
+            // viewer that uses "go here" from juddering on all subsequent avatar movements.
+            AgentControlFlags = (uint)AgentManager.ControlFlags.NONE;
         }
 
         private void CheckAtSitTarget()
@@ -2295,20 +2297,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// Rotate the avatar to the given rotation and apply a movement in the given relative vector
         /// </summary>
         /// <param name="vec">The vector in which to move.  This is relative to the rotation argument</param>
-        /// <param name="rotation">The direction in which this avatar should now face.
-        public void AddNewMovement(Vector3 vec, Quaternion rotation)
+        public void AddNewMovement(Vector3 vec)
         {
-            if (m_isChildAgent)
-            {
-                // WHAT???
-                m_log.Debug("[SCENEPRESENCE]: AddNewMovement() called on child agent, making root agent!");
-                return;
-            }
-
             m_perfMonMS = Util.EnvironmentTickCount();
 
-            Rotation = rotation;
-            Vector3 direc = vec * rotation;
+            Vector3 direc = vec * Rotation;
             direc.Normalize();
 
             direc *= 0.03f * 128f * m_speedModifier;
@@ -2513,13 +2506,7 @@ namespace OpenSim.Region.Framework.Scenes
             // We have an appearance but we may not have the baked textures. Check the asset cache 
             // to see if all the baked textures are already here. 
             if (m_scene.AvatarFactory != null)
-            {
                 cachedappearance = m_scene.AvatarFactory.ValidateBakedTextureCache(m_controllingClient);
-            }
-            else
-            {
-                m_log.WarnFormat("[SCENEPRESENCE]: AvatarFactory not set for {0}", Name);
-            }
             
             // If we aren't using a cached appearance, then clear out the baked textures
             if (!cachedappearance)

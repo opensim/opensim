@@ -129,14 +129,12 @@ namespace OpenSim.Region.CoreModules.World
             switch (cmd[1])
             {
             case "enable":
-                if (scene.LoginsDisabled)
-                    MainConsole.Instance.Output(String.Format("Enabling logins for region {0}", scene.RegionInfo.RegionName));
                 scene.LoginsDisabled = false;
+                MainConsole.Instance.Output(String.Format("Logins are enabled for region {0}", scene.RegionInfo.RegionName));
                 break;
             case "disable":
-                if (!scene.LoginsDisabled)
-                    MainConsole.Instance.Output(String.Format("Disabling logins for region {0}", scene.RegionInfo.RegionName));
                 scene.LoginsDisabled = true;
+                MainConsole.Instance.Output(String.Format("Logins are disabled for region {0}", scene.RegionInfo.RegionName));
                 break;
             case "status":
                 if (scene.LoginsDisabled)

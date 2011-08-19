@@ -191,7 +191,7 @@ namespace OpenSim.Data.MSSQL
                     {
                         cmd.ExecuteNonQuery();
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         return false;
                     }                

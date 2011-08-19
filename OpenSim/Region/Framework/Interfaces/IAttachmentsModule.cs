@@ -96,9 +96,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Detach an object from the avatar.
         /// </summary>
-        ///
+        /// <remarks>
         /// This method is called in response to a client's detach request, so we only update the information in
         /// inventory
+        /// </remarks>
         /// <param name="objectLocalID"></param>
         /// <param name="remoteClient"></param>
         void DetachObject(uint objectLocalID, IClientAPI remoteClient);

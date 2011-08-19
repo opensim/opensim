@@ -786,7 +786,7 @@ namespace OpenSim.Framework
         event DeRezObject OnDeRezObject;
         event Action<IClientAPI> OnRegionHandShakeReply;
         event GenericCall1 OnRequestWearables;
-        event GenericCall1 OnCompleteMovementToRegion;
+        event Action<IClientAPI, bool> OnCompleteMovementToRegion;
         event UpdateAgent OnPreAgentUpdate;
         event UpdateAgent OnAgentUpdate;
         event AgentRequestSit OnAgentRequestSit;
@@ -935,7 +935,7 @@ namespace OpenSim.Framework
         event ScriptReset OnScriptReset;
         event GetScriptRunning OnGetScriptRunning;
         event SetScriptRunning OnSetScriptRunning;
-        event Action<Vector3> OnAutoPilotGo;
+        event Action<Vector3, bool> OnAutoPilotGo;
 
         event TerrainUnacked OnUnackedTerrain;
         event ActivateGesture OnActivateGesture;

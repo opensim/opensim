@@ -44,7 +44,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// Teleport tests in a standalone OpenSim
     /// </summary>
     [TestFixture]
-    public class StandaloneTeleportTests
+    public class ScenePresenceTeleportTests
     {
         /// <summary>
         /// Test a teleport between two regions that are not neighbours and do not share any neighbours in common.
@@ -54,7 +54,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         //[Test, LongRunning]
         public void TestSimpleNotNeighboursTeleport()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             ThreadRunResults results = new ThreadRunResults();
             results.Result = false;
             results.Message = "Test did not run";
@@ -116,16 +116,16 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             ISharedRegionModule interregionComms = new LocalSimulationConnectorModule();
 
 
-            Scene sceneB = SceneSetupHelpers.SetupScene("sceneB", sceneBId, 1010, 1010);
-            SceneSetupHelpers.SetupSceneModules(sceneB, new IniConfigSource(), interregionComms);
+            Scene sceneB = SceneHelpers.SetupScene("sceneB", sceneBId, 1010, 1010);
+            SceneHelpers.SetupSceneModules(sceneB, new IniConfigSource(), interregionComms);
             sceneB.RegisterRegionWithGrid();
 
-            Scene sceneA = SceneSetupHelpers.SetupScene("sceneA", sceneAId, 1000, 1000);
-            SceneSetupHelpers.SetupSceneModules(sceneA, new IniConfigSource(), interregionComms);
+            Scene sceneA = SceneHelpers.SetupScene("sceneA", sceneAId, 1000, 1000);
+            SceneHelpers.SetupSceneModules(sceneA, new IniConfigSource(), interregionComms);
             sceneA.RegisterRegionWithGrid();
 
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000041");
-            TestClient client = SceneSetupHelpers.AddClient(sceneA, agentId);
+            TestClient client = (TestClient)SceneHelpers.AddScenePresence(sceneA, agentId).ControllingClient;
 
             ICapabilitiesModule sceneACapsModule = sceneA.RequestModuleInterface<ICapabilitiesModule>();
 

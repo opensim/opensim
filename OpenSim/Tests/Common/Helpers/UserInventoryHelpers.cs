@@ -52,7 +52,22 @@ namespace OpenSim.Tests.Common
         /// <returns></returns>
         public static InventoryItemBase CreateInventoryItem(Scene scene, string itemName, UUID userId)
         {
-            return CreateInventoryItem(scene, itemName, UUID.Random(), userId);
+            return CreateInventoryItem(scene, itemName, UUID.Random(), UUID.Random(), userId, InventoryType.Notecard);
+        }
+
+        /// <summary>
+        /// Creates an item of the given type with an accompanying asset.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="itemName"></param>
+        /// <param name="itemId"></param>
+        /// <param name="userId"></param>
+        /// <param name="type">Type of item to create</param>
+        /// <returns></returns>
+        public static InventoryItemBase CreateInventoryItem(
+            Scene scene, string itemName, UUID userId, InventoryType type)
+        {
+            return CreateInventoryItem(scene, itemName, UUID.Random(), UUID.Random(), userId, type);
         }
 
         /// <summary>
@@ -61,18 +76,32 @@ namespace OpenSim.Tests.Common
         /// <param name="scene"></param>
         /// <param name="itemName"></param>
         /// <param name="itemId"></param>
+        /// <param name="assetId"></param>
         /// <param name="userId"></param>
+        /// <param name="type">Type of item to create</param>
         /// <returns></returns>
-        public static InventoryItemBase CreateInventoryItem(Scene scene, string itemName, UUID itemId, UUID userId)
+        public static InventoryItemBase CreateInventoryItem(
+            Scene scene, string itemName, UUID itemId, UUID assetId, UUID userId, InventoryType type)
         {
-            AssetBase asset = AssetHelpers.CreateAsset(scene, userId);
+            AssetBase asset = null;
+
+            if (type == InventoryType.Notecard)
+                asset = AssetHelpers.CreateAsset(scene, userId);
+            else if (type == InventoryType.Object)
+                asset
+                    = AssetHelpers.CreateAsset(assetId, SceneHelpers.CreateSceneObject(1, userId));
+            else
+                throw new Exception(string.Format("Inventory type {0} not supported", type));
+
+            scene.AssetService.Store(asset);
+
             InventoryItemBase item = new InventoryItemBase();
             item.Name = itemName;
             item.AssetID = asset.FullID;
             item.ID = itemId;
             item.Owner = userId;
             item.AssetType = asset.Type;
-            item.InvType = (int)InventoryType.Notecard;
+            item.InvType = (int)type;
 
             InventoryFolderBase folder = scene.InventoryService.GetFolderForType(userId, AssetType.Notecard);
             

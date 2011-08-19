@@ -27,11 +27,13 @@
 
 using System.Collections.Generic;
 using NUnit.Framework;
+using OpenSim.Framework;
 using OpenSim.Tests.Common;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.Framework.Scenes;
 using Nini.Config;
 using OpenSim.Region.ScriptEngine.Shared.Api;
+using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenMetaverse;
 using System;
 using OpenSim.Tests.Common.Mock;
@@ -47,6 +49,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
 
         private const double ANGLE_ACCURACY_IN_RADIANS = 1E-6;
         private const double VECTOR_COMPONENT_ACCURACY = 0.0000005d;
+        private const double FLOAT_ACCURACY = 0.00005d;
         private LSL_Api m_lslApi;
 
         [SetUp]
@@ -57,8 +60,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             IConfig config = initConfigSource.AddConfig("XEngine");
             config.Set("Enabled", "true");
 
-            Scene scene = SceneSetupHelpers.SetupScene();
-            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
+            Scene scene = SceneHelpers.SetupScene();
+            SceneObjectPart part = SceneHelpers.AddSceneObject(scene);
 
             XEngine.XEngine engine = new XEngine.XEngine();
             engine.Initialise(initConfigSource);
@@ -163,6 +166,178 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
             Assert.Less(eulerCalc.y, eulerCheck.y + ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler Y upper bounds check fail");
             Assert.Greater(eulerCalc.z, eulerCheck.z - ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler Z lower bounds check fail");
             Assert.Less(eulerCalc.z, eulerCheck.z + ANGLE_ACCURACY_IN_RADIANS, "TestllRot2Euler Z upper bounds check fail");
+        }
+
+        [Test]
+        // llSetPrimitiveParams and llGetPrimitiveParams test.
+        public void TestllSetPrimitiveParams()
+        {
+            // Create Prim1.
+            Scene scene = SceneHelpers.SetupScene();
+            string obj1Name = "Prim1";
+            UUID objUuid = new UUID("00000000-0000-0000-0000-000000000001");
+            SceneObjectPart part1 =
+                new SceneObjectPart(UUID.Zero, PrimitiveBaseShape.Default,
+                Vector3.Zero, Quaternion.Identity,
+                Vector3.Zero) { Name = obj1Name, UUID = objUuid };
+            Assert.That(scene.AddNewSceneObject(new SceneObjectGroup(part1), false), Is.True);
+
+            // Test a sphere.
+            CheckllSetPrimitiveParams(
+                "test 1",                                   // Prim test identification string
+                new LSL_Types.Vector3(6.0d, 9.9d, 9.9d),    // Prim size
+                ScriptBaseClass.PRIM_TYPE_SPHERE,           // Prim type
+                ScriptBaseClass.PRIM_HOLE_DEFAULT,          // Prim hole type
+                new LSL_Types.Vector3(0.0d, 0.075d, 0.0d),  // Prim cut
+                0.80d,                                      // Prim hollow
+                new LSL_Types.Vector3(0.0d, 0.0d, 0.0d),    // Prim twist
+                new LSL_Types.Vector3(0.32d, 0.76d, 0.0d)); // Prim dimple
+
+            // Test a prism.
+            CheckllSetPrimitiveParams(
+                "test 2",                                   // Prim test identification string
+                new LSL_Types.Vector3(3.5d, 3.5d, 3.5d),    // Prim size
+                ScriptBaseClass.PRIM_TYPE_PRISM,            // Prim type
+                ScriptBaseClass.PRIM_HOLE_CIRCLE,           // Prim hole type
+                new LSL_Types.Vector3(0.0d, 1.0d, 0.0d),    // Prim cut
+                0.90d,                                      // Prim hollow
+                new LSL_Types.Vector3(0.0d, 0.0d, 0.0d),    // Prim twist
+                new LSL_Types.Vector3(2.0d, 1.0d, 0.0d),    // Prim taper 
+                new LSL_Types.Vector3(0.0d, 0.0d, 0.0d));   // Prim shear
+
+            // Test a box.
+            CheckllSetPrimitiveParams(
+                "test 3",                                   // Prim test identification string
+                new LSL_Types.Vector3(3.5d, 3.5d, 3.5d),    // Prim size
+                ScriptBaseClass.PRIM_TYPE_BOX,              // Prim type
+                ScriptBaseClass.PRIM_HOLE_TRIANGLE,         // Prim hole type
+                new LSL_Types.Vector3(0.0d, 1.0d, 0.0d),    // Prim cut
+                0.90d,                                      // Prim hollow
+                new LSL_Types.Vector3(1.0d, 0.0d, 0.0d),    // Prim twist
+                new LSL_Types.Vector3(1.0d, 1.0d, 0.0d),    // Prim taper 
+                new LSL_Types.Vector3(0.0d, 0.0d, 0.0d));   // Prim shear
+
+            // Test a tube.
+            CheckllSetPrimitiveParams(
+                "test 4",                                   // Prim test identification string
+                new LSL_Types.Vector3(4.2d, 4.2d, 4.2d),    // Prim size
+                ScriptBaseClass.PRIM_TYPE_TUBE,             // Prim type
+                ScriptBaseClass.PRIM_HOLE_SQUARE,           // Prim hole type
+                new LSL_Types.Vector3(0.0d, 1.0d, 0.0d),    // Prim cut
+                0.00d,                                      // Prim hollow
+                new LSL_Types.Vector3(1.0d, -1.0d, 0.0d),   // Prim twist
+                new LSL_Types.Vector3(1.0d, 0.5d, 0.0d),    // Prim hole size
+                new LSL_Types.Vector3(0.0d, 0.0d, 0.0d),    // Prim shear
+                new LSL_Types.Vector3(0.0d, 1.0d, 0.0d),    // Prim profile cut
+                new LSL_Types.Vector3(-1.0d, 1.0d, 0.0d),   // Prim taper
+                1.0d,                                       // Prim revolutions
+                1.0d,                                       // Prim radius
+                0.0d);                                      // Prim skew
+        }
+
+        // Set prim params for a box, cylinder or prism and check results.
+        public void CheckllSetPrimitiveParams(string primTest,
+            LSL_Types.Vector3 primSize, int primType, int primHoleType, LSL_Types.Vector3 primCut,
+            double primHollow, LSL_Types.Vector3 primTwist, LSL_Types.Vector3 primTaper, LSL_Types.Vector3 primShear)
+        {
+            // Set the prim params.
+            m_lslApi.llSetPrimitiveParams(new LSL_Types.list(ScriptBaseClass.PRIM_SIZE, primSize,
+                ScriptBaseClass.PRIM_TYPE, primType, primHoleType,
+                primCut, primHollow, primTwist, primTaper, primShear));
+
+            // Get params for prim to validate settings.
+            LSL_Types.list primParams =
+                m_lslApi.llGetPrimitiveParams(new LSL_Types.list(ScriptBaseClass.PRIM_SIZE, ScriptBaseClass.PRIM_TYPE));
+
+            // Validate settings.
+            CheckllSetPrimitiveParamsVector(primSize, m_lslApi.llList2Vector(primParams, 0), primTest + " prim size");
+            Assert.AreEqual(primType, m_lslApi.llList2Integer(primParams, 1),
+                "TestllSetPrimitiveParams " + primTest + " prim type check fail");
+            Assert.AreEqual(primHoleType, m_lslApi.llList2Integer(primParams, 2),
+                "TestllSetPrimitiveParams " + primTest + " prim hole default check fail");
+            CheckllSetPrimitiveParamsVector(primCut, m_lslApi.llList2Vector(primParams, 3), primTest + " prim cut");
+            Assert.AreEqual(primHollow, m_lslApi.llList2Float(primParams, 4), FLOAT_ACCURACY,
+                "TestllSetPrimitiveParams " + primTest + " prim hollow check fail");
+            CheckllSetPrimitiveParamsVector(primTwist, m_lslApi.llList2Vector(primParams, 5), primTest + " prim twist");
+            CheckllSetPrimitiveParamsVector(primTaper, m_lslApi.llList2Vector(primParams, 6), primTest + " prim taper");
+            CheckllSetPrimitiveParamsVector(primShear, m_lslApi.llList2Vector(primParams, 7), primTest + " prim shear");
+        }
+
+        // Set prim params for a sphere and check results.
+        public void CheckllSetPrimitiveParams(string primTest,
+            LSL_Types.Vector3 primSize, int primType, int primHoleType, LSL_Types.Vector3 primCut,
+            double primHollow, LSL_Types.Vector3 primTwist, LSL_Types.Vector3 primDimple)
+        {
+            // Set the prim params.
+            m_lslApi.llSetPrimitiveParams(new LSL_Types.list(ScriptBaseClass.PRIM_SIZE, primSize,
+                ScriptBaseClass.PRIM_TYPE, primType, primHoleType,
+                primCut, primHollow, primTwist, primDimple));
+
+            // Get params for prim to validate settings.
+            LSL_Types.list primParams =
+                m_lslApi.llGetPrimitiveParams(new LSL_Types.list(ScriptBaseClass.PRIM_SIZE, ScriptBaseClass.PRIM_TYPE));
+
+            // Validate settings.
+            CheckllSetPrimitiveParamsVector(primSize, m_lslApi.llList2Vector(primParams, 0), primTest + " prim size");
+            Assert.AreEqual(primType, m_lslApi.llList2Integer(primParams, 1),
+                "TestllSetPrimitiveParams " + primTest + " prim type check fail");
+            Assert.AreEqual(primHoleType, m_lslApi.llList2Integer(primParams, 2),
+                "TestllSetPrimitiveParams " + primTest + " prim hole default check fail");
+            CheckllSetPrimitiveParamsVector(primCut, m_lslApi.llList2Vector(primParams, 3), primTest + " prim cut");
+            Assert.AreEqual(primHollow, m_lslApi.llList2Float(primParams, 4), FLOAT_ACCURACY,
+                "TestllSetPrimitiveParams " + primTest + " prim hollow check fail");
+            CheckllSetPrimitiveParamsVector(primTwist, m_lslApi.llList2Vector(primParams, 5), primTest + " prim twist");
+            CheckllSetPrimitiveParamsVector(primDimple, m_lslApi.llList2Vector(primParams, 6), primTest + " prim dimple");
+        }
+
+        // Set prim params for a torus, tube or ring and check results.
+        public void CheckllSetPrimitiveParams(string primTest,
+            LSL_Types.Vector3 primSize, int primType, int primHoleType, LSL_Types.Vector3 primCut,
+            double primHollow, LSL_Types.Vector3 primTwist, LSL_Types.Vector3 primHoleSize,
+            LSL_Types.Vector3 primShear, LSL_Types.Vector3 primProfCut, LSL_Types.Vector3 primTaper,
+            double primRev, double primRadius, double primSkew)
+        {
+            // Set the prim params.
+            m_lslApi.llSetPrimitiveParams(new LSL_Types.list(ScriptBaseClass.PRIM_SIZE, primSize,
+                ScriptBaseClass.PRIM_TYPE, primType, primHoleType,
+                primCut, primHollow, primTwist, primHoleSize, primShear, primProfCut,
+                primTaper, primRev, primRadius, primSkew));
+
+            // Get params for prim to validate settings.
+            LSL_Types.list primParams =
+                m_lslApi.llGetPrimitiveParams(new LSL_Types.list(ScriptBaseClass.PRIM_SIZE, ScriptBaseClass.PRIM_TYPE));
+
+            // Valdate settings.
+            CheckllSetPrimitiveParamsVector(primSize, m_lslApi.llList2Vector(primParams, 0), primTest + " prim size");
+            Assert.AreEqual(primType, m_lslApi.llList2Integer(primParams, 1),
+                "TestllSetPrimitiveParams " + primTest + " prim type check fail");
+            Assert.AreEqual(primHoleType, m_lslApi.llList2Integer(primParams, 2),
+                "TestllSetPrimitiveParams " + primTest + " prim hole default check fail");
+            CheckllSetPrimitiveParamsVector(primCut, m_lslApi.llList2Vector(primParams, 3), primTest + " prim cut");
+            Assert.AreEqual(primHollow, m_lslApi.llList2Float(primParams, 4), FLOAT_ACCURACY,
+                "TestllSetPrimitiveParams " + primTest + " prim hollow check fail");
+            CheckllSetPrimitiveParamsVector(primTwist, m_lslApi.llList2Vector(primParams, 5), primTest + " prim twist");
+            CheckllSetPrimitiveParamsVector(primHoleSize, m_lslApi.llList2Vector(primParams, 6), primTest + " prim hole size");
+            CheckllSetPrimitiveParamsVector(primShear, m_lslApi.llList2Vector(primParams, 7), primTest + " prim shear");
+            CheckllSetPrimitiveParamsVector(primProfCut, m_lslApi.llList2Vector(primParams, 8), primTest + " prim profile cut");
+            CheckllSetPrimitiveParamsVector(primTaper, m_lslApi.llList2Vector(primParams, 9), primTest + " prim taper");
+            Assert.AreEqual(primRev, m_lslApi.llList2Float(primParams, 10), FLOAT_ACCURACY,
+                "TestllSetPrimitiveParams " + primTest + " prim revolution fail");
+            Assert.AreEqual(primRadius, m_lslApi.llList2Float(primParams, 11), FLOAT_ACCURACY,
+                "TestllSetPrimitiveParams " + primTest + " prim radius fail");
+            Assert.AreEqual(primSkew, m_lslApi.llList2Float(primParams, 12), FLOAT_ACCURACY,
+                "TestllSetPrimitiveParams " + primTest + " prim skew fail");
+        }
+
+        public void CheckllSetPrimitiveParamsVector(LSL_Types.Vector3 vecCheck, LSL_Types.Vector3 vecReturned, string msg)
+        {
+            // Check each vector component against expected result.
+            Assert.AreEqual(vecCheck.x, vecReturned.x, VECTOR_COMPONENT_ACCURACY,
+                "TestllSetPrimitiveParams " + msg + " vector check fail on x component");
+            Assert.AreEqual(vecCheck.y, vecReturned.y, VECTOR_COMPONENT_ACCURACY,
+                "TestllSetPrimitiveParams " + msg + " vector check fail on y component");
+            Assert.AreEqual(vecCheck.z, vecReturned.z, VECTOR_COMPONENT_ACCURACY,
+                "TestllSetPrimitiveParams " + msg + " vector check fail on z component");
         }
 
         [Test]

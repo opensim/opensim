@@ -54,8 +54,9 @@ namespace OpenSim.Region.ClientStack.Linden
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class GetTextureModule : INonSharedRegionModule
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private Scene m_scene;
         private IAssetService m_assetService;
 
@@ -128,12 +129,12 @@ namespace OpenSim.Region.ClientStack.Linden
             //caps.RegisterHandler("GetTexture", new StreamHandler("GET", "/CAPS/" + capID, ProcessGetTexture));
             if (m_URL == "localhost")
             {
-                m_log.InfoFormat("[GETTEXTURE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
+//                m_log.DebugFormat("[GETTEXTURE]: /CAPS/{0} in region {1}", capID, m_scene.RegionInfo.RegionName);
                 caps.RegisterHandler("GetTexture", new GetTextureHandler("/CAPS/" + capID + "/", m_assetService));
             }
             else
             {
-                m_log.InfoFormat("[GETTEXTURE]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
+//                m_log.DebugFormat("[GETTEXTURE]: {0} in region {1}", m_URL, m_scene.RegionInfo.RegionName);
                 caps.RegisterHandler("GetTexture", m_URL);
             }
         }

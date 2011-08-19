@@ -236,14 +236,14 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
         public void Init()
         {
             m_serialiserModule = new SerialiserModule();
-            m_scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(m_scene, m_serialiserModule);
+            m_scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(m_scene, m_serialiserModule);
         }
 
         [Test]
         public void TestDeserializeXml()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
             SceneObjectGroup so = SceneObjectSerializer.FromOriginalXmlFormat(xml);
@@ -259,7 +259,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
         [Test]
         public void TestSerializeXml()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
             string rpName = "My Little Donkey";
@@ -334,7 +334,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
         [Test]
         public void TestDeserializeXml2()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
             SceneObjectGroup so = m_serialiserModule.DeserializeGroupFromXml2(xml2);
@@ -350,7 +350,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
         [Test]
         public void TestSerializeXml2()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
             string rpName = "My Little Pony";

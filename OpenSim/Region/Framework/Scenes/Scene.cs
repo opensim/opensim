@@ -611,6 +611,10 @@ namespace OpenSim.Region.Framework.Scenes
                                           "delete object name <name>",
                                           "Delete object by name", HandleDeleteObject);
 
+            MainConsole.Instance.Commands.AddCommand("region", false, "delete object outside",
+                                          "delete object outside",
+                                          "Delete all objects outside boundaries", HandleDeleteObject);
+
             //Bind Storage Manager functions to some land manager functions for this scene
             EventManager.OnLandObjectAdded +=
                 new EventManager.LandObjectAdded(simDataService.StoreLandObject);
@@ -2539,10 +2543,11 @@ namespace OpenSim.Region.Framework.Scenes
         #region Add/Remove Avatar Methods
 
         /// <summary>
-        /// Adding a New Client and Create a Presence for it.
+        /// Add a new client and create a child agent for it.
         /// </summary>
         /// <param name="client"></param>
-        public override void AddNewClient(IClientAPI client)
+        /// <param name="type">The type of agent to add.</param>
+        public override void AddNewClient(IClientAPI client, PresenceType type)
         {
             AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(client.CircuitCode);
             bool vialogin = false;
@@ -2562,7 +2567,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_clientManager.Add(client);
                 SubscribeToClientEvents(client);
 
-                ScenePresence sp = m_sceneGraph.CreateAndAddChildScenePresence(client, aCircuit.Appearance);
+                ScenePresence sp = m_sceneGraph.CreateAndAddChildScenePresence(client, aCircuit.Appearance, type);
                 m_eventManager.TriggerOnNewPresence(sp);
 
                 sp.TeleportFlags = (TeleportFlags)aCircuit.teleportFlags;
@@ -2577,12 +2582,13 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (GetScenePresence(client.AgentId) != null)
+            ScenePresence createdSp = GetScenePresence(client.AgentId);
+            if (createdSp != null)
             {
                 m_LastLogin = Util.EnvironmentTickCount();
 
                 // Cache the user's name
-                CacheUserName(aCircuit);
+                CacheUserName(createdSp, aCircuit);
 
                 EventManager.TriggerOnNewClient(client);
                 if (vialogin)
@@ -2590,28 +2596,41 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private void CacheUserName(AgentCircuitData aCircuit)
+        /// <summary>
+        /// Cache the user name for later use.
+        /// </summary>
+        /// <param name="sp"></param>
+        /// <param name="aCircuit"></param>
+        private void CacheUserName(ScenePresence sp, AgentCircuitData aCircuit)
         {
             IUserManagement uMan = RequestModuleInterface<IUserManagement>();
             if (uMan != null)
             {
-                string homeURL = string.Empty;
                 string first = aCircuit.firstname, last = aCircuit.lastname;
 
-                if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
-                    homeURL = aCircuit.ServiceURLs["HomeURI"].ToString();
-
-                if (aCircuit.lastname.StartsWith("@"))
+                if (sp.PresenceType == PresenceType.Npc)
                 {
-                    string[] parts = aCircuit.firstname.Split('.');
-                    if (parts.Length >= 2)
-                    {
-                        first = parts[0];
-                        last = parts[1];
-                    }
+                    uMan.AddUser(aCircuit.AgentID, first, last);
                 }
+                else
+                {
+                    string homeURL = string.Empty;
 
-                uMan.AddUser(aCircuit.AgentID, first, last, homeURL);
+                    if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
+                        homeURL = aCircuit.ServiceURLs["HomeURI"].ToString();
+
+                    if (aCircuit.lastname.StartsWith("@"))
+                    {
+                        string[] parts = aCircuit.firstname.Split('.');
+                        if (parts.Length >= 2)
+                        {
+                            first = parts[0];
+                            last = parts[1];
+                        }
+                    }
+
+                    uMan.AddUser(aCircuit.AgentID, first, last, homeURL);
+                }
             }
         }
 
@@ -3091,11 +3110,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        /// <summary>
-        /// Remove the given client from the scene.
-        /// </summary>
-        /// <param name="agentID"></param>
-        public override void RemoveClient(UUID agentID)
+        public override void RemoveClient(UUID agentID, bool closeChildAgents)
         {
             CheckHeartbeat();
             bool childagentYN = false;
@@ -3116,15 +3131,17 @@ namespace OpenSim.Region.Framework.Scenes
                         (childagentYN ? "child" : "root"), agentID, RegionInfo.RegionName);
 
                     m_sceneGraph.removeUserCount(!childagentYN);
-                    
-                    if (CapsModule != null)
+
+                    // TODO: We shouldn't use closeChildAgents here - it's being used by the NPC module to stop
+                    // unnecessary operations.  This should go away once NPCs have no accompanying IClientAPI
+                    if (closeChildAgents && CapsModule != null)
                         CapsModule.RemoveCaps(agentID);
 
                     // REFACTORING PROBLEM -- well not really a problem, but just to point out that whatever
                     // this method is doing is HORRIBLE!!!
                     avatar.Scene.NeedSceneCacheClear(avatar.UUID);
 
-                    if (!avatar.IsChildAgent)
+                    if (closeChildAgents && !avatar.IsChildAgent)
                     {
                         //List<ulong> childknownRegions = new List<ulong>();
                         //List<ulong> ckn = avatar.KnownChildRegionHandles;
@@ -3136,6 +3153,7 @@ namespace OpenSim.Region.Framework.Scenes
                         regions.Remove(RegionInfo.RegionHandle);
                         m_sceneGridService.SendCloseChildAgentConnections(agentID, regions);
                     }
+
                     m_eventManager.TriggerClientClosed(agentID, this);
                 }
                 catch (NullReferenceException)
@@ -3146,7 +3164,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_eventManager.TriggerOnRemovePresence(agentID);
 
-                if (avatar != null && (!avatar.IsChildAgent))
+                if (avatar != null && (!avatar.IsChildAgent) && avatar.PresenceType != PresenceType.Npc)
                     avatar.SaveChangedAttachments();
 
                 ForEachClient(
@@ -4942,11 +4960,19 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void HandleDeleteObject(string module, string[] cmd)
         {
-            if (cmd.Length < 4)
+            if (cmd.Length < 3)
                 return;
 
             string mode = cmd[2];
-            string o = cmd[3];
+            string o = "";
+
+            if (mode != "outside")
+            {
+                if (cmd.Length < 4)
+                    return;
+
+                o = cmd[3];
+            }
 
             List<SceneObjectGroup> deletes = new List<SceneObjectGroup>();
 
@@ -4988,10 +5014,33 @@ namespace OpenSim.Region.Framework.Scenes
                                 deletes.Add(g);
                         });
                 break;
+            case "outside":
+                ForEachSOG(delegate (SceneObjectGroup g)
+                        {
+                            SceneObjectPart rootPart = g.RootPart;
+                            bool delete = false;
+
+                            if (rootPart.GroupPosition.Z < 0.0 || rootPart.GroupPosition.Z > 10000.0)
+                            {
+                                delete = true;
+                            } else {
+                                ILandObject parcel = LandChannel.GetLandObject(rootPart.GroupPosition.X, rootPart.GroupPosition.Y);
+
+                                if (parcel == null || parcel.LandData.Name == "NO LAND")
+                                    delete = true;
+                            }
+
+                            if (delete && !rootPart.IsAttachment && !deletes.Contains(g))
+                                deletes.Add(g);
+                        });
+                break;
             }
 
             foreach (SceneObjectGroup g in deletes)
+            {
+                m_log.InfoFormat("[SCENE]: Deleting object {0}", g.UUID);
                 DeleteSceneObject(g, false);
+            }
         }
 
         private void HandleReloadEstate(string module, string[] cmd)

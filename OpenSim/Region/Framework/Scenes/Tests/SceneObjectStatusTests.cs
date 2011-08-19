@@ -26,46 +26,41 @@
  */
 
 using System;
-using System.Diagnostics;
+using System.Reflection;
 using NUnit.Framework;
 using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Framework.Communications;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Tests.Common
+namespace OpenSim.Region.Framework.Scenes.Tests
 {
-    public class TestHelper
+    /// <summary>
+    /// Basic scene object status tests
+    /// </summary>
+    [TestFixture]
+    public class SceneObjectStatusTests
     {
-        public static bool AssertThisDelegateCausesArgumentException(TestDelegate d)
+        [Test]
+        public void TestSetPhantom()
         {
-            try
-            {
-                d();
-            }
-            catch(ArgumentException)
-            {
-                return true;
-            }
+            TestHelpers.InMethod();
 
-            return false;
-        }
-        
-        /// <summary>
-        /// A debugging method that can be used to print out which test method you are in 
-        /// </summary>
-        public static void InMethod()
-        {
-            StackTrace stackTrace = new StackTrace();
-            Console.WriteLine();
-            Console.WriteLine("===> In Test Method : {0} <===", stackTrace.GetFrame(1).GetMethod().Name);
-        }
+//            Scene scene = SceneSetupHelpers.SetupScene();
+            SceneObjectGroup so = SceneHelpers.CreateSceneObject(1, UUID.Zero);
+            SceneObjectPart rootPart = so.RootPart;
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));
 
-        /// <summary>
-        /// Parse tail section into full UUID.
-        /// </summary>
-        /// <param name="tail"></param>
-        /// <returns></returns>
-        public static UUID ParseTail(int tail)
-        {
-            return new UUID(string.Format("00000000-0000-0000-0000-{0:X12}", tail));
+            so.ScriptSetPhantomStatus(true);
+
+//            Console.WriteLine("so.RootPart.Flags [{0}]", so.RootPart.Flags);
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.Phantom));
+
+            so.ScriptSetPhantomStatus(false);
+
+            Assert.That(rootPart.Flags, Is.EqualTo(PrimFlags.None));            
         }
     }
 }

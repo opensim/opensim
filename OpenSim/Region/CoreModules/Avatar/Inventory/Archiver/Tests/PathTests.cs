@@ -57,13 +57,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestSavePathToIarV0_1()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
 
-            Scene scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(scene, archiverModule);
+            Scene scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, archiverModule);
 
             // Create user
             string userFirstName = "Jock";
@@ -172,16 +172,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarToInventoryPaths()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             SerialiserModule serialiserModule = new SerialiserModule();
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
             
             // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
-            Scene scene = SceneSetupHelpers.SetupScene();
+            Scene scene = SceneHelpers.SetupScene();
             
-            SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
+            SceneHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
 
             UserAccountHelpers.CreateUserWithInventory(scene, m_uaMT, "meowfood");
             UserAccountHelpers.CreateUserWithInventory(scene, m_uaLL1, "hampshire");
@@ -217,13 +217,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarPathStartsWithSlash()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
             SerialiserModule serialiserModule = new SerialiserModule();
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
-            Scene scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
+            Scene scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
             
             UserAccountHelpers.CreateUserWithInventory(scene, m_uaMT, "password");
             archiverModule.DearchiveInventory(m_uaMT.FirstName, m_uaMT.LastName, "/Objects", "password", m_iarStream);
@@ -238,7 +238,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestLoadIarPathWithEscapedChars()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             string itemName = "You & you are a mean/man/";
@@ -247,8 +247,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
 
-            Scene scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(scene, archiverModule);
+            Scene scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, archiverModule);
 
             // Create user
             string userFirstName = "Jock";
@@ -323,10 +323,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestNewIarPath()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneSetupHelpers.SetupScene();
+            Scene scene = SceneHelpers.SetupScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene);
             
             Dictionary <string, InventoryFolderBase> foldersCreated = new Dictionary<string, InventoryFolderBase>();
@@ -390,10 +390,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestPartExistingIarPath()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneSetupHelpers.SetupScene();
+            Scene scene = SceneHelpers.SetupScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene);
             
             string folder1ExistingName = "a";
@@ -441,10 +441,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         [Test]
         public void TestMergeIarPath()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneSetupHelpers.SetupScene();
+            Scene scene = SceneHelpers.SetupScene();
             UserAccount ua1 = UserAccountHelpers.CreateUserWithInventory(scene);
             
             string folder1ExistingName = "a";

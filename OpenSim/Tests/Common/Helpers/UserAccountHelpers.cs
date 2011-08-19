@@ -118,13 +118,12 @@ namespace OpenSim.Tests.Common
 
         public static UserAccount CreateUserWithInventory(Scene scene)
         {
-            return CreateUserWithInventory(scene, 99);
+            return CreateUserWithInventory(scene, TestHelpers.ParseTail(99));
         }
 
-        public static UserAccount CreateUserWithInventory(Scene scene, int uuidTail)
+        public static UserAccount CreateUserWithInventory(Scene scene, UUID userId)
         {
-            return CreateUserWithInventory(
-                scene, "Bill", "Bailey", new UUID(string.Format("00000000-0000-0000-0000-{0:X12}", uuidTail)), "troll");
+            return CreateUserWithInventory(scene, "Bill", "Bailey", userId, "troll");
         }
 
         public static UserAccount CreateUserWithInventory(
@@ -139,7 +138,6 @@ namespace OpenSim.Tests.Common
         {
             // FIXME: This should really be set up by UserAccount itself
             ua.ServiceURLs = new Dictionary<string, object>();
-                
             scene.UserAccountService.StoreUserAccount(ua);
             scene.InventoryService.CreateUserInventory(ua.PrincipalID);
             scene.AuthenticationService.SetPassword(ua.PrincipalID, pw);

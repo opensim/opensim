@@ -591,6 +591,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int STATS_ACTIVE_SCRIPTS = 19;
         public const int STATS_SCRIPT_LPS = 20;
 
+        // Constants for osNpc* functions
+        public const int OS_NPC_FLY = 0;
+        public const int OS_NPC_NO_FLY = 1;
+        public const int OS_NPC_LAND_AT_TARGET = 2;
+
         public const string URL_REQUEST_GRANTED = "URL_REQUEST_GRANTED";
         public const string URL_REQUEST_DENIED = "URL_REQUEST_DENIED";
 

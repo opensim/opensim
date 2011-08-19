@@ -1650,7 +1650,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
                     if (avatar != null)
                     {
-                        avatar.MoveToTarget(target);
+                        avatar.MoveToTarget(target, false);
                     }
                 }
                 else
@@ -2253,7 +2253,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="objectGroup"></param>
         public virtual void DetachFromBackup()
         {
-            if (m_isBackedUp)
+            if (m_isBackedUp && Scene != null)
                 m_scene.EventManager.OnBackup -= ProcessBackup;
             
             m_isBackedUp = false;
@@ -2520,7 +2520,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             SceneObjectPart selectionPart = GetChildPart(localID);
 
-            if (SetTemporary)
+            if (SetTemporary && Scene != null)
             {
                 DetachFromBackup();
                 // Remove from database and parcel prim count
@@ -2532,15 +2532,19 @@ namespace OpenSim.Region.Framework.Scenes
             if (selectionPart != null)
             {
                 SceneObjectPart[] parts = m_parts.GetArray();
-                for (int i = 0; i < parts.Length; i++)
+                
+                if (Scene != null)
                 {
-                    SceneObjectPart part = parts[i];
-                    if (part.Scale.X > m_scene.RegionInfo.PhysPrimMax || 
-                        part.Scale.Y > m_scene.RegionInfo.PhysPrimMax || 
-                        part.Scale.Z > m_scene.RegionInfo.PhysPrimMax)
+                    for (int i = 0; i < parts.Length; i++)
                     {
-                        UsePhysics = false; // Reset physics
-                        break;
+                        SceneObjectPart part = parts[i];
+                        if (part.Scale.X > m_scene.RegionInfo.PhysPrimMax || 
+                            part.Scale.Y > m_scene.RegionInfo.PhysPrimMax || 
+                            part.Scale.Z > m_scene.RegionInfo.PhysPrimMax)
+                        {
+                            UsePhysics = false; // Reset physics
+                            break;
+                        }
                     }
                 }
 

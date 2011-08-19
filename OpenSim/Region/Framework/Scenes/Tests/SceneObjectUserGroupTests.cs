@@ -53,12 +53,12 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestShareWithGroup()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
                         
             UUID userId = UUID.Parse("10000000-0000-0000-0000-000000000001");
             
-            TestScene scene = SceneSetupHelpers.SetupScene();
+            TestScene scene = SceneHelpers.SetupScene();
             IConfigSource configSource = new IniConfigSource();
             
             IConfig startupConfig = configSource.AddConfig("Startup");
@@ -69,13 +69,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             groupsConfig.Set("Module", "GroupsModule");            
             groupsConfig.Set("DebugEnabled", true);            
                        
-            SceneSetupHelpers.SetupSceneModules(
+            SceneHelpers.SetupSceneModules(
                 scene, configSource, new object[] 
                    { new PermissionsModule(), 
                      new GroupsModule(), 
                      new MockGroupsServicesConnector() });
             
-            TestClient client = SceneSetupHelpers.AddClient(scene, userId);            
+            IClientAPI client = SceneHelpers.AddScenePresence(scene, userId).ControllingClient;            
             
             IGroupsModule groupsModule = scene.RequestModuleInterface<IGroupsModule>();     
             

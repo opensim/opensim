@@ -34,6 +34,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.CoreModules.Avatar.AvatarFactory;
+using OpenSim.Region.CoreModules.Framework.UserManagement;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -49,7 +50,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
         [Test]
         public void TestCreate()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             IConfigSource config = new IniConfigSource();
@@ -57,13 +58,15 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             config.Configs["NPC"].Set("Enabled", "true");
 
             AvatarFactoryModule afm = new AvatarFactoryModule();
-            TestScene scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(scene, config, afm, new NPCModule());
-            TestClient originalClient = SceneSetupHelpers.AddClient(scene, TestHelper.ParseTail(0x1));
+            UserManagementModule umm = new UserManagementModule();
+
+            TestScene scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, config, afm, umm, new NPCModule());
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
 //            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
 
             // 8 is the index of the first baked texture in AvatarAppearance
-            UUID originalFace8TextureId = TestHelper.ParseTail(0x10);
+            UUID originalFace8TextureId = TestHelpers.ParseTail(0x10);
             Primitive.TextureEntry originalTe = new Primitive.TextureEntry(UUID.Zero);
             Primitive.TextureEntryFace originalTef = originalTe.CreateFace(8);
             originalTef.TextureID = originalFace8TextureId;
@@ -72,21 +75,22 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             // ScenePresence.SendInitialData() to reset our entire appearance.
             scene.AssetService.Store(AssetHelpers.CreateAsset(originalFace8TextureId));
 
-            afm.SetAppearance(originalClient, originalTe, null);
+            afm.SetAppearanceFromClient(sp.ControllingClient, originalTe, null);
 
             INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
-            UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), scene, originalClient.AgentId);
+            UUID npcId = npcModule.CreateNPC("John", "Smith", new Vector3(128, 128, 30), scene, sp.Appearance);
 
             ScenePresence npc = scene.GetScenePresence(npcId);
 
             Assert.That(npc, Is.Not.Null);
             Assert.That(npc.Appearance.Texture.FaceTextures[8].TextureID, Is.EqualTo(originalFace8TextureId));
+            Assert.That(umm.GetUserName(npc.UUID), Is.EqualTo(string.Format("{0} {1}", npc.Firstname, npc.Lastname)));
         }
 
         [Test]
         public void TestMove()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
             IConfigSource config = new IniConfigSource();
@@ -94,14 +98,14 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             config.AddConfig("NPC");
             config.Configs["NPC"].Set("Enabled", "true");
 
-            TestScene scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(scene, config, new NPCModule());
-            TestClient originalClient = SceneSetupHelpers.AddClient(scene, TestHelper.ParseTail(0x1));
+            TestScene scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, config, new NPCModule());
+            ScenePresence sp = SceneHelpers.AddScenePresence(scene, TestHelpers.ParseTail(0x1));
 //            ScenePresence originalAvatar = scene.GetScenePresence(originalClient.AgentId);
 
             Vector3 startPos = new Vector3(128, 128, 30);
             INPCModule npcModule = scene.RequestModuleInterface<INPCModule>();
-            UUID npcId = npcModule.CreateNPC("John", "Smith", startPos, scene, originalClient.AgentId);
+            UUID npcId = npcModule.CreateNPC("John", "Smith", startPos, scene, sp.Appearance);
 
             ScenePresence npc = scene.GetScenePresence(npcId);
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
@@ -113,7 +117,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
 
             Vector3 targetPos = startPos + new Vector3(0, 0, 10);
-            npcModule.MoveToTarget(npc.UUID, scene, targetPos);
+            npcModule.MoveToTarget(npc.UUID, scene, targetPos, false, false);
 
             Assert.That(npc.AbsolutePosition, Is.EqualTo(startPos));
 
@@ -131,11 +135,12 @@ namespace OpenSim.Region.OptionalModules.World.NPC.Tests
             double distanceToTarget = Util.GetDistanceTo(npc.AbsolutePosition, targetPos);
             Assert.That(distanceToTarget, Is.LessThan(1), "NPC not within 1 unit of target position on first move");
             Assert.That(npc.AbsolutePosition, Is.EqualTo(targetPos));
+            Assert.That(npc.AgentControlFlags, Is.EqualTo((uint)AgentManager.ControlFlags.NONE));
 
             // Try a second movement
             startPos = npc.AbsolutePosition;
             targetPos = startPos + new Vector3(10, 0, 0);
-            npcModule.MoveToTarget(npc.UUID, scene, targetPos);
+            npcModule.MoveToTarget(npc.UUID, scene, targetPos, false, false);
 
             scene.Update();
 

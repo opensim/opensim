@@ -203,6 +203,8 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
     FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
 
+    ;Currency = ""
+
     WelcomeMessage = "Welcome, Avatar!"
     AllowRemoteSetLoginLevel = "false"
     

@@ -101,7 +101,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="silent"></param>
         public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, bool silent)
         {
-            m_log.Debug("[ATTACHMENTS MODULE]: Invoking AttachObject");
+//            m_log.Debug("[ATTACHMENTS MODULE]: Invoking AttachObject");
 
             try
             {
@@ -226,9 +226,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         public UUID RezSingleAttachmentFromInventory(
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus)
         {
-            m_log.DebugFormat(
-                "[ATTACHMENTS MODULE]: Rezzing attachment to point {0} from item {1} for {2}", 
-                (AttachmentPoint)AttachmentPt, itemID, remoteClient.Name);
+//            m_log.DebugFormat(
+//                "[ATTACHMENTS MODULE]: Rezzing attachment to point {0} from item {1} for {2}", 
+//                (AttachmentPoint)AttachmentPt, itemID, remoteClient.Name);
             
             // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
             // be removed when that functionality is implemented in opensim
@@ -261,7 +261,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     false, false, remoteClient.AgentId, true);
 
 //                m_log.DebugFormat(
-//                    "[ATTACHMENTS MODULE]: Retrieved single object {0} for attachment to {1} on point {2}", 
+//                    "[ATTACHMENTS MODULE]: Retrieved single object {0} for attachment to {1} on point {2}",
 //                    objatt.Name, remoteClient.Name, AttachmentPt);
                 
                 if (objatt != null)
@@ -466,7 +466,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     {
                         m_scene.EventManager.TriggerOnAttach(group.LocalId, itemID, UUID.Zero);
                         group.DetachToInventoryPrep();
-                        m_log.Debug("[ATTACHMENTS MODULE]: Saving attachpoint: " + ((uint)group.GetAttachmentPoint()).ToString());
+//                        m_log.Debug("[ATTACHMENTS MODULE]: Saving attachpoint: " + ((uint)group.GetAttachmentPoint()).ToString());
 
                         // If an item contains scripts, it's always changed.
                         // This ensures script state is saved on detach
@@ -501,10 +501,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <summary>
         /// Update the attachment asset for the new sog details if they have changed.
         /// </summary>
-        /// 
+        /// <remarks>
         /// This is essential for preserving attachment attributes such as permission.  Unlike normal scene objects,
         /// these details are not stored on the region.
-        /// 
+        /// </remarks>
         /// <param name="remoteClient"></param>
         /// <param name="grp"></param>
         /// <param name="itemID"></param>
@@ -566,8 +566,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="silent"></param>
         protected void AttachToAgent(ScenePresence avatar, SceneObjectGroup so, uint attachmentpoint, Vector3 attachOffset, bool silent)
         {
-            m_log.DebugFormat("[ATTACHMENTS MODULE]: Adding attachment {0} to avatar {1} in pt {2} pos {3} {4}", Name, avatar.Name,
-                attachmentpoint, attachOffset, so.RootPart.AttachedPos);
+//            m_log.DebugFormat("[ATTACHMENTS MODULE]: Adding attachment {0} to avatar {1} in pt {2} pos {3} {4}",
+//                so.Name, avatar.Name, attachmentpoint, attachOffset, so.RootPart.AttachedPos);
                               
             so.DetachFromBackup();
 

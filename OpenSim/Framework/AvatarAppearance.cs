@@ -412,12 +412,20 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Add an attachment, if the attachpoint has the
+        /// Add an attachment
+        /// </summary>
+        /// <remarks>
+        /// If the attachpoint has the
         /// 0x80 bit set then we assume this is an append
         /// operation otherwise we replace whatever is
         /// currently attached at the attachpoint
+        /// </remarks>
+        /// <param name="attachpoint"></param>
+        /// <param name="item">If UUID.Zero, then an any attachment at the attachpoint is removed.</param>
+        /// <param name="asset"></param>
+        /// <returns>
         /// return true if something actually changed
-        /// </summary>
+        /// </returns>
         public bool SetAttachment(int attachpoint, UUID item, UUID asset)
         {
             if (attachpoint == 0)
@@ -539,7 +547,7 @@ namespace OpenSim.Framework
         /// </summary>
         public void Unpack(OSDMap data)
         {
-            if ((data != null) &&  (data["serial"] != null))
+            if ((data != null) && (data["serial"] != null))
                 m_serial = data["serial"].AsInteger();
             if ((data != null) && (data["height"] != null))
                 m_avatarHeight = (float)data["height"].AsReal();

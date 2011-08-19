@@ -186,7 +186,6 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             }
         }
 
-
         private string[] GetUserNames(UUID uuid)
         {
             string[] returnstring = new string[2];
@@ -292,6 +291,25 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
             return userID.ToString();
         }
 
+        public void AddUser(UUID uuid, string first, string last)
+        {
+            if (m_UserCache.ContainsKey(uuid))
+                return;
+
+            UserData user = new UserData();
+            user.Id = uuid;
+            user.FirstName = first;
+            user.LastName = last;
+            // user.ProfileURL = we should initialize this to the default
+
+            AddUserInternal(user);
+        }
+
+        public void AddUser(UUID uuid, string first, string last, string profileURL)
+        {
+            AddUser(uuid, profileURL + ";" + first + " " + last);
+        }
+
         public void AddUser(UUID id, string creatorData)
         {
             if (m_UserCache.ContainsKey(id))
@@ -299,18 +317,17 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
 
 //            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Adding user with id {0}, craetorData {1}", id, creatorData);
 
-            UserData user = new UserData();
-            user.Id = id;
             UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(m_Scenes[0].RegionInfo.ScopeID, id);
 
             if (account != null)
             {
-                user.FirstName = account.FirstName;
-                user.LastName = account.LastName;
-                // user.ProfileURL = we should initialize this to the default
+                AddUser(id, account.FirstName, account.LastName);
             }
             else
             {
+                UserData user = new UserData();
+                user.Id = id;
+
                 if (creatorData != null && creatorData != string.Empty)
                 {
                     //creatorData = <endpoint>;<name>
@@ -338,17 +355,19 @@ namespace OpenSim.Region.CoreModules.Framework.UserManagement
                     user.FirstName = "Unknown";
                     user.LastName = "User";
                 }
+
+                AddUserInternal(user);
             }
-
-            lock (m_UserCache)
-                m_UserCache[id] = user;
-
-            m_log.DebugFormat("[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}", user.Id, user.FirstName, user.LastName, user.HomeURL);
         }
 
-        public void AddUser(UUID uuid, string first, string last, string profileURL)
+        void AddUserInternal(UserData user)
         {
-            AddUser(uuid, profileURL + ";" + first + " " + last);
+            lock (m_UserCache)
+                m_UserCache[user.Id] = user;
+
+            m_log.DebugFormat(
+                "[USER MANAGEMENT MODULE]: Added user {0} {1} {2} {3}",
+                user.Id, user.FirstName, user.LastName, user.HomeURL);
         }
 
         //public void AddUser(UUID uuid, string userData)

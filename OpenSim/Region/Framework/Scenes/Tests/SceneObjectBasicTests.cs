@@ -49,9 +49,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestAddSceneObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
-            Scene scene = SceneSetupHelpers.SetupScene();
+            Scene scene = SceneHelpers.SetupScene();
 
             string objName = "obj1";
             UUID objUuid = new UUID("00000000-0000-0000-0000-000000000001");
@@ -76,9 +76,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// </summary>
         public void TestAddExistingSceneObjectUuid()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
-            Scene scene = SceneSetupHelpers.SetupScene();
+            Scene scene = SceneHelpers.SetupScene();
 
             string obj1Name = "Alfred";
             string obj2Name = "Betty";
@@ -110,10 +110,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDeleteSceneObject()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
-            TestScene scene = SceneSetupHelpers.SetupScene();
-            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
+            TestScene scene = SceneHelpers.SetupScene();
+            SceneObjectPart part = SceneHelpers.AddSceneObject(scene);
             scene.DeleteSceneObject(part.ParentGroup, false);
             
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
@@ -126,20 +126,20 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestDeleteSceneObjectAsync()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
 
-            TestScene scene = SceneSetupHelpers.SetupScene();
+            TestScene scene = SceneHelpers.SetupScene();
 
             // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
             AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
             sogd.Enabled = false;
 
-            SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
+            SceneObjectPart part = SceneHelpers.AddSceneObject(scene);
 
-            IClientAPI client = SceneSetupHelpers.AddClient(scene, agentId);
+            IClientAPI client = SceneHelpers.AddScenePresence(scene, agentId).ControllingClient;
             scene.DeRezObjects(client, new System.Collections.Generic.List<uint>() { part.LocalId }, UUID.Zero, DeRezAction.Delete, UUID.Zero);
 
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);

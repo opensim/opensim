@@ -483,9 +483,44 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osNpcCreate(user, name, position, cloneFrom);
         }
 
+        public key osNpcSaveAppearance(key npc, string notecard)
+        {
+            return m_OSSL_Functions.osNpcSaveAppearance(npc, notecard);
+        }
+
+        public void osNpcLoadAppearance(key npc, string notecard)
+        {
+            m_OSSL_Functions.osNpcLoadAppearance(npc, notecard);
+        }
+
+        public vector osNpcGetPos(LSL_Key npc)
+        {
+            return m_OSSL_Functions.osNpcGetPos(npc);
+        }
+
         public void osNpcMoveTo(key npc, vector position)
         {
             m_OSSL_Functions.osNpcMoveTo(npc, position);
+        }
+
+        public void osNpcMoveToTarget(key npc, vector target, int options)
+        {
+            m_OSSL_Functions.osNpcMoveToTarget(npc, target, options);
+        }
+
+        public rotation osNpcGetRot(key npc)
+        {
+            return m_OSSL_Functions.osNpcGetRot(npc);
+        }
+
+        public void osNpcSetRot(key npc, rotation rot)
+        {
+            m_OSSL_Functions.osNpcSetRot(npc, rot);
+        }
+
+        public void osNpcStopMoveToTarget(LSL_Key npc)
+        {
+            m_OSSL_Functions.osNpcStopMoveToTarget(npc);
         }
 
         public void osNpcSay(key npc, string message)
@@ -496,6 +531,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void osNpcRemove(key npc)
         {
             m_OSSL_Functions.osNpcRemove(npc);
+        }
+
+        public LSL_Key osOwnerSaveAppearance(string notecard)
+        {
+            return m_OSSL_Functions.osOwnerSaveAppearance(notecard);
+        }
+
+        public LSL_Key osAgentSaveAppearance(LSL_Key agentId, string notecard)
+        {
+            return m_OSSL_Functions.osAgentSaveAppearance(agentId, notecard);
         }
 
         public OSSLPrim Prim;

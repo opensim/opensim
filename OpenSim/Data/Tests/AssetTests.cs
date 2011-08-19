@@ -106,7 +106,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T001_LoadEmpty()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             Assert.That(m_db.ExistsAsset(uuid1), Is.False);
             Assert.That(m_db.ExistsAsset(uuid2), Is.False);
@@ -116,7 +116,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T010_StoreReadVerifyAssets()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             AssetBase a1 = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, critter1.ToString());
             AssetBase a2 = new AssetBase(uuid2, "asset two", (sbyte)AssetType.Texture, critter2.ToString());
@@ -183,7 +183,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T020_CheckForWeirdCreatorID()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
             
             // It is expected that eventually the CreatorID might be an arbitrary string (an URI)
             // rather than a valid UUID (?).  This test is to make sure that the database layer does not

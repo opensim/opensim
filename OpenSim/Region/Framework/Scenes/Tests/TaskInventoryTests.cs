@@ -55,12 +55,12 @@ namespace OpenSim.Region.Framework.Tests
         [Test]
         public void TestRezObjectFromInventoryItem()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneSetupHelpers.SetupScene();
+            Scene scene = SceneHelpers.SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
-            SceneObjectGroup sog1 = SceneSetupHelpers.CreateSceneObject(1, user1.PrincipalID);
+            SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
 
             // Create an object embedded inside the first
@@ -98,12 +98,12 @@ namespace OpenSim.Region.Framework.Tests
         [Test]
         public void TestMoveTaskInventoryItem()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneSetupHelpers.SetupScene();
+            Scene scene = SceneHelpers.SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
-            SceneObjectGroup sog1 = SceneSetupHelpers.CreateSceneObject(1, user1.PrincipalID);
+            SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
             TaskInventoryItem sopItem1 = TaskInventoryHelpers.AddNotecard(scene, sop1);
 
@@ -125,12 +125,12 @@ namespace OpenSim.Region.Framework.Tests
         [Test]
         public void TestMoveTaskInventoryItemNoParent()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneSetupHelpers.SetupScene();
+            Scene scene = SceneHelpers.SetupScene();
             UserAccount user1 = UserAccountHelpers.CreateUserWithInventory(scene);
-            SceneObjectGroup sog1 = SceneSetupHelpers.CreateSceneObject(1, user1.PrincipalID);
+            SceneObjectGroup sog1 = SceneHelpers.CreateSceneObject(1, user1.PrincipalID);
             SceneObjectPart sop1 = sog1.RootPart;
             TaskInventoryItem sopItem1 = TaskInventoryHelpers.AddNotecard(scene, sop1);
             

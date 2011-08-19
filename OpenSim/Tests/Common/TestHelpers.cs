@@ -25,23 +25,47 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Diagnostics;
+using NUnit.Framework;
 using OpenMetaverse;
-using OpenSim.Framework;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Tests.Common
 {
-    public interface IAvatarFactory
+    public class TestHelpers
     {
-        /// <summary>
-        /// Send the appearance of an avatar to others in the scene.
-        /// </summary>
-        /// <param name="agentId"></param>
-        /// <returns></returns>
-        bool SendAppearance(UUID agentId);
+        public static bool AssertThisDelegateCausesArgumentException(TestDelegate d)
+        {
+            try
+            {
+                d();
+            }
+            catch(ArgumentException)
+            {
+                return true;
+            }
 
-        bool SaveBakedTextures(UUID agentId);
-        bool ValidateBakedTextureCache(IClientAPI client);
-        void QueueAppearanceSend(UUID agentid);
-        void QueueAppearanceSave(UUID agentid);
+            return false;
+        }
+        
+        /// <summary>
+        /// A debugging method that can be used to print out which test method you are in 
+        /// </summary>
+        public static void InMethod()
+        {
+            StackTrace stackTrace = new StackTrace();
+            Console.WriteLine();
+            Console.WriteLine("===> In Test Method : {0} <===", stackTrace.GetFrame(1).GetMethod().Name);
+        }
+
+        /// <summary>
+        /// Parse tail section into full UUID.
+        /// </summary>
+        /// <param name="tail"></param>
+        /// <returns></returns>
+        public static UUID ParseTail(int tail)
+        {
+            return new UUID(string.Format("00000000-0000-0000-0000-{0:X12}", tail));
+        }
     }
 }

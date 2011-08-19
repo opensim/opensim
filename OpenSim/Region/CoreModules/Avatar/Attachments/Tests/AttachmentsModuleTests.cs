@@ -37,104 +37,132 @@ using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.CoreModules.Avatar.Attachments;
+using OpenSim.Region.CoreModules.Framework.InventoryAccess;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Region.Framework.Scenes.Tests
+namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 {
     /// <summary>
     /// Attachment tests
     /// </summary>
     [TestFixture]
-    public class AttachmentTests
+    public class AttachmentsModuleTests
     {
-        public Scene scene, scene2;
+        public Scene scene;
         public UUID agent1;
         public static Random random;
-        public ulong region1, region2;
         public AgentCircuitData acd1;
-        public SceneObjectGroup sog1, sog2, sog3;
+        public SceneObjectGroup sog1, sog2;
 
-        [TestFixtureSetUp]
+        [SetUp]
         public void Init()
         {
-            TestHelper.InMethod();
-            
-            scene = SceneSetupHelpers.SetupScene("Neighbour x", UUID.Random(), 1000, 1000);
-            scene2 = SceneSetupHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000);
+            // Don't allow tests to be bamboozled by asynchronous events.  Execute everything on the same thread.
+            Util.FireAndForgetMethod = FireAndForgetMethod.None;
 
-            ISharedRegionModule interregionComms = new LocalSimulationConnectorModule();
-            interregionComms.Initialise(new IniConfigSource());
-            interregionComms.PostInitialise();
-            SceneSetupHelpers.SetupSceneModules(scene, new IniConfigSource(), interregionComms);
-            SceneSetupHelpers.SetupSceneModules(scene2, new IniConfigSource(), interregionComms);
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("Modules");
+            config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
+
+            scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, config, new AttachmentsModule(), new BasicInventoryAccessModule());
 
             agent1 = UUID.Random();
             random = new Random();
             sog1 = NewSOG(UUID.Random(), scene, agent1);
             sog2 = NewSOG(UUID.Random(), scene, agent1);
-            sog3 = NewSOG(UUID.Random(), scene, agent1);
+        }
 
-            //ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
-            region1 = scene.RegionInfo.RegionHandle;
-            region2 = scene2.RegionInfo.RegionHandle;
-            
-            SceneSetupHelpers.AddClient(scene, agent1);
-        }     
+        [TearDown]
+        public void TearDown()
+        {
+            // We must set this back afterwards, otherwise later tests will fail since they're expecting multiple
+            // threads.  Possibly, later tests should be rewritten not to worry about such things.
+            Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
+        }
         
         [Test]
-        public void T030_TestAddAttachments()
+        public void TestAddAttachments()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
-            ScenePresence presence = scene.GetScenePresence(agent1);
-
+            ScenePresence presence = SceneHelpers.AddScenePresence(scene, agent1);
             presence.AddAttachment(sog1);
             presence.AddAttachment(sog2);
-            presence.AddAttachment(sog3);
 
             Assert.That(presence.HasAttachments(), Is.True);
             Assert.That(presence.ValidateAttachments(), Is.True);
         }
 
         [Test]
-        public void T031_RemoveAttachments()
+        public void TestRemoveAttachments()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 
-            ScenePresence presence = scene.GetScenePresence(agent1);
+            ScenePresence presence = SceneHelpers.AddScenePresence(scene, agent1);
+            presence.AddAttachment(sog1);
+            presence.AddAttachment(sog2);
             presence.RemoveAttachment(sog1);
             presence.RemoveAttachment(sog2);
-            presence.RemoveAttachment(sog3);
             Assert.That(presence.HasAttachments(), Is.False);
+        }
+
+        [Test]
+        public void TestRezAttachmentsOnAvatarEntrance()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            UUID attItemId = TestHelpers.ParseTail(0x2);
+            UUID attAssetId = TestHelpers.ParseTail(0x3);
+            string attName = "att";
+
+            UserAccountHelpers.CreateUserWithInventory(scene, userId);
+            InventoryItemBase attItem
+                = UserInventoryHelpers.CreateInventoryItem(
+                    scene, attName, attItemId, attAssetId, userId, InventoryType.Object);
+
+            AgentCircuitData acd = SceneHelpers.GenerateAgentData(userId);
+            acd.Appearance = new AvatarAppearance();
+            acd.Appearance.SetAttachment((int)AttachmentPoint.Chest, attItem.ID, attItem.AssetID);
+            ScenePresence presence = SceneHelpers.AddScenePresence(scene, acd);
+
+            Assert.That(presence.HasAttachments(), Is.True);
+            List<SceneObjectGroup> attachments = presence.Attachments;
+
+            Assert.That(attachments.Count, Is.EqualTo(1));
+            Assert.That(attachments[0].Name, Is.EqualTo(attName));
         }
 
         // I'm commenting this test because scene setup NEEDS InventoryService to 
         // be non-null
         //[Test]
-        public void T032_CrossAttachments()
-        {
-            TestHelper.InMethod();
-
-            ScenePresence presence = scene.GetScenePresence(agent1);
-            ScenePresence presence2 = scene2.GetScenePresence(agent1);
-            presence2.AddAttachment(sog1);
-            presence2.AddAttachment(sog2);
-
-            ISharedRegionModule serialiser = new SerialiserModule();
-            SceneSetupHelpers.SetupSceneModules(scene, new IniConfigSource(), serialiser);
-            SceneSetupHelpers.SetupSceneModules(scene2, new IniConfigSource(), serialiser);
-
-            Assert.That(presence.HasAttachments(), Is.False, "Presence has attachments before cross");
-
-            //Assert.That(presence2.CrossAttachmentsIntoNewRegion(region1, true), Is.True, "Cross was not successful");
-            Assert.That(presence2.HasAttachments(), Is.False, "Presence2 objects were not deleted");
-            Assert.That(presence.HasAttachments(), Is.True, "Presence has not received new objects");
-        }   
+//        public void T032_CrossAttachments()
+//        {
+//            TestHelpers.InMethod();
+//
+//            ScenePresence presence = scene.GetScenePresence(agent1);
+//            ScenePresence presence2 = scene2.GetScenePresence(agent1);
+//            presence2.AddAttachment(sog1);
+//            presence2.AddAttachment(sog2);
+//
+//            ISharedRegionModule serialiser = new SerialiserModule();
+//            SceneHelpers.SetupSceneModules(scene, new IniConfigSource(), serialiser);
+//            SceneHelpers.SetupSceneModules(scene2, new IniConfigSource(), serialiser);
+//
+//            Assert.That(presence.HasAttachments(), Is.False, "Presence has attachments before cross");
+//
+//            //Assert.That(presence2.CrossAttachmentsIntoNewRegion(region1, true), Is.True, "Cross was not successful");
+//            Assert.That(presence2.HasAttachments(), Is.False, "Presence2 objects were not deleted");
+//            Assert.That(presence.HasAttachments(), Is.True, "Presence has not received new objects");
+//        }   
         
         private SceneObjectGroup NewSOG(UUID uuid, Scene scene, UUID agent)
         {

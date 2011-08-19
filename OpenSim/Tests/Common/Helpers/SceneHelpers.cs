@@ -54,7 +54,7 @@ namespace OpenSim.Tests.Common
     /// <summary>
     /// Helpers for setting up scenes.
     /// </summary>
-    public class SceneSetupHelpers
+    public class SceneHelpers
     {
         /// <summary>
         /// Set up a test scene
@@ -331,6 +331,7 @@ namespace OpenSim.Tests.Common
             agentData.InventoryFolder = UUID.Zero;
             agentData.startpos = Vector3.Zero;
             agentData.CapsPath = "http://wibble.com";
+            agentData.ServiceURLs = new Dictionary<string, object>();
 
             return agentData;
         }
@@ -341,9 +342,9 @@ namespace OpenSim.Tests.Common
         /// <param name="scene"></param>
         /// <param name="agentId"></param>
         /// <returns></returns>
-        public static TestClient AddClient(Scene scene, UUID agentId)
+        public static ScenePresence AddScenePresence(Scene scene, UUID agentId)
         {
-            return AddClient(scene, GenerateAgentData(agentId));
+            return AddScenePresence(scene, GenerateAgentData(agentId));
         }
 
         /// <summary>
@@ -364,7 +365,7 @@ namespace OpenSim.Tests.Common
         /// <param name="scene"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
-        public static TestClient AddClient(Scene scene, AgentCircuitData agentData)
+        public static ScenePresence AddScenePresence(Scene scene, AgentCircuitData agentData)
         {
             string reason;
 
@@ -379,14 +380,14 @@ namespace OpenSim.Tests.Common
 
             // Stage 2: add the new client as a child agent to the scene
             TestClient client = new TestClient(agentData, scene);
-            scene.AddNewClient(client);
+            scene.AddNewClient(client, PresenceType.User);
 
             // Stage 3: Complete the entrance into the region.  This converts the child agent into a root agent.
             ScenePresence scp = scene.GetScenePresence(agentData.AgentID);
-            scp.CompleteMovement(client);
+            scp.CompleteMovement(client, true);
             //scp.MakeRootAgent(new Vector3(90, 90, 90), true);
 
-            return client;
+            return scp;
         }
 
         /// <summary>

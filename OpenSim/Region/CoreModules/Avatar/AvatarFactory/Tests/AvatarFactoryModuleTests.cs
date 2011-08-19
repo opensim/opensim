@@ -44,21 +44,21 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         [Test]
         public void TestSetAppearance()
         {
-            TestHelper.InMethod();
+            TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
 
-            UUID userId = TestHelper.ParseTail(0x1);
+            UUID userId = TestHelpers.ParseTail(0x1);
 
             AvatarFactoryModule afm = new AvatarFactoryModule();
-            TestScene scene = SceneSetupHelpers.SetupScene();
-            SceneSetupHelpers.SetupSceneModules(scene, afm);
-            TestClient tc = SceneSetupHelpers.AddClient(scene, userId);
+            TestScene scene = SceneHelpers.SetupScene();
+            SceneHelpers.SetupSceneModules(scene, afm);
+            IClientAPI tc = SceneHelpers.AddScenePresence(scene, userId).ControllingClient;
 
             byte[] visualParams = new byte[AvatarAppearance.VISUALPARAM_COUNT];
             for (byte i = 0; i < visualParams.Length; i++)
                 visualParams[i] = i;
 
-            afm.SetAppearance(tc, new Primitive.TextureEntry(TestHelper.ParseTail(0x10)), visualParams);
+            afm.SetAppearanceFromClient(tc, new Primitive.TextureEntry(TestHelpers.ParseTail(0x10)), visualParams);
 
             ScenePresence sp = scene.GetScenePresence(userId);
 
