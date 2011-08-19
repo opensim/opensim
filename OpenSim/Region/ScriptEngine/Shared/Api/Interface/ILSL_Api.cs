@@ -271,6 +271,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llPushObject(string target, LSL_Vector impulse, LSL_Vector ang_impulse, int local);
               void llRefreshPrimURL();
               void llRegionSay(int channelID, string text);
+              void llRegionSayTo(string target, int channelID, string text);
               void llReleaseCamera(string avatar);
               void llReleaseControls();
               void llReleaseURL(string url);

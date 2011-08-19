@@ -81,6 +81,26 @@ namespace OpenSim.Region.Framework.Interfaces
         void DeliverMessage(ChatTypeEnum type, int channel, string name, UUID id, string msg);
 
         /// <summary>
+        /// Delivers the message to a specified object in the region.
+        /// </summary>
+        /// <param name='target'>
+        /// Target.
+        /// </param>
+        /// <param name='channel'>
+        /// Channel.
+        /// </param>
+        /// <param name='name'>
+        /// Name.
+        /// </param>
+        /// <param name='id'>
+        /// Identifier.
+        /// </param>
+        /// <param name='msg'>
+        /// Message.
+        /// </param>
+        void DeliverMessageTo(UUID target, int channel, string name, UUID id, string msg);
+
+        /// <summary>
         /// Are there any listen events ready to be dispatched?
         /// </summary>
         /// <returns>boolean indication</returns>

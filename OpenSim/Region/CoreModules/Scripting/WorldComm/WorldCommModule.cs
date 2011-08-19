@@ -282,6 +282,27 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             }
         }
 
+        // wComm.DeliverMessageTo(target, channelID, m_host.Name, m_host.UUID, text);
+        public void DeliverMessageTo(UUID target, int channel, string name, UUID id, string msg)
+        {
+            foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
+            {
+                // Dont process if this message is from yourself!
+                if (li.GetHostID().Equals(id))
+                    continue;
+
+                SceneObjectPart sPart = m_scene.GetSceneObjectPart(li.GetHostID());
+                if (sPart == null)
+                    continue;
+
+                if ( li.GetHostID().Equals(target))
+                {
+                    QueueMessage(new ListenerInfo(li, name, id, msg));
+                    return;
+                }
+            }
+        }
+
         protected void QueueMessage(ListenerInfo li)
         {
             lock (m_pending.SyncRoot)

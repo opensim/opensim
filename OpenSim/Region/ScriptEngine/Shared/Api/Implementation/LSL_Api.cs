@@ -843,6 +843,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 wComm.DeliverMessage(ChatTypeEnum.Region, channelID, m_host.Name, m_host.UUID, text);
         }
 
+        public void  llRegionSayTo(string target, int channel, string msg)
+        {
+            if (channel == 0)
+            {
+                LSLError("Cannot use llRegionSay() on channel 0");
+                return;
+            }
+
+            if (msg.Length > 1023)
+                msg = msg.Substring(0, 1023);
+
+            m_host.AddScriptLPS(1);
+
+            UUID TargetID;
+            UUID.TryParse(target, out TargetID);
+
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            if (wComm != null)
+                wComm.DeliverMessageTo(TargetID, channel, m_host.Name, m_host.UUID, msg);
+        }
+
         public LSL_Integer llListen(int channelID, string name, string ID, string msg)
         {
             m_host.AddScriptLPS(1);
@@ -10484,12 +10505,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             NotImplemented("llGetUsedMemory");
-        }
-
-        public void  llRegionSayTo(LSL_Key target, LSL_Integer channel, LSL_String msg)
-        {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llRegionSayTo");
         }
 
         public void llScriptProfiler(LSL_Integer flags)
