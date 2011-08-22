@@ -185,7 +185,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Hashtable HandleSimulatorFeaturesRequest(Hashtable mDhttpMethod)
         {
-            m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
+//            m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
 
             //Send back data
             Hashtable responsedata = new Hashtable();
