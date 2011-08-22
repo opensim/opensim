@@ -220,9 +220,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string> GetHTTPHandlerKeys()
         {
-            return new List<string>(m_HTTPHandlers.Keys);
+            lock (m_HTTPHandlers)
+                return new List<string>(m_HTTPHandlers.Keys);
         }
-
 
         public bool AddPollServiceHTTPHandler(string methodName, GenericHTTPMethod handler, PollServiceEventArgs args)
         {
