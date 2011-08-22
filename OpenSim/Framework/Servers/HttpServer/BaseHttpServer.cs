@@ -285,7 +285,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string> GetLLSDHandlerKeys()
         {
-            return new List<string>(m_llsdHandlers.Keys);
+            lock (m_llsdHandlers)
+                return new List<string>(m_llsdHandlers.Keys);
         }
 
         public bool SetDefaultLLSDHandler(DefaultLLSDMethod handler)
@@ -1107,7 +1108,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <returns>true if we have one, false if not</returns>
         private bool DoWeHaveALLSDHandler(string path)
         {
-
             string[] pathbase = path.Split('/');
             string searchquery = "/";
 
@@ -1123,14 +1123,12 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             string bestMatch = null;
 
-            foreach (string pattern in m_llsdHandlers.Keys)
+            lock (m_llsdHandlers)
             {
-
-                if (searchquery.StartsWith(pattern) && searchquery.Length >= pattern.Length)
+                foreach (string pattern in m_llsdHandlers.Keys)
                 {
-
+                    if (searchquery.StartsWith(pattern) && searchquery.Length >= pattern.Length)
                         bestMatch = pattern;
-
                 }
             }
 
@@ -1143,12 +1141,10 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             if (String.IsNullOrEmpty(bestMatch))
             {
-
                 return false;
             }
             else
             {
-
                 return true;
             }
         }
@@ -1233,29 +1229,32 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             string bestMatch = null;
 
-            foreach (string pattern in m_llsdHandlers.Keys)
+            lock (m_llsdHandlers)
             {
-                if (searchquery.ToLower().StartsWith(pattern.ToLower()))
+                foreach (string pattern in m_llsdHandlers.Keys)
                 {
-                    if (String.IsNullOrEmpty(bestMatch) || searchquery.Length > bestMatch.Length)
+                    if (searchquery.ToLower().StartsWith(pattern.ToLower()))
                     {
-                        // You have to specifically register for '/' and to get it, you must specificaly request it
-                        //
-                        if (pattern == "/" && searchquery == "/" || pattern != "/")
-                            bestMatch = pattern;
+                        if (String.IsNullOrEmpty(bestMatch) || searchquery.Length > bestMatch.Length)
+                        {
+                            // You have to specifically register for '/' and to get it, you must specificaly request it
+                            //
+                            if (pattern == "/" && searchquery == "/" || pattern != "/")
+                                bestMatch = pattern;
+                        }
                     }
                 }
-            }
-
-            if (String.IsNullOrEmpty(bestMatch))
-            {
-                llsdHandler = null;
-                return false;
-            }
-            else
-            {
-                llsdHandler = m_llsdHandlers[bestMatch];
-                return true;
+    
+                if (String.IsNullOrEmpty(bestMatch))
+                {
+                    llsdHandler = null;
+                    return false;
+                }
+                else
+                {
+                    llsdHandler = m_llsdHandlers[bestMatch];
+                    return true;
+                }
             }
         }
 
@@ -1856,10 +1855,13 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             try
             {
-                if (handler == m_llsdHandlers[path])
+                lock (m_llsdHandlers)
                 {
-                    m_llsdHandlers.Remove(path);
-                    return true;
+                    if (handler == m_llsdHandlers[path])
+                    {
+                        m_llsdHandlers.Remove(path);
+                        return true;
+                    }
                 }
             }
             catch (KeyNotFoundException)
