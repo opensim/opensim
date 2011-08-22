@@ -49,11 +49,9 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Attach an object to an avatar.
         /// </summary>
-        /// <param name="controllingClient"></param>
-        /// <param name="localID"></param>
-        /// <param name="attachPoint"></param>
-        /// <param name="rot"></param>
-        /// <param name="attachPos"></param>
+        /// <param name="remoteClient"></param>
+        /// <param name="grp"></param>
+        /// <param name="AttachmentPt"></param>
         /// <param name="silent"></param>
         /// <returns>true if the object was successfully attached, false otherwise</returns>
         bool AttachObject(
