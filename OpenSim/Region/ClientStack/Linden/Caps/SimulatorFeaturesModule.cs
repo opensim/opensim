@@ -43,20 +43,28 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 namespace OpenSim.Region.ClientStack.Linden
 {
     /// <summary>
-    /// SimulatorFeatures capability. This is required for uploading Mesh.
+    /// SimulatorFeatures capability.
+    /// </summary>
+    /// <remarks>
+    /// This is required for uploading Mesh.
     /// Since is accepts an open-ended response, we also send more information
     /// for viewers that care to interpret it.
     /// 
     /// NOTE: Part of this code was adapted from the Aurora project, specifically
     /// the normal part of the response in the capability handler.
-    /// </summary>
-    /// 
+    /// </remarks>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimulatorFeaturesModule : ISharedRegionModule
+    public class SimulatorFeaturesModule : ISharedRegionModule, ISimulatorFeaturesModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private Scene m_scene;
+
+        /// <summary>
+        /// Simulator features
+        /// </summary>
+        private OSDMap m_features = new OSDMap();
 
         private string m_MapImageServerURL = string.Empty;
         private string m_SearchURL = string.Empty;
@@ -66,18 +74,20 @@ namespace OpenSim.Region.ClientStack.Linden
         public void Initialise(IConfigSource source)
         {
             IConfig config = source.Configs["SimulatorFeatures"];
-            if (config == null)
-                return;
-
-            m_MapImageServerURL = config.GetString("MapImageServerURI", string.Empty);
-            if (m_MapImageServerURL != string.Empty)
+            if (config != null)
             {
-                m_MapImageServerURL = m_MapImageServerURL.Trim();
-                if (!m_MapImageServerURL.EndsWith("/"))
-                    m_MapImageServerURL = m_MapImageServerURL + "/";
+                m_MapImageServerURL = config.GetString("MapImageServerURI", string.Empty);
+                if (m_MapImageServerURL != string.Empty)
+                {
+                    m_MapImageServerURL = m_MapImageServerURL.Trim();
+                    if (!m_MapImageServerURL.EndsWith("/"))
+                        m_MapImageServerURL = m_MapImageServerURL + "/";
+                }
+    
+                m_SearchURL = config.GetString("SearchServerURI", string.Empty);
             }
 
-            m_SearchURL = config.GetString("SearchServerURI", string.Empty);
+            AddDefaultFeatures();
         }
 
         public void AddRegion(Scene s)
@@ -110,43 +120,83 @@ namespace OpenSim.Region.ClientStack.Linden
 
         #endregion
 
+        /// <summary>
+        /// Add default features
+        /// </summary>
+        /// <remarks>
+        /// TODO: These should be added from other modules rather than hardcoded.
+        /// </remarks>
+        private void AddDefaultFeatures()
+        {
+            lock (m_features)
+            {
+                m_features["MeshRezEnabled"] = true;
+                m_features["MeshUploadEnabled"] = true;
+                m_features["MeshXferEnabled"] = true;
+                m_features["PhysicsMaterialsEnabled"] = true;
+    
+                OSDMap typesMap = new OSDMap();
+                typesMap["convex"] = true;
+                typesMap["none"] = true;
+                typesMap["prim"] = true;
+                m_features["PhysicsShapeTypes"] = typesMap;
+    
+                // Extra information for viewers that want to use it
+                OSDMap gridServicesMap = new OSDMap();
+                if (m_MapImageServerURL != string.Empty)
+                    gridServicesMap["map-server-url"] = m_MapImageServerURL;
+                if (m_SearchURL != string.Empty)
+                    gridServicesMap["search"] = m_SearchURL;
+                m_features["GridServices"] = gridServicesMap;
+            }
+        }
+
         public void RegisterCaps(UUID agentID, Caps caps)
         {
-            IRequestHandler reqHandler = new RestHTTPHandler("GET", "/CAPS/" + UUID.Random(), SimulatorFeatures);
+            IRequestHandler reqHandler
+                = new RestHTTPHandler("GET", "/CAPS/" + UUID.Random(), HandleSimulatorFeaturesRequest);
+
             caps.RegisterHandler("SimulatorFeatures", reqHandler);
         }
 
-        private Hashtable SimulatorFeatures(Hashtable mDhttpMethod)
+        public void AddFeature(string name, OSD value)
+        {
+            lock (m_features)
+                m_features[name] = value;
+        }
+
+        public bool RemoveFeature(string name)
+        {
+            lock (m_features)
+                return m_features.Remove(name);
+        }
+
+        public bool TryGetFeature(string name, out OSD value)
+        {
+            lock (m_features)
+                return m_features.TryGetValue(name, out value);
+        }
+
+        public OSDMap GetFeatures()
+        {
+            lock (m_features)
+                return new OSDMap(m_features);
+        }
+
+        private Hashtable HandleSimulatorFeaturesRequest(Hashtable mDhttpMethod)
         {
             m_log.DebugFormat("[SIMULATOR FEATURES MODULE]: SimulatorFeatures request");
-            OSDMap data = new OSDMap();
-            data["MeshRezEnabled"] = true;
-            data["MeshUploadEnabled"] = true;
-            data["MeshXferEnabled"] = true;
-            data["PhysicsMaterialsEnabled"] = true;
-
-            OSDMap typesMap = new OSDMap();
-            typesMap["convex"] = true;
-            typesMap["none"] = true;
-            typesMap["prim"] = true;
-            data["PhysicsShapeTypes"] = typesMap;
-
-            // Extra information for viewers that want to use it
-            OSDMap gridServicesMap = new OSDMap();
-            if (m_MapImageServerURL != string.Empty)
-                gridServicesMap["map-server-url"] = m_MapImageServerURL;
-            if (m_SearchURL != string.Empty)
-                gridServicesMap["search"] = m_SearchURL;
-            data["GridServices"] = gridServicesMap;
 
             //Send back data
             Hashtable responsedata = new Hashtable();
             responsedata["int_response_code"] = 200; 
             responsedata["content_type"] = "text/plain";
             responsedata["keepalive"] = false;
-            responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(data);
+
+            lock (m_features)
+                responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(m_features);
+
             return responsedata;
         }
-
     }
 }
