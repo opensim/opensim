@@ -1853,20 +1853,15 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public bool RemoveLLSDHandler(string path, LLSDMethod handler)
         {
-            try
+            lock (m_llsdHandlers)
             {
-                lock (m_llsdHandlers)
+                LLSDMethod foundHandler;
+
+                if (m_llsdHandlers.TryGetValue(path, out foundHandler) && foundHandler == handler)
                 {
-                    if (handler == m_llsdHandlers[path])
-                    {
-                        m_llsdHandlers.Remove(path);
-                        return true;
-                    }
+                    m_llsdHandlers.Remove(path);
+                    return true;
                 }
-            }
-            catch (KeyNotFoundException)
-            {
-                // This is an exception to prevent crashing because of invalid code
             }
 
             return false;
