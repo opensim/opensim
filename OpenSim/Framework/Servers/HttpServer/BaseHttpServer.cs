@@ -405,14 +405,14 @@ namespace OpenSim.Framework.Servers.HttpServer
             string requestMethod = request.HttpMethod;
             string uriString = request.RawUrl;
 
-            string reqnum = "unknown";
+//            string reqnum = "unknown";
             int tickstart = Environment.TickCount;
 
             try
             {
                 // OpenSim.Framework.WebUtil.OSHeaderRequestID
-                if (request.Headers["opensim-request-id"] != null)
-                    reqnum = String.Format("{0}:{1}",request.RemoteIPEndPoint,request.Headers["opensim-request-id"]);
+//                if (request.Headers["opensim-request-id"] != null)
+//                    reqnum = String.Format("{0}:{1}",request.RemoteIPEndPoint,request.Headers["opensim-request-id"]);
                  //m_log.DebugFormat("[BASE HTTP SERVER]: <{0}> handle request for {1}",reqnum,request.RawUrl);
 
                 Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US", true);
