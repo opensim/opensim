@@ -316,6 +316,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                             objatt.Name, objatt.UUID, sp.Name, e.Message, e.StackTrace);
 
                         // Make sure the object doesn't stick around and bail
+                        sp.RemoveAttachment(objatt);
                         m_scene.DeleteSceneObject(objatt, false);
                         return null;
                     }
@@ -433,7 +434,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 if (changed && m_scene.AvatarFactory != null)
                     m_scene.AvatarFactory.QueueAppearanceSave(remoteClient.AgentId);
 
-                DetachSingleAttachmentToInv(itemID, presence);                
+                DetachSingleAttachmentToInv(itemID, presence);
             }
         }
 
