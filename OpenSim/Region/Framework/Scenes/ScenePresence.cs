@@ -3525,12 +3525,22 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (SceneObjectGroup gobj in m_attachments)
                 {
                     if (gobj == null)
+                    {
+                        m_log.WarnFormat(
+                            "[SCENE PRESENCE]: Failed to validate an attachment for {0} since it was null", Name);
                         return false;
+                    }
 
                     if (gobj.IsDeleted)
+                    {
+                        m_log.WarnFormat(
+                            "[SCENE PRESENCE]: Failed to validate attachment {0} {1} for {2} since it had been deleted",
+                            gobj.Name, gobj.UUID, Name);
                         return false;
+                    }
                 }
             }
+            
             return true;
         }
 
