@@ -155,7 +155,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string>  GetStreamHandlerKeys()
         {
-            return new List<string>(m_streamHandlers.Keys);
+            lock (m_streamHandlers)
+                return new List<string>(m_streamHandlers.Keys);
         }
 
         private static string GetHandlerKey(string httpMethod, string path)
@@ -1793,7 +1794,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             //m_log.DebugFormat("[BASE HTTP SERVER]: Removing handler key {0}", handlerKey);
 
-            lock (m_streamHandlers) m_streamHandlers.Remove(handlerKey);
+            lock (m_streamHandlers)
+                m_streamHandlers.Remove(handlerKey);
         }
 
         public void RemoveHTTPHandler(string httpMethod, string path)
