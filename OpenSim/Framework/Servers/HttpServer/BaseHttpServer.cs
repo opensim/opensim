@@ -803,9 +803,12 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                     XmlRpcMethod method;
                     bool methodWasFound;
+                    bool keepAlive = false;
                     lock (m_rpcHandlers)
                     {
                         methodWasFound = m_rpcHandlers.TryGetValue(methodName, out method);
+                        if (methodWasFound)
+                            keepAlive = m_rpcHandlersKeepAlive[methodName];
                     }
 
                     if (methodWasFound)
@@ -823,7 +826,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                             }
                         }
                         xmlRprcRequest.Params.Add(request.Headers.Get(xff)); // Param[3]
-
 
                         try
                         {
@@ -846,7 +848,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         }
 
                         // if the method wasn't found, we can't determine KeepAlive state anyway, so lets do it only here
-                        response.KeepAlive = m_rpcHandlersKeepAlive[methodName];
+                        response.KeepAlive = keepAlive;
                     }
                     else
                     {
