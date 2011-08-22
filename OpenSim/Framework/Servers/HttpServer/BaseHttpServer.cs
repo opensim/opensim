@@ -66,7 +66,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected Dictionary<string, IRequestHandler> m_streamHandlers  = new Dictionary<string, IRequestHandler>();
         protected Dictionary<string, GenericHTTPMethod> m_HTTPHandlers  = new Dictionary<string, GenericHTTPMethod>();
         protected Dictionary<string, IHttpAgentHandler> m_agentHandlers = new Dictionary<string, IHttpAgentHandler>();
-
         protected Dictionary<string, PollServiceEventArgs> m_pollHandlers =
             new Dictionary<string, PollServiceEventArgs>();
 
@@ -247,7 +246,6 @@ namespace OpenSim.Framework.Servers.HttpServer
             return new List<string>(m_pollHandlers.Keys);
         }
 
-
         // Note that the agent string is provided simply to differentiate
         // the handlers - it is NOT required to be an actual agent header
         // value.
@@ -268,7 +266,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string> GetAgentHandlerKeys()
         {
-            return new List<string>(m_agentHandlers.Keys);
+            lock (m_agentHandlers)
+                return new List<string>(m_agentHandlers.Keys);
         }
 
         public bool AddLLSDHandler(string path, LLSDMethod handler)
@@ -749,7 +748,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         private bool TryGetAgentHandler(OSHttpRequest request, OSHttpResponse response, out IHttpAgentHandler agentHandler)
         {
             agentHandler = null;
-            try
+            
+            lock (m_agentHandlers)
             {
                 foreach (IHttpAgentHandler handler in m_agentHandlers.Values)
                 {
@@ -759,9 +759,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                         return true;
                     }
                 }
-            }
-            catch(KeyNotFoundException)
-            {
             }
 
             return false;
@@ -1829,10 +1826,13 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             try
             {
-                if (handler == m_agentHandlers[agent])
+                lock (m_agentHandlers)
                 {
-                    m_agentHandlers.Remove(agent);
-                    return true;
+                    if (handler == m_agentHandlers[agent])
+                    {
+                        m_agentHandlers.Remove(agent);
+                        return true;
+                    }
                 }
             }
             catch(KeyNotFoundException)
