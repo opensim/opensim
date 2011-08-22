@@ -3509,12 +3509,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void RemoveAttachment(SceneObjectGroup gobj)
         {
             lock (m_attachments)
-            {
-                if (m_attachments.Contains(gobj))
-                {
-                    m_attachments.Remove(gobj);
-                }
-            }
+                m_attachments.Remove(gobj);
         }
 
         public bool ValidateAttachments()
