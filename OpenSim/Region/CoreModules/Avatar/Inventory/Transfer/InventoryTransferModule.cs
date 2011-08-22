@@ -278,7 +278,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 else
                 {
                     if (m_TransferModule != null)
-                        m_TransferModule.SendInstantMessage(im, delegate(bool success) {});
+                        m_TransferModule.SendInstantMessage(im, delegate(bool success) {
+                            // Send BulkUpdateInventory
+                            IInventoryService invService = scene.InventoryService;
+                            UUID inventoryEntityID = new UUID(im.imSessionID); // The inventory item /folder, back from it's trip
+
+                            InventoryFolderBase folder = new InventoryFolderBase(inventoryEntityID, client.AgentId);
+                            folder = invService.GetFolder(folder);
+
+                            ScenePresence fromUser = scene.GetScenePresence(new UUID(im.fromAgentID));
+
+                            fromUser.ControllingClient.SendBulkUpdateInventory(folder);
+                        });
                 }
             }
             else if (im.dialog == (byte) InstantMessageDialog.InventoryDeclined)

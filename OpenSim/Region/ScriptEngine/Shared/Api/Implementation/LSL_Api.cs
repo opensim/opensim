@@ -3927,7 +3927,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 GridInstantMessage msg = new GridInstantMessage(World,
                         m_host.UUID, m_host.Name+", an object owned by "+
                         resolveName(m_host.OwnerID)+",", destId,
-                        (byte)InstantMessageDialog.InventoryOffered,
+                        (byte)InstantMessageDialog.TaskInventoryOffered,
                         false, objName+"\n"+m_host.Name+" is located at "+
                         World.RegionInfo.RegionName+" "+
                         m_host.AbsolutePosition.ToString(),

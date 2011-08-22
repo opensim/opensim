@@ -113,6 +113,7 @@ what it is today.
 * mpallari
 * MrMonkE
 * Nebadon Izumi (Michael Cerquoni - http://OSgrid.org)
+* Neil Canham
 * nornalbion
 * Omar Vera Ustariz (IBM)
 * openlifegrid.com
