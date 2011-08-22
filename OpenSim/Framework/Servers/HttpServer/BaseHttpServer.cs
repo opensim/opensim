@@ -196,7 +196,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string> GetXmlRpcHandlerKeys()
         {
-            return new List<string>(m_rpcHandlers.Keys);
+            lock (m_rpcHandlers)
+                return new List<string>(m_rpcHandlers.Keys);
         }
 
         public bool AddHTTPHandler(string methodName, GenericHTTPMethod handler)
