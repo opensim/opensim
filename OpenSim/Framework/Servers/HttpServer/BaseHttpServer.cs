@@ -56,7 +56,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         private volatile int NotSocketErrors = 0;
         public volatile bool HTTPDRunning = false;
 
-        protected Thread m_workerThread;
         // protected HttpListener m_httpListener;
         protected CoolHTTPListener m_httpListener2;
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers        = new Dictionary<string, XmlRpcMethod>();
@@ -243,7 +242,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string> GetPollServiceHandlerKeys()
         {
-            return new List<string>(m_pollHandlers.Keys);
+            lock (m_pollHandlers)
+                return new List<string>(m_pollHandlers.Keys);
         }
 
         // Note that the agent string is provided simply to differentiate
@@ -1824,19 +1824,15 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public bool RemoveAgentHandler(string agent, IHttpAgentHandler handler)
         {
-            try
+            lock (m_agentHandlers)
             {
-                lock (m_agentHandlers)
+                IHttpAgentHandler foundHandler;
+
+                if (m_agentHandlers.TryGetValue(agent, out foundHandler) && foundHandler == handler)
                 {
-                    if (handler == m_agentHandlers[agent])
-                    {
-                        m_agentHandlers.Remove(agent);
-                        return true;
-                    }
+                    m_agentHandlers.Remove(agent);
+                    return true;
                 }
-            }
-            catch(KeyNotFoundException)
-            {
             }
 
             return false;
