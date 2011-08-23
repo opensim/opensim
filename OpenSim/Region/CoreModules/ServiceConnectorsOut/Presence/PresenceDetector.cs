@@ -39,7 +39,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 {
     public class PresenceDetector 
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IPresenceService m_PresenceService;
         private Scene m_aScene;

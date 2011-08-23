@@ -125,7 +125,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
             
             bool isAuthorized = true;
             message = String.Empty;
-            string mail = String.Empty;
             
             // get the scene this call is being made for
             Scene scene = null;
@@ -143,9 +142,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
             if (scene != null)
             {
                 UserAccount account = scene.UserAccountService.GetUserAccount(UUID.Zero, new UUID(userID));
-
-                if (account != null)
-                    mail = account.Email;
 
                 isAuthorized
                     = IsAuthorizedForRegion(

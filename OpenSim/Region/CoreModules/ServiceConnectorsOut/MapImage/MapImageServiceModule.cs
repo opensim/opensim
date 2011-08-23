@@ -61,7 +61,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
         private bool m_enabled = false;
         private IMapImageService m_MapService;
 
-        private string m_serverUrl = String.Empty;
         private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
 
         private int m_refreshtime = 0;

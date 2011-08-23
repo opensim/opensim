@@ -435,7 +435,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     List<ILandObject> parcels = landChannel.AllParcels();
 
                     // Local Map Item Request
-                    int tc = Environment.TickCount;
                     List<mapItemReply> mapitems = new List<mapItemReply>();
                     mapItemReply mapitem = new mapItemReply();
                     if ((parcels != null) && (parcels.Count >= 1))

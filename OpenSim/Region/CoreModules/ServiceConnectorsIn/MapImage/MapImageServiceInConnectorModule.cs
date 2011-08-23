@@ -48,7 +48,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.MapImage
         private static bool m_Enabled = false;
         
         private IConfigSource m_Config;
-        bool m_Registered = false;
 
         #region IRegionModule interface
 
@@ -64,9 +63,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.MapImage
                     m_log.Info("[MAP SERVICE IN CONNECTOR]: MapImage Service In Connector enabled");
                     new MapGetServiceConnector(m_Config, MainServer.Instance, "MapImageService");
                 }
-
             }
-
         }
 
         public void PostInitialise()
@@ -106,6 +103,5 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.MapImage
         }
 
         #endregion
-
     }
 }
