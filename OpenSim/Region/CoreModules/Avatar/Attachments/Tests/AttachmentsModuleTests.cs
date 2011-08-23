@@ -54,12 +54,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
     [TestFixture]
     public class AttachmentsModuleTests
     {
-        public Scene scene;
-        public UUID agent1;
-        public static Random random;
-        public AgentCircuitData acd1;
-        public SceneObjectGroup sog1, sog2;
-
+        private Scene scene;
         private AttachmentsModule m_attMod;
 
         [SetUp]
@@ -75,11 +70,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             scene = SceneHelpers.SetupScene();
             m_attMod = new AttachmentsModule();
             SceneHelpers.SetupSceneModules(scene, config, m_attMod, new BasicInventoryAccessModule());
-
-            agent1 = UUID.Random();
-            random = new Random();
-            sog1 = NewSOG(UUID.Random(), scene, agent1);
-            sog2 = NewSOG(UUID.Random(), scene, agent1);
         }
 
         [TearDown]
@@ -122,16 +112,35 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         }
 
         [Test]
-        public void TestRemoveAttachments()
+        public void TestRemoveAttachment()
         {
             TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
 
-            ScenePresence presence = SceneHelpers.AddScenePresence(scene, agent1);
-            presence.AddAttachment(sog1);
-            presence.AddAttachment(sog2);
-            presence.RemoveAttachment(sog1);
-            presence.RemoveAttachment(sog2);
+            UUID userId = TestHelpers.ParseTail(0x1);
+            UUID attItemId = TestHelpers.ParseTail(0x2);
+            UUID attAssetId = TestHelpers.ParseTail(0x3);
+            string attName = "att";
+
+            UserAccountHelpers.CreateUserWithInventory(scene, userId);
+            ScenePresence presence = SceneHelpers.AddScenePresence(scene, userId);
+            InventoryItemBase attItem
+                = UserInventoryHelpers.CreateInventoryItem(
+                    scene, attName, attItemId, attAssetId, userId, InventoryType.Object);
+
+            m_attMod.RezSingleAttachmentFromInventory(
+                presence.ControllingClient, attItemId, (uint)AttachmentPoint.Chest);
+
+            // ###
+            m_attMod.ShowDetachInUserInventory(attItemId, presence.ControllingClient);
+
+            // Check status on scene presence
             Assert.That(presence.HasAttachments(), Is.False);
+            List<SceneObjectGroup> attachments = presence.Attachments;
+            Assert.That(attachments.Count, Is.EqualTo(0));
+
+            // Check item status
+            Assert.That(presence.Appearance.GetAttachpoint(attItemId), Is.EqualTo(0));
         }
 
         [Test]
@@ -183,39 +192,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 //            //Assert.That(presence2.CrossAttachmentsIntoNewRegion(region1, true), Is.True, "Cross was not successful");
 //            Assert.That(presence2.HasAttachments(), Is.False, "Presence2 objects were not deleted");
 //            Assert.That(presence.HasAttachments(), Is.True, "Presence has not received new objects");
-//        }   
-        
-        private SceneObjectGroup NewSOG(UUID uuid, Scene scene, UUID agent)
-        {
-            SceneObjectPart sop = new SceneObjectPart();
-            sop.Name = RandomName();
-            sop.Description = RandomName();
-            sop.Text = RandomName();
-            sop.SitName = RandomName();
-            sop.TouchName = RandomName();
-            sop.UUID = uuid;
-            sop.Shape = PrimitiveBaseShape.Default;
-            sop.Shape.State = 1;
-            sop.OwnerID = agent;
-
-            SceneObjectGroup sog = new SceneObjectGroup(sop);
-            sog.SetScene(scene);
-
-            return sog;
-        }        
-        
-        private static string RandomName()
-        {
-            StringBuilder name = new StringBuilder();
-            int size = random.Next(5,12);
-            char ch;
-            for (int i = 0; i < size; i++)
-            {
-                ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65))) ;
-                name.Append(ch);
-            }
-            
-            return name.ToString();
-        }        
+//        }
     }
 }
