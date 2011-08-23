@@ -60,6 +60,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         public AgentCircuitData acd1;
         public SceneObjectGroup sog1, sog2;
 
+        private AttachmentsModule m_attMod;
+
         [SetUp]
         public void Init()
         {
@@ -71,7 +73,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             config.Configs["Modules"].Set("InventoryAccessModule", "BasicInventoryAccessModule");
 
             scene = SceneHelpers.SetupScene();
-            SceneHelpers.SetupSceneModules(scene, config, new AttachmentsModule(), new BasicInventoryAccessModule());
+            m_attMod = new AttachmentsModule();
+            SceneHelpers.SetupSceneModules(scene, config, m_attMod, new BasicInventoryAccessModule());
 
             agent1 = UUID.Random();
             random = new Random();
@@ -86,18 +89,36 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             // threads.  Possibly, later tests should be rewritten not to worry about such things.
             Util.FireAndForgetMethod = Util.DefaultFireAndForgetMethod;
         }
-        
+
         [Test]
-        public void TestAddAttachments()
+        public void TestAddAttachment()
         {
             TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
 
-            ScenePresence presence = SceneHelpers.AddScenePresence(scene, agent1);
-            presence.AddAttachment(sog1);
-            presence.AddAttachment(sog2);
+            UUID userId = TestHelpers.ParseTail(0x1);
+            UUID attItemId = TestHelpers.ParseTail(0x2);
+            UUID attAssetId = TestHelpers.ParseTail(0x3);
+            string attName = "att";
 
+            UserAccountHelpers.CreateUserWithInventory(scene, userId);
+            ScenePresence presence = SceneHelpers.AddScenePresence(scene, userId);
+            InventoryItemBase attItem
+                = UserInventoryHelpers.CreateInventoryItem(
+                    scene, attName, attItemId, attAssetId, userId, InventoryType.Object);
+
+            m_attMod.RezSingleAttachmentFromInventory(
+                presence.ControllingClient, attItemId, (uint)AttachmentPoint.Chest);
+
+            // Check status on scene presence
             Assert.That(presence.HasAttachments(), Is.True);
-            Assert.That(presence.ValidateAttachments(), Is.True);
+            List<SceneObjectGroup> attachments = presence.Attachments;
+            Assert.That(attachments.Count, Is.EqualTo(1));
+            Assert.That(attachments[0].Name, Is.EqualTo(attName));
+            Assert.That(attachments[0].GetAttachmentPoint(), Is.EqualTo((byte)AttachmentPoint.Chest));
+
+            // Check item status
+            Assert.That(presence.Appearance.GetAttachpoint(attItemId), Is.EqualTo((int)AttachmentPoint.Chest));
         }
 
         [Test]
