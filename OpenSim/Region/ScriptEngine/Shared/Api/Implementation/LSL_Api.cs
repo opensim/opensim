@@ -3031,7 +3031,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
             if (attachmentsModule != null)
-                attachmentsModule.ShowDetachInUserInventory(itemID, presence.ControllingClient);
+                attachmentsModule.DetachSingleAttachmentToInv(itemID, presence.ControllingClient);
         }
 
         public void llTakeCamera(string avatar)

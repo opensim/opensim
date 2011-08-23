@@ -130,7 +130,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             m_attMod.RezSingleAttachmentFromInventory(
                 presence.ControllingClient, attItemId, (uint)AttachmentPoint.Chest);
-            m_attMod.ShowDetachInUserInventory(attItemId, presence.ControllingClient);
+            m_attMod.DetachSingleAttachmentToInv(attItemId, presence.ControllingClient);
 
             // Check status on scene presence
             Assert.That(presence.HasAttachments(), Is.False);

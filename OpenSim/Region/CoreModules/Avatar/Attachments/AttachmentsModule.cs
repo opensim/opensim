@@ -80,7 +80,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             client.OnRezMultipleAttachmentsFromInv += RezMultipleAttachmentsFromInventory;
             client.OnObjectAttach += AttachObject;
             client.OnObjectDetach += DetachObject;
-            client.OnDetachAttachmentIntoInv += ShowDetachInUserInventory;
+            client.OnDetachAttachmentIntoInv += DetachSingleAttachmentToInv;
         }
         
         public void UnsubscribeFromClientEvents(IClientAPI client)
@@ -89,7 +89,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             client.OnRezMultipleAttachmentsFromInv -= RezMultipleAttachmentsFromInventory;
             client.OnObjectAttach -= AttachObject;
             client.OnObjectDetach -= DetachObject;
-            client.OnDetachAttachmentIntoInv -= ShowDetachInUserInventory;
+            client.OnDetachAttachmentIntoInv -= DetachSingleAttachmentToInv;
         }
         
         /// <summary>
@@ -269,7 +269,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (updateInventoryStatus)
             {
                 if (att == null)
-                    ShowDetachInUserInventory(itemID, sp.ControllingClient);
+                    DetachSingleAttachmentToInv(itemID, sp.ControllingClient);
                 else
                     ShowAttachInUserInventory(att, sp, itemID, AttachmentPt);
             }
@@ -417,12 +417,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             SceneObjectGroup group = m_scene.GetGroupByPrim(objectLocalID);
             if (group != null)
             {
-                //group.DetachToGround();
-                ShowDetachInUserInventory(group.GetFromItemID(), remoteClient);
+                DetachSingleAttachmentToInv(group.GetFromItemID(), remoteClient);
             }
         }
         
-        public void ShowDetachInUserInventory(UUID itemID, IClientAPI remoteClient)
+        public void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient)
         {
             ScenePresence presence;
             if (m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
