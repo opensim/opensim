@@ -1619,9 +1619,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         tex.FaceTextures[i].RGBA = texcolor;
                     }
                 }
-                texcolor = tex.DefaultTexture.RGBA;
-                texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
-                tex.DefaultTexture.RGBA = texcolor;
+
+                // In some cases, the default texture can be null, eg when every face
+                // has a unique texture
+                if (tex.DefaultTexture != null)
+                {
+                    texcolor = tex.DefaultTexture.RGBA;
+                    texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
+                    tex.DefaultTexture.RGBA = texcolor;
+                }
+                
                 part.UpdateTexture(tex);
                 return;
             }
