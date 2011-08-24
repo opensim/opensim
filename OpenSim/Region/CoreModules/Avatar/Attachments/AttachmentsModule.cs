@@ -230,7 +230,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             itemID = group.GetFromItemID();
             if (itemID == UUID.Zero)
-                AddSceneObjectAsAttachment(sp.ControllingClient, group, out itemID);
+                itemID = AddSceneObjectAsAttachment(sp.ControllingClient, group).ID;
 
             ShowAttachInUserInventory(sp, AttachmentPt, itemID, group);
 
@@ -664,13 +664,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="grp"></param>
-        /// <param name="itemID"></param>
-        /// <returns></returns>
-        private UUID AddSceneObjectAsAttachment(IClientAPI remoteClient, SceneObjectGroup grp, out UUID itemID)
+        /// <returns>The user inventory item created that holds the attachment.</returns>
+        private InventoryItemBase AddSceneObjectAsAttachment(IClientAPI remoteClient, SceneObjectGroup grp)
         {
 //            m_log.DebugFormat("[SCENE]: Called AddSceneObjectAsAttachment for object {0} {1} for {2} {3} {4}", grp.Name, grp.LocalId, remoteClient.Name, remoteClient.AgentId, AgentId);
-
-            itemID = UUID.Zero;
 
             Vector3 inventoryStoredPosition = new Vector3
                    (((grp.AbsolutePosition.X > (int)Constants.RegionSize)
@@ -751,8 +748,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     m_dialogModule.SendAlertToUser(remoteClient, "Operation failed");
             }
 
-            itemID = item.ID;
-            return item.AssetID;
+            return item;
         }
     }
 }
