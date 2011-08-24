@@ -1880,11 +1880,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Vector3 inventoryStoredPosition = new Vector3
                        (((grp.AbsolutePosition.X > (int)Constants.RegionSize)
-                             ? 250
+                             ? Constants.RegionSize - 6
                              : grp.AbsolutePosition.X)
                         ,
                         (grp.AbsolutePosition.Y > (int)Constants.RegionSize)
-                            ? 250
+                            ? Constants.RegionSize - 6
                             : grp.AbsolutePosition.Y,
                         grp.AbsolutePosition.Z);
 
