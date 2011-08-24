@@ -97,6 +97,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             SceneObjectGroup attSo = scene.GetSceneObjectGroup(so.UUID);
             Assert.That(attSo.IsAttachment);
+            Assert.That(attSo.IsPhantom);
+            Assert.That(attSo.UsesPhysics, Is.False);
+            Assert.That(attSo.IsTemporary, Is.False);
 
             // Check status on scene presence
             Assert.That(presence.HasAttachments(), Is.True);
@@ -134,8 +137,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(presence.HasAttachments(), Is.True);
             List<SceneObjectGroup> attachments = presence.Attachments;
             Assert.That(attachments.Count, Is.EqualTo(1));
-            Assert.That(attachments[0].Name, Is.EqualTo(attName));
-            Assert.That(attachments[0].GetAttachmentPoint(), Is.EqualTo((byte)AttachmentPoint.Chest));
+            SceneObjectGroup attSo = attachments[0];
+            Assert.That(attSo.Name, Is.EqualTo(attName));
+            Assert.That(attSo.GetAttachmentPoint(), Is.EqualTo((byte)AttachmentPoint.Chest));
+            Assert.That(attSo.IsAttachment);
+            Assert.That(attSo.IsPhantom);
+            Assert.That(attSo.UsesPhysics, Is.False);
+            Assert.That(attSo.IsTemporary, Is.False);
 
             // Check item status
             Assert.That(presence.Appearance.GetAttachpoint(attItemId), Is.EqualTo((int)AttachmentPoint.Chest));

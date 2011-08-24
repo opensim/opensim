@@ -669,6 +669,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         {
 //            m_log.DebugFormat("[SCENE]: Called AddSceneObjectAsAttachment for object {0} {1} for {2} {3} {4}", grp.Name, grp.LocalId, remoteClient.Name, remoteClient.AgentId, AgentId);
 
+            grp.UpdatePrimFlags(grp.LocalId, grp.UsesPhysics, grp.IsTemporary, true, grp.IsVolumeDetect);
+            
             Vector3 inventoryStoredPosition = new Vector3
                    (((grp.AbsolutePosition.X > (int)Constants.RegionSize)
                          ? Constants.RegionSize - 6
