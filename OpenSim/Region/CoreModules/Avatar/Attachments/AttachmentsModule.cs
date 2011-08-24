@@ -101,7 +101,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         /// <param name="silent"></param>
         public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, bool silent)
         {
-//            m_log.Debug("[ATTACHMENTS MODULE]: Invoking AttachObject");
+//            m_log.DebugFormat(
+//                "[ATTACHMENTS MODULE]: Attaching object local id {0} to {1} point {2} from ground (silent = {3})",
+//                objectLocalID, remoteClient.Name, AttachmentPt, silent);
 
             try
             {
@@ -163,8 +165,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             return AttachObject(sp, group, AttachmentPt, silent);
         }
         
-        public bool AttachObject(ScenePresence sp, SceneObjectGroup group, uint AttachmentPt, bool silent)
+        private bool AttachObject(ScenePresence sp, SceneObjectGroup group, uint AttachmentPt, bool silent)
         {
+//            m_log.DebugFormat(
+//                "[ATTACHMENTS MODULE]: Attaching object {0} {1} to {2} point {3} from ground (silent = {4})",
+//                group.Name, group.LocalId, sp.Name, AttachmentPt, silent);
+
+            if (sp.GetAttachments(AttachmentPt).Contains(group))
+            {
+//                m_log.WarnFormat(
+//                    "[ATTACHMENTS MODULE]: Ignoring request to attach {0} {1} to {2} on {3} since it's already attached",
+//                    group.Name, group.LocalId, sp.Name, AttachmentPt);
+
+                return false;
+            }
+
             Vector3 attachPos = group.AbsolutePosition;
 
             // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
@@ -211,14 +226,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (itemID != UUID.Zero)
                 DetachSingleAttachmentToInv(itemID, sp);
 
-            if (group.GetFromItemID() == UUID.Zero)
-            {
+            itemID = group.GetFromItemID();
+            if (itemID == UUID.Zero)
                 m_scene.attachObjectAssetStore(sp.ControllingClient, group, sp.UUID, out itemID);
-            }
-            else
-            {
-                itemID = group.GetFromItemID();
-            }
 
             ShowAttachInUserInventory(sp, AttachmentPt, itemID, group);
 
@@ -548,7 +558,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     "[ATTACHMENTS MODULE]: Updating asset for attachment {0}, attachpoint {1}",
                     grp.UUID, grp.GetAttachmentPoint());
 
-                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp);
+                // If we're being called from a script, then trying to serialize that same script's state will not complete
+                // in any reasonable time period.  Therefore, we'll avoid it.  The worst that can happen is that if
+                // the client/server crashes rather than logging out normally, the attachment's scripts will resume
+                // without state on relog.  Arguably, this is what we want anyway.
+                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp, false);
+                
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
                 item = m_scene.InventoryService.GetItem(item);
 

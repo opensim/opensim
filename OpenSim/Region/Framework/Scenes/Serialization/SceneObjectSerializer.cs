@@ -127,26 +127,36 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <returns></returns>
         public static string ToOriginalXmlFormat(SceneObjectGroup sceneObject)
         {
+            return ToOriginalXmlFormat(sceneObject, true);
+        }
+
+        /// <summary>
+        /// Serialize a scene object to the original xml format
+        /// </summary>
+        /// <param name="sceneObject"></param>
+        /// <param name="doScriptStates">Control whether script states are also serialized.</para>
+        /// <returns></returns>
+        public static string ToOriginalXmlFormat(SceneObjectGroup sceneObject, bool doScriptStates)
+        {
             using (StringWriter sw = new StringWriter())
             {
                 using (XmlTextWriter writer = new XmlTextWriter(sw))
                 {
-                    ToOriginalXmlFormat(sceneObject, writer);
+                    ToOriginalXmlFormat(sceneObject, writer, doScriptStates);
                 }
 
                 return sw.ToString();
             }
         }
-        
 
         /// <summary>
         /// Serialize a scene object to the original xml format
         /// </summary>
         /// <param name="sceneObject"></param>
         /// <returns></returns>
-        public static void ToOriginalXmlFormat(SceneObjectGroup sceneObject, XmlTextWriter writer)
+        public static void ToOriginalXmlFormat(SceneObjectGroup sceneObject, XmlTextWriter writer, bool doScriptStates)
         {
-            ToOriginalXmlFormat(sceneObject, writer, false);
+            ToOriginalXmlFormat(sceneObject, writer, doScriptStates, false);
         }
         
         /// <summary>
@@ -156,10 +166,11 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <param name="writer"></param>
         /// <param name="noRootElement">If false, don't write the enclosing SceneObjectGroup element</param>
         /// <returns></returns>
-        public static void ToOriginalXmlFormat(SceneObjectGroup sceneObject, XmlTextWriter writer, bool noRootElement)
+        public static void ToOriginalXmlFormat(
+            SceneObjectGroup sceneObject, XmlTextWriter writer, bool doScriptStates, bool noRootElement)
         {
-            //m_log.DebugFormat("[SERIALIZER]: Starting serialization of {0}", Name);
-            //int time = System.Environment.TickCount;
+//            m_log.DebugFormat("[SERIALIZER]: Starting serialization of {0}", sceneObject.Name);
+//            int time = System.Environment.TickCount;
 
             if (!noRootElement)
                 writer.WriteStartElement(String.Empty, "SceneObjectGroup", String.Empty);
@@ -182,12 +193,14 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             }
 
             writer.WriteEndElement(); // OtherParts
-            sceneObject.SaveScriptedState(writer);
+
+            if (doScriptStates)
+                sceneObject.SaveScriptedState(writer);
             
             if (!noRootElement)
                 writer.WriteEndElement(); // SceneObjectGroup
 
-            //m_log.DebugFormat("[SERIALIZER]: Finished serialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
+//            m_log.DebugFormat("[SERIALIZER]: Finished serialization of SOG {0}, {1}ms", sceneObject.Name, System.Environment.TickCount - time);
         }        
 
         protected static void ToXmlFormat(SceneObjectPart part, XmlTextWriter writer)

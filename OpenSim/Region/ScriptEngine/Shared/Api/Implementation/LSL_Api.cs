@@ -2964,8 +2964,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (m_host.ParentGroup.RootPart.AttachmentPoint == 0)
-                return;
+//            if (m_host.ParentGroup.RootPart.AttachmentPoint == 0)
+//                return;
 
             TaskInventoryItem item;
 

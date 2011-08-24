@@ -1873,6 +1873,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public UUID attachObjectAssetStore(IClientAPI remoteClient, SceneObjectGroup grp, UUID AgentId, out UUID itemID)
         {
+//            m_log.DebugFormat("[SCENE]: Called attachObjectAssetStore for object {0} {1} for {2} {3} {4}", grp.Name, grp.LocalId, remoteClient.Name, remoteClient.AgentId, AgentId);
+
             itemID = UUID.Zero;
             if (grp != null)
             {
@@ -1881,16 +1883,20 @@ namespace OpenSim.Region.Framework.Scenes
                              ? 250
                              : grp.AbsolutePosition.X)
                         ,
-                        (grp.AbsolutePosition.X > (int)Constants.RegionSize)
+                        (grp.AbsolutePosition.Y > (int)Constants.RegionSize)
                             ? 250
-                            : grp.AbsolutePosition.X,
+                            : grp.AbsolutePosition.Y,
                         grp.AbsolutePosition.Z);
 
                 Vector3 originalPosition = grp.AbsolutePosition;
 
                 grp.AbsolutePosition = inventoryStoredPosition;
 
-                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp);
+                // If we're being called from a script, then trying to serialize that same script's state will not complete
+                // in any reasonable time period.  Therefore, we'll avoid it.  The worst that can happen is that if
+                // the client/server crashes rather than logging out normally, the attachment's scripts will resume
+                // without state on relog.  Arguably, this is what we want anyway.
+                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp, false);
 
                 grp.AbsolutePosition = originalPosition;
 
@@ -1900,6 +1906,7 @@ namespace OpenSim.Region.Framework.Scenes
                     (sbyte)AssetType.Object,
                     Utils.StringToBytes(sceneObjectXml),
                     remoteClient.AgentId);
+
                 AssetService.Store(asset);
 
                 InventoryItemBase item = new InventoryItemBase();
@@ -1948,6 +1955,7 @@ namespace OpenSim.Region.Framework.Scenes
                 itemID = item.ID;
                 return item.AssetID;
             }
+
             return UUID.Zero;
         }
 

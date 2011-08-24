@@ -58,7 +58,11 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
     /// </summary>
     public interface IScriptInstance
     {
+        /// <summary>
+        /// Is this script currently running?
+        /// </summary>
         bool Running { get; set; }
+
         bool ShuttingDown { get; set; }
         string State { get; set; }
         IScriptEngine Engine { get; }
@@ -78,7 +82,14 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 
         void Init();
         void Start();
+
+        /// <summary>
+        /// Stop the script.
+        /// </summary>
+        /// <param name="timeout"></param>
+        /// <returns>true if the script was successfully stopped, false otherwise</returns>
         bool Stop(int timeout);
+
         void SetState(string state);
 
         void PostEvent(EventParams data);
