@@ -46,7 +46,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
-        protected Scene m_scene = null;
+        private Scene m_scene = null;
+        private IDialogModule m_dialogModule;
         
         public string Name { get { return "Attachments Module"; } }
         public Type ReplaceableInterface { get { return null; } }
@@ -56,6 +57,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         public void AddRegion(Scene scene)
         {
             m_scene = scene;
+            m_dialogModule = m_scene.RequestModuleInterface<IDialogModule>();
             m_scene.RegisterModuleInterface<IAttachmentsModule>(this);
             m_scene.EventManager.OnNewClient += SubscribeToClientEvents;
             // TODO: Should probably be subscribing to CloseClient too, but this doesn't yet give us IClientAPI
@@ -228,7 +230,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             itemID = group.GetFromItemID();
             if (itemID == UUID.Zero)
-                m_scene.attachObjectAssetStore(sp.ControllingClient, group, out itemID);
+                AddSceneObjectAsAttachment(sp.ControllingClient, group, out itemID);
 
             ShowAttachInUserInventory(sp, AttachmentPt, itemID, group);
 
@@ -655,6 +657,102 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             // In case it is later dropped again, don't let
             // it get cleaned up
             so.RootPart.RemFlag(PrimFlags.TemporaryOnRez);
+        }
+
+        /// <summary>
+        /// Add a scene object that was previously free in the scene as an attachment to an avatar.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="grp"></param>
+        /// <param name="itemID"></param>
+        /// <returns></returns>
+        private UUID AddSceneObjectAsAttachment(IClientAPI remoteClient, SceneObjectGroup grp, out UUID itemID)
+        {
+//            m_log.DebugFormat("[SCENE]: Called AddSceneObjectAsAttachment for object {0} {1} for {2} {3} {4}", grp.Name, grp.LocalId, remoteClient.Name, remoteClient.AgentId, AgentId);
+
+            itemID = UUID.Zero;
+
+            Vector3 inventoryStoredPosition = new Vector3
+                   (((grp.AbsolutePosition.X > (int)Constants.RegionSize)
+                         ? Constants.RegionSize - 6
+                         : grp.AbsolutePosition.X)
+                    ,
+                    (grp.AbsolutePosition.Y > (int)Constants.RegionSize)
+                        ? Constants.RegionSize - 6
+                        : grp.AbsolutePosition.Y,
+                    grp.AbsolutePosition.Z);
+
+            Vector3 originalPosition = grp.AbsolutePosition;
+
+            grp.AbsolutePosition = inventoryStoredPosition;
+
+            // If we're being called from a script, then trying to serialize that same script's state will not complete
+            // in any reasonable time period.  Therefore, we'll avoid it.  The worst that can happen is that if
+            // the client/server crashes rather than logging out normally, the attachment's scripts will resume
+            // without state on relog.  Arguably, this is what we want anyway.
+            string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp, false);
+
+            grp.AbsolutePosition = originalPosition;
+
+            AssetBase asset = m_scene.CreateAsset(
+                grp.GetPartName(grp.LocalId),
+                grp.GetPartDescription(grp.LocalId),
+                (sbyte)AssetType.Object,
+                Utils.StringToBytes(sceneObjectXml),
+                remoteClient.AgentId);
+
+            m_scene.AssetService.Store(asset);
+
+            InventoryItemBase item = new InventoryItemBase();
+            item.CreatorId = grp.RootPart.CreatorID.ToString();
+            item.CreatorData = grp.RootPart.CreatorData;
+            item.Owner = remoteClient.AgentId;
+            item.ID = UUID.Random();
+            item.AssetID = asset.FullID;
+            item.Description = asset.Description;
+            item.Name = asset.Name;
+            item.AssetType = asset.Type;
+            item.InvType = (int)InventoryType.Object;
+
+            InventoryFolderBase folder = m_scene.InventoryService.GetFolderForType(remoteClient.AgentId, AssetType.Object);
+            if (folder != null)
+                item.Folder = folder.ID;
+            else // oopsies
+                item.Folder = UUID.Zero;
+
+            if ((remoteClient.AgentId != grp.RootPart.OwnerID) && m_scene.Permissions.PropagatePermissions())
+            {
+                item.BasePermissions = grp.RootPart.NextOwnerMask;
+                item.CurrentPermissions = grp.RootPart.NextOwnerMask;
+                item.NextPermissions = grp.RootPart.NextOwnerMask;
+                item.EveryOnePermissions = grp.RootPart.EveryoneMask & grp.RootPart.NextOwnerMask;
+                item.GroupPermissions = grp.RootPart.GroupMask & grp.RootPart.NextOwnerMask;
+            }
+            else
+            {
+                item.BasePermissions = grp.RootPart.BaseMask;
+                item.CurrentPermissions = grp.RootPart.OwnerMask;
+                item.NextPermissions = grp.RootPart.NextOwnerMask;
+                item.EveryOnePermissions = grp.RootPart.EveryoneMask;
+                item.GroupPermissions = grp.RootPart.GroupMask;
+            }
+            item.CreationDate = Util.UnixTimeSinceEpoch();
+
+            // sets itemID so client can show item as 'attached' in inventory
+            grp.SetFromItemID(item.ID);
+
+            if (m_scene.AddInventoryItem(item))
+            {
+                remoteClient.SendInventoryItemCreateUpdate(item, 0);
+            }
+            else
+            {
+                if (m_dialogModule != null)
+                    m_dialogModule.SendAlertToUser(remoteClient, "Operation failed");
+            }
+
+            itemID = item.ID;
+            return item.AssetID;
         }
     }
 }
