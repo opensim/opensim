@@ -1832,7 +1832,7 @@ namespace OpenSim.Region.Framework.Scenes
             // an object has been deleted from a scene before update was processed.
             // A more fundamental overhaul of the update mechanism is required to eliminate all
             // the race conditions.
-            if (m_isDeleted)
+            if (IsDeleted)
                 return;
 
             // Even temporary objects take part in physics (e.g. temp-on-rez bullets)
@@ -2142,7 +2142,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_scene.UnlinkSceneObject(objectGroup, true);
-            objectGroup.m_isDeleted = true;
+            objectGroup.IsDeleted = true;
 
             objectGroup.m_parts.Clear();
             
@@ -3385,7 +3385,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual ISceneObject CloneForNewScene()
         {
             SceneObjectGroup sog = Copy(false);
-            sog.m_isDeleted = false;
+            sog.IsDeleted = false;
             return sog;
         }
 

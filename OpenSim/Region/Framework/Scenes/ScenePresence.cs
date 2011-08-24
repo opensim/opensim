@@ -3809,7 +3809,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<AvatarAttachment> attachments = m_appearance.GetAttachments();
             foreach (AvatarAttachment attach in attachments)
             {
-                if (m_isDeleted)
+                if (IsDeleted)
                     return;
 
                 int p = attach.AttachPoint;
