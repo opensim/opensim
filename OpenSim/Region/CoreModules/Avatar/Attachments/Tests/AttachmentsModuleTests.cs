@@ -81,7 +81,37 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         }
 
         [Test]
-        public void TestAddAttachment()
+        public void TestAddAttachmentFromGround()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            string attName = "att";
+
+            UserAccountHelpers.CreateUserWithInventory(scene, userId);
+            ScenePresence presence = SceneHelpers.AddScenePresence(scene, userId);
+            SceneObjectGroup so = SceneHelpers.AddSceneObject(scene, attName).ParentGroup;
+
+            m_attMod.AttachObject(presence.ControllingClient, so, (uint)AttachmentPoint.Chest, false);
+
+            SceneObjectGroup attSo = scene.GetSceneObjectGroup(so.UUID);
+            Assert.That(attSo.IsAttachment);
+
+            // Check status on scene presence
+            Assert.That(presence.HasAttachments(), Is.True);
+            List<SceneObjectGroup> attachments = presence.Attachments;
+            Assert.That(attachments.Count, Is.EqualTo(1));
+            Assert.That(attachments[0].Name, Is.EqualTo(attName));
+            Assert.That(attachments[0].GetAttachmentPoint(), Is.EqualTo((byte)AttachmentPoint.Chest));
+
+            // Check item status
+            Assert.That(presence.Appearance.GetAttachpoint(
+                attSo.GetFromItemID()), Is.EqualTo((int)AttachmentPoint.Chest));
+        }
+
+        [Test]
+        public void TestAddAttachmentFromInventory()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();

@@ -563,7 +563,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 // the client/server crashes rather than logging out normally, the attachment's scripts will resume
                 // without state on relog.  Arguably, this is what we want anyway.
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp, false);
-                
+
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
                 item = m_scene.InventoryService.GetItem(item);
 
