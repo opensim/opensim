@@ -1876,87 +1876,83 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat("[SCENE]: Called attachObjectAssetStore for object {0} {1} for {2} {3} {4}", grp.Name, grp.LocalId, remoteClient.Name, remoteClient.AgentId, AgentId);
 
             itemID = UUID.Zero;
-            if (grp != null)
+
+            Vector3 inventoryStoredPosition = new Vector3
+                   (((grp.AbsolutePosition.X > (int)Constants.RegionSize)
+                         ? Constants.RegionSize - 6
+                         : grp.AbsolutePosition.X)
+                    ,
+                    (grp.AbsolutePosition.Y > (int)Constants.RegionSize)
+                        ? Constants.RegionSize - 6
+                        : grp.AbsolutePosition.Y,
+                    grp.AbsolutePosition.Z);
+
+            Vector3 originalPosition = grp.AbsolutePosition;
+
+            grp.AbsolutePosition = inventoryStoredPosition;
+
+            // If we're being called from a script, then trying to serialize that same script's state will not complete
+            // in any reasonable time period.  Therefore, we'll avoid it.  The worst that can happen is that if
+            // the client/server crashes rather than logging out normally, the attachment's scripts will resume
+            // without state on relog.  Arguably, this is what we want anyway.
+            string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp, false);
+
+            grp.AbsolutePosition = originalPosition;
+
+            AssetBase asset = CreateAsset(
+                grp.GetPartName(grp.LocalId),
+                grp.GetPartDescription(grp.LocalId),
+                (sbyte)AssetType.Object,
+                Utils.StringToBytes(sceneObjectXml),
+                remoteClient.AgentId);
+
+            AssetService.Store(asset);
+
+            InventoryItemBase item = new InventoryItemBase();
+            item.CreatorId = grp.RootPart.CreatorID.ToString();
+            item.CreatorData = grp.RootPart.CreatorData;
+            item.Owner = remoteClient.AgentId;
+            item.ID = UUID.Random();
+            item.AssetID = asset.FullID;
+            item.Description = asset.Description;
+            item.Name = asset.Name;
+            item.AssetType = asset.Type;
+            item.InvType = (int)InventoryType.Object;
+
+            InventoryFolderBase folder = InventoryService.GetFolderForType(remoteClient.AgentId, AssetType.Object);
+            if (folder != null)
+                item.Folder = folder.ID;
+            else // oopsies
+                item.Folder = UUID.Zero;
+
+            if ((remoteClient.AgentId != grp.RootPart.OwnerID) && Permissions.PropagatePermissions())
             {
-                Vector3 inventoryStoredPosition = new Vector3
-                       (((grp.AbsolutePosition.X > (int)Constants.RegionSize)
-                             ? Constants.RegionSize - 6
-                             : grp.AbsolutePosition.X)
-                        ,
-                        (grp.AbsolutePosition.Y > (int)Constants.RegionSize)
-                            ? Constants.RegionSize - 6
-                            : grp.AbsolutePosition.Y,
-                        grp.AbsolutePosition.Z);
-
-                Vector3 originalPosition = grp.AbsolutePosition;
-
-                grp.AbsolutePosition = inventoryStoredPosition;
-
-                // If we're being called from a script, then trying to serialize that same script's state will not complete
-                // in any reasonable time period.  Therefore, we'll avoid it.  The worst that can happen is that if
-                // the client/server crashes rather than logging out normally, the attachment's scripts will resume
-                // without state on relog.  Arguably, this is what we want anyway.
-                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp, false);
-
-                grp.AbsolutePosition = originalPosition;
-
-                AssetBase asset = CreateAsset(
-                    grp.GetPartName(grp.LocalId),
-                    grp.GetPartDescription(grp.LocalId),
-                    (sbyte)AssetType.Object,
-                    Utils.StringToBytes(sceneObjectXml),
-                    remoteClient.AgentId);
-
-                AssetService.Store(asset);
-
-                InventoryItemBase item = new InventoryItemBase();
-                item.CreatorId = grp.RootPart.CreatorID.ToString();
-                item.CreatorData = grp.RootPart.CreatorData;
-                item.Owner = remoteClient.AgentId;
-                item.ID = UUID.Random();
-                item.AssetID = asset.FullID;
-                item.Description = asset.Description;
-                item.Name = asset.Name;
-                item.AssetType = asset.Type;
-                item.InvType = (int)InventoryType.Object;
-
-                InventoryFolderBase folder = InventoryService.GetFolderForType(remoteClient.AgentId, AssetType.Object);
-                if (folder != null)
-                    item.Folder = folder.ID;
-                else // oopsies
-                    item.Folder = UUID.Zero;
-
-                if ((remoteClient.AgentId != grp.RootPart.OwnerID) && Permissions.PropagatePermissions())
-                {
-                    item.BasePermissions = grp.RootPart.NextOwnerMask;
-                    item.CurrentPermissions = grp.RootPart.NextOwnerMask;
-                    item.NextPermissions = grp.RootPart.NextOwnerMask;
-                    item.EveryOnePermissions = grp.RootPart.EveryoneMask & grp.RootPart.NextOwnerMask;
-                    item.GroupPermissions = grp.RootPart.GroupMask & grp.RootPart.NextOwnerMask;
-                }
-                else
-                {
-                    item.BasePermissions = grp.RootPart.BaseMask;
-                    item.CurrentPermissions = grp.RootPart.OwnerMask;
-                    item.NextPermissions = grp.RootPart.NextOwnerMask;
-                    item.EveryOnePermissions = grp.RootPart.EveryoneMask;
-                    item.GroupPermissions = grp.RootPart.GroupMask;
-                }
-                item.CreationDate = Util.UnixTimeSinceEpoch();
-
-                // sets itemID so client can show item as 'attached' in inventory
-                grp.SetFromItemID(item.ID);
-
-                if (AddInventoryItem(item))
-                    remoteClient.SendInventoryItemCreateUpdate(item, 0);
-                else
-                    m_dialogModule.SendAlertToUser(remoteClient, "Operation failed");
-
-                itemID = item.ID;
-                return item.AssetID;
+                item.BasePermissions = grp.RootPart.NextOwnerMask;
+                item.CurrentPermissions = grp.RootPart.NextOwnerMask;
+                item.NextPermissions = grp.RootPart.NextOwnerMask;
+                item.EveryOnePermissions = grp.RootPart.EveryoneMask & grp.RootPart.NextOwnerMask;
+                item.GroupPermissions = grp.RootPart.GroupMask & grp.RootPart.NextOwnerMask;
             }
+            else
+            {
+                item.BasePermissions = grp.RootPart.BaseMask;
+                item.CurrentPermissions = grp.RootPart.OwnerMask;
+                item.NextPermissions = grp.RootPart.NextOwnerMask;
+                item.EveryOnePermissions = grp.RootPart.EveryoneMask;
+                item.GroupPermissions = grp.RootPart.GroupMask;
+            }
+            item.CreationDate = Util.UnixTimeSinceEpoch();
 
-            return UUID.Zero;
+            // sets itemID so client can show item as 'attached' in inventory
+            grp.SetFromItemID(item.ID);
+
+            if (AddInventoryItem(item))
+                remoteClient.SendInventoryItemCreateUpdate(item, 0);
+            else
+                m_dialogModule.SendAlertToUser(remoteClient, "Operation failed");
+
+            itemID = item.ID;
+            return item.AssetID;
         }
 
         /// <summary>
