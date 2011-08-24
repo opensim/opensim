@@ -95,18 +95,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
 
             m_attMod.AttachObject(presence.ControllingClient, so, (uint)AttachmentPoint.Chest, false);
 
-            SceneObjectGroup attSo = scene.GetSceneObjectGroup(so.UUID);
-            Assert.That(attSo.IsAttachment);
-            Assert.That(attSo.IsPhantom);
-            Assert.That(attSo.UsesPhysics, Is.False);
-            Assert.That(attSo.IsTemporary, Is.False);
-
             // Check status on scene presence
             Assert.That(presence.HasAttachments(), Is.True);
             List<SceneObjectGroup> attachments = presence.Attachments;
             Assert.That(attachments.Count, Is.EqualTo(1));
-            Assert.That(attachments[0].Name, Is.EqualTo(attName));
-            Assert.That(attachments[0].GetAttachmentPoint(), Is.EqualTo((byte)AttachmentPoint.Chest));
+            SceneObjectGroup attSo = attachments[0];
+            Assert.That(attSo.Name, Is.EqualTo(attName));
+            Assert.That(attSo.GetAttachmentPoint(), Is.EqualTo((byte)AttachmentPoint.Chest));
+            Assert.That(attSo.IsAttachment);
+            Assert.That(attSo.IsPhantom);
+            Assert.That(attSo.UsesPhysics, Is.False);
+            Assert.That(attSo.IsTemporary, Is.False);
 
             // Check item status
             Assert.That(presence.Appearance.GetAttachpoint(
@@ -204,7 +203,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             List<SceneObjectGroup> attachments = presence.Attachments;
 
             Assert.That(attachments.Count, Is.EqualTo(1));
-            Assert.That(attachments[0].Name, Is.EqualTo(attName));
+            SceneObjectGroup attSo = attachments[0];
+            Assert.That(attSo.Name, Is.EqualTo(attName));
+            Assert.That(attSo.GetAttachmentPoint(), Is.EqualTo((byte)AttachmentPoint.Chest));
+            Assert.That(attSo.IsAttachment);
+            Assert.That(attSo.IsPhantom);
+            Assert.That(attSo.UsesPhysics, Is.False);
+            Assert.That(attSo.IsTemporary, Is.False);
         }
 
         // I'm commenting this test because scene setup NEEDS InventoryService to 
