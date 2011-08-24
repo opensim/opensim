@@ -167,6 +167,44 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Is this scene object phantom?
+        /// </summary>
+        /// <remarks>
+        /// Updating must currently take place through UpdatePrimFlags()
+        /// </remarks>
+        public bool IsPhantom
+        {
+            get { return (RootPart.Flags & PrimFlags.Phantom) != 0; }
+        }
+
+        /// <summary>
+        /// Does this scene object use physics?
+        /// </summary>
+        /// <remarks>
+        /// Updating must currently take place through UpdatePrimFlags()
+        /// </remarks>
+        public bool UsesPhysics
+        {
+            get { return (RootPart.Flags & PrimFlags.TemporaryOnRez) != 0; }
+        }
+
+        /// <summary>
+        /// Is this scene object temporary?
+        /// </summary>
+        /// <remarks>
+        /// Updating must currently take place through UpdatePrimFlags()
+        /// </remarks>
+        public bool IsTemporary
+        {
+            get { return (RootPart.Flags & PrimFlags.TemporaryOnRez) != 0; }
+        }
+
+        public bool IsVolumeDetect
+        {
+            get { return RootPart.VolumeDetectActive; }
+        }
+
         public float scriptScore;
 
         private Vector3 lastPhysGroupPos;
@@ -1510,36 +1548,24 @@ namespace OpenSim.Region.Framework.Scenes
             SetRootPart(part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, 0, userExposed));
         }
 
-        public void ScriptSetPhysicsStatus(bool UsePhysics)
+        public void ScriptSetPhysicsStatus(bool usePhysics)
         {
-            bool IsTemporary = ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0);
-            bool IsPhantom = ((RootPart.Flags & PrimFlags.Phantom) != 0);
-            bool IsVolumeDetect = RootPart.VolumeDetectActive;
-            UpdatePrimFlags(RootPart.LocalId, UsePhysics, IsTemporary, IsPhantom, IsVolumeDetect);
+            UpdatePrimFlags(RootPart.LocalId, usePhysics, IsTemporary, IsPhantom, IsVolumeDetect);
         }
 
-        public void ScriptSetTemporaryStatus(bool TemporaryStatus)
+        public void ScriptSetTemporaryStatus(bool makeTemporary)
         {
-            bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
-            bool IsPhantom = ((RootPart.Flags & PrimFlags.Phantom) != 0);
-            bool IsVolumeDetect = RootPart.VolumeDetectActive;
-            UpdatePrimFlags(RootPart.LocalId, UsePhysics, TemporaryStatus, IsPhantom, IsVolumeDetect);
+            UpdatePrimFlags(RootPart.LocalId, UsesPhysics, makeTemporary, IsPhantom, IsVolumeDetect);
         }
 
-        public void ScriptSetPhantomStatus(bool PhantomStatus)
+        public void ScriptSetPhantomStatus(bool makePhantom)
         {
-            bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
-            bool IsTemporary = ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0);
-            bool IsVolumeDetect = RootPart.VolumeDetectActive;
-            UpdatePrimFlags(RootPart.LocalId, UsePhysics, IsTemporary, PhantomStatus, IsVolumeDetect);
+            UpdatePrimFlags(RootPart.LocalId, UsesPhysics, IsTemporary, makePhantom, IsVolumeDetect);
         }
 
-        public void ScriptSetVolumeDetect(bool VDStatus)
+        public void ScriptSetVolumeDetect(bool makeVolumeDetect)
         {
-            bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
-            bool IsTemporary = ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0);
-            bool IsPhantom = ((RootPart.Flags & PrimFlags.Phantom) != 0);
-            UpdatePrimFlags(RootPart.LocalId, UsePhysics, IsTemporary, IsPhantom, VDStatus);
+            UpdatePrimFlags(RootPart.LocalId, UsesPhysics, IsTemporary, IsPhantom, makeVolumeDetect);
 
             /*
             ScriptSetPhantomStatus(false);  // What ever it was before, now it's not phantom anymore
