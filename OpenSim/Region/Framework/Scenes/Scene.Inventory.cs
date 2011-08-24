@@ -1871,7 +1871,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public UUID attachObjectAssetStore(IClientAPI remoteClient, SceneObjectGroup grp, UUID AgentId, out UUID itemID)
+        public UUID attachObjectAssetStore(IClientAPI remoteClient, SceneObjectGroup grp, out UUID itemID)
         {
 //            m_log.DebugFormat("[SCENE]: Called attachObjectAssetStore for object {0} {1} for {2} {3} {4}", grp.Name, grp.LocalId, remoteClient.Name, remoteClient.AgentId, AgentId);
 

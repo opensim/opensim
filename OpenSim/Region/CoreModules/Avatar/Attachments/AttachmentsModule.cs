@@ -228,7 +228,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             itemID = group.GetFromItemID();
             if (itemID == UUID.Zero)
-                m_scene.attachObjectAssetStore(sp.ControllingClient, group, sp.UUID, out itemID);
+                m_scene.attachObjectAssetStore(sp.ControllingClient, group, out itemID);
 
             ShowAttachInUserInventory(sp, AttachmentPt, itemID, group);
 
