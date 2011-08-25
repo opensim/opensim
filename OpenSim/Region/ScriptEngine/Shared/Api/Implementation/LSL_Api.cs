@@ -6608,7 +6608,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return Util.SHA1Hash(src).ToLower();
         }
 
-        protected ObjectShapePacket.ObjectDataBlock SetPrimitiveBlockShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist)
+        protected ObjectShapePacket.ObjectDataBlock SetPrimitiveBlockShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist, byte profileshape, byte pathcurve)
         {
             ObjectShapePacket.ObjectDataBlock shapeBlock = new ObjectShapePacket.ObjectDataBlock();
 
@@ -6619,7 +6619,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 holeshape = (int)ScriptBaseClass.PRIM_HOLE_DEFAULT;
             }
-            shapeBlock.ProfileCurve = (byte)holeshape;
+            shapeBlock.PathCurve = pathcurve;
+            shapeBlock.ProfileCurve = (byte)holeshape;          // Set the hole shape.
+            shapeBlock.ProfileCurve += profileshape;            // Add in the profile shape.
             if (cut.x < 0f)
             {
                 cut.x = 0f;
@@ -6651,9 +6653,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 hollow = 0f;
             }
-            if (hollow > 0.95)
+            // If the prim is a Cylinder, Prism, Sphere, Torus or Ring (or not a
+            // Box or Tube) and the hole shape is a square, hollow is limited to
+            // a max of 70%. The viewer performs its own check on this value but
+            // we need to do it here also so llGetPrimitiveParams can have access
+            // to the correct value.
+            if (profileshape != (byte)ProfileCurve.Square &&
+                holeshape == (int)ScriptBaseClass.PRIM_HOLE_SQUARE)
             {
-                hollow = 0.95f;
+                if (hollow > 0.70f)
+                {
+                    hollow = 0.70f;
+                }
+            }
+            // Otherwise, hollow is limited to 95%. 
+            else
+            {
+                if (hollow > 0.95f)
+                {
+                    hollow = 0.95f;
+                }
             }
             shapeBlock.ProfileHollow = (ushort)(50000 * hollow);
             if (twist.x < -1.0f)
@@ -6677,20 +6696,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             shapeBlock.ObjectLocalID = part.LocalId;
 
-            // retain pathcurve
-            shapeBlock.PathCurve = part.Shape.PathCurve;
-
             part.Shape.SculptEntry = false;
             return shapeBlock;
         }
 
-        protected void SetPrimitiveShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist, LSL_Vector taper_b, LSL_Vector topshear, byte fudge)
+        // Prim type box, cylinder and prism.
+        protected void SetPrimitiveShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist, LSL_Vector taper_b, LSL_Vector topshear, byte profileshape, byte pathcurve)
         {
             ObjectShapePacket.ObjectDataBlock shapeBlock;
 
-            shapeBlock = SetPrimitiveBlockShapeParams(part, holeshape, cut, hollow, twist);
-
-            shapeBlock.ProfileCurve += fudge;
+            shapeBlock = SetPrimitiveBlockShapeParams(part, holeshape, cut, hollow, twist, profileshape, pathcurve);
 
             if (taper_b.x < 0f)
             {
@@ -6733,17 +6748,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             part.UpdateShape(shapeBlock);
         }
 
-        protected void SetPrimitiveShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist, LSL_Vector dimple, byte fudge)
+        // Prim type sphere.
+        protected void SetPrimitiveShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist, LSL_Vector dimple, byte profileshape, byte pathcurve)
         {
             ObjectShapePacket.ObjectDataBlock shapeBlock;
 
-            shapeBlock = SetPrimitiveBlockShapeParams(part, holeshape, cut, hollow, twist);
+            shapeBlock = SetPrimitiveBlockShapeParams(part, holeshape, cut, hollow, twist, profileshape, pathcurve);
 
             // profile/path swapped for a sphere
             shapeBlock.PathBegin = shapeBlock.ProfileBegin;
             shapeBlock.PathEnd = shapeBlock.ProfileEnd;
-
-            shapeBlock.ProfileCurve += fudge;
 
             shapeBlock.PathScaleX = 100;
             shapeBlock.PathScaleY = 100;
@@ -6775,13 +6789,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             part.UpdateShape(shapeBlock);
         }
 
-        protected void SetPrimitiveShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist, LSL_Vector holesize, LSL_Vector topshear, LSL_Vector profilecut, LSL_Vector taper_a, float revolutions, float radiusoffset, float skew, byte fudge)
+        // Prim type torus, tube and ring.
+        protected void SetPrimitiveShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist, LSL_Vector holesize, LSL_Vector topshear, LSL_Vector profilecut, LSL_Vector taper_a, float revolutions, float radiusoffset, float skew, byte profileshape, byte pathcurve)
         {
             ObjectShapePacket.ObjectDataBlock shapeBlock;
 
-            shapeBlock = SetPrimitiveBlockShapeParams(part, holeshape, cut, hollow, twist);
-
-            shapeBlock.ProfileCurve += fudge;
+            shapeBlock = SetPrimitiveBlockShapeParams(part, holeshape, cut, hollow, twist, profileshape, pathcurve);
 
             // profile/path swapped for a torrus, tube, ring
             shapeBlock.PathBegin = shapeBlock.ProfileBegin;
@@ -6901,7 +6914,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             part.UpdateShape(shapeBlock);
         }
 
-        protected void SetPrimitiveShapeParams(SceneObjectPart part, string map, int type)
+        // Prim type sculpt.
+        protected void SetPrimitiveShapeParams(SceneObjectPart part, string map, int type, byte pathcurve)
         {
             ObjectShapePacket.ObjectDataBlock shapeBlock = new ObjectShapePacket.ObjectDataBlock();
             UUID sculptId;
@@ -6914,6 +6928,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (sculptId == UUID.Zero)
                 return;
 
+            shapeBlock.PathCurve = pathcurve;
             shapeBlock.ObjectLocalID = part.LocalId;
             shapeBlock.PathScaleX = 100;
             shapeBlock.PathScaleY = 150;
@@ -6926,9 +6941,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 // default
                 type = (int)ScriptBaseClass.PRIM_SCULPT_TYPE_SPHERE;
             }
-
-            // retain pathcurve
-            shapeBlock.PathCurve = part.Shape.PathCurve;
 
             part.Shape.SetSculptProperties((byte)type, sculptId);
             part.Shape.SculptEntry = true;
@@ -7053,8 +7065,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 taper_b = rules.GetVector3Item(idx++);
                                 topshear = rules.GetVector3Item(idx++);
 
-                                part.Shape.PathCurve = (byte)Extrusion.Straight;
-                                SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear, 1);
+                                SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear,
+                                    (byte)ProfileShape.Square, (byte)Extrusion.Straight);
                                 break;
 
                             case (int)ScriptBaseClass.PRIM_TYPE_CYLINDER:
@@ -7067,9 +7079,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 twist = rules.GetVector3Item(idx++);
                                 taper_b = rules.GetVector3Item(idx++);
                                 topshear = rules.GetVector3Item(idx++);
-                                part.Shape.ProfileShape = ProfileShape.Circle;
-                                part.Shape.PathCurve = (byte)Extrusion.Straight;
-                                SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear, 0);
+                                SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear,
+                                    (byte)ProfileShape.Circle, (byte)Extrusion.Straight);
                                 break;
 
                             case (int)ScriptBaseClass.PRIM_TYPE_PRISM:
@@ -7082,8 +7093,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 twist = rules.GetVector3Item(idx++);
                                 taper_b = rules.GetVector3Item(idx++);
                                 topshear = rules.GetVector3Item(idx++);
-                                part.Shape.PathCurve = (byte)Extrusion.Straight;
-                                SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear, 3);
+                                SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, topshear,
+                                    (byte)ProfileShape.EquilateralTriangle, (byte)Extrusion.Straight);
                                 break;
 
                             case (int)ScriptBaseClass.PRIM_TYPE_SPHERE:
@@ -7095,8 +7106,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 hollow = (float)rules.GetLSLFloatItem(idx++);
                                 twist = rules.GetVector3Item(idx++);
                                 taper_b = rules.GetVector3Item(idx++); // dimple
-                                part.Shape.PathCurve = (byte)Extrusion.Curve1;
-                                SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b, 5);
+                                SetPrimitiveShapeParams(part, face, v, hollow, twist, taper_b,
+                                    (byte)ProfileShape.HalfCircle, (byte)Extrusion.Curve1);
                                 break;
 
                             case (int)ScriptBaseClass.PRIM_TYPE_TORUS:
@@ -7114,9 +7125,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 revolutions = (float)rules.GetLSLFloatItem(idx++);
                                 radiusoffset = (float)rules.GetLSLFloatItem(idx++);
                                 skew = (float)rules.GetLSLFloatItem(idx++);
-                                part.Shape.PathCurve = (byte)Extrusion.Curve1;
                                 SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b,
-                                                        revolutions, radiusoffset, skew, 0);
+                                    revolutions, radiusoffset, skew, (byte)ProfileShape.Circle, (byte)Extrusion.Curve1);
                                 break;
 
                             case (int)ScriptBaseClass.PRIM_TYPE_TUBE:
@@ -7134,9 +7144,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 revolutions = (float)rules.GetLSLFloatItem(idx++);
                                 radiusoffset = (float)rules.GetLSLFloatItem(idx++);
                                 skew = (float)rules.GetLSLFloatItem(idx++);
-                                part.Shape.PathCurve = (byte)Extrusion.Curve1;
                                 SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b,
-                                                        revolutions, radiusoffset, skew, 1);
+                                    revolutions, radiusoffset, skew, (byte)ProfileShape.Square, (byte)Extrusion.Curve1);
                                 break;
 
                             case (int)ScriptBaseClass.PRIM_TYPE_RING:
@@ -7154,9 +7163,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 revolutions = (float)rules.GetLSLFloatItem(idx++);
                                 radiusoffset = (float)rules.GetLSLFloatItem(idx++);
                                 skew = (float)rules.GetLSLFloatItem(idx++);
-                                part.Shape.PathCurve = (byte)Extrusion.Curve1;
                                 SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b,
-                                                        revolutions, radiusoffset, skew, 3);
+                                    revolutions, radiusoffset, skew, (byte)ProfileShape.EquilateralTriangle, (byte)Extrusion.Curve1);
                                 break;
 
                             case (int)ScriptBaseClass.PRIM_TYPE_SCULPT:
@@ -7165,8 +7173,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                                 string map = rules.Data[idx++].ToString();
                                 face = (int)rules.GetLSLIntegerItem(idx++); // type
-                                part.Shape.PathCurve = (byte)Extrusion.Curve1;
-                                SetPrimitiveShapeParams(part, map, face);
+                                SetPrimitiveShapeParams(part, map, face, (byte)Extrusion.Curve1);
                                 break;
                         }
 
