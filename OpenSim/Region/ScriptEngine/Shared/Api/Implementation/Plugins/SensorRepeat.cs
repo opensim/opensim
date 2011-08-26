@@ -308,7 +308,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // In attachments, the sensor cone always orients with the
                 // avatar rotation. This may include a nonzero elevation if
                 // in mouselook.
-                ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.RootPart.AttachedAvatar);
+                ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
                 q = avatar.Rotation;
             }
             LSL_Types.Quaternion r = new LSL_Types.Quaternion(q.X, q.Y, q.Z, q.W);
@@ -428,7 +428,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 // In attachments, the sensor cone always orients with the
                 // avatar rotation. This may include a nonzero elevation if
                 // in mouselook.
-                ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.RootPart.AttachedAvatar);
+                ScenePresence avatar = m_CmdManager.m_ScriptEngine.World.GetScenePresence(SensePoint.ParentGroup.AttachedAvatar);
                 q = avatar.Rotation;
             }
 

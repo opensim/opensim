@@ -169,6 +169,14 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// The avatar to which this scene object is attached.
+        /// </summary>
+        /// <remarks>
+        /// If we're not attached to an avatar then this is UUID.Zero
+        /// </remarks>
+        public UUID AttachedAvatar { get; set; }
+
+        /// <summary>
         /// Is this scene object phantom?
         /// </summary>
         /// <remarks>
@@ -1540,7 +1548,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (IsAttachment)
                 {
-                    ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
+                    ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
                     if (avatar != null)
                     {
                         avatar.PushForce(impulse);
@@ -1622,7 +1630,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (IsAttachment)
                 {
-                    ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
+                    ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
                     if (avatar != null)
                     {
                         avatar.MoveToTarget(target, false);

@@ -456,7 +456,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (so == null)
                 return;
 
-            if (so.RootPart.AttachedAvatar != remoteClient.AgentId)
+            if (so.AttachedAvatar != remoteClient.AgentId)
                 return;
 
             UUID inventoryID = so.GetFromItemID();
@@ -498,7 +498,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             rootPart.FromItemID = UUID.Zero;
             so.AbsolutePosition = sp.AbsolutePosition;
-            so.ForEachPart(part => part.AttachedAvatar = UUID.Zero);
+            so.AttachedAvatar = UUID.Zero;
             rootPart.SetParentLocalId(0);
             so.ClearPartAttachmentData();
             rootPart.ApplyPhysics(rootPart.GetEffectiveObjectFlags(), rootPart.VolumeDetectActive, m_scene.m_physicalPrim);
@@ -534,11 +534,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         sp.RemoveAttachment(group);
 
                         // Prepare sog for storage
+                        group.AttachedAvatar = UUID.Zero;
+
                         group.ForEachPart(
                             delegate(SceneObjectPart part)
                             {
-                                part.AttachedAvatar = UUID.Zero;
-
                                 // If there are any scripts,
                                 // then always trigger a new object and state persistence in UpdateKnownItem()
                                 if (part.Inventory.ContainsScripts())
@@ -656,12 +656,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             m_scene.DeleteFromStorage(so.UUID);
             m_scene.EventManager.TriggerParcelPrimCountTainted();
 
-            so.RootPart.AttachedAvatar = avatar.UUID;
-
-            //Anakin Lohner bug #3839 
-            SceneObjectPart[] parts = so.Parts;
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].AttachedAvatar = avatar.UUID;
+            so.AttachedAvatar = avatar.UUID;
 
             if (so.RootPart.PhysActor != null)
             {

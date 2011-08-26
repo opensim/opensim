@@ -233,7 +233,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_MaxScriptQueue = maxScriptQueue;
             m_stateSource = stateSource;
             m_postOnRez = postOnRez;
-            m_AttachedAvatar = part.AttachedAvatar;
+            m_AttachedAvatar = part.ParentGroup.AttachedAvatar;
             m_RegionID = part.ParentGroup.Scene.RegionInfo.RegionID;
 
             if (part != null)

@@ -221,9 +221,6 @@ namespace OpenSim.Region.Framework.Scenes
         public scriptEvents AggregateScriptEvents;
 
         
-        public UUID AttachedAvatar;
-
-        
         public Vector3 AttachedPos;
 
         
@@ -728,7 +725,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (IsAttachment)
                 {
-                    ScenePresence sp = m_parentGroup.Scene.GetScenePresence(AttachedAvatar);
+                    ScenePresence sp = m_parentGroup.Scene.GetScenePresence(ParentGroup.AttachedAvatar);
                     if (sp != null)
                         return sp.AbsolutePosition;
                 }

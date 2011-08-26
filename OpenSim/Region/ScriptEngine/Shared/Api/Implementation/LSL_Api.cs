@@ -2099,7 +2099,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (part.ParentGroup.RootPart.AttachmentPoint != 0)
                 {
-                    ScenePresence avatar = World.GetScenePresence(part.AttachedAvatar);
+                    ScenePresence avatar = World.GetScenePresence(part.ParentGroup.AttachedAvatar);
                     if (avatar != null)
                     {
                         if ((avatar.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
@@ -2243,7 +2243,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (m_host.IsAttachment)
             {
-                ScenePresence avatar = m_host.ParentGroup.Scene.GetScenePresence(m_host.AttachedAvatar);
+                ScenePresence avatar = m_host.ParentGroup.Scene.GetScenePresence(m_host.ParentGroup.AttachedAvatar);
                 vel = avatar.Velocity;
             }
             else
@@ -3388,7 +3388,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            if (m_host.ParentGroup.IsAttachment && (UUID)agent == m_host.ParentGroup.RootPart.AttachedAvatar)
+            if (m_host.ParentGroup.IsAttachment && (UUID)agent == m_host.ParentGroup.AttachedAvatar)
             {
                 // When attached, certain permissions are implicit if requested from owner
                 int implicitPerms = ScriptBaseClass.PERMISSION_TAKE_CONTROLS |
@@ -7460,7 +7460,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Quaternion q;
             if (m_host.ParentGroup.RootPart.AttachmentPoint != 0)
             {
-                ScenePresence avatar = World.GetScenePresence(m_host.AttachedAvatar);
+                ScenePresence avatar = World.GetScenePresence(m_host.ParentGroup.AttachedAvatar);
                 if (avatar != null)
                     if ((avatar.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
                         q = avatar.CameraRotation; // Mouselook
