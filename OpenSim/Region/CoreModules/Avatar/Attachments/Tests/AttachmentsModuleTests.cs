@@ -150,7 +150,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         public void TestDetachAttachmentToScene()
         {
             TestHelpers.InMethod();
-            log4net.Config.XmlConfigurator.Configure();
+//            log4net.Config.XmlConfigurator.Configure();
 
             UUID userId = TestHelpers.ParseTail(0x1);
             UUID attItemId = TestHelpers.ParseTail(0x2);
