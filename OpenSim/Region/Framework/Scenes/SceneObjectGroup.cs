@@ -979,43 +979,16 @@ namespace OpenSim.Region.Framework.Scenes
             return m_rootPart.Shape.State;
         }
 
+        public void SetAttachmentPoint(byte point)
+        {
+            SceneObjectPart[] parts = m_parts.GetArray();
+            for (int i = 0; i < parts.Length; i++)
+                parts[i].SetAttachmentPoint(point);
+        }
+
         public void ClearPartAttachmentData()
         {
             SetAttachmentPoint((Byte)0);
-        }
-
-        public void DetachToGround()
-        {
-            ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.AttachedAvatar);
-            if (avatar == null)
-                return;
-
-            avatar.RemoveAttachment(this);
-
-            Vector3 detachedpos = new Vector3(127f,127f,127f);
-            if (avatar == null)
-                return;
-
-            detachedpos = avatar.AbsolutePosition;
-            RootPart.FromItemID = UUID.Zero;
-
-            AbsolutePosition = detachedpos;
-            m_rootPart.AttachedAvatar = UUID.Zero;
-
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].AttachedAvatar = UUID.Zero;
-
-            m_rootPart.SetParentLocalId(0);
-            SetAttachmentPoint((byte)0);
-            m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive, m_scene.m_physicalPrim);
-            HasGroupChanged = true;
-            RootPart.Rezzed = DateTime.Now;
-            RootPart.RemFlag(PrimFlags.TemporaryOnRez);
-            AttachToBackup();
-            m_scene.EventManager.TriggerParcelPrimCountTainted();
-            m_rootPart.ScheduleFullUpdate();
-            m_rootPart.ClearUndoState();
         }
 
         /// <summary>
@@ -3347,13 +3320,6 @@ namespace OpenSim.Region.Framework.Scenes
         public override string ToString()
         {
             return String.Format("{0} {1} ({2})", Name, UUID, AbsolutePosition);
-        }
-
-        public void SetAttachmentPoint(byte point)
-        {
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].SetAttachmentPoint(point);
         }
 
         #region ISceneObject

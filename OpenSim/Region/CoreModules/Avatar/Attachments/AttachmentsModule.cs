@@ -472,7 +472,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 if (changed && m_scene.AvatarFactory != null)
                     m_scene.AvatarFactory.QueueAppearanceSave(remoteClient.AgentId);
 
-                so.DetachToGround();
+                presence.RemoveAttachment(so);
+                DetachSceneObjectToGround(so, presence);
 
                 List<UUID> uuids = new List<UUID>();
                 uuids.Add(inventoryID);
@@ -481,6 +482,33 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
 
             m_scene.EventManager.TriggerOnAttach(so.LocalId, sceneObjectID, UUID.Zero);
+        }
+
+        /// <summary>
+        /// Detach the given scene objet to the ground.
+        /// </summary>
+        /// <remarks>
+        /// The caller has to take care of all the other work in updating avatar appearance, inventory, etc.
+        /// </remarks>
+        /// <param name="so">The scene object to detach.</param>
+        /// <param name="sp">The scene presence from which the scene object is being detached.</param>
+        private void DetachSceneObjectToGround(SceneObjectGroup so, ScenePresence sp)
+        {
+            SceneObjectPart rootPart = so.RootPart;
+
+            rootPart.FromItemID = UUID.Zero;
+            so.AbsolutePosition = sp.AbsolutePosition;
+            so.ForEachPart(part => part.AttachedAvatar = UUID.Zero);
+            rootPart.SetParentLocalId(0);
+            so.ClearPartAttachmentData();
+            rootPart.ApplyPhysics(rootPart.GetEffectiveObjectFlags(), rootPart.VolumeDetectActive, m_scene.m_physicalPrim);
+            so.HasGroupChanged = true;
+            rootPart.Rezzed = DateTime.Now;
+            rootPart.RemFlag(PrimFlags.TemporaryOnRez);
+            so.AttachToBackup();
+            m_scene.EventManager.TriggerParcelPrimCountTainted();
+            rootPart.ScheduleFullUpdate();
+            rootPart.ClearUndoState();
         }
         
         // What makes this method odd and unique is it tries to detach using an UUID....     Yay for standards.
