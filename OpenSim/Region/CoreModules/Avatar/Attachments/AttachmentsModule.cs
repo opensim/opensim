@@ -552,7 +552,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             {
                 if (!grp.HasGroupChanged)
                 {
-                    m_log.WarnFormat("[ATTACHMENTS MODULE]: Save request for {0} which is unchanged", grp.UUID);
+                    m_log.DebugFormat(
+                        "[ATTACHMENTS MODULE]: Don't need to update asset for unchanged attachment {0}, attachpoint {1}",
+                        grp.UUID, grp.GetAttachmentPoint());
+
                     return;
                 }
 
