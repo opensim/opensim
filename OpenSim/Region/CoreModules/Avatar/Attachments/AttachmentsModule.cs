@@ -560,11 +560,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     "[ATTACHMENTS MODULE]: Updating asset for attachment {0}, attachpoint {1}",
                     grp.UUID, grp.GetAttachmentPoint());
 
-                // If we're being called from a script, then trying to serialize that same script's state will not complete
-                // in any reasonable time period.  Therefore, we'll avoid it.  The worst that can happen is that if
-                // the client/server crashes rather than logging out normally, the attachment's scripts will resume
-                // without state on relog.  Arguably, this is what we want anyway.
-                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp, false);
+                string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp);
 
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
                 item = m_scene.InventoryService.GetItem(item);
