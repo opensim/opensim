@@ -146,27 +146,11 @@ namespace OpenSim.Region.Framework.Scenes
                 return true;
             return false;
         }
-        
+
         /// <summary>
         /// Is this scene object acting as an attachment?
         /// </summary>
-        /// <remarks>
-        /// We return false if the group has already been deleted.
-        ///
-        /// TODO: At the moment set must be done on the part itself.  There may be a case for doing it here since I
-        /// presume either all or no parts in a linkset can be part of an attachment (in which
-        /// case the value would get proprogated down into all the descendent parts).
-        /// </remarks>
-        public bool IsAttachment
-        {
-            get
-            {
-                if (!IsDeleted)
-                    return m_rootPart.IsAttachment;
-                
-                return false;
-            }
-        }
+        public bool IsAttachment { get; set; }
 
         /// <summary>
         /// The avatar to which this scene object is attached.
@@ -175,6 +159,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// If we're not attached to an avatar then this is UUID.Zero
         /// </remarks>
         public UUID AttachedAvatar { get; set; }
+
+        /// <summary>
+        /// Attachment point of this scene object to an avatar.
+        /// </summary>
+        /// <remarks>
+        /// 0 if we're not attached to anything
+        /// </remarks>
+        public uint AttachmentPoint;
 
         /// <summary>
         /// Is this scene object phantom?
@@ -354,11 +346,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Check both the attachment property and the relevant properties of the underlying root part.
         /// </summary>
+        /// <remarks>
         /// This is necessary in some cases, particularly when a scene object has just crossed into a region and doesn't
         /// have the IsAttachment property yet checked.
         /// 
         /// FIXME: However, this should be fixed so that this property
         /// propertly reflects the underlying status.
+        /// </remarks>
         /// <returns></returns>
         public bool IsAttachmentCheckFull()
         {
@@ -987,11 +981,11 @@ namespace OpenSim.Region.Framework.Scenes
             return m_rootPart.Shape.State;
         }
 
-        public void SetAttachmentPoint(byte point)
+        public void SetAttachmentPoint(uint point)
         {
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].SetAttachmentPoint(point);
+            AttachmentPoint = point;
+            IsAttachment = point != 0;
+            m_rootPart.Shape.State = (byte)point;
         }
 
         public void ClearPartAttachmentData()
@@ -1424,16 +1418,16 @@ namespace OpenSim.Region.Framework.Scenes
 
             // This is only necessary when userExposed is false!
 
-            bool previousAttachmentStatus = dupe.RootPart.IsAttachment;
+            bool previousAttachmentStatus = dupe.IsAttachment;
             
             if (!userExposed)
-                dupe.RootPart.IsAttachment = true;
+                dupe.IsAttachment = true;
 
             dupe.AbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
 
             if (!userExposed)
             {
-                dupe.RootPart.IsAttachment = previousAttachmentStatus;
+                dupe.IsAttachment = previousAttachmentStatus;
             }
 
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);

@@ -4756,7 +4756,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 SceneObjectPart part = (SceneObjectPart)entity;
 
-                attachPoint = part.AttachmentPoint;
+                if (part.ParentGroup != null)
+                    attachPoint = part.ParentGroup.AttachmentPoint;
+                else
+                    attachPoint = 0;
+
                 collisionPlane = Vector4.Zero;
                 position = part.RelativePosition;
                 velocity = part.Velocity;
@@ -4913,10 +4917,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //update.JointType = 0;
             update.Material = data.Material;
             update.MediaURL = Utils.EmptyBytes; // FIXME: Support this in OpenSim
-            if (data.IsAttachment)
+            if (data.ParentGroup != null && data.ParentGroup.IsAttachment)
             {
                 update.NameValue = Util.StringToBytes256("AttachItemID STRING RW SV " + data.FromItemID);
-                update.State = (byte)((data.AttachmentPoint % 16) * 16 + (data.AttachmentPoint / 16));
+                update.State = (byte)((data.ParentGroup.AttachmentPoint % 16) * 16 + (data.ParentGroup.AttachmentPoint / 16));
             }
             else
             {

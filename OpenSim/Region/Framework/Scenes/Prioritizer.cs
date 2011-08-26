@@ -122,7 +122,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (entity is SceneObjectPart)
             {
                 SceneObjectPart sop = (SceneObjectPart)entity;
-                if (sop.ParentGroup.RootPart.IsAttachment && client.AgentId == sop.ParentGroup.AttachedAvatar)
+                if (sop.ParentGroup.IsAttachment && client.AgentId == sop.ParentGroup.AttachedAvatar)
                     return 1;
             }
 
@@ -135,7 +135,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (entity is SceneObjectPart)
             {
                 SceneObjectPart sop = (SceneObjectPart)entity;
-                if (sop.ParentGroup.RootPart.IsAttachment && client.AgentId == sop.ParentGroup.AttachedAvatar)
+                if (sop.ParentGroup.IsAttachment && client.AgentId == sop.ParentGroup.AttachedAvatar)
                     return 1;
             }
 
@@ -148,7 +148,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (entity is SceneObjectPart)
             {
                 SceneObjectPart sop = (SceneObjectPart)entity;
-                if (sop.ParentGroup.RootPart.IsAttachment && client.AgentId == sop.ParentGroup.AttachedAvatar)
+                if (sop.ParentGroup.IsAttachment && client.AgentId == sop.ParentGroup.AttachedAvatar)
                     return 1;
             }
 
@@ -171,7 +171,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (entity is SceneObjectPart)
                     {
                         // Attachments are high priority, 
-                        if (((SceneObjectPart)entity).ParentGroup.RootPart.IsAttachment)
+                        if (((SceneObjectPart)entity).ParentGroup.IsAttachment)
                             return 1;
 
                         // Non physical prims are lower priority than physical prims

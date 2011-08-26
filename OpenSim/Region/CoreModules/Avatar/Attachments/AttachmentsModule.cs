@@ -369,11 +369,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             SceneObjectGroup att, ScenePresence sp, UUID itemID, uint AttachmentPt)
         {
 //            m_log.DebugFormat(
-//                "[ATTACHMENTS MODULE]: Updating inventory of {0} to show attachment of {1} (item ID {2})", 
-//                remoteClient.Name, att.Name, itemID);
+//                "[ATTACHMENTS MODULE]: Updating inventory of {0} to show attachment of {1} {2} (item ID {3}) at {4}",
+//                sp.Name, att.Name, att.LocalId, itemID, AttachmentPt);
             
             if (!att.IsDeleted)
-                AttachmentPt = att.RootPart.AttachmentPoint;
+                AttachmentPt = att.AttachmentPoint;
 
             InventoryItemBase item = new InventoryItemBase(itemID, sp.UUID);
             item = m_scene.InventoryService.GetItem(item);
@@ -547,7 +547,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         );
 
                         group.RootPart.SetParentLocalId(0);
-                        group.RootPart.IsAttachment = false;
+                        group.IsAttachment = false;
                         group.AbsolutePosition = group.RootPart.AttachedPos;
 
                         UpdateKnownItem(sp.ControllingClient, group, group.GetFromItemID(), group.OwnerID);
@@ -569,7 +569,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             // Finally, we restore the object's attachment status.
             byte attachmentPoint = sog.GetAttachmentPoint();
             sog.UpdateGroupPosition(pos);
-            sog.RootPart.IsAttachment = false;
+            sog.IsAttachment = false;
             sog.AbsolutePosition = sog.RootPart.AttachedPos;
             sog.SetAttachmentPoint(attachmentPoint);                                       
             sog.HasGroupChanged = true;            
@@ -666,8 +666,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             so.AbsolutePosition = attachOffset;
             so.RootPart.AttachedPos = attachOffset;
-            so.RootPart.IsAttachment = true;
-
+            so.IsAttachment = true;
             so.RootPart.SetParentLocalId(avatar.LocalId);
             so.SetAttachmentPoint(Convert.ToByte(attachmentpoint));
 

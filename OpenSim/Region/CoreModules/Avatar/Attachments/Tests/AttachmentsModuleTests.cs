@@ -110,6 +110,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(attachments.Count, Is.EqualTo(1));
             SceneObjectGroup attSo = attachments[0];
             Assert.That(attSo.Name, Is.EqualTo(attName));
+            Assert.That(attSo.AttachmentPoint, Is.EqualTo((byte)AttachmentPoint.Chest));
             Assert.That(attSo.GetAttachmentPoint(), Is.EqualTo((byte)AttachmentPoint.Chest));
             Assert.That(attSo.IsAttachment);
             Assert.That(attSo.UsesPhysics, Is.False);
@@ -132,9 +133,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             UUID attAssetId = TestHelpers.ParseTail(0x3);
             string attName = "att";
 
-            InventoryItemBase attItem
-                = UserInventoryHelpers.CreateInventoryItem(
-                    scene, attName, attItemId, attAssetId, m_presence.UUID, InventoryType.Object);
+            UserInventoryHelpers.CreateInventoryItem(
+                scene, attName, attItemId, attAssetId, m_presence.UUID, InventoryType.Object);
 
             m_attMod.RezSingleAttachmentFromInventory(
                 m_presence.ControllingClient, attItemId, (uint)AttachmentPoint.Chest);
@@ -145,6 +145,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(attachments.Count, Is.EqualTo(1));
             SceneObjectGroup attSo = attachments[0];
             Assert.That(attSo.Name, Is.EqualTo(attName));
+            Assert.That(attSo.AttachmentPoint, Is.EqualTo((byte)AttachmentPoint.Chest));
             Assert.That(attSo.GetAttachmentPoint(), Is.EqualTo((byte)AttachmentPoint.Chest));
             Assert.That(attSo.IsAttachment);
             Assert.That(attSo.UsesPhysics, Is.False);
@@ -166,9 +167,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             UUID attAssetId = TestHelpers.ParseTail(0x3);
             string attName = "att";
 
-            InventoryItemBase attItem
-                = UserInventoryHelpers.CreateInventoryItem(
-                    scene, attName, attItemId, attAssetId, m_presence.UUID, InventoryType.Object);
+            UserInventoryHelpers.CreateInventoryItem(
+                scene, attName, attItemId, attAssetId, m_presence.UUID, InventoryType.Object);
 
             UUID attSoId = m_attMod.RezSingleAttachmentFromInventory(
                 m_presence.ControllingClient, attItemId, (uint)AttachmentPoint.Chest);
@@ -198,9 +198,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             UUID attAssetId = TestHelpers.ParseTail(0x3);
             string attName = "att";
 
-            InventoryItemBase attItem
-                = UserInventoryHelpers.CreateInventoryItem(
-                    scene, attName, attItemId, attAssetId, m_presence.UUID, InventoryType.Object);
+            UserInventoryHelpers.CreateInventoryItem(
+                scene, attName, attItemId, attAssetId, m_presence.UUID, InventoryType.Object);
 
             m_attMod.RezSingleAttachmentFromInventory(
                 m_presence.ControllingClient, attItemId, (uint)AttachmentPoint.Chest);
@@ -242,6 +241,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(attachments.Count, Is.EqualTo(1));
             SceneObjectGroup attSo = attachments[0];
             Assert.That(attSo.Name, Is.EqualTo(attName));
+            Assert.That(attSo.AttachmentPoint, Is.EqualTo((byte)AttachmentPoint.Chest));
             Assert.That(attSo.GetAttachmentPoint(), Is.EqualTo((byte)AttachmentPoint.Chest));
             Assert.That(attSo.IsAttachment);
             Assert.That(attSo.UsesPhysics, Is.False);

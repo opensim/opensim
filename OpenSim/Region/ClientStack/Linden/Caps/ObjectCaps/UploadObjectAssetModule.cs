@@ -330,7 +330,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 grp.AbsolutePosition = obj.Position;
                 prim.RotationOffset = obj.Rotation;
                 
-                grp.RootPart.IsAttachment = false;
+                grp.IsAttachment = false;
                 // Required for linking
                 grp.RootPart.UpdateFlag = 0;
                 

@@ -213,18 +213,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_fromUserInventoryItemID; }
         }
-
         
-        public bool IsAttachment;
-
         
         public scriptEvents AggregateScriptEvents;
 
         
         public Vector3 AttachedPos;
-
-        
-        public uint AttachmentPoint;
 
         
         public Vector3 RotationAxis = Vector3.One;
@@ -723,7 +717,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_groupPosition = actor.Position;
                 }
 
-                if (IsAttachment)
+                if (m_parentGroup.IsAttachment)
                 {
                     ScenePresence sp = m_parentGroup.Scene.GetScenePresence(ParentGroup.AttachedAvatar);
                     if (sp != null)
@@ -807,7 +801,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (IsRoot)
                 {
-                    if (IsAttachment)
+                    if (m_parentGroup.IsAttachment)
                         return AttachedPos;
                     else
                         return AbsolutePosition;
@@ -1090,7 +1084,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (IsAttachment)
+                if (m_parentGroup.IsAttachment)
                     return GroupPosition;
 
                 return m_offsetPosition + m_groupPosition;
@@ -1588,7 +1582,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // The only time the physics scene shouldn't know about the prim is if it's phantom or an attachment, which is phantom by definition
                 // or flexible
-                if (!isPhantom && !IsAttachment && !(Shape.PathCurve == (byte) Extrusion.Flexible))
+                if (!isPhantom && !m_parentGroup.IsAttachment && !(Shape.PathCurve == (byte) Extrusion.Flexible))
                 {
                     try
                     {
@@ -2880,7 +2874,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void rotLookAt(Quaternion target, float strength, float damping)
         {
-            if (IsAttachment)
+            if (m_parentGroup.IsAttachment)
             {
                 /*
                     ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
@@ -3014,7 +3008,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             if (IsRoot)
             {
-                if (IsAttachment)
+                if (m_parentGroup.IsAttachment)
                 {
                     SendFullUpdateToClient(remoteClient, AttachedPos, clientFlags);
                 }
@@ -3076,7 +3070,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // Suppress full updates during attachment editing
             //
-            if (ParentGroup.IsSelected && IsAttachment)
+            if (ParentGroup.IsSelected && ParentGroup.IsAttachment)
                 return;
             
             if (ParentGroup.IsDeleted)
@@ -3252,26 +3246,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SendTerseUpdateToClient(avatar.ControllingClient);
             });
-        }
-
-        public void SetAttachmentPoint(uint AttachmentPoint)
-        {
-            this.AttachmentPoint = AttachmentPoint;
-
-            if (AttachmentPoint != 0)
-            {
-                IsAttachment = true;
-            }
-            else
-            {
-                IsAttachment = false;
-            }
-
-            // save the attachment point.
-            //if (AttachmentPoint != 0)
-            //{
-                m_shape.State = (byte)AttachmentPoint;
-            //}
         }
 
         public void SetAxisRotation(int axis, int rotate)
@@ -4497,7 +4471,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (SetPhantom || IsAttachment || (Shape.PathCurve == (byte)Extrusion.Flexible)) // note: this may have been changed above in the case of joints
+            if (SetPhantom
+                || ParentGroup.IsAttachment
+                || (Shape.PathCurve == (byte)Extrusion.Flexible)) // note: this may have been changed above in the case of joints
             {
                 AddFlag(PrimFlags.Phantom);
                 if (PhysActor != null)
@@ -4928,7 +4904,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (ParentGroup == null || ParentGroup.IsDeleted)
                 return;
 
-            if (IsAttachment && ParentGroup.RootPart != this)
+            if (ParentGroup.IsAttachment && ParentGroup.RootPart != this)
                 return;
             
             // Causes this thread to dig into the Client Thread Data.

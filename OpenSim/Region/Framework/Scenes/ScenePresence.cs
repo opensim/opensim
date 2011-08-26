@@ -3178,7 +3178,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ISceneObject clone = sog.CloneForNewScene();
                     // Attachment module assumes that GroupPosition holds the offsets...!
                     ((SceneObjectGroup)clone).RootPart.GroupPosition = sog.RootPart.AttachedPos;
-                    ((SceneObjectGroup)clone).RootPart.IsAttachment = false;
+                    ((SceneObjectGroup)clone).IsAttachment = false;
                     cAgent.AttachmentObjects.Add(clone);
                     string state = sog.GetStateSnapshot();
                     cAgent.AttachmentObjectStates.Add(state);
@@ -3477,7 +3477,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (SceneObjectGroup so in m_attachments)
                 {
-                    if (attachmentPoint == so.RootPart.AttachmentPoint)
+                    if (attachmentPoint == so.AttachmentPoint)
                         attachments.Add(so);
                 }
             }
@@ -3869,12 +3869,12 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (grp.HasGroupChanged) // Resizer scripts?
                     {
-                        grp.RootPart.IsAttachment = false;
+                        grp.IsAttachment = false;
                         grp.AbsolutePosition = grp.RootPart.AttachedPos;
 //                        grp.DetachToInventoryPrep();
                         attachmentsModule.UpdateKnownItem(ControllingClient,
                                 grp, grp.GetFromItemID(), grp.OwnerID);
-                        grp.RootPart.IsAttachment = true;
+                        grp.IsAttachment = true;
                     }
                 }
             }

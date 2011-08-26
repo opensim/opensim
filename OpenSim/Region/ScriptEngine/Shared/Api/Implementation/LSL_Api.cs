@@ -1965,7 +1965,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (part.ParentGroup.RootPart == part)
             {
-                if ((targetPos.z < ground) && disable_underground_movement && m_host.AttachmentPoint == 0)
+                if ((targetPos.z < ground) && disable_underground_movement && m_host.ParentGroup.AttachmentPoint == 0)
                     targetPos.z = ground;
                 SceneObjectGroup parent = part.ParentGroup;
                 LSL_Vector real_vec = SetPosAdjust(currentPos, targetPos);
@@ -2097,7 +2097,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Quaternion q;
             if (part.LinkNum == 0 || part.LinkNum == 1) // unlinked or root prim
             {
-                if (part.ParentGroup.RootPart.AttachmentPoint != 0)
+                if (part.ParentGroup.AttachmentPoint != 0)
                 {
                     ScenePresence avatar = World.GetScenePresence(part.ParentGroup.AttachedAvatar);
                     if (avatar != null)
@@ -2241,7 +2241,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             Vector3 vel;
 
-            if (m_host.IsAttachment)
+            if (m_host.ParentGroup.IsAttachment)
             {
                 ScenePresence avatar = m_host.ParentGroup.Scene.GetScenePresence(m_host.ParentGroup.AttachedAvatar);
                 vel = avatar.Velocity;
@@ -2997,7 +2997,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (m_host.ParentGroup.RootPart.AttachmentPoint == 0)
+            if (m_host.ParentGroup.AttachmentPoint == 0)
                 return;
 
             TaskInventoryItem item;
@@ -3587,7 +3587,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             SceneObjectPart targetPart = World.GetSceneObjectPart((UUID)targetID);
 
-            if (targetPart.ParentGroup.RootPart.AttachmentPoint != 0)
+            if (targetPart.ParentGroup.AttachmentPoint != 0)
                 return; // Fail silently if attached
             SceneObjectGroup parentPrim = null, childPrim = null;
 
@@ -3640,7 +3640,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             SceneObjectGroup parentPrim = m_host.ParentGroup;
 
-            if (parentPrim.RootPart.AttachmentPoint != 0)
+            if (parentPrim.AttachmentPoint != 0)
                 return; // Fail silently if attached
             SceneObjectPart childPrim = null;
 
@@ -3710,7 +3710,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             SceneObjectGroup parentPrim = m_host.ParentGroup;
-            if (parentPrim.RootPart.AttachmentPoint != 0)
+            if (parentPrim.AttachmentPoint != 0)
                 return; // Fail silently if attached
 
             List<SceneObjectPart> parts = new List<SceneObjectPart>(parentPrim.Parts);
@@ -4349,7 +4349,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 // Object not pushable.  Not an attachment and has no physics component
-                if (!pusheeob.IsAttachment && pusheeob.PhysActor == null)
+                if (!pusheeob.ParentGroup.IsAttachment && pusheeob.PhysActor == null)
                     return;
 
                 PusheePos = pusheeob.AbsolutePosition;
@@ -5857,7 +5857,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetAttached()
         {
             m_host.AddScriptLPS(1);
-            return m_host.ParentGroup.RootPart.AttachmentPoint;
+            return m_host.ParentGroup.AttachmentPoint;
         }
 
         public LSL_Integer llGetFreeMemory()
@@ -7458,7 +7458,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             Quaternion q;
-            if (m_host.ParentGroup.RootPart.AttachmentPoint != 0)
+            if (m_host.ParentGroup.AttachmentPoint != 0)
             {
                 ScenePresence avatar = World.GetScenePresence(m_host.ParentGroup.AttachedAvatar);
                 if (avatar != null)

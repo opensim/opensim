@@ -120,8 +120,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // We deal with the possibility that two updates occur at
                         // the same unix time at the update point itself.
 
-                        if ((update.LastFullUpdateTime < part.TimeStampFull) ||
-                                part.IsAttachment)
+                        if ((update.LastFullUpdateTime < part.TimeStampFull) || part.ParentGroup.IsAttachment)
                         {
     //                            m_log.DebugFormat(
     //                                "[SCENE PRESENCE]: Fully   updating prim {0}, {1} - part timestamp {2}",
