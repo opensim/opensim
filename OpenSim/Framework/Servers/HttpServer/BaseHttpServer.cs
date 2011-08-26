@@ -56,7 +56,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         private volatile int NotSocketErrors = 0;
         public volatile bool HTTPDRunning = false;
 
-        protected Thread m_workerThread;
         // protected HttpListener m_httpListener;
         protected CoolHTTPListener m_httpListener2;
         protected Dictionary<string, XmlRpcMethod> m_rpcHandlers        = new Dictionary<string, XmlRpcMethod>();
@@ -66,7 +65,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected Dictionary<string, IRequestHandler> m_streamHandlers  = new Dictionary<string, IRequestHandler>();
         protected Dictionary<string, GenericHTTPMethod> m_HTTPHandlers  = new Dictionary<string, GenericHTTPMethod>();
         protected Dictionary<string, IHttpAgentHandler> m_agentHandlers = new Dictionary<string, IHttpAgentHandler>();
-
         protected Dictionary<string, PollServiceEventArgs> m_pollHandlers =
             new Dictionary<string, PollServiceEventArgs>();
 
@@ -155,7 +153,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string>  GetStreamHandlerKeys()
         {
-            return new List<string>(m_streamHandlers.Keys);
+            lock (m_streamHandlers)
+                return new List<string>(m_streamHandlers.Keys);
         }
 
         private static string GetHandlerKey(string httpMethod, string path)
@@ -196,7 +195,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string> GetXmlRpcHandlerKeys()
         {
-            return new List<string>(m_rpcHandlers.Keys);
+            lock (m_rpcHandlers)
+                return new List<string>(m_rpcHandlers.Keys);
         }
 
         public bool AddHTTPHandler(string methodName, GenericHTTPMethod handler)
@@ -218,9 +218,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string> GetHTTPHandlerKeys()
         {
-            return new List<string>(m_HTTPHandlers.Keys);
+            lock (m_HTTPHandlers)
+                return new List<string>(m_HTTPHandlers.Keys);
         }
-
 
         public bool AddPollServiceHTTPHandler(string methodName, GenericHTTPMethod handler, PollServiceEventArgs args)
         {
@@ -242,9 +242,9 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string> GetPollServiceHandlerKeys()
         {
-            return new List<string>(m_pollHandlers.Keys);
+            lock (m_pollHandlers)
+                return new List<string>(m_pollHandlers.Keys);
         }
-
 
         // Note that the agent string is provided simply to differentiate
         // the handlers - it is NOT required to be an actual agent header
@@ -266,7 +266,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string> GetAgentHandlerKeys()
         {
-            return new List<string>(m_agentHandlers.Keys);
+            lock (m_agentHandlers)
+                return new List<string>(m_agentHandlers.Keys);
         }
 
         public bool AddLLSDHandler(string path, LLSDMethod handler)
@@ -284,7 +285,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string> GetLLSDHandlerKeys()
         {
-            return new List<string>(m_llsdHandlers.Keys);
+            lock (m_llsdHandlers)
+                return new List<string>(m_llsdHandlers.Keys);
         }
 
         public bool SetDefaultLLSDHandler(DefaultLLSDMethod handler)
@@ -404,14 +406,14 @@ namespace OpenSim.Framework.Servers.HttpServer
             string requestMethod = request.HttpMethod;
             string uriString = request.RawUrl;
 
-            string reqnum = "unknown";
+//            string reqnum = "unknown";
             int tickstart = Environment.TickCount;
 
             try
             {
                 // OpenSim.Framework.WebUtil.OSHeaderRequestID
-                if (request.Headers["opensim-request-id"] != null)
-                    reqnum = String.Format("{0}:{1}",request.RemoteIPEndPoint,request.Headers["opensim-request-id"]);
+//                if (request.Headers["opensim-request-id"] != null)
+//                    reqnum = String.Format("{0}:{1}",request.RemoteIPEndPoint,request.Headers["opensim-request-id"]);
                  //m_log.DebugFormat("[BASE HTTP SERVER]: <{0}> handle request for {1}",reqnum,request.RawUrl);
 
                 Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US", true);
@@ -746,7 +748,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         private bool TryGetAgentHandler(OSHttpRequest request, OSHttpResponse response, out IHttpAgentHandler agentHandler)
         {
             agentHandler = null;
-            try
+            
+            lock (m_agentHandlers)
             {
                 foreach (IHttpAgentHandler handler in m_agentHandlers.Values)
                 {
@@ -756,9 +759,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                         return true;
                     }
                 }
-            }
-            catch(KeyNotFoundException)
-            {
             }
 
             return false;
@@ -803,9 +803,12 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                     XmlRpcMethod method;
                     bool methodWasFound;
+                    bool keepAlive = false;
                     lock (m_rpcHandlers)
                     {
                         methodWasFound = m_rpcHandlers.TryGetValue(methodName, out method);
+                        if (methodWasFound)
+                            keepAlive = m_rpcHandlersKeepAlive[methodName];
                     }
 
                     if (methodWasFound)
@@ -823,7 +826,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                             }
                         }
                         xmlRprcRequest.Params.Add(request.Headers.Get(xff)); // Param[3]
-
 
                         try
                         {
@@ -846,7 +848,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         }
 
                         // if the method wasn't found, we can't determine KeepAlive state anyway, so lets do it only here
-                        response.KeepAlive = m_rpcHandlersKeepAlive[methodName];
+                        response.KeepAlive = keepAlive;
                     }
                     else
                     {
@@ -1106,7 +1108,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <returns>true if we have one, false if not</returns>
         private bool DoWeHaveALLSDHandler(string path)
         {
-
             string[] pathbase = path.Split('/');
             string searchquery = "/";
 
@@ -1122,14 +1123,12 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             string bestMatch = null;
 
-            foreach (string pattern in m_llsdHandlers.Keys)
+            lock (m_llsdHandlers)
             {
-
-                if (searchquery.StartsWith(pattern) && searchquery.Length >= pattern.Length)
+                foreach (string pattern in m_llsdHandlers.Keys)
                 {
-
+                    if (searchquery.StartsWith(pattern) && searchquery.Length >= pattern.Length)
                         bestMatch = pattern;
-
                 }
             }
 
@@ -1142,12 +1141,10 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             if (String.IsNullOrEmpty(bestMatch))
             {
-
                 return false;
             }
             else
             {
-
                 return true;
             }
         }
@@ -1232,29 +1229,32 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             string bestMatch = null;
 
-            foreach (string pattern in m_llsdHandlers.Keys)
+            lock (m_llsdHandlers)
             {
-                if (searchquery.ToLower().StartsWith(pattern.ToLower()))
+                foreach (string pattern in m_llsdHandlers.Keys)
                 {
-                    if (String.IsNullOrEmpty(bestMatch) || searchquery.Length > bestMatch.Length)
+                    if (searchquery.ToLower().StartsWith(pattern.ToLower()))
                     {
-                        // You have to specifically register for '/' and to get it, you must specificaly request it
-                        //
-                        if (pattern == "/" && searchquery == "/" || pattern != "/")
-                            bestMatch = pattern;
+                        if (String.IsNullOrEmpty(bestMatch) || searchquery.Length > bestMatch.Length)
+                        {
+                            // You have to specifically register for '/' and to get it, you must specificaly request it
+                            //
+                            if (pattern == "/" && searchquery == "/" || pattern != "/")
+                                bestMatch = pattern;
+                        }
                     }
                 }
-            }
-
-            if (String.IsNullOrEmpty(bestMatch))
-            {
-                llsdHandler = null;
-                return false;
-            }
-            else
-            {
-                llsdHandler = m_llsdHandlers[bestMatch];
-                return true;
+    
+                if (String.IsNullOrEmpty(bestMatch))
+                {
+                    llsdHandler = null;
+                    return false;
+                }
+                else
+                {
+                    llsdHandler = m_llsdHandlers[bestMatch];
+                    return true;
+                }
             }
         }
 
@@ -1793,7 +1793,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             //m_log.DebugFormat("[BASE HTTP SERVER]: Removing handler key {0}", handlerKey);
 
-            lock (m_streamHandlers) m_streamHandlers.Remove(handlerKey);
+            lock (m_streamHandlers)
+                m_streamHandlers.Remove(handlerKey);
         }
 
         public void RemoveHTTPHandler(string httpMethod, string path)
@@ -1825,16 +1826,15 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public bool RemoveAgentHandler(string agent, IHttpAgentHandler handler)
         {
-            try
+            lock (m_agentHandlers)
             {
-                if (handler == m_agentHandlers[agent])
+                IHttpAgentHandler foundHandler;
+
+                if (m_agentHandlers.TryGetValue(agent, out foundHandler) && foundHandler == handler)
                 {
                     m_agentHandlers.Remove(agent);
                     return true;
                 }
-            }
-            catch(KeyNotFoundException)
-            {
             }
 
             return false;
@@ -1853,17 +1853,15 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public bool RemoveLLSDHandler(string path, LLSDMethod handler)
         {
-            try
+            lock (m_llsdHandlers)
             {
-                if (handler == m_llsdHandlers[path])
+                LLSDMethod foundHandler;
+
+                if (m_llsdHandlers.TryGetValue(path, out foundHandler) && foundHandler == handler)
                 {
                     m_llsdHandlers.Remove(path);
                     return true;
                 }
-            }
-            catch (KeyNotFoundException)
-            {
-                // This is an exception to prevent crashing because of invalid code
             }
 
             return false;

@@ -47,13 +47,11 @@ namespace OpenSim.Region.Framework.Interfaces
             IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, bool silent);
 
         /// <summary>
-        /// Attach an object to an avatar.
+        /// Attach an object to an avatar
         /// </summary>
-        /// <param name="controllingClient"></param>
-        /// <param name="localID"></param>
-        /// <param name="attachPoint"></param>
-        /// <param name="rot"></param>
-        /// <param name="attachPos"></param>
+        /// <param name="remoteClient"></param>
+        /// <param name="grp"></param>
+        /// <param name="AttachmentPt"></param>
         /// <param name="silent"></param>
         /// <returns>true if the object was successfully attached, false otherwise</returns>
         bool AttachObject(
@@ -107,16 +105,16 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Detach the given item to the ground.
         /// </summary>
-        /// <param name="itemID"></param>
+        /// <param name="sceneObjectID"></param>
         /// <param name="remoteClient"></param>
-        void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient);
+        void DetachSingleAttachmentToGround(UUID sceneObjectID, IClientAPI remoteClient);
 
         /// <summary>
-        /// Update the user inventory to show a detach.
+        /// Detach the given item so that it remains in the user's inventory.
         /// </summary>
         /// <param name="itemID">/param>
         /// <param name="remoteClient"></param>
-        void ShowDetachInUserInventory(UUID itemID, IClientAPI remoteClient);
+        void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient);
         
         /// <summary>
         /// Update the position of an attachment.
@@ -128,18 +126,10 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Update the user inventory with a changed attachment
         /// </summary>
-        /// <param name="remoteClient">
-        /// A <see cref="IClientAPI"/>
-        /// </param>
-        /// <param name="grp">
-        /// A <see cref="SceneObjectGroup"/>
-        /// </param>
-        /// <param name="itemID">
-        /// A <see cref="UUID"/>
-        /// </param>
-        /// <param name="agentID">
-        /// A <see cref="UUID"/>
-        /// </param>
+        /// <param name="remoteClient"></param>
+        /// <param name="grp"></param>
+        /// <param name="itemID"></param>
+        /// <param name="agentID"></param>
         void UpdateKnownItem(IClientAPI remoteClient, SceneObjectGroup grp, UUID itemID, UUID agentID);
     }
 }

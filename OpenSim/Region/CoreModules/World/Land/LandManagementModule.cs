@@ -743,7 +743,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 // Corner case. If an autoreturn happens during sim startup
                 // we will come here with the list uninitialized
                 //
-                int landId = m_landIDList[x, y];
+//                int landId = m_landIDList[x, y];
                 
 //                if (landId == 0)
 //                    m_log.DebugFormat(

@@ -282,6 +282,90 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             }
         }
 
+        /// <summary>
+        /// Delivers the message to.
+        /// </summary>
+        /// <param name='target'>
+        /// Target.
+        /// </param>
+        /// <param name='channel'>
+        /// Channel.
+        /// </param>
+        /// <param name='name'>
+        /// Name.
+        /// </param>
+        /// <param name='id'>
+        /// Identifier.
+        /// </param>
+        /// <param name='msg'>
+        /// Message.
+        /// </param>
+        public bool DeliverMessageTo(UUID target, int channel, Vector3 pos, string name, UUID id, string msg, out string error)
+        {
+            error = null;
+            // Is id an avatar?
+            ScenePresence sp = m_scene.GetScenePresence(target);
+
+            if (sp != null)
+            {
+                // Send message to avatar
+                if (channel == 0)
+                {
+                    m_scene.SimChatBroadcast(Utils.StringToBytes(msg), ChatTypeEnum.Owner, 0, pos, name, id, false);
+                }
+
+                List<SceneObjectGroup> attachments = sp.Attachments;
+                // Nothing left to do
+                if (attachments == null)
+                    return true;
+
+                // Get uuid of attachments
+                List<UUID> targets = new List<UUID>();
+                foreach ( SceneObjectGroup sog in attachments )
+                {
+                    targets.Add(sog.UUID);
+                }
+                // Need to check each attachment
+                foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
+                {
+                    if (li.GetHostID().Equals(id))
+                        continue;
+
+                    if (m_scene.GetSceneObjectPart(li.GetHostID()) == null)
+                        continue;
+
+                    if ( targets.Contains(li.GetHostID()))
+                        QueueMessage(new ListenerInfo(li, name, id, msg));
+                }
+                return true;
+            }
+
+            // Need to toss an error here
+            if (channel == 0)
+            {
+                error = "Cannot use llRegionSayTo to message objects on channel 0";
+                return false;
+            }
+
+            foreach (ListenerInfo li in m_listenerManager.GetListeners(UUID.Zero, channel, name, id, msg))
+            {
+                // Dont process if this message is from yourself!
+                if (li.GetHostID().Equals(id))
+                    continue;
+
+                SceneObjectPart sPart = m_scene.GetSceneObjectPart(li.GetHostID());
+                if (sPart == null)
+                    continue;
+
+                if ( li.GetHostID().Equals(target))
+                {
+                    QueueMessage(new ListenerInfo(li, name, id, msg));
+                    break;
+                }
+            }
+            return true;
+        }
+
         protected void QueueMessage(ListenerInfo li)
         {
             lock (m_pending.SyncRoot)

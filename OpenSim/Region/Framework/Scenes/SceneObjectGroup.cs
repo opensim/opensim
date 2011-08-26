@@ -147,15 +147,16 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
         
-        /// <value>
+        /// <summary>
         /// Is this scene object acting as an attachment?
-        /// 
+        /// </summary>
+        /// <remarks>
         /// We return false if the group has already been deleted.
         ///
         /// TODO: At the moment set must be done on the part itself.  There may be a case for doing it here since I
         /// presume either all or no parts in a linkset can be part of an attachment (in which
         /// case the value would get proprogated down into all the descendent parts).
-        /// </value>
+        /// </remarks>
         public bool IsAttachment
         {
             get
@@ -165,6 +166,52 @@ namespace OpenSim.Region.Framework.Scenes
                 
                 return false;
             }
+        }
+
+        /// <summary>
+        /// The avatar to which this scene object is attached.
+        /// </summary>
+        /// <remarks>
+        /// If we're not attached to an avatar then this is UUID.Zero
+        /// </remarks>
+        public UUID AttachedAvatar { get; set; }
+
+        /// <summary>
+        /// Is this scene object phantom?
+        /// </summary>
+        /// <remarks>
+        /// Updating must currently take place through UpdatePrimFlags()
+        /// </remarks>
+        public bool IsPhantom
+        {
+            get { return (RootPart.Flags & PrimFlags.Phantom) != 0; }
+        }
+
+        /// <summary>
+        /// Does this scene object use physics?
+        /// </summary>
+        /// <remarks>
+        /// Updating must currently take place through UpdatePrimFlags()
+        /// </remarks>
+        public bool UsesPhysics
+        {
+            get { return (RootPart.Flags & PrimFlags.TemporaryOnRez) != 0; }
+        }
+
+        /// <summary>
+        /// Is this scene object temporary?
+        /// </summary>
+        /// <remarks>
+        /// Updating must currently take place through UpdatePrimFlags()
+        /// </remarks>
+        public bool IsTemporary
+        {
+            get { return (RootPart.Flags & PrimFlags.TemporaryOnRez) != 0; }
+        }
+
+        public bool IsVolumeDetect
+        {
+            get { return RootPart.VolumeDetectActive; }
         }
 
         public float scriptScore;
@@ -940,68 +987,16 @@ namespace OpenSim.Region.Framework.Scenes
             return m_rootPart.Shape.State;
         }
 
+        public void SetAttachmentPoint(byte point)
+        {
+            SceneObjectPart[] parts = m_parts.GetArray();
+            for (int i = 0; i < parts.Length; i++)
+                parts[i].SetAttachmentPoint(point);
+        }
+
         public void ClearPartAttachmentData()
         {
             SetAttachmentPoint((Byte)0);
-        }
-
-        public void DetachToGround()
-        {
-            ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.AttachedAvatar);
-            if (avatar == null)
-                return;
-
-            avatar.RemoveAttachment(this);
-
-            Vector3 detachedpos = new Vector3(127f,127f,127f);
-            if (avatar == null)
-                return;
-
-            detachedpos = avatar.AbsolutePosition;
-            RootPart.FromItemID = UUID.Zero;
-
-            AbsolutePosition = detachedpos;
-            m_rootPart.AttachedAvatar = UUID.Zero;
-
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].AttachedAvatar = UUID.Zero;
-
-            m_rootPart.SetParentLocalId(0);
-            SetAttachmentPoint((byte)0);
-            m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_rootPart.VolumeDetectActive, m_scene.m_physicalPrim);
-            HasGroupChanged = true;
-            RootPart.Rezzed = DateTime.Now;
-            RootPart.RemFlag(PrimFlags.TemporaryOnRez);
-            AttachToBackup();
-            m_scene.EventManager.TriggerParcelPrimCountTainted();
-            m_rootPart.ScheduleFullUpdate();
-            m_rootPart.ClearUndoState();
-        }
-
-        public void DetachToInventoryPrep()
-        {
-            ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.AttachedAvatar);
-            //Vector3 detachedpos = new Vector3(127f, 127f, 127f);
-            if (avatar != null)
-            {
-                //detachedpos = avatar.AbsolutePosition;
-                avatar.RemoveAttachment(this);
-            }
-
-            m_rootPart.AttachedAvatar = UUID.Zero;
-
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].AttachedAvatar = UUID.Zero;
-
-            m_rootPart.SetParentLocalId(0);
-            //m_rootPart.SetAttachmentPoint((byte)0);
-            m_rootPart.IsAttachment = false;
-            AbsolutePosition = m_rootPart.AttachedPos;
-            //m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_scene.m_physicalPrim);
-            //AttachToBackup();
-            //m_rootPart.ScheduleFullUpdate();
         }
 
         /// <summary>
@@ -1510,36 +1505,24 @@ namespace OpenSim.Region.Framework.Scenes
             SetRootPart(part.Copy(m_scene.AllocateLocalId(), OwnerID, GroupID, 0, userExposed));
         }
 
-        public void ScriptSetPhysicsStatus(bool UsePhysics)
+        public void ScriptSetPhysicsStatus(bool usePhysics)
         {
-            bool IsTemporary = ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0);
-            bool IsPhantom = ((RootPart.Flags & PrimFlags.Phantom) != 0);
-            bool IsVolumeDetect = RootPart.VolumeDetectActive;
-            UpdatePrimFlags(RootPart.LocalId, UsePhysics, IsTemporary, IsPhantom, IsVolumeDetect);
+            UpdatePrimFlags(RootPart.LocalId, usePhysics, IsTemporary, IsPhantom, IsVolumeDetect);
         }
 
-        public void ScriptSetTemporaryStatus(bool TemporaryStatus)
+        public void ScriptSetTemporaryStatus(bool makeTemporary)
         {
-            bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
-            bool IsPhantom = ((RootPart.Flags & PrimFlags.Phantom) != 0);
-            bool IsVolumeDetect = RootPart.VolumeDetectActive;
-            UpdatePrimFlags(RootPart.LocalId, UsePhysics, TemporaryStatus, IsPhantom, IsVolumeDetect);
+            UpdatePrimFlags(RootPart.LocalId, UsesPhysics, makeTemporary, IsPhantom, IsVolumeDetect);
         }
 
-        public void ScriptSetPhantomStatus(bool PhantomStatus)
+        public void ScriptSetPhantomStatus(bool makePhantom)
         {
-            bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
-            bool IsTemporary = ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0);
-            bool IsVolumeDetect = RootPart.VolumeDetectActive;
-            UpdatePrimFlags(RootPart.LocalId, UsePhysics, IsTemporary, PhantomStatus, IsVolumeDetect);
+            UpdatePrimFlags(RootPart.LocalId, UsesPhysics, IsTemporary, makePhantom, IsVolumeDetect);
         }
 
-        public void ScriptSetVolumeDetect(bool VDStatus)
+        public void ScriptSetVolumeDetect(bool makeVolumeDetect)
         {
-            bool UsePhysics = ((RootPart.Flags & PrimFlags.Physics) != 0);
-            bool IsTemporary = ((RootPart.Flags & PrimFlags.TemporaryOnRez) != 0);
-            bool IsPhantom = ((RootPart.Flags & PrimFlags.Phantom) != 0);
-            UpdatePrimFlags(RootPart.LocalId, UsePhysics, IsTemporary, IsPhantom, VDStatus);
+            UpdatePrimFlags(RootPart.LocalId, UsesPhysics, IsTemporary, IsPhantom, makeVolumeDetect);
 
             /*
             ScriptSetPhantomStatus(false);  // What ever it was before, now it's not phantom anymore
@@ -1565,7 +1548,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (IsAttachment)
                 {
-                    ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
+                    ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
                     if (avatar != null)
                     {
                         avatar.PushForce(impulse);
@@ -1647,7 +1630,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (IsAttachment)
                 {
-                    ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
+                    ScenePresence avatar = m_scene.GetScenePresence(AttachedAvatar);
                     if (avatar != null)
                     {
                         avatar.MoveToTarget(target, false);
@@ -1806,7 +1789,7 @@ namespace OpenSim.Region.Framework.Scenes
             // an object has been deleted from a scene before update was processed.
             // A more fundamental overhaul of the update mechanism is required to eliminate all
             // the race conditions.
-            if (m_isDeleted)
+            if (IsDeleted)
                 return;
 
             // Even temporary objects take part in physics (e.g. temp-on-rez bullets)
@@ -2116,7 +2099,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_scene.UnlinkSceneObject(objectGroup, true);
-            objectGroup.m_isDeleted = true;
+            objectGroup.IsDeleted = true;
 
             objectGroup.m_parts.Clear();
             
@@ -3347,19 +3330,12 @@ namespace OpenSim.Region.Framework.Scenes
             return String.Format("{0} {1} ({2})", Name, UUID, AbsolutePosition);
         }
 
-        public void SetAttachmentPoint(byte point)
-        {
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].SetAttachmentPoint(point);
-        }
-
         #region ISceneObject
         
         public virtual ISceneObject CloneForNewScene()
         {
             SceneObjectGroup sog = Copy(false);
-            sog.m_isDeleted = false;
+            sog.IsDeleted = false;
             return sog;
         }
 

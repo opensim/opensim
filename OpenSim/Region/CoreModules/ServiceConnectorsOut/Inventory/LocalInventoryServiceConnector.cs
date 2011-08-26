@@ -280,7 +280,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
 //            m_log.DebugFormat("[LOCAL INVENTORY SERVICES CONNECTOR]: Requesting inventory item {0}", item.ID);
 
-            UUID requestedItemId = item.ID;
+//            UUID requestedItemId = item.ID;
             
             item = m_InventoryService.GetItem(item);
 
