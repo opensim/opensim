@@ -45,6 +45,7 @@ public sealed class BSPrim : PhysicsActor
     private IMesh _mesh;
     private PrimitiveBaseShape _pbs;
     private ShapeData.PhysicsShapeType _shapeType;
+    private ulong _meshKey;
     private ulong _hullKey;
     private List<ConvexResult> _hulls;
 
@@ -117,6 +118,7 @@ public sealed class BSPrim : PhysicsActor
         _rotationalVelocity = OMV.Vector3.Zero;
         _angularVelocity = OMV.Vector3.Zero;
         _hullKey = 0;
+        _meshKey = 0;
         _pbs = pbs;
         _isPhysical = pisPhysical;
         _isVolumeDetect = false;
@@ -147,6 +149,7 @@ public sealed class BSPrim : PhysicsActor
         _scene.RemoveVehiclePrim(this);     // just to make sure
         _scene.TaintedObject(delegate()
         {
+            // everything in the C# world will get garbage collected. Tell the C++ world to free stuff.
             BulletSimAPI.DestroyObject(_scene.WorldID, _localID);
         });
     }
@@ -281,11 +284,6 @@ public sealed class BSPrim : PhysicsActor
     public BSPrim ParentPrim
     {
         set { _parentPrim = value; }
-    }
-
-    public ulong HullKey
-    {
-        get { return _hullKey; }
     }
 
     // return true if we are the root of a linkset (there are children to manage)
@@ -463,7 +461,18 @@ public sealed class BSPrim : PhysicsActor
     private void SetObjectDynamic()
     {
         // non-physical things work best with a mass of zero
-        _mass = IsStatic ? 0f : CalculateMass();
+        if (IsStatic)
+        {
+            _mass = 0f;
+        }
+        else
+        {
+            _mass = CalculateMass();
+            // If it's dynamic, make sure the hull has been created for it
+            // This shouldn't do much work if the object had previously been built
+            RecreateGeomAndObject();
+
+        }
         BulletSimAPI.SetObjectProperties(_scene.WorldID, LocalID, IsStatic, IsSolid, SubscribedEvents(), _mass);
         // m_log.DebugFormat("{0}: ID={1}, SetObjectDynamic: IsStatic={2}, IsSolid={3}, mass={4}", LogHeader, _localID, IsStatic, IsSolid, _mass);
     }
@@ -896,26 +905,19 @@ public sealed class BSPrim : PhysicsActor
     #endregion Mass Calculation
 
     // Create the geometry information in Bullet for later use
+    // The objects needs a hull if it's physical otherwise a mesh is enough
     // No locking here because this is done when we know physics is not simulating
-    private void CreateGeom()
+    // if 'forceRebuild' is true, the geometry is rebuilt. Otherwise a previously built version is used
+    private void CreateGeom(bool forceRebuild)
     {
-        // Since we're recreating new, get rid of any previously generated shape
-        if (_hullKey != 0)
+        // the mesher thought this was too simple to mesh. Use a native Bullet collision shape.
+        if (!_scene.NeedsMeshing(_pbs))
         {
-            // m_log.DebugFormat("{0}: CreateGeom: deleting old hull. Key={1}", LogHeader, _hullKey);
-            BulletSimAPI.DestroyHull(_scene.WorldID, _hullKey);
-            _hullKey = 0;
-            _hulls.Clear();
-        }
-
-        if (_mesh == null)
-        {
-            // the mesher thought this was too simple to mesh. Use a native Bullet collision shape.
             if (_pbs.ProfileShape == ProfileShape.HalfCircle && _pbs.PathCurve == (byte)Extrusion.Curve1)
             {
                 if (_size.X == _size.Y && _size.Y == _size.Z && _size.X == _size.Z)
                 {
-                    // m_log.DebugFormat("{0}: CreateGeom: mesh null. Defaulting to sphere of size {1}", LogHeader, _size);
+                    // m_log.DebugFormat("{0}: CreateGeom: Defaulting to sphere of size {1}", LogHeader, _size);
                     _shapeType = ShapeData.PhysicsShapeType.SHAPE_SPHERE;
                     // Bullet native objects are scaled by the Bullet engine so pass the size in
                     _scale = _size;
@@ -923,99 +925,190 @@ public sealed class BSPrim : PhysicsActor
             }
             else
             {
-                // m_log.DebugFormat("{0}: CreateGeom: mesh null. Defaulting to box. lid={1}, size={2}", LogHeader, LocalID,  _size);
+                // m_log.DebugFormat("{0}: CreateGeom: Defaulting to box. lid={1}, size={2}", LogHeader, LocalID, _size);
                 _shapeType = ShapeData.PhysicsShapeType.SHAPE_BOX;
                 _scale = _size;
             }
         }
         else
         {
-            int[] indices = _mesh.getIndexListAsInt();
-            List<OMV.Vector3> vertices = _mesh.getVertexList();
-
-            //format conversion from IMesh format to DecompDesc format
-            List<int> convIndices = new List<int>();
-            List<float3> convVertices = new List<float3>();
-            for (int ii = 0; ii < indices.GetLength(0); ii++)
+            if (IsPhysical)
             {
-                convIndices.Add(indices[ii]);
-            }
-            foreach (OMV.Vector3 vv in vertices)
-            {
-                convVertices.Add(new float3(vv.X, vv.Y, vv.Z));
-            }
-
-            // setup and do convex hull conversion
-            _hulls = new List<ConvexResult>();
-            DecompDesc dcomp = new DecompDesc();
-            dcomp.mIndices = convIndices;
-            dcomp.mVertices = convVertices;
-            ConvexBuilder convexBuilder = new ConvexBuilder(HullReturn);
-            // create the hull into the _hulls variable
-            convexBuilder.process(dcomp);
-
-            // Convert the vertices and indices for passing to unmanaged
-            // The hull information is passed as a large floating point array. 
-            // The format is:
-            //  convHulls[0] = number of hulls
-            //  convHulls[1] = number of vertices in first hull
-            //  convHulls[2] = hull centroid X coordinate
-            //  convHulls[3] = hull centroid Y coordinate
-            //  convHulls[4] = hull centroid Z coordinate
-            //  convHulls[5] = first hull vertex X
-            //  convHulls[6] = first hull vertex Y
-            //  convHulls[7] = first hull vertex Z
-            //  convHulls[8] = second hull vertex X
-            //  ...
-            //  convHulls[n] = number of vertices in second hull
-            //  convHulls[n+1] = second hull centroid X coordinate
-            //  ...
-            //
-            // TODO: is is very inefficient. Someday change the convex hull generator to return
-            //   data structures that do not need to be converted in order to pass to Bullet.
-            //   And maybe put the values directly into pinned memory rather than marshaling.
-            int hullCount = _hulls.Count;
-            int totalVertices = 1;          // include one for the count of the hulls
-            foreach (ConvexResult cr in _hulls)
-            {
-                totalVertices += 4;                         // add four for the vertex count and centroid
-                totalVertices += cr.HullIndices.Count * 3;  // we pass just triangles
-            }
-            float[] convHulls = new float[totalVertices];
-
-            convHulls[0] = (float)hullCount;
-            int jj = 1;
-            foreach (ConvexResult cr in _hulls)
-            {
-                // copy vertices for index access
-                float3[] verts = new float3[cr.HullVertices.Count];
-                int kk = 0;
-                foreach (float3 ff in cr.HullVertices)
+                if (forceRebuild || _hullKey == 0)
                 {
-                    verts[kk++] = ff;
-                }
-
-                // add to the array one hull's worth of data
-                convHulls[jj++] = cr.HullIndices.Count;
-                convHulls[jj++] = 0f;   // centroid x,y,z
-                convHulls[jj++] = 0f;
-                convHulls[jj++] = 0f;
-                foreach (int ind in cr.HullIndices)
-                {
-                    convHulls[jj++] = verts[ind].x;
-                    convHulls[jj++] = verts[ind].y;
-                    convHulls[jj++] = verts[ind].z;
+                    // physical objects require a hull for interaction.
+                    // This will create the mesh if it doesn't already exist
+                    CreateGeomHull();
                 }
             }
-
-            // create the hull definition in Bullet
-            _hullKey = (ulong)_pbs.GetHashCode();
-            // m_log.DebugFormat("{0}: CreateGeom: calling CreateHull. lid={1}, key={2}, hulls={3}", LogHeader, _localID, _hullKey, hullCount);
-            BulletSimAPI.CreateHull(_scene.WorldID, _hullKey, hullCount, convHulls);
-            _shapeType = ShapeData.PhysicsShapeType.SHAPE_HULL;
-            // meshes are already scaled by the meshmerizer
-            _scale = new OMV.Vector3(1f, 1f, 1f);
+            else
+            {
+                if (forceRebuild || _meshKey == 0)
+                {
+                    // Static (non-physical) objects only need a mesh for bumping into
+                    CreateGeomMesh();
+                }
+            }
         }
+    }
+
+    // No locking here because this is done when we know physics is not simulating
+    private void CreateGeomMesh()
+    {
+        ulong newMeshKey = (ulong)_pbs.GetHashCode();
+
+        // if this new shape is the same as last time, don't recreate the mesh
+        if (_meshKey == newMeshKey) return;
+
+        // Since we're recreating new, get rid of any previously generated shape
+        if (_meshKey != 0)
+        {
+            // m_log.DebugFormat("{0}: CreateGeom: deleting old hull. Key={1}", LogHeader, _meshKey);
+            BulletSimAPI.DestroyMesh(_scene.WorldID, _meshKey);
+            _mesh = null;
+            _meshKey = 0;
+        }
+
+        _meshKey = newMeshKey;
+        int lod = _pbs.SculptEntry ? _scene.SculptLOD : _scene.MeshLOD;
+        // always pass false for physicalness as this creates some sort of bounding box which we don't need
+        _mesh = _scene.mesher.CreateMesh(_avName, _pbs, _size, lod, false);
+
+        int[] indices = _mesh.getIndexListAsInt();
+        List<OMV.Vector3> vertices = _mesh.getVertexList();
+
+        float[] verticesAsFloats = new float[vertices.Count * 3];
+        int vi = 0;
+        foreach (OMV.Vector3 vv in vertices)
+        {
+            // m_log.DebugFormat("{0}:  {1}: <{2:0.00}, {3:0.00}, {4:0.00}>", LogHeader, vi / 3, vv.X, vv.Y, vv.Z);
+            verticesAsFloats[vi++] = vv.X;
+            verticesAsFloats[vi++] = vv.Y;
+            verticesAsFloats[vi++] = vv.Z;
+        }
+
+        // m_log.DebugFormat("{0}: CreateGeomMesh: calling CreateMesh. lid={1}, key={2}, indices={3}, vertices={4}", 
+        //                   LogHeader, _localID, _meshKey, indices.Length, vertices.Count);
+        BulletSimAPI.CreateMesh(_scene.WorldID, _meshKey, indices.GetLength(0), indices, 
+                                                        vertices.Count, verticesAsFloats);
+
+        _shapeType = ShapeData.PhysicsShapeType.SHAPE_MESH;
+        // meshes are already scaled by the meshmerizer
+        _scale = new OMV.Vector3(1f, 1f, 1f);
+        return;
+    }
+
+    // No locking here because this is done when we know physics is not simulating
+    private void CreateGeomHull()
+    {
+        ulong newHullKey = (ulong)_pbs.GetHashCode();
+
+        // if the hull hasn't changed, don't rebuild it
+        if (newHullKey == _hullKey) return;
+
+        // Since we're recreating new, get rid of any previously generated shape
+        if (_hullKey != 0)
+        {
+            // m_log.DebugFormat("{0}: CreateGeom: deleting old hull. Key={1}", LogHeader, _hullKey);
+            BulletSimAPI.DestroyHull(_scene.WorldID, _hullKey);
+            _hullKey = 0;
+            _hulls.Clear();
+            BulletSimAPI.DestroyMesh(_scene.WorldID, _meshKey);
+            _mesh = null;   // the mesh cannot match either
+            _meshKey = 0;
+        }
+
+        _hullKey = newHullKey;
+        if (_meshKey != _hullKey)
+        {
+            // if the underlying mesh has changed, rebuild it
+            CreateGeomMesh();
+        }
+
+        int[] indices = _mesh.getIndexListAsInt();
+        List<OMV.Vector3> vertices = _mesh.getVertexList();
+
+        //format conversion from IMesh format to DecompDesc format
+        List<int> convIndices = new List<int>();
+        List<float3> convVertices = new List<float3>();
+        for (int ii = 0; ii < indices.GetLength(0); ii++)
+        {
+            convIndices.Add(indices[ii]);
+        }
+        foreach (OMV.Vector3 vv in vertices)
+        {
+            convVertices.Add(new float3(vv.X, vv.Y, vv.Z));
+        }
+
+        // setup and do convex hull conversion
+        _hulls = new List<ConvexResult>();
+        DecompDesc dcomp = new DecompDesc();
+        dcomp.mIndices = convIndices;
+        dcomp.mVertices = convVertices;
+        ConvexBuilder convexBuilder = new ConvexBuilder(HullReturn);
+        // create the hull into the _hulls variable
+        convexBuilder.process(dcomp);
+
+        // Convert the vertices and indices for passing to unmanaged
+        // The hull information is passed as a large floating point array. 
+        // The format is:
+        //  convHulls[0] = number of hulls
+        //  convHulls[1] = number of vertices in first hull
+        //  convHulls[2] = hull centroid X coordinate
+        //  convHulls[3] = hull centroid Y coordinate
+        //  convHulls[4] = hull centroid Z coordinate
+        //  convHulls[5] = first hull vertex X
+        //  convHulls[6] = first hull vertex Y
+        //  convHulls[7] = first hull vertex Z
+        //  convHulls[8] = second hull vertex X
+        //  ...
+        //  convHulls[n] = number of vertices in second hull
+        //  convHulls[n+1] = second hull centroid X coordinate
+        //  ...
+        //
+        // TODO: is is very inefficient. Someday change the convex hull generator to return
+        //   data structures that do not need to be converted in order to pass to Bullet.
+        //   And maybe put the values directly into pinned memory rather than marshaling.
+        int hullCount = _hulls.Count;
+        int totalVertices = 1;          // include one for the count of the hulls
+        foreach (ConvexResult cr in _hulls)
+        {
+            totalVertices += 4;                         // add four for the vertex count and centroid
+            totalVertices += cr.HullIndices.Count * 3;  // we pass just triangles
+        }
+        float[] convHulls = new float[totalVertices];
+
+        convHulls[0] = (float)hullCount;
+        int jj = 1;
+        foreach (ConvexResult cr in _hulls)
+        {
+            // copy vertices for index access
+            float3[] verts = new float3[cr.HullVertices.Count];
+            int kk = 0;
+            foreach (float3 ff in cr.HullVertices)
+            {
+                verts[kk++] = ff;
+            }
+
+            // add to the array one hull's worth of data
+            convHulls[jj++] = cr.HullIndices.Count;
+            convHulls[jj++] = 0f;   // centroid x,y,z
+            convHulls[jj++] = 0f;
+            convHulls[jj++] = 0f;
+            foreach (int ind in cr.HullIndices)
+            {
+                convHulls[jj++] = verts[ind].x;
+                convHulls[jj++] = verts[ind].y;
+                convHulls[jj++] = verts[ind].z;
+            }
+        }
+
+        // create the hull definition in Bullet
+        // m_log.DebugFormat("{0}: CreateGeom: calling CreateHull. lid={1}, key={2}, hulls={3}", LogHeader, _localID, _hullKey, hullCount);
+        BulletSimAPI.CreateHull(_scene.WorldID, _hullKey, hullCount, convHulls);
+        _shapeType = ShapeData.PhysicsShapeType.SHAPE_HULL;
+        // meshes are already scaled by the meshmerizer
+        _scale = new OMV.Vector3(1f, 1f, 1f);
         return;
     }
 
@@ -1040,6 +1133,7 @@ public sealed class BSPrim : PhysicsActor
         else
         {
             // simple object
+            // the mesh or hull must have already been created in Bullet
             ShapeData shape;
             FillShapeInfo(out shape);
             BulletSimAPI.CreateObject(_scene.WorldID, shape);
@@ -1081,7 +1175,8 @@ public sealed class BSPrim : PhysicsActor
         shape.Scale = _scale;
         shape.Mass = _isPhysical ? _mass : 0f;
         shape.Buoyancy = _buoyancy;
-        shape.MeshKey = _hullKey;
+        shape.HullKey = _hullKey;
+        shape.MeshKey = _meshKey;
         shape.Friction = _friction;
         shape.Restitution = _restitution;
         shape.Collidable = (!IsPhantom) ? ShapeData.numericTrue : ShapeData.numericFalse;
@@ -1098,13 +1193,13 @@ public sealed class BSPrim : PhysicsActor
         // remove any constraints that might be in place
         foreach (BSPrim prim in _childrenPrims)
         {
-            // m_log.DebugFormat("{0}: CreateObject: RemoveConstraint between root prim {1} and child prim {2}", LogHeader, LocalID, prim.LocalID);
+            // m_log.DebugFormat("{0}: CreateLinkset: RemoveConstraint between root prim {1} and child prim {2}", LogHeader, LocalID, prim.LocalID);
             BulletSimAPI.RemoveConstraint(_scene.WorldID, LocalID, prim.LocalID);
         }
         // create constraints between the root prim and each of the children
         foreach (BSPrim prim in _childrenPrims)
         {
-            // m_log.DebugFormat("{0}: CreateObject: AddConstraint between root prim {1} and child prim {2}", LogHeader, LocalID, prim.LocalID);
+            // m_log.DebugFormat("{0}: CreateLinkset: AddConstraint between root prim {1} and child prim {2}", LogHeader, LocalID, prim.LocalID);
 
             // Zero motion for children so they don't interpolate
             prim.ZeroMotion();
@@ -1132,20 +1227,7 @@ public sealed class BSPrim : PhysicsActor
     // No locking here because this is done when the physics engine is not simulating
     private void RecreateGeomAndObject()
     {
-        // If this object is complex or we are the root of a linkset, build a mesh.
-        // The root of a linkset must be a mesh so we can create the linked compound object.
-        // if (_scene.NeedsMeshing(_pbs) || IsRootOfLinkset )
-        if (_scene.NeedsMeshing(_pbs))  // linksets with constraints don't need a root mesh
-        {
-            // m_log.DebugFormat("{0}: RecreateGeomAndObject: creating mesh", LogHeader);
-            _mesh = _scene.mesher.CreateMesh(_avName, _pbs, _size, _scene.MeshLOD, _isPhysical);
-        }
-        else
-        {
-            // implement the shape with a Bullet native shape.
-            _mesh = null;
-        }
-        CreateGeom();
+        CreateGeom(true);
         CreateObject();
         return;
     }

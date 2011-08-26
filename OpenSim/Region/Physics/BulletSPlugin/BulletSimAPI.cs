@@ -49,7 +49,8 @@ public struct ShapeData
 		SHAPE_CONE = 2,
 		SHAPE_CYLINDER = 3,
 		SHAPE_SPHERE = 4,
-		SHAPE_HULL = 5
+		SHAPE_MESH = 5,
+		SHAPE_HULL = 6
     };
     public uint ID;
     public PhysicsShapeType Type;
@@ -59,6 +60,7 @@ public struct ShapeData
     public Vector3 Scale;
     public float Mass;
     public float Buoyancy;
+    public System.UInt64 HullKey;
     public System.UInt64 MeshKey;
     public float Friction;
     public float Restitution;
@@ -158,18 +160,27 @@ public static extern void Shutdown(uint worldID);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern int PhysicsStep(uint worldID, float timeStep, int maxSubSteps, float fixedTimeStep, 
-    out int updatedEntityCount, 
-    out IntPtr updatedEntitiesPtr,
-    out int collidersCount,
-    out IntPtr collidersPtr);
+                        out int updatedEntityCount, 
+                        out IntPtr updatedEntitiesPtr,
+                        out int collidersCount,
+                        out IntPtr collidersPtr);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-public static extern bool CreateHull(uint worldID, System.UInt64 meshKey, int hullCount, 
-                            [MarshalAs(UnmanagedType.LPArray)] float[] hulls
+public static extern bool CreateHull(uint worldID, System.UInt64 meshKey, 
+                            int hullCount, [MarshalAs(UnmanagedType.LPArray)] float[] hulls
+    );
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool CreateMesh(uint worldID, System.UInt64 meshKey, 
+                            int indexCount, [MarshalAs(UnmanagedType.LPArray)] int[] indices,
+                            int verticesCount, [MarshalAs(UnmanagedType.LPArray)] float[] vertices
     );
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool DestroyHull(uint worldID, System.UInt64 meshKey);
+
+[DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+public static extern bool DestroyMesh(uint worldID, System.UInt64 meshKey);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool CreateObject(uint worldID, ShapeData shapeData);
@@ -179,9 +190,9 @@ public static extern void CreateLinkset(uint worldID, int objectCount, ShapeData
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern void AddConstraint(uint worldID, uint id1, uint id2, 
-    Vector3 frame1, Quaternion frame1rot,
-    Vector3 frame2, Quaternion frame2rot,
-    Vector3 lowLinear, Vector3 hiLinear, Vector3 lowAngular, Vector3 hiAngular);
+                        Vector3 frame1, Quaternion frame1rot,
+                        Vector3 frame2, Quaternion frame2rot,
+                        Vector3 lowLinear, Vector3 hiLinear, Vector3 lowAngular, Vector3 hiAngular);
 
 [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
 public static extern bool RemoveConstraintByID(uint worldID, uint id1);

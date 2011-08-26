@@ -37,7 +37,6 @@ using OpenMetaverse;
 using OpenSim.Region.Framework;
 
 // TODOs for BulletSim (for BSScene, BSPrim, BSCharacter and BulletSim)
-// Parameterize BulletSim. Pass a structure of parameters to the C++ code. Capsule size, friction, ...
 // Adjust character capsule size when height is adjusted (ScenePresence.SetHeight)
 // Test sculpties
 // Compute physics FPS reasonably
@@ -52,8 +51,6 @@ using OpenSim.Region.Framework;
 // Implement the genCollisions feature in BulletSim::SetObjectProperties (don't pass up unneeded collisions)
 // Implement LockAngularMotion
 // Decide if clearing forces is the right thing to do when setting position (BulletSim::SetObjectTranslation)
-// Built Galton board (lots of MoveTo's) and some slats were not positioned correctly (mistakes scattered)
-//      No mistakes with ODE. Shape creation race condition?
 // Does NeedsMeshing() really need to exclude all the different shapes?
 // 
 namespace OpenSim.Region.Physics.BulletSPlugin
@@ -80,6 +77,11 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     public int MeshLOD
     {
         get { return m_meshLOD; }
+    }
+    private int m_sculptLOD;
+    public int SculptLOD
+    {
+        get { return m_sculptLOD; }
     }
 
     private int m_maxSubSteps;
@@ -187,7 +189,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         _meshSculptedPrim = true;           // mesh sculpted prims
         _forceSimplePrimMeshing = false;    // use complex meshing if called for
 
-        m_meshLOD = 32;
+        m_meshLOD = 8;
+        m_sculptLOD = 32;
 
         m_maxSubSteps = 10;
         m_fixedTimeStep = 1f / 60f;
@@ -229,6 +232,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 _forceSimplePrimMeshing = pConfig.GetBoolean("ForceSimplePrimMeshing", _forceSimplePrimMeshing);
 
                 m_meshLOD = pConfig.GetInt("MeshLevelOfDetail", m_meshLOD);
+                m_sculptLOD = pConfig.GetInt("SculptLevelOfDetail", m_sculptLOD);
 
                 m_maxSubSteps = pConfig.GetInt("MaxSubSteps", m_maxSubSteps);
                 m_fixedTimeStep = pConfig.GetFloat("FixedTimeStep", m_fixedTimeStep);
@@ -489,10 +493,9 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         // can use an internal representation for the prim
         if (!_forceSimplePrimMeshing)
         {
-            // m_log.DebugFormat("{0}: NeedsMeshing: simple mesh: profshape={1}, curve={2}", LogHeader, pbs.ProfileShape, pbs.PathCurve);
             if ((pbs.ProfileShape == ProfileShape.Square && pbs.PathCurve == (byte)Extrusion.Straight)
                 || (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1
-                && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z))
+                        && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z))
             {
 
                 if (pbs.ProfileBegin == 0 && pbs.ProfileEnd == 0
@@ -663,7 +666,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     #region Runtime settable parameters
     public static PhysParameterEntry[] SettableParameters = new PhysParameterEntry[]
     {
-        new PhysParameterEntry("MeshLOD", "Level of detail to render meshes (Power of two. Default 32)"),
+        new PhysParameterEntry("MeshLOD", "Level of detail to render meshes (32, 16, 8 or 4. 32=most detailed)"),
+        new PhysParameterEntry("SculptLOD", "Level of detail to render sculpties (32, 16, 8 or 4. 32=most detailed)"),
         new PhysParameterEntry("MaxSubStep", "In simulation step, maximum number of substeps"),
         new PhysParameterEntry("FixedTimeStep", "In simulation step, seconds of one substep (1/60)"),
         new PhysParameterEntry("MaxObjectMass", "Maximum object mass (10000.01)"),
@@ -712,6 +716,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         switch (lparm)
         {
             case "meshlod": m_meshLOD = (int)val; break;
+            case "sculptlod": m_sculptLOD = (int)val; break;
             case "maxsubstep": m_maxSubSteps = (int)val; break;
             case "fixedtimestep": m_fixedTimeStep = val; break;
             case "maxobjectmass": m_maximumObjectMass = val; break;
@@ -812,6 +817,7 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         switch (parm.ToLower())
         {
             case "meshlod": val = (float)m_meshLOD; break;
+            case "sculptlod": val = (float)m_sculptLOD; break;
             case "maxsubstep": val = (float)m_maxSubSteps; break;
             case "fixedtimestep": val = m_fixedTimeStep; break;
             case "maxobjectmass": val = m_maximumObjectMass; break;
