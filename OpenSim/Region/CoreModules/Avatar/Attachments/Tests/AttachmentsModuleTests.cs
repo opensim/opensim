@@ -111,7 +111,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             SceneObjectGroup attSo = attachments[0];
             Assert.That(attSo.Name, Is.EqualTo(attName));
             Assert.That(attSo.AttachmentPoint, Is.EqualTo((byte)AttachmentPoint.Chest));
-            Assert.That(attSo.GetAttachmentPoint(), Is.EqualTo((byte)AttachmentPoint.Chest));
             Assert.That(attSo.IsAttachment);
             Assert.That(attSo.UsesPhysics, Is.False);
             Assert.That(attSo.IsTemporary, Is.False);
@@ -146,7 +145,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             SceneObjectGroup attSo = attachments[0];
             Assert.That(attSo.Name, Is.EqualTo(attName));
             Assert.That(attSo.AttachmentPoint, Is.EqualTo((byte)AttachmentPoint.Chest));
-            Assert.That(attSo.GetAttachmentPoint(), Is.EqualTo((byte)AttachmentPoint.Chest));
             Assert.That(attSo.IsAttachment);
             Assert.That(attSo.UsesPhysics, Is.False);
             Assert.That(attSo.IsTemporary, Is.False);
@@ -242,7 +240,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             SceneObjectGroup attSo = attachments[0];
             Assert.That(attSo.Name, Is.EqualTo(attName));
             Assert.That(attSo.AttachmentPoint, Is.EqualTo((byte)AttachmentPoint.Chest));
-            Assert.That(attSo.GetAttachmentPoint(), Is.EqualTo((byte)AttachmentPoint.Chest));
             Assert.That(attSo.IsAttachment);
             Assert.That(attSo.UsesPhysics, Is.False);
             Assert.That(attSo.IsTemporary, Is.False);

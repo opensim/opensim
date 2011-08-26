@@ -166,7 +166,24 @@ namespace OpenSim.Region.Framework.Scenes
         /// <remarks>
         /// 0 if we're not attached to anything
         /// </remarks>
-        public uint AttachmentPoint;
+        public uint AttachmentPoint
+        {
+            get
+            {
+                return m_rootPart.Shape.State;
+            }
+
+            set
+            {
+                IsAttachment = value != 0;
+                m_rootPart.Shape.State = (byte)value;
+            }
+        }
+
+        public void ClearPartAttachmentData()
+        {
+            AttachmentPoint = 0;
+        }
 
         /// <summary>
         /// Is this scene object phantom?
@@ -974,23 +991,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 writer.WriteEndElement(); // End of GroupScriptStates
             }
-        }
-
-        public byte GetAttachmentPoint()
-        {
-            return m_rootPart.Shape.State;
-        }
-
-        public void SetAttachmentPoint(uint point)
-        {
-            AttachmentPoint = point;
-            IsAttachment = point != 0;
-            m_rootPart.Shape.State = (byte)point;
-        }
-
-        public void ClearPartAttachmentData()
-        {
-            SetAttachmentPoint((Byte)0);
         }
 
         /// <summary>

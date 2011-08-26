@@ -167,13 +167,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             return AttachObject(sp, group, AttachmentPt, silent);
         }
         
-        private bool AttachObject(ScenePresence sp, SceneObjectGroup group, uint AttachmentPt, bool silent)
+        private bool AttachObject(ScenePresence sp, SceneObjectGroup group, uint attachmentPt, bool silent)
         {
 //            m_log.DebugFormat(
 //                "[ATTACHMENTS MODULE]: Attaching object {0} {1} to {2} point {3} from ground (silent = {4})",
 //                group.Name, group.LocalId, sp.Name, AttachmentPt, silent);
 
-            if (sp.GetAttachments(AttachmentPt).Contains(group))
+            if (sp.GetAttachments(attachmentPt).Contains(group))
             {
 //                m_log.WarnFormat(
 //                    "[ATTACHMENTS MODULE]: Ignoring request to attach {0} {1} to {2} on {3} since it's already attached",
@@ -186,39 +186,39 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             // TODO: this short circuits multiple attachments functionality  in  LL viewer 2.1+ and should
             // be removed when that functionality is implemented in opensim
-            AttachmentPt &= 0x7f;
+            attachmentPt &= 0x7f;
             
             // If the attachment point isn't the same as the one previously used
             // set it's offset position = 0 so that it appears on the attachment point
             // and not in a weird location somewhere unknown.
-            if (AttachmentPt != 0 && AttachmentPt != (uint)group.GetAttachmentPoint())
+            if (attachmentPt != 0 && attachmentPt != group.AttachmentPoint)
             {
                 attachPos = Vector3.Zero;
             }
 
             // AttachmentPt 0 means the client chose to 'wear' the attachment.
-            if (AttachmentPt == 0)
+            if (attachmentPt == 0)
             {
                 // Check object for stored attachment point
-                AttachmentPt = (uint)group.GetAttachmentPoint();
+                attachmentPt = group.AttachmentPoint;
             }
 
             // if we still didn't find a suitable attachment point.......
-            if (AttachmentPt == 0)
+            if (attachmentPt == 0)
             {
                 // Stick it on left hand with Zero Offset from the attachment point.
-                AttachmentPt = (uint)AttachmentPoint.LeftHand;
+                attachmentPt = (uint)AttachmentPoint.LeftHand;
                 attachPos = Vector3.Zero;
             }
 
-            group.SetAttachmentPoint((byte)AttachmentPt);
+            group.AttachmentPoint = attachmentPt;
             group.AbsolutePosition = attachPos;
 
             // Remove any previous attachments
             UUID itemID = UUID.Zero;
             foreach (SceneObjectGroup grp in sp.Attachments)
             {
-                if (grp.GetAttachmentPoint() == (byte)AttachmentPt)
+                if (grp.AttachmentPoint == attachmentPt)
                 {
                     itemID = grp.GetFromItemID();
                     break;
@@ -232,9 +232,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (itemID == UUID.Zero)
                 itemID = AddSceneObjectAsAttachment(sp.ControllingClient, group).ID;
 
-            ShowAttachInUserInventory(sp, AttachmentPt, itemID, group);
+            ShowAttachInUserInventory(sp, attachmentPt, itemID, group);
 
-            AttachToAgent(sp, group, AttachmentPt, attachPos, silent);
+            AttachToAgent(sp, group, attachmentPt, attachPos, silent);
 
             return true;
         }
@@ -293,7 +293,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         }
 
         private SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
-            ScenePresence sp, UUID itemID, uint AttachmentPt)
+            ScenePresence sp, UUID itemID, uint attachmentPt)
         {
             IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
             if (invAccess != null)
@@ -313,13 +313,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     // since scripts aren't running yet. So, clear it here.
                     objatt.HasGroupChanged = false;
                     bool tainted = false;
-                    if (AttachmentPt != 0 && AttachmentPt != objatt.GetAttachmentPoint())
+                    if (attachmentPt != 0 && attachmentPt != objatt.AttachmentPoint)
                         tainted = true;
 
                     // This will throw if the attachment fails
                     try
                     {
-                        AttachObject(sp, objatt, AttachmentPt, false);
+                        AttachObject(sp, objatt, attachmentPt, false);
                     }
                     catch (Exception e)
                     {
@@ -348,7 +348,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 {
                     m_log.WarnFormat(
                         "[ATTACHMENTS MODULE]: Could not retrieve item {0} for attaching to avatar {1} at point {2}", 
-                        itemID, sp.Name, AttachmentPt);
+                        itemID, sp.Name, attachmentPt);
                 }
                 
                 return objatt;
@@ -567,11 +567,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             // attachment. This is necessary in order to correctly save
             // and retrieve GroupPosition information for the attachment.
             // Finally, we restore the object's attachment status.
-            byte attachmentPoint = sog.GetAttachmentPoint();
+            uint attachmentPoint = sog.AttachmentPoint;
             sog.UpdateGroupPosition(pos);
             sog.IsAttachment = false;
             sog.AbsolutePosition = sog.RootPart.AttachedPos;
-            sog.SetAttachmentPoint(attachmentPoint);                                       
+            sog.AttachmentPoint = attachmentPoint;
             sog.HasGroupChanged = true;            
         }
         
@@ -594,14 +594,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 {
                     m_log.DebugFormat(
                         "[ATTACHMENTS MODULE]: Don't need to update asset for unchanged attachment {0}, attachpoint {1}",
-                        grp.UUID, grp.GetAttachmentPoint());
+                        grp.UUID, grp.AttachmentPoint);
 
                     return;
                 }
 
                 m_log.DebugFormat(
                     "[ATTACHMENTS MODULE]: Updating asset for attachment {0}, attachpoint {1}",
-                    grp.UUID, grp.GetAttachmentPoint());
+                    grp.UUID, grp.AttachmentPoint);
 
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp);
 
@@ -668,7 +668,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             so.RootPart.AttachedPos = attachOffset;
             so.IsAttachment = true;
             so.RootPart.SetParentLocalId(avatar.LocalId);
-            so.SetAttachmentPoint(Convert.ToByte(attachmentpoint));
+            so.AttachmentPoint = attachmentpoint;
 
             avatar.AddAttachment(so);
 
