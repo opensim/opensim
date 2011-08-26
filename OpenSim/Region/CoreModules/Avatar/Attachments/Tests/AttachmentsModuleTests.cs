@@ -147,6 +147,39 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         }
 
         [Test]
+        public void TestDetachAttachmentToScene()
+        {
+            TestHelpers.InMethod();
+            log4net.Config.XmlConfigurator.Configure();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            UUID attItemId = TestHelpers.ParseTail(0x2);
+            UUID attAssetId = TestHelpers.ParseTail(0x3);
+            string attName = "att";
+
+            UserAccountHelpers.CreateUserWithInventory(scene, userId);
+            ScenePresence presence = SceneHelpers.AddScenePresence(scene, userId);
+            InventoryItemBase attItem
+                = UserInventoryHelpers.CreateInventoryItem(
+                    scene, attName, attItemId, attAssetId, userId, InventoryType.Object);
+
+            UUID attSoId = m_attMod.RezSingleAttachmentFromInventory(
+                presence.ControllingClient, attItemId, (uint)AttachmentPoint.Chest);
+            m_attMod.DetachSingleAttachmentToGround(attSoId, presence.ControllingClient);
+
+            // Check status on scene presence
+            Assert.That(presence.HasAttachments(), Is.False);
+            List<SceneObjectGroup> attachments = presence.Attachments;
+            Assert.That(attachments.Count, Is.EqualTo(0));
+
+            // Check item status
+            Assert.That(scene.InventoryService.GetItem(new InventoryItemBase(attItemId)), Is.Null);
+
+            // Check object in scene
+            Assert.That(scene.GetSceneObjectGroup("att"), Is.Not.Null);
+        }
+
+        [Test]
         public void TestDetachAttachmentToInventory()
         {
             TestHelpers.InMethod();
