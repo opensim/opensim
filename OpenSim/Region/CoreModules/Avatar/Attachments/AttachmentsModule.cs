@@ -449,29 +449,30 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
         }
 
-        public void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient)
+        public void DetachSingleAttachmentToGround(UUID sceneObjectID, IClientAPI remoteClient)
         {
-            SceneObjectPart part = m_scene.GetSceneObjectPart(itemID);
-            if (part == null || part.ParentGroup == null)
+            SceneObjectGroup so = m_scene.GetSceneObjectGroup(sceneObjectID);
+
+            if (so == null)
                 return;
 
-            if (part.ParentGroup.RootPart.AttachedAvatar != remoteClient.AgentId)
+            if (so.RootPart.AttachedAvatar != remoteClient.AgentId)
                 return;
 
-            UUID inventoryID = part.ParentGroup.GetFromItemID();
+            UUID inventoryID = so.GetFromItemID();
 
             ScenePresence presence;
             if (m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
             {
                 if (!m_scene.Permissions.CanRezObject(
-                    part.ParentGroup.PrimCount, remoteClient.AgentId, presence.AbsolutePosition))
+                    so.PrimCount, remoteClient.AgentId, presence.AbsolutePosition))
                     return;
 
-                bool changed = presence.Appearance.DetachAttachment(itemID);
+                bool changed = presence.Appearance.DetachAttachment(sceneObjectID);
                 if (changed && m_scene.AvatarFactory != null)
                     m_scene.AvatarFactory.QueueAppearanceSave(remoteClient.AgentId);
 
-                part.ParentGroup.DetachToGround();
+                so.DetachToGround();
 
                 List<UUID> uuids = new List<UUID>();
                 uuids.Add(inventoryID);
@@ -479,7 +480,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 remoteClient.SendRemoveInventoryItem(inventoryID);
             }
 
-            m_scene.EventManager.TriggerOnAttach(part.ParentGroup.LocalId, itemID, UUID.Zero);
+            m_scene.EventManager.TriggerOnAttach(so.LocalId, sceneObjectID, UUID.Zero);
         }
         
         // What makes this method odd and unique is it tries to detach using an UUID....     Yay for standards.

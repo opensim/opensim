@@ -105,9 +105,9 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Detach the given item to the ground.
         /// </summary>
-        /// <param name="itemID"></param>
+        /// <param name="sceneObjectID"></param>
         /// <param name="remoteClient"></param>
-        void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient);
+        void DetachSingleAttachmentToGround(UUID sceneObjectID, IClientAPI remoteClient);
 
         /// <summary>
         /// Detach the given item so that it remains in the user's inventory.
