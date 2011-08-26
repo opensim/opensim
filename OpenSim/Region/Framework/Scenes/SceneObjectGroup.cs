@@ -147,15 +147,16 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
         
-        /// <value>
+        /// <summary>
         /// Is this scene object acting as an attachment?
-        /// 
+        /// </summary>
+        /// <remarks>
         /// We return false if the group has already been deleted.
         ///
         /// TODO: At the moment set must be done on the part itself.  There may be a case for doing it here since I
         /// presume either all or no parts in a linkset can be part of an attachment (in which
         /// case the value would get proprogated down into all the descendent parts).
-        /// </value>
+        /// </remarks>
         public bool IsAttachment
         {
             get
@@ -1015,31 +1016,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.EventManager.TriggerParcelPrimCountTainted();
             m_rootPart.ScheduleFullUpdate();
             m_rootPart.ClearUndoState();
-        }
-
-        public void DetachToInventoryPrep()
-        {
-            ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.AttachedAvatar);
-            //Vector3 detachedpos = new Vector3(127f, 127f, 127f);
-            if (avatar != null)
-            {
-                //detachedpos = avatar.AbsolutePosition;
-                avatar.RemoveAttachment(this);
-            }
-
-            m_rootPart.AttachedAvatar = UUID.Zero;
-
-            SceneObjectPart[] parts = m_parts.GetArray();
-            for (int i = 0; i < parts.Length; i++)
-                parts[i].AttachedAvatar = UUID.Zero;
-
-            m_rootPart.SetParentLocalId(0);
-            //m_rootPart.SetAttachmentPoint((byte)0);
-            m_rootPart.IsAttachment = false;
-            AbsolutePosition = m_rootPart.AttachedPos;
-            //m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_scene.m_physicalPrim);
-            //AttachToBackup();
-            //m_rootPart.ScheduleFullUpdate();
         }
 
         /// <summary>

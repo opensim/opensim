@@ -147,7 +147,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
         }
 
         [Test]
-        public void TestRemoveAttachment()
+        public void TestDetachAttachmentToInventory()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();

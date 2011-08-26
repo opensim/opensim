@@ -502,17 +502,28 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     if (group.GetFromItemID() == itemID)
                     {
                         m_scene.EventManager.TriggerOnAttach(group.LocalId, itemID, UUID.Zero);
-                        group.DetachToInventoryPrep();
-//                        m_log.Debug("[ATTACHMENTS MODULE]: Saving attachpoint: " + ((uint)group.GetAttachmentPoint()).ToString());
+                        sp.RemoveAttachment(group);
 
-                        // If an item contains scripts, it's always changed.
-                        // This ensures script state is saved on detach
-                        foreach (SceneObjectPart p in group.Parts)
-                            if (p.Inventory.ContainsScripts())
-                                group.HasGroupChanged = true;
+                        // Prepare sog for storage
+                        group.ForEachPart(
+                            delegate(SceneObjectPart part)
+                            {
+                                part.AttachedAvatar = UUID.Zero;
+
+                                // If there are any scripts,
+                                // then always trigger a new object and state persistence in UpdateKnownItem()
+                                if (part.Inventory.ContainsScripts())
+                                    group.HasGroupChanged = true;
+                            }
+                        );
+
+                        group.RootPart.SetParentLocalId(0);
+                        group.RootPart.IsAttachment = false;
+                        group.AbsolutePosition = group.RootPart.AttachedPos;
 
                         UpdateKnownItem(sp.ControllingClient, group, group.GetFromItemID(), group.OwnerID);
                         m_scene.DeleteSceneObject(group, false);
+
                         return;
                     }
                 }
