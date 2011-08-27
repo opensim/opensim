@@ -223,6 +223,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Retrieve group
             SceneObjectPart part = GetSceneObjectPart(primId);
+            if (part == null)
+                return new ArrayList();
             SceneObjectGroup group = part.ParentGroup;
             if (null == group)
             {
@@ -967,6 +969,8 @@ namespace OpenSim.Region.Framework.Scenes
         public void RemoveTaskInventory(IClientAPI remoteClient, UUID itemID, uint localID)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
+            if (part == null)
+                return;
             SceneObjectGroup group = part.ParentGroup;
             if (group != null)
             {
@@ -2028,6 +2032,8 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (uint localID in localIDs)
             {
                 SceneObjectPart part = GetSceneObjectPart(localID);
+	            if (part == null)
+	                continue;
                 if (!groups.Contains(part.ParentGroup))
                     groups.Add(part.ParentGroup);
             }
@@ -2073,6 +2079,8 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (uint localID in localIDs)
             {
                 SceneObjectPart part = GetSceneObjectPart(localID);
+	            if (part == null)
+	                continue;
                 part.GetProperties(remoteClient);
             }
         }
