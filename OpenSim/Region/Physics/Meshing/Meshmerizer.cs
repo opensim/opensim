@@ -336,7 +336,7 @@ namespace OpenSim.Region.Physics.Meshing
             }
             else
             {
-                if (!GenerateCoordsAndFacesFromPrimShapeData(primName, primShape, size, out coords, out faces))
+                if (!GenerateCoordsAndFacesFromPrimShapeData(primName, primShape, size, lod, out coords, out faces))
                     return null;
             }
 
@@ -616,7 +616,7 @@ namespace OpenSim.Region.Physics.Meshing
         /// <param name="faces">Faces are added to this list by the method.</param>
         /// <returns>true if coords and faces were successfully generated, false if not</returns>
         private bool GenerateCoordsAndFacesFromPrimShapeData(
-            string primName, PrimitiveBaseShape primShape, Vector3 size, out List<Coord> coords, out List<Face> faces)
+            string primName, PrimitiveBaseShape primShape, Vector3 size, float lod, out List<Coord> coords, out List<Face> faces)
         {
             PrimMesh primMesh;
             coords = new List<Coord>();
@@ -636,13 +636,30 @@ namespace OpenSim.Region.Physics.Meshing
                 profileHollow = 0.95f;
 
             int sides = 4;
+            LevelOfDetail iLOD = (LevelOfDetail)lod;
             if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
                 sides = 3;
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
-                sides = 24;
+            {
+                switch (iLOD)
+                {
+                    case LevelOfDetail.High:    sides = 24;     break;
+                    case LevelOfDetail.Medium:  sides = 12;     break;
+                    case LevelOfDetail.Low:     sides = 6;      break;
+                    case LevelOfDetail.VeryLow: sides = 3;      break;
+                    default:                    sides = 24;     break;
+                }
+            }
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
             { // half circle, prim is a sphere
-                sides = 24;
+                switch (iLOD)
+                {
+                    case LevelOfDetail.High:    sides = 24;     break;
+                    case LevelOfDetail.Medium:  sides = 12;     break;
+                    case LevelOfDetail.Low:     sides = 6;      break;
+                    case LevelOfDetail.VeryLow: sides = 3;      break;
+                    default:                    sides = 24;     break;
+                }
 
                 profileBegin = 0.5f * profileBegin + 0.5f;
                 profileEnd = 0.5f * profileEnd + 0.5f;
@@ -650,7 +667,16 @@ namespace OpenSim.Region.Physics.Meshing
 
             int hollowSides = sides;
             if (primShape.HollowShape == HollowShape.Circle)
-                hollowSides = 24;
+            {
+                switch (iLOD)
+                {
+                    case LevelOfDetail.High:    hollowSides = 24;     break;
+                    case LevelOfDetail.Medium:  hollowSides = 12;     break;
+                    case LevelOfDetail.Low:     hollowSides = 6;      break;
+                    case LevelOfDetail.VeryLow: hollowSides = 3;      break;
+                    default:                    hollowSides = 24;     break;
+                }
+            }
             else if (primShape.HollowShape == HollowShape.Square)
                 hollowSides = 4;
             else if (primShape.HollowShape == HollowShape.Triangle)
