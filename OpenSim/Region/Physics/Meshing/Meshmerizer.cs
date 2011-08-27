@@ -193,67 +193,6 @@ namespace OpenSim.Region.Physics.Meshing
             m_log.Error("****** PrimMesh Parameters ******\n" + primMesh.ParamsToDisplayString());
         }
 
-        private ulong GetMeshKey(PrimitiveBaseShape pbs, Vector3 size, float lod)
-        {
-            ulong hash = 5381;
-
-            hash = djb2(hash, pbs.PathCurve);
-            hash = djb2(hash, (byte)((byte)pbs.HollowShape | (byte)pbs.ProfileShape));
-            hash = djb2(hash, pbs.PathBegin);
-            hash = djb2(hash, pbs.PathEnd);
-            hash = djb2(hash, pbs.PathScaleX);
-            hash = djb2(hash, pbs.PathScaleY);
-            hash = djb2(hash, pbs.PathShearX);
-            hash = djb2(hash, pbs.PathShearY);
-            hash = djb2(hash, (byte)pbs.PathTwist);
-            hash = djb2(hash, (byte)pbs.PathTwistBegin);
-            hash = djb2(hash, (byte)pbs.PathRadiusOffset);
-            hash = djb2(hash, (byte)pbs.PathTaperX);
-            hash = djb2(hash, (byte)pbs.PathTaperY);
-            hash = djb2(hash, pbs.PathRevolutions);
-            hash = djb2(hash, (byte)pbs.PathSkew);
-            hash = djb2(hash, pbs.ProfileBegin);
-            hash = djb2(hash, pbs.ProfileEnd);
-            hash = djb2(hash, pbs.ProfileHollow);
-
-            // TODO: Separate scale out from the primitive shape data (after
-            // scaling is supported at the physics engine level)
-            byte[] scaleBytes = size.GetBytes();
-            for (int i = 0; i < scaleBytes.Length; i++)
-                hash = djb2(hash, scaleBytes[i]);
-
-            // Include LOD in hash, accounting for endianness
-            byte[] lodBytes = new byte[4];
-            Buffer.BlockCopy(BitConverter.GetBytes(lod), 0, lodBytes, 0, 4);
-            if (!BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(lodBytes, 0, 4);
-            }
-            for (int i = 0; i < lodBytes.Length; i++)
-                hash = djb2(hash, lodBytes[i]);
-
-            // include sculpt UUID
-            if (pbs.SculptEntry)
-            {
-                scaleBytes = pbs.SculptTexture.GetBytes();
-                for (int i = 0; i < scaleBytes.Length; i++)
-                    hash = djb2(hash, scaleBytes[i]);
-            }
-
-            return hash;
-        }
-
-        private ulong djb2(ulong hash, byte c)
-        {
-            return ((hash << 5) + hash) + (ulong)c;
-        }
-
-        private ulong djb2(ulong hash, ushort c)
-        {
-            hash = ((hash << 5) + hash) + (ulong)((byte)c);
-            return ((hash << 5) + hash) + (ulong)(c >> 8);
-        }
-
         /// <summary>
         /// Add a submesh to an existing list of coords and faces.
         /// </summary>
@@ -777,7 +716,7 @@ namespace OpenSim.Region.Physics.Meshing
 
             // If this mesh has been created already, return it instead of creating another copy
             // For large regions with 100k+ prims and hundreds of copies of each, this can save a GB or more of memory
-            key = GetMeshKey(primShape, size, lod);
+            key = primShape.GetMeshKey(size, lod);
             if (m_uniqueMeshes.TryGetValue(key, out mesh))
                 return mesh;
 
