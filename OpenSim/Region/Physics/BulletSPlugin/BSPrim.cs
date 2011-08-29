@@ -53,8 +53,11 @@ public sealed class BSPrim : PhysicsActor
     private String _avName;
     private uint _localID = 0;
 
-    private OMV.Vector3 _size;
-    private OMV.Vector3 _scale;
+    // _size is what the user passed. _scale is what we pass to the physics engine with the mesh.
+    // Often _scale is unity because the meshmerizer will apply _size when creating the mesh.
+    private OMV.Vector3 _size;  // the multiplier for each mesh dimension as passed by the user
+    private OMV.Vector3 _scale; // the multiplier for each mesh dimension for the mesh as created by the meshmerizer
+
     private bool _stopped;
     private bool _grabbed;
     private bool _isSelected;
@@ -460,6 +463,7 @@ public sealed class BSPrim : PhysicsActor
     // no locking here because only called when it is safe
     private void SetObjectDynamic()
     {
+        // m_log.DebugFormat("{0}: ID={1}, SetObjectDynamic: IsStatic={2}, IsSolid={3}", LogHeader, _localID, IsStatic, IsSolid);
         // non-physical things work best with a mass of zero
         if (IsStatic)
         {
@@ -474,7 +478,6 @@ public sealed class BSPrim : PhysicsActor
 
         }
         BulletSimAPI.SetObjectProperties(_scene.WorldID, LocalID, IsStatic, IsSolid, SubscribedEvents(), _mass);
-        // m_log.DebugFormat("{0}: ID={1}, SetObjectDynamic: IsStatic={2}, IsSolid={3}, mass={4}", LogHeader, _localID, IsStatic, IsSolid, _mass);
     }
 
     // prims don't fly
@@ -955,7 +958,9 @@ public sealed class BSPrim : PhysicsActor
     // No locking here because this is done when we know physics is not simulating
     private void CreateGeomMesh()
     {
-        ulong newMeshKey = (ulong)_pbs.GetHashCode();
+        float lod = _pbs.SculptEntry ? _scene.SculptLOD : _scene.MeshLOD;
+        ulong newMeshKey = (ulong)_pbs.GetMeshKey(_size, lod);
+        // m_log.DebugFormat("{0}: CreateGeomMesh: lID={1}, oldKey={2}, newKey={3}", LogHeader, _localID, _meshKey, newMeshKey);
 
         // if this new shape is the same as last time, don't recreate the mesh
         if (_meshKey == newMeshKey) return;
@@ -963,14 +968,13 @@ public sealed class BSPrim : PhysicsActor
         // Since we're recreating new, get rid of any previously generated shape
         if (_meshKey != 0)
         {
-            // m_log.DebugFormat("{0}: CreateGeom: deleting old hull. Key={1}", LogHeader, _meshKey);
+            // m_log.DebugFormat("{0}: CreateGeom: deleting old mesh. lID={1}, Key={2}", LogHeader, _localID, _meshKey);
             BulletSimAPI.DestroyMesh(_scene.WorldID, _meshKey);
             _mesh = null;
             _meshKey = 0;
         }
 
         _meshKey = newMeshKey;
-        int lod = _pbs.SculptEntry ? _scene.SculptLOD : _scene.MeshLOD;
         // always pass false for physicalness as this creates some sort of bounding box which we don't need
         _mesh = _scene.mesher.CreateMesh(_avName, _pbs, _size, lod, false);
 
@@ -1001,7 +1005,9 @@ public sealed class BSPrim : PhysicsActor
     // No locking here because this is done when we know physics is not simulating
     private void CreateGeomHull()
     {
-        ulong newHullKey = (ulong)_pbs.GetHashCode();
+        float lod = _pbs.SculptEntry ? _scene.SculptLOD : _scene.MeshLOD;
+        ulong newHullKey = (ulong)_pbs.GetMeshKey(_size, lod);
+        // m_log.DebugFormat("{0}: CreateGeomHull: lID={1}, oldKey={2}, newKey={3}", LogHeader, _localID, _hullKey, newHullKey);
 
         // if the hull hasn't changed, don't rebuild it
         if (newHullKey == _hullKey) return;
@@ -1136,6 +1142,7 @@ public sealed class BSPrim : PhysicsActor
             // the mesh or hull must have already been created in Bullet
             ShapeData shape;
             FillShapeInfo(out shape);
+            // m_log.DebugFormat("{0}: CreateObject: lID={1}, shape={2}", LogHeader, _localID, shape.Type);
             BulletSimAPI.CreateObject(_scene.WorldID, shape);
         }
     }
@@ -1227,6 +1234,7 @@ public sealed class BSPrim : PhysicsActor
     // No locking here because this is done when the physics engine is not simulating
     private void RecreateGeomAndObject()
     {
+        // m_log.DebugFormat("{0}: RecreateGeomAndObject. lID={1}", LogHeader, _localID);
         CreateGeom(true);
         CreateObject();
         return;

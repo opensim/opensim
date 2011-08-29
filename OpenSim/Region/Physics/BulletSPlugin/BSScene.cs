@@ -73,13 +73,13 @@ public class BSScene : PhysicsScene, IPhysicsParameters
     private bool m_initialized = false;
 
     public IMesher mesher;
-    private int m_meshLOD;
-    public int MeshLOD
+    private float m_meshLOD;
+    public float MeshLOD
     {
         get { return m_meshLOD; }
     }
-    private int m_sculptLOD;
-    public int SculptLOD
+    private float m_sculptLOD;
+    public float SculptLOD
     {
         get { return m_sculptLOD; }
     }
@@ -189,8 +189,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
         _meshSculptedPrim = true;           // mesh sculpted prims
         _forceSimplePrimMeshing = false;    // use complex meshing if called for
 
-        m_meshLOD = 8;
-        m_sculptLOD = 32;
+        m_meshLOD = 8f;
+        m_sculptLOD = 32f;
 
         m_maxSubSteps = 10;
         m_fixedTimeStep = 1f / 60f;
@@ -231,8 +231,8 @@ public class BSScene : PhysicsScene, IPhysicsParameters
                 _meshSculptedPrim = pConfig.GetBoolean("MeshSculptedPrim", _meshSculptedPrim);
                 _forceSimplePrimMeshing = pConfig.GetBoolean("ForceSimplePrimMeshing", _forceSimplePrimMeshing);
 
-                m_meshLOD = pConfig.GetInt("MeshLevelOfDetail", m_meshLOD);
-                m_sculptLOD = pConfig.GetInt("SculptLevelOfDetail", m_sculptLOD);
+                m_meshLOD = pConfig.GetFloat("MeshLevelOfDetail", m_meshLOD);
+                m_sculptLOD = pConfig.GetFloat("SculptLevelOfDetail", m_sculptLOD);
 
                 m_maxSubSteps = pConfig.GetInt("MaxSubSteps", m_maxSubSteps);
                 m_fixedTimeStep = pConfig.GetFloat("FixedTimeStep", m_fixedTimeStep);
