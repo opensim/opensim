@@ -1782,7 +1782,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         // Set the parent localID to 0 so it transfers over properly.
                         gobj.RootPart.SetParentLocalId(0);
                         gobj.AbsolutePosition = gobj.RootPart.AttachedPos;
-                        gobj.RootPart.IsAttachment = false;
+                        gobj.IsAttachment = false;
                         //gobj.RootPart.LastOwnerID = gobj.GetFromAssetID();
                         m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending attachment {0} to region {1}", gobj.UUID, destination.RegionName);
                         CrossPrimGroupIntoNewRegion(destination, gobj, silent);

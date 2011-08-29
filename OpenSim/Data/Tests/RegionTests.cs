@@ -304,9 +304,9 @@ namespace OpenSim.Data.Tests
             regionInfo.RegionLocX = 0;
             regionInfo.RegionLocY = 0;
 
-//            Scene scene = new Scene(regionInfo);
-
             SceneObjectPart sop = new SceneObjectPart();
+            SceneObjectGroup sog = new SceneObjectGroup(sop);
+            
             sop.RegionHandle = regionh;
             sop.UUID = uuid;
             sop.LocalId = localid;
@@ -373,8 +373,6 @@ namespace OpenSim.Data.Tests
             
             // This is necessary or object will not be inserted in DB
             sop.Flags = PrimFlags.None;
-
-            SceneObjectGroup sog = new SceneObjectGroup(sop);
             
             // Inserts group in DB
             db.StoreObject(sog,region3);

@@ -38,6 +38,17 @@ namespace OpenSim.Region.Physics.Manager
         IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical);
     }
 
+    // Values for level of detail to be passed to the mesher.
+    // Values origionally chosen for the LOD of sculpties (the sqrt(width*heigth) of sculpt texture)
+    // Lower level of detail reduces the number of vertices used to represent the meshed shape.
+    public enum LevelOfDetail 
+    {
+        High = 32,
+        Medium = 16,
+        Low = 8,
+        VeryLow = 4
+    }
+
     public interface IVertex
     {
     }

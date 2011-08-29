@@ -201,7 +201,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Don't let this set the HasGroupChanged flag for attachments
             // as this happens during rez and we don't want a new asset
             // for each attachment each time
-            if (!m_part.ParentGroup.RootPart.IsAttachment)
+            if (!m_part.ParentGroup.IsAttachment)
             {
                 HasInventoryChanged = true;
                 m_part.ParentGroup.HasGroupChanged = true;

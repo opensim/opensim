@@ -965,6 +965,11 @@ namespace OpenSim.Region.Framework.Scenes
                     presence.Animator.SendAnimPackToClient(ControllingClient);
             });
 
+            // If we don't reset the movement flag here, an avatar that crosses to a neighbouring sim and returns will
+            // stall on the border crossing since the existing child agent will still have the last movement
+            // recorded, which stops the input from being processed.
+            m_movementflag = 0;
+
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
         }
 
@@ -1247,6 +1252,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
+//            m_log.DebugFormat("[SCENE PRESENCE]: Received agent update from {0}", remoteClient.Name);
+
             //if (m_isChildAgent)
             //{
             //    // m_log.Debug("DEBUG: HandleAgentUpdate: child agent");
@@ -1445,6 +1452,8 @@ namespace OpenSim.Region.Framework.Scenes
                                 {
                                     m_movementflag |= (byte)nudgehack;
                                 }
+
+//                                m_log.DebugFormat("[SCENE PRESENCE]: Updating m_movementflag for {0} with {1}", Name, DCF);
                                 m_movementflag += (byte)(uint)DCF;
                                 update_movementflag = true;
                             }
@@ -1456,6 +1465,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 && ((m_movementflag & (byte)nudgehack) == nudgehack))
                                 ) // This or is for Nudge forward
                             {
+//                                m_log.DebugFormat("[SCENE PRESENCE]: Updating m_movementflag for {0} with lack of {1}", Name, DCF);
                                 m_movementflag -= ((byte)(uint)DCF);
                                 update_movementflag = true;
 
@@ -1520,12 +1530,21 @@ namespace OpenSim.Region.Framework.Scenes
                 // which occurs later in the main scene loop
                 if (update_movementflag || (update_rotation && DCFlagKeyPressed))
                 {
-                    //                    m_log.DebugFormat("{0} {1}", update_movementflag, (update_rotation && DCFlagKeyPressed));
-                    //                    m_log.DebugFormat(
-                    //                        "In {0} adding velocity to {1} of {2}", m_scene.RegionInfo.RegionName, Name, agent_control_v3);
+//                    m_log.DebugFormat(
+//                        "[SCENE PRESENCE]: In {0} adding velocity of {1} to {2}, umf = {3}, ur = {4}",
+//                        m_scene.RegionInfo.RegionName, agent_control_v3, Name, update_movementflag, update_rotation);
 
                     AddNewMovement(agent_control_v3);
                 }
+//                else
+//                {
+//                    if (!update_movementflag)
+//                    {
+//                        m_log.DebugFormat(
+//                            "[SCENE PRESENCE]: In {0} ignoring requested update of {1} for {2} as update_movementflag = false",
+//                            m_scene.RegionInfo.RegionName, agent_control_v3, Name);
+//                    }
+//                }
 
                 if (update_movementflag && m_parentID == 0)
                     Animator.UpdateMovementAnimations();
@@ -3178,7 +3197,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ISceneObject clone = sog.CloneForNewScene();
                     // Attachment module assumes that GroupPosition holds the offsets...!
                     ((SceneObjectGroup)clone).RootPart.GroupPosition = sog.RootPart.AttachedPos;
-                    ((SceneObjectGroup)clone).RootPart.IsAttachment = false;
+                    ((SceneObjectGroup)clone).IsAttachment = false;
                     cAgent.AttachmentObjects.Add(clone);
                     string state = sog.GetStateSnapshot();
                     cAgent.AttachmentObjectStates.Add(state);
@@ -3477,7 +3496,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (SceneObjectGroup so in m_attachments)
                 {
-                    if (attachmentPoint == so.RootPart.AttachmentPoint)
+                    if (attachmentPoint == so.AttachmentPoint)
                         attachments.Add(so);
                 }
             }
@@ -3869,12 +3888,12 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (grp.HasGroupChanged) // Resizer scripts?
                     {
-                        grp.RootPart.IsAttachment = false;
+                        grp.IsAttachment = false;
                         grp.AbsolutePosition = grp.RootPart.AttachedPos;
 //                        grp.DetachToInventoryPrep();
                         attachmentsModule.UpdateKnownItem(ControllingClient,
                                 grp, grp.GetFromItemID(), grp.OwnerID);
-                        grp.RootPart.IsAttachment = true;
+                        grp.IsAttachment = true;
                     }
                 }
             }

@@ -1546,8 +1546,11 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
                 {
                     SceneObjectPart part = m_parentScene.GetSceneObjectPart(primLocalID);
-                    part.ClickAction = Convert.ToByte(clickAction);
-                    group.HasGroupChanged = true;
+                    if (part != null)
+                    {
+	                    part.ClickAction = Convert.ToByte(clickAction);
+	                    group.HasGroupChanged = true;
+                    }
                 }
             }
         }
@@ -1560,8 +1563,11 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_parentScene.Permissions.CanEditObject(group.UUID, remoteClient.AgentId))
                 {
                     SceneObjectPart part = m_parentScene.GetSceneObjectPart(primLocalID);
-                    part.Material = Convert.ToByte(material);
-                    group.HasGroupChanged = true;
+                    if (part != null)
+                    {
+                        part.Material = Convert.ToByte(material);
+                        group.HasGroupChanged = true;
+                    }
                 }
             }
         }

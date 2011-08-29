@@ -193,67 +193,6 @@ namespace OpenSim.Region.Physics.Meshing
             m_log.Error("****** PrimMesh Parameters ******\n" + primMesh.ParamsToDisplayString());
         }
 
-        private ulong GetMeshKey(PrimitiveBaseShape pbs, Vector3 size, float lod)
-        {
-            ulong hash = 5381;
-
-            hash = djb2(hash, pbs.PathCurve);
-            hash = djb2(hash, (byte)((byte)pbs.HollowShape | (byte)pbs.ProfileShape));
-            hash = djb2(hash, pbs.PathBegin);
-            hash = djb2(hash, pbs.PathEnd);
-            hash = djb2(hash, pbs.PathScaleX);
-            hash = djb2(hash, pbs.PathScaleY);
-            hash = djb2(hash, pbs.PathShearX);
-            hash = djb2(hash, pbs.PathShearY);
-            hash = djb2(hash, (byte)pbs.PathTwist);
-            hash = djb2(hash, (byte)pbs.PathTwistBegin);
-            hash = djb2(hash, (byte)pbs.PathRadiusOffset);
-            hash = djb2(hash, (byte)pbs.PathTaperX);
-            hash = djb2(hash, (byte)pbs.PathTaperY);
-            hash = djb2(hash, pbs.PathRevolutions);
-            hash = djb2(hash, (byte)pbs.PathSkew);
-            hash = djb2(hash, pbs.ProfileBegin);
-            hash = djb2(hash, pbs.ProfileEnd);
-            hash = djb2(hash, pbs.ProfileHollow);
-
-            // TODO: Separate scale out from the primitive shape data (after
-            // scaling is supported at the physics engine level)
-            byte[] scaleBytes = size.GetBytes();
-            for (int i = 0; i < scaleBytes.Length; i++)
-                hash = djb2(hash, scaleBytes[i]);
-
-            // Include LOD in hash, accounting for endianness
-            byte[] lodBytes = new byte[4];
-            Buffer.BlockCopy(BitConverter.GetBytes(lod), 0, lodBytes, 0, 4);
-            if (!BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(lodBytes, 0, 4);
-            }
-            for (int i = 0; i < lodBytes.Length; i++)
-                hash = djb2(hash, lodBytes[i]);
-
-            // include sculpt UUID
-            if (pbs.SculptEntry)
-            {
-                scaleBytes = pbs.SculptTexture.GetBytes();
-                for (int i = 0; i < scaleBytes.Length; i++)
-                    hash = djb2(hash, scaleBytes[i]);
-            }
-
-            return hash;
-        }
-
-        private ulong djb2(ulong hash, byte c)
-        {
-            return ((hash << 5) + hash) + (ulong)c;
-        }
-
-        private ulong djb2(ulong hash, ushort c)
-        {
-            hash = ((hash << 5) + hash) + (ulong)((byte)c);
-            return ((hash << 5) + hash) + (ulong)(c >> 8);
-        }
-
         /// <summary>
         /// Add a submesh to an existing list of coords and faces.
         /// </summary>
@@ -336,7 +275,7 @@ namespace OpenSim.Region.Physics.Meshing
             }
             else
             {
-                if (!GenerateCoordsAndFacesFromPrimShapeData(primName, primShape, size, out coords, out faces))
+                if (!GenerateCoordsAndFacesFromPrimShapeData(primName, primShape, size, lod, out coords, out faces))
                     return null;
             }
 
@@ -616,7 +555,7 @@ namespace OpenSim.Region.Physics.Meshing
         /// <param name="faces">Faces are added to this list by the method.</param>
         /// <returns>true if coords and faces were successfully generated, false if not</returns>
         private bool GenerateCoordsAndFacesFromPrimShapeData(
-            string primName, PrimitiveBaseShape primShape, Vector3 size, out List<Coord> coords, out List<Face> faces)
+            string primName, PrimitiveBaseShape primShape, Vector3 size, float lod, out List<Coord> coords, out List<Face> faces)
         {
             PrimMesh primMesh;
             coords = new List<Coord>();
@@ -636,13 +575,30 @@ namespace OpenSim.Region.Physics.Meshing
                 profileHollow = 0.95f;
 
             int sides = 4;
+            LevelOfDetail iLOD = (LevelOfDetail)lod;
             if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
                 sides = 3;
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
-                sides = 24;
+            {
+                switch (iLOD)
+                {
+                    case LevelOfDetail.High:    sides = 24;     break;
+                    case LevelOfDetail.Medium:  sides = 12;     break;
+                    case LevelOfDetail.Low:     sides = 6;      break;
+                    case LevelOfDetail.VeryLow: sides = 3;      break;
+                    default:                    sides = 24;     break;
+                }
+            }
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
             { // half circle, prim is a sphere
-                sides = 24;
+                switch (iLOD)
+                {
+                    case LevelOfDetail.High:    sides = 24;     break;
+                    case LevelOfDetail.Medium:  sides = 12;     break;
+                    case LevelOfDetail.Low:     sides = 6;      break;
+                    case LevelOfDetail.VeryLow: sides = 3;      break;
+                    default:                    sides = 24;     break;
+                }
 
                 profileBegin = 0.5f * profileBegin + 0.5f;
                 profileEnd = 0.5f * profileEnd + 0.5f;
@@ -650,7 +606,16 @@ namespace OpenSim.Region.Physics.Meshing
 
             int hollowSides = sides;
             if (primShape.HollowShape == HollowShape.Circle)
-                hollowSides = 24;
+            {
+                switch (iLOD)
+                {
+                    case LevelOfDetail.High:    hollowSides = 24;     break;
+                    case LevelOfDetail.Medium:  hollowSides = 12;     break;
+                    case LevelOfDetail.Low:     hollowSides = 6;      break;
+                    case LevelOfDetail.VeryLow: hollowSides = 3;      break;
+                    default:                    hollowSides = 24;     break;
+                }
+            }
             else if (primShape.HollowShape == HollowShape.Square)
                 hollowSides = 4;
             else if (primShape.HollowShape == HollowShape.Triangle)
@@ -751,7 +716,7 @@ namespace OpenSim.Region.Physics.Meshing
 
             // If this mesh has been created already, return it instead of creating another copy
             // For large regions with 100k+ prims and hundreds of copies of each, this can save a GB or more of memory
-            key = GetMeshKey(primShape, size, lod);
+            key = primShape.GetMeshKey(size, lod);
             if (m_uniqueMeshes.TryGetValue(key, out mesh))
                 return mesh;
 
