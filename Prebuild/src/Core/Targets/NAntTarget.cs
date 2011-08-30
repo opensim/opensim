@@ -644,7 +644,9 @@ namespace Prebuild.Core.Targets
                 ss.WriteLine("        <delete failonerror=\"false\">");
                 ss.WriteLine("        <fileset basedir=\"${bin.dir}\">");
                 ss.WriteLine("            <include name=\"OpenSim*.dll\"/>");
+                ss.WriteLine("            <include name=\"OpenSim*.dll.mdb\"/>");
                 ss.WriteLine("            <include name=\"OpenSim*.exe\"/>");
+                ss.WriteLine("            <include name=\"OpenSim*.exe.mdb\"/>");
                 ss.WriteLine("            <include name=\"ScriptEngines/*\"/>");
                 ss.WriteLine("            <include name=\"Physics/*.dll\"/>");
                 ss.WriteLine("            <include name=\"Physics/*.dll.mdb\"/>");
