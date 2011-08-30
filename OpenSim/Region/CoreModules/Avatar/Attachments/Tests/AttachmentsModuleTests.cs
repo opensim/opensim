@@ -138,7 +138,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             m_attMod.RezSingleAttachmentFromInventory(
                 m_presence.ControllingClient, attItemId, (uint)AttachmentPoint.Chest);
 
-            // Check status on scene presence
+            // Check scene presence status
             Assert.That(m_presence.HasAttachments(), Is.True);
             List<SceneObjectGroup> attachments = m_presence.Attachments;
             Assert.That(attachments.Count, Is.EqualTo(1));
@@ -149,12 +149,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             Assert.That(attSo.UsesPhysics, Is.False);
             Assert.That(attSo.IsTemporary, Is.False);
 
-            // Check item status
+            // Check appearance status
             Assert.That(m_presence.Appearance.GetAttachpoint(attItemId), Is.EqualTo((int)AttachmentPoint.Chest));
         }
 
         [Test]
-        public void TestDetachAttachmentToScene()
+        public void TestDetachAttachmentToGround()
         {
             TestHelpers.InMethod();
 //            log4net.Config.XmlConfigurator.Configure();
@@ -168,14 +168,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments.Tests
             UserInventoryHelpers.CreateInventoryItem(
                 scene, attName, attItemId, attAssetId, m_presence.UUID, InventoryType.Object);
 
+// Check item status
+            Assert.That(scene.InventoryService.GetItem(new InventoryItemBase(attItemId)), Is.Not.Null);
+
             UUID attSoId = m_attMod.RezSingleAttachmentFromInventory(
                 m_presence.ControllingClient, attItemId, (uint)AttachmentPoint.Chest);
             m_attMod.DetachSingleAttachmentToGround(attSoId, m_presence.ControllingClient);
 
-            // Check status on scene presence
+            // Check scene presence status
             Assert.That(m_presence.HasAttachments(), Is.False);
             List<SceneObjectGroup> attachments = m_presence.Attachments;
             Assert.That(attachments.Count, Is.EqualTo(0));
+
+            // Check appearance status
+            Assert.That(m_presence.Appearance.GetAttachments().Count, Is.EqualTo(0));
 
             // Check item status
             Assert.That(scene.InventoryService.GetItem(new InventoryItemBase(attItemId)), Is.Null);

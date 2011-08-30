@@ -383,9 +383,11 @@ namespace OpenSim.Framework
 // DEBUG OFF
 
         /// <summary>
-        /// Get a list of the attachments, note that there may be
-        /// duplicate attachpoints
+        /// Get a list of the attachments.
         /// </summary>
+        /// <remarks>
+        /// There may be duplicate attachpoints
+        /// </remarks>
         public List<AvatarAttachment> GetAttachments()
         {
             List<AvatarAttachment> alist = new List<AvatarAttachment>();
@@ -487,6 +489,7 @@ namespace OpenSim.Framework
                     // And remove the list if there are no more attachments here
                     if (m_attachments[kvp.Key].Count == 0)
                         m_attachments.Remove(kvp.Key);
+
                     return true;
                 }
             }

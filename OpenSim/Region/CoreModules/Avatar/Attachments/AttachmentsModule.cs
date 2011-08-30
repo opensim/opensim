@@ -451,6 +451,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
         public void DetachSingleAttachmentToGround(UUID sceneObjectID, IClientAPI remoteClient)
         {
+//            m_log.DebugFormat(
+//                "[ATTACHMENTS MODULE]: DetachSingleAttachmentToGround() for {0}, object {1}",
+//                remoteClient.Name, sceneObjectID);
+
             SceneObjectGroup so = m_scene.GetSceneObjectGroup(sceneObjectID);
 
             if (so == null)
@@ -461,6 +465,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             UUID inventoryID = so.GetFromItemID();
 
+//            m_log.DebugFormat(
+//                "[ATTACHMENTS MODULE]: In DetachSingleAttachmentToGround(), object is {0} {1}, associated item is {2}",
+//                so.Name, so.LocalId, inventoryID);
+
             ScenePresence presence;
             if (m_scene.TryGetScenePresence(remoteClient.AgentId, out presence))
             {
@@ -468,7 +476,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     so.PrimCount, remoteClient.AgentId, presence.AbsolutePosition))
                     return;
 
-                bool changed = presence.Appearance.DetachAttachment(sceneObjectID);
+                bool changed = presence.Appearance.DetachAttachment(inventoryID);
                 if (changed && m_scene.AvatarFactory != null)
                     m_scene.AvatarFactory.QueueAppearanceSave(remoteClient.AgentId);
 
@@ -485,7 +493,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
         }
 
         /// <summary>
-        /// Detach the given scene objet to the ground.
+        /// Detach the given scene object to the ground.
         /// </summary>
         /// <remarks>
         /// The caller has to take care of all the other work in updating avatar appearance, inventory, etc.
