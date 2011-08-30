@@ -403,7 +403,7 @@ namespace OpenSim.Services.LLLoginService
                 if (m_FriendsService != null)
                 {
                     friendsList = m_FriendsService.GetFriends(account.PrincipalID);
-                    m_log.DebugFormat("[LLOGIN SERVICE]: Retrieved {0} friends", friendsList.Length);
+//                    m_log.DebugFormat("[LLOGIN SERVICE]: Retrieved {0} friends", friendsList.Length);
                 }
 
                 //
