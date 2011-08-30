@@ -26,9 +26,12 @@
  */
 
 using System;
+using System.Collections.Generic;
+using Nini.Config;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region.CoreModules.Asset;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
@@ -64,6 +67,54 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
             // TODO: Check baked texture
             Assert.AreEqual(visualParams, sp.Appearance.VisualParams);
+        }
+
+        [Test]
+        public void TestSaveBakedTextures()
+        {
+            TestHelpers.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            UUID userId = TestHelpers.ParseTail(0x1);
+            UUID eyesTextureId = TestHelpers.ParseTail(0x2);
+
+            // We need an asset cache because otherwise the LocalAssetServiceConnector will short-circuit directly
+            // to the AssetService, which will then store temporary and local assets permanently
+            CoreAssetCache assetCache = new CoreAssetCache();
+            
+            AvatarFactoryModule afm = new AvatarFactoryModule();
+            TestScene scene = SceneHelpers.SetupScene(assetCache);
+            SceneHelpers.SetupSceneModules(scene, afm);
+            IClientAPI tc = SceneHelpers.AddScenePresence(scene, userId).ControllingClient;
+
+            // TODO: Use the actual BunchOfCaps functionality once we slot in the CapabilitiesModules
+            AssetBase uploadedAsset;
+            uploadedAsset = new AssetBase(eyesTextureId, "Baked Texture", (sbyte)AssetType.Texture, userId.ToString());
+            uploadedAsset.Data = new byte[] { 2 };
+            uploadedAsset.Temporary = true;
+            uploadedAsset.Local = true; // Local assets aren't persisted, non-local are
+            scene.AssetService.Store(uploadedAsset);
+
+            byte[] visualParams = new byte[AvatarAppearance.VISUALPARAM_COUNT];
+            for (byte i = 0; i < visualParams.Length; i++)
+                visualParams[i] = i;
+
+            Primitive.TextureEntry bakedTextureEntry = new Primitive.TextureEntry(TestHelpers.ParseTail(0x10));
+            uint eyesFaceIndex = (uint)AppearanceManager.BakeTypeToAgentTextureIndex(BakeType.Eyes);
+            Primitive.TextureEntryFace eyesFace = bakedTextureEntry.CreateFace(eyesFaceIndex);
+            eyesFace.TextureID = eyesTextureId;
+
+            afm.SetAppearanceFromClient(tc, bakedTextureEntry, visualParams);
+            afm.SaveBakedTextures(userId);
+//            Dictionary<BakeType, Primitive.TextureEntryFace> bakedTextures = afm.GetBakedTextureFaces(userId);
+
+            // We should also inpsect the asset data store layer directly, but this is difficult to get at right now.
+            assetCache.Clear();
+
+            AssetBase eyesBake = scene.AssetService.Get(eyesTextureId.ToString());
+            Assert.That(eyesBake, Is.Not.Null);
+            Assert.That(eyesBake.Temporary, Is.False);
+            Assert.That(eyesBake.Local, Is.False);
         }
     }
 }

@@ -136,7 +136,6 @@ namespace OpenSim.Region.ClientStack.Linden
             TaskScriptUpdatedCall = m_Scene.CapsUpdateTaskInventoryScriptAsset;
             CAPSFetchInventoryDescendents = m_Scene.HandleFetchInventoryDescendentsCAPS;
             GetClient = m_Scene.SceneContents.GetControllingClient;
-
         }
 
         /// <summary>

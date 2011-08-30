@@ -40,6 +40,7 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.CoreModules.Avatar.Gods;
+using OpenSim.Region.CoreModules.Asset;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory;
@@ -56,6 +57,11 @@ namespace OpenSim.Tests.Common
     /// </summary>
     public class SceneHelpers
     {
+        public static TestScene SetupScene()
+        {
+            return SetupScene(null);
+        }
+
         /// <summary>
         /// Set up a test scene
         /// </summary>
@@ -63,9 +69,14 @@ namespace OpenSim.Tests.Common
         /// Automatically starts service threads, as would the normal runtime.
         /// </remarks>
         /// <returns></returns>
-        public static TestScene SetupScene()
+        public static TestScene SetupScene(CoreAssetCache cache)
         {
-            return SetupScene("Unit test region", UUID.Random(), 1000, 1000);
+            return SetupScene("Unit test region", UUID.Random(), 1000, 1000, cache);
+        }
+
+        public static TestScene SetupScene(string name, UUID id, uint x, uint y)
+        {
+            return SetupScene(name, id, x, y, null);
         }
 
         /// <summary>
@@ -78,7 +89,7 @@ namespace OpenSim.Tests.Common
         /// <param name="y">Y co-ordinate of the region</param>
         /// <param name="cm">This should be the same if simulating two scenes within a standalone</param>
         /// <returns></returns>
-        public static TestScene SetupScene(string name, UUID id, uint x, uint y)
+        public static TestScene SetupScene(string name, UUID id, uint x, uint y, CoreAssetCache cache)
         {
             Console.WriteLine("Setting up test scene {0}", name);
 
@@ -103,7 +114,7 @@ namespace OpenSim.Tests.Common
             godsModule.Initialise(testScene, new IniConfigSource());
             testScene.AddModule(godsModule.Name, godsModule);
 
-            LocalAssetServicesConnector       assetService       = StartAssetService(testScene);
+            LocalAssetServicesConnector       assetService       = StartAssetService(testScene, cache);
                                                                    StartAuthenticationService(testScene);
             LocalInventoryServicesConnector   inventoryService   = StartInventoryService(testScene);
                                                                    StartGridService(testScene);
@@ -132,7 +143,7 @@ namespace OpenSim.Tests.Common
             return testScene;
         }
 
-        private static LocalAssetServicesConnector StartAssetService(Scene testScene)
+        private static LocalAssetServicesConnector StartAssetService(Scene testScene, CoreAssetCache cache)
         {
             LocalAssetServicesConnector assetService = new LocalAssetServicesConnector();
             IConfigSource config = new IniConfigSource();
@@ -145,6 +156,20 @@ namespace OpenSim.Tests.Common
             
             assetService.Initialise(config);
             assetService.AddRegion(testScene);
+
+            if (cache != null)
+            {
+                IConfigSource cacheConfig = new IniConfigSource();
+                cacheConfig.AddConfig("Modules");
+                cacheConfig.Configs["Modules"].Set("AssetCaching", "CoreAssetCache");
+                cacheConfig.AddConfig("AssetCache");
+
+                cache.Initialise(cacheConfig);
+                cache.AddRegion(testScene);
+                cache.RegionLoaded(testScene);
+                testScene.AddRegionModule(cache.Name, cache);
+            }
+
             assetService.RegionLoaded(testScene);
             testScene.AddRegionModule(assetService.Name, assetService);
             

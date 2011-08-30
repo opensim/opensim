@@ -83,7 +83,7 @@ namespace OpenSim.Services.AssetService
 
                     if (assetLoaderEnabled)
                     {
-                        m_log.InfoFormat("[ASSET]: Loading default asset set from {0}", loaderArgs);
+                        m_log.DebugFormat("[ASSET]: Loading default asset set from {0}", loaderArgs);
 
                         m_AssetLoader.ForEachDefaultXmlAsset(
                             loaderArgs,
@@ -100,7 +100,7 @@ namespace OpenSim.Services.AssetService
                             });
                     }
 
-                    m_log.Info("[ASSET SERVICE]: Local asset service enabled");
+                    m_log.Debug("[ASSET SERVICE]: Local asset service enabled");
                 }
             }
         }
@@ -180,6 +180,11 @@ namespace OpenSim.Services.AssetService
 //                    "[ASSET SERVICE]: Storing asset {0} {1}, bytes {2}", asset.Name, asset.FullID, asset.Data.Length);
                 m_Database.StoreAsset(asset);
             }
+//            else
+//            {
+//                m_log.DebugFormat(
+//                    "[ASSET SERVICE]: Not storing asset {0} {1}, bytes {2} as it already exists", asset.Name, asset.FullID, asset.Data.Length);                
+//            }
 
             return asset.ID;
         }
